@@ -21,9 +21,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.InstantRun;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.InstantRun.InstantRunDeploymentKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.InstantRun.InstantRunIdeBuildCause;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -61,7 +63,7 @@ public class InstantRunStatsService {
   public void notifyDeployStarted() {
   }
 
-  public void notifyDeployType(@NotNull DeployType type) {
+  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause) {
     synchronized (LOCK) {
       long buildAndDeployTime = System.currentTimeMillis() - myBuildStartTime;
 
@@ -70,20 +72,29 @@ public class InstantRunStatsService {
         // Installing an APK starts a new session.
         resetSession();
       }
-      else {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(EventCategory.STUDIO_BUILD)
-                                         .setKind(EventKind.INSTANT_RUN)
-                                         .setInstantRun(InstantRun.newBuilder()
-                                                        .setSessionId(mySessionId.toString())
-                                                        .setBuildTime(buildAndDeployTime)
-                                                        .setDeploymentKind(deployTypeToDeploymentKind(type))));
-                                                        // TODO: add build cause once logic determine cause is back in place.
-      }
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(EventCategory.STUDIO_BUILD)
+                                       .setKind(EventKind.INSTANT_RUN)
+                                       .setInstantRun(InstantRun.newBuilder()
+                                                      .setSessionId(mySessionId.toString())
+                                                      .setBuildTime(buildAndDeployTime)
+                                                      .setDeploymentKind(deployTypeToDeploymentKind(type))
+                                                      .setIdeBuildCause(buildCauseToProto(buildCause))));
     }
   }
 
-  private static InstantRunDeploymentKind deployTypeToDeploymentKind(DeployType type) {
+  private static InstantRunIdeBuildCause buildCauseToProto(@Nullable BuildCause buildCause) {
+    if (buildCause == null) {
+      return InstantRunIdeBuildCause.UNKNOWN_INSTANT_RUN_IDE_BUILD_CAUSE;
+    }
+    try {
+      return InstantRunIdeBuildCause.valueOf(buildCause.toString());
+    } catch (IllegalArgumentException e) {
+      return InstantRunIdeBuildCause.UNKNOWN_INSTANT_RUN_IDE_BUILD_CAUSE;
+    }
+  }
+
+  private static InstantRunDeploymentKind deployTypeToDeploymentKind(@NotNull DeployType type) {
     switch (type) {
       case LEGACY:
         return InstantRunDeploymentKind.LEGACY;

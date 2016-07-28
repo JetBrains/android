@@ -18,9 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.idea.fd.DeployType;
-import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -29,6 +27,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -38,18 +37,18 @@ public class DeployApkTask implements LaunchTask {
   private final Project myProject;
   private final Collection<ApkInfo> myApks;
   private final LaunchOptions myLaunchOptions;
-  private final boolean myInstantRunAware;
+  private final InstantRunContext myInstantRunContext;
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks) {
-    this(project, launchOptions, apks, false);
+    this(project, launchOptions, apks, null);
   }
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks,
-                       boolean instantRunAware) {
+                       @Nullable InstantRunContext instantRunContext) {
     myProject = project;
     myLaunchOptions = launchOptions;
     myApks = apks;
-    myInstantRunAware = instantRunAware;
+    myInstantRunContext = instantRunContext;
   }
 
   @NotNull
@@ -79,7 +78,7 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      if (!myInstantRunAware) {
+      if (myInstantRunContext == null) {
         // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
         // will not somehow see a stale build id on the device.
         try {
@@ -90,7 +89,11 @@ public class DeployApkTask implements LaunchTask {
       }
     }
 
-    InstantRunStatsService.get(myProject).notifyDeployType(myInstantRunAware ? DeployType.FULLAPK : DeployType.LEGACY);
+    if (myInstantRunContext == null) {
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.LEGACY, BuildCause.NO_INSTANT_RUN);
+    } else {
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why);
+    }
     trackInstallation(device);
 
     return true;
