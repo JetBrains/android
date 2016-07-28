@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -167,54 +168,69 @@ public class StyleFilterTest extends AndroidGradleTestCase {
                                   List<String> userSample,
                                   List<String> librarySample,
                                   List<String> frameworkSample) {
-    Set<String> userSampleStyles = new HashSet<>(userSample);
-    Set<String> librarySampleStyles = new HashSet<>(librarySample);
-    Set<String> frameworkSampleStyles = new HashSet<>(frameworkSample);
+    boolean success = false;
+    try {
+      Set<String> userSampleStyles = new HashSet<>(userSample);
+      Set<String> librarySampleStyles = new HashSet<>(librarySample);
+      Set<String> frameworkSampleStyles = new HashSet<>(frameworkSample);
 
-    String previousStyleName = "";
-    int index = 0;
+      String previousStyleName = "";
+      int index = 0;
 
-    // All user styles should be sorted
-    for (; index < styles.size() && styles.get(index).isUserDefined(); index++) {
-      StyleResourceValue style = styles.get(index);
-      assertStyle(styles.get(index), style.getName(), !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, false);
-      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
-      userSampleStyles.remove(style.getName());
-      previousStyleName = style.getName();
+      // All user styles should be sorted
+      for (; index < styles.size() && styles.get(index).isUserDefined(); index++) {
+        StyleResourceValue style = styles.get(index);
+        assertStyle(styles.get(index), style.getName(), !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, false);
+        assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+        userSampleStyles.remove(style.getName());
+        previousStyleName = style.getName();
+      }
+      int actualUserCount = index;
+      assertAtLeast(context + " user style count", minUserCount, actualUserCount);
+      assertEmpty(context, userSampleStyles);
+
+      // All library styles should be sorted
+      int previousIndex = index;
+      previousStyleName = "";
+      for (; index < styles.size() && !styles.get(index).isFramework(); index++) {
+        StyleResourceValue style = styles.get(index);
+        assertStyle(styles.get(index), style.getName(), !FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
+        assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+        librarySampleStyles.remove(style.getName());
+        previousStyleName = style.getName();
+      }
+      int actualLibraryCount = index - previousIndex;
+      assertAtLeast(context + " library style count", minLibraryCount, actualLibraryCount);
+      assertEmpty(context, librarySampleStyles);
+
+      // All framework styles should be sorted
+      previousIndex = index;
+      previousStyleName = "";
+      for (; index < styles.size(); index++) {
+        StyleResourceValue style = styles.get(index);
+        assertStyle(styles.get(index), style.getName(), FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
+        assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+        frameworkSampleStyles.remove(style.getName());
+        previousStyleName = style.getName();
+      }
+      int actualFrameworkCount = index - previousIndex;
+      assertAtLeast(context + " framework style count", minFrameworkCount, actualFrameworkCount);
+      assertEmpty(context, frameworkSampleStyles);
+
+      assertEquals("All styles should be in 3 sections", styles.size(), index);
+      success = true;
     }
-    int actualUserCount = index;
-    assertTrue(context + " user style count, actual: " + actualUserCount, minUserCount <= actualUserCount);
-    assertEmpty(context, userSampleStyles);
-
-    // All library styles should be sorted
-    int previousIndex = index;
-    previousStyleName = "";
-    for (; index < styles.size() && !styles.get(index).isFramework(); index++) {
-      StyleResourceValue style = styles.get(index);
-      assertStyle(styles.get(index), style.getName(), !FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
-      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
-      librarySampleStyles.remove(style.getName());
-      previousStyleName = style.getName();
+    finally {
+      if (!success) {
+        dumpStyles(styles);
+      }
     }
-    int actualLibraryCount = index - previousIndex;
-    assertTrue(context + " library style count, actual: " + actualLibraryCount, minLibraryCount <= actualLibraryCount);
-    assertEmpty(context, librarySampleStyles);
+  }
 
-    // All framework styles should be sorted
-    previousIndex = index;
-    previousStyleName = "";
-    for (; index < styles.size(); index++) {
-      StyleResourceValue style = styles.get(index);
-      assertStyle(styles.get(index), style.getName(), FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
-      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
-      frameworkSampleStyles.remove(style.getName());
-      previousStyleName = style.getName();
+  private static void assertAtLeast(@NotNull String message, int required, int actual) {
+    if (actual < required) {
+      fail(message + ", required: " + required + " actual: " + actual);
     }
-    int actualFrameworkCount = index - previousIndex;
-    assertTrue(context + " framework style count, actual: " + actualFrameworkCount , minFrameworkCount <= actualFrameworkCount);
-    assertEmpty(context, frameworkSampleStyles);
-
-    assertEquals("All styles should be in 3 sections", styles.size(), index);
   }
 
   private void assertStyle(@NotNull String name, boolean isFramework, boolean userDefined, boolean isDerived, boolean filteredOut) {
@@ -240,5 +256,29 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     assertEquals(name, userDefined, style.isUserDefined());
     assertEquals(name, isDerived, myFilter.isDerived(style));
     assertEquals(name, filteredOut, !myFilter.filter(style));
+  }
+
+  private static void dumpStyles(@NotNull List<StyleResourceValue> styles) {
+    StringBuilder builder = new StringBuilder();
+    String divider = StringUtil.repeat("=", 80) + "\n";
+    builder.append(divider);
+    builder.append("Origin    ");
+    builder.append("Name\n");
+    builder.append(divider);
+    for (StyleResourceValue style : styles) {
+      if (style.isUserDefined()) {
+        builder.append("User      ");
+      }
+      else if (!style.isFramework()) {
+        builder.append("AppCompat ");
+      }
+      else {
+        builder.append("Framework ");
+      }
+      builder.append(style.getName());
+      builder.append("\n");
+    }
+    builder.append(divider);
+    System.err.println(builder);
   }
 }
