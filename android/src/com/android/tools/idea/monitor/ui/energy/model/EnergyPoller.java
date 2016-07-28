@@ -38,7 +38,6 @@ public class EnergyPoller extends Poller {
     SeriesDataType.ENERGY_TOTAL,
   };
   private static final long POLL_PERIOD_NS = TimeUnit.MILLISECONDS.toNanos(1000);
-  private static Logger getLog() { return Logger.getInstance(EnergyPoller.class.getCanonicalName()); }
 
   private final int myAppId;
   private long myLatestSampleTimestampNs;
@@ -66,56 +65,50 @@ public class EnergyPoller extends Poller {
   }
 
   @Override
-  protected void asyncInit() {
+  protected void asyncInit() throws StatusRuntimeException {
     StartEnergyCollectionRequest request = StartEnergyCollectionRequest.newBuilder().setAppId(myAppId).build();
     EnergyCollectionStatusResponse response = myService.getEnergyService().startCollection(request);
     myLatestSampleTimestampNs = response.getTimestamp(); // Initially the latest sample time is same as start time.
   }
 
   @Override
-  protected void asyncShutdown() {
+  protected void asyncShutdown() throws StatusRuntimeException {
     StopEnergyCollectionRequest request = StopEnergyCollectionRequest.newBuilder().setAppId(myAppId).build();
     myService.getEnergyService().stopCollection(request);
-    // TODO what if this fails?
   }
 
   @Override
-  protected void poll() {
-    try {
-      EnergyDataRequest request = EnergyDataRequest.newBuilder()
-        .setAppId(myAppId)
-        .setStartTimeExcl(myLatestSampleTimestampNs)
-        .setEndTimeIncl(Long.MAX_VALUE)
-        .build();
+  protected void poll() throws StatusRuntimeException {
+    EnergyDataRequest request = EnergyDataRequest.newBuilder()
+      .setAppId(myAppId)
+      .setStartTimeExcl(myLatestSampleTimestampNs)
+      .setEndTimeIncl(Long.MAX_VALUE)
+      .build();
 
-      EnergyDataResponse response = myService.getEnergyService().getData(request);
+    EnergyDataResponse response = myService.getEnergyService().getData(request);
 
-      List<EnergyDataResponse.EnergySample> sampleList = response.getEnergySamplesList();
-      for (EnergyDataResponse.EnergySample sample : sampleList) {
-        long timestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-        long total = 0;
-        myAdapters.get(SeriesDataType.ENERGY_SCREEN).update(timestamp, sample.getScreenPowerUsage());
-        myAdapters.get(SeriesDataType.ENERGY_CPU_SYSTEM).update(timestamp, sample.getCpuSystemPowerUsage());
-        myAdapters.get(SeriesDataType.ENERGY_CPU_USER).update(timestamp, sample.getCpuUserPowerUsage());
-        myAdapters.get(SeriesDataType.ENERGY_SENSORS).update(timestamp, 0);
-        myAdapters.get(SeriesDataType.ENERGY_CELL_NETWORK).update(timestamp, 0);
-        myAdapters.get(SeriesDataType.ENERGY_WIFI_NETWORK).update(timestamp, 0);
+    List<EnergyDataResponse.EnergySample> sampleList = response.getEnergySamplesList();
+    for (EnergyDataResponse.EnergySample sample : sampleList) {
+      long timestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
+      long total = 0;
+      myAdapters.get(SeriesDataType.ENERGY_SCREEN).update(timestamp, sample.getScreenPowerUsage());
+      myAdapters.get(SeriesDataType.ENERGY_CPU_SYSTEM).update(timestamp, sample.getCpuSystemPowerUsage());
+      myAdapters.get(SeriesDataType.ENERGY_CPU_USER).update(timestamp, sample.getCpuUserPowerUsage());
+      myAdapters.get(SeriesDataType.ENERGY_SENSORS).update(timestamp, 0);
+      myAdapters.get(SeriesDataType.ENERGY_CELL_NETWORK).update(timestamp, 0);
+      myAdapters.get(SeriesDataType.ENERGY_WIFI_NETWORK).update(timestamp, 0);
 
-        for (SeriesDataType type : ENERGY_DATA_TYPES) {
-          if (type != SeriesDataType.ENERGY_TOTAL) {
-            total += myAdapters.get(type).getLatest();
-          }
+      for (SeriesDataType type : ENERGY_DATA_TYPES) {
+        if (type != SeriesDataType.ENERGY_TOTAL) {
+          total += myAdapters.get(type).getLatest();
         }
-        myAdapters.get(SeriesDataType.ENERGY_TOTAL).update(timestamp, total);
       }
+      myAdapters.get(SeriesDataType.ENERGY_TOTAL).update(timestamp, total);
+    }
 
-      if (myLatestSampleTimestampNs < response.getLatestSampleTimestamp()) {
-        myLatestSampleTimestampNs = response.getLatestSampleTimestamp();
-      }
-
-    } catch (StatusRuntimeException e) {
-      getLog().info("Server most likely unreachable.");
-      cancel(true);
+    // Update the start time for next query
+    if (myLatestSampleTimestampNs < response.getLatestSampleTimestamp()) {
+      myLatestSampleTimestampNs = response.getLatestSampleTimestamp();
     }
   }
 }

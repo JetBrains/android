@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,8 @@ public abstract class Poller implements RunnableFuture<Void> {
    * Delay between data requests (in nanoseconds).
    */
   public static final long POLLING_DELAY_NS = TimeUnit.MILLISECONDS.toNanos(250);
+
+  private static Logger getLog() { return Logger.getInstance(Poller.class); }
 
   @NotNull
   protected final DeviceProfilerService myService;
@@ -49,39 +52,59 @@ public abstract class Poller implements RunnableFuture<Void> {
     myPollPeriodNs = pollPeriodNs;
   }
 
-  protected abstract void asyncInit();
+  /**
+   * Will be called upon initialization on the polling thread.
+   * Implementor should throw StatusRuntimeException if there is ever an gRPC communication error.
+   * @throws StatusRuntimeException
+   */
+  protected abstract void asyncInit() throws StatusRuntimeException;
 
-  protected abstract void asyncShutdown();
+  /**
+   * Will be called upon termination on the polling thread.
+   * Implementor should throw StatusRuntimeException if there is ever an gRPC communication error.
+   * @throws StatusRuntimeException
+   */
+  protected abstract void asyncShutdown() throws StatusRuntimeException;
 
-  protected abstract void poll();
+  /**
+   * Will be called every time the poller needs to poll information from device.
+   * Implementor should throw StatusRuntimeException if there is ever an gRPC communication error.
+   * @throws StatusRuntimeException
+   */
+  protected abstract void poll() throws StatusRuntimeException;
 
+  /**
+   * Runs the polling loop and handles any gRPC exceptions with graceful failure, so
+   * methods communicating with device through gRPC wouldn't have to.
+   */
   @Override
   public void run() {
     try {
       asyncInit();
-
       while (myRunning.getCount() > 0) {
         long startTimeNs = System.nanoTime();
         poll();
-
         long sleepTime = Math.max(myPollPeriodNs - (System.nanoTime() - startTimeNs), 0L);
-        try {
-          myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
-        }
-        catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
+        myRunning.await(sleepTime, TimeUnit.NANOSECONDS);
       }
+    }
+    catch (StatusRuntimeException e) {
+      // Don't do anything except log, go straight to finally block which handles this anyways.
+      getLog().info("Error during gRPC communication. Poller exiting now.");
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
     finally {
       try {
         asyncShutdown();
       }
       catch (StatusRuntimeException e) {
-        // Delegate back to the EDT thread to deinitialize the UI and disconnect the profiler service.
-        SwingUtilities.invokeLater(() -> myDataStore.getEventDispatcher().getMulticaster().profilerServerDisconnected());
+        getLog().info("Error sending shutdown signal to on-device poller.");
       }
       finally {
+        // Delegate back to the EDT thread to deinitialize the UI and disconnect the profiler service.
+        SwingUtilities.invokeLater(() -> myDataStore.getEventDispatcher().getMulticaster().profilerServerDisconnected());
         myIsDone.countDown();
       }
     }
