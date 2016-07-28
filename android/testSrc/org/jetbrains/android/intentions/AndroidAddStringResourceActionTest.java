@@ -13,9 +13,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 
 import java.io.IOException;
 
+@Ignore("http://b.android.com/217034")
 public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "addStringRes/";
 
