@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.base.Objects;
 import com.intellij.psi.xml.XmlTag;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
