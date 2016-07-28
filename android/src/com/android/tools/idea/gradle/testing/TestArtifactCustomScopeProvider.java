@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
@@ -79,9 +80,12 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     }
   }
 
+  /**
+   * Scope that contains "local" (i.e. running on the JVM) unit tests from Android and Java modules.
+   */
   @Colored(color = "e7fadb", darkVariant = "2A3B2C")
   public static class UnitTestsScope extends NamedScope {
-    public static final String NAME = "Android Local Unit Tests";
+    public static final String NAME = "Local Unit Tests";
     public UnitTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
@@ -91,7 +95,14 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
         @Override
         public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
           TestArtifactSearchScopes scopes = getTestArtifactSearchScopes(file, project);
-          return scopes != null && scopes.isUnitTestSource(file);
+
+          if (scopes != null) {
+            // This is an Android project, only show unit tests.
+            return scopes.isUnitTestSource(file);
+          } else {
+            // Otherwise (java module) show all tests.
+            return file != null && ProjectRootManager.getInstance(project).getFileIndex().isInTestSourceContent(file);
+          }
         }
       });
     }
