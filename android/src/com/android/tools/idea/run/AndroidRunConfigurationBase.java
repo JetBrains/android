@@ -84,7 +84,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
-  public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
   public String PREFERRED_AVD = "";
 
   public boolean CLEAR_LOGCAT = false;
@@ -93,25 +92,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
   private final ProfilerState myProfilerState;
-  private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
-  private final Map<String, DeployTargetState> myDeployTargetStates;
 
   private final boolean myAndroidTests;
 
+  private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
     myProfilerState = new ProfilerState();
-    myDeployTargetProviders = DeployTargetProvider.getProviders();
     myAndroidTests = androidTests;
-
-    ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
-    for (DeployTargetProvider provider : myDeployTargetProviders) {
-      builder.put(provider.getId(), provider.createState());
-    }
-    myDeployTargetStates = builder.build();
   }
 
   @Override
@@ -169,7 +160,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getManifest() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
-    errors.addAll(getCurrentDeployTargetState().validate(facet));
+    errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
     errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet)).validate());
 
@@ -214,68 +205,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public TargetSelectionMode getTargetSelectionMode() {
-    try {
-      return TargetSelectionMode.valueOf(TARGET_SELECTION_MODE);
-    }
-    catch (IllegalArgumentException e) {
-      LOG.info(e);
-      return TargetSelectionMode.EMULATOR;
-    }
-  }
-
-  @NotNull
   public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
     List<DeployTargetProvider> targets = Lists.newArrayList();
 
-    for (DeployTargetProvider target : myDeployTargetProviders) {
+    for (DeployTargetProvider target : getDeployTargetContext().getDeployTargetProviders()) {
       if (target.isApplicable(myAndroidTests)) {
         targets.add(target);
       }
     }
 
     return targets;
-  }
-
-  @NotNull
-  public DeployTargetProvider getCurrentDeployTargetProvider() {
-    DeployTargetProvider target = getDeployTargetProvider(TARGET_SELECTION_MODE);
-    if (target == null) {
-      target = getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG.name());
-    }
-
-    assert target != null;
-    return target;
-  }
-
-  @Nullable
-  private DeployTargetProvider getDeployTargetProvider(@NotNull String id) {
-    for (DeployTargetProvider target : myDeployTargetProviders) {
-      if (target.getId().equals(id)) {
-        return target;
-      }
-    }
-
-    return null;
-  }
-
-  @NotNull
-  protected DeployTargetState getCurrentDeployTargetState() {
-    DeployTargetProvider currentTarget = getCurrentDeployTargetProvider();
-    return myDeployTargetStates.get(currentTarget.getId());
-  }
-
-  @NotNull
-  public DeployTargetState getDeployTargetState(@NotNull DeployTargetProvider target) {
-    return myDeployTargetStates.get(target.getId());
-  }
-
-  public void setTargetSelectionMode(@NotNull TargetSelectionMode mode) {
-    TARGET_SELECTION_MODE = mode.name();
-  }
-
-  public void setTargetSelectionMode(@NotNull DeployTargetProvider target) {
-    TARGET_SELECTION_MODE = target.getId();
   }
 
   /**
@@ -381,7 +320,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return null;
       }
 
-      DeployTargetState deployTargetState = getCurrentDeployTargetState();
+      DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
       if (deployTarget.hasCustomRunProfileState(executor)) {
         return deployTarget.getRunProfileState(executor, env, deployTargetState);
       }
@@ -525,7 +464,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        @NotNull ExecutionEnvironment env,
                                        boolean debug,
                                        @NotNull AndroidFacet facet) throws ExecutionException {
-    DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
+    DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
 
     DeployTarget deployTarget;
     if (currentTargetProvider.requiresRuntimePrompt()) {
@@ -536,7 +475,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           facet,
           getDeviceCount(debug),
           myAndroidTests,
-          myDeployTargetStates,
+          getDeployTargetContext().getDeployTargetStates(),
           getUniqueID(),
           LaunchCompatibilityCheckerImpl.create(facet)
         );
@@ -635,10 +574,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
 
-    for (DeployTargetState state : myDeployTargetStates.values()) {
-      DefaultJDOMExternalizer.readExternal(state, element);
-    }
-
+    myDeployTargetContext.readExternal(element);
     myAndroidDebuggerContext.readExternal(element);
 
     Element profilersElement = element.getChild(PROFILERS_ELEMENT_NAME);
@@ -653,10 +589,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
 
-    for (DeployTargetState state : myDeployTargetStates.values()) {
-      DefaultJDOMExternalizer.writeExternal(state, element);
-    }
-
+    myDeployTargetContext.writeExternal(element);
     myAndroidDebuggerContext.writeExternal(element);
 
     Element profilersElement = new Element(PROFILERS_ELEMENT_NAME);
@@ -670,6 +603,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return false;
     }
     return !androidDebugger.getId().equals(AndroidJavaDebugger.ID);
+  }
+
+  @NotNull
+  public DeployTargetContext getDeployTargetContext() {
+    return myDeployTargetContext;
   }
 
   @NotNull

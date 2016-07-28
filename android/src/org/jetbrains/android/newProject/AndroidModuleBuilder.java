@@ -231,7 +231,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
     AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
-    configuration.setTargetSelectionMode(mode);
+    configuration.getDeployTargetContext().setTargetSelectionMode(mode);
     if (preferredAvd != null) {
       configuration.PREFERRED_AVD = preferredAvd;
     }
