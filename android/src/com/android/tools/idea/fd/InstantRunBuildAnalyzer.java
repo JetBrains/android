@@ -97,7 +97,7 @@ public class InstantRunBuildAnalyzer {
         return ImmutableList.of(new DexDeployTask(myProject, myContext), updateStateTask);
       case FULLAPK:
         Preconditions.checkNotNull(launchOptions); // launchOptions can be null only under NO_CHANGES or HOTSWAP scenarios
-        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext), true);
+        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext), myContext);
         return ImmutableList.of(deployApkTask, updateStateTask);
       case LEGACY:
       default:
