@@ -19,22 +19,21 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest {
@@ -44,12 +43,17 @@ public class LaunchAndroidApplicationTest {
   private static final String APP_NAME = "app";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
-    ".*adb shell am start .*google\\.simpleapplication.+Connected to process.*", Pattern.DOTALL);
+    ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
+  private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
+  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Debugger has connected.*debugger has settled.*", Pattern.DOTALL);
   private static final String AVD_NAME = "device under test";
 
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
+    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+
     AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -72,9 +76,9 @@ public class LaunchAndroidApplicationTest {
   public void tearDown() throws Exception {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    ((MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection()).stopRunningAvd();
-
-    guiTest.ideFrame().invokeAvdManager().deleteAvd(AVD_NAME).close();
+    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+    mockAvdManagerConnection.stopRunningAvd();
+    mockAvdManagerConnection.deleteAvd(AVD_NAME);
   }
 
   @Category(GuiSanityTestSuite.class)
@@ -89,29 +93,25 @@ public class LaunchAndroidApplicationTest {
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    guiTest.importSimpleApplication();
-    String contents = guiTest.ideFrame()
-      .getEditor()
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR)
-      .getCurrentFileContents();
-    assertThat(contents).contains("setContentView(R.layout.activity_my);");
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    guiTest.ideFrame()
+    ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice("Nexus7")
+      .selectDevice(AVD_NAME)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    guiTest.ideFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
+    ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
+    ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
 
-    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }
