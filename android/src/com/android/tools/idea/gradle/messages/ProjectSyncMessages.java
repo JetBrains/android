@@ -22,6 +22,9 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
@@ -38,6 +41,8 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGr
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.sdk.StudioSdkUtil;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -63,6 +68,7 @@ import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
@@ -220,8 +226,21 @@ public class ProjectSyncMessages {
   private void reportUnresolvedDependency(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
     List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
     String group = UNRESOLVED_ANDROID_DEPENDENCIES;
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
+
+    RepoPackage constraintPackage = null;
+    if (coordinate != null) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      StudioSdkUtil.reloadRemoteSdkWithModalProgress();
+      RepositoryPackages packages = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(progress).getPackages();
+      constraintPackage = SdkMavenRepository.findBestPackageMatching(coordinate, packages.getRemotePackages().values());
+    }
+
     if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !canGetConstraintLayoutFromSdkManager(module)) {
       hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink(false));
+    }
+    else if (constraintPackage != null) {
+      hyperlinks.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
     }
     else if (dependency.startsWith("com.android.support")) {
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.ANDROID));
@@ -270,7 +289,6 @@ public class ProjectSyncMessages {
       msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
     }
     if (AndroidStudioInitializer.isAndroidStudio()) {
-      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
       if (coordinate != null) {
         hyperlinks.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
       }
@@ -526,6 +544,28 @@ public class ProjectSyncMessages {
     protected void execute(@NotNull Project project) {
       List<String> requested = Lists.newArrayList();
       requested.add(myRepository.getPackageId());
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
+      if (dialog != null) {
+        dialog.setTitle("Install Missing Components");
+        if (dialog.showAndGet()) {
+          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        }
+      }
+    }
+  }
+
+  private static class InstallArtifactHyperlink extends NotificationHyperlink {
+    @NotNull private final String myPath;
+
+    InstallArtifactHyperlink(@NotNull String path) {
+      super("install.m2.artifact", "Install artifact and sync project");
+      myPath = path;
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      List<String> requested = Lists.newArrayList();
+      requested.add(myPath);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null) {
         dialog.setTitle("Install Missing Components");
