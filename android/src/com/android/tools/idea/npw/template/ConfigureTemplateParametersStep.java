@@ -188,14 +188,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     final TemplateHandle templateHandle = getModel().getTemplateHandle();
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
-        // width calculation gets involved and can really stretch out some wizards if the label is
-        // particularly long (see Master/Detail Activity for example).
-        myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateHandle.getMetadata().getDescription())));
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
+      // width calculation gets involved and can really stretch out some wizards if the label is
+      // particularly long (see Master/Detail Activity for example).
+      myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateHandle.getMetadata().getDescription())));
     }, ModalityState.any());
 
     final IconProperty thumb = new IconProperty(myTemplateThumbLabel);
@@ -230,15 +227,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       RowEntry row = createRowForParameter(getModel().getModule(), parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
-        property.addListener(new InvalidationListener() {
-          @Override
-          public void onInvalidated(@NotNull ObservableValue<?> sender) {
-            // If not evaluating, change comes from the user
-            if (myEvaluationState != EvaluationState.EVALUATING) {
-              myUserValues.put(parameter, property.get());
-              // Evaluate later to prevent modifying Swing values that are locked during read
-              enqueueEvaluateParameters();
-            }
+        property.addListener(sender -> {
+          // If not evaluating, change comes from the user
+          if (myEvaluationState != EvaluationState.EVALUATING) {
+            myUserValues.put(parameter, property.get());
+            // Evaluate later to prevent modifying Swing values that are locked during read
+            enqueueEvaluateParameters();
           }
         });
 
@@ -270,21 +264,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       assert sourceSet != null; // SourceSetComboProvider always sets this
       myBindings.bind(getModel().getSourceSet(), sourceSet);
 
-      sourceSet.addListener(new InvalidationListener() {
-        @Override
-        public void onInvalidated(@NotNull ObservableValue<?> sender) {
-          enqueueEvaluateParameters();
-        }
-      });
+      sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
 
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, new Validator<String>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull String message) {
-        return (message.isEmpty() ? Result.OK : new Result(Severity.ERROR, message));
-      }
-    });
+    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
+      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
 
     // TODO: This code won't be needed until we migrate this enough to support
     // NewAndroidApplication/template.xml and NewAndroidLibrary/template.xml
@@ -461,14 +445,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @NotNull
   private String getCurrentThumbnailPath() {
-    return Strings.nullToEmpty(getModel().getTemplateHandle().getMetadata().getThumbnailPath(new Function<String, Object>() {
-      @Nullable
-      @Override
-      public Object apply(String parameterId) {
-        Parameter parameter = getModel().getTemplateHandle().getMetadata().getParameter(parameterId);
-        ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
-        return property != null ? property.get() : null;
-      }
+    return Strings.nullToEmpty(getModel().getTemplateHandle().getMetadata().getThumbnailPath(parameterId -> {
+      Parameter parameter = getModel().getTemplateHandle().getMetadata().getParameter(parameterId);
+      ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
+      return property != null ? property.get() : null;
     }));
   }
 
@@ -705,8 +685,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final JPanel myHeader;
     @NotNull private final ComponentProvider<T> myComponentProvider;
     @NotNull private final T myComponent;
-    @Nullable private AbstractProperty<?> myProperty;
-    @NotNull private WantGrow myWantGrow;
+    @Nullable private final AbstractProperty<?> myProperty;
+    @NotNull private final WantGrow myWantGrow;
 
     public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
