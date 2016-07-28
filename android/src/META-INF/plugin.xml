@@ -432,7 +432,6 @@
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
@@ -962,7 +961,6 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.GeneratedFileNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.AutoImportNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
@@ -1025,6 +1023,21 @@
     <customScopesProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>
+
+    <!-- Translations Editor -->
+    <editorNotificationProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorNotificationProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider"/>
+
+    <!-- XsltRefactoringSupportProvider clobbers this so move this first -->
+    <lang.refactoringSupport
+        id="android_string_resource"
+        implementationClass="com.android.tools.idea.editors.strings.StringResourceRefactoringSupportProvider"
+        language="XML"
+        order="first"/>
+
+    <refactoring.safeDeleteProcessor
+        id="android_string_resource"
+        implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
