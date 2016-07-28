@@ -491,7 +491,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
                                    .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
                                                          .setTotalTime(totalTime)));
 
-    shutdown();
+    if (myGapisConnection != null) {
+      myGapisConnection.close();
+      myGapisConnection = null;
+    }
+
+    myExecutor.shutdown();
   }
 
   public boolean isDisposed() {
@@ -501,13 +506,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private void connectToServer() throws GapisInitException {
     assert !ApplicationManager.getApplication().isDispatchThread();
 
-    myGapisConnection = GapisProcess.connect();
-    if (!myGapisConnection.isConnected()) {
+    GapisConnection gapisConnection = GapisProcess.connect();
+    if (!gapisConnection.isConnected()) {
       throw new GapisInitException(GapisInitException.MESSAGE_FAILED_CONNECT, "connection null", null);
     }
+    myGapisConnection = gapisConnection;
 
     try {
-      myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor), myExecutor);
+      myClient = new ServiceClientCache(gapisConnection.createServiceClient(myExecutor), myExecutor);
     }
     catch (IOException e) {
       throw new GapisInitException(GapisInitException.MESSAGE_FAILED_CONNECT, "Unable to create client", e);
@@ -521,15 +527,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         myLoadingPanel.showLoadingError(error, errorComponent);
       }
     });
-  }
-
-  private void shutdown() {
-    if (myGapisConnection != null) {
-      myGapisConnection.close();
-      myGapisConnection = null;
-    }
-
-    myExecutor.shutdown();
   }
 
   private static class GapisInitException extends Exception {
