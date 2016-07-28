@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,11 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 public class FormFactorUtils {
   private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
   public static final String INCLUDE_FORM_FACTOR = "included";
-  public static final String ATTR_MODULE_NAME = "projectName";
+  /*
+   * @deprecated Use {@link TemplateMetadata.ATTR_MODULE_NAME} instead.
+   */
+  @Deprecated
+  public static final String ATTR_MODULE_NAME = TemplateMetadata.ATTR_MODULE_NAME;
 
   @NotNull
   public static Key<AndroidTargetComboBoxItem> getTargetComboBoxKey(@NotNull FormFactor formFactor) {
