@@ -75,27 +75,34 @@ public abstract class SdkLoggerIntegration implements IReaderLogger {
       outputLine(t.toString());
     }
     else if (msgFormat != null) {
-      if (myIndicator != null) myIndicator.setText2(String.format(msgFormat, args));
-      outputLine(String.format(msgFormat, args));
+      if (myIndicator != null) myIndicator.setText2(formatIfNecessary(msgFormat, args));
+      outputLine(formatIfNecessary(msgFormat, args));
     }
   }
 
   @Override
   public void warning(@NotNull String msgFormat, Object... args) {
-    if (myIndicator != null) myIndicator.setText2(String.format(msgFormat, args));
-    outputLine(String.format(msgFormat, args));
+    if (myIndicator != null) myIndicator.setText2(formatIfNecessary(msgFormat, args));
+    outputLine(formatIfNecessary(msgFormat, args));
   }
 
   @Override
   public void info(@NotNull String msgFormat, Object... args) {
-    if (myIndicator != null) myIndicator.setText2(String.format(msgFormat, args));
-    outputLine(String.format(msgFormat, args));
+    if (myIndicator != null) myIndicator.setText2(formatIfNecessary(msgFormat, args));
+    outputLine(formatIfNecessary(msgFormat, args));
+  }
+
+  private static String formatIfNecessary(@NotNull String msgFormat, Object... args) {
+    if (args.length > 0) {
+      return String.format(msgFormat, args);
+    }
+    return msgFormat;
   }
 
   @Override
   public void verbose(@NotNull String msgFormat, Object... args) {
     // Don't log verbose stuff in the background indicator.
-    outputLine(String.format(msgFormat, args));
+    outputLine(formatIfNecessary(msgFormat, args));
   }
 
   /**
