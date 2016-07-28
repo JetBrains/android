@@ -271,7 +271,7 @@ public class AndroidUtils {
         }
 
         if (targetSelectionMode != null) {
-          configuration.setTargetSelectionMode(targetSelectionMode);
+          configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
         }
         if (preferredAvdName != null) {
           configuration.PREFERRED_AVD = preferredAvdName;
@@ -581,7 +581,7 @@ public class AndroidUtils {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
-          final TargetSelectionMode targetMode = runConfig.getTargetSelectionMode();
+          final TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
 
           if (runConfig.getConfigurationModule() == module) {
             return targetMode;
@@ -601,7 +601,7 @@ public class AndroidUtils {
     if (configurations.size() > 0) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
-          return ((AndroidRunConfigurationBase)configuration).getTargetSelectionMode();
+          return ((AndroidRunConfigurationBase)configuration).getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }

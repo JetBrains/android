@@ -51,7 +51,7 @@ class AndroidTestModifiedSettingsStep extends AndroidModifiedSettingsStep {
       final Module module = cfg.getConfigurationModule().getModule();
 
       if (testedModule.equals(module)) {
-        return cfg.getTargetSelectionMode();
+        return cfg.getDeployTargetContext().getTargetSelectionMode();
       }
     }
     return TargetSelectionMode.EMULATOR;
