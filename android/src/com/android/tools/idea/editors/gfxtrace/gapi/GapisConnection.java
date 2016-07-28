@@ -43,6 +43,10 @@ public abstract class GapisConnection implements Closeable {
     public ServiceClient createServiceClient(ListeningExecutorService executor) throws IOException {
       throw new IOException("Not connected");
     }
+
+    @Override
+    public void close() {
+    }
   };
 
   protected final GapisProcess myParent;
