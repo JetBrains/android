@@ -45,11 +45,11 @@ import static org.junit.Assume.assumeTrue;
  */
 @RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
+@Ignore("http://b.android.com/218478")
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/259")
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
