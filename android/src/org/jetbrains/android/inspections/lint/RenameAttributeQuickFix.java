@@ -22,19 +22,19 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Changes the attribute name.
  */
-public class RenameAttributeQuickFix implements AndroidLintQuickFix {
+class RenameAttributeQuickFix implements AndroidLintQuickFix {
   private final String myNamespace;
   private final String myLocalName;
 
-  public RenameAttributeQuickFix(@NotNull String namespace, @NotNull String localName) {
+  RenameAttributeQuickFix(@Nullable String namespace, @NotNull String localName) {
     myNamespace = namespace;
     myLocalName = localName;
   }
-
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
@@ -52,9 +52,12 @@ public class RenameAttributeQuickFix implements AndroidLintQuickFix {
     if (xmlFile == null) {
       return;
     }
-
-    String prefix = AndroidResourceUtil.ensureNamespaceImported(xmlFile, myNamespace, null);
-    attribute.setName(prefix + ":" + myLocalName);
+    if (myNamespace != null) {
+      String prefix = AndroidResourceUtil.ensureNamespaceImported(xmlFile, myNamespace, null);
+      attribute.setName(prefix + ":" + myLocalName);
+    } else {
+      attribute.setName(myLocalName);
+    }
   }
 
   @Override

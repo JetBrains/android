@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.checks.CommentDetector;
+import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -832,6 +833,31 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyDerived.java", "src/p1/p2/MyDerived.java");
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintRegisteredInspection());
+  }
+
+  /**
+   * Quick fix for typos in network-security-config file. (especially elements)
+   */
+  public void testNetworkSecurityConfigTypos1() throws Exception {
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNetworkSecurityConfigInspection(),
+                "Use domain-config", "res/xml/network-config.xml", "xml");
+  }
+
+  /**
+   * Check typos in network-security-config attribute.
+   */
+  public void testNetworkSecurityConfigTypos2() throws Exception {
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNetworkSecurityConfigInspection(),
+                  "Use includeSubdomains", "res/xml/network-config.xml", "xml");
+  }
+
+  public void testInvalidPinDigestAlg() throws Exception {
+    createManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNetworkSecurityConfigInspection(),
+                  "Set digest to \"SHA-256\"",
+                  "res/xml/network-config.xml", "xml");
   }
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
