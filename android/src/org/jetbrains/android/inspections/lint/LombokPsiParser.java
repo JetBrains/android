@@ -532,7 +532,7 @@ public class LombokPsiParser extends JavaParser {
     return false;
   }
 
-  private static class MyJavaEvaluator extends JavaEvaluator {
+  static class MyJavaEvaluator extends JavaEvaluator {
     private final Project myProject;
 
     public MyJavaEvaluator(Project project) {
