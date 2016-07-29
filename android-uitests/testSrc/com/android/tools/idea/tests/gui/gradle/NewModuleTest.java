@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -40,6 +41,7 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("http://ag/1261774")
   @Test
   public void testNewModuleOldGradle() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
