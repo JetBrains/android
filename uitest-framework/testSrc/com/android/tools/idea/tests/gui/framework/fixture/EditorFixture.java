@@ -724,7 +724,8 @@ public class EditorFixture {
     GOTO_DECLARATION("GotoDeclaration"),
     RUN_FROM_CONTEXT("RunClass"),
     ESCAPE("EditorEscape"),
-    DOWN("EditorDown")
+    DOWN("EditorDown"),
+    TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code Keymap_Default.xml}. */
