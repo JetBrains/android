@@ -893,6 +893,53 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspectionBase {
+    public AndroidLintNetworkSecurityConfigInspection() {
+      super(AndroidBundle.message("android.lint.inspections.network.security.config"), NetworkSecurityConfigDetector.ISSUE);
+    }
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      if (NetworkSecurityConfigDetector.isInvalidDigestAlgorithmMessage(message)) {
+        List<String> digestAlgs = NetworkSecurityConfigDetector.getSupportedPinDigestAlgorithms();
+        AndroidLintQuickFix[] digestFixes = new AndroidLintQuickFix[digestAlgs.size()];
+        for (int i = 0; i < digestFixes.length; i++) {
+          String algorithm = digestAlgs.get(i);
+          digestFixes[i] = new ReplaceStringQuickFix(String.format("Set digest to \"%1$s\"", algorithm), null, algorithm);
+        }
+        return digestFixes;
+      }
+      else if (NetworkSecurityConfigDetector.isAttributeSpellingError(message)) {
+        XmlTag parentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+        XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
+        assert parentTag != null;
+        assert currentAttr != null;
+        List<String> suggestions =
+          NetworkSecurityConfigDetector.getAttributeSpellingSuggestions(currentAttr.getName(), parentTag.getName());
+        AndroidLintQuickFix[] attrFixes = new AndroidLintQuickFix[suggestions.size()];
+        for (int i = 0; i < attrFixes.length; i++) {
+          attrFixes[i] = new RenameAttributeQuickFix(null /* no namespace */, suggestions.get(i));
+        }
+        return attrFixes;
+      }
+      else if (NetworkSecurityConfigDetector.isTagSpellingError(message)) {
+        XmlTag currentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+        assert currentTag != null;
+        XmlTag parentTag = currentTag.getParentTag();
+        assert parentTag != null;
+        List<String> suggestions =
+          NetworkSecurityConfigDetector.getTagSpellingSuggestions(currentTag.getName(), parentTag.getName());
+        AndroidLintQuickFix[] elementQuickFixes = new AndroidLintQuickFix[suggestions.size()];
+        for (int i = 0; i < elementQuickFixes.length; i++) {
+          elementQuickFixes[i] = new RenameXmlTagQuickFix(suggestions.get(i));
+        }
+        return elementQuickFixes;
+      } else {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
+    }
+  }
+
   public static class AndroidLintNewerVersionAvailableInspection extends AndroidLintInspectionBase {
     public AndroidLintNewerVersionAvailableInspection() {
       super(AndroidBundle.message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION);
@@ -948,6 +995,12 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{new RemoveAttributeQuickFix()};
+    }
+  }
+
+  public static class AndroidLintPinSetExpiryInspection extends AndroidLintInspectionBase {
+    public AndroidLintPinSetExpiryInspection() {
+      super(AndroidBundle.message("android.lint.inspections.pin.set.expiry"), NetworkSecurityConfigDetector.PIN_SET_EXPIRY);
     }
   }
 
@@ -1447,6 +1500,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMissingBackupPinInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingBackupPinInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.backup.pin"), NetworkSecurityConfigDetector.MISSING_BACKUP_PIN);
+    }
+  }
+
   public static class AndroidLintResourceCycleInspection extends AndroidLintInspectionBase {
     public AndroidLintResourceCycleInspection() {
       super(AndroidBundle.message("android.lint.inspections.resource.cycle"), ResourceCycleDetector.CYCLE);
@@ -1458,9 +1517,9 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  private static final Pattern QUOTED_PARAMETER = Pattern.compile("`.+:(.+)=\"(.*)\"`");
-
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
+    private static final Pattern QUOTED_PARAMETER = Pattern.compile("`.+:(.+)=\"(.*)\"`");
+
     public AndroidLintRtlCompatInspection() {
       super(AndroidBundle.message("android.lint.inspections.rtl.compat"), RtlDetector.COMPAT);
     }
