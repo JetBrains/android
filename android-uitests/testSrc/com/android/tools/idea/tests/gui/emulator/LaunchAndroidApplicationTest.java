@@ -28,6 +28,7 @@ import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -82,6 +83,7 @@ public class LaunchAndroidApplicationTest {
     mockAvdManagerConnection.deleteAvd(AVD_NAME);
   }
 
+  @Ignore("http://b/30477830")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
@@ -99,6 +101,7 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
+  @Ignore("http://b/30477830")
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
