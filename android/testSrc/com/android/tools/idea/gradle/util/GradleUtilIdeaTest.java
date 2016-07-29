@@ -120,7 +120,8 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     assertGradleWrapperCreated(projectWrapperDirPath, gradleVersion);
   }
 
-  public void testCreateGradleWrapperWithoutSpecificGradleVersion() throws IOException {
+  // http://b.android.com/218575
+  public void ignore_testCreateGradleWrapperWithoutSpecificGradleVersion() throws IOException {
     File projectDirPath = new File(myProject.getBasePath());
     File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
     assertFalse(projectWrapperDirPath.exists());
