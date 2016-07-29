@@ -43,6 +43,7 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
+import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -389,14 +390,12 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   /** Minimize the palette tool window, if possible */
   public void minimizePalette() {
     if (myToolWindow != null) {
-      try {
-        // When LightToolWindow#minimize() is added to the base platform and upstreamed,
-        // replace this:
-        LightToolWindow.class.getDeclaredMethod("minimize").invoke(myToolWindow);
-        // with myToolWindow.minimize();
-      } catch (Exception ignore) {
-      }
+      myToolWindow.minimize();
     }
+  }
+
+  public boolean toolWindowHasFocus() {
+    return myToolWindow != null && IJSwingUtilities.hasFocus(myToolWindow);
   }
 
   /**

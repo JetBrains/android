@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -72,6 +73,16 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
+  }
+
+  @Override
+  public void requestFocus() {
+    if (!myInspectors.isEmpty()) {
+      List<NlComponentEditor> editors = myInspectors.get(0).getEditors();
+      if (!editors.isEmpty()) {
+        editors.get(0).requestFocus();
+      }
+    }
   }
 
   @Override
