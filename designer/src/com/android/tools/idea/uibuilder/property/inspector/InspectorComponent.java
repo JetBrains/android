@@ -56,6 +56,11 @@ public interface InspectorComponent {
   void refresh();
 
   /**
+   * Request focus on the first component of this inspector.
+   */
+  void requestFocus();
+
+  /**
    * Get the editor for a given attribute.
    * Return <code>null</code> if this component is not displaying this attribute.
    */

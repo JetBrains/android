@@ -93,6 +93,14 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
   }
 
+  public void activatePropertySheet() {
+    setAllPropertiesPanelVisible(true);
+  }
+
+  public void activateInspector() {
+    setAllPropertiesPanelVisible(false);
+  }
+
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {

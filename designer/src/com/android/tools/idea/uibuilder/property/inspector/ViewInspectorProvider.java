@@ -159,6 +159,16 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
       }
     }
 
+    @Override
+    public void requestFocus() {
+      for (String propertyName : myPropertyNames) {
+        if (myProperties.containsKey(propertyName)) {
+          myEditors.get(propertyName).requestFocus();
+          break;
+        }
+      }
+    }
+
     @Nullable
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {

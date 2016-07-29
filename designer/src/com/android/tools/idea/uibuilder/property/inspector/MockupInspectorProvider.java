@@ -88,6 +88,11 @@ public class MockupInspectorProvider implements InspectorProvider {
       myMockupPathEditor.setProperty(myMockupPath);
     }
 
+    @Override
+    public void requestFocus() {
+      myMockupPathEditor.requestFocus();
+    }
+
     @Nullable
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {

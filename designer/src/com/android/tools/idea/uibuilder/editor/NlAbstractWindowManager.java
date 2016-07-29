@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -101,5 +102,19 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
         return myManager == propertiesManager ? paletteManager : propertiesManager;
       }
     };
+  }
+
+  @Nullable
+  public abstract Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer);
+
+  public void activateToolWindow(@NotNull DesignerEditorPanelFacade designer, @NotNull Runnable runnable) {
+    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
+    if (toolWindow != null) {
+      toolWindow.restore();
+      runnable.run();
+    }
+    else {
+      myToolWindow.show(runnable);
+    }
   }
 }
