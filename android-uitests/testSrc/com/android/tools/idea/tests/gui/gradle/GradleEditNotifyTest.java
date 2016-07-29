@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ public class GradleEditNotifyTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
+  @Ignore("http://b.android.com/218578")
   public void testEditNotify() throws IOException {
     // Edit a build.gradle file and ensure that you are immediately notified that
     // the build.gradle model is out of date
