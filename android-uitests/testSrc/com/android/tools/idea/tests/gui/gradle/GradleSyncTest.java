@@ -490,6 +490,7 @@ public class GradleSyncTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/218578")
   public void gradleDslMethodNotFoundInBuildFile() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -512,6 +513,7 @@ public class GradleSyncTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/218578")
   public void gradleDslMethodNotFoundInSettingsFile() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -523,7 +525,7 @@ public class GradleSyncTest {
     ideFrame.requestProjectSyncAndExpectFailure();
 
     ContentFixture gradleSyncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
+    MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Could not find method incude() for arguments"));
 
     // Ensure the error message contains the location of the error.
     message.requireLocation(settingsFile, 1);
@@ -1344,6 +1346,7 @@ public class GradleSyncTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/218578")
   public void suggestUpgradingAndroidPlugin() throws IOException {
     String hyperlinkText = "Fix plugin version and sync project";
 
