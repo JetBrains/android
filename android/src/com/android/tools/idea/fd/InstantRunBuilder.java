@@ -17,8 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.OptionalCompilationStep;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunBuildInfo;
@@ -215,7 +214,24 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     // for an app to considered running, in addition to it actually running, it also must be launched by the same executor
     // (i.e. run followed by run, or debug followed by debug). If the last session was for running, and this session is for debugging,
     // then very likely the process is in the middle of being terminated since we don't reuse the same run session.
-    boolean isAppRunning = myInstantRunClientDelegate.isAppInForeground(device, myInstantRunContext);
+    boolean isAppRunning;
+    try {
+      isAppRunning = myInstantRunClientDelegate.isAppInForeground(device, myInstantRunContext);
+    }
+    catch (IOException e) {
+      InstantRunManager.LOG.warn("IOException while attempting to determine if app is in foreground, assuming app not alive");
+      isAppRunning = false;
+
+      // Such an assumption could be fatal if the app is indeed running, so we force kill the app in the off chance that it was running.
+      // See https://code.google.com/p/android/issues/detail?id=218593
+      InstantRunManager.LOG.warn("Force killing app");
+      try {
+        device.executeShellCommand("am force-stop " + myInstantRunContext.getApplicationId(), new NullOutputReceiver());
+      }
+      catch (Exception ignore) {
+      }
+    }
+
     return isAppRunning && myRunContext.isSameExecutorAsPreviousSession();
   }
 
@@ -343,7 +359,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     /**
      * @return whether the app associated with the given module is already running on the given device and listening for IR updates
      */
-    default boolean isAppInForeground(@NotNull IDevice device, @NotNull InstantRunContext context) {
+    default boolean isAppInForeground(@NotNull IDevice device, @NotNull InstantRunContext context) throws IOException {
       InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(context);
       try {
         return instantRunClient != null && instantRunClient.getAppState(device) == AppState.FOREGROUND;
@@ -355,8 +371,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
           return false;
         }
 
-        InstantRunManager.LOG.warn("IOException while attempting to determine if app is in foreground, assuming app not alive");
-        return false;
+        throw e;
       }
     }
   }
