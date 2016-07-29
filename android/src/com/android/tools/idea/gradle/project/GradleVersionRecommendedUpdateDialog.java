@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -41,6 +42,7 @@ import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 public class GradleVersionRecommendedUpdateDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_GRADLE_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle";
 
+  @NotNull private final Project myProject;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
   private JPanel myMainPanel;
@@ -51,6 +53,7 @@ public class GradleVersionRecommendedUpdateDialog extends DialogWrapper {
                                               @NotNull GradleVersion recommendedVersion,
                                               @Nullable GradleVersion newPluginVersion) {
     super(project);
+    myProject = project;
     setTitle("Gradle Update Recommended");
     myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_GRADLE_PROPERTY_NAME) {
       @Override
@@ -149,6 +152,16 @@ public class GradleVersionRecommendedUpdateDialog extends DialogWrapper {
       buttonsPanel.add(button);
     }
     return buttonsPanel;
+  }
+
+  @Override
+  public void show() {
+    if (PropertiesComponent.getInstance(myProject).getBoolean(SHOW_DO_NOT_ASK_TO_UPGRADE_GRADLE_PROPERTY_NAME, true)) {
+      super.show();
+    }
+    else {
+      doCancelAction();
+    }
   }
 
   @Override
