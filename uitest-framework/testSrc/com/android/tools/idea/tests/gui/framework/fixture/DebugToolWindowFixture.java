@@ -15,10 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 
 public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
   public DebugToolWindowFixture(@NotNull IdeFrameFixture frameFixture) {
     super("Debug", frameFixture);
+  }
+
+  public DebugToolWindowFixture pressResumeProgram() {
+    ActionButton button = GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return "com.intellij.xdebugger.impl.actions.ResumeAction".equals(button.getAction().getClass().getCanonicalName())
+               && button.isEnabled();
+        }
+    });
+    myRobot.click(button);
+    return this;
   }
 }
