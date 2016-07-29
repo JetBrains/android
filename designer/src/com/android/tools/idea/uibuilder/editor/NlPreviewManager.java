@@ -97,6 +97,10 @@ public class NlPreviewManager implements ProjectComponent {
     return myToolWindow != null && myToolWindow.isVisible();
   }
 
+  public boolean toolWindowHasFocus() {
+    return myToolWindow != null && myToolWindowForm.toolWindowHasFocus();
+  }
+
   protected boolean isUseInteractiveSelector() {
     return true;
   }

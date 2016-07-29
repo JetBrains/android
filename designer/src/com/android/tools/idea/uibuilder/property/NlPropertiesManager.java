@@ -71,6 +71,14 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     setDesignSurface(designSurface);
   }
 
+  public void activatePropertySheet() {
+    myPropertiesPanel.activatePropertySheet();
+  }
+
+  public void activateInspector() {
+    myPropertiesPanel.activateInspector();
+  }
+
   @NotNull
   public AnAction[] getActions() {
     return new AnAction[]{
