@@ -84,8 +84,7 @@ public class ThemeSelectorTest {
     assertThat(themeList.get(5)).isEqualTo("Show all themes");
     assertThat(themeList.get(7)).isEqualTo("Create New Theme");
 
-    ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = ideFrame.getEditor();
+    EditorFixture editor = ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab").getEditor();
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewAppTheme");
     assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">");
@@ -93,8 +92,8 @@ public class ThemeSelectorTest {
     // Testing Undo
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     themesComboBox.selectItem("NewAppTheme");
-    ideFrame.invokeMenuPath("Edit", "Undo Renaming attribute value AppTh...");
-    ideFrame.findMessageDialog("Undo").clickOk();
+    ideFrame.invokeMenuPath("Edit", "Undo Renaming attribute value AppTh...")
+      .findMessageDialog("Undo").clickOk();
     themeEditor.waitForThemeSelection("AppTheme");
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
@@ -207,15 +206,15 @@ public class ThemeSelectorTest {
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = guiTest.ideFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab").getEditor();
     assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewTheme");
     assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewTheme\" parent=\"android:Theme.Holo\" />");
 
     // Tests Undo
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
-    guiTest.ideFrame().invokeMenuPath("Edit", "Undo Create new style NewTheme");
+    guiTest.ideFrame()
+      .invokeMenuPath("Window", "Editor Tabs", "Select Next Tab")
+      .invokeMenuPath("Edit", "Undo Create new style NewTheme");
     themeEditor.waitForThemeSelection("AppTheme");
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewTheme");

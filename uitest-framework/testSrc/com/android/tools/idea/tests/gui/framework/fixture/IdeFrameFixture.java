@@ -380,8 +380,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    *
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
-  public void invokeMenuPath(@NotNull String... path) {
+  public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
     getMenuFixture().invokeMenuPath(path);
+    return this;
   }
 
   /**
