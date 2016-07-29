@@ -160,8 +160,7 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
       super.show();
     }
     else {
-      // By default the exit code is CANCEL_EXIT_CODE
-      close(CANCEL_EXIT_CODE);
+      doCancelAction();
     }
   }
 
