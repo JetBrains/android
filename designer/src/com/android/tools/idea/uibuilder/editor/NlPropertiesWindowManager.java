@@ -66,6 +66,12 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     }
   }
 
+  @Override
+  public Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer) {
+    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
+    return toolWindow != null ? toolWindow.getContent() : myPropertiesManager;
+  }
+
   /**
    * Return true if the specified {@link NlPropertiesManager} is the active properties manager for this editor.
    * There are only 2 possible instances: the floating tool window represented by {@link #myPropertiesManager}
