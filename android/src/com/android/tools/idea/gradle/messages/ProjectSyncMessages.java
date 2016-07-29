@@ -27,8 +27,8 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
-import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
+import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -145,7 +145,7 @@ public class ProjectSyncMessages {
     VirtualFile buildFile = getBuildFile(module);
 
     for (SyncIssue syncIssue : syncIssues) {
-      if (syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR) {
+      if (syncIssue.getSeverity() == SEVERITY_ERROR) {
         hasSyncErrors = true;
       }
       switch (syncIssue.getType()) {
@@ -181,16 +181,15 @@ public class ProjectSyncMessages {
   }
 
   private void reportOldGradleVersion(@NotNull SyncIssue syncIssue) {
-    String group = UNHANDLED_SYNC_ISSUE_TYPE;
     String text = syncIssue.getMessage();
     Message.Type severity = getSeverityType(syncIssue);
     String gradleVersion = syncIssue.getData();
-    add(new Message(group, severity, NonNavigatable.INSTANCE, text), getQuickFixHyperlinks(myProject, gradleVersion));
+    add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, severity, NonNavigatable.INSTANCE, text), getQuickFixHyperlinks(myProject, gradleVersion));
   }
 
   @NotNull
   private static Message.Type getSeverityType(@NotNull SyncIssue syncIssue) {
-    return syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+    return syncIssue.getSeverity() == SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
   }
 
   @NotNull
@@ -332,14 +331,12 @@ public class ProjectSyncMessages {
   }
 
   public void reportDependencySetupErrors() {
-    DependencySetupErrors setupErrors = getDependencySetupErrors(myProject);
-    if (setupErrors != null) {
-      reportModulesNotFoundErrors(setupErrors);
-      setDependencySetupErrors(myProject, null);
-    }
+    SyncDependencySetupErrors setupErrors = SyncDependencySetupErrors.getInstance(myProject);
+    reportModulesNotFoundErrors(setupErrors);
+    setupErrors.clear();
   }
 
-  private void reportModulesNotFoundErrors(@NotNull DependencySetupErrors setupErrors) {
+  private void reportModulesNotFoundErrors(@NotNull SyncDependencySetupErrors setupErrors) {
     reportModulesNotFoundIssues(MISSING_DEPENDENCIES_BETWEEN_MODULES, setupErrors.getMissingModules());
 
     for (String dependent : setupErrors.getMissingNames()) {
@@ -352,7 +349,7 @@ public class ProjectSyncMessages {
       add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
     }
 
-    for (DependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
+    for (SyncDependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
       String msg = String.format("Ignoring dependency of module '%1$s' on module '%2$s'. %3$s",
                                  dependency.dependent, dependency.dependency.getName(), dependency.detail);
       VirtualFile buildFile = getBuildFile(dependency.dependency);

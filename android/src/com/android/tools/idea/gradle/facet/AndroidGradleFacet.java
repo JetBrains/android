@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.facet;
 import com.android.tools.idea.gradle.GradleModel;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
-import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -31,6 +30,8 @@ import org.jetbrains.android.model.AndroidModelSerializationConstants;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
 
 /**
  * Android-Gradle facet.
@@ -86,7 +87,7 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   private void updateConfiguration() {
     AndroidGradleFacetConfiguration config = getConfiguration();
     try {
-      FacetUtil.saveFacetConfiguration(config);
+      saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
       LOG.error("Unable to save contents of 'Android-Gradle' facet", e);

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
@@ -87,7 +87,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   private void updateDependency(@NotNull Module module,
                                 @NotNull IdeModifiableModelsProvider modelsProvider,
                                 @NotNull JavaModuleDependency dependency) {
-    DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
+    SyncDependencySetupErrors setupErrors = SyncDependencySetupErrors.getInstance(module.getProject());
 
     String moduleName = dependency.getModuleName();
     Module found = null;
@@ -117,7 +117,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {
-      DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
+      SyncDependencySetupErrors setupErrors = SyncDependencySetupErrors.getInstance(module.getProject());
       setupErrors.addMissingBinaryPath(module.getName());
       return;
     }

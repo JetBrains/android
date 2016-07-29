@@ -58,6 +58,7 @@ public class GradleSync {
   @NotNull private final Project myProject;
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
+  @NotNull
   public static GradleSync getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleSync.class);
   }
@@ -97,9 +98,11 @@ public class GradleSync {
     callback.doWhenDone(() -> {
       assert callback instanceof SyncCallback;
       SyncAction.ProjectModels models = ((SyncCallback)callback).getModels();
-      ProjectConfigurator configurator = new ProjectConfigurator(myProject);
-      configurator.apply(models);
-      configurator.commit(true /* synchronous */);
+      if (models != null) {
+        ProjectSetup projectSetup = new ProjectSetup(myProject);
+        projectSetup.setUpProject(models, indicator);
+        projectSetup.commit(true /* synchronous */);
+      }
     });
   }
 

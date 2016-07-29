@@ -19,40 +19,38 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
-class ProjectConfigurator {
+class ProjectSetup {
   private static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
   @NotNull private final Project myProject;
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
-  @NotNull private final ModuleCreator myModuleCreator;
+  @NotNull private final ModuleFactory myModuleFactory;
+  @NotNull private final ModuleSetup myModuleSetup;
 
-  ProjectConfigurator(@NotNull Project project) {
+  ProjectSetup(@NotNull Project project) {
     myProject = project;
     myModelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    myModuleCreator = new ModuleCreator(myProject, myModelsProvider);
+    myModuleFactory = new ModuleFactory(myProject, myModelsProvider);
+    myModuleSetup = new ModuleSetup(myModelsProvider);
   }
 
-  void apply(@Nullable SyncAction.ProjectModels models) {
-    if (models == null) {
-      // TODO handle this case.
-      return;
-    }
-    createModules(models);
+  void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
+    createModules(models, indicator);
   }
 
-  private void createModules(@NotNull SyncAction.ProjectModels projectModels) {
+  private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
     for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
       // We need to create all modules before setting them up, in case we find inter-module dependencies.
       SyncAction.ModuleModels moduleModels = projectModels.getModels(ideaModule);
-      Module module = myModuleCreator.createModule(ideaModule, moduleModels);
+      Module module = myModuleFactory.createModule(ideaModule, moduleModels);
       module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
     }
 
@@ -63,13 +61,9 @@ class ProjectConfigurator {
         // TODO remove module
         continue;
       }
-      configureModule(module, moduleModels);
+      myModuleSetup.setUpModule(module, moduleModels, indicator);
       module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
     }
-  }
-
-  private void configureModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models) {
-    // TODO implement
   }
 
   void commit(boolean synchronous) {
