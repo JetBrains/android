@@ -753,4 +753,9 @@ public class EditorFixture {
       myTabName = tabName;
     }
   }
+
+  public ApkViewerFixture getApkViewer(String name) {
+    switchToTab(name);
+    return ApkViewerFixture.find(getIdeFrame());
+  }
 }
