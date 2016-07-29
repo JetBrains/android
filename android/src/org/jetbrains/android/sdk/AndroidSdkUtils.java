@@ -57,7 +57,6 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -137,7 +136,9 @@ public final class AndroidSdkUtils {
 
     List<OptionalLibrary> libs = target.getAdditionalLibraries();
     for (OptionalLibrary lib : libs) {
-      VirtualFile libRoot = findFileInJarFileSystem(lib.getJar().getAbsolutePath());
+      File jar = lib.getJar();
+      assert jar != null;
+      VirtualFile libRoot = findFileInJarFileSystem(jar.getAbsolutePath());
       if (libRoot != null) {
         result.add(libRoot);
       }
@@ -264,16 +265,6 @@ public final class AndroidSdkUtils {
     return found;
   }
 
-  @NotNull
-  public static String getPresentableTargetName(@NotNull IAndroidTarget target) {
-    IAndroidTarget parentTarget = target.getParent();
-    String name = target.getName();
-    if (parentTarget != null) {
-      name = name + " (" + parentTarget.getVersionName() + ')';
-    }
-    return name;
-  }
-
   /**
    * Creates a new IDEA Android SDK. User is prompt for the paths of the Android SDK and JDK if necessary.
    *
@@ -352,7 +343,7 @@ public final class AndroidSdkUtils {
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = createUniqueSdkName(SDK_NAME, Arrays.asList(table.getAllJdks()));
 
-    final Sdk sdk = table.createSdk(tmpName, AndroidSdkType.getInstance());
+    Sdk sdk = table.createSdk(tmpName, AndroidSdkType.getInstance());
 
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
@@ -360,12 +351,7 @@ public final class AndroidSdkUtils {
 
     setUpSdk(sdk, sdkName, table.getAllJdks(), target, jdk, addRoots);
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ProjectJdkTable.getInstance().addJdk(sdk);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
     return sdk;
   }
 
@@ -459,7 +445,7 @@ public final class AndroidSdkUtils {
   @NotNull
   public static List<Sdk> getAllAndroidSdks() {
     List<Sdk> allSdks = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance());
-    return allSdks != null ? allSdks : Collections.<Sdk>emptyList();
+    return allSdks != null ? allSdks : Collections.emptyList();
   }
 
   private static boolean tryToSetAndroidPlatform(@NotNull Module module, @NotNull Sdk sdk) {
@@ -570,19 +556,6 @@ public final class AndroidSdkUtils {
     return false;
   }
 
-  public static void clearLocalPkgInfo(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
-    if (data == null) {
-      return;
-    }
-
-    if (data.getAndroidPlatform() != null) {
-      data.getAndroidPlatform().getSdkData().getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdkUtils.class))
-        .markInvalid();
-    }
-    data.clearAndroidPlatform();
-  }
-
   /**
    * Reload SDK information and update the source root of the SDK.
    */
@@ -622,21 +595,18 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  private static Sdk promptUserForSdkCreation(@Nullable final IAndroidTarget target,
-                                              @Nullable final String androidSdkPath,
-                                              @Nullable final String jdkPath) {
-    final Ref<Sdk> sdkRef = new Ref<Sdk>();
-    Runnable task = new Runnable() {
-      @Override
-      public void run() {
-        SelectSdkDialog dlg = new SelectSdkDialog(jdkPath, androidSdkPath);
-        dlg.setModal(true);
-        if (dlg.showAndGet()) {
-          Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome(), dlg.getJdkHome());
-          sdkRef.set(sdk);
-          if (sdk != null) {
-            RunAndroidSdkManagerAction.updateInWelcomePage(dlg.getContentPanel());
-          }
+  private static Sdk promptUserForSdkCreation(@Nullable IAndroidTarget target,
+                                              @Nullable String androidSdkPath,
+                                              @Nullable String jdkPath) {
+    Ref<Sdk> sdkRef = new Ref<>();
+    Runnable task = () -> {
+      SelectSdkDialog dlg = new SelectSdkDialog(jdkPath, androidSdkPath);
+      dlg.setModal(true);
+      if (dlg.showAndGet()) {
+        Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome(), dlg.getJdkHome());
+        sdkRef.set(sdk);
+        if (sdk != null) {
+          RunAndroidSdkManagerAction.updateInWelcomePage(dlg.getContentPanel());
         }
       }
     };
@@ -793,7 +763,7 @@ public final class AndroidSdkUtils {
       }
     }
     else {
-      final OSProcessHandler ddmsProcessHandler = AndroidRunDdmsAction.getDdmsProcessHandler();
+      OSProcessHandler ddmsProcessHandler = AndroidRunDdmsAction.getDdmsProcessHandler();
       if (ddmsProcessHandler != null) {
         String message = "Monitor will be closed to enable ADB integration. Continue?";
         int result = Messages.showYesNoDialog(project, message, "ADB Integration", Messages.getQuestionIcon());
@@ -801,13 +771,10 @@ public final class AndroidSdkUtils {
           return false;
         }
 
-        Runnable destroyingRunnable = new Runnable() {
-          @Override
-          public void run() {
-            if (!ddmsProcessHandler.isProcessTerminated()) {
-              OSProcessManager.getInstance().killProcessTree(ddmsProcessHandler.getProcess());
-              ddmsProcessHandler.waitFor();
-            }
+        Runnable destroyingRunnable = () -> {
+          if (!ddmsProcessHandler.isProcessTerminated()) {
+            OSProcessManager.getInstance().killProcessTree(ddmsProcessHandler.getProcess());
+            ddmsProcessHandler.waitFor();
           }
         };
         if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(destroyingRunnable, "Closing Monitor", true, project)) {

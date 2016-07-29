@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Contains Gradle related state necessary for building an IDEA module using Gradle.
@@ -42,20 +47,40 @@ public class GradleModel implements Serializable {
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
 
-  @Nullable private final File myBuildFile;
+  @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
 
+  @NotNull
+  public static GradleModel create(@NotNull Module module, @NotNull SyncAction.ModuleModels models) {
+    GradleProject gradleProject = models.getModule().getGradleProject();
+    GradleScript buildScript = null;
+    try {
+      buildScript = gradleProject.getBuildScript();
+    }
+    catch (UnsupportedOperationException e) {
+      // Ignored. We got here because the project is using Gradle 1.8 or older.
+    }
+
+    File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
+
+    BuildScriptClasspathModel classpathModel = models.findModel(BuildScriptClasspathModel.class);
+    String gradleVersion = classpathModel != null ? classpathModel.getGradleVersion() : null;
+
+    return create(module.getName(), gradleProject, buildFilePath, gradleVersion);
+  }
 
   /**
    * Creates a new {@link GradleModel}.
+   *
    * @param moduleName    the name of the IDEA module.
    * @param gradleProject the Gradle project.
-   * @param buildFile     the build.gradle file.
+   * @param buildFilePath the path of the build.gradle file.
    * @param gradleVersion the version of Gradle used to sync the project.
    */
+  @NotNull
   public static GradleModel create(@NotNull String moduleName,
                                    @NotNull GradleProject gradleProject,
-                                   @Nullable File buildFile,
+                                   @Nullable File buildFilePath,
                                    @Nullable String gradleVersion) {
     List<String> taskNames = Lists.newArrayList();
     DomainObjectSet<? extends GradleTask> tasks = gradleProject.getTasks();
@@ -63,23 +88,24 @@ public class GradleModel implements Serializable {
       for (GradleTask task : tasks) {
         String name = task.getName();
         if (isNotEmpty(name)) {
-          taskNames.add(task.getProject().getPath() + SdkConstants.GRADLE_PATH_SEPARATOR + task.getName());
+          taskNames.add(task.getProject().getPath() + GRADLE_PATH_SEPARATOR + task.getName());
         }
       }
     }
 
-    return new GradleModel(moduleName, taskNames, gradleProject.getPath(), buildFile, gradleVersion);
+    return new GradleModel(moduleName, taskNames, gradleProject.getPath(), buildFilePath, gradleVersion);
   }
 
+  @VisibleForTesting
   public GradleModel(@NotNull String moduleName,
                      @NotNull List<String> taskNames,
                      @NotNull String gradlePath,
-                     @Nullable File buildFile,
+                     @Nullable File buildFilePath,
                      @Nullable String gradleVersion) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
-    myBuildFile = buildFile;
+    myBuildFilePath = buildFilePath;
     myGradleVersion = gradleVersion;
   }
 
@@ -103,7 +129,7 @@ public class GradleModel implements Serializable {
 
   @Nullable
   public VirtualFile getBuildFile() {
-    return myBuildFile != null ? VfsUtil.findFileByIoFile(myBuildFile, true) : null;
+    return myBuildFilePath != null ? findFileByIoFile(myBuildFilePath, true) : null;
   }
 
   @Nullable

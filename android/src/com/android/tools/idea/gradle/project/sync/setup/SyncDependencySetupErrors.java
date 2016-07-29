@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer.dependency;
+package com.android.tools.idea.gradle.project.sync.setup;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.Collections.sort;
@@ -33,14 +30,32 @@ import static java.util.Collections.sort;
 /**
  * Dependencies that were not correctly set up after a Gradle sync.
  */
-public class DependencySetupErrors {
-  @NotNull private final Map<String, MissingModule> myMissingModules = Maps.newHashMap();
-  @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = Maps.newHashMap();
+public class SyncDependencySetupErrors {
+  @NotNull private final Map<String, MissingModule> myMissingModules = new HashMap<>();
+  @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new HashMap<>();
 
-  @NotNull private final Set<String> myDependentsOnModulesWithoutName = Sets.newHashSet();
-  @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = Sets.newHashSet();
+  @NotNull private final Set<String> myDependentsOnModulesWithoutName = new HashSet<>();
+  @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = new HashSet<>();
 
-  @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = Sets.newHashSet();
+  @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = new HashSet<>();
+
+  @NotNull
+  public static SyncDependencySetupErrors getInstance(@NotNull Module module) {
+    return getInstance(module.getProject());
+  }
+
+  @NotNull
+  public static SyncDependencySetupErrors getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, SyncDependencySetupErrors.class);
+  }
+
+  public void clear() {
+    myMissingModules.clear();
+    myMissingModulesWithBackupLibraries.clear();
+    myDependentsOnModulesWithoutName.clear();
+    myDependentsOnLibrariesWithoutBinaryPath.clear();
+    myInvalidModuleDependencies.clear();
+  }
 
   public void addMissingModule(@NotNull String dependencyName, @NotNull String dependentName, @Nullable String backupLibraryName) {
     Map<String, MissingModule> mapping = isNotEmpty(backupLibraryName) ? myMissingModulesWithBackupLibraries : myMissingModules;

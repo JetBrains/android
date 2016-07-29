@@ -841,6 +841,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
@@ -999,6 +1000,8 @@
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.npw.NewModuleDynamicPathFactory"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
+    <extensionPoint qualifiedName="com.android.gradle.androidModuleSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
@@ -1092,6 +1095,13 @@
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.cpp.ContentRootModuleCustomizer"/>
+
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.AndroidFacetModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.SdkModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.DependenciesModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.CompilerOutputModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.ContentRootModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.RunConfigurationModuleSetupStep"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
