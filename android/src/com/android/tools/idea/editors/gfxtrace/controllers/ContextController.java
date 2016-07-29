@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ContextID;
 import com.android.tools.idea.editors.gfxtrace.service.ContextList;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.ContextPath;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,7 +70,23 @@ public class ContextController extends Controller implements AtomStream.Listener
   }
 
   @Override
-  public void notifyPath(PathEvent event) {}
+  public void notifyPath(PathEvent event) {
+    ContextPath contextPath = event.findContextPath();
+    // someone has changed the context externally, so we want to update our view, but not fire any events
+    if (contextPath != null) {
+      Context context = myContexts.find(contextPath.getID(), Context.ALL);
+      if (!Objects.equals(context, mySelectedContext)) {
+        mySuspendUiUpdates = true;
+        try {
+          mySelectedContext = context;
+          myComboBox.setSelectedItem(mySelectedContext);
+        }
+        finally {
+          mySuspendUiUpdates = false;
+        }
+      }
+    }
+  }
 
   @Override
   public void onAtomLoadingStart(AtomStream atoms) {}
