@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.models;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.ContextID;
 import com.android.tools.idea.editors.gfxtrace.service.ContextList;
 import com.android.tools.idea.editors.gfxtrace.service.Hierarchy;
@@ -34,6 +35,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -47,6 +49,7 @@ public class AtomStream implements PathListener {
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private final PathStore<AtomRangePath> myAtomPath = new PathStore<AtomRangePath>();
   private final Listeners myListeners = new Listeners();
+  private Context mySelectedContext = Context.ALL;
 
   private AtomList myAtomList;
   private HierarchyList myHierarchies; // TODO: this probably doesn't belong here.
@@ -96,6 +99,16 @@ public class AtomStream implements PathListener {
     if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
       myListeners.onAtomsSelected(myAtomPath.getPath(), event.source);
     }
+
+    ContextPath contextPath = event.findContextPath();
+    if (contextPath != null) {
+      mySelectedContext = myContexts.find(contextPath.getID(), Context.ALL);
+    }
+  }
+
+  @NotNull
+  public Context getSelectedContext() {
+    return mySelectedContext;
   }
 
   private ListenableFuture<ContextList> loadContexts(CapturePath capturePath) {
@@ -197,8 +210,24 @@ public class AtomStream implements PathListener {
   }
 
   public void selectAtoms(long from, long count, Object source) {
-    AtomsPath path = myAtomsPath.getPath();
+    AtomsPath path = getPath();
     if (path != null) {
+
+      if (count == 1) {
+        // check to see if this atom index is in the current context
+        if (!getSelectedContext().contains(from)) {
+          Context found = null;
+          for (Context c : getContexts()) {
+            if (c.contains(from)) {
+              // and if not, switch to the context that does have this atom index
+              found = c;
+              break;
+            }
+          }
+          myEditor.activatePath(path.getCapture().contexts().context(found == null ? Context.ALL.getID() : found.getID()), source);
+        }
+      }
+
       myEditor.activatePath(path.range(from, count), source);
     }
   }

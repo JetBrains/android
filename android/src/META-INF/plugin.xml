@@ -250,6 +250,11 @@
             text="URL" description="Generate a new intent filter for URLs">
       <add-to-group group-id="GenerateGroup" anchor="first"/>
     </action>
+
+    <action id="GotoGfxCommand" class="com.android.tools.idea.editors.gfxtrace.actions.GoToAtomAction">
+      <add-to-group group-id="GoToMenu" anchor="before" relative-to-action="GotoLine"/>
+      <keyboard-shortcut first-keystroke="control G" keymap="$default"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
