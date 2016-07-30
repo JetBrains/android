@@ -121,6 +121,7 @@ public class LaunchAndroidApplicationTest {
   }
 
   // TODO: Test to be removed once TOGGLE_LINE_BREAKPOINT is used in a more complete test
+  @Ignore("http://go/aj/builders/studio-uitests_master-dev/builds/941 and 942")
   @Test
   public void testDebugOnEmulatorWithBreakpoint() throws IOException, ClassNotFoundException, EvaluateException {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
