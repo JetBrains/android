@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.mockup.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.MockupEditorPopup;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -63,7 +64,7 @@ public class MockupEditAction extends AnAction {
       List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
       if(!selection.isEmpty()) {
         NlComponent nlComponent = selection.get(0);
-        MockupEditorPopup.create(myCurrentScreenView, nlComponent);
+        MockupEditor.create(myCurrentScreenView, nlComponent);
       }
     }
   }
