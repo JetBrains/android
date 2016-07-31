@@ -15,24 +15,36 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.gson.GsonBuilder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
+import org.codehaus.groovy.runtime.typehandling.ShortTypeHandling;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.ProjectImportAction;
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
+import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.builder.model.AndroidProject.MODEL_LEVEL_2_DEP_GRAPH;
-import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.generateInitScript;
 
 final class CommandLineArgs {
   @NotNull private final Project myProject;
@@ -45,6 +57,12 @@ final class CommandLineArgs {
   List<String> get() {
     List<String> args = new ArrayList<>();
     args.add("-Didea.resolveSourceSetDependencies=true");
+
+    // TODO: figure out why this is making sync fail.
+    //File initScript = generateInitScript(false, getToolingExtensionsClasses());
+    //if (initScript != null) {
+    //  ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, initScript.getPath());
+    //}
 
     String[] options = myProject.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
     if (options != null) {
@@ -73,5 +91,16 @@ final class CommandLineArgs {
 
     addLocalMavenRepoInitScriptCommandLineOption(args);
     return args;
+  }
+
+  // This is necessary to obtain the custom models we need to configure Java library modules, given that Gradle own models do not expose
+  // all the information Android Studio needs.
+  // TODO contribute to Gradle the extra models we need, once that is done, we can remove the dependency on the module
+  // 'gradle-tooling-extension-impl'
+  @NotNull
+  private static Set<Class> getToolingExtensionsClasses() {
+    return Sets.newHashSet(SyncAction.class, ExternalSystemException.class, ExternalSystemSourceType.class, ProjectImportAction.class,
+                           ModelBuildScriptClasspathBuilderImpl.class, ModelBuilderService.class, Multimap.class, GsonBuilder.class,
+                           ShortTypeHandling.class);
   }
 }

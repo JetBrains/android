@@ -23,8 +23,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidModuleSetupStep {
-  private static final ExtensionPointName<AndroidModuleSetupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.androidModuleConfigurationStep");
+  public static final ExtensionPointName<AndroidModuleSetupStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.androidModuleSetupStep");
 
   @NotNull
   public static AndroidModuleSetupStep[] getExtensions() {
