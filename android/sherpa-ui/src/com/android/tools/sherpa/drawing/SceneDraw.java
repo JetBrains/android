@@ -441,6 +441,7 @@ public class SceneDraw {
                 }
             }
         }
+        container.updateDrawPosition();
         for (ConstraintWidget widget : container.getChildren()) {
             if (widget.getVisibility() == ConstraintWidget.GONE) {
                 continue;
