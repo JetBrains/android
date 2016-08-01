@@ -15,25 +15,25 @@
  */
 package com.android.tools.adtui;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class AxisFormatterTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+@RunWith(JUnit4.class)
+public class AxisFormatterTest {
 
   private MockAxisFormatter domain;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-
     // maxMajorTicks = 5, maxMajorTicks = 10, switchThreshold = 5;
     domain = new MockAxisFormatter(5, 10, 5);
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    domain = null;
-  }
-
+  @Test
   public void testGetInterval() throws Exception {
     // maxMinorTicks is 5 so the smallest possible interval is 100 / 5 = 20
     // The axis is in base 10 which has factors: {1, 5, 10}, so the interval
@@ -47,6 +47,7 @@ public class AxisFormatterTest extends TestCase {
     assertEquals(100, interval);
   }
 
+  @Test
   public void testGetMultiplierIndex() throws Exception {
     // value is equal or less than the threshold to get to the next multiplier
     // so we are still in "mm" scale
