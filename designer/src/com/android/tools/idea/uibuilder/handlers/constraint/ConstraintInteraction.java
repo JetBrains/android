@@ -101,10 +101,10 @@ public class ConstraintInteraction extends Interaction {
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
-    model.saveToXML(false);
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(myScreenView);
     drawConstraintModel.updateModifiers(modifiers);
     drawConstraintModel.mouseReleased(ax, ay);
+    model.saveToXML(false);
 
 
     myScreenView.getSurface().repaint();
