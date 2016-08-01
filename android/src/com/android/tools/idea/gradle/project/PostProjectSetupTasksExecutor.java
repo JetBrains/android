@@ -314,6 +314,10 @@ public class PostProjectSetupTasksExecutor {
     GradleVersion gradleVersionToUpdateTo = null;
 
     boolean isStable = isStableVersion(modelVersions);
+    if (isStable) {
+      return null;
+    }
+
     String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, modelVersions.isExperimentalPlugin());
     GradleVersion pluginVersion = modelVersions.getCurrent();
 
@@ -356,8 +360,11 @@ public class PostProjectSetupTasksExecutor {
 
       if (modelVersions != null) {
         boolean stable = isStableVersion(modelVersions);
-        latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
-        updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
+        // Temporary: we don't have a 2.1.3 released yet
+        if (!stable) {
+          latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
+          updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
+        }
       }
 
       GradleVersion newPluginVersion = updatePluginVersion ? GradleVersion.parse(latestPluginVersion) : null;
@@ -414,7 +421,9 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static String latestStablePluginWithSecurityFix(boolean experimentalPlugin) {
-    return experimentalPlugin ? "0.7.3" : "2.1.3";
+    // TODO enable this when plugin 1.2.3 and 0.7.3 are released.
+    // return experimentalPlugin ? "0.7.3" : "2.1.3";
+    return latestPreviewPluginWithSecurityFix(experimentalPlugin);
   }
 
   @NotNull
