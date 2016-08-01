@@ -86,14 +86,13 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   @Override
   public ResolveResult[] multiResolve(boolean incompleteCode) {
     return ResolveCache.getInstance(myElement.getProject())
-      .resolveWithCaching(this, (reference, incompleteCode1) -> resolveInner(), false, incompleteCode);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement resolve() {
-    ResolveResult[] resolveResults = multiResolve(false);
-    return resolveResults.length >= 1 ? resolveResults[0].getElement() : null;
+      .resolveWithCaching(this, new ResolveCache.PolyVariantResolver<AndroidResourceReferenceBase>() {
+        @NotNull
+        @Override
+        public ResolveResult[] resolve(@NotNull AndroidResourceReferenceBase reference, boolean incompleteCode) {
+          return resolveInner();
+        }
+      }, false, incompleteCode);
   }
 
   @NotNull
