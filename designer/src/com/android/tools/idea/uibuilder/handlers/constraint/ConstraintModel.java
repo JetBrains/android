@@ -749,7 +749,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       return;
     }
     Map<NlComponent, Dimension> wrapContentSizes = Maps.newHashMap();
-    if (container.isRoot() || container.isRootContainer()) {
+    if (container instanceof ConstraintWidgetContainer) {
       NlComponent component = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
       Insets padding = component.getPadding(true);
       container.setDimension(pxToDp(component.w - padding.width()),
