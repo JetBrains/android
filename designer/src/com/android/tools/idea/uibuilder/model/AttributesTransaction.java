@@ -178,7 +178,7 @@ public class AttributesTransaction implements NlAttributesHolder {
     myPendingAttributes.clear();
     myOriginalValues.clear();
 
-    return !hadPendingChanges;
+    return hadPendingChanges;
   }
 
   /**
@@ -197,7 +197,7 @@ public class AttributesTransaction implements NlAttributesHolder {
       }
 
       if (!ApplicationManager.getApplication().isWriteAccessAllowed()) {
-        ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
+        return ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
       }
 
       boolean modified = false;
