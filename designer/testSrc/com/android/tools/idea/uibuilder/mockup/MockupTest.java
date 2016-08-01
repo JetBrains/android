@@ -54,34 +54,35 @@ public class MockupTest extends MockupBaseTest {
     assertFalse(Mockup.isPositionStringCorrect(null));
   }
 
-  public void testIsPositionStringCorrect() throws Exception {
-    assertTrue("Good string", Mockup.isPositionStringCorrect("2 13"));
-    assertTrue(" 0 1", Mockup.isPositionStringCorrect("0 1"));
-    assertTrue(" 0 1", Mockup.isPositionStringCorrect("0 1 "));
-    assertFalse("0 ", Mockup.isPositionStringCorrect("0 "));
+  public void testIsCropStringCorrect() throws Exception {
+    assertTrue(Mockup.isPositionStringCorrect("2 13"));
+    assertTrue(Mockup.isPositionStringCorrect("0 1"));
+    assertTrue(Mockup.isPositionStringCorrect("0 1 "));
+    assertFalse(Mockup.isPositionStringCorrect("0 "));
   }
 
   public void testIsStringCorrectPositionOnlyNegative() throws Exception {
-    assertTrue(Mockup.isPositionStringCorrect("-2 -13"));
-    assertTrue(Mockup.isPositionStringCorrect("2 -13"));
-    assertTrue(Mockup.isPositionStringCorrect("-0 13"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 -2 -13"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 -13"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 -0 13"));
+    assertFalse(Mockup.isPositionStringCorrect("-12 0 -1 -1 -0 13"));
   }
 
   public void testIsStringCorrectPositionSize() throws Exception {
-    assertTrue(Mockup.isPositionStringCorrect("2 13 12 23"));
-    assertTrue(Mockup.isPositionStringCorrect("2 13 12 -23 "));
-    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 23 "));
-    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 -23 "));
-    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 -23 "));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 13 12 23"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 13 12 -23 "));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 13 -12 23 "));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 13 -12 -23 "));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 2 13 -12 -23 "));
   }
 
   public void testIsStringCorrectNegativePositionSize() throws Exception {
-    assertTrue(Mockup.isPositionStringCorrect("-2 -13 12 23"));
-    assertTrue(Mockup.isPositionStringCorrect("-2 -13 -12 -23"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 -2 -13 12 23"));
+    assertTrue(Mockup.isPositionStringCorrect("0 0 -1 -1 -2 -13 -12 -23"));
   }
 
   public void testIsStringCorrectPositionSizeCropXY() throws Exception {
-    assertTrue(Mockup.isPositionStringCorrect("-2 -13 12 23 10 10"));
+    assertTrue(Mockup.isPositionStringCorrect("12 23 10 10 -2 -13 "));
   }
 
   public void testIsStringCorrectPositionCrop() throws Exception {
@@ -90,11 +91,11 @@ public class MockupTest extends MockupBaseTest {
   }
 
   public void testIsStringCorrectPositionCropNegative() throws Exception {
-    assertFalse(Mockup.isPositionStringCorrect("0 13 12 23 23 -24 -231 455544"));
+    assertFalse(Mockup.isPositionStringCorrect("23 -24 -231 455544 0 13 12 23"));
   }
 
   public void testCreateMockupModelFromCorrectFullString() {
-    final NlModel model = createModel1Mockup(MOCKUP_PSD, "1 2 3 4 5 6 7 8");
+    final NlModel model = createModel1Mockup(MOCKUP_PSD, "5 6 7 8 1 2 3 4");
     NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);//mockProject, "", "1 2 3 4 5 6 7 8");
     assertNotNull(mockup);
@@ -107,12 +108,12 @@ public class MockupTest extends MockupBaseTest {
     NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);//mockProject, "", "1 2 3 4");
     assertNotNull(mockup);
-    assertEquals(new Rectangle(1, 2, 3, 4), mockup.getBounds());
-    assertEquals(new Rectangle(0, 0, -1, -1), mockup.getCropping());
+    assertEquals(new Rectangle(1, 2, 3, 4), mockup.getCropping());
+    assertEquals(new Rectangle(0, 0, -1, -1), mockup.getBounds());
   }
 
   public void testGetCropping_FullImage() {
-    final NlModel model = createModel1Mockup(getTestDataPath() + "/" + MOCKUP_PSD, "1 2 3 4");
+    final NlModel model = createModel1Mockup(getTestDataPath() + "/" + MOCKUP_PSD, "");
     NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);//mockProject, "", "1 2 3 4");
     assertNotNull(mockup);
@@ -123,7 +124,7 @@ public class MockupTest extends MockupBaseTest {
   }
 
   public void testCreateMockupModelFromCorrectXYString() {
-    final NlModel model = createModel1Mockup(MOCKUP_PSD, "1 2");
+    final NlModel model = createModel1Mockup(MOCKUP_PSD, "0 0 -1 -1 1 2");
     NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);//mockProject, "", "1 2");
     assertNotNull(mockup);
@@ -205,7 +206,7 @@ public class MockupTest extends MockupBaseTest {
   }
 
   public void testGetBounds_Normal_Position() {
-    final NlModel model = createModel1Mockup(MOCKUP_PSD, "10 10 120 50");
+    final NlModel model = createModel1Mockup(MOCKUP_PSD, "0 0 -1 -1 10 10 120 50");
     DesignSurface mockSurface = mock(DesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
 

@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
  *
  * <ul>
  * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i> [filename in PROJECT_DIR or Path}</li>
- * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP_POSITION}</i> (See below)</li>
+ * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP_CROP}</i> (See below)</li>
  * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP_OPACITY} </i> [0..1]</li>
  * </ul>
  *
@@ -66,24 +66,24 @@ import java.util.regex.Pattern;
  * Its position relative to the component and cropping can be set through the <i>{@code tools:mockup_position}</i>
  * attribute with a string having the following form :</p>
  *
- * <pre>  x, y, [w, h, [cx, cy, cw, ch]]</pre>
+ * <pre>  cx, cy, [cw, ch, [x, y, w, h]]</pre>
  * <ul>
- * <li> x : x offset of the mockup on the ScreenView (in dip) (default to 0) </li>
- * <li> y : y offset of the mockup on the ScreenView (in dip) (default to 0) </li>
- * <li> w : width of the mockup on the ScreenView (in dip). Will be scaled if needed. (default to component width) </li>
- * <li> h : height of the mockup on the ScreenView (in dip). will be scaled if needed (default to component height)</li>
  * <li> cx : x offset of cropping area on the mockup (in px) (default to 0)</li>
  * <li> cy : y offset of cropping area on the mockup (in px) (default to 0)</li>
  * <li> cw : width of cropping area on the mockup  (in px) (default to image width)</li>
  * <li> cy : height of cropping area on the mockup  (in px) (default to image height)</li>
+ * <li> x : x offset of the mockup on the ScreenView (in dip) (default to 0) </li>
+ * <li> y : y offset of the mockup on the ScreenView (in dip) (default to 0) </li>
+ * <li> w : width of the mockup on the ScreenView (in dip). Will be scaled if needed. (default to component width) </li>
+ * <li> h : height of the mockup on the ScreenView (in dip). will be scaled if needed (default to component height)</li>
  * </ul>
  *
  * @see MockupLayer
  */
 public class Mockup implements ModelListener {
 
-  private final static Pattern REGEX_BOUNDS = Pattern.compile("([-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
-  private final static Pattern REGEX_BOUNDS_CROP = Pattern.compile(REGEX_BOUNDS + "(\\s+[0-9]+\\s+[0-9]+\\s*){1,2}");
+  private final static Pattern REGEX_CROP = Pattern.compile("(([0-9]+|-1)\\s+([0-9]+|-1)\\s*){1,2}");
+  private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
 
   private final static Pattern REGEX_OPACITY = Pattern.compile("[01]|[01]?\\.\\d+");
   public static final float DEFAULT_OPACITY = 0.5f;
@@ -91,17 +91,17 @@ public class Mockup implements ModelListener {
 
   // Position string indexes for
   // x,y,weight,height of the positioning rectangle
-  private final static int X = 0;
-  private final static int Y = 1;
-  private final static int W = 2;
-  private final static int H = 3;
+  private final static int X = 4;
+  private final static int Y = 5;
+  private final static int W = 6;
+  private final static int H = 7;
 
   // Position string indexes for
   // x,y,weight,height of the cropping rectangle
-  private final static int C_X = 4;
-  private final static int C_Y = 5;
-  private final static int C_W = 6;
-  private final static int C_H = 7;
+  private final static int C_X = 0;
+  private final static int C_Y = 1;
+  private final static int C_W = 2;
+  private final static int C_H = 3;
 
   private static final WeakHashMap<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
 
@@ -228,7 +228,7 @@ public class Mockup implements ModelListener {
    * Parse the Mockup following attribute and set the corresponding variable.
    * <ul>
    * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i></li>
-   * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP_POSITION}</i></li>
+   * <li><i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP_CROP}</i></li>
    * </ul>
    *
    * @param component
@@ -236,7 +236,7 @@ public class Mockup implements ModelListener {
   private void parseComponent(NlComponent component) {
     myComponent = component;
     final String fileName = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP);
-    final String position = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION);
+    final String position = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
     final String opacity = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_OPACITY);
     if (fileName != null) {
       setFilePath(fileName);
@@ -296,33 +296,39 @@ public class Mockup implements ModelListener {
       position = position.trim();
       final String[] split = position.split("\\s+");
 
-      // Parse position
-      if (split.length >= 4) {
-        // Position and Size attributes
-        setBounds(Integer.parseInt(split[X]),
-                  Integer.parseInt(split[Y]),
-                  Integer.parseInt(split[W]),
-                  Integer.parseInt(split[H]));
-      }
-      else if (split.length == 2) {
-        // Position only attribute
-        setBounds(Integer.parseInt(split[X]), Integer.parseInt(split[Y]), -1, -1);
-
-      }
 
       // Parse cropping
-      if (split.length >= 8) {
+      if (split.length >= 4) {
         // Cropping attributes
         setCropping(Integer.parseInt(split[C_X]),
                     Integer.parseInt(split[C_Y]),
                     Integer.parseInt(split[C_W]),
                     Integer.parseInt(split[C_H]));
       }
-      else if (split.length >= 6) {
+      else if (split.length == 2) {
         setCropping(Integer.parseInt(split[C_X]),
                     Integer.parseInt(split[C_Y]),
                     -1,
                     -1);
+      }
+      else {
+        setCropping(0, 0, -1, -1);
+      }
+
+      // Parse position
+      if (split.length >= 8) {
+        // Position and Size attributes
+        setBounds(Integer.parseInt(split[X]),
+                  Integer.parseInt(split[Y]),
+                  Integer.parseInt(split[W]),
+                  Integer.parseInt(split[H]));
+      }
+      else if (split.length >= 6) {
+        // Position only attribute
+        setBounds(Integer.parseInt(split[X]), Integer.parseInt(split[Y]), -1, -1);
+      }
+      else {
+        setDefaultBounds();
       }
     }
     else {
@@ -340,14 +346,15 @@ public class Mockup implements ModelListener {
   }
 
   public void setDefaultCrop() {
-    setCropping(0,0,-1,-1);
+    setCropping(0, 0, -1, -1);
   }
 
   /**
    * Set the bounds (position and size) in Dip of the mockup
-   * @param x x coordinate in the Android Screen in Dip
-   * @param y y coordinate in the Android Screen in Dip
-   * @param width width in the Android Screen in Dip or -1 to fill the component
+   *
+   * @param x      x coordinate in the Android Screen in Dip
+   * @param y      y coordinate in the Android Screen in Dip
+   * @param width  width in the Android Screen in Dip or -1 to fill the component
    * @param height height in the Android Screen in Dip or -1 to fill the component
    */
   public void setBounds(int x, int y, int width, int height) {
@@ -363,9 +370,10 @@ public class Mockup implements ModelListener {
 
   /**
    * Set the bounds (position and size) in Dip of the mockup
-   * @param x x coordinate in the image in PX
-   * @param y y coordinate in the image in PX
-   * @param width width of area to crop in the image in PX or -1 to use the whole image
+   *
+   * @param x      x coordinate in the image in PX
+   * @param y      y coordinate in the image in PX
+   * @param width  width of area to crop in the image in PX or -1 to use the whole image
    * @param height height of area to crop in PX in Dip or -1 to use the whole image
    */
   public void setCropping(int x, int y, int width, int height) {
@@ -386,6 +394,7 @@ public class Mockup implements ModelListener {
   /**
    * Get the size and position of the mockup in Dip. If the width or height <= 0,
    * that means that they will default to the seize of the container
+   *
    * @return The bounding Rectangle
    */
   public Rectangle getBounds() {
@@ -433,6 +442,7 @@ public class Mockup implements ModelListener {
 
   /**
    * Get the bounds of the area in the image that will be paint.
+   *
    * @return the bounds of the area in the image that will be paint.
    */
   public Rectangle getCropping() {
@@ -472,8 +482,8 @@ public class Mockup implements ModelListener {
       return false;
     }
     return s.isEmpty()
-           || REGEX_BOUNDS.matcher(s).matches()
-           || REGEX_BOUNDS_CROP.matcher(s).matches();
+           || REGEX_CROP_BOUNDS.matcher(s).matches()
+           || REGEX_CROP.matcher(s).matches();
   }
 
   public void setAlpha(float alpha) {
