@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -32,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 
 /**
@@ -116,6 +117,15 @@ public abstract class ViewEditor {
    * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
    */
   public abstract boolean isModuleDependency(@NotNull String artifact);
+
+  /**
+   * Returns the {@link GradleVersion} of the specified library that the current module depends on.
+   *
+   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
+   * @return the revision or null if the module does not depend on the specified library.
+   */
+  @Nullable
+  public abstract GradleVersion getModuleDependencyVersion(@NotNull String artifact);
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
