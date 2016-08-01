@@ -360,11 +360,14 @@ public class PostProjectSetupTasksExecutor {
 
       if (modelVersions != null) {
         boolean stable = isStableVersion(modelVersions);
-        // Temporary: we don't have a 2.1.3 released yet
-        if (!stable) {
-          latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
-          updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
+        if (stable) {
+          // Temporary: we don't have a 2.1.3 released yet
+          // We can't update gradle to 2.14.1 as well since 2.1.x isn't compatible with 2.14.1
+          return false;
         }
+
+        latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
+        updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
       }
 
       GradleVersion newPluginVersion = updatePluginVersion ? GradleVersion.parse(latestPluginVersion) : null;
