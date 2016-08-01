@@ -1139,6 +1139,18 @@ public final class GradleUtil {
     return dependsOn(dependencies, artifact);
   }
 
+  @Nullable
+  public static GradleVersion getModuleDependencyVersion(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      String version = getDependencyVersion(library, artifact, true);
+      if (version != null) {
+        return GradleVersion.tryParse(version);
+      }
+    }
+    return null;
+  }
+
   /**
    * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
    * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
@@ -1182,23 +1194,27 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact
    */
   public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
+    return getDependencyVersion(library, artifact, transitively) != null;
+  }
+
+  private static String getDependencyVersion(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
     MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
     if (resolvedCoordinates != null) {
-      String s = resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId();
-      if (artifact.equals(s)) {
-        return true;
+      if (artifact.endsWith(resolvedCoordinates.getArtifactId()) &&
+          artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
+        return resolvedCoordinates.getVersion();
       }
     }
 
     if (transitively) {
       for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-        if (dependsOn(dependency, artifact, true)) {
-          return true;
+        String version = getDependencyVersion(dependency, artifact, true);
+        if (version != null) {
+          return version;
         }
       }
     }
-
-    return false;
+    return null;
   }
 
   public static boolean hasCause(@NotNull Throwable e, @NotNull Class<?> causeClass) {
