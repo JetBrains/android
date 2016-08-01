@@ -744,6 +744,18 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
   }
 
+  // Regression test for http://b.android.com/205527
+  public void testRenameLocalisedResourceFromUsage() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values/dimens.xml");
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values-en/dimens.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout16.xml", "res/layout/layout16.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("localised_newname_value");
+    myFixture.checkResultByFile(BASE_PATH + "layout16_after.xml");
+    myFixture.checkResultByFile("res/values/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+    myFixture.checkResultByFile("res/values-en/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+  }
+
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
