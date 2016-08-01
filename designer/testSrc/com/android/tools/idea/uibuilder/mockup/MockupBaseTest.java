@@ -27,7 +27,7 @@ import static com.android.SdkConstants.*;
 
 public abstract class MockupBaseTest extends LayoutTestCase {
 
-  public static final String DEFAULT_TEST_POSITION = "20 20 60 60 10 10 60 60";
+  public static final String DEFAULT_TEST_POSITION = "10 10 60 60 20 20 60 60";
   public static final String MOCKUP_PSD = "mockup/mockup.psd";
 
   protected NlModel createModel0Mockup() {
@@ -50,7 +50,7 @@ public abstract class MockupBaseTest extends LayoutTestCase {
       .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile);
 
     if(mockupPosition != null) {
-      root.withAttribute(TOOLS_URI, ATTR_MOCKUP_POSITION, mockupPosition);
+      root.withAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, mockupPosition);
     }
 
     if (opacity != null) {
@@ -77,7 +77,7 @@ public abstract class MockupBaseTest extends LayoutTestCase {
                                    .matchParentHeight()
                                    .withAttribute("xmlns:tools", TOOLS_URI)
                                    .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile)
-                                   .withAttribute(TOOLS_URI, ATTR_MOCKUP_POSITION, mockupPosition)
+                                   .withAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, mockupPosition)
                                    .children(
                                      component(LINEAR_LAYOUT)
                                        .withBounds(0, 0, 200, 200)
@@ -85,7 +85,7 @@ public abstract class MockupBaseTest extends LayoutTestCase {
                                        .wrapContentHeight()
                                        .withAttribute("xmlns:tools", TOOLS_URI)
                                        .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile)
-                                       .withAttribute(TOOLS_URI, ATTR_MOCKUP_POSITION, mockupPosition)
+                                       .withAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, mockupPosition)
                                        .children(
                                          component(BUTTON)
                                            .withBounds(0, 0, 100, 100)

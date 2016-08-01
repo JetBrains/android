@@ -49,7 +49,6 @@ import java.util.Set;
  */
 public class MockupFileHelper {
 
-  final static String MOCKUP_DIR_NAME = "mockup";
   public static final Set<String> VALID_EXTENSION = new HashSet<>(Arrays.asList("psd", "png", "jpg"));
   public static final Logger LOGGER = Logger.getInstance(MockupFileHelper.class);
 
@@ -116,38 +115,36 @@ public class MockupFileHelper {
     action.execute();
   }
 
-
   public static void writePositionToXML(@NotNull Mockup mockup) {
     NlComponent component = mockup.getComponent();
     if (component == null) {
       return;
     }
     final NlModel model = component.getModel();
-    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup Position", model.getFile()) {
+    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup Crop", model.getFile()) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         if (mockup.isFullScreen()) {
-          component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION);
+          component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
         }
         else {
           final Rectangle bounds = mockup.getBounds();
           final Rectangle crop = mockup.getCropping();
-          final String position = String.format(Locale.US, "%d %d %d %d %d %d %d %d",
-                                                bounds.x, bounds.y, bounds.width, bounds.height,
-                                                crop.x, crop.y, crop.width, crop.height);
-          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION, position);
+          final String cropping;
+          if (bounds.equals(new Rectangle(0, 0, -1, -1))) {
+            cropping = String.format(Locale.US, "%d %d %d %d",
+                                     crop.x, crop.y, crop.width, crop.height);
+          }
+          else {
+            cropping = String.format(Locale.US, "%d %d %d %d %d %d %d %d",
+                                     crop.x, crop.y, crop.width, crop.height,
+                                     bounds.x, bounds.y, bounds.width, bounds.height);
+          }
+          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP, cropping);
         }
       }
     };
     action.execute();
-  }
-
-  public static boolean isInMockupDir(VirtualFile virtualFile, @Nullable String basePath) {
-    if (basePath == null) {
-      return false;
-    }
-    final Path mockupDirectory = getMockupDirectory(basePath);
-    return Paths.get(virtualFile.getPath()).startsWith(mockupDirectory);
   }
 
   /**
@@ -204,10 +201,5 @@ public class MockupFileHelper {
       LOGGER.error(String.format("Incorrect File Path : %s", filePath));
     }
     return null;
-  }
-
-  @NotNull
-  private static Path getMockupDirectory(@NotNull String basePath) {
-    return Paths.get(basePath, MOCKUP_DIR_NAME).normalize();
   }
 }
