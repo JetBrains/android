@@ -262,18 +262,21 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    if (modelVersions != null) {
-      String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(modelVersions);
-      if (obsoletePluginVersion != null) {
-        boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
-        if (upgrade) {
-          if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
-            // plugin version updated and a project sync was requested. No need to continue.
-            return;
-          }
-        }
-      }
-    }
+    // TODO: revert in 2.2 Beta 1
+    // This check forces update from 2.1.0 to latest alpha plugin. This seems related to checking for instant run, but it is not clear
+    // if it should be there. Disabling since this behavior is new in 2.2 P7
+    //if (modelVersions != null) {
+    //  String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(modelVersions);
+    //  if (obsoletePluginVersion != null) {
+    //    boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
+    //    if (upgrade) {
+    //      if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
+    //        // plugin version updated and a project sync was requested. No need to continue.
+    //        return;
+    //      }
+    //    }
+    //  }
+    //}
 
     if (myGenerateSourcesAfterSync) {
       if (!myCleanProjectAfterSync) {
