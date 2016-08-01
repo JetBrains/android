@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.*;
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -28,7 +29,6 @@ import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.android.tools.sherpa.structure.WidgetProperties;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -327,6 +327,53 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Are we past a version used to implement a conditional change for other releases
+   * results when alpha and beta both > 0 is undefined
+   *
+   * @param v
+   * @param major
+   * @param minor
+   * @param micro
+   * @param beta version of beta to check 0 if not a version of beta
+   * @param alpha version of alpha to check 0 if not a version of alpha
+   * @return
+   */
+  private static boolean versionGreaterThan(GradleVersion v, int major, int minor, int micro, int beta, int alpha) {
+    if (v.getMajor() != major) {
+      return v.getMajor() > major;
+    }
+    if (v.getMinor() != minor) {
+      return (v.getMinor() > minor);
+    }
+    if (v.getMicro() != micro) {
+      return (v.getMicro() > micro);
+    }
+    if (alpha > 0) {
+      if ("alpha".equals(v.getPreviewType())) {
+        return (v.getPreview() > alpha);
+      }
+      else { // expecting alpha but out of beta
+        return true;
+      }
+    }
+    if (beta > 0) {
+      if ("beta".equals(v.getPreviewType())) {
+        return (v.getPreview() > beta);
+      }
+      else { // expecting beta but out of beta
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean useParentReference(NlModel model) {
+    String constraint_artifact = SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
+    GradleVersion v = model.getModuleDependencyVersion(constraint_artifact);
+    return (versionGreaterThan(v, 1, 0, 0, 0, 4));
+  }
+
+  /**
    * Update the attributes given a new anchor
    *
    * @param attributes the attributes we work on
@@ -345,7 +392,15 @@ public class ConstraintUtilities {
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetCompanion companion = (WidgetCompanion)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)companion.getWidgetModel();
-      String targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+
+      String targetId;
+
+      boolean use_parent_ref = useParentReference(targetComponent.getModel());
+      if (owner.getParent() == target && use_parent_ref) {
+        targetId = SdkConstants.ATTR_PARENT;
+      } else {
+        targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+      }
 
       attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
 
@@ -743,16 +798,23 @@ public class ConstraintUtilities {
     if (targetID == null) {
       return;
     }
-    String id = NlComponent.extractId(targetID);
-    if (id == null) {
-      return;
-    }
     NlComponent componentFound = null;
-    for (NlComponent component : model.getComponents()) {
-      NlComponent found = getComponentFromId(component, id);
-      if (found != null) {
-        componentFound = found;
-        break;
+    ConstraintWidget parent = widgetSrc.getParent();
+    if (useParentReference(model)
+        && targetID.equalsIgnoreCase(SdkConstants.ATTR_PARENT) && parent != null) {
+      WidgetCompanion companion = (WidgetCompanion)parent.getCompanionWidget();
+      componentFound = (NlComponent)companion.getWidgetModel();
+    } else {
+      String id = NlComponent.extractId(targetID);
+      if (id == null) {
+        return;
+      }
+      for (NlComponent component : model.getComponents()) {
+        NlComponent found = getComponentFromId(component, id);
+        if (found != null) {
+          componentFound = found;
+          break;
+        }
       }
     }
     if (componentFound != null) {
@@ -792,6 +854,9 @@ public class ConstraintUtilities {
   @Nullable
   static NlComponent getComponentFromId(@NotNull NlComponent component, @NotNull String id) {
     // TODO: move this method to NlModel
+    if (useParentReference(component.getModel()) && id.equalsIgnoreCase(SdkConstants.ATTR_PARENT)) {
+      return component.getParent();
+    }
     if (component.getId() != null && component.getId().equalsIgnoreCase(id)) {
       return component;
     }
