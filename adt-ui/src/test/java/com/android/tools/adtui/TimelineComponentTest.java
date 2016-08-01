@@ -15,13 +15,17 @@
  */
 package com.android.tools.adtui;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import static com.android.tools.adtui.TimelineComponent.formatTime;
+import static org.junit.Assert.assertEquals;
 
+@RunWith(JUnit4.class)
+public class TimelineComponentTest {
 
-public class TimelineComponentTest extends TestCase {
-
+  @Test
   public void testFormatTime() {
     assertEquals("0s", formatTime(0));
     assertEquals("42s", formatTime(42));
