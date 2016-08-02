@@ -16,6 +16,8 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The base interface for a graph.
@@ -24,10 +26,28 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
  * Created by haowei on 6/18/16.
  */
 public interface Graph {
+
+  /**
+   * Return the dummy entry node of
+   * this graph.
+   * @return Return the Entry Node
+   */
+  @NotNull
   GraphNode getEntryNode();
 
+  /**
+   * Return the dummy exit node of
+   * this graph.
+   * @return Return the Exit Node.
+   */
+  @NotNull
   GraphNode getExitNode();
 
+  /**
+   * Return The parent graph of this graph. It can be null, which means it does not exist.
+   * @return The parent graph.
+   */
+  @Nullable
   Graph getParentGraph();
 
   boolean hasMultipleExit();
