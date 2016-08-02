@@ -18,12 +18,9 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.assetstudiolib.AssetStudio;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
@@ -153,19 +150,6 @@ public class ViewEditorImpl extends ViewEditor {
     }
 
     return drawableDirectory;
-  }
-
-  @Override
-  public boolean isModuleDependency(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(getModel().getFacet());
-    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
-  }
-
-  @Nullable
-  @Override
-  public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(getModel().getFacet());
-    return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
   }
 
   @Nullable
