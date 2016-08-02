@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -116,6 +117,8 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   @NotNull
   private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     List<NlComponent> itemAsList = Collections.singletonList(item);
-    return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), menu, itemAsList, DragType.MOVE);
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
+    Mockito.when(editor.getModel()).thenReturn(Mockito.mock(NlModel.class));
+    return new GroupDragHandler(editor, new ViewGroupHandler(), menu, itemAsList, DragType.MOVE);
   }
 }

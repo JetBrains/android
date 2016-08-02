@@ -65,7 +65,7 @@ public class ImageViewHandler extends ViewHandler {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
       if (src != null) {
-        if (editor.isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
+        if (editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
           newChild.setAttribute(ANDROID_URI, ATTR_SRC, null);
           newChild.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, src);
         }
@@ -82,7 +82,7 @@ public class ImageViewHandler extends ViewHandler {
 
     // Fallback if dismissed or during previews etc
     if (insertType.isCreate()) {
-      if (editor.isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
+      if (editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
         newChild.setAttribute(ANDROID_URI, ATTR_SRC, null);
         newChild.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, getSampleImageSrc());
       }
