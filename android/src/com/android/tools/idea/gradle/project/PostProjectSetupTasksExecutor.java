@@ -208,17 +208,31 @@ public class PostProjectSetupTasksExecutor {
         GradleVersion pluginVersionToUpdateTo = versionsToUpdateTo.getFirst();
         GradleVersion gradleVersionToUpdateTo = versionsToUpdateTo.getSecond();
 
-        String msg =
-          String.format("Android plugin %1$s is not compatible with Gradle %2$s.", modelVersions.getCurrent(), gradleVersionToUpdateTo);
-
+        boolean updateGradleOnly = pluginVersionToUpdateTo.compareTo(modelVersions.getCurrent()) == 0;
+        String msg = String.format("Android plugin %1$s is not compatible with Gradle %2$s.", modelVersions.getCurrent(), gradleVersion);
         Message message = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
-        NotificationHyperlink updateAndroidPluginQuickFix =
-          new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo.toString(), gradleVersionToUpdateTo.toString(),
-                                                     modelVersions.isExperimentalPlugin());
-        NotificationHyperlink openDocumentationQuickFix =
-          new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation");
 
-        ProjectSyncMessages.getInstance(myProject).add(message, updateAndroidPluginQuickFix, openDocumentationQuickFix);
+        NotificationHyperlink updateVersionQuickFix;
+        if (updateGradleOnly) {
+          // Same plugin versions, just update Gradle.
+          updateVersionQuickFix =
+            FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, gradleVersionToUpdateTo.toString());
+        }
+        else {
+          updateVersionQuickFix =
+            new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo.toString(), gradleVersionToUpdateTo.toString(),
+                                                       modelVersions.isExperimentalPlugin());
+        }
+
+        List<NotificationHyperlink> quickFixes = new ArrayList<>();
+        if (updateVersionQuickFix != null) {
+          quickFixes.add(updateVersionQuickFix);
+        }
+
+        quickFixes
+          .add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
+
+        ProjectSyncMessages.getInstance(myProject).add(message, quickFixes);
 
         setHasSyncErrors(myProject, true);
         addSdkLinkIfNecessary();
