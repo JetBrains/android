@@ -85,8 +85,10 @@ public class BrowsePanel extends JPanel {
     myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     add(myBrowseButton);
+    myBrowseButton.setFocusable(true);
     if (myDesignButton != null) {
       add(myDesignButton);
+      myDesignButton.setFocusable(true);
     }
   }
 
