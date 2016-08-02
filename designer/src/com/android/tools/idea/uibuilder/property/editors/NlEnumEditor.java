@@ -45,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.ComboBoxUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -68,8 +70,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private NlProperty myProperty;
   private String myApiVersion;
-  private boolean myUpdatingProperty;
   private int myAddedValueIndex;
+  private boolean myValueChanged;
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
@@ -137,9 +139,13 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
     }
 
+    myCombo.addPopupMenuListener(new PopupMenuHandler());
     myCombo.addActionListener(this::comboValuePicked);
     myCombo.registerKeyboardAction(event -> enter(),
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myCombo.registerKeyboardAction(event -> cancel(),
+                                   KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     myCombo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
       @Override
@@ -162,13 +168,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (property != myProperty || !getApiVersion(property).equals(myApiVersion)) {
       setModel(property);
     }
-    try {
-      myUpdatingProperty = true;
-      selectItem(ValueWithDisplayString.create(property.getValue(), property));
-    }
-    finally {
-      myUpdatingProperty = false;
-    }
+    selectItem(ValueWithDisplayString.create(property.getValue(), property));
   }
 
   @Override
@@ -327,30 +327,31 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return myCombo.getEditor().getEditorComponent();
   }
 
+  private void comboValuePicked(@NotNull ActionEvent event) {
+    if ("comboBoxChanged".equals(event.getActionCommand())) {
+      myValueChanged = true;
+    }
+  }
+
   private void enter() {
-    String newValue = getText();
-    selectItem(ValueWithDisplayString.create(newValue, myProperty));
-    stopEditing(newValue);
+    if (!myCombo.isPopupVisible()) {
+      String newValue = getText();
+      selectItem(ValueWithDisplayString.create(newValue, myProperty));
+      stopEditing(newValue);
+    }
+    myCombo.hidePopup();
+  }
+
+  private void cancel() {
+    myValueChanged = false;
+    selectItem(ValueWithDisplayString.create(myProperty.getValue(), myProperty));
+    stopEditing(myProperty.getValue());
     myCombo.hidePopup();
   }
 
   private String getText() {
     String text = myCombo.getEditor().getItem().toString();
     return Quantity.addUnit(myProperty, text);
-  }
-
-  private void comboValuePicked(ActionEvent event) {
-    if (myUpdatingProperty || myProperty == null) {
-      return;
-    }
-    ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
-    String actionCommand = event.getActionCommand();
-
-    // only notify listener if a value has been picked from the combo box, not for every event from the combo
-    // Note: these action names seem to be platform dependent?
-    if (value != null && ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand))) {
-      stopEditing(value.getValue());
-    }
   }
 
   private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {
@@ -521,6 +522,28 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         }
         append(value.toString());
       }
+    }
+  }
+
+  private class PopupMenuHandler implements PopupMenuListener {
+
+    @Override
+    public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
+      myValueChanged = false;
+    }
+
+    @Override
+    public void popupMenuWillBecomeInvisible(PopupMenuEvent event) {
+      if (myValueChanged) {
+        myValueChanged = false;
+        ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
+        stopEditing(value.getValue());
+      }
+    }
+
+    @Override
+    public void popupMenuCanceled(PopupMenuEvent event) {
+      myValueChanged = false;
     }
   }
 }
