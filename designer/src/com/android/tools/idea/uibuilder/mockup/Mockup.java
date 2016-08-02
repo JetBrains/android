@@ -449,6 +449,31 @@ public class Mockup implements ModelListener {
     return myCropping;
   }
 
+  /**
+   * Get the cropping rectangle with negative size values
+   * replaced by the actual image dimensions or 0 if this Mockup has no image
+   *
+   * @return the cropping rectangle with negative size values
+   * replaced by the actual image dimensions or 0 if this Mockup has no image
+   */
+  public Rectangle getRealCropping() {
+    if (myCropping.width >= 0 && myCropping.height >= 0) {
+      return myCropping;
+    }
+    final Rectangle realCropping = new Rectangle(myCropping);
+    if (myImage == null) {
+      realCropping.width = 0;
+      realCropping.height = 0;
+    }
+    if (realCropping.width < 0) {
+      realCropping.width = myImage.getWidth();
+    }
+    if (realCropping.height < 0) {
+      realCropping.height = myImage.getHeight();
+    }
+    return realCropping;
+  }
+
   @Nullable
   public String getFilePath() {
     return myFilePath;

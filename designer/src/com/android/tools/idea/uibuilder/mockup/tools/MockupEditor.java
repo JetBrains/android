@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup;
+package com.android.tools.idea.uibuilder.mockup.tools;
 
+import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  *
@@ -33,20 +40,35 @@ public class MockupEditor {
   public static final String TITLE = "Mockup Editor";
   private static final double RELATIVE_SIZE_TO_SOURCE = 0.90;
   private static FrameWrapper ourPopupInstance = null;
+  private final Mockup myMockup;
 
   private JTextField myViewTypeTextField;
-  private TextFieldWithBrowseButton myFileName;
+  private TextFieldWithBrowseButton myFileChooser;
   private JPanel myCenterPanel;
   private JTextField myTextField1;
   private JPanel myContentPane;
   private JButton myCloseButton;
+  private JPanel myCropTool;
+  private MockupViewPanel myMockupViewPanel;
 
 
-  public MockupEditor() {
+  public MockupEditor(Mockup mockup) {
+    myMockup = mockup;
+    parseMockup(mockup);
+    myFileChooser.addActionListener(new FileChooserActionListener());
     myCloseButton.addActionListener(e -> {
       Disposer.dispose(ourPopupInstance);
       ourPopupInstance = null;
     });
+    //myCropButton.setPreferredSize(new Dimension(16,16));
+  }
+
+  private void parseMockup(Mockup mockup) {
+    final VirtualFile virtualFile = mockup.getVirtualFile();
+    if (virtualFile != null) {
+      myFileChooser.setText(virtualFile.getPath());
+    }
+    myViewTypeTextField.setText(mockup.getComponent().getTagName());
   }
 
   /**
@@ -69,7 +91,7 @@ public class MockupEditor {
     }
 
     final DesignSurface designSurface = screenView.getSurface();
-    final MockupEditor mockupEditorPopup = new MockupEditor();
+    final MockupEditor mockupEditorPopup = new MockupEditor(mockup);
     Component rootPane = SwingUtilities.getRoot(designSurface);
     final Dimension minSize = new Dimension((int)Math.round(rootPane.getWidth() * RELATIVE_SIZE_TO_SOURCE),
                                             (int)Math.round(rootPane.getHeight() * RELATIVE_SIZE_TO_SOURCE));
@@ -87,5 +109,31 @@ public class MockupEditor {
     frame.getFrame().setSize(minSize);
     frame.show();
     ourPopupInstance = frame;
+  }
+
+  private void createUIComponents() {
+    myMockupViewPanel = new MockupViewPanel(myMockup);
+    myCenterPanel = myMockupViewPanel;
+    myCropTool = new Tools.CropTool(myMockup, myMockupViewPanel);
+  }
+
+  protected JPanel getContentPane() {
+    return myContentPane;
+  }
+
+  private class FileChooserActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (myMockup == null) {
+        return;
+      }
+      final FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
+      VirtualFile selectedFile = myMockup.getVirtualFile();
+
+      FileChooser.chooseFile(descriptor, null, myContentPane, selectedFile, (virtualFile) -> {
+        MockupFileHelper.writeFileNameToXML(virtualFile, myMockup.getComponent());
+        myFileChooser.setText(virtualFile.getName());
+      });
+    }
   }
 }
