@@ -63,12 +63,6 @@ public class ModuleConfigurable extends ProjectStructureElementConfigurable<Modu
   }
 
   @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
-  @Override
   @Nls
   public String getDisplayName() {
     return myDisplayName;

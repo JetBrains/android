@@ -489,12 +489,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
-  @Override
-  @Nullable
   public JComponent getPreferredFocusedComponent() {
     return mySidePanel != null ? mySidePanel.myList : null;
   }

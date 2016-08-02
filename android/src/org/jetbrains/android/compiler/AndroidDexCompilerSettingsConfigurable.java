@@ -105,9 +105,4 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
   public String getId() {
     return "android.dex.compiler";
   }
-
-  @Override
-  public Runnable enableSearch(String option) {
-    return null;
-  }
 }

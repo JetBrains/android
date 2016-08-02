@@ -57,12 +57,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   }
 
   @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
-  @Override
   @Nls
   public String getDisplayName() {
     return "Experimental";
