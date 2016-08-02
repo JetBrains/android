@@ -63,53 +63,59 @@ public abstract class AppTrace {
       HNode<MethodUsage> usageGraphRoot = new HNode<>();
       usageGraphRoot.setStart(0);
       usageGraphRoot.setEnd(execGraph.duration());
+      usageGraphRoot.setData(new MethodUsage());
       long totalDuration = usageGraphRoot.duration();
-      generateTopDownGraphsForThread(execGraph, usageGraphRoot, totalDuration);
+
+      // Graph generation is a two passes algorithm:
+      // 1/ Merge all the stackframes.
+      // 2/ Generate all the node data and layout (start,end)
+      mergeStackTraces(execGraph, usageGraphRoot);
+      generateStats(usageGraphRoot, totalDuration);
+
       myTopDownStats.put(threadPid, usageGraphRoot);
     }
   }
 
-  // Merge all stackframes from |execNode| tree together and store the result in a |parentUsageNode|.
-  // totalDuration is needed to calculate percentage statistics associated with each node.
-  private void generateTopDownGraphsForThread(HNode<Method> execNode, HNode<MethodUsage> parentUsageNode, long totalDuration) {
-    HNode<MethodUsage> usageNode = findOrCopyNodeInUsageGraph(execNode, parentUsageNode);
-    MethodUsage usageNodeMu = usageNode.getData();
-
-    // 1. Set usageNode exclusive time.
-    long childTotalRuntime = 0;
-    for (HNode childExecNode : execNode.getChildren()) {
-      childTotalRuntime += childExecNode.duration();
-    }
-    if (childTotalRuntime == 0) { // This is a leaf. Recursion stops here.
-      usageNodeMu.setExclusiveDuration(execNode.duration());
-      usageNodeMu.setExclusivePercentage(execNode.duration()/(float)totalDuration);
-      return;
-    }
-    usageNodeMu.setExclusiveDuration(execNode.duration() - childTotalRuntime);
-    usageNodeMu.setExclusivePercentage((execNode.duration() - childTotalRuntime) / (float)totalDuration);
-
-
-    // 2. Create all usage child myNodes and set their inclusive time.
+  private void mergeStackTraces(HNode<Method> execNode, HNode<MethodUsage> usageNode) {
     for (HNode<Method> childExecNode : execNode.getChildren()) {
-      // Find child in the usageGraph
       HNode<MethodUsage> methodUsageNode = findOrCopyNodeInUsageGraph(childExecNode, usageNode);
       methodUsageNode.getData().increaseInclusiveDuration(childExecNode.duration());
     }
 
+    // Recurse over all childs
+    for (HNode<Method> childExecNode : execNode.getChildren()) {
+      HNode<MethodUsage> methodUsageNode = findNodeInUsageGraph(childExecNode, usageNode);
+      mergeStackTraces(childExecNode, methodUsageNode);
+    }
+  }
 
-    // 3. Calculate each child inclusive percentage, set start and end values.
+  private void generateStats(HNode<MethodUsage> usageNode, long totalDuration) {
+
+    long childTotalRuntime = 0;
+    for (HNode<MethodUsage> childExecNode : usageNode.getChildren()) {
+      childTotalRuntime += childExecNode.getData().getInclusiveDuration();
+    }
+
+    long exlusiveDuration = usageNode.getData().getInclusiveDuration() - childTotalRuntime;
+    usageNode.getData().setExclusiveDuration(exlusiveDuration);
+    usageNode.getData().setExclusivePercentage(exlusiveDuration / (float)totalDuration);
+
+    if (childTotalRuntime == 0) {// This is a leaf. Recursion stops here.
+      return;
+    }
+
     long cursor = usageNode.getStart();
     for (HNode<MethodUsage> childUsageNode : usageNode.getChildren()) {
       MethodUsage methodUsage = childUsageNode.getData();
       childUsageNode.setStart(cursor);
-      cursor = cursor + methodUsage.getInclusiveDuration();
+      cursor += methodUsage.getInclusiveDuration();
       childUsageNode.setEnd(cursor);
       methodUsage.setInclusivePercentage(childUsageNode.duration() / (float)totalDuration);
     }
 
     // Recurse over all childs
-    for (HNode<Method> child : execNode.getChildren()) {
-      generateTopDownGraphsForThread(child, usageNode, totalDuration);
+    for (HNode<MethodUsage> child : usageNode.getChildren()) {
+      generateStats(child, totalDuration);
     }
   }
 
@@ -118,12 +124,20 @@ public abstract class AppTrace {
     return m.getName().equals(mu.getName()) && m.getNameSpace().equals(mu.getNameSpace());
   }
 
-  private HNode<MethodUsage> findOrCopyNodeInUsageGraph(HNode<Method> node, HNode<MethodUsage> usageGraph) {
+  private HNode<MethodUsage> findNodeInUsageGraph(HNode<Method> node, HNode<MethodUsage> usageGraph) {
     // Search for the node in the graph.
     for (HNode<MethodUsage> prospect : usageGraph.getChildren()) {
       if (methodEqual(node.getData(), prospect.getData())) {
         return prospect; // Found
       }
+    }
+    return null;
+  }
+
+  private HNode<MethodUsage> findOrCopyNodeInUsageGraph(HNode<Method> node, HNode<MethodUsage> usageGraph) {
+    HNode<MethodUsage> foundNode = findNodeInUsageGraph(node, usageGraph);
+    if (foundNode != null) {
+      return foundNode;
     }
 
     // Node was not found. We need to create it and add it to the usageGraph before returning it.
@@ -159,6 +173,8 @@ public abstract class AppTrace {
   private JComponent generateTopdownTree(HNode<MethodUsage> graph) {
 
     AppStatTreeNode top = new AppStatTreeNode();
+    // Intentionally discard first child
+    graph = graph.getFirstChild();
     convertGraphToTree(graph, top);
 
     JTree tree = new JTree(top);
@@ -213,11 +229,7 @@ public abstract class AppTrace {
   }
 
   private void convertGraphToTree(HNode<MethodUsage> graph, AppStatTreeNode top) {
-
-    MethodUsage mTop;
-    while ((mTop = graph.getData()) == null || mTop.getName() == null) {
-      graph = graph.getFirstChild();
-    }
+    MethodUsage mTop = graph.getData();
 
     top.setPercentageInclusive(mTop.getInclusivePercentage());
     top.setPercentageExclusive(mTop.getExclusivePercentage());
