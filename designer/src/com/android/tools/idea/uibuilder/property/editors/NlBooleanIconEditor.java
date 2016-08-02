@@ -55,6 +55,7 @@ public class NlBooleanIconEditor {
     myAction = new BooleanAction(icon, description, trueValue, falseValue);
     myPresentation = myAction.getTemplatePresentation().clone();
     myButton = new ActionButton(myAction, myPresentation, INSPECTOR_PLACE, NAVBAR_MINIMUM_BUTTON_SIZE);
+    myButton.setFocusable(true);
   }
 
   public Component getComponent() {

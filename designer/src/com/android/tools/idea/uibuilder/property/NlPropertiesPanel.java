@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,12 +62,9 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   public NlPropertiesPanel(@NotNull Project project) {
     super(new BorderLayout());
     setOpaque(true);
-    setFocusable(true);
-    setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
     myModel = new PTableModel();
-
     myTable = new PTable(myModel);
     myTable.setEditorProvider(NlPropertyEditors.getInstance(project));
     myTable.getEmptyText().setText("No selected component");
@@ -88,8 +86,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
                                                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
     myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTablePanel));
+    myCardPanel.setFocusCycleRoot(true);
+    myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
   }
 
   public void setItems(@NotNull List<NlComponent> components,
@@ -110,6 +111,9 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myTable.removeEditor();
     }
     myModel.setItems(groupedProperties);
+    if (myModel.getRowCount() > 0) {
+      myTable.addRowSelectionInterval(0, 0);
+    }
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
@@ -173,6 +177,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     HyperlinkLabel iconLink = new HyperlinkLabel();
     iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
+    iconLink.setFocusable(false);
     iconLink.setUseIconAsLink(true);
     iconLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -198,7 +203,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myAllPropertiesPanelVisible = viewAllProperties;
     JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
     String name = viewAllProperties ? CARD_ADVANCED : CARD_DEFAULT;
-    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
+    Component next = viewAllProperties ? myTable : myInspectorPanel;
+    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
   }
 
   public boolean activatePreferredEditor(boolean afterload) {
@@ -206,5 +212,20 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       setAllPropertiesPanelVisible(false);
     }
     return myInspectorPanel.activatePreferredEditor(afterload);
+  }
+
+  private void scrollIntoView(@NotNull PropertyChangeEvent event) {
+    if (event.getNewValue() instanceof Component) {
+      Component newFocusedComponent = (Component)event.getNewValue();
+      if (isAncestorOf(newFocusedComponent) && newFocusedComponent.getParent() instanceof JComponent) {
+        JComponent parent1 = (JComponent)newFocusedComponent.getParent();
+        Rectangle bounds = newFocusedComponent.getBounds();
+        if (newFocusedComponent == myTable) {
+          bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
+          bounds.x = 0;
+        }
+        parent1.scrollRectToVisible(bounds);
+      }
+    }
   }
 }

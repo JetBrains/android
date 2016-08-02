@@ -37,17 +37,16 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
-public class InspectorPanel extends JPanel {
+public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
   private static final int HORIZONTAL_SPACING = 6;
 
@@ -55,12 +54,10 @@ public class InspectorPanel extends JPanel {
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
-  private final Icon myExpandedIcon;
-  private final Icon myCollapsedIcon;
   private final JPanel myInspector;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
-  private List<Component> myGroup;
-  private boolean myGroupInitiallyOpen;
+  private ExpandableGroup myGroup;
+  private Map<Component, ExpandableGroup> mySource2GroupMap = new HashMap<>(4);
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
   private boolean myActivateEditorAfterLoad;
@@ -71,11 +68,41 @@ public class InspectorPanel extends JPanel {
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myProviders = createProviders(project);
     myDesignProperties = new NlDesignProperties();
-    myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
-    myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+  }
+
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    // Intercept TAB keys here and expand any group that is currently collapsed if the TAB key is pressed from that group.
+    // In that way the user can get to all fields from the keyboard.
+    // Note that the arrow keys and '+' and '-' are usually used for something else (so they cannot be used to open/close the group).
+    if (event.getKeyCode() == '\t' &&
+        event.getModifiers() == 0 &&
+        event.getID() == KeyEvent.KEY_PRESSED &&
+        event.getSource() instanceof Component) {
+      Component source = (Component)event.getSource();
+      ExpandableGroup group = mySource2GroupMap.get(source);
+      if (group != null && !group.isExpanded()) {
+        group.setExpanded(true);
+        ApplicationManager.getApplication().invokeLater(source::transferFocus);
+        return true;
+      }
+    }
+    return false;
   }
 
   private static List<InspectorProvider> createProviders(@NotNull Project project) {
@@ -98,6 +125,7 @@ public class InspectorPanel extends JPanel {
                            @NotNull NlPropertiesManager propertiesManager) {
     myInspector.setLayout(null);
     myInspector.removeAll();
+    mySource2GroupMap.clear();
     myRow = 0;
 
     if (!components.isEmpty()) {
@@ -216,13 +244,22 @@ public class InspectorPanel extends JPanel {
     }
   }
 
+  /**
+   * Add a component that also serves as a group node in the inspector.
+   * @param labelText the label for the component
+   * @param tooltip the tooltip for the attribute being edited by the component
+   * @param component the editor component
+   * @param keySource the component that will have focus for this component
+   * @return a JLabel for the label of the component
+   */
   public JLabel addExpandableComponent(@NotNull String labelText,
                                        @Nullable String tooltip,
-                                       @NotNull Component component) {
+                                       @NotNull Component component,
+                                       @NotNull Component keySource) {
     JLabel label = createLabel(labelText, tooltip, component);
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
-    startGroup(label);
+    startGroup(label, keySource);
     return label;
   }
 
@@ -264,8 +301,7 @@ public class InspectorPanel extends JPanel {
   private void addComponent(@NotNull Component component, int row, int column, int columnSpan, int anchor, int fill) {
     addToGridPanel(myInspector, component, row, column, columnSpan, anchor, fill);
     if (myGroup != null) {
-      myGroup.add(component);
-      component.setVisible(myGroupInitiallyOpen);
+      myGroup.addComponent(component);
     }
   }
 
@@ -279,28 +315,51 @@ public class InspectorPanel extends JPanel {
     panel.add(component, myConstraints);
   }
 
-  private void startGroup(@NotNull JLabel label) {
+  private void startGroup(@NotNull JLabel label, @NotNull Component keySource) {
     assert myGroup == null;
-    List<Component> group = new ArrayList<>();
-    String savedKey = "inspector.open." + label.getText();
-    myGroupInitiallyOpen = PropertiesComponent.getInstance().getBoolean(savedKey);
-
-    label.setIcon(myGroupInitiallyOpen ? myExpandedIcon : myCollapsedIcon);
-    label.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent event) {
-        boolean wasExpanded = label.getIcon() == myExpandedIcon;
-        label.setIcon(wasExpanded ? myCollapsedIcon : myExpandedIcon);
-        group.stream().forEach(component -> component.setVisible(!wasExpanded));
-        PropertiesComponent.getInstance().setValue(savedKey, !wasExpanded);
-      }
-    });
-
-    myGroup = group;
+    myGroup = new ExpandableGroup(label);
+    mySource2GroupMap.put(keySource, myGroup);
   }
 
   private void endGroup() {
     myGroup = null;
+  }
+
+  private static class ExpandableGroup {
+    private static final String KEY_PREFIX = "inspector.open.";
+    private static final Icon EXPANDED_ICON = (Icon)UIManager.get("Tree.expandedIcon");
+    private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
+    private final JLabel myLabel;
+    private final List<Component> myComponents;
+    private final boolean myInitiallyExpanded;
+
+    public ExpandableGroup(@NotNull JLabel label) {
+      myLabel = label;
+      myComponents = new ArrayList<>(10);
+      myInitiallyExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
+      label.setIcon(myInitiallyExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
+      label.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent event) {
+          setExpanded(!isExpanded());
+        }
+      });
+    }
+
+    public void addComponent(@NotNull Component component) {
+      myComponents.add(component);
+      component.setVisible(myInitiallyExpanded);
+    }
+
+    public boolean isExpanded() {
+      return myLabel.getIcon() == EXPANDED_ICON;
+    }
+
+    public void setExpanded(boolean expanded) {
+      myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
+      myComponents.forEach(component -> component.setVisible(expanded));
+      PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+    }
   }
 
   /**
