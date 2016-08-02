@@ -227,7 +227,7 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return editor.isModuleDependency(APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
+    return editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
   }
 
   @Nullable
