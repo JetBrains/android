@@ -34,34 +34,9 @@ public class MethodGraphImpl extends BlockGraphImpl implements MethodGraph {
   private Map<PsiParameter, Param> mParamMap;
   private PsiCFGMethod mCFGMethod;
 
-  @NotNull
-  @Override
-  public Param[] getParams() {
-    Param[] retArray = new Param[mParamMap.size()];
-    int i = 0;
-    for (PsiParameter curPsiRef : this.mParamMap.keySet()) {
-      Param curParam = this.mParamMap.get(curPsiRef);
-      retArray[i] = curParam;
-      i++;
-    }
-    return retArray;
-  }
-
   @Override
   public PsiCFGMethod getPsiCFGMethod() {
     return this.mCFGMethod;
-  }
-
-  @Override
-  public Param getParamFromPsiParam(PsiParameter psiParameter) {
-    if (mParamMap.containsKey(psiParameter)) {
-      return this.mParamMap.get(psiParameter);
-    }
-    return null;
-  }
-
-  public void addParam(Param param) {
-    mParamMap.put((PsiParameter)param.getPsiRef(), param);
   }
 
   public MethodGraphImpl(@NotNull PsiCFGMethod methodRef) {

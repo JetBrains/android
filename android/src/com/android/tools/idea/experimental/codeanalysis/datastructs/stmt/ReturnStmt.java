@@ -22,7 +22,10 @@ import org.jetbrains.annotations.Nullable;
  * Created by haowei on 6/20/16.
  */
 public interface ReturnStmt extends Stmt {
-  //Can be null
+  /**
+   * Get the value returned by the return statement. It can be null due to the void return.
+   * @return The Return Value.
+   */
   @Nullable
   Value getReturnValue();
 }

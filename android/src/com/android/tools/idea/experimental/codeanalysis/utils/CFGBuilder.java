@@ -297,6 +297,12 @@ public class CFGBuilder {
     //  MethodGraph mg = (MethodGraph)this.mGraph;
     //  CFGUtil.outputCFGDotFile(mg);
     //}
+    if (this.mGraph instanceof MethodGraph) {
+      MethodGraph mg = (MethodGraph)this.mGraph;
+      if (mg.getPsiCFGMethod().getName().equals("exampleMtd")) {
+        CFGUtil.outputCFGDotFile(mg);
+      }
+    }
   }
 
   public boolean isWorkingNodeConsiderUnreachable(ArrayList<GraphNode> workingNodes) {
@@ -336,24 +342,45 @@ public class CFGBuilder {
    */
   private Param resolveParam(PsiParameter param) {
     Graph graph = this.mGraph;
-    while (graph != null && (!(graph instanceof MethodGraphImpl))) {
-      graph = graph.getParentGraph();
-    }
-    if (graph == null) {
-      PsiCFGDebugUtil.LOG.warning("Cannot find the method that declared the parameter: "
-                                  + param.getName());
-      return null;
-    } else {
-      MethodGraphImpl methodGraph = (MethodGraphImpl) graph;
-      Param p = methodGraph.getParamFromPsiParam(param);
+    if (graph instanceof BlockGraph) {
+      Param p = ((BlockGraph)graph).getParamFromPsiParameter(param);
       if (p == null) {
-        PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist in method " +
-                                    methodGraph.getPsiCFGMethod().getName() + " in class "
-                                    + this.containerClass.getQualifiedClassName());
+        if (graph instanceof MethodGraph) {
+          MethodGraph methodGraph = (MethodGraph) graph;
+          PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist in method "
+                                          + methodGraph.getPsiCFGMethod().getName() + " in class "
+                                          + this.containerClass.getQualifiedClassName());
+        } else {
+          PsiStatement psiStmt = ((BlockGraph)graph).getParentStmt();
+          PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist in context "
+                                      + psiStmt.getText() + " in class "
+                                      + this.containerClass.getQualifiedClassName());
+        }
       }
-
       return p;
     }
+    PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist, the graph is not" +
+                                " a block graph");
+
+    return null;
+    //while (graph != null && (!(graph instanceof MethodGraphImpl))) {
+    //  graph = graph.getParentGraph();
+    //}
+    //if (graph == null) {
+    //  PsiCFGDebugUtil.LOG.warning("Cannot find the method that declared the parameter: "
+    //                              + param.getName());
+    //  return null;
+    //} else {
+    //  MethodGraphImpl methodGraph = (MethodGraphImpl) graph;
+    //  Param p = methodGraph.getParamFromPsiParam(param);
+    //  if (p == null) {
+    //    PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist in method " +
+    //                                methodGraph.getPsiCFGMethod().getName() + " in class "
+    //                                + this.containerClass.getQualifiedClassName());
+    //  }
+    //
+    //  return p;
+    //}
   }
 
   /**
@@ -1115,7 +1142,7 @@ public class CFGBuilder {
       currentGraph = currentGraph.getParentGraph();
     }
     if (currentGraph instanceof MethodGraph) {
-      return this.mGraph.getExitNode();
+      return currentGraph.getExitNode();
     }
     else {
       return null;
@@ -2376,7 +2403,9 @@ public class CFGBuilder {
         //Generate the decl statement
         DeclarationStmtImpl newDecl = new DeclarationStmtImpl(localType, curLocal, currentDeclStmt);
         connectGeneratedStmt(newDecl);
-        ((BlockGraphImpl)(this.mGraph)).addLocal((LocalImpl)newDecl.getLocal());
+        if (this.mGraph instanceof BlockGraph) {
+          ((BlockGraph)(this.mGraph)).addLocal(curLocal, (LocalImpl)newDecl.getLocal());
+        }
 
         if (curLocal.hasInitializer()) {
           //Generate Statement for the initializer

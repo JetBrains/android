@@ -16,8 +16,6 @@
 package com.android.tools.idea.experimental.codeanalysis.utils;
 
 import com.android.tools.idea.experimental.codeanalysis.PsiCFGScene;
-import com.android.tools.idea.experimental.codeanalysis.analysisclients.AnalysisClientBase;
-import com.android.tools.idea.experimental.codeanalysis.analysisclients.LocationPermissionExperimentClient;
 import com.android.tools.idea.experimental.codeanalysis.callgraph.Callgraph;
 import com.android.tools.idea.experimental.codeanalysis.callgraph.CallgraphBuilder;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;

@@ -18,14 +18,31 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Local;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by haowei on 6/14/16.
  */
 public interface DeclarationStmt extends Stmt {
+
+  /**
+   * Get the type of this declaration.
+   * @return The Type.
+   */
+  @NotNull
   PsiType getType();
 
+  /**
+   * Get the PsiLocalVariable reference to this declaration.
+   * @return Return the PsiLocalVariable reference.
+   */
+  @NotNull
   PsiLocalVariable getPsiLocal();
 
+  /**
+   * Get the Local of this declaration.
+   * @return Return the Local.
+   */
+  @NotNull
   Local getLocal();
 }

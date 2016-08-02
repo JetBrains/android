@@ -124,7 +124,7 @@ public class CFGUtil {
         }
         else {
           ParamImpl curParamImpl = new ParamImpl(curPsiParam);
-          lambdaGraph.addParam(curParamImpl);
+          lambdaGraph.addParam(curPsiParam, curParamImpl);
         }
       }
     }
@@ -149,7 +149,7 @@ public class CFGUtil {
         }
         else {
           ParamImpl curParamImpl = new ParamImpl(curPsiParam);
-          retGraph.addParam(curParamImpl);
+          retGraph.addParam(curPsiParam, curParamImpl);
         }
       }
     }

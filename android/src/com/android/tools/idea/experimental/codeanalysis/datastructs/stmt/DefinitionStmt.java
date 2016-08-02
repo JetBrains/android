@@ -16,16 +16,36 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by haowei on 6/13/16.
  */
 public interface DefinitionStmt extends Stmt {
+
+  /**
+   * Return the Left Hand Side Op. It cannot be null.
+   * @return Return the LHS Op.
+   */
+  @NotNull
   public Value getLOp();
 
+  /**
+   * Return the Right Hand Side Op. It cannot be null.
+   * @return Return the RHS Op.
+   */
+  @NotNull
   public Value getROp();
 
-  public void setLOp(Value L);
+  /**
+   * Set the Left Hand Side Op.
+   * @param L The LHS Op
+   */
+  public void setLOp(@NotNull Value L);
 
-  public void setROp(Value R);
+  /**
+   * Set the Right Hand Side Op.
+   * @param R The RHS Op
+   */
+  public void setROp(@NotNull Value R);
 }

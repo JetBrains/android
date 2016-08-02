@@ -27,10 +27,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PsiCFGField implements ClassMember, PsiAnnotationOwner {
 
-  private PsiCFGClass mDeclearingClass;
-  private PsiField mPsiFieldRef;
+  protected PsiCFGClass mDeclearingClass;
+  protected PsiField mPsiFieldRef;
+  protected int modifierBits;
 
-  public PsiCFGField(PsiField field, PsiCFGClass clazz) {
+  public PsiCFGField(@NotNull PsiField field, @NotNull PsiCFGClass clazz) {
     this.mDeclearingClass = clazz;
     this.mPsiFieldRef = field;
   }

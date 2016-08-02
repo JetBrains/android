@@ -30,11 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 public interface MethodGraph extends BlockGraph {
 
+  /**
+   * Return the PsiCFGMethod instance of this
+   * Control Flow Graph
+   * @return The instance of PsiCFGMethod
+   */
   @NotNull
-  public Param[] getParams();
-
   public PsiCFGMethod getPsiCFGMethod();
-
-  public Param getParamFromPsiParam(PsiParameter psiParameter);
 
 }
