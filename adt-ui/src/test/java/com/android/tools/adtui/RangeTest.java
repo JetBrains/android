@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(JUnit4.class)
 public class RangeTest {
@@ -34,24 +34,24 @@ public class RangeTest {
     range.setLerpFraction(1f);
 
     // Assert initial min value.
-    assertEquals(0f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(0f);
 
     // Immediate set.
     range.setMin(5f);
-    assertEquals(5f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(5f);
 
     // Immediate set and lock, no further values can be set until next cycle.
     range.setMin(10f);
     range.lockValues();
-    assertEquals(10f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(10f);
 
     range.setMin(15f);
-    assertEquals(10f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(10f);
 
     // Animate and reset to make sure values can be set again.
     triggerUpdate(range);
     range.setMin(20f);
-    assertEquals(20f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(20f);
   }
 
   @Test
@@ -60,26 +60,26 @@ public class RangeTest {
     range.setLerpFraction(1f);
 
     // Assert initial min value.
-    assertEquals(0f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(0f);
 
     // Interpolate set.
     range.setMinTarget(5f);
-    assertEquals(0f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(0f);
     triggerUpdate(range);
-    assertEquals(5f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(5f);
 
     // Interpolate set and lock, no further values can be set until next cycle.
     range.setMinTarget(10f);
     range.lockValues();
     range.setMinTarget(20f);
     triggerUpdate(range);
-    assertEquals(10f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(10f);
 
     // Animate and reset to make sure values can be set again.
     range.setMinTarget(30f);
     range.setMinTarget(40f);
     triggerUpdate(range);
-    assertEquals(40f, range.getMin(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(40f);
 
   }
 
@@ -89,24 +89,24 @@ public class RangeTest {
     range.setLerpFraction(1f);
 
     // Assert initial min value.
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // Immediate set.
     range.setMax(90f);
-    assertEquals(90f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(90f);
 
     // Immediate set and lock, no further values can be set until next cycle.
     range.setMax(80f);
     range.lockValues();
-    assertEquals(80f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(80f);
 
     range.setMax(70f);
-    assertEquals(80f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(80f);
 
     // Animate and reset to make sure values can be set again.
     triggerUpdate(range);
     range.setMax(60f);
-    assertEquals(60f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(60f);
 
   }
 
@@ -116,26 +116,26 @@ public class RangeTest {
     range.setLerpFraction(1f);
 
     // Assert initial min value.
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // Interpolate set.
     range.setMaxTarget(90f);
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
     triggerUpdate(range);
-    assertEquals(90f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(90f);
 
     // Interpolate set and lock, no further values can be set until next cycle.
     range.setMaxTarget(80f);
     range.lockValues();
     range.setMaxTarget(70f);
     triggerUpdate(range);
-    assertEquals(80f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(80f);
 
     // Animate and reset to make sure values can be set again.
     range.setMaxTarget(60f);
     range.setMaxTarget(50f);
     triggerUpdate(range);
-    assertEquals(50f, range.getMax(), THRESHOLD);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(50f);
   }
 
   @Test
@@ -145,20 +145,20 @@ public class RangeTest {
 
     // Immediate set.
     range.set(50f, 100f);
-    assertEquals(50f, range.getMin(), THRESHOLD);
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(50f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // lock and set, values should not be changed
     range.lockValues();
     range.set(70f, 80f);
-    assertEquals(50f, range.getMin(), THRESHOLD);
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(50f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // Animate and reset to make sure values can be set again.
     triggerUpdate(range);
     range.set(20f, 30f);
-    assertEquals(20f, range.getMin(), THRESHOLD);
-    assertEquals(30f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(20f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(30f);
   }
 
   @Test
@@ -168,24 +168,24 @@ public class RangeTest {
 
     // Interpolate set.
     range.setTarget(50f, 100f);
-    assertEquals(0f, range.getMin(), THRESHOLD);
-    assertEquals(0f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(0f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(0f);
     triggerUpdate(range);
-    assertEquals(50f, range.getMin(), THRESHOLD);
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(50f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // lock and set, values should not be changed
     range.lockValues();
     range.setTarget(70f, 80f);
     triggerUpdate(range);
-    assertEquals(50f, range.getMin(), THRESHOLD);
-    assertEquals(100f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(50f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(100f);
 
     // Make sure values can be set again after last update.
     range.setTarget(20f, 30f);
     triggerUpdate(range);
-    assertEquals(20f, range.getMin(), THRESHOLD);
-    assertEquals(30f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(20f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(30f);
   }
 
   @Test
@@ -194,15 +194,15 @@ public class RangeTest {
 
     // No clamping should be applied within range.
     double value = range.clamp(70f);
-    assertEquals(70f, value, THRESHOLD);
+    assertThat(value).isWithin(THRESHOLD).of(70f);
 
     // Clamp to min.
     value = range.clamp(-1f);
-    assertEquals(0f, value, THRESHOLD);
+    assertThat(value).isWithin(THRESHOLD).of(0f);
 
     // Clamp to max.
     value = range.clamp(101f);
-    assertEquals(100f, value, THRESHOLD);
+    assertThat(value).isWithin(THRESHOLD).of(100f);
   }
 
   @Test
@@ -211,19 +211,19 @@ public class RangeTest {
 
     // Shift forward.
     range.shift(10f);
-    assertEquals(10f, range.getMin(), THRESHOLD);
-    assertEquals(110f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(10f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(110f);
 
     // Shift backward.
     range.shift(-20f);
-    assertEquals(-10f, range.getMin(), THRESHOLD);
-    assertEquals(90f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(-10f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(90f);
 
     // Lock and shift - no values should be changed.
     range.lockValues();
     range.shift(-20f);
-    assertEquals(-10f, range.getMin(), THRESHOLD);
-    assertEquals(90f, range.getMax(), THRESHOLD);
+    assertThat(range.getMin()).isWithin(THRESHOLD).of(-10f);
+    assertThat(range.getMax()).isWithin(THRESHOLD).of(90f);
   }
 
   private static void triggerUpdate(@NonNull Range range) {

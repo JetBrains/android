@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
@@ -37,9 +37,19 @@ public class CircularArrayListTest {
 
   @Test
   public void testGetAndAdd() throws Exception {
-    assertEquals(0, mList.get(0).intValue());
-    assertEquals(1, mList.get(1).intValue());
+    assertThat(mList.get(0)).isEqualTo(0);
+    assertThat(mList.get(1)).isEqualTo(1);
 
+    mList.add(2);
+    mList.add(3);
+
+    assertThat(mList.get(0)).isEqualTo(1);
+    assertThat(mList.get(1)).isEqualTo(2);
+    assertThat(mList.get(2)).isEqualTo(3);
+  }
+
+  @Test
+  public void testGetIndexOutOfBounds() {
     try {
       mList.get(-1);
       fail("IndexOutOfBoundsException expected");
@@ -55,31 +65,24 @@ public class CircularArrayListTest {
     catch (IndexOutOfBoundsException e) {
       // Expected.
     }
-
-    mList.add(2);
-    mList.add(3);
-
-    assertEquals(1, mList.get(0).intValue());
-    assertEquals(2, mList.get(1).intValue());
-    assertEquals(3, mList.get(2).intValue());
   }
 
   @Test
   public void testSize() throws Exception {
-    assertEquals(2, mList.size());
+    assertThat(mList.size()).isEqualTo(2);
     mList.add(2);
-    assertEquals(3, mList.size());
+    assertThat(mList.size()).isEqualTo(3);
 
     mList.add(3);
-    assertEquals(3, mList.size());
+    assertThat(mList.size()).isEqualTo(3);
   }
 
   @Test
   public void testClear() throws Exception {
-    assertEquals(2, mList.size());
+    assertThat(mList.size()).isEqualTo(2);
 
     mList.clear();
 
-    assertEquals(0, mList.size());
+    assertThat(mList).isEmpty();
   }
 }
