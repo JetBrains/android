@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -109,6 +110,22 @@ public abstract class ViewEditor {
   public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
 
   public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
+
+  /**
+   * Returns true if the current module depends on the specified library.
+   *
+   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
+   */
+  public abstract boolean isModuleDependency(@NotNull String artifact);
+
+  /**
+   * Returns the {@link GradleVersion} of the specified library that the current module depends on.
+   *
+   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
+   * @return the revision or null if the module does not depend on the specified library.
+   */
+  @Nullable
+  public abstract GradleVersion getModuleDependencyVersion(@NotNull String artifact);
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
