@@ -290,11 +290,6 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           checkForUpgrades(myRequestedPackages);
         }
         myInstallationFinished.set(true);
-
-        VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
-        if (sdkDir != null) {
-          sdkDir.refresh(true, true);
-        }
       });
     }
 
