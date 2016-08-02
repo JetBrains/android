@@ -17,12 +17,18 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class RangeTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+@RunWith(JUnit4.class)
+public class RangeTest {
 
   private static float THRESHOLD = 0.001f;
 
+  @Test
   public void testSetMin() throws Exception {
     Range range = new Range(0f, 100f);
     range.setLerpFraction(1f);
@@ -48,6 +54,7 @@ public class RangeTest extends TestCase {
     assertEquals(20f, range.getMin(), THRESHOLD);
   }
 
+  @Test
   public void testSetMinTarget() throws Exception {
     Range range = new Range(0f, 100f);
     range.setLerpFraction(1f);
@@ -76,6 +83,7 @@ public class RangeTest extends TestCase {
 
   }
 
+  @Test
   public void testSetMax() throws Exception {
     Range range = new Range(0f, 100f);
     range.setLerpFraction(1f);
@@ -102,6 +110,7 @@ public class RangeTest extends TestCase {
 
   }
 
+  @Test
   public void testSetMaxTarget() throws Exception {
     Range range = new Range(0f, 100f);
     range.setLerpFraction(1f);
@@ -129,6 +138,7 @@ public class RangeTest extends TestCase {
     assertEquals(50f, range.getMax(), THRESHOLD);
   }
 
+  @Test
   public void testSet() throws Exception {
     Range range = new Range();
     range.setLerpFraction(1f);
@@ -151,6 +161,7 @@ public class RangeTest extends TestCase {
     assertEquals(30f, range.getMax(), THRESHOLD);
   }
 
+  @Test
   public void testSetTarget() throws Exception {
     Range range = new Range();
     range.setLerpFraction(1f);
@@ -177,6 +188,7 @@ public class RangeTest extends TestCase {
     assertEquals(30f, range.getMax(), THRESHOLD);
   }
 
+  @Test
   public void testClamp() throws Exception {
     Range range = new Range(0f, 100f);
 
@@ -193,6 +205,7 @@ public class RangeTest extends TestCase {
     assertEquals(100f, value, THRESHOLD);
   }
 
+  @Test
   public void testShift() throws Exception {
     Range range = new Range(0f, 100f);
 

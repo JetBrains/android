@@ -15,20 +15,27 @@
  */
 package com.android.tools.adtui;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class CircularArrayListTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@RunWith(JUnit4.class)
+public class CircularArrayListTest {
 
   private CircularArrayList<Integer> mList;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-    mList = new CircularArrayList<Integer>(3);
+    mList = new CircularArrayList<>(3);
     mList.add(0);
     mList.add(1);
   }
 
+  @Test
   public void testGetAndAdd() throws Exception {
     assertEquals(0, mList.get(0).intValue());
     assertEquals(1, mList.get(1).intValue());
@@ -57,6 +64,7 @@ public class CircularArrayListTest extends TestCase {
     assertEquals(3, mList.get(2).intValue());
   }
 
+  @Test
   public void testSize() throws Exception {
     assertEquals(2, mList.size());
     mList.add(2);
@@ -66,6 +74,7 @@ public class CircularArrayListTest extends TestCase {
     assertEquals(3, mList.size());
   }
 
+  @Test
   public void testClear() throws Exception {
     assertEquals(2, mList.size());
 
