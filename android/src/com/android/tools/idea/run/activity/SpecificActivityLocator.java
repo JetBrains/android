@@ -88,9 +88,8 @@ public class SpecificActivityLocator extends ActivityLocator {
     Boolean exported = activity.getExported();
 
     // if the activity is not explicitly exported, and it doesn't have an intent filter, then it cannot be launched
-    if (!Boolean.TRUE.equals(exported) &&
-        !ActivityLocatorUtils.containsLauncherIntent(activity)) {
-      throw new ActivityLocatorException(AndroidBundle.message("specific.activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
+    if (!Boolean.TRUE.equals(exported) && !activity.hasIntentFilter()) {
+      throw new ActivityLocatorException(AndroidBundle.message("specific.activity.not.launchable.error"));
     }
   }
 
