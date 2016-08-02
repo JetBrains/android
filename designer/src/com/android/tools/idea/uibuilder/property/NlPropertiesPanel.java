@@ -90,7 +90,18 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
+  }
+
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
   }
 
   public void setItems(@NotNull List<NlComponent> components,
@@ -215,7 +226,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   private void scrollIntoView(@NotNull PropertyChangeEvent event) {
-    if (event.getNewValue() instanceof Component) {
+    if (event.getNewValue() instanceof Component && "focusOwner".equals(event.getPropertyName())) {
       Component newFocusedComponent = (Component)event.getNewValue();
       if (isAncestorOf(newFocusedComponent) && newFocusedComponent.getParent() instanceof JComponent) {
         JComponent parent1 = (JComponent)newFocusedComponent.getParent();
