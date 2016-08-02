@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
@@ -27,8 +26,6 @@ import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -649,28 +646,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
-  }
-
-  /**
-   * Returns true if the current module depends on the specified library.
-   *
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
-   */
-  public boolean isModuleDependency(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
-    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
-  }
-
-  /**
-   * Returns the {@link GradleVersion} of the specified library that the current module depends on.
-   *
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
-   * @return the revision or null if the module does not depend on the specified library.
-   */
-  @Nullable
-  public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
-    return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
   }
 
   /**
