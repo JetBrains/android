@@ -38,15 +38,15 @@ import static org.mockito.Mockito.when;
  * Tests for {@link GradleSyncTest}.
  */
 public class GradleSyncTest extends AndroidGradleTestCase {
-  private GradleSetup myGradleSetup;
   private ProjectSetupStub myProjectSetup;
+  private GradleSetup myGradleSetup;
   private GradleSync myGradleSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myGradleSetup = new GradleSetup();
     myProjectSetup = new ProjectSetupStub();
+    myGradleSetup = new GradleSetup();
 
     ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
     when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
@@ -133,17 +133,17 @@ public class GradleSyncTest extends AndroidGradleTestCase {
     return moduleModels;
   }
 
-  private static class ProjectSetupStub implements ProjectSetup {
+  private static class ProjectSetupStub extends ProjectSetup {
     SyncAction.ProjectModels models;
     boolean committed;
 
     @Override
-    public void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
+    void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
       this.models = models;
     }
 
     @Override
-    public void commit(boolean synchronous) {
+    void commit(boolean synchronous) {
       committed = true;
     }
   }

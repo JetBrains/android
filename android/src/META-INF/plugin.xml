@@ -1003,6 +1003,8 @@
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.androidModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.javaModuleSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
@@ -1103,6 +1105,9 @@
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.CompilerOutputModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.ContentRootModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.android.RunConfigurationModuleSetupStep"/>
+
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.java.CompilerOutputModuleSetupStep"/>
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.java.ContentRootModuleSetupStep"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">

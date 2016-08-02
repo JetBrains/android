@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -28,19 +27,19 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
-interface ProjectSetup {
-  void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator);
+abstract class ProjectSetup {
+  abstract void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator);
 
-  void commit(boolean synchronous);
+  abstract void commit(boolean synchronous);
 
-  class Factory {
+  static class Factory {
     @NotNull
     ProjectSetup create(@NotNull Project project) {
       return new ProjectSetupImpl(project);
     }
   }
 
-  class ProjectSetupImpl implements ProjectSetup {
+  private static class ProjectSetupImpl extends ProjectSetup {
     private static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
     @NotNull private final Project myProject;
@@ -48,8 +47,6 @@ interface ProjectSetup {
     @NotNull private final ModuleFactory myModuleFactory;
     @NotNull private final ModuleSetup myModuleSetup;
 
-
-    @VisibleForTesting
     ProjectSetupImpl(@NotNull Project project) {
       myProject = project;
       myModelsProvider = new IdeModifiableModelsProviderImpl(myProject);
@@ -58,18 +55,23 @@ interface ProjectSetup {
     }
 
     @Override
-    public void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
+    void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
       createModules(models, indicator);
+      setUpModules(indicator);
     }
 
     private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
+      indicator.setText2("Creating modules");
+
       for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
         // We need to create all modules before setting them up, in case we find inter-module dependencies.
         SyncAction.ModuleModels moduleModels = projectModels.getModels(ideaModule);
         Module module = myModuleFactory.createModule(ideaModule, moduleModels);
         module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
       }
+    }
 
+    void setUpModules(@NotNull ProgressIndicator indicator) {
       for (Module module : myModelsProvider.getModules()) {
         SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
         if (moduleModels == null) {
