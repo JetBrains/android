@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.*;
 
 import static java.lang.Math.min;
@@ -22,7 +25,7 @@ import static java.lang.Math.min;
 /**
  * Helper class to get coordinates from a source coordinate system to a destination coordinate system
  */
-class CoordinateConverter {
+public class CoordinateConverter {
   private double myXTransformScale = 1;
   private double myYTransformScale = 1;
   private final Dimension mySourceSize = new Dimension(1, 1);
@@ -45,8 +48,26 @@ class CoordinateConverter {
     mySourceSize.setSize(srcSize);
     myDestSize.setSize(destSize);
     myAdjustScale = adjustScale;
-    myXTransformScale = myDestSize.width / srcSize.getWidth() * adjustScale;
-    myYTransformScale = myDestSize.height / srcSize.getHeight() * adjustScale;
+    updateDimensions(adjustScale);
+  }
+
+  public void setDimensions(int destWidth, int destHeight, int srcWidth, int srcHeight) {
+    setDimensions(destWidth, destHeight, srcWidth, srcHeight, 1f);
+  }
+
+  public void setDimensions(int destWidth, int destHeight, int srcWidth, int srcHeight, float adjustScale) {
+    if (destWidth == myDestSize.width && destHeight == myDestSize.height
+        && srcWidth == myDestSize.width && srcHeight == myDestSize.height) {
+      return;
+    }
+    myDestSize.setSize(destWidth, destHeight);
+    mySourceSize.setSize(srcWidth, srcHeight);
+    updateDimensions(adjustScale);
+  }
+
+  private void updateDimensions(float adjustScale) {
+    myXTransformScale = myDestSize.width / mySourceSize.getWidth() * adjustScale;
+    myYTransformScale = myDestSize.height / mySourceSize.getHeight() * adjustScale;
     if (myFixedRatio) {
       myXTransformScale = myYTransformScale = min(myXTransformScale, myYTransformScale);
     }
@@ -109,5 +130,60 @@ class CoordinateConverter {
 
   public int inverseDY(double dim) {
     return (int)Math.round(dim / myYTransformScale);
+  }
+
+  public double getXScale() {
+    return myXTransformScale;
+  }
+
+  public double getYScale() {
+    return myYTransformScale;
+  }
+
+  public Dimension getSourceSize() {
+    return mySourceSize;
+  }
+
+  /**
+   * Set the bounds of destRect using the bounds of srcRect converted with this {@link CoordinateConverter}
+   *
+   * @param srcRect  Source rectangle to convert from.
+   * @param destRect Destination rectangle that will hold the new bounds. Can be the same as srcRect.
+   *                 If null, it will a new instance of Rectangle
+   * @return destRect with the converted bounds
+   */
+  public Rectangle convert(@NotNull Rectangle srcRect, @Nullable Rectangle destRect) {
+    if (destRect == null) {
+      destRect = new Rectangle();
+    }
+    destRect.setBounds(
+      x(srcRect.x),
+      y(srcRect.y),
+      dX(srcRect.width),
+      dY(srcRect.height)
+    );
+    return destRect;
+  }
+
+  /**
+   * Set the bounds of destRect using the bounds of srcRect converted
+   * with the inverse of this {@link CoordinateConverter}
+   *
+   * @param srcRect  Source rectangle to convert from.
+   * @param destRect Destination rectangle that will hold the new bounds. Can be the same as srcRect.
+   *                 If null, it will a new instance of Rectangle
+   * @return destRect with the converted bounds
+   */
+  public Rectangle convertInverse(@NotNull Rectangle srcRect, @Nullable Rectangle destRect) {
+    if (destRect == null) {
+      destRect = new Rectangle();
+    }
+    destRect.setBounds(
+      inverseX(srcRect.x),
+      inverseY(srcRect.y),
+      inverseDX(srcRect.width),
+      inverseDY(srcRect.height)
+    );
+    return destRect;
   }
 }
