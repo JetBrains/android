@@ -483,7 +483,7 @@ public class ProjectSyncMessages {
     }
   }
 
-  private void add(@NotNull final Message message, @NotNull List<NotificationHyperlink> hyperlinks) {
+  public void add(@NotNull final Message message, @NotNull List<NotificationHyperlink> hyperlinks) {
     add(message, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
 
