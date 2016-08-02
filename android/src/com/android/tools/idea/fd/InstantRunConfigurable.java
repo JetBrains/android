@@ -90,12 +90,6 @@ public class InstantRunConfigurable
     return "instant.run";
   }
 
-  @Nullable
-  @Override
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
   @Nls
   @Override
   public String getDisplayName() {

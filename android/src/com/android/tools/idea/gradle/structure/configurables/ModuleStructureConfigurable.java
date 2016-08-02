@@ -72,7 +72,7 @@ public class ModuleStructureConfigurable extends BaseStructureConfigurable imple
   public void disposeUIResources() {
     super.disposeUIResources();
     myContext.myModulesConfigurator.disposeUIResources();
-    ModuleStructureConfigurable.super.disposeUIResources();
+    super.disposeUIResources();
   }
 
   @Override
@@ -89,12 +89,6 @@ public class ModuleStructureConfigurable extends BaseStructureConfigurable imple
   @NotNull
   public String getId() {
     return "android.gradle.project.structure.modules";
-  }
-
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
   }
 
   @Override

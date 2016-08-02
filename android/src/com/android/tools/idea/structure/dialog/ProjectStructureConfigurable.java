@@ -236,12 +236,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
-  @Override
   @Nls
   public String getDisplayName () {
       return ProjectBundle.message("project.settings.display.name");
