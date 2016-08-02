@@ -508,26 +508,38 @@ public class ConstraintUtilities {
    */
   static void commitGuideline(@NotNull AttributesTransaction component, @NotNull Guideline guideline) {
     int behaviour = guideline.getRelativeBehaviour();
+    WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
     component.setAttribute(SdkConstants.SHERPA_URI,
                            SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, null);
     component.setAttribute(SdkConstants.SHERPA_URI,
                            SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     component.setAttribute(SdkConstants.SHERPA_URI,
                            SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
+    String previousValue = companion.getWidgetProperties().getGuidelineAttribute();
+    if (previousValue != null && !previousValue.startsWith("@")) {
+      previousValue = null;
+    }
+    String value = previousValue;
     if (behaviour == Guideline.RELATIVE_PERCENT) {
-      String value = String.valueOf(guideline.getRelativePercent());
+      if (value == null) {
+        value = String.valueOf(guideline.getRelativePercent());
+      }
       component.setAttribute(SdkConstants.SHERPA_URI,
                              SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
                              value);
     }
     else if (behaviour == Guideline.RELATIVE_BEGIN) {
-      String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeBegin());
+      if (value == null) {
+        value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeBegin());
+      }
       component.setAttribute(SdkConstants.SHERPA_URI,
                              SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
                              value);
     }
     else if (behaviour == Guideline.RELATIVE_END) {
-      String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeEnd());
+      if (value == null) {
+        value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeEnd());
+      }
       component.setAttribute(SdkConstants.SHERPA_URI,
                              SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
                              value);
@@ -1084,7 +1096,9 @@ public class ConstraintUtilities {
     String relativeBegin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String relativeEnd = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String relativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+    WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
     if (relativePercent != null && relativePercent.length() > 0) {
+      companion.getWidgetProperties().setGuidelineAttribute(relativePercent);
       int value = 0;
       try {
         value = Integer.parseInt(relativePercent);
@@ -1095,6 +1109,7 @@ public class ConstraintUtilities {
       guideline.setGuidePercent(value);
     }
     else if (relativeBegin != null && relativeBegin.length() > 0) {
+      companion.getWidgetProperties().setGuidelineAttribute(relativeBegin);
       try {
         int value = getDpValue(component, relativeBegin);
         guideline.setGuideBegin(value);
@@ -1104,6 +1119,7 @@ public class ConstraintUtilities {
       }
     }
     else if (relativeEnd != null && relativeEnd.length() > 0) {
+      companion.getWidgetProperties().setGuidelineAttribute(relativeEnd);
       try {
         int value = getDpValue(component, relativeEnd);
         guideline.setGuideEnd(value);
@@ -1120,7 +1136,6 @@ public class ConstraintUtilities {
       }
       if (newOrientation != guideline.getOrientation()) {
         guideline.setOrientation(newOrientation);
-        WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
         WidgetInteractionTargets interactionTargets = companion.getWidgetInteractionTargets();
         interactionTargets.resetConstraintHandles();
       }
