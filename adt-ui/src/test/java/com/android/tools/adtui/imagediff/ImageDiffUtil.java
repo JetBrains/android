@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.imagediff;
 
-import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -27,7 +26,7 @@ import java.io.IOException;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.io.File.separatorChar;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Utility methods to be used by the tests of {@link com.android.tools.adtui.imagediff} package.
@@ -98,6 +97,7 @@ public final class ImageDiffUtil {
     // Call doLayout in the content pane and its children
     doLayoutComponentTree(component);
 
+    @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
     BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), TYPE_INT_ARGB);
     Graphics2D g = image.createGraphics();
     component.printAll(g);
@@ -131,6 +131,7 @@ public final class ImageDiffUtil {
     if (inputImg.getType() == TYPE_INT_ARGB) {
       return inputImg; // Early return in case the image has already the correct type
     }
+    @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
     BufferedImage outputImg = new BufferedImage(inputImg.getWidth(), inputImg.getHeight(), TYPE_INT_ARGB);
     Graphics2D g2d = outputImg.createGraphics();
     g2d.drawImage(inputImg, 0, 0, null);
@@ -140,7 +141,7 @@ public final class ImageDiffUtil {
 
   public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
                                   BufferedImage image, double maxPercentDifferent) throws IOException {
-    Assert.assertEquals("Only TYPE_INT_ARGB image types are supported", TYPE_INT_ARGB, image.getType());
+    assertEquals("Only TYPE_INT_ARGB image types are supported", TYPE_INT_ARGB, image.getType());
 
     if (goldenImage.getType() != TYPE_INT_ARGB) {
       @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
@@ -148,7 +149,7 @@ public final class ImageDiffUtil {
       temp.getGraphics().drawImage(goldenImage, 0, 0, null);
       goldenImage = temp;
     }
-    Assert.assertEquals(TYPE_INT_ARGB, goldenImage.getType());
+    assertEquals(TYPE_INT_ARGB, goldenImage.getType());
 
     int imageWidth = Math.min(goldenImage.getWidth(), image.getWidth());
     int imageHeight = Math.min(goldenImage.getHeight(), image.getHeight());
@@ -217,7 +218,7 @@ public final class ImageDiffUtil {
               "vs" + image.getWidth() + "x" + image.getHeight();
     }
 
-    Assert.assertEquals(TYPE_INT_ARGB, image.getType());
+    assertEquals(TYPE_INT_ARGB, image.getType());
     if (error != null) {
       // Expected on the left
       // Golden on the right
@@ -234,12 +235,12 @@ public final class ImageDiffUtil {
       File output = new File(getTempDir(), "delta-" + imageName.replace(separatorChar, '_'));
       if (output.exists()) {
         boolean deleted = output.delete();
-        Assert.assertTrue(deleted);
+        assertTrue(deleted);
       }
       ImageIO.write(deltaImage, "PNG", output);
       error += " - see details in " + output.getPath();
       System.out.println(error);
-      Assert.fail(error);
+      fail(error);
     }
 
     g.dispose();
