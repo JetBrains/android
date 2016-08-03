@@ -464,10 +464,14 @@ public class RepositoryUrlManager {
       if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
         // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
         // that we can add instead of a plus revision.
-        String filter = highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())
-                        ? supportLibVersionFilter : null;
-        String version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, true, sdk.getLocation(),
-                                            fileOp);
+        String filter = null;
+        boolean includePreviews = false;
+        if (highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
+          filter = supportLibVersionFilter;
+          includePreviews = true;
+        }
+        String version =
+          getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
         if (version == null && filter != null) {
           // No library found at the support lib version filter level, so look for any match
           version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, sdk.getLocation(), fileOp);
