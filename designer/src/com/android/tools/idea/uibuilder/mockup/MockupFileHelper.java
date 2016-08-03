@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.mockup.old.MockupEditorPopup;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
@@ -128,23 +129,28 @@ public class MockupFileHelper {
           component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
         }
         else {
-          final Rectangle bounds = mockup.getBounds();
-          final Rectangle crop = mockup.getCropping();
-          final String cropping;
-          if (bounds.equals(new Rectangle(0, 0, -1, -1))) {
-            cropping = String.format(Locale.US, "%d %d %d %d",
-                                     crop.x, crop.y, crop.width, crop.height);
-          }
-          else {
-            cropping = String.format(Locale.US, "%d %d %d %d %d %d %d %d",
-                                     crop.x, crop.y, crop.width, crop.height,
-                                     bounds.x, bounds.y, bounds.width, bounds.height);
-          }
+          final String cropping = getPositionString(mockup);
           component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP, cropping);
         }
       }
     };
     action.execute();
+  }
+
+  public static String getPositionString(@NotNull Mockup mockup) {
+    final Rectangle bounds = mockup.getBounds();
+    final Rectangle crop = mockup.getCropping();
+    final String cropping;
+    if (bounds.equals(new Rectangle(0, 0, -1, -1))) {
+      cropping = String.format(Locale.US, "%d %d %d %d",
+                               crop.x, crop.y, crop.width, crop.height);
+    }
+    else {
+      cropping = String.format(Locale.US, "%d %d %d %d %d %d %d %d",
+                               crop.x, crop.y, crop.width, crop.height,
+                               bounds.x, bounds.y, bounds.width, bounds.height);
+    }
+    return cropping;
   }
 
   /**

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.tools;
+package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -33,14 +34,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-/**
- *
- */
+@SuppressWarnings("unused")
 public class MockupEditor {
+
   public static final String TITLE = "Mockup Editor";
+
   private static final double RELATIVE_SIZE_TO_SOURCE = 0.90;
   private static FrameWrapper ourPopupInstance = null;
   private final Mockup myMockup;
+  private final ScreenView myScreenView;
 
   private JTextField myViewTypeTextField;
   private TextFieldWithBrowseButton myFileChooser;
@@ -51,16 +53,50 @@ public class MockupEditor {
   private JPanel myCropTool;
   private MockupViewPanel myMockupViewPanel;
 
+  private ExtractWidgetTool myExtractWidgetTool;
 
-  public MockupEditor(Mockup mockup) {
+  public MockupEditor(ScreenView screenView, Mockup mockup) {
     myMockup = mockup;
+    myScreenView = screenView;
     parseMockup(mockup);
     myFileChooser.addActionListener(new FileChooserActionListener());
     myCloseButton.addActionListener(e -> {
       Disposer.dispose(ourPopupInstance);
       ourPopupInstance = null;
     });
-    //myCropButton.setPreferredSize(new Dimension(16,16));
+  }
+
+  private void createUIComponents() {
+    myMockupViewPanel = new MockupViewPanel(myMockup);
+    myCenterPanel = myMockupViewPanel;
+    myCropTool = new CropTool(myMockup, this);
+    myExtractWidgetTool = new ExtractWidgetTool(myMockup, myScreenView, myMockupViewPanel);
+    myExtractWidgetTool.enable(myMockupViewPanel);
+  }
+
+  @Nullable
+  public MockupViewPanel getMockupViewPanel() {
+    return myMockupViewPanel;
+  }
+
+  /**
+   * Disable tool and enable default tool
+   *
+   * @param tool the tool to disable
+   */
+  public void disableTool(Tool tool) {
+    tool.disable(myMockupViewPanel);
+    myExtractWidgetTool.enable(myMockupViewPanel);
+  }
+
+  /**
+   * Disable default tool and enable tool
+   *
+   * @param tool the tool to enable
+   */
+  public void enableTool(Tool tool) {
+    myExtractWidgetTool.disable(myMockupViewPanel);
+    tool.enable(myMockupViewPanel);
   }
 
   private void parseMockup(Mockup mockup) {
@@ -91,7 +127,7 @@ public class MockupEditor {
     }
 
     final DesignSurface designSurface = screenView.getSurface();
-    final MockupEditor mockupEditorPopup = new MockupEditor(mockup);
+    final MockupEditor mockupEditorPopup = new MockupEditor(screenView, mockup);
     Component rootPane = SwingUtilities.getRoot(designSurface);
     final Dimension minSize = new Dimension((int)Math.round(rootPane.getWidth() * RELATIVE_SIZE_TO_SOURCE),
                                             (int)Math.round(rootPane.getHeight() * RELATIVE_SIZE_TO_SOURCE));
@@ -111,14 +147,30 @@ public class MockupEditor {
     ourPopupInstance = frame;
   }
 
-  private void createUIComponents() {
-    myMockupViewPanel = new MockupViewPanel(myMockup);
-    myCenterPanel = myMockupViewPanel;
-    myCropTool = new Tools.CropTool(myMockup, myMockupViewPanel);
-  }
-
   protected JPanel getContentPane() {
     return myContentPane;
+  }
+
+  /**
+   * Tool used in the mockup editor
+   */
+  public interface Tool {
+    /**
+     * The implementing class should set mockupViewPanel to the
+     * needed state for itself
+     *
+     * @param mockupViewPanel The {@link MockupViewPanel} on which the {@link Tool} behave
+     */
+    void enable(MockupViewPanel mockupViewPanel);
+
+    /**
+     * The implementing class should reset mockupViewPanel to the state it was before {@link #enable(MockupViewPanel)}.
+     * Can use {@link MockupViewPanel#resetState()}.
+     * needed state for itself
+     *
+     * @param mockupViewPanel The {@link MockupViewPanel} on which the {@link Tool} behave
+     */
+    void disable(MockupViewPanel mockupViewPanel);
   }
 
   private class FileChooserActionListener implements ActionListener {
