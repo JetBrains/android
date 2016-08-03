@@ -15,16 +15,20 @@
  */
 package org.jetbrains.android;
 
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.AndroidValueResourcesTest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -117,6 +121,29 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     );
   }
 
+  public void testLanguageFoldersFromXml() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-no/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-en/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-en-rUS/strings.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout2.xml");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-en/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-en-rUS/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-no/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
   public void testGotoStringFromXml() throws Exception {
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
@@ -169,6 +196,17 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     // AndroidGotoDeclarationHandler only handles .java files. We also want to check .xml files, so
     // we use GotoDeclarationAction instead of creating AndroidGotoDeclarationHandler and invoking getGotoDeclarationTargets
     // on it directly.
-    return GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+    PsiElement[] elements =
+      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+
+    if (elements.length == 0) {
+      final PsiReference reference = TargetElementUtil.findReference(myFixture.getEditor(), myFixture.getCaretOffset());
+      if (reference != null) {
+        final Collection<PsiElement> candidates = TargetElementUtil.getInstance().getTargetCandidates(reference);
+        elements = PsiUtilCore.toPsiElementArray(candidates);
+      }
+    }
+
+    return elements;
   }
 }
