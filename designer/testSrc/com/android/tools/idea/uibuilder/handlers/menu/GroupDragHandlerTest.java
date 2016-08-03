@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
-import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -40,7 +39,7 @@ public final class GroupDragHandlerTest {
     menu.addChild(newActionBarItem(572, 58, 98, 96));
     menu.addChild(group);
 
-    DragHandler handler = newGroupDragHandler(menu);
+    GroupDragHandler handler = newGroupDragHandler(menu);
     handler.update(793, 0, 0);
 
     assertEquals(-1, handler.getInsertIndex());
@@ -54,7 +53,7 @@ public final class GroupDragHandlerTest {
     menu.addChild(newOverflowItem(366, 258, 392, 96));
     menu.addChild(newOverflowItem(366, 354, 392, 96));
 
-    DragHandler handler = newGroupDragHandler(menu);
+    GroupDragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -98,7 +97,7 @@ public final class GroupDragHandlerTest {
     menu.addChild(newOverflowItem(366, 162, 392, 96));
     menu.addChild(newOverflowItem(366, 258, 392, 96));
 
-    DragHandler handler = newGroupDragHandler(menu);
+    GroupDragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -134,7 +133,7 @@ public final class GroupDragHandlerTest {
     menu.addChild(newGroup(0, 0, -1, -1));
     menu.addChild(newOverflowItem(366, 258, 392, 96));
 
-    DragHandler handler = newGroupDragHandler(menu);
+    GroupDragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -170,7 +169,7 @@ public final class GroupDragHandlerTest {
     menu.addChild(newOverflowItem(366, 258, 392, 96));
     menu.addChild(newGroup(0, 0, -1, -1));
 
-    DragHandler handler = newGroupDragHandler(menu);
+    GroupDragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -235,7 +234,7 @@ public final class GroupDragHandlerTest {
   }
 
   @NotNull
-  private static DragHandler newGroupDragHandler(@NotNull NlComponent group) {
+  private static GroupDragHandler newGroupDragHandler(@NotNull NlComponent group) {
     List<NlComponent> items = Collections.singletonList(Mockito.mock(NlComponent.class));
     return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), group, items, DragType.CREATE);
   }

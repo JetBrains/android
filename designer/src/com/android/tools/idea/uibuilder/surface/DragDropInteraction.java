@@ -206,16 +206,8 @@ public class DragDropInteraction extends Interaction {
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
-            myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
-
-            NlComponent before = null;
-            int insertIndex = myDragHandler.getInsertIndex();
-            if (insertIndex != -1 && insertIndex < myDragReceiver.getChildCount()) {
-              before = myDragReceiver.getChild(insertIndex);
-            }
-
             InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
-            model.addComponents(myDraggedComponents, myDragReceiver, before, insertType);
+            myDragHandler.commit(ax, ay, modifiers, insertType); // TODO: Run this *after* making a copy
           }
         };
         action.execute();
