@@ -782,6 +782,7 @@ java_library(
       "//tools/idea:MM_RegExpSupport_testlib",
       "//tools/idea:lib/hamcrest-core-1.3",
       "//tools/idea:lib/junit-4.12",
+      "//prebuilts/tools/common/m2:repository/com/google/truth/truth/0.28/truth-0.28",
     ],
   exports = [
       "//tools/adt/idea:adt-ui",
