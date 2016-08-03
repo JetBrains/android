@@ -35,7 +35,8 @@ public class InstantRunStatsService {
   /**
    * Current session id: A session starts from installing an APK, continues through multiple hot/cold swaps until the next full apk install
    */
-  private UUID mySessionId;
+  @NotNull
+  private UUID mySessionId = UUID.randomUUID();
 
   /**
    * Time (in ms) at which the build was started. The build & deploy is considered done when {@link #notifyDeployType(DeployType)} is
@@ -64,23 +65,29 @@ public class InstantRunStatsService {
   }
 
   public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause) {
+    long buildAndDeployTime;
+    String sessionId;
+
     synchronized (LOCK) {
-      long buildAndDeployTime = System.currentTimeMillis() - myBuildStartTime;
+      buildAndDeployTime = System.currentTimeMillis() - myBuildStartTime;
 
       if (type == DeployType.FULLAPK || type == DeployType.LEGACY || type == DeployType.SPLITAPK) {
         // We want to assign a session id for all launches in order to compute the number of hot/coldswaps between each APK push
         // Installing an APK starts a new session.
         resetSession();
       }
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(EventCategory.STUDIO_BUILD)
-                                       .setKind(EventKind.INSTANT_RUN)
-                                       .setInstantRun(InstantRun.newBuilder()
-                                                      .setSessionId(mySessionId.toString())
+
+      sessionId = mySessionId.toString();
+    }
+
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.STUDIO_BUILD)
+                                     .setKind(EventKind.INSTANT_RUN)
+                                     .setInstantRun(InstantRun.newBuilder()
+                                                      .setSessionId(sessionId)
                                                       .setBuildTime(buildAndDeployTime)
                                                       .setDeploymentKind(deployTypeToDeploymentKind(type))
                                                       .setIdeBuildCause(buildCauseToProto(buildCause))));
-    }
   }
 
   private static InstantRunIdeBuildCause buildCauseToProto(@Nullable BuildCause buildCause) {
