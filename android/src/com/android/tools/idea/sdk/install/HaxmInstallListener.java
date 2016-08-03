@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk.install;
 
 import com.android.annotations.NonNull;
+import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.wizard.HaxmWizard;
@@ -31,7 +32,7 @@ public class HaxmInstallListener implements PackageOperation.StatusChangeListene
   @Override
   public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
     throws PackageOperation.StatusChangeListenerException {
-    if (op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE) {
+    if (op instanceof Installer && op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE) {
       final AtomicBoolean result = new AtomicBoolean(false);
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
