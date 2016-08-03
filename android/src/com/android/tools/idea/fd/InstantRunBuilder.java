@@ -239,7 +239,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     List<String> args = Lists.newArrayListWithExpectedSize(3);
 
     // TODO: Add a user-level setting to disable this?
-    // TODO: Use constants from AndroidProject once we import the new model jar.
 
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
@@ -254,7 +253,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
     }
     else {
-      sb.append(",").append("FULL_APK"); //TODO: Replace with enum reference after next model drop.
+      sb.append(",").append(OptionalCompilationStep.FULL_APK.name());
     }
 
     args.add(sb.toString());
