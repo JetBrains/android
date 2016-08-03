@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos.Severity;
 import com.android.tools.rpclib.binary.*;
@@ -27,7 +28,7 @@ import java.io.IOException;
 public final class ReportItem implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private Severity mySeverity;
-  private String myMessage;
+  private Msg myMessage;
   private long myAtom;
 
   // Constructs a default-initialized {@link ReportItem}.
@@ -43,11 +44,11 @@ public final class ReportItem implements BinaryObject {
     return this;
   }
 
-  public String getMessage() {
+  public Msg getMessage() {
     return myMessage;
   }
 
-  public ReportItem setMessage(String v) {
+  public ReportItem setMessage(Msg v) {
     myMessage = v;
     return this;
   }
@@ -70,7 +71,7 @@ public final class ReportItem implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Severity", new Primitive("log.Severity", Method.Int32)),
-      new Field("Message", new Primitive("string", Method.String)),
+      new Field("Message", new Pointer(new Struct(Msg.Klass.INSTANCE.entity()))),
       new Field("Atom", new Primitive("uint64", Method.Uint64)),
     });
     Namespace.register(Klass.INSTANCE);
@@ -91,7 +92,7 @@ public final class ReportItem implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ReportItem o = (ReportItem)obj;
       e.int32(o.mySeverity.getNumber());
-      e.string(o.myMessage);
+      e.object(o.myMessage);
       e.uint64(o.myAtom);
     }
 
@@ -99,7 +100,7 @@ public final class ReportItem implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ReportItem o = (ReportItem)obj;
       o.mySeverity = Severity.valueOf(d.int32());
-      o.myMessage = d.string();
+      o.myMessage = (Msg)d.object();
       o.myAtom = d.uint64();
     }
     //<<<End:Java.KlassBody:2>>>
