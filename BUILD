@@ -216,7 +216,7 @@ java_import(
 fileset(
   name = "adt-ui_testlib.res",
   srcs = glob([
-      "adt-ui/src/test/java/**/*",
+      "adt-ui/src/test/resources/**/*",
     ],
     exclude = [
       "**/* *",
@@ -227,7 +227,7 @@ fileset(
       "**/.DS_Store",
     ]),
   mappings = {
-      "adt-ui/src/test/java": "adt-ui_testlib.resources",
+      "adt-ui/src/test/resources": "adt-ui_testlib.resources",
     },
   deps = [
       "@local_jdk//:langtools-neverlink",
@@ -776,6 +776,7 @@ java_library(
       "@local_jdk//:langtools-neverlink",
       "//tools/adt/idea:adt-ui",
       "//tools/base/annotations:android-annotations",
+      "//tools/base/testutils:testutils",
       "//tools/idea:lib/trove4j",
       "//tools/idea:platform-api",
       "//tools/idea:MM_RegExpSupport",
