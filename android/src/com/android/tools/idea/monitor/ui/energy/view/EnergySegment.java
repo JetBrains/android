@@ -58,7 +58,6 @@ public class EnergySegment extends BaseLineChartSegment {
       addEnergyLevelLine(SeriesDataType.ENERGY_SCREEN, ENERGY_SCREEN_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_CPU_SYSTEM, ENERGY_CPU_SYSTEM_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_CPU_USER, ENERGY_CPU_USER_COLOR);
-      addEnergyLevelLine(SeriesDataType.ENERGY_SENSORS, ENERGY_SENSORS_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_CELL_NETWORK, ENERGY_CELL_NETWORK_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_WIFI_NETWORK, ENERGY_WIFI_NETWORK_COLOR);
 
