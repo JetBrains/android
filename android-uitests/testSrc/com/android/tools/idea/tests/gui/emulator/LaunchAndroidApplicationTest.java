@@ -53,40 +53,24 @@ public class LaunchAndroidApplicationTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
-
-    AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("KitKat", "19", "x86", "Android 4.4");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME);
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
+    getEmulatorConnection().deleteAvd(AVD_NAME);
   }
 
   @After
   public void tearDown() throws Exception {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.stopRunningAvd();
-    mockAvdManagerConnection.deleteAvd(AVD_NAME);
+    getEmulatorConnection().stopRunningAvd();
+    getEmulatorConnection().deleteAvd(AVD_NAME);
   }
 
   @Ignore("http://b/30477830")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
+    guiTest.importSimpleApplication();
+    createAVD();
+
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
@@ -104,6 +88,9 @@ public class LaunchAndroidApplicationTest {
   @Ignore("http://b/30477830")
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
+    guiTest.importSimpleApplication();
+    createAVD();
+
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
@@ -124,6 +111,9 @@ public class LaunchAndroidApplicationTest {
   @Ignore("http://go/aj/builders/studio-uitests_master-dev/builds/941 and 942")
   @Test
   public void testDebugOnEmulatorWithBreakpoint() throws IOException, ClassNotFoundException, EvaluateException {
+    guiTest.importSimpleApplication();
+    createAVD();
+
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
@@ -140,5 +130,28 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture
       .getDebugToolWindow()
       .pressResumeProgram();
+  }
+
+  private void createAVD() {
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
+    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+
+    avdEditWizard.selectHardware()
+      .selectHardwareProfile("Nexus 5");
+    avdEditWizard.clickNext();
+
+    avdEditWizard.getChooseSystemImageStep()
+      .selectTab("x86 Images")
+      .selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+    avdEditWizard.clickNext();
+
+    avdEditWizard.getConfigureAvdOptionsStep()
+      .setAvdName(AVD_NAME);
+    avdEditWizard.clickFinish();
+    avdManagerDialog.close();
+  }
+
+  private static MockAvdManagerConnection getEmulatorConnection() {
+    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 }
