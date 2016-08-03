@@ -16,6 +16,7 @@
 
 package com.android.tools.adtui.imagediff;
 
+import com.android.testutils.TestResources;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -43,7 +44,7 @@ public final class ImageDiffUtil {
 
   private static final String IMG_DIFF_DIR = System.getProperty("java.io.tmpdir") + File.separator + "imagediff";
 
-  private static final String TEST_DATA_DIR = "testData" + File.separator + "imagediff";
+  private static final String TEST_DATA_DIR = File.separator + "imagediff" + File.separator;
 
   static {
     // Create tmpDir in case it doesn't exist
@@ -70,7 +71,7 @@ public final class ImageDiffUtil {
    * @param similarityThreshold how much (in percent) the baseline and the generated images can differ to be considered similar
    */
   public static void assertImagesSimilar(String baselineImageFilename, Component generatedComponent, float similarityThreshold) {
-    File baselineImageFile = new File(TEST_DATA_DIR, baselineImageFilename);
+    File baselineImageFile = TestResources.getFile(ImageDiffUtil.class,  TEST_DATA_DIR + baselineImageFilename);
     BufferedImage generatedImage;
     BufferedImage baselineImage;
 
