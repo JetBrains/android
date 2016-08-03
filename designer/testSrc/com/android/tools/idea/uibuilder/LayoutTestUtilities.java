@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -146,6 +147,7 @@ public class LayoutTestUtilities {
     Configuration configuration = mock(Configuration.class);
     when(configuration.getDensity()).thenReturn(density);
     when(configuration.getFile()).thenReturn(model.getFile().getVirtualFile());
+    when(configuration.getFullConfig()).thenReturn(new FolderConfiguration());
 
     ScreenView screenView = mock(ScreenView.class);
     when(screenView.getConfiguration()).thenReturn(configuration);

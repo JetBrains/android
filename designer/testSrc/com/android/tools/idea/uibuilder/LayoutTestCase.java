@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.uibuilder;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -33,7 +36,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
-
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
@@ -65,5 +67,12 @@ public abstract class LayoutTestCase extends AndroidTestCase {
 
   protected SurfaceFixture surface() {
     return new SurfaceFixture();
+  }
+
+  // Format the XML using AndroidStudio formatting
+  protected void format(@NotNull XmlFile xmlFile) {
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      CodeStyleManager.getInstance(getProject()).reformat(xmlFile);
+    });
   }
 }
