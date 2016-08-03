@@ -61,6 +61,8 @@ public class GpuState implements PathListener {
   @Override
   public void notifyPath(PathEvent event) {
     if (myStatePath.updateIfNotNull(AtomRangePath.stateAfterLast(event.findAtomPath()))) {
+      // we are making a request for a new state, this means our current state is old and irrelevant
+      myState = null;
       Rpc.listen(myEditor.getClient().get(myStatePath.getPath()), LOG, myReqController, new UiErrorCallback<Object, Dynamic, ErrDataUnavailable>() {
         @Override
         protected ResultOrError<Dynamic, ErrDataUnavailable> onRpcThread(Rpc.Result<Object> result)
@@ -107,7 +109,6 @@ public class GpuState implements PathListener {
   }
 
   protected void update(ErrDataUnavailable error) {
-    myState = null;
     myListeners.onStateLoadingFailure(this, error);
   }
 
