@@ -363,7 +363,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
               RepoPackage pack = packages.iterator().next();
               PackageOperation op = myRepoManager.getInProgressInstallOperation(pack);
               // op shouldn't be null. But just in case, we assume it's an install.
-              String opName = op == null ? "Install" : op.getName();
+              String opName = op == null || op instanceof Installer ? "Install" : "Uninstall";
               message = String.format("%1$sation of '%2$s' is ready to continue<br/><a href=\"install\">%1$s Now</a>",
                                       opName, pack.getDisplayName());
             }
