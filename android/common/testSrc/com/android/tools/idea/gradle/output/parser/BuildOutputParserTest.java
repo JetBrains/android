@@ -537,11 +537,6 @@ public class BuildOutputParserTest {
 
   @Test
   public void redirectFileLinksOutput() throws Exception {
-    if (!setupSdkHome()) {
-      System.out.println("Skipping testRedirectFileLinksOutput because sdk-common was not found");
-      return;
-    }
-
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
     File layoutDir = new File(tempDir, "layout-land");
