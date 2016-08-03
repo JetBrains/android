@@ -1399,6 +1399,9 @@ public class WidgetDecorator {
         @Override
         public boolean click() {
             mWidget.resetAllConstraints();
+            WidgetCompanion companion = (WidgetCompanion)mWidget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(BLUEPRINT_STYLE);
+            decorator.getStateModel().save(decorator);
             repaint();
             return true;
         }
