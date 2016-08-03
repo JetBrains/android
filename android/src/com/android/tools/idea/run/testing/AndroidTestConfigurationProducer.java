@@ -125,7 +125,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       .getDefaultTargetSelectionMode(module, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance());
 
     if (targetSelectionMode != null) {
-      configuration.setTargetSelectionMode(targetSelectionMode);
+      configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     return true;
   }

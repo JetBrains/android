@@ -165,9 +165,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
-    myDeploymentTargetCombo.setSelectedItem(configuration.getCurrentDeployTargetProvider());
+    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
+    myDeploymentTargetCombo.setSelectedItem(deployTargetContext.getCurrentDeployTargetProvider());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = configuration.getDeployTargetState(target);
+      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).resetFrom(state, configuration.getUniqueID());
     }
 
@@ -188,9 +189,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   protected void applyEditorTo(T configuration) throws ConfigurationException {
     myModuleSelector.applyTo(configuration);
 
-    configuration.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
+    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
+    deployTargetContext.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = configuration.getDeployTargetState(target);
+      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
     }
 
