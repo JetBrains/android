@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.tools;
+package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;

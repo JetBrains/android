@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup;
+package com.android.tools.idea.uibuilder.mockup.old;
 
-import com.android.tools.idea.uibuilder.mockup.tools.ColorExtractorTool;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
+import com.android.tools.idea.uibuilder.mockup.MockupInteractionPanel;
+import com.android.tools.idea.uibuilder.mockup.editor.tools.ColorExtractorTool;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;

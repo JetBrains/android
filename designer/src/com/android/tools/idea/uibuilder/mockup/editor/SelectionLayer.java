@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.tools;
+package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.Contract;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -85,16 +87,15 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private final JPanel myParent;
   private int mySelectedKnob = -1;
   private int myHoveredKnob = -1;
+  private boolean myFixedRatio;
+  private double myRatioWidth;
+  private double myRatioHeight;
 
   public SelectionLayer(JPanel parent) {
     myParent = parent;
     for (int i = 0; i < myKnobs.length; i++) {
       myKnobs[i] = new Rectangle(KNOB_SIZE, KNOB_SIZE);
     }
-  }
-
-  public Rectangle getSelection() {
-    return mySelection;
   }
 
   @Override
@@ -127,7 +128,6 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
   }
 
-
   /**
    * Set the knobs position regarding the values of the current selection
    */
@@ -147,7 +147,6 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     myKnobs[S].setLocation((x2 + x1) / 2, y2);
     myKnobs[W].setLocation(x1, (y2 + y1) / 2);
   }
-
 
   @Override
   public void mousePressed(MouseEvent e) {
@@ -187,15 +186,14 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   @Override
   public void mouseReleased(MouseEvent e) {
     mySelectedKnob = -1;
-
   }
 
   @Override
   public void mouseDragged(MouseEvent e) {
 
     // Clamp the mouse coordinate inside the bounds
-    final int x = Math.max(myBounds.x, e.getX());
-    final int y = Math.max(myBounds.y, e.getY());
+    final int x = Math.min(myBounds.x + myBounds.width, Math.max(myBounds.x, e.getX()));
+    final int y = Math.min(myBounds.y + myBounds.height, Math.max(myBounds.y, e.getY()));
 
     // Compute the drag distance
     int dx = x - myClickOrigin.x;
@@ -206,6 +204,10 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     int ny = myOriginalSelection.y + dy * myKnobsMoves[mySelectedKnob][Y_MOVE];
     int nw = myOriginalSelection.width + dx * myKnobsMoves[mySelectedKnob][W_MOVE];
     int nh = myOriginalSelection.height + dy * myKnobsMoves[mySelectedKnob][H_MOVE];
+
+    if (myFixedRatio) {
+      nh = (int)Math.round(nw * (myRatioHeight / myRatioWidth));
+    }
 
     // Invert the selection direction if the mouse go behind
     // the selection rectangle location
@@ -226,10 +228,15 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
       );
     }
     else {
-      mySelection.setBounds(nx, ny, nw, nh);
-      Rectangle2D.intersect(myBounds, mySelection, mySelection);
+      if (!myFixedRatio || myBounds.contains(nx, ny, nw, nh)) {
+        mySelection.setBounds(nx, ny, nw, nh);
+      }
+      if (!myFixedRatio) {
+        Rectangle2D.intersect(myBounds, mySelection, mySelection);
+      }
     }
     updateKnobPosition();
+    myParent.repaint();
   }
 
   @Override
@@ -255,17 +262,143 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
   }
 
+  /**
+   * Set the bounds where the selection can be made in this layer
+   *
+   * @param x x coordinate of the bounding rectangle
+   * @param y y coordinate of the bounding rectangle
+   * @param w width the bounding rectangle
+   * @param h height the bounding rectangle
+   */
   public void setBounds(int x, int y, int w, int h) {
     myBounds.setBounds(x, y, w, h);
   }
 
+  /**
+   * Get the bounds where the selection can be made in this layer
+   *
+   * @return the bounds where the selection can be made in this layer
+   */
+  public Rectangle getBounds() {
+    return myBounds;
+  }
+
+  /**
+   * Set the current selection.
+   * Does not ensure that the selection is inside the selectable bounds
+   *
+   * @param x
+   * @param y
+   * @param width
+   * @param height
+   * @see #getBounds()
+   */
   public void setSelection(int x, int y, int width, int height) {
     mySelection.setBounds(x, y, width, height);
     updateKnobPosition();
     myParent.repaint();
   }
 
+  /**
+   * Set the current selection.
+   * Does not ensure that the selection is inside the selectable bounds
+   *
+   * @param selection the rectangle that the selection should match
+   */
   public void setSelection(Rectangle selection) {
     setSelection(selection.x, selection.y, selection.width, selection.height);
+  }
+
+  /**
+   * Get the current selection
+   */
+  public Rectangle getSelection() {
+    return mySelection;
+  }
+
+  /**
+   * Clear the selection by setting it to 0,0,0,0
+   *
+   * @see #setSelection(int, int, int, int)
+   */
+  public void clearSelection() {
+    setSelection(0, 0, 0, 0);
+  }
+
+  /**
+   * Returns true if the selection aspect ratio is fixed
+   *
+   * @return true if the selection aspect ratio is fixed
+   * @see #setAspectRatio(double, double)
+   */
+  public boolean isFixedRatio() {
+    return myFixedRatio;
+  }
+
+  /**
+   * If fixedRatio is true, the selection's aspect ratio will
+   * be fixed to the current selection aspect ratio
+   *
+   * @param fixedRatio
+   */
+  public void setFixedRatio(boolean fixedRatio) {
+    myFixedRatio = fixedRatio;
+    myRatioHeight = mySelection.height;
+    myRatioWidth = mySelection.width;
+  }
+
+  /**
+   * Resize the selection to respect a aspect ratio of width/height.
+   * Ensure that the new size will be the closest to the old one
+   *
+   * @param width  width used to compute the aspect ratio
+   * @param height height used to compute the aspect ratio
+   */
+  public void setAspectRatio(double width, double height) {
+    myRatioWidth = width;
+    myRatioHeight = height;
+    if (mySelection.getWidth() / mySelection.getHeight() == width / height) {
+      // Already good aspect ratio
+      return;
+    }
+    final Point2D.Double point = getClosestPointFromLine(myRatioHeight, -myRatioWidth,
+                                                         mySelection.width,
+                                                         mySelection.height);
+    mySelection.width = (int)Math.round(point.x);
+    mySelection.height = (int)Math.round(point.y);
+
+    // If the resized selection is over the bounds, replace it inside the bounds
+    mySelection.x -= Math.max(0, mySelection.x + mySelection.width - myBounds.x - myBounds.width);
+    mySelection.y -= Math.max(0, mySelection.y + mySelection.height - myBounds.y - myBounds.height);
+
+    // If the resized selection location is outside the bounds, replace it inside
+    if (mySelection.x < myBounds.x) {
+      mySelection.x = myBounds.x;
+      mySelection.width = myBounds.width;
+      mySelection.height = (int)Math.round(mySelection.width * height / width);
+    }
+    if (mySelection.y < myBounds.y) {
+      mySelection.y = myBounds.y;
+      mySelection.height = myBounds.height;
+      mySelection.width = (int)Math.round(mySelection.height * width / height);
+    }
+    updateKnobPosition();
+    myParent.repaint();
+  }
+
+  /**
+   * Find the closest point to the origin (x0, y0) on a line defined by the parametric equation 0 = ax + by
+   *
+   * @param a  a parameter of the line
+   * @param b  b parameter of the line
+   * @param x0 x coordinate of the origin
+   * @param y0 y coordinate of the origin
+   * @return the closest point to (x0, y0) on the line
+   */
+  @Contract("_, _, _, _ -> !null")
+  private static Point2D.Double getClosestPointFromLine(double a, double b, double x0, double y0) {
+    double x = (b * (b * x0 - a * y0)) / (a * a + b * b);
+    double y = (a * (-b * x0 + a * y0)) / (a * a + b * b);
+    return new Point2D.Double(x, y);
   }
 }

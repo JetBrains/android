@@ -494,5 +494,8 @@ public class AndroidIcons {
 
   public static class Mockup {
     public static final Icon Crop = load("/icons/mockup/crop.png"); // 18x18
+    public static final Icon CreateWidget = load("/icons/mockup/mockup_add.png"); // 18x18
+    public static final Icon CreateLayout = load("/icons/mockup/new_layout.png"); // 18x18
+    public static final Icon MatchWidget = load("/icons/mockup/aspect_ratio.png"); // 18x18
   }
 }

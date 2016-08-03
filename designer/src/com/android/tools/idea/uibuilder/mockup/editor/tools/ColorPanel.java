@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.tools;
+package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
@@ -25,7 +25,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
