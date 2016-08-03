@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.swing.util.BigSpinnerNumberModel;
 import com.android.tools.swing.util.FloatFilter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -52,9 +53,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -328,7 +332,15 @@ public class EditAtomParametersAction extends AbstractAction {
         Comparable<? extends Number> zero = getZero(javaValue.getClass());
         Comparable<? extends Number> max = getUnsignedMax(method);
 
-        mySpinner = new JSpinner(new SpinnerNumberModel(javaValue, zero, max, Integer.valueOf(1)));
+        if (javaValue instanceof BigInteger) {
+          // the default SpinnerNumberModel does not support BigInteger, and crashes when used with BigInteger.
+          mySpinner = new JSpinner(new BigSpinnerNumberModel((BigInteger)javaValue, zero, max, Integer.valueOf(1)));
+          ((DecimalFormat)((NumberFormatter)((DefaultFormatterFactory)((JSpinner.DefaultEditor)
+              mySpinner.getEditor()).getTextField().getFormatterFactory()).getDefaultFormatter()).getFormat()).setParseBigDecimal(true);
+        }
+        else {
+          mySpinner = new JSpinner(new SpinnerNumberModel(javaValue, zero, max, Integer.valueOf(1)));
+        }
       }
       else {
         // signed ints
