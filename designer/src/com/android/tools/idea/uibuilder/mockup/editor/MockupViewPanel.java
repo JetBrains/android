@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.tools;
+package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.uibuilder.mockup.CoordinateConverter;
@@ -28,6 +28,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,23 +39,57 @@ import java.util.List;
  */
 public class MockupViewPanel extends JPanel {
 
+  private AffineTransform myDisplayedImageAffineTransform;
+
+  public void resetState() {
+    setDisplayOnlyCroppedRegion(true);
+    getSelectionLayer().clearSelection();
+    getSelectionLayer().setFixedRatio(false);
+    repaint();
+  }
+
   /**
    * Listener to notify the tools when a selection ended
    */
   public interface SelectionListener {
-    void selectionEnded(Rectangle selection);
+
+    /**
+     * Called when a selection is started on the {@link SelectionLayer}
+     * The given coordinate are in mockupViewPanel coordinate system.
+     * 0,0 means on top left of the panel.
+     *
+     * The coordinate can be converted using {@link #getImageTransform()}
+     * to get the coordinates in the whole image
+     *
+     * @param mockupViewPanel The panel on which the selection is being done
+     * @param x               x origin of the selection in mockupViewPanel coordinate system.
+     * @param y               y origin of the selection in mockupViewPanel coordinate system.
+     */
+    void selectionStarted(MockupViewPanel mockupViewPanel, int x, int y);
+
+    /**
+     * Called when a selection is started on the {@link SelectionLayer}
+     * The given coordinate are in the displayed image coordinate system.
+     * They gave been converted using the inverse of {@link #getDisplayedImageTransform()}
+     * 0,0 means on top left of the image on screen (and NOT the panel)
+     *
+     * @param mockupViewPanel The panel on which the seleciton is being done
+     * @param selection the selection in the the displayed image coordinate system
+     **/
+    void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection);
   }
 
   public static final float ADJUST_SCALE = 0.95f;
-
   private final Mockup myMockup;
+
   private final SelectionLayer mySelectionLayer;
+
   @Nullable private BufferedImage myDisplayedImage;
   @Nullable private BufferedImage myImage;
   private boolean myDisplayOnlyCroppedRegion = true;
-  private boolean mySelectionMode;
-
+  private boolean mySelectionMode = true;
   CoordinateConverter myDisplayedImageTransform;
+
   CoordinateConverter myImageTransform;
   private List<SelectionListener> mySelectionListeners = new ArrayList<>();
 
@@ -63,6 +99,7 @@ public class MockupViewPanel extends JPanel {
    * @param mockup the mockup to display
    */
   public MockupViewPanel(@NotNull Mockup mockup) {
+    setLayout(new MyLayoutManager());
     setBackground(JBColor.background());
     myMockup = mockup;
     myMockup.addMockupModelListener(this::updateDisplayedImage);
@@ -113,12 +150,13 @@ public class MockupViewPanel extends JPanel {
    */
   public void setSelectionMode(boolean selectionMode) {
     mySelectionMode = selectionMode;
+    mySelectionLayer.clearSelection();
     repaint();
   }
 
   @Override
-  public void paint(Graphics g) {
-    super.paint(g);
+  public void paintComponent(Graphics g) {
+    super.paintComponent(g);
     final Graphics2D g2d = ((Graphics2D)g.create());
     paintMockup(g2d, myMockup);
     if (mySelectionMode) {
@@ -136,7 +174,8 @@ public class MockupViewPanel extends JPanel {
    */
   private static BufferedImage createScaledImage(@NotNull BufferedImage original,
                                                  @NotNull CoordinateConverter imageTransform) {
-    return ImageUtils.scale(original, imageTransform.getXScale(), imageTransform.getYScale());
+    final AffineTransform affineTransform = imageTransform.getAffineTransform();
+    return ImageUtils.scale(original, affineTransform.getScaleX(), affineTransform.getScaleY());
   }
 
   /**
@@ -153,10 +192,8 @@ public class MockupViewPanel extends JPanel {
       }
       myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
     }
-    g2d.drawImage(myDisplayedImage,
-                  myDisplayedImageTransform.x(0),
-                  myDisplayedImageTransform.y(0),
-                  null);
+    myDisplayedImageAffineTransform = myDisplayedImageTransform.getAffineTransform();
+    g2d.drawImage(myDisplayedImage, myDisplayedImageAffineTransform, null);
   }
 
   /**
@@ -173,6 +210,7 @@ public class MockupViewPanel extends JPanel {
     BufferedImage displayedImage;
 
     if (myDisplayOnlyCroppedRegion) {
+      Rectangle2D.intersect(cropping, new Rectangle(image.getWidth(), image.getHeight()), cropping);
       final BufferedImage subImage = image.getSubimage(cropping.x, cropping.y, cropping.width, cropping.height);
       myImageTransform.setDimensions(getWidth(), getHeight(), cropping.width, cropping.height, ADJUST_SCALE);
       displayedImage = createScaledImage(subImage, myImageTransform);
@@ -209,15 +247,31 @@ public class MockupViewPanel extends JPanel {
     }
   }
 
+  public void removeSelectionListener(SelectionListener listener) {
+    mySelectionListeners.remove(listener);
+  }
+
+  public SelectionLayer getSelectionLayer() {
+    return mySelectionLayer;
+  }
+
+  public CoordinateConverter getImageTransform() {
+    return myImageTransform;
+  }
+
+  public CoordinateConverter getDisplayedImageTransform() {
+    return myDisplayedImageTransform;
+  }
+
   /**
    * Ensure that the current selection is resized when this panel is resized
    */
   private void resizeSelection() {
-    if (myImage == null) {
+    Rectangle selection = mySelectionLayer.getSelection();
+    if (myImage == null || selection.isEmpty()) {
       return;
     }
     myImageTransform.setDimensions(getWidth(), getHeight(), myImage.getWidth(), myImage.getHeight(), ADJUST_SCALE);
-    Rectangle selection = mySelectionLayer.getSelection();
     myImageTransform.convert(myMockup.getRealCropping(), selection);
     mySelectionLayer.setSelection(selection.x, selection.y, selection.width, selection.height);
   }
@@ -228,16 +282,35 @@ public class MockupViewPanel extends JPanel {
    *
    * @param selection the {@link Rectangle} returned by {@link SelectionLayer#getSelection()}
    */
-  private void notifySelectionListener(Rectangle selection) {
+  private void notifySelectionEnded(Rectangle selection) {
     final Rectangle convertedSelection;
-    if (selection.isEmpty()) {
+    if (selection.isEmpty() || myImage == null) {
       convertedSelection = new Rectangle(0, 0, -1, -1);
     }
     else {
-      convertedSelection = myImageTransform.convertInverse(selection, null);
+      if(myDisplayOnlyCroppedRegion) {
+
+        final Rectangle bounds = mySelectionLayer.getBounds();
+        final Rectangle realCropping = myMockup.getRealCropping();
+        final AffineTransform transform = new AffineTransform();
+
+        transform.scale(realCropping.getWidth() / bounds.getWidth(),
+                        realCropping.getHeight() / bounds.getHeight());
+        transform.translate(-bounds.x, -bounds.y);
+        convertedSelection = transform.createTransformedShape(selection).getBounds();
+      } else {
+        convertedSelection = myImageTransform.convertInverse(selection, null);
+        Rectangle2D.intersect(convertedSelection, new Rectangle(myImage.getWidth(), myImage.getHeight()),convertedSelection);
+      }
     }
     for (int i = 0; i < mySelectionListeners.size(); i++) {
-      mySelectionListeners.get(i).selectionEnded(convertedSelection);
+      mySelectionListeners.get(i).selectionEnded(this, convertedSelection);
+    }
+  }
+
+  private void notifySelectionStarted(int x, int y) {
+    for (int i = 0; i < mySelectionListeners.size(); i++) {
+      mySelectionListeners.get(i).selectionStarted(this, x, y);
     }
   }
 
@@ -270,6 +343,7 @@ public class MockupViewPanel extends JPanel {
     public void mousePressed(MouseEvent e) {
       if (mySelectionMode) {
         toSelectionLayer(e);
+        notifySelectionStarted(e.getX(), e.getY());
         repaint();
       }
     }
@@ -304,14 +378,13 @@ public class MockupViewPanel extends JPanel {
       if (mySelectionMode) {
         mySelectionLayer.mouseDragged(e);
       }
-      repaint();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
       if (mySelectionMode) {
         mySelectionLayer.mouseReleased(e);
-        notifySelectionListener(mySelectionLayer.getSelection());
+        notifySelectionEnded(mySelectionLayer.getSelection());
       }
     }
 
@@ -319,6 +392,54 @@ public class MockupViewPanel extends JPanel {
     public void mouseMoved(MouseEvent e) {
       if (mySelectionMode) {
         mySelectionLayer.mouseMoved(e);
+      }
+    }
+  }
+
+  private class MyLayoutManager implements LayoutManager {
+
+    public static final int H_GAP = 10;
+
+    @Override
+    public void addLayoutComponent(String name, Component comp) {
+
+    }
+
+    @Override
+    public void removeLayoutComponent(Component comp) {
+
+    }
+
+    @Override
+    public Dimension preferredLayoutSize(Container parent) {
+      return null;
+    }
+
+    @Override
+    public Dimension minimumLayoutSize(Container parent) {
+      return null;
+    }
+
+    @Override
+    public void layoutContainer(Container parent) {
+      if (parent.getComponentCount() == 0) {
+        return;
+      }
+      final Component component = parent.getComponent(0);
+      final Rectangle selection = mySelectionLayer.getSelection();
+      if (!selection.isEmpty()) {
+        final Dimension preferredSize = component.getPreferredSize();
+        int x = selection.x + selection.width + H_GAP;
+        final int y = selection.y;
+        final int width = preferredSize.width;
+        final int height = preferredSize.height;
+        if (x + width > getWidth()) {
+          x = selection.x + selection.width - H_GAP - width;
+        }
+        component.setBounds(x, y, width, height);
+      }
+      else {
+        component.setVisible(false);
       }
     }
   }
