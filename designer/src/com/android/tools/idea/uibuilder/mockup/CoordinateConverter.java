@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 import static java.lang.Math.min;
 
@@ -36,19 +37,14 @@ public class CoordinateConverter {
   private boolean myCentered;
   private boolean myFixedRatio = true;
   private float myAdjustScale;
+  private AffineTransform myAffineTransform = new AffineTransform();
 
   public void setDimensions(Dimension destSize, Dimension srcSize) {
     setDimensions(destSize, srcSize, 1f);
   }
 
   public void setDimensions(Dimension destSize, Dimension srcSize, float adjustScale) {
-    if (mySourceSize.equals(destSize) && myDestSize.equals(srcSize)) {
-      return;
-    }
-    mySourceSize.setSize(srcSize);
-    myDestSize.setSize(destSize);
-    myAdjustScale = adjustScale;
-    updateDimensions(adjustScale);
+    setDimensions(destSize.width, destSize.height, srcSize.width, srcSize.height, adjustScale);
   }
 
   public void setDimensions(int destWidth, int destHeight, int srcWidth, int srcHeight) {
@@ -56,13 +52,18 @@ public class CoordinateConverter {
   }
 
   public void setDimensions(int destWidth, int destHeight, int srcWidth, int srcHeight, float adjustScale) {
-    if (destWidth == myDestSize.width && destHeight == myDestSize.height
-        && srcWidth == myDestSize.width && srcHeight == myDestSize.height) {
-      return;
-    }
+    myAdjustScale = adjustScale;
     myDestSize.setSize(destWidth, destHeight);
     mySourceSize.setSize(srcWidth, srcHeight);
     updateDimensions(adjustScale);
+    updateAffineTransform();
+  }
+
+  private void updateAffineTransform() {
+    myAffineTransform.setToIdentity();
+    myAffineTransform.translate(-mySourceOrigin.x, -mySourceOrigin.y);
+    myAffineTransform.scale(myXTransformScale, myYTransformScale);
+    myAffineTransform.translate(myDestinationOrigin.x, myDestinationOrigin.y);
   }
 
   private void updateDimensions(float adjustScale) {
@@ -185,5 +186,9 @@ public class CoordinateConverter {
       inverseDY(srcRect.height)
     );
     return destRect;
+  }
+
+  public AffineTransform getAffineTransform() {
+    return myAffineTransform;
   }
 }
