@@ -26,14 +26,22 @@ public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
   }
 
   public DebugToolWindowFixture pressResumeProgram() {
-    ActionButton button = GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    myRobot.click(findDebugResumeButton());
+    return this;
+  }
+
+  public DebugToolWindowFixture waitForBreakPointHit() {
+    findDebugResumeButton();
+    return this;
+  }
+
+  private ActionButton findDebugResumeButton() {
+    return GuiTests.waitUntilShowing(myRobot, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         return "com.intellij.xdebugger.impl.actions.ResumeAction".equals(button.getAction().getClass().getCanonicalName())
                && button.isEnabled();
-        }
+      }
     });
-    myRobot.click(button);
-    return this;
   }
 }

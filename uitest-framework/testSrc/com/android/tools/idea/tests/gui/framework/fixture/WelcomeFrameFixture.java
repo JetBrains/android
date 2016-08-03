@@ -50,6 +50,12 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
+  public WelcomeFrameFixture importCodeSample() {
+    findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
+    return this;
+  }
+
+  @NotNull
   private ActionLinkFixture findActionLinkByActionId(String actionId) {
     return ActionLinkFixture.findByActionId(actionId, robot(), target());
   }
