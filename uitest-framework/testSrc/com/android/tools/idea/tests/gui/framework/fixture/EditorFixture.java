@@ -726,6 +726,7 @@ public class EditorFixture {
     ESCAPE("EditorEscape"),
     DOWN("EditorDown"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
+    GOTO_IMPLEMENTATION("GotoImplementation"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code Keymap_Default.xml}. */

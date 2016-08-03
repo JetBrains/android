@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class MockAvdManagerConnection extends AvdManagerConnection {
-  @Nullable private final AndroidSdkHandler mySdkHandler;
+  @NotNull private final AndroidSdkHandler mySdkHandler;
 
   public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
     super(handler);
@@ -63,6 +63,15 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
       Process p = Runtime.getRuntime().exec(command);
       p.waitFor();
     } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void tapRunningAvd(int x, int y) {
+    try {
+      String command = getAdbBinary().getPath() + " shell input tap " + x + " " + y;
+      Runtime.getRuntime().exec(command).waitFor();
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
