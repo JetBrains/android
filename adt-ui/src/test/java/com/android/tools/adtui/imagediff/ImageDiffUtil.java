@@ -71,7 +71,7 @@ public final class ImageDiffUtil {
    * @param similarityThreshold how much (in percent) the baseline and the generated images can differ to be considered similar
    */
   public static void assertImagesSimilar(String baselineImageFilename, Component generatedComponent, float similarityThreshold) {
-    File baselineImageFile = TestResources.getFile(ImageDiffUtil.class,  TEST_DATA_DIR + baselineImageFilename);
+    File baselineImageFile = TestResources.getFile(ImageDiffUtil.class, TEST_DATA_DIR + baselineImageFilename);
     BufferedImage generatedImage;
     BufferedImage baselineImage;
 
