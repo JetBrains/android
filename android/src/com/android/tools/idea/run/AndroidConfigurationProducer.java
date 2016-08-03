@@ -90,7 +90,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
       .getDefaultTargetSelectionMode(context.getModule(), AndroidRunConfigurationType.getInstance(),
                                      AndroidTestRunConfigurationType.getInstance());
     if (targetSelectionMode != null) {
-      configuration.setTargetSelectionMode(targetSelectionMode);
+      configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     return true;
   }
