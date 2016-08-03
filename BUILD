@@ -651,6 +651,7 @@ java_library(
       "//tools/base/sdk-common:sdk-common_testlib",
       "//tools/base/sdklib:sdklib",
       "//tools/base/sdklib:sdklib_testlib",
+      "//tools/base/testutils",
     ],
   exports = [
       "//tools/adt/idea:android-common",
@@ -868,7 +869,7 @@ fileset(
 fileset(
   name = "android-common_testlib.res",
   srcs = glob([
-      "android/common/testSrc/**/*",
+      "android/common/testResources/**/*",
     ],
     exclude = [
       "**/* *",
@@ -879,7 +880,7 @@ fileset(
       "**/.DS_Store",
     ]),
   mappings = {
-      "android/common/testSrc": "android-common_testlib.resources",
+      "android/common/testResources": "android-common_testlib.resources",
     },
   deps = [
       "@local_jdk//:langtools-neverlink",

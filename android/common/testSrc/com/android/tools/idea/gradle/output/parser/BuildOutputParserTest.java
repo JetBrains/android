@@ -20,11 +20,10 @@ import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
-import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
+import com.android.testutils.TestResources;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
@@ -397,10 +396,8 @@ public class BuildOutputParserTest {
 
   @Test
   public void redirectValueLinksOutput() throws Exception {
-    if (!setupSdkHome()) {
-      System.out.println("Skipping testRedirectValueLinksOutput because sdk-common was not found");
-      return;
-    }
+    TestResources.getFileInDirectory(
+      getClass(), "/values.xml", "src/test/resources/testData/resources/baseSet/values/values.xml");
 
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
@@ -515,24 +512,6 @@ public class BuildOutputParserTest {
       name = name.substring(CWD_PATH.length() + 1);
     };
     return name;
-
-  }
-
-  private static boolean setupSdkHome() {
-    String homePath = PathManager.getHomePath();
-    assertNotNull(homePath);
-    // The relative paths in the output file below is relative to the sdk-common directory in tools/base
-    // (it's from one of the unit tests there)
-    File rootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
-    if (!rootDir.isDirectory()) {
-      // Also check for an IDEA project structure where sdk-common is located in this location:
-      rootDir = new File(homePath, "android" + File.separator + "tools-base" + File.separator + "sdk-common");
-      if (!rootDir.isDirectory()) {
-        return false;
-      }
-    }
-    AbstractAaptOutputParser.ourRootDir = rootDir;
-    return true;
   }
 
   @Test
