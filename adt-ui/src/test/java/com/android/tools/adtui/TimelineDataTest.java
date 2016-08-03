@@ -23,7 +23,8 @@ import org.junit.runners.JUnit4;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class TimelineDataTest {
@@ -49,26 +50,26 @@ public class TimelineDataTest {
 
   @Test
   public void testStreamGetters() throws Exception {
-    assertEquals(2, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(2);
   }
 
   @Test
   public void testGetStartTime() throws Exception {
-    assertTrue(mCreationTime <= mData.getStartTime());
-    assertTrue(mData.getStartTime() <= System.currentTimeMillis());
+    assertThat(mData.getStartTime()).isAtLeast(mCreationTime);
+    assertThat(mData.getStartTime()).isAtMost(System.currentTimeMillis());
     Thread.sleep(10);
     long now = System.currentTimeMillis();
     mData.clear();
-    assertTrue(now <= mData.getStartTime());
+    assertThat(mData.getStartTime()).isAtLeast(now);
   }
 
   @Test
   public void testAddStreams() {
-    assertEquals(2, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(2);
     mData.addStream("dynamicStream0");
-    assertEquals(3, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(3);
     mData.addStreams(new ArrayList<>(Arrays.asList("duplicateStream", "dynamicStream2")));
-    assertEquals(5, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(5);
     try {
       mData.addStreams(new ArrayList<>(Arrays.asList("duplicateStream", "dynamicStream3")));
       fail();
@@ -79,150 +80,150 @@ public class TimelineDataTest {
 
   @Test
   public void testRemoveStreams() {
-    assertEquals(2, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(2);
     mData.removeStream("Stream 1");
-    assertEquals(1, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(1);
     mData.addStreams(new ArrayList<>(Arrays.asList("dynamicStream1", "dynamicStream2")));
-    assertEquals(3, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(3);
     mData.removeStreams(new ArrayList<>(Arrays.asList("dynamicStream1", "dynamicStream2")));
-    assertEquals(1, mData.getStreamCount());
+    assertThat(mData.getStreamCount()).isEqualTo(1);
   }
 
   @Test
   public void testAdd() throws Exception {
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     long start = mData.getStartTime();
 
     mData.add(start, 0, 1.0f, 2.0f);
-    assertEquals(1, mData.size());
-    assertEquals(0.0f, mData.get(0).time, 0.0001f);
-    assertEquals(1.0f, mData.get(0).values[0], DELTA);
-    assertEquals(2.0f, mData.get(0).values[1], DELTA);
+    assertThat(mData.size()).isEqualTo(1);
+    assertThat(mData.get(0).time).isWithin(0.0001f).of(0.0f);
+    assertThat(mData.get(0).values[0]).isWithin(DELTA).of(1.0f);
+    assertThat(mData.get(0).values[1]).isWithin(DELTA).of(2.0f);
 
     mData.add(start + 1000, 0, 3.0f, 4.0f);
-    assertEquals(2, mData.size());
-    assertEquals(1.0f, mData.get(1).time, 0.0001f);
-    assertEquals(3.0f, mData.get(1).values[0], DELTA);
-    assertEquals(4.0f, mData.get(1).values[1], DELTA);
+    assertThat(mData.size()).isEqualTo(2);
+    assertThat(mData.get(1).time).isWithin(0.0001f).of(1.0f);
+    assertThat(mData.get(1).values[0]).isWithin(DELTA).of(3.0f);
+    assertThat(mData.get(1).values[1]).isWithin(DELTA).of(4.0f);
 
     mData.add(start + 2000, 0, 5.0f, 6.0f);
-    assertEquals(2, mData.size());
-    assertEquals(2.0f, mData.get(1).time, 0.0001);
-    assertEquals(5.0f, mData.get(1).values[0], DELTA);
-    assertEquals(6.0f, mData.get(1).values[1], DELTA);
+    assertThat(mData.size()).isEqualTo(2);
+    assertThat(mData.get(1).time).isWithin((float)0.0001).of(2.0f);
+    assertThat(mData.get(1).values[0]).isWithin(DELTA).of(5.0f);
+    assertThat(mData.get(1).values[1]).isWithin(DELTA).of(6.0f);
 
     mData.clear();
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
   }
 
   @Test
   public void testAddFromAreaWorksForSimpleCase() {
     mData = new TimelineData(1, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     mData.add(mData.getStartTime() + 1000, TYPE_DATA, 500.0f);
-    assertEquals(1, mData.size());
+    assertThat(mData.size()).isEqualTo(1);
     TimelineData.Sample sample = mData.get(0);
-    assertEquals(1.0f, sample.time, DELTA);
-    assertEquals(1000.0f, sample.values[0], DELTA);
+    assertThat(sample.time).isWithin(DELTA).of(1.0f);
+    assertThat(sample.values[0]).isWithin(DELTA).of(1000.0f);
   }
 
   @Test
   public void testAddFromAreaWorksWithMultipleStreams() {
     mData = new TimelineData(3, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     mData.add(mData.getStartTime() + 1000, TYPE_DATA, 500.0f, 300.0f, 100.0f);
-    assertEquals(1, mData.size());
+    assertThat(mData.size()).isEqualTo(1);
     TimelineData.Sample sample = mData.get(0);
-    assertEquals(1f, sample.time, DELTA);
-    assertEquals(1000.0f, sample.values[0], DELTA);
-    assertEquals(600.0f, sample.values[1], DELTA);
-    assertEquals(200.0f, sample.values[2], DELTA);
+    assertThat(sample.time).isWithin(DELTA).of(1f);
+    assertThat(sample.values[0]).isWithin(DELTA).of(1000.0f);
+    assertThat(sample.values[1]).isWithin(DELTA).of(600.0f);
+    assertThat(sample.values[2]).isWithin(DELTA).of(200.0f);
   }
 
   @Test
   public void testAreaIsZeroForConsistentSpeed() {
     mData = new TimelineData(1, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     long start = mData.getStartTime();
 
     mData.add(start + 1000, TYPE_DATA, 500.0f);
-    assertEquals(1, mData.size());
+    assertThat(mData.size()).isEqualTo(1);
     TimelineData.Sample sample = mData.get(0);
-    assertEquals(1f, sample.time, DELTA);
-    assertEquals(1000f, sample.values[0], DELTA);
+    assertThat(sample.time).isWithin(DELTA).of(1f);
+    assertThat(sample.values[0]).isWithin(DELTA).of(1000f);
 
     mData.add(start + 2000, TYPE_DATA, 500.0f);
-    assertEquals(3, mData.size());
+    assertThat(mData.size()).isEqualTo(3);
 
     sample = mData.get(1);
-    assertEquals(1f, sample.time, DELTA);
-    assertEquals(0.0f, sample.values[0], DELTA);
+    assertThat(sample.time).isWithin(DELTA).of(1f);
+    assertThat(sample.values[0]).isWithin(DELTA).of(0.0f);
     sample = mData.get(2);
-    assertEquals(2.0f, sample.time, DELTA);
-    assertEquals(0.0f, sample.values[0], DELTA);
+    assertThat(sample.time).isWithin(DELTA).of(2.0f);
+    assertThat(sample.values[0]).isWithin(DELTA).of(0.0f);
   }
 
   @Test
   public void testAddFromAreaWorksCanHandleDecelerations() {
     mData = new TimelineData(2, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     long start = mData.getStartTime();
 
     mData.add(start + 1000, TYPE_DATA, 100.0f, 50.0f);
-    assertEquals(1, mData.size());
+    assertThat(mData.size()).isEqualTo(1);
     TimelineData.Sample sample0 = mData.get(0);
-    assertEquals(1f, sample0.time, DELTA);
-    assertEquals(200f, sample0.values[0], DELTA);
-    assertEquals(100f, sample0.values[1], DELTA);
+    assertThat(sample0.time).isWithin(DELTA).of(1f);
+    assertThat(sample0.values[0]).isWithin(DELTA).of(200f);
+    assertThat(sample0.values[1]).isWithin(DELTA).of(100f);
 
     mData.add(start + 2000, TYPE_DATA, 190.0f, 100.0f);
-    assertEquals(3, mData.size());
+    assertThat(mData.size()).isEqualTo(3);
     TimelineData.Sample sample1 = mData.get(1);
-    assertEquals(1.9f, sample1.time, DELTA);
-    assertEquals(0.0f, sample1.values[0], DELTA);
-    assertEquals(10.0f, sample1.values[1], DELTA);
+    assertThat(sample1.time).isWithin(DELTA).of(1.9f);
+    assertThat(sample1.values[0]).isWithin(DELTA).of(0.0f);
+    assertThat(sample1.values[1]).isWithin(DELTA).of(10.0f);
 
     TimelineData.Sample sample2 = mData.get(2);
-    assertEquals(2.0f, sample2.time, DELTA);
-    assertEquals(0.0f, sample2.values[0], DELTA);
-    assertEquals(0.0f, sample2.values[1], DELTA);
+    assertThat(sample2.time).isWithin(DELTA).of(2.0f);
+    assertThat(sample2.values[0]).isWithin(DELTA).of(0.0f);
+    assertThat(sample2.values[1]).isWithin(DELTA).of(0.0f);
   }
 
   @Test
   public void testAddFromAreaWorksForAddingStreamsDynamically() {
     mData = new TimelineData(1, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     long start = mData.getStartTime();
 
     mData.add(start + 1000, TYPE_DATA, 100.0f);
     TimelineData.Sample sample0 = mData.get(0);
-    assertEquals(1f, sample0.time, DELTA);
-    assertEquals(200f, sample0.values[0], DELTA);
+    assertThat(sample0.time).isWithin(DELTA).of(1f);
+    assertThat(sample0.values[0]).isWithin(DELTA).of(200f);
 
     mData.addStream("Stream 1");
     mData.add(start + 2000, TYPE_DATA, 200.0f, 200.0f);
     TimelineData.Sample sample1 = mData.get(1);
-    assertEquals(2f, sample1.time, DELTA);
-    assertEquals(0f, sample1.values[0], DELTA);
-    assertEquals(400f, sample1.values[1], DELTA);
+    assertThat(sample1.time).isWithin(DELTA).of(2f);
+    assertThat(sample1.values[0]).isWithin(DELTA).of(0f);
+    assertThat(sample1.values[1]).isWithin(DELTA).of(400f);
   }
 
   @Test
   public void testAddFromAreaWorksForRemovingStreamsDynamically() {
     mData = new TimelineData(2, 10, AREA_TRANSFORM);
-    assertEquals(0, mData.size());
+    assertThat(mData.size()).isEqualTo(0);
     long start = mData.getStartTime();
 
     mData.add(start + 1000, TYPE_DATA, 50.0f, 100.0f);
     TimelineData.Sample sample0 = mData.get(0);
-    assertEquals(1f, sample0.time, DELTA);
-    assertEquals(100f, sample0.values[0], DELTA);
-    assertEquals(200f, sample0.values[1], DELTA);
+    assertThat(sample0.time).isWithin(DELTA).of(1f);
+    assertThat(sample0.values[0]).isWithin(DELTA).of(100f);
+    assertThat(sample0.values[1]).isWithin(DELTA).of(200f);
 
     mData.removeStream("Stream 0");
     mData.add(start + 2000, TYPE_DATA, 300.0f);
     TimelineData.Sample sample1 = mData.get(1);
-    assertEquals(2f, sample1.time, DELTA);
-    assertEquals(200f, sample1.values[0], DELTA);
+    assertThat(sample1.time).isWithin(DELTA).of(2f);
+    assertThat(sample1.values[0]).isWithin(DELTA).of(200f);
   }
 }
