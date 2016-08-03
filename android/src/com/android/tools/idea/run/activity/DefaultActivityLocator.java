@@ -194,6 +194,11 @@ public class DefaultActivityLocator extends ActivityLocator {
     @Nullable
     public abstract Boolean getExported();
 
+    /**
+     * @return whether there is at least 1 intent filter specified for this activity.
+     */
+    public abstract boolean hasIntentFilter();
+
     @Nullable
     public abstract String getQualifiedName();
 
@@ -268,6 +273,11 @@ public class DefaultActivityLocator extends ActivityLocator {
       return Boolean.valueOf(exported.getValue());
     }
 
+    @Override
+    public boolean hasIntentFilter() {
+      return !myActivity.getIntentFilters().isEmpty();
+    }
+
     @Nullable
     @Override
     public String getQualifiedName() {
@@ -320,6 +330,11 @@ public class DefaultActivityLocator extends ActivityLocator {
       }
 
       return Boolean.valueOf(exported.getValue());
+    }
+
+    @Override
+    public boolean hasIntentFilter() {
+      return !myAlias.getIntentFilters().isEmpty();
     }
 
     @Nullable
@@ -380,6 +395,19 @@ public class DefaultActivityLocator extends ActivityLocator {
     public Boolean getExported() {
       String exportedAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_EXPORTED);
       return StringUtil.isEmpty(exportedAttr) ? null : Boolean.valueOf(exportedAttr);
+    }
+
+    @Override
+    public boolean hasIntentFilter() {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          return true;
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
     }
 
     @Nullable
