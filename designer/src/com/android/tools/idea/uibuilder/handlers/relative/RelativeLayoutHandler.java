@@ -66,7 +66,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
         moveHandler.removeCycles();
 
         NlComponent previous = null;
@@ -90,6 +90,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           }
           previous = component;
         }
+        insertComponents(-1, insertType);
       }
     };
   }

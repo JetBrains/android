@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -64,10 +62,11 @@ final class GroupDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     possiblyCopySearchIconToMainModuleSourceSet();
     updateOrderInCategoryAttributes();
     updateShowAsActionAttribute();
+    insertComponents(getInsertIndex(), insertType);
   }
 
   private void possiblyCopySearchIconToMainModuleSourceSet() {
@@ -353,8 +352,8 @@ final class GroupDragHandler extends DragHandler {
     }
   }
 
-  @Override
-  public int getInsertIndex() {
+  @VisibleForTesting
+  int getInsertIndex() {
     if (isActionBarGroupActive()) {
       return getInsertIndexUsingActionBarGroup();
     }

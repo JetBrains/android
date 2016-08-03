@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.SdkConstants.PreferenceTags;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -43,7 +40,8 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   }
 
   @Override
-  public final void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+  public final void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    insertComponents(myInsertIndex, insertType);
   }
 
   @Nullable
@@ -136,10 +134,5 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     }
 
     return height;
-  }
-
-  @Override
-  public final int getInsertIndex() {
-    return myInsertIndex;
   }
 }
