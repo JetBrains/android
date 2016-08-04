@@ -25,10 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
@@ -88,6 +85,7 @@ public class LayoutInspectorTest {
    *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
    * </pre>
    */
+  @Ignore("Ignoring until Emulator bug is fixed. b/30477830")
   @Test
   @Category(GuiTestSuite.class)
   public void launchLayoutInspector() throws Exception {
