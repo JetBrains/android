@@ -597,8 +597,7 @@ public class CanvasResizeInteraction extends Interaction {
           yL = width - x0 + y0 - (int)(myLandscapeWidth / SQRT_2) - 5;
         }
 
-        //noinspection UseJBColor
-        graphics.setColor(Color.DARK_GRAY);
+        graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
         graphics.rotate(-Math.PI / 4, xL, yL);
         graphics.drawString("Landscape", xL, yL);
         graphics.rotate(Math.PI / 4, xL, yL);
