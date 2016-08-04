@@ -64,7 +64,7 @@ public class NlConstants {
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
   public static final Color RESIZING_CUE_COLOR = new Color(0x757575);
-  public static final Color RESIZING_TEXT_COLOR = new Color(0, 0, 0, 128);
+  public static final Color RESIZING_TEXT_COLOR = new JBColor(new Color(0x80000000, true), DARK_LIST_FOREGROUND);
   public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
 
   public static final Color CYAN_100 = new Color(178, 235, 242, 100);
