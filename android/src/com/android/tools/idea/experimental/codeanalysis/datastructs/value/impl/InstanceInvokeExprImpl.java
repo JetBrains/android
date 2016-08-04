@@ -47,9 +47,8 @@ public class InstanceInvokeExprImpl extends InvokeExprImpl implements InstanceIn
 
   @Override
   public String getSimpleName() {
-    PsiMethod methodRef = (PsiMethod)this.mTargetMethod.getPsiRef();
     return String.format("[InstanceInvoke]%s.%s",
                          mBase == null ? "[NULL BASE]" : mBase.getSimpleName(),
-                         methodRef == null ? "[NULL METHOD]" : methodRef.getName());
+                         mTargetMethod == null ? "[NULL METHOD]" : mTargetMethod.getName());
   }
 }

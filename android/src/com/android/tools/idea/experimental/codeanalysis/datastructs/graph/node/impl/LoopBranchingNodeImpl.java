@@ -20,7 +20,11 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.C
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNodeUtil;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.LoopBranchingNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -34,22 +38,44 @@ public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchin
   protected GraphNode mPostLoopEntryNode;
   protected GraphNode mPostLoopExitNode;
   protected GraphNode mConditionCheckEntryNode;
+  protected Param mForeachLoopParam;
+  protected Value mForeachLoopValue;
   public ArrayList<GraphNode> breakNodeList;
   public ArrayList<GraphNode> continueNodeList;
 
   @Override
   public GraphNode getConditionCheckNode() {
-    return null;
+    return mConditionCheckEntryNode;
   }
 
   @Override
   public GraphNode getPostCode() {
-    return null;
+    return mPostLoopEntryNode;
   }
 
   @Override
   public BlockGraph getLoopBlock() {
-    return null;
+    return mLoopBody;
+  }
+
+  @Nullable
+  @Override
+  public Param getForeachIteratorParam() {
+    return mForeachLoopParam;
+  }
+
+  public void setForeachIteratorParam(@NotNull Param param) {
+    this.mForeachLoopParam = param;
+  }
+
+  @Nullable
+  @Override
+  public Value getForeachIteratorValue() {
+    return mForeachLoopValue;
+  }
+
+  public void setForeachIteratorValue(@NotNull Value value) {
+    this.mForeachLoopValue = value;
   }
 
   @Override
@@ -95,29 +121,51 @@ public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchin
 
   public void processBreaks() {
     //The breaks terminate the loop
-    //They should be connect to the false branch of the exit of condition check.
 
-    //Null check
-    if (mConditionCheckExitNode == null) {
-      return;
+
+    if (mLoopType == LoopBranchingNode.FOREACH_LOOP) {
+      //In foreach loop. Break connects to the exit node of the body
+      GraphNode bodyExit = mLoopBody.getExitNode();
+      for (GraphNode breakNode : this.breakNodeList) {
+        GraphNodeUtil.connectGraphNode(breakNode, bodyExit);
+      }
+      this.breakNodeList.clear();
     }
-    GraphNode falseBranch = ((ConditionCheckNode)mConditionCheckExitNode).getFalseBranch();
-    for (GraphNode breakNode : this.breakNodeList) {
-      GraphNodeUtil.connectGraphNode(breakNode, falseBranch);
+    else {
+      //In loops other than foreach loops, they should be connected to the false branch of the
+      //exit of condition check.
+      //Null check
+      if (mConditionCheckExitNode == null) {
+        return;
+      }
+      GraphNode falseBranch = ((ConditionCheckNode)mConditionCheckExitNode).getFalseBranch();
+      for (GraphNode breakNode : this.breakNodeList) {
+        GraphNodeUtil.connectGraphNode(breakNode, falseBranch);
+      }
+      this.breakNodeList.clear();
     }
-    this.breakNodeList.clear();
   }
 
   public void processContinues() {
-    //the continue stmts connect to the entry of the condition check
-    if (mConditionCheckEntryNode == null) {
-      return;
-    }
 
-    for (GraphNode continueNode : this.continueNodeList) {
-      GraphNodeUtil.connectGraphNode(continueNode, mConditionCheckEntryNode);
+    if (mLoopType == LoopBranchingNode.FOREACH_LOOP) {
+      //In foreach loop, continue should be connect to the loopnode itself.
+      for (GraphNode continueNode : this.continueNodeList) {
+        GraphNodeUtil.connectGraphNode(continueNode, this);
+      }
+
     }
-    this.continueNodeList.clear();
+    else {
+      //the continue stmts connect to the entry of the condition check
+      if (mConditionCheckEntryNode == null) {
+        return;
+      }
+
+      for (GraphNode continueNode : this.continueNodeList) {
+        GraphNodeUtil.connectGraphNode(continueNode, mConditionCheckEntryNode);
+      }
+      this.continueNodeList.clear();
+    }
   }
 
   public void connectSpecialNodes() {
@@ -137,6 +185,11 @@ public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchin
         break;
       case LoopBranchingNode.DOWHILE_LOOP:
         loopTypeName = "[DOWHILE LOOP]";
+      case LoopBranchingNode.FOREACH_LOOP:
+        loopTypeName = "[FOREACH LOOP]";
+        break;
+      default:
+        break;
     }
     //TODO: Add more detailed info.
     return String.format("%s", loopTypeName);

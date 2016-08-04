@@ -55,15 +55,9 @@ public class StaticInvokeExprImpl extends InvokeExprImpl implements StaticInvoke
     else {
       baseClass = null;
     }
-    PsiMethod method;
-    if (this.mTargetMethod != null) {
-      method = (PsiMethod)this.mTargetMethod.getPsiRef();
-    }
-    else {
-      method = null;
-    }
+
     return String.format("[StaticInvoke]%s.%s",
                          baseClass == null ? "[NULL CLASS]" : baseClass.getQualifiedName(),
-                         method == null ? "[NULL METHOD]" : method.getName());
+                         mTargetMethod == null ? "[NULL METHOD]" : mTargetMethod.getName());
   }
 }

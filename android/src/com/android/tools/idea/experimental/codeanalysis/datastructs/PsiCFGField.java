@@ -18,6 +18,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationOwner;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,12 @@ public class PsiCFGField implements ClassMember, PsiAnnotationOwner {
   public PsiCFGField(@NotNull PsiField field, @NotNull PsiCFGClass clazz) {
     this.mDeclearingClass = clazz;
     this.mPsiFieldRef = field;
+    parseModifiers();
+  }
+
+  private void parseModifiers() {
+    PsiModifierList modifierList = mPsiFieldRef.getModifierList();
+    modifierBits = Modifier.ParseModifierList(modifierList);
   }
 
   public PsiField getPsiFieldRef() {
@@ -47,22 +54,22 @@ public class PsiCFGField implements ClassMember, PsiAnnotationOwner {
 
   @Override
   public boolean isProtected() {
-    return false;
+    return ((modifierBits & Modifier.PROTECTED) != 0);
   }
 
   @Override
   public boolean isPrivate() {
-    return false;
+    return ((modifierBits & Modifier.PRIVATE) != 0);
   }
 
   @Override
   public boolean isPublic() {
-    return false;
+    return ((modifierBits & Modifier.PUBLIC) != 0);
   }
 
   @Override
   public boolean isStatic() {
-    return false;
+    return ((modifierBits & Modifier.STATIC) != 0);
   }
 
   @NotNull

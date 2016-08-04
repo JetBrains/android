@@ -96,13 +96,15 @@ public class PsiCFGAnalysisUtil {
       PsiCFGMethod[] allMethods = currentClass.getAllMethods();
 
       for (PsiCFGMethod currentMethod : allMethods) {
-        if (currentMethod.isAbstract()) {
+        //Abstract method does not have a body
+        //Lambda methods' CFG is created by the time it is decleared
+        if (currentMethod.isAbstract() || currentMethod.isLambda()) {
           continue;
         }
 
-        PsiElement psiRef = currentMethod.getPsiRef();
-        if (psiRef != null && (psiRef instanceof PsiMethod)) {
-          PsiCodeBlock codeBlock = ((PsiMethod) psiRef).getBody();
+        PsiMethod methodRef = currentMethod.getMethodRef();
+        if (methodRef != null) {
+          PsiCodeBlock codeBlock = methodRef.getBody();
 
           if (codeBlock == null) {
             PsiCFGDebugUtil.LOG.info("In " + currentClass.getQualifiedClassName() + "."

@@ -25,33 +25,40 @@ import org.jetbrains.annotations.Nullable;
  * Created by haowei on 6/9/16.
  */
 public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
+
+  protected PsiMethod mMethodRef;
+  protected PsiLambdaExpression mLambdaExprRef;
+
   protected PsiElement mPsiElementReference;
   protected PsiCFGClass mParentClass;
   protected int modifers;
   protected MethodGraph mCFG;
   protected PsiElement mBody;
   protected boolean mIsLambdaMethod;
-  protected PsiMethod mDirectOverridenMethod;
+  protected PsiMethod mLamdaOverridenMethod;
   protected PsiCFGPartialMethodSignature mSignature;
 
   public static final PsiCFGMethod[] EMPTY_ARRAY = new PsiCFGMethod[0];
 
-  public PsiCFGMethod(PsiElement method, PsiCFGClass delearingClass) {
-    this.mPsiElementReference = method;
-    this.mParentClass = delearingClass;
-    if (mPsiElementReference instanceof PsiMethod) {
-      mBody = ((PsiMethod)method).getBody();
-      mIsLambdaMethod = false;
-      parseModifiers();
-    }
-    else if (mPsiElementReference instanceof PsiLambdaExpression) {
-      mBody = ((PsiLambdaExpression)method).getBody();
-      mIsLambdaMethod = true;
-    }
-    else {
-      mBody = null;
-    }
-    generateSignature();
+  public PsiCFGMethod(@NotNull PsiMethod method,
+                      @NotNull PsiCFGClass declaringClass) {
+    this.mMethodRef = method;
+    this.mParentClass = declaringClass;
+    this.mIsLambdaMethod = false;
+    this.modifers = Modifier.ParseModifierList(method.getModifierList());
+    this.mSignature = PsiCFGPartialMethodSignatureBuilder.buildFromPsiMethod(method);
+  }
+
+  public PsiCFGMethod(@NotNull PsiLambdaExpression lambdaExpr,
+                      @NotNull PsiMethod parentMethod,
+                      @NotNull PsiCFGClass declearingClass) {
+    this.mLambdaExprRef = lambdaExpr;
+    this.mMethodRef = null;
+    this.mLamdaOverridenMethod = parentMethod;
+    this.mParentClass = declearingClass;
+    this.mIsLambdaMethod = true;
+    this.modifers = Modifier.ParseModifierList(parentMethod.getModifierList());
+    this.mSignature = PsiCFGPartialMethodSignatureBuilder.buildFromPsiMethod(parentMethod);
   }
 
   private void generateSignature() {
@@ -65,24 +72,12 @@ public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
     return this.mSignature;
   }
 
-  private void parseModifiers() {
-    if (this.mPsiElementReference instanceof PsiMethod) {
-      PsiMethod curMethod = (PsiMethod)this.mPsiElementReference;
-      PsiModifierList modList = curMethod.getModifierList();
-      this.modifers = Modifier.ParseModifierList(modList);
-    }
-  }
-
   public String getName() {
-    if (mPsiElementReference instanceof PsiMethod) {
-      return ((PsiMethod)mPsiElementReference).getName();
+    if (mIsLambdaMethod) {
+      return this.mLamdaOverridenMethod.getName();
+    } else {
+      return this.mMethodRef.getName();
     }
-    else if (mPsiElementReference instanceof PsiLambdaExpression) {
-      if (mDirectOverridenMethod != null) {
-        return mDirectOverridenMethod.getName();
-      }
-    }
-    return "[MethodWOName]";
   }
 
   public String toString() {
@@ -91,15 +86,6 @@ public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
 
   public boolean isLambda() {
     return mIsLambdaMethod;
-  }
-
-  public void setLambdaDirectParentMethod(PsiMethod parent) {
-    this.mDirectOverridenMethod = parent;
-    mIsLambdaMethod = true;
-    this.mSignature = PsiCFGPartialMethodSignatureBuilder.buildFromPsiMethod(parent);
-
-    PsiModifierList modList = parent.getModifierList();
-    this.modifers = Modifier.ParseModifierList(modList);
   }
 
   /**
@@ -113,8 +99,12 @@ public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
     return mBody;
   }
 
-  public PsiElement getPsiRef() {
-    return mPsiElementReference;
+  public PsiMethod getMethodRef() {
+    return mMethodRef;
+  }
+
+  public PsiLambdaExpression getLambdaRef() {
+    return mLambdaExprRef;
   }
 
   @Override

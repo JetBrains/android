@@ -67,7 +67,7 @@ public class CFGUtil {
                                                  @NotNull PsiCodeBlock psiCodeBlock,
                                                  @NotNull PsiCFGMethod cfgMethod) {
 
-    PsiMethod psiMethodRef = (PsiMethod)cfgMethod.getPsiRef();
+    PsiMethod psiMethodRef = cfgMethod.getMethodRef();
     PsiParameterList pl = psiMethodRef.getParameterList();
 
     MethodGraphImpl retGraph = new MethodGraphImpl(cfgMethod);
@@ -86,12 +86,11 @@ public class CFGUtil {
   public static MethodGraph constructMethodGraphForLambda(@NotNull PsiCFGScene scene, @NotNull PsiCFGMethod lambdaMethod) {
     PsiElement lambdaBody = lambdaMethod.getBody();
     MethodGraphImpl lambdaGraph = new MethodGraphImpl(lambdaMethod);
-    PsiElement psiRef = lambdaMethod.getPsiRef();
-    if (!(psiRef instanceof PsiLambdaExpression)) {
-      PsiCFGDebugUtil.LOG.warning("Method: " + psiRef.getText() + "is not a lambda");
+    PsiLambdaExpression lambdaPsiRef = lambdaMethod.getLambdaRef();
+    if (lambdaPsiRef == null) {
+      PsiCFGDebugUtil.LOG.warning("Method: " + lambdaPsiRef.getText() + "is not a lambda");
       return null;
     }
-    PsiLambdaExpression lambdaPsiRef = (PsiLambdaExpression)psiRef;
 
     //Process lambda's params
     processLambdaParameters(scene, lambdaPsiRef.getParameterList(), lambdaGraph);
@@ -120,7 +119,8 @@ public class CFGUtil {
       PsiParameter[] allParams = pl.getParameters();
       for (PsiParameter curPsiParam : allParams) {
         if (curPsiParam == null) {
-          PsiCFGDebugUtil.LOG.warning("null found in param in " + lambdaGraph.getPsiCFGMethod().getPsiRef().getText());
+          PsiCFGDebugUtil.LOG.warning("null found in param in " +
+                                      lambdaGraph.getPsiCFGMethod().getLambdaRef().getText());
         }
         else {
           ParamImpl curParamImpl = new ParamImpl(curPsiParam);
@@ -132,7 +132,7 @@ public class CFGUtil {
 
   private static void processParameters(@NotNull PsiCFGScene scene, @NotNull PsiParameterList pl, @NotNull MethodGraphImpl retGraph) {
 
-    PsiMethod psiMethodRef = (PsiMethod)retGraph.getPsiCFGMethod().getPsiRef();
+    PsiMethod psiMethodRef = retGraph.getPsiCFGMethod().getMethodRef();
     if (pl == null) {
       PsiCFGDebugUtil.LOG.info("ParamList is null in this method " + psiMethodRef.getName());
     }

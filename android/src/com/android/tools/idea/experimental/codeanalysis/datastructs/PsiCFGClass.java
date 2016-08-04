@@ -43,13 +43,13 @@ public class PsiCFGClass implements PsiAnnotationOwner {
   private PsiAnnotation[] annotationArray = emptyAnnotationArray;
   private PsiFile mPsiFileRef;
   private int mModifierbits;
-  private boolean mIsPublic = false;
   private boolean mIsInterface = false;
 
   protected Map<PsiMethod, PsiCFGMethod> mMethodMap;
   protected Map<PsiCFGPartialMethodSignature, PsiCFGMethod> mSignatureMethodMap;
   protected ArrayList<PsiCFGMethod> mMethodList;
   protected Map<String, PsiCFGField> mFieldMap;
+
 
   protected boolean mIsAnonlymous;
   protected boolean mIsLambda;
@@ -85,11 +85,17 @@ public class PsiCFGClass implements PsiAnnotationOwner {
   protected PsiCFGClass mDirectOverriddenInterface;
 
 
-  public PsiCFGClass(PsiClass origin, PsiFile declearingFile) {
+  /**
+   * Constructor of a wrapper class for PsiClass
+   * @param origin The original PsiClass. It can only be null when this PsiCFGClass instance
+   *               represents a lambda.
+   * @param declearingFile The File that contains this class. It can be null because library
+   *                       classes does not have a PsiFile reference.
+   */
+  public PsiCFGClass(@Nullable PsiClass origin, @Nullable PsiFile declearingFile) {
     this.mRef = origin;
     this.mPsiFileRef = declearingFile;
-    ParseModifierList();
-
+    parseModifierList();
 
     this.mIsAnonlymous = false;
     this.mIsLambda = false;
@@ -120,47 +126,80 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     nestedInnerClassMap = Maps.newHashMap();
   }
 
-  //For CHA Usage
-  public PsiCFGClass getSuperClass() {
-    return this.mSuperCFGClass;
-  }
-
+  /**
+   * In default. The initialized PsiCFGClass is an application class. Call this method
+   * to set is as a Library class.
+   */
   public void setLibraryClass() {
     this.mLibraryClass = true;
   }
 
+  /**
+   * @return Return true if this class is library class.
+   */
   public boolean isLibraryClass() {
     return this.mLibraryClass;
   }
 
-  public void setSuperClass(PsiCFGClass clazz) {
+  //For CHA Usage
+  @Nullable
+  public PsiCFGClass getSuperClass() {
+    return this.mSuperCFGClass;
+  }
+
+  public void setSuperClass(@NotNull PsiCFGClass clazz) {
     this.mSuperCFGClass = clazz;
   }
 
-  public void addSubClass(PsiCFGClass clazz) {
+  public void addSubClass(@NotNull PsiCFGClass clazz) {
     this.mDirectSubClasses.add(clazz);
   }
 
+  @NotNull
   public Set<PsiCFGClass> getSubClassSet() {
     return this.mDirectSubClasses;
   }
 
-  public void addSubInterface(PsiCFGClass interfaze) {
+  /**
+   * Add interface class that extends this interface.
+   * @param interfaze The subinterface
+   */
+  public void addSubInterface(@NotNull PsiCFGClass interfaze) {
     this.mDirectSubClasses.add(interfaze);
   }
 
-  public void addInterface(PsiCFGClass interfaze) {
+  /**
+   * Add extended interface (Super interface)
+   * @param interfaze The extended interface.
+   */
+  public void addInterface(@NotNull PsiCFGClass interfaze) {
     this.mImplementedInterfacesSet.add(interfaze);
   }
 
+  /**
+   * Get the set of implemented interface.
+   * @return The Set of implemented Interfaces.
+   */
+  @NotNull
   public Set<PsiCFGClass> getImplementedInterfaceSet() {
     return this.mImplementedInterfacesSet;
   }
 
+  /**
+   * Get the array of implemented interface.
+   * @return The Array of implemented Interfaces.
+   */
+  @NotNull
   public PsiCFGClass[] getImplementedInterfaceArray() {
     return this.mImplementedInterfacesSet.toArray(PsiCFGClass.EMPTY_ARRAY);
   }
 
+  /**
+   * Get the super class and implemented interfaces.
+   * Does not include super class' super class
+   * @return The array of super class and implemented interfaces.
+   */
+  @NotNull
   public PsiCFGClass[] getAllSupers() {
     List<PsiCFGClass> supersList = Lists.newArrayList();
     supersList.add(this.mSuperCFGClass);
@@ -168,21 +207,26 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     return supersList.toArray(PsiCFGClass.EMPTY_ARRAY);
   }
 
+  @Nullable
   public PsiLambdaExpression getPsiLambdaRef() {
     return mLambdaExpressionRef;
   }
 
-  public void setLambdaRef(PsiLambdaExpression lambdaRef) {
+  public void setLambdaRef(@NotNull PsiLambdaExpression lambdaRef) {
     this.mLambdaExpressionRef = lambdaRef;
     this.mIsLambda = true;
   }
 
+  /**
+   * @return Return the PsiClass reference of this class. It can be null if it is a lambda
+   */
+  @Nullable
   public PsiClass getPsiClass() {
     return mRef;
   }
 
   public boolean isPublic() {
-    return this.mIsPublic;
+    return (this.mModifierbits & Modifier.PUBLIC) != 0;
   }
 
   public boolean isInterface() {
@@ -193,6 +237,11 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     this.mIsInterface = isInterface;
   }
 
+  /**
+   * @return Return the File that contain this class. It can be null if the class is declared in
+   * library.
+   */
+  @Nullable
   public PsiFile getDeclearingFile() {
     return this.mPsiFileRef;
   }
@@ -213,14 +262,35 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     return mIsNestedClass;
   }
 
+  /**
+   * For nested class that declared in the method only.
+   * void method() {
+   *   class exampleClass {
+   *   }
+   * }
+   * @return Return the method that declared this class. It can be null
+   */
+  @Nullable
   public PsiCFGMethod getDeclaringCFGMethod() {
     return mNestedClassParentMethod;
   }
 
+  /**
+   * For nested class that declared in the method only. Set the method that declared this class
+   * void method() {
+   *   class exampleClass {
+   *   }
+   * }
+   * @param method The method that declared this class.
+   */
   public void setDeclaringCFGMethod(PsiCFGMethod method) {
     this.mNestedClassParentMethod = method;
   }
 
+  /**
+   * For nested class that declared in the method only. Set the block graph that contains this class.
+   * @return Return the block graph that contains this graph.
+   */
   public BlockGraph getDeclaringBlock() {
     return mNestedClassParentBlock;
   }
@@ -264,7 +334,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
    * This information is not provided by the Psi
    * @param nestedClass The CFGClass of nested class
    * @param name The name of the class. Empty if it is anounymous
-   * @return
+   * @return The modified PsiCFGClass
    */
   public PsiCFGClass addNestedInnerClass(PsiCFGClass nestedClass, String name) {
     if (name == null) {
@@ -286,7 +356,20 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     return nestedClass;
   }
 
-
+  /**
+   * The purpose of this method is to assign the lambda expression a proper name.
+   * For a lambda expression declared within a class.
+   * public class A {
+   *   public void method() {
+   *     Interface () ->{};
+   *   }
+   * }
+   *
+   * Its name will be A.$lambda$NUMBER
+   *
+   * @param lambdaClass The lambda class
+   * @return The modified PsiCFGClass
+   */
   public PsiCFGClass addLambda(PsiCFGClass lambdaClass) {
     int curCount = declaredLambda.size() + 1;
     lambdaClass.qualifiedClassName = this.qualifiedClassName + "$lambda$" + curCount;
@@ -295,6 +378,10 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     return lambdaClass;
   }
 
+  /**
+   * For anonymos Class and lambda expression only.
+   * @param cfgClass The Super class or interface
+   */
   public void setDirectOverride(PsiCFGClass cfgClass) {
     this.mDirectOverriddenInterface = cfgClass;
   }
@@ -343,7 +430,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     }
   }
 
-  private void ParseModifierList() {
+  private void parseModifierList() {
     if (this.mRef != null) {
       PsiModifierList modList = this.mRef.getModifierList();
       if (modList == null) {
@@ -355,26 +442,30 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     }
   }
 
+  /**
+   * Get the qualified name of this class
+   * @return The qualified name.
+   */
+  @NotNull
   public String getQualifiedClassName() {
     return this.qualifiedClassName;
   }
 
   public void addMethod(@NotNull PsiCFGMethod method) {
 
-    //this.mMethodMap.put(((PsiMethod)method.getPsiRef()).getName(), method);
-    //this.mMethodMap.put(method.getPsiRef(), method);
     this.mMethodList.add(method);
-    PsiElement methodRef = method.getPsiRef();
-    if (methodRef != null && (methodRef instanceof PsiMethod)) {
+    PsiMethod methodRef = method.getMethodRef();
+    if (methodRef != null) {
       this.mMethodMap.put((PsiMethod)methodRef, method);
-      this.mSignatureMethodMap.put(method.getSignature(), method);
     }
+    this.mSignatureMethodMap.put(method.getSignature(), method);
   }
 
   public void addField(@NotNull PsiCFGField field) {
     this.mFieldMap.put(field.getPsiFieldRef().getName(), field);
   }
 
+  @Nullable
   public PsiCFGField getField(String name) {
     if (mFieldMap.containsKey(name)) {
       return mFieldMap.get(name);
@@ -384,6 +475,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     }
   }
 
+  @Nullable
   public PsiCFGMethod getMethod(PsiMethod method) {
     if (mMethodMap.containsKey(method)) {
       return mMethodMap.get(method);
@@ -393,6 +485,7 @@ public class PsiCFGClass implements PsiAnnotationOwner {
     }
   }
 
+  @Nullable
   public PsiCFGMethod getMethod(PsiCFGPartialMethodSignature signature) {
     if (mSignatureMethodMap.containsKey(signature)) {
       return mSignatureMethodMap.get(signature);

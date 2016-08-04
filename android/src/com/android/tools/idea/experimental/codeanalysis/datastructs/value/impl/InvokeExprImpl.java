@@ -41,14 +41,6 @@ public abstract class InvokeExprImpl implements InvokeExpr {
   }
 
   @Override
-  public PsiMethod getPsiMethod() {
-    if (mTargetMethod != null) {
-      return (PsiMethod)mTargetMethod.getPsiRef();
-    }
-    return null;
-  }
-
-  @Override
   public Value[] getArgs() {
     return mArgsList.toArray(Value.EMPTY_ARRAY);
   }

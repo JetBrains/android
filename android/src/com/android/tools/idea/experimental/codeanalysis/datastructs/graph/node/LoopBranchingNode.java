@@ -16,6 +16,9 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The LoopBranchingNode itself should be a dummy node
@@ -39,9 +42,10 @@ public interface LoopBranchingNode extends GraphNode {
 
   /**
    * Return the last condition check code
-   *
+   * Return null if it is a foreach loop.
    * @return
    */
+  @Nullable
   public GraphNode getConditionCheckNode();
 
   /*Only available in for loop*/
@@ -49,10 +53,18 @@ public interface LoopBranchingNode extends GraphNode {
 
   public BlockGraph getLoopBlock();
 
+  /*Only available in foreach loop*/
+  @Nullable
+  public Param getForeachIteratorParam();
+
+  @Nullable
+  public Value getForeachIteratorValue();
+
   /*Maybe you should use enum types*/
   public int getLoopType();
 
   public static final int FOR_LOOP = 0x00;
   public static final int WHILE_LOOP = 0x01;
   public static final int DOWHILE_LOOP = 0x02;
+  public static final int FOREACH_LOOP = 0x03;
 }
