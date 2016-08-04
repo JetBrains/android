@@ -26,7 +26,6 @@ import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +39,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   private final IdeFrameFixture myIdeFrameFixture;
   private final Robot myRobot;
 
-  ProjectStructureDialogFixture(@Nonnull JDialog dialog, @NotNull IdeFrameFixture ideFrameFixture) {
+  ProjectStructureDialogFixture(@NotNull JDialog dialog, @NotNull IdeFrameFixture ideFrameFixture) {
     myDialog = dialog;
     myIdeFrameFixture = ideFrameFixture;
     myRobot = ideFrameFixture.robot();
@@ -92,13 +91,13 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     return this;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public JDialog target() {
     return myDialog;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Robot robot() {
     return myRobot;
