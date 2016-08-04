@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
@@ -40,7 +39,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,11 +47,10 @@ import org.w3c.dom.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.google.common.base.Charsets.UTF_8;
 
 public class GradleInstantRunContext implements InstantRunContext {
@@ -205,7 +202,7 @@ public class GradleInstantRunContext implements InstantRunContext {
   @NotNull
   @Override
   public List<String> getCustomBuildArguments() {
-    if (myModel.isLibrary()) {
+    if (myModel.getProjectType() != PROJECT_TYPE_APP) {
       return Collections.emptyList();
     }
 

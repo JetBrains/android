@@ -28,6 +28,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 /**
@@ -42,7 +43,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     super.setUp();
     File rootDir = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createBasicProject(rootDir);
-    myAndroidProject.setIsLibrary(true);
+    myAndroidProject.setProjectType(PROJECT_TYPE_LIBRARY);
     myCustomizer = new AndroidFacetModuleCustomizer();
   }
 
