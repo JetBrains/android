@@ -42,6 +42,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.ResolveScopeManager;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -135,6 +136,10 @@ public class CFGBuilder {
 
   /**
    * Constructor for builder of an lambda expression
+   * The reason that we do not use the constructor that
+   * accept an array of statements is that a lambda can only
+   * have an expression instead of a statement. The value of
+   * that expression will become the return value.
    *
    * @param scene      Current Scene
    * @param bg         The initialized Block Graph
@@ -163,14 +168,17 @@ public class CFGBuilder {
     }
   }
 
-
+  /**
+   * Put a flag so the builder knows it work on the lambda.
+   */
   public void setLambdaFlag() {
     this.mLambda = true;
   }
 
   /**
    * Put a string tag in Block Entry and Exit node.
-   * It will be output in the CFG's dot file.
+   * It will be output in the CFG's dot file. It does
+   * not have any effect other than that.
    * @param graph The block graph that needs to be taged
    * @param tag The tag
    */
@@ -185,10 +193,20 @@ public class CFGBuilder {
     }
   }
 
-  public void setNestedStack(Stack<GraphNode> loopStack) {
+  /**
+   * Used to handle nested loop with labeled breaks.
+   * When constructing the block graph for the inner
+   * loop, this method will pass in parent's loop stack.
+   * @param loopStack The nested loop stack
+   */
+  public void setNestedStack(@NotNull Stack<GraphNode> loopStack) {
     this.mNestedStack = loopStack;
   }
 
+  /**
+   * The same, used to handle nested loop with labeled breaks.
+   * @param loopLabelMap The loop label map.
+   */
   public void setNestedLabelMap(Map<GraphNode, PsiIdentifier> loopLabelMap) {
     this.mLabelMap = loopLabelMap;
   }
@@ -206,6 +224,9 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build the control flow graph for a single lambda expression   *
+   */
   public void buildWSingleLambdaExpr() {
     curWorkingNodeList.clear();
     curWorkingNodeList.add(mGraph.getEntryNode());
@@ -250,6 +271,10 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build the CFG for a code block. The code block should not
+   * belong to a switch statement.
+   */
   public void buildWOSwitch() {
 
     //Stage 0
@@ -277,6 +302,7 @@ public class CFGBuilder {
         curWorkingNodeList.add(this.mGraph.getUnreachableNodeEntry());
       }
 
+      //Check if the statements can be sequencially build
       if (isNonBranchingStatement(curPsiStmt)) {
         buildNonBranchingStatements(curPsiStmt);
       }
@@ -285,6 +311,7 @@ public class CFGBuilder {
         buildBranchingStatements(curPsiStmt);
       }
     }
+
     GraphNode curExit = this.mGraph.getExitNode();
     for (GraphNode node : curWorkingNodeList) {
       if (!(node.equals(curExit))) {
@@ -297,14 +324,15 @@ public class CFGBuilder {
     //  MethodGraph mg = (MethodGraph)this.mGraph;
     //  CFGUtil.outputCFGDotFile(mg);
     //}
-    if (this.mGraph instanceof MethodGraph) {
-      MethodGraph mg = (MethodGraph)this.mGraph;
-      if (mg.getPsiCFGMethod().getName().equals("exampleMtd")) {
-        CFGUtil.outputCFGDotFile(mg);
-      }
-    }
   }
 
+  /**
+   * In some cases, the code is not reachable based on the control flow.
+   * For example, the statements after the return statement.
+   * In this case, the workingNodes will be empty or only contain null.
+   * @param workingNodes The current working node
+   * @return If working node consider unreachable.
+   */
   public boolean isWorkingNodeConsiderUnreachable(ArrayList<GraphNode> workingNodes) {
     boolean retVal = true;
     for (GraphNode curNode : workingNodes) {
@@ -315,6 +343,11 @@ public class CFGBuilder {
     return retVal;
   }
 
+  /**
+   * Build the node for the statement that will not cause a jump
+   * For example, the declaration, math expressions etc.
+   * @param statement The statement that will not cause a jump.
+   */
   public void buildNonBranchingStatements(PsiStatement statement) {
 
     if (statement instanceof PsiDeclarationStatement) {
@@ -328,7 +361,6 @@ public class CFGBuilder {
     }
     else if (statement instanceof PsiEmptyStatement) {
       //EmptyStatement can be skipped.
-      //PsiCFGDebugUtil.LOG.warning("PsiEmptyStatement NOT Handled yet");
     }
     else {
       PsiCFGDebugUtil.LOG.warning("Not Implemented for statement " + statement.toString());
@@ -340,7 +372,8 @@ public class CFGBuilder {
    * @param param The parameter
    * @return The PsiCFG wrapper for the parameter
    */
-  private Param resolveParam(PsiParameter param) {
+  @Nullable
+  private Param resolveParam(@NotNull PsiParameter param) {
     Graph graph = this.mGraph;
     if (graph instanceof BlockGraph) {
       Param p = ((BlockGraph)graph).getParamFromPsiParameter(param);
@@ -361,26 +394,7 @@ public class CFGBuilder {
     }
     PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist, the graph is not" +
                                 " a block graph");
-
     return null;
-    //while (graph != null && (!(graph instanceof MethodGraphImpl))) {
-    //  graph = graph.getParentGraph();
-    //}
-    //if (graph == null) {
-    //  PsiCFGDebugUtil.LOG.warning("Cannot find the method that declared the parameter: "
-    //                              + param.getName());
-    //  return null;
-    //} else {
-    //  MethodGraphImpl methodGraph = (MethodGraphImpl) graph;
-    //  Param p = methodGraph.getParamFromPsiParam(param);
-    //  if (p == null) {
-    //    PsiCFGDebugUtil.LOG.warning("Parameter " + param.getName() + " does not exist in method " +
-    //                                methodGraph.getPsiCFGMethod().getName() + " in class "
-    //                                + this.containerClass.getQualifiedClassName());
-    //  }
-    //
-    //  return p;
-    //}
   }
 
   /**
@@ -388,7 +402,8 @@ public class CFGBuilder {
    * @param localVar The local
    * @return The PsiCFG wrapper for the local.
    */
-  private Local resolveLocal(PsiLocalVariable localVar) {
+  @Nullable
+  private Local resolveLocal(@NotNull PsiLocalVariable localVar) {
     Local l = this.mGraph.getLocalFromPsiLocal(localVar);
     if (l != null) {
       return l;
@@ -405,18 +420,28 @@ public class CFGBuilder {
                                                 localVar.getText(),
                                                 this.containerClass.getQualifiedClassName()
                                              ));
-
     }
 
     return l;
   }
 
+  /**
+   * Return a PsiType object by the given PsiClass
+   * @param clazz class that should put into the PsiType
+   * @return The constructed type
+   */
+  @NotNull
   private PsiType retrieveTypeByPsiClass(@NotNull PsiClass clazz) {
     PsiElementFactory factory = JavaPsiFacade.getInstance(mScene.getProject()).getElementFactory();
     PsiType retType = factory.createType(clazz);
     return retType;
   }
 
+  /**
+   * Retrieve the method instance of this block graph.
+   * @return The method instance
+   */
+  @NotNull
   private PsiCFGMethod retrieveDeclaringMethod() {
     Graph graph = this.mGraph;
     while (graph != null && (!(graph instanceof MethodGraphImpl))) {
@@ -480,7 +505,7 @@ public class CFGBuilder {
    * statement will always followed by a new BlockGraph.-- (This is not going
    * work if the user use if else statement)
    *
-   * So the current solution is, ignore any Labeled stmt that is not a loop.
+   * So the current solution is, ignore any Labeled stmt that is not in a loop.
    * The CFG may lose 1 edge, but will not cause any reachability issue.
    *
    * The getStatement() should return a loop,
@@ -514,6 +539,10 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build nodes for case "label" statement.
+   * @param statement
+   */
   public void dfsPsiSwitchLabelStatementBuilder(PsiSwitchLabelStatement statement) {
     PsiExpression caseValueExpr = statement.getCaseValue();
     if (!(this.mGraph instanceof SwitchCaseGraph)) {
@@ -568,12 +597,10 @@ public class CFGBuilder {
   }
 
   /**
-   * If the return statement does not exist. The if statement should always return 2 nodes
+   * If the return statement does not exist, the if statement should always return 2 nodes
    * In the if else branch
    *
-   * @param parents
    * @param statement
-   * @return
    */
   public void dfsPsiIfStatementBuilder(PsiIfStatement statement) {
 
@@ -590,6 +617,7 @@ public class CFGBuilder {
     assert psiThenStmt != null;
     //Build the then branch
     BlockGraphImpl thenBranchGraph = new BlockGraphImpl();
+
     setGraphEntryExitTag(thenBranchGraph, "[IF THEN]");
     thenBranchGraph.setParentGraph(this.mGraph);
     thenBranchGraph.setParentStmt(statement);
@@ -645,7 +673,6 @@ public class CFGBuilder {
     connectCurrentWorkingNode(ifNode);
     curWorkingNodeList.clear();
 
-    //TODO: what if then branch only has return.
     if (thenBranchGraph.getExitNode().getIn().length > 0) {
       curWorkingNodeList.add(thenBranchGraph.getExitNode());
     }
@@ -669,7 +696,287 @@ public class CFGBuilder {
     mLabelMap.remove(topNode);
   }
 
-  public void dfsPsiLoopStatementBuilder(PsiLoopStatement statement, PsiIdentifier label) {
+  /**
+   * Build nodes for "for" loop.
+   * @param statement The PsiForStatement
+   * @param label The identifier of the label, can be null.
+   */
+  public void dfsPsiForStatementBuilder(@NotNull PsiForStatement statement,
+                                        @Nullable PsiIdentifier label) {
+
+    PsiStatement loopBody = statement.getBody();
+    int loopType;
+    LoopBranchingNodeImpl loopNode;
+    GraphNode conditionCheckEntry;
+    ConditionCheckNode conditionCheckExit;
+    GraphNode postLoopEntry;
+    GraphNode postLoopExit;
+
+    loopType = LoopBranchingNode.FOR_LOOP;
+    //Evaluate the init code
+    PsiForStatement forStmt = statement;
+    PsiStatement initStmt = forStmt.getInitialization();
+    if (initStmt != null) {
+      buildNonBranchingStatements(initStmt);
+    }
+
+    loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
+    connectCurrentWorkingNode(loopNode);
+
+    //Push this loopNode into the stack
+    pushLoopNode(loopNode, label);
+
+    //Eval the condition check
+    PsiExpression psiConditionCheckCode = forStmt.getCondition();
+    Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
+
+    //Build the final condition check for this loop
+    conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
+
+    if (loopNode.getOut().length == 0) {
+      //The dummy loop node does not have any out edges
+      //In this case the conditionCheckEntry is the same
+      //as the conditionCheckExit
+      conditionCheckEntry = conditionCheckExit;
+    }
+    else {
+      //At this point the dummy LoopNode is connected to the entry
+      //of the condition check code.
+      conditionCheckEntry = loopNode.getOut()[0];
+    }
+
+    connectCurrentWorkingNode(conditionCheckExit);
+    //Build the loop body
+    BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
+    //Connect the condition check code true branch to loop entry
+    GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
+                                   loopBodyGraph.getEntryNode());
+
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(loopBodyGraph.getExitNode());
+
+    //Eval Post loop code
+    PsiStatement postLoopUpdateStatment = forStmt.getUpdate();
+    buildNonBranchingStatements(postLoopUpdateStatment);
+    postLoopEntry = loopBodyGraph.getExitNode().getOut()[0];
+    postLoopExit = curWorkingNodeList.get(0);
+
+    //Connect the post loop to the condition check entry
+    connectCurrentWorkingNode(conditionCheckEntry);
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
+
+    loopNode.setConditionCheckEntry(conditionCheckEntry);
+    loopNode.setConditionCheckExitNode(conditionCheckExit);
+    loopNode.setPostLoopEntryNode(postLoopEntry);
+    loopNode.setPostLoopExitNode(postLoopExit);
+    loopNode.setLoopBody(loopBodyGraph);
+    //For loop build complete
+
+    //Process the break and continue nodes
+    loopNode.connectSpecialNodes();
+    popLoopNode();
+  }
+
+  /**
+   * Build nodes for "while" loops
+   * @param statement The while statement
+   * @param label The label for this loop. In case of labeled break.
+   */
+  public void dfsPsiWhileStatementBuilder(@NotNull PsiWhileStatement statement,
+                                          @Nullable PsiIdentifier label) {
+    PsiStatement loopBody = statement.getBody();
+    int loopType;
+    LoopBranchingNodeImpl loopNode;
+    GraphNode conditionCheckEntry;
+    ConditionCheckNode conditionCheckExit;
+    GraphNode postLoopEntry;
+    GraphNode postLoopExit;
+
+    PsiWhileStatement whileStmt = (PsiWhileStatement)statement;
+    loopType = LoopBranchingNode.WHILE_LOOP;
+    loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
+    connectCurrentWorkingNode(loopNode);
+
+    //Push this loopNode into the stack
+    pushLoopNode(loopNode, label);
+
+    //Eval the condition check
+    PsiExpression psiConditionCheckCode = whileStmt.getCondition();
+    Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
+
+    //Build the final condition check for this loop
+    conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
+
+    if (loopNode.getOut().length == 0) {
+      //The dummy loop node does not have any out edges
+      //In this case the conditionCheckEntry is the same
+      //as the conditionCheckExit
+      conditionCheckEntry = conditionCheckExit;
+    }
+    else {
+      //At this point the dummy LoopNode is connected to the entry
+      //of the condition check code.
+      conditionCheckEntry = loopNode.getOut()[0];
+    }
+    connectCurrentWorkingNode(conditionCheckExit);
+    //Build the loop body
+    BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
+    //Connect the condition check code true branch to loop entry
+    GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
+                                   loopBodyGraph.getEntryNode());
+
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(loopBodyGraph.getExitNode());
+
+    //Connect the loopbody exit to the condition check entry
+    connectCurrentWorkingNode(conditionCheckEntry);
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
+
+    loopNode.setConditionCheckEntry(conditionCheckEntry);
+    loopNode.setConditionCheckExitNode(conditionCheckExit);
+    loopNode.setPostLoopEntryNode(null);
+    loopNode.setPostLoopExitNode(null);
+    loopNode.setLoopBody(loopBodyGraph);
+    //While loop build complete
+    //Process the break and continue nodes
+    loopNode.connectSpecialNodes();
+    popLoopNode();
+  }
+
+  /**
+   * Build nodes for "Do While" loops
+   * @param statement The while statement
+   * @param label The label for this loop. In case of labeled break.
+   */
+  public void dfsPsiDoWhileStatementBuilder(@NotNull PsiDoWhileStatement statement,
+                                            @Nullable PsiIdentifier label) {
+
+    PsiStatement loopBody = statement.getBody();
+    int loopType;
+    LoopBranchingNodeImpl loopNode;
+    GraphNode conditionCheckEntry;
+    ConditionCheckNode conditionCheckExit;
+    GraphNode postLoopEntry;
+    GraphNode postLoopExit;
+
+    loopType = LoopBranchingNode.DOWHILE_LOOP;
+    PsiDoWhileStatement dowhileStmt = (PsiDoWhileStatement)statement;
+    loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
+    connectCurrentWorkingNode(loopNode);
+
+    //Push this loopNode into the stack
+    pushLoopNode(loopNode, label);
+
+    //Eval the loopbody
+    BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
+    connectCurrentWorkingNode(loopBodyGraph.getEntryNode());
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(loopBodyGraph.getExitNode());
+    //Eval the condition check
+    PsiExpression psiConditionCheckCode = dowhileStmt.getCondition();
+    Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
+    conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
+
+    if (loopBodyGraph.getExitNode().getOut().length == 0) {
+      //The dummy loop node does not have any out edges
+      //In this case the conditionCheckEntry is the same
+      //as the conditionCheckExit
+      conditionCheckEntry = conditionCheckExit;
+    }
+    else {
+      //At this point the dummy LoopNode is connected to the entry
+      //of the condition check code.
+      conditionCheckEntry = loopBodyGraph.getExitNode().getOut()[0];
+    }
+
+    connectCurrentWorkingNode(conditionCheckExit);
+    //True branch connect back to the body
+    GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
+                                   loopBodyGraph.getEntryNode());
+
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
+
+    loopNode.setConditionCheckEntry(conditionCheckEntry);
+    loopNode.setConditionCheckExitNode(conditionCheckExit);
+    loopNode.setLoopBody(loopBodyGraph);
+    loopNode.setPostLoopEntryNode(null);
+    loopNode.setPostLoopExitNode(null);
+    //Do while loop build complete;
+    //Process the break and continue nodes
+    loopNode.connectSpecialNodes();
+    popLoopNode();
+
+  }
+
+  /**
+   * Build nodes for "for each" loops
+   * @param statement The foreach statement
+   * @param label The label for this loop. In case of labeled break.
+   */
+  public void dfsPsiForeachStatementBuilder(@NotNull PsiForeachStatement statement,
+                                            @Nullable PsiIdentifier label) {
+
+    PsiStatement loopBody = statement.getBody();
+    int loopType;
+    LoopBranchingNodeImpl loopNode;
+    GraphNode conditionCheckEntry;
+    ConditionCheckNode conditionCheckExit;
+    GraphNode postLoopEntry;
+    GraphNode postLoopExit;
+
+    loopType = LoopBranchingNode.FOREACH_LOOP;
+
+    //for (Type iter : val);
+    //The iter is the iterParam here
+    //The val is the iterValue here.
+    PsiParameter iterParam = statement.getIterationParameter();
+    PsiExpression iterValue = statement.getIteratedValue();
+
+    if (iterParam == null) {
+      //TODO: Log it and return
+      return;
+    }
+
+    if (iterParam == null) {
+      //TODO: Log it and return
+      return;
+    }
+
+    Value iterV = dfsExpressionBuilder(iterValue);
+    Param iterP = new ParamImpl(iterParam);
+    loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
+    connectCurrentWorkingNode(loopNode);
+
+    pushLoopNode(loopNode, label);
+
+    BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement, iterParam, iterP);
+    loopNode.setLoopBody(loopBodyGraph);
+    loopNode.setForeachIteratorParam(iterP);
+    loopNode.setForeachIteratorValue(iterV);
+
+    GraphNodeUtil.connectGraphNode(loopNode, loopBodyGraph.getEntryNode());
+    GraphNodeUtil.connectGraphNode(loopNode, loopBodyGraph.getExitNode());
+    GraphNodeUtil.connectGraphNode(loopBodyGraph.getExitNode(), loopNode);
+    loopNode.connectSpecialNodes();
+
+    curWorkingNodeList.clear();
+    curWorkingNodeList.add(loopBodyGraph.getExitNode());
+
+    popLoopNode();
+
+  }
+
+  /**
+   * Build nodes for loop statement.
+   * The For loop, while loop and do while loop
+   * @param statement The loop statement
+   * @param label The label of loop. Can be null
+   */
+  public void dfsPsiLoopStatementBuilder(@NotNull PsiLoopStatement statement,
+                                         @Nullable PsiIdentifier label) {
     PsiStatement loopBody = statement.getBody();
     int loopType;
     LoopBranchingNodeImpl loopNode;
@@ -679,182 +986,52 @@ public class CFGBuilder {
     GraphNode postLoopExit;
 
     if (statement instanceof PsiForStatement) {
-      loopType = LoopBranchingNode.FOR_LOOP;
-      //Evaluate the init code
-      PsiForStatement forStmt = (PsiForStatement)statement;
-      PsiStatement initStmt = forStmt.getInitialization();
-      if (initStmt != null) {
-        buildNonBranchingStatements(initStmt);
-      }
-
-      loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
-      connectCurrentWorkingNode(loopNode);
-
-      //Push this loopNode into the stack
-      pushLoopNode(loopNode, label);
-
-      //Eval the condition check
-      PsiExpression psiConditionCheckCode = forStmt.getCondition();
-      Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
-
-      //Build the final condition check for this loop
-      conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
-
-      if (loopNode.getOut().length == 0) {
-        //The dummy loop node does not have any out edges
-        //In this case the conditionCheckEntry is the same
-        //as the conditionCheckExit
-        conditionCheckEntry = conditionCheckExit;
-      }
-      else {
-        //At this point the dummy LoopNode is connected to the entry
-        //of the condition check code.
-        conditionCheckEntry = loopNode.getOut()[0];
-      }
-
-      connectCurrentWorkingNode(conditionCheckExit);
-      //Build the loop body
-      BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
-      //Connect the condition check code true branch to loop entry
-      GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
-                                     loopBodyGraph.getEntryNode());
-
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(loopBodyGraph.getExitNode());
-
-      //Eval Post loop code
-      PsiStatement postLoopUpdateStatment = forStmt.getUpdate();
-      buildNonBranchingStatements(postLoopUpdateStatment);
-      postLoopEntry = loopBodyGraph.getExitNode().getOut()[0];
-      postLoopExit = curWorkingNodeList.get(0);
-
-      //Connect the post loop to the condition check entry
-      connectCurrentWorkingNode(conditionCheckEntry);
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
-
-      loopNode.setConditionCheckEntry(conditionCheckEntry);
-      loopNode.setConditionCheckExitNode(conditionCheckExit);
-      loopNode.setPostLoopEntryNode(postLoopEntry);
-      loopNode.setPostLoopExitNode(postLoopExit);
-      loopNode.setLoopBody(loopBodyGraph);
-      //For loop build complete
-
-      //Process the break and continue nodes
-      loopNode.connectSpecialNodes();
-      popLoopNode();
-
+      dfsPsiForStatementBuilder((PsiForStatement) statement, label);
     }
     else if (statement instanceof PsiWhileStatement) {
-      PsiWhileStatement whileStmt = (PsiWhileStatement)statement;
-      loopType = LoopBranchingNode.WHILE_LOOP;
-      loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
-      connectCurrentWorkingNode(loopNode);
-
-      //Push this loopNode into the stack
-      pushLoopNode(loopNode, label);
-
-      //Eval the condition check
-      PsiExpression psiConditionCheckCode = whileStmt.getCondition();
-      Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
-
-      //Build the final condition check for this loop
-      conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
-
-      if (loopNode.getOut().length == 0) {
-        //The dummy loop node does not have any out edges
-        //In this case the conditionCheckEntry is the same
-        //as the conditionCheckExit
-        conditionCheckEntry = conditionCheckExit;
-      }
-      else {
-        //At this point the dummy LoopNode is connected to the entry
-        //of the condition check code.
-        conditionCheckEntry = loopNode.getOut()[0];
-      }
-      connectCurrentWorkingNode(conditionCheckExit);
-      //Build the loop body
-      BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
-      //Connect the condition check code true branch to loop entry
-      GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
-                                     loopBodyGraph.getEntryNode());
-
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(loopBodyGraph.getExitNode());
-
-      //Connect the loopbody exit to the condition check entry
-      connectCurrentWorkingNode(conditionCheckEntry);
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
-
-      loopNode.setConditionCheckEntry(conditionCheckEntry);
-      loopNode.setConditionCheckExitNode(conditionCheckExit);
-      loopNode.setPostLoopEntryNode(null);
-      loopNode.setPostLoopExitNode(null);
-      loopNode.setLoopBody(loopBodyGraph);
-      //While loop build complete
-      //Process the break and continue nodes
-      loopNode.connectSpecialNodes();
-      popLoopNode();
-
+      dfsPsiWhileStatementBuilder((PsiWhileStatement) statement, label);
     }
     else if (statement instanceof PsiDoWhileStatement) {
-      loopType = LoopBranchingNode.DOWHILE_LOOP;
-      PsiDoWhileStatement dowhileStmt = (PsiDoWhileStatement)statement;
-      loopNode = new LoopBranchingNodeImpl(this.mGraph, loopType);
-      connectCurrentWorkingNode(loopNode);
-
-      //Push this loopNode into the stack
-      pushLoopNode(loopNode, label);
-
-      //Eval the loopbody
-      BlockGraph loopBodyGraph = loopbodyBuilder(loopBody, statement);
-      connectCurrentWorkingNode(loopBodyGraph.getEntryNode());
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(loopBodyGraph.getExitNode());
-      //Eval the condition check
-      PsiExpression psiConditionCheckCode = dowhileStmt.getCondition();
-      Value finalCheckVal = dfsExpressionBuilder(psiConditionCheckCode);
-      conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
-
-      if (loopBodyGraph.getExitNode().getOut().length == 0) {
-        //The dummy loop node does not have any out edges
-        //In this case the conditionCheckEntry is the same
-        //as the conditionCheckExit
-        conditionCheckEntry = conditionCheckExit;
-      }
-      else {
-        //At this point the dummy LoopNode is connected to the entry
-        //of the condition check code.
-        conditionCheckEntry = loopBodyGraph.getExitNode().getOut()[0];
-      }
-
-      connectCurrentWorkingNode(conditionCheckExit);
-      //True branch connect back to the body
-      GraphNodeUtil.connectGraphNode(conditionCheckExit.getTrueBranch(),
-                                     loopBodyGraph.getEntryNode());
-
-      curWorkingNodeList.clear();
-      curWorkingNodeList.add(conditionCheckExit.getFalseBranch());
-
-      loopNode.setConditionCheckEntry(conditionCheckEntry);
-      loopNode.setConditionCheckExitNode(conditionCheckExit);
-      loopNode.setLoopBody(loopBodyGraph);
-      loopNode.setPostLoopEntryNode(null);
-      loopNode.setPostLoopExitNode(null);
-      //Do while loop build complete;
-      //Process the break and continue nodes
-      loopNode.connectSpecialNodes();
-      popLoopNode();
-
+      dfsPsiDoWhileStatementBuilder((PsiDoWhileStatement)statement, label);
+    }
+    else if (statement instanceof PsiForeachStatement){
+      dfsPsiForeachStatementBuilder((PsiForeachStatement) statement, label);
     }
     else {
-      //TODO: FOREACH
+      //Some loop that have never seen?
+      //ignore it but log it
+      PsiCFGDebugUtil.LOG.warning("Unknown loop:" + statement.getClass().getSimpleName());
     }
   }
 
   private BlockGraph loopbodyBuilder(PsiStatement statement, PsiStatement parentStatment) {
     BlockGraphImpl loopBody = new BlockGraphImpl();
+    loopBody.setParentGraph(this.mGraph);
+    loopBody.setParentStmt(parentStatment);
+    CFGBuilder builder;
+
+    if (statement instanceof PsiBlockStatement) {
+      PsiCodeBlock block = ((PsiBlockStatement)statement).getCodeBlock();
+      builder = new CFGBuilder(this.mScene, loopBody, this.containerClass, block);
+    }
+    else {
+      PsiStatement[] loopStmtArray = new PsiStatement[1];
+      loopStmtArray[0] = statement;
+      builder = new CFGBuilder(this.mScene, loopBody, this.containerClass, loopStmtArray);
+    }
+    builder.setNestedLabelMap(mLabelMap);
+    builder.setNestedStack(mNestedStack);
+    builder.build();
+    setGraphEntryExitTag(loopBody, "[LOOP]");
+    return loopBody;
+  }
+
+  private BlockGraph loopbodyBuilder(PsiStatement statement,
+                                     PsiStatement parentStatment,
+                                     PsiParameter psiParam,
+                                     Param param) {
+    BlockGraphImpl loopBody = new BlockGraphImpl();
+    loopBody.addParam(psiParam, param);
     loopBody.setParentGraph(this.mGraph);
     loopBody.setParentStmt(parentStatment);
     CFGBuilder builder;

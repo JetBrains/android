@@ -24,8 +24,6 @@ import com.intellij.psi.PsiMethod;
 public interface InvokeExpr extends Expr {
   public PsiCFGMethod getMethod();
 
-  public PsiMethod getPsiMethod();
-
   public Value[] getArgs();
 
   public int getArgCount();

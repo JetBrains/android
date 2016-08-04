@@ -166,54 +166,55 @@ public class Modifier {
 
   public static int ParseModifierList(@NotNull PsiModifierList modList) {
     int modifierBits = Modifier.PRIVATE;
-
-    for (PsiElement pe : modList.getChildren()) {
-      if (pe instanceof PsiKeyword) {
-        PsiKeyword curWord = (PsiKeyword)pe;
-        if (curWord.textMatches("public")) {
-          modifierBits &= ~0x3;
-          modifierBits |= Modifier.PUBLIC;
-        }
-        else if (curWord.textMatches("private")) {
-          modifierBits &= ~0x3;
-          modifierBits |= Modifier.PRIVATE;
-        }
-        else if (curWord.textMatches("final")) {
-          modifierBits |= Modifier.FINAL;
-        }
-        else if (curWord.textMatches("abstract")) {
-          modifierBits |= Modifier.ABSTRACT;
-        }
-        else if (curWord.textMatches("interface")) {
-          modifierBits |= Modifier.INTERFACE;
-        }
-        else if (curWord.textMatches("native")) {
-          modifierBits |= Modifier.NATIVE;
-        }
-        else if (curWord.textMatches("protected")) {
-          modifierBits &= ~0x3;
-          modifierBits |= Modifier.PROTECTED;
-        }
-        else if (curWord.textMatches("static")) {
-          modifierBits |= Modifier.STATIC;
-        }
-        else if (curWord.textMatches("synchronized")) {
-          modifierBits |= Modifier.SYNCHRONIZED;
-        }
-        else if (curWord.textMatches("transient")) {
-          modifierBits |= Modifier.TRANSIENT;
-        }
-        else if (curWord.textMatches("volatile")) {
-          modifierBits |= Modifier.VOLATILE;
-        }
-        else if (curWord.textMatches("strictfp")) {
-          modifierBits |= Modifier.STRICTFP;
-        }
-        else if (curWord.textMatches("annotation")) {
-          modifierBits |= Modifier.ANNOTATION;
-        }
-        else if (curWord.textMatches("enum")) {
-          modifierBits |= Modifier.ENUM;
+    if (modList != null) {
+      for (PsiElement pe : modList.getChildren()) {
+        if (pe instanceof PsiKeyword) {
+          PsiKeyword curWord = (PsiKeyword)pe;
+          if (curWord.textMatches("public")) {
+            modifierBits &= ~0x3;
+            modifierBits |= Modifier.PUBLIC;
+          }
+          else if (curWord.textMatches("private")) {
+            modifierBits &= ~0x3;
+            modifierBits |= Modifier.PRIVATE;
+          }
+          else if (curWord.textMatches("final")) {
+            modifierBits |= Modifier.FINAL;
+          }
+          else if (curWord.textMatches("abstract")) {
+            modifierBits |= Modifier.ABSTRACT;
+          }
+          else if (curWord.textMatches("interface")) {
+            modifierBits |= Modifier.INTERFACE;
+          }
+          else if (curWord.textMatches("native")) {
+            modifierBits |= Modifier.NATIVE;
+          }
+          else if (curWord.textMatches("protected")) {
+            modifierBits &= ~0x3;
+            modifierBits |= Modifier.PROTECTED;
+          }
+          else if (curWord.textMatches("static")) {
+            modifierBits |= Modifier.STATIC;
+          }
+          else if (curWord.textMatches("synchronized")) {
+            modifierBits |= Modifier.SYNCHRONIZED;
+          }
+          else if (curWord.textMatches("transient")) {
+            modifierBits |= Modifier.TRANSIENT;
+          }
+          else if (curWord.textMatches("volatile")) {
+            modifierBits |= Modifier.VOLATILE;
+          }
+          else if (curWord.textMatches("strictfp")) {
+            modifierBits |= Modifier.STRICTFP;
+          }
+          else if (curWord.textMatches("annotation")) {
+            modifierBits |= Modifier.ANNOTATION;
+          }
+          else if (curWord.textMatches("enum")) {
+            modifierBits |= Modifier.ENUM;
+          }
         }
       }
     }

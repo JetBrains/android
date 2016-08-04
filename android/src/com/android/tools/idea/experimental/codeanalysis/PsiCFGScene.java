@@ -355,8 +355,7 @@ public class PsiCFGScene {
     declearingClass.addLambda(wrapperClass);
     wrapperClass.setDirectOverride(parentInterfaceCFGClass);
 
-    PsiCFGMethod wrapperMethod = new PsiCFGMethod(lambdaExpress, wrapperClass);
-    wrapperMethod.setLambdaDirectParentMethod(overridedMethod);
+    PsiCFGMethod wrapperMethod = new PsiCFGMethod(lambdaExpress, overridedMethod, wrapperClass);
     wrapperClass.addMethod(wrapperMethod);
     mLambdaPsiCFGClassMap.put(lambdaExpress, wrapperClass);
     CFGUtil.constructMethodGraphForLambda(this, wrapperMethod);

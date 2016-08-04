@@ -290,7 +290,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     for (Pair<PsiCFGMethod, PsiElement> invocationSite : invocationSiteCollection) {
       PsiElement element = invocationSite.getSecond();
       if (element instanceof PsiMethodCallExpression) {
-        PsiElement methodRefRAW = invocationSite.getFirst().getPsiRef();
+        PsiElement methodRefRAW = invocationSite.getFirst().getMethodRef();
         if (methodRefRAW != null && (methodRefRAW instanceof PsiMethod)) {
           PsiMethod methodRef = (PsiMethod) methodRefRAW;
           taggedMethodsWithElement.put(methodRef, element);
