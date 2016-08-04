@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.util.Ref;
@@ -23,6 +22,7 @@ import com.intellij.ui.components.labels.ActionLink;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

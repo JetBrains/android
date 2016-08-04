@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AnimatedIcon;
 import org.fest.swing.cell.JListCellReader;
@@ -24,6 +23,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 

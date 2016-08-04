@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;

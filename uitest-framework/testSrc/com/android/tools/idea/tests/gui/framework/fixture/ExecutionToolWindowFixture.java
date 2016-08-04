@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
@@ -35,6 +34,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;

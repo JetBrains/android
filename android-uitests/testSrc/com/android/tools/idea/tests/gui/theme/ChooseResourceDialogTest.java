@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyInspe
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

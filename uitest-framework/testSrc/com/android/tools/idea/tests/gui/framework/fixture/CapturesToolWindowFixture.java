@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.profiling.capture.CaptureType;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
