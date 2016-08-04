@@ -80,11 +80,7 @@ iml_module(
         "//tools:idea/lib/ecj-4.5.2[test]",
         "//tools:idea.properties-psi-api[module]",
         "//tools:idea/lib/asm4-all",
-        "//tools/adt/idea:android/lib/fest-assert-1.5.0-SNAPSHOT[test]",
-        "//tools/adt/idea:android/lib/fest-reflect-2.0-SNAPSHOT[test]",
-        "//tools/adt/idea:android/lib/fest-util-1.3.0-SNAPSHOT[test]",
         "//tools/adt/idea:android/lib/jsr305-1.3.9",
-        "//tools/adt/idea:android/lib/MultithreadedTC-1.01[test]",
         "//tools:idea.platform-main[module, test]",
         "//tools:idea.bootstrap[module]",
         "//tools:idea/lib/jcip-annotations",
@@ -300,14 +296,6 @@ iml_module(
 )
 
 java_import(
-  name = "android/lib/fest-util-1.3.0-SNAPSHOT",
-  jars = [
-      "android/lib/fest-util-1.3.0-SNAPSHOT.jar",
-    ],
-  visibility = ["//visibility:public"],
-)
-
-java_import(
   name = "android/lib/juniversalchardet-1.0.3",
   jars = [
       "android/lib/juniversalchardet-1.0.3.jar",
@@ -364,14 +352,6 @@ java_import(
 )
 
 java_import(
-  name = "android/lib/fest-reflect-2.0-SNAPSHOT",
-  jars = [
-      "android/lib/fest-reflect-2.0-SNAPSHOT.jar",
-    ],
-  visibility = ["//visibility:public"],
-)
-
-java_import(
   name = "android/lib/gluegen-rt-natives-linux-i586",
   jars = [
       "android/lib/gluegen-rt-natives-linux-i586.jar",
@@ -404,22 +384,6 @@ iml_module(
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
-)
-
-java_import(
-  name = "android/lib/fest-assert-1.5.0-SNAPSHOT",
-  jars = [
-      "android/lib/fest-assert-1.5.0-SNAPSHOT.jar",
-    ],
-  visibility = ["//visibility:public"],
-)
-
-java_import(
-  name = "android/lib/MultithreadedTC-1.01",
-  jars = [
-      "android/lib/MultithreadedTC-1.01.jar",
-    ],
-  visibility = ["//visibility:public"],
 )
 
 java_import(
