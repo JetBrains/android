@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Integration test that verifies that transitive dependencies are set up correctly.
@@ -101,14 +101,14 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
     assertThat(moduleDependencies(appModule, COMPILE)).contains("lib");
-    assertThat(getLibraries(appModule, COMPILE)).excludes("lib");
+    assertThat(getLibraries(appModule, COMPILE)).doesNotContain("lib");
   }
 
   public void testDependencySetUpInJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
     Module libModule = getModule("lib");
-    assertThat(getLibraries(libModule, COMPILE)).excludes("lib.lib");
+    assertThat(getLibraries(libModule, COMPILE)).doesNotContain("lib.lib");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627

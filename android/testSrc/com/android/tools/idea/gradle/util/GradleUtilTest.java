@@ -35,8 +35,8 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
