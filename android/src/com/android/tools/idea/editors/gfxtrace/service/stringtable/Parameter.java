@@ -40,6 +40,7 @@ public final class Parameter extends Node implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private Formatter myFormatter;
   private String myKey;
+  private String myType;
 
   // Constructs a default-initialized {@link Parameter}.
   public Parameter() {}
@@ -63,6 +64,15 @@ public final class Parameter extends Node implements BinaryObject {
     return this;
   }
 
+  public String getType() {
+    return myType;
+  }
+
+  public Parameter setType(String v) {
+    myType = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -73,6 +83,7 @@ public final class Parameter extends Node implements BinaryObject {
     ENTITY.setFields(new Field[]{
       new Field("Formatter", new Interface("Formatter")),
       new Field("Key", new Primitive("string", Method.String)),
+      new Field("Type", new Primitive("string", Method.String)),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -93,6 +104,7 @@ public final class Parameter extends Node implements BinaryObject {
       Parameter o = (Parameter)obj;
       e.object(o.myFormatter.unwrap());
       e.string(o.myKey);
+      e.string(o.myType);
     }
 
     @Override
@@ -100,6 +112,7 @@ public final class Parameter extends Node implements BinaryObject {
       Parameter o = (Parameter)obj;
       o.myFormatter = Formatter.wrap(d.object());
       o.myKey = d.string();
+      o.myType = d.string();
     }
     //<<<End:Java.KlassBody:2>>>
   }
