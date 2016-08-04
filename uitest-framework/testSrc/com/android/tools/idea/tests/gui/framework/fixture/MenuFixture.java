@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -24,6 +23,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

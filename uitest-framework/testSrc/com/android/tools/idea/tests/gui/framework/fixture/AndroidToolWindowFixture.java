@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.impl.TabLabel;
@@ -27,6 +26,7 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

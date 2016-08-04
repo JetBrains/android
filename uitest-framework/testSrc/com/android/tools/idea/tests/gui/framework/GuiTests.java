@@ -49,6 +49,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;

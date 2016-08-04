@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Point;

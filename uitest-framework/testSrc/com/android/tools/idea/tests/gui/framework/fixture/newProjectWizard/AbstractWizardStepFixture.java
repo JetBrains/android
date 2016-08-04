@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.ui.ConflictsDialog;
@@ -25,6 +24,7 @@ import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;

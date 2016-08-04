@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 

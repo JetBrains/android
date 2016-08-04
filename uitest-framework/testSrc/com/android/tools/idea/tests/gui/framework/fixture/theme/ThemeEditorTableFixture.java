@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.annotation.RunsInCurrentThread;
@@ -27,6 +26,7 @@ import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

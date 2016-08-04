@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkState;

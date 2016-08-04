@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -26,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

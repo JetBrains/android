@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +25,7 @@ import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -26,6 +25,7 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

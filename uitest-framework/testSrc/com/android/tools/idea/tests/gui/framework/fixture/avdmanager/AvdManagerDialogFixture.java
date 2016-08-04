@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.ui.HyperlinkLabel;
@@ -30,6 +29,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

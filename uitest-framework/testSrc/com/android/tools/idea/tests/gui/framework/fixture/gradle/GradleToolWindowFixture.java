@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
@@ -26,6 +25,7 @@ import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;

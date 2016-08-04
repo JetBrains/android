@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -33,6 +32,7 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
