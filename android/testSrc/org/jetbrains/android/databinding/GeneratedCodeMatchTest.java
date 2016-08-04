@@ -71,11 +71,11 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
   }
 
-  public void ignore_testGeneratedCodeMatch() throws Exception {
+  public void testGeneratedCodeMatch() throws Exception {
     File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
     createGradlePropertiesFile(projectFolder);
     loadProject("projects/projectWithDataBinding");
-    compile();
+    assertBuildsCleanly(getProject(), true);
 
     GradleSyncState syncState = GradleSyncState.getInstance(myFixture.getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
@@ -124,12 +124,6 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     File dataBindingRoot = new File(getTestDataPath(), "/../../../../data-binding");
     File out = new File(projectFolder, SdkConstants.FN_GRADLE_PROPERTIES);
     FileUtils.writeStringToFile(out, "dataBindingRoot=" + dataBindingRoot.getCanonicalPath());
-  }
-
-  private void compile() throws Exception {
-    String javaHome = System.getenv().get("JAVA_HOME");
-    assertTrue("this test requires java 8", StringUtil.isNotEmpty(javaHome));
-    assertBuildsCleanly(getProject(), true, "-Dorg.gradle.java.home=" + javaHome);
   }
 
   @NotNull
