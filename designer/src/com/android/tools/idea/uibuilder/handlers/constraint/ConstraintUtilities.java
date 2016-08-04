@@ -373,6 +373,12 @@ public class ConstraintUtilities {
     return (versionGreaterThan(v, 1, 0, 0, 0, 4));
   }
 
+  private static boolean useGuidelineFloat(NlModel model) {
+    String constraint_artifact = SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
+    GradleVersion v = model.getModuleDependencyVersion(constraint_artifact);
+    return (versionGreaterThan(v, 1, 0, 0, 0, 5));
+  }
+
   /**
    * Update the attributes given a new anchor
    *
@@ -558,10 +564,11 @@ public class ConstraintUtilities {
   /**
    * Update the component with the values from a Guideline widget
    *
+   * @param model     the component NlModel
    * @param component the component we work on
    * @param guideline the widget we use as a model
    */
-  static void commitGuideline(@NotNull AttributesTransaction component, @NotNull Guideline guideline) {
+  static void commitGuideline(NlModel model, @NotNull AttributesTransaction component, @NotNull Guideline guideline) {
     int behaviour = guideline.getRelativeBehaviour();
     WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
     component.setAttribute(SdkConstants.SHERPA_URI,
@@ -570,17 +577,27 @@ public class ConstraintUtilities {
                            SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     component.setAttribute(SdkConstants.SHERPA_URI,
                            SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
+    component.setAttribute(SdkConstants.SHERPA_URI,
+                           SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT, null);
     String previousValue = companion.getWidgetProperties().getGuidelineAttribute();
     if (previousValue != null && !previousValue.startsWith("@")) {
       previousValue = null;
     }
     String value = previousValue;
     if (behaviour == Guideline.RELATIVE_PERCENT) {
+      boolean useFloat = useGuidelineFloat(model);
       if (value == null) {
-        value = String.valueOf(guideline.getRelativePercent());
+        float percent = guideline.getRelativePercent();
+        if (useFloat) {
+          value = String.valueOf(percent);
+        } else {
+          value = String.valueOf((int) (percent * 100));
+        }
       }
+      String percentAttribute = useFloat ? SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+                                         : SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT;
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
+                             percentAttribute,
                              value);
     }
     else if (behaviour == Guideline.RELATIVE_BEGIN) {
@@ -1160,13 +1177,33 @@ public class ConstraintUtilities {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String relativeBegin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String relativeEnd = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
-    String relativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+    boolean useFloat = useGuidelineFloat(component.getModel());
+    String percentAttribute = useFloat ? SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+                                       : SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT;
+
+    String relativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, percentAttribute);
+    String oldRelativePercent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_DEPRECATED_GUIDE_PERCENT);
     WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
-    if (relativePercent != null && relativePercent.length() > 0) {
+    if (useFloat && oldRelativePercent != null) {
+      // we need to upgrade
       companion.getWidgetProperties().setGuidelineAttribute(relativePercent);
-      int value = 0;
+      float value = 0;
       try {
-        value = Integer.parseInt(relativePercent);
+          value = Integer.parseInt(oldRelativePercent) / 100f;
+      }
+      catch (NumberFormatException e) {
+        // ignore
+      }
+      guideline.setGuidePercent(value);
+    } else if (relativePercent != null && relativePercent.length() > 0) {
+      companion.getWidgetProperties().setGuidelineAttribute(relativePercent);
+      float value = 0;
+      try {
+        if (useFloat) {
+          value = Float.parseFloat(relativePercent);
+        } else {
+          value = Integer.parseInt(relativePercent) / 100f;
+        }
       }
       catch (NumberFormatException e) {
         // ignore
@@ -1300,7 +1337,7 @@ public class ConstraintUtilities {
     setHorizontalBias(attributes, widget);
     setVerticalBias(attributes, widget);
     if (widget instanceof Guideline) {
-      commitGuideline(attributes, (Guideline)widget);
+      commitGuideline(component.getModel(), attributes, (Guideline)widget);
     }
     return attributes;
   }
