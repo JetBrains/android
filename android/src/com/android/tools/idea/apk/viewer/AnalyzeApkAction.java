@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.tools.idea.apk.AndroidApkFileType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -39,7 +35,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AnalyzeApkAction extends DumbAwareAction {
   private static final java.lang.String LAST_APK_PATH = "AnalyzeApkAction.lastApkPath";
@@ -96,7 +93,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
         continue;
       }
 
-      if (model.getAndroidProject().isLibrary()) {
+      if (model.getProjectType() != PROJECT_TYPE_APP) {
         continue;
       }
 

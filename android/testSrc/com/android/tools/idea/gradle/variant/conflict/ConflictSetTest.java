@@ -33,6 +33,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 /**
@@ -74,7 +75,7 @@ public class ConflictSetTest extends IdeaTestCase {
     File moduleFilePath = new File(myLibModule.getModuleFilePath());
 
     AndroidProjectStub project = new AndroidProjectStub("lib");
-    project.setIsLibrary(true);
+    project.setProjectType(PROJECT_TYPE_LIBRARY);
     VariantStub variant = project.addVariant("debug");
 
     myLib = new AndroidGradleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());

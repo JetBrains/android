@@ -34,6 +34,8 @@ import javax.swing.*;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
 
@@ -61,7 +63,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   public boolean isLibrary() {
-    return myGradleModel.isLibrary();
+    return myGradleModel.getProjectType() != PROJECT_TYPE_APP;
   }
 
   @Nullable
@@ -141,7 +143,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Override
   public Icon getIcon() {
-    return myGradleModel.getAndroidProject().isLibrary() ?  AndroidIcons.LibraryModule : AndroidIcons.AppModule;
+    return myGradleModel.getProjectType() == PROJECT_TYPE_APP ?  AndroidIcons.AppModule : AndroidIcons.LibraryModule;
   }
 
   @Override

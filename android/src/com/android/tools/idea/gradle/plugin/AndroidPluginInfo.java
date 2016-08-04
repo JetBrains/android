@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
@@ -71,7 +72,8 @@ public class AndroidPluginInfo {
     if (!searchInBuildFilesOnly) {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
-        if (gradleModel != null && !gradleModel.isLibrary()) {
+        // TODO: what if a project has an app and an iapk?
+        if (gradleModel != null && gradleModel.getProjectType() == PROJECT_TYPE_APP) {
           // This is the 'app' module in the project.
           appModule = module;
           appGradleModel = gradleModel;
