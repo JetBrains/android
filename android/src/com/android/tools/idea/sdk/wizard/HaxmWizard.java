@@ -39,16 +39,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Wizard that downloads (if necessary), configures, and installs HAXM.
  */
 public class HaxmWizard extends DynamicWizard {
+  HaxmPath myHaxmPath;
 
   public HaxmWizard() {
     super(null, null, "HAXM");
-    HaxmPath path = new HaxmPath(myHost);
-    addPath(path);
+    myHaxmPath = new HaxmPath(myHost);
+    addPath(myHaxmPath);
   }
 
   @Override
   public void performFinishingActions() {
     // Nothing. Handled by SetupProgressStep.
+  }
+
+  @Override
+  public void doCancelAction() {
+    if (myHaxmPath.canPerformFinishingActions()) {
+      super.doFinishAction();
+      return;
+    }
+    super.doCancelAction();
   }
 
   @NotNull
@@ -64,7 +74,7 @@ public class HaxmWizard extends DynamicWizard {
 
   private static class SetupProgressStep extends ProgressStep {
     private Haxm myHaxm;
-    private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
+    private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     private DynamicWizardHost myHost;
 
     public SetupProgressStep(Disposable parentDisposable, Haxm haxm, DynamicWizardHost host) {
@@ -78,22 +88,21 @@ public class HaxmWizard extends DynamicWizard {
       return false;
     }
 
+    public boolean isSuccessfullyCompleted() { return myIsSuccessfullyCompleted.get(); }
+
     @Override
     protected void execute() {
-      myIsBusy.set(true);
       myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
         @Override
         public void run() {
           try {
             setupHaxm();
+            myIsSuccessfullyCompleted.set(true);
           }
           catch (Exception e) {
             Logger.getInstance(getClass()).error(e);
             showConsole();
             print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-          }
-          finally {
-            myIsBusy.set(false);
           }
         }
       });
@@ -136,6 +145,7 @@ public class HaxmWizard extends DynamicWizard {
 
   private class HaxmPath extends DynamicWizardPath {
     DynamicWizardHost myHost;
+    SetupProgressStep mySetupProgressStep;
 
     public HaxmPath(DynamicWizardHost host) {
       myHost = host;
@@ -151,9 +161,9 @@ public class HaxmWizard extends DynamicWizard {
         addStep(step);
       }
       addStep(new LicenseAgreementStep(getWizard().getDisposable()));
-      ProgressStep progressStep = new SetupProgressStep(getWizard().getDisposable(), haxm, myHost);
-      addStep(progressStep);
-      haxm.init(progressStep);
+      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), haxm, myHost);
+      addStep(mySetupProgressStep);
+      haxm.init(mySetupProgressStep);
     }
 
     @NotNull
@@ -163,8 +173,11 @@ public class HaxmWizard extends DynamicWizard {
     }
 
     @Override
+    public boolean canPerformFinishingActions() { return mySetupProgressStep.isSuccessfullyCompleted(); }
+
+    @Override
     public boolean performFinishingActions() {
-      return false;
+      return true;
     }
   }
 }
