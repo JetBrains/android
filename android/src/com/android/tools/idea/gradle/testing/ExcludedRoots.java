@@ -27,14 +27,12 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.util.containers.HashSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
@@ -54,13 +52,29 @@ class ExcludedRoots {
   private final boolean myAndroidTest;
 
   @NotNull private final Set<File> myExcludedRoots = new HashSet<>();
+  @NotNull private final Set<String> myIncludedRootNames = new HashSet<>();
 
-  ExcludedRoots(@NotNull Module module, @NotNull ExcludedModules excludedModules, boolean isAndroidTest) {
+  ExcludedRoots(@NotNull Module module,
+                @NotNull ExcludedModules excludedModules,
+                @NotNull DependencySet dependenciesToExclude,
+                @NotNull DependencySet dependenciesToInclude,
+                boolean isAndroidTest) {
     myModule = module;
     myExcludedModules = excludedModules;
     myAndroidTest = isAndroidTest;
     addFolderPathsFromExcludedModules();
     addRemainingModelsIfNecessary();
+
+    for (LibraryDependency libraryDependency : dependenciesToInclude.onLibraries()) {
+      Collection<String> binaryPaths = libraryDependency.getPaths(BINARY);
+      for (String binaryPath : binaryPaths) {
+        File path = new File(binaryPath);
+        myIncludedRootNames.add(path.getName());
+      }
+    }
+
+    addLibraryPaths(dependenciesToExclude);
+    removeLibraryPaths(dependenciesToInclude);
   }
 
   private void addFolderPathsFromExcludedModules() {
@@ -141,7 +155,7 @@ class ExcludedRoots {
     }
   }
 
-  void addLibraryPaths(@NotNull DependencySet dependencies) {
+  private void addLibraryPaths(@NotNull DependencySet dependencies) {
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       for (String path : dependency.getPaths(BINARY)) {
         myExcludedRoots.add(new File(path));
@@ -183,15 +197,27 @@ class ExcludedRoots {
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {
-          myExcludedRoots.add(file);
+          if (!isAlreadyIncluded(file)) {
+            myExcludedRoots.add(file);
+          }
         }
       }
     }
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
       if (isEmpty(getProject(library))) {
-        myExcludedRoots.add(library.getJarFile());
+        File jarFile = library.getJarFile();
+        if (!isAlreadyIncluded(jarFile)) {
+          myExcludedRoots.add(jarFile);
+        }
       }
     }
+  }
+
+  private boolean isAlreadyIncluded(@NotNull File file) {
+    // Do not exclude any library that was already marked as "included"
+    // See:
+    // https://code.google.com/p/android/issues/detail?id=219089
+    return myIncludedRootNames.contains(file.getName());
   }
 
   @Nullable

@@ -21,7 +21,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
@@ -136,7 +136,7 @@ public final class TestArtifactSearchScopes implements Disposable {
     Set<File> roots = Collections.emptySet();
     AndroidGradleModel androidModel = getAndroidModel();
     if (androidModel != null) {
-      roots = Sets.newHashSet();
+      roots = new HashSet<>();
       // TODO consider generated source
       for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
         roots.addAll(getAllSourceFolders(sourceProvider));
@@ -211,9 +211,7 @@ public final class TestArtifactSearchScopes implements Disposable {
     excludedModules.remove(dependenciesToInclude);
     excludedModules.remove(mainDependencies);
 
-    ExcludedRoots excludedRoots = new ExcludedRoots(myModule, excludedModules, isAndroidTest);
-    excludedRoots.addLibraryPaths(dependenciesToExclude);
-    excludedRoots.removeLibraryPaths(dependenciesToInclude);
+    ExcludedRoots excludedRoots = new ExcludedRoots(myModule, excludedModules, dependenciesToExclude, dependenciesToInclude, isAndroidTest);
     excludedRoots.removeLibraryPaths(mainDependencies);
 
     return new FileRootSearchScope(myModule.getProject(), excludedRoots.get());
