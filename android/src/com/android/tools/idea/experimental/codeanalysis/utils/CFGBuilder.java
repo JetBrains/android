@@ -1004,6 +1004,12 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build CFG for loop body for for/while/dowhile loops
+   * @param statement The loop body
+   * @param parentStatment The loop statement
+   * @return The constructed CFG
+   */
   private BlockGraph loopbodyBuilder(PsiStatement statement, PsiStatement parentStatment) {
     BlockGraphImpl loopBody = new BlockGraphImpl();
     loopBody.setParentGraph(this.mGraph);
@@ -1026,6 +1032,14 @@ public class CFGBuilder {
     return loopBody;
   }
 
+  /**
+   * Build CFG for loop body foreach loops
+   * @param statement The loop body
+   * @param parentStatment The loop statements
+   * @param psiParam The parameter in foreach loop
+   * @param param The wrapped param in the foreach loop
+   * @return The constructed CFG
+   */
   private BlockGraph loopbodyBuilder(PsiStatement statement,
                                      PsiStatement parentStatment,
                                      PsiParameter psiParam,
@@ -1052,7 +1066,13 @@ public class CFGBuilder {
     return loopBody;
   }
 
-
+  /**
+   * Build the nodes for the block statement.
+   * {
+   *
+   * }
+   * @param statement The block statement
+   */
   public void dfsPsiBlockStatementBuilder(PsiBlockStatement statement) {
     PsiCodeBlock codeBlock = statement.getCodeBlock();
     BlockGraphImpl blockStatementGraph = new BlockGraphImpl();
@@ -1070,6 +1090,13 @@ public class CFGBuilder {
     curWorkingNodeList.add(blockStatementGraph.getExitNode());
   }
 
+  /**
+   * Build the nodes for the synchronized block statement.
+   * synchronized {
+   *
+   * }
+   * @param statement The synchronized statement
+   */
   public void dfsPsiSynchronizedStatementBuilder(PsiSynchronizedStatement statement) {
     PsiExpression syncExpr = statement.getLockExpression();
     Value syncExprVal = dfsExpressionBuilder(syncExpr);
@@ -1091,7 +1118,13 @@ public class CFGBuilder {
     curWorkingNodeList.add(blockStatementGraph.getExitNode());
   }
 
-
+  /**
+   * Build the nodes for the switch statement
+   * switch (value) {
+   *
+   * }
+   * @param statement The switch statement
+   */
   public void dfsPsiSwitchStatementBuilder(PsiSwitchStatement statement) {
     PsiExpression checkedPsiExpr = statement.getExpression();
     PsiCodeBlock switchCodeBlock = statement.getBody();
@@ -1123,6 +1156,11 @@ public class CFGBuilder {
     this.mNestedStack.pop();
   }
 
+  /**
+   * Build the nodes for the statements that will cause a jump
+   * e.g. if/break/continue
+   * @param statement
+   */
   public void buildBranchingStatements(PsiStatement statement) {
     ArrayList<GraphNodeImpl> retList = Lists.newArrayList();
     if (statement instanceof PsiIfStatement) {
@@ -1207,7 +1245,14 @@ public class CFGBuilder {
     return null;
   }
 
-
+  /**
+   * Build the nodes for the break and labeled break.
+   * The strategy is to find the target loop node and add this
+   * break node to the loop node. After the construction of the
+   * loop node is complete, the break node will be connected to
+   * the correct target.
+   * @param statement The break statement.
+   */
   public void dfsPsiBreakStatementBuilder(PsiBreakStatement statement) {
     //Not in a loop. quit
     if (mNestedStack.isEmpty()) {
@@ -1253,6 +1298,11 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build the nodes for the continue statement. Using similar
+   * strategy of the break statement.
+   * @param statement The continue statement.
+   */
   public void dfsPsiContinueStatementBuilder(PsiContinueStatement statement) {
     //Not in a loop. Quit
     if (mNestedStack.isEmpty()) {
@@ -1278,11 +1328,26 @@ public class CFGBuilder {
     }
   }
 
+  /**
+   * Build the nodes for expression statement.
+   * The expression statements are the statements
+   * that can be evaluated at runtime to a value.
+   * e.g. 3 + 4, a + 2, or return value of a method.
+   * @param statement The Expression statement
+   * @return The temp local or a reference to the expression.
+   */
   public Value dfsExpressionStatementBuilder(PsiExpressionStatement statement) {
     PsiExpression expression = statement.getExpression();
     return dfsExpressionBuilder(expression);
   }
 
+  /**
+   * Build the nodes for expression list, basically is a sequence of expressions
+   * seperated by comma
+   * a ,b
+   * @param statement The expression list,
+   * @return The temp local or a reference to the last expression
+   */
   public Value dfsExpressionListStatementBuilder(PsiExpressionListStatement statement) {
     PsiExpressionList listOfExpressions = statement.getExpressionList();
     PsiExpression[] expressionArray = listOfExpressions.getExpressions();
@@ -1293,6 +1358,10 @@ public class CFGBuilder {
     return v;
   }
 
+  /**
+   * Build the node for the return statement.
+   * @param statement The return statement.
+   */
   public void dfsPsiReturnStmtBuilder(PsiReturnStatement statement) {
     PsiExpression returnValueExpr = statement.getReturnValue();
     //eval the return value
@@ -1327,11 +1396,9 @@ public class CFGBuilder {
   }
 
   /**
-   * A temporal work around for the Reference Expression
-   *
-   * @param resultArray
-   * @param expression
-   * @return
+   * Build the nodes for assignment expression
+   * @param expression the assignment expression
+   * @return The local or the reference to the assignment expression
    */
   public Value dfsAssignmentExpressionBuilder(PsiAssignmentExpression expression) {
     PsiExpression LExpr = expression.getLExpression();
@@ -1346,7 +1413,11 @@ public class CFGBuilder {
     return LhsValue;
   }
 
-
+  /**
+   * Create a temp local for an expression
+   * @param expr The reference to the expression
+   * @return The temp local.
+   */
   public SynthesizedLocalImpl createSynthesizeTemporalVariable(Value expr) {
     SynthesizedLocalImpl synthesizedLocal =
       new SynthesizedLocalImpl(expr.getType(), expr.getPsiRef().getText(), null);
@@ -1774,7 +1845,7 @@ public class CFGBuilder {
    * short-circuit logical operators. It is handled in this
    * Method
    *
-   * @param polyadicExpress
+   * @param polyadicExpress The polyadic expression
    * @return
    */
   public Value dfsPolyadicExpressionBuilder(PsiPolyadicExpression expression) {
@@ -1872,8 +1943,8 @@ public class CFGBuilder {
    * The AND and OR is short-circuit. They are processed in
    * this method.
    *
-   * @param binExpression
-   * @return
+   * @param binExpression The expression
+   * @return The local or the reference to the expression
    */
   public Value dfsBinaryExpressionBuilder(PsiBinaryExpression binExpression) {
     PsiExpression opL = binExpression.getLOperand();
@@ -2162,17 +2233,6 @@ public class CFGBuilder {
     SynthesizedLocal synLocal = createSynthesizeTemporalVariable(newExprImpl);
     return synLocal;
 
-    //PsiParameterList params = expression.getParameterList();
-    //PsiCFGDebugUtil.LOG.info("Lambda Type: " + expression.getFunctionalInterfaceType().getCanonicalText());
-    //
-    //if (params == null) {
-    //  PsiCFGDebugUtil.LOG.info("Params are null");
-    //} else {
-    //  PsiParameter[] paramArray = params.getParameters();
-    //  for (PsiParameter p : paramArray) {
-    //    PsiCFGDebugUtil.debugOutputPsiElement(p);
-    //  }
-    //}
   }
 
   public Value dfsPsiNewExpressionBuilder(PsiNewExpression expression) {
@@ -2207,8 +2267,6 @@ public class CFGBuilder {
                                                             retrieveDeclaringMethod(),
                                                             this.mGraph);
 
-      //PsiCFGDebugUtil.debugOutputPsiElement(anonymousClass);
-      //return new DummyRef(expression.getType(), expression);
     }
     else {
       PsiJavaCodeReferenceElement classReference = expression.getClassReference();
