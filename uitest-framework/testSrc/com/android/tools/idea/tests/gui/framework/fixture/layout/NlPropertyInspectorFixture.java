@@ -20,23 +20,16 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
-import com.google.common.truth.Truth;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.popup.list.ListPopupModel;
-import org.fest.assertions.Assertions;
 import org.fest.swing.core.*;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Fixture wrapping the component inspector
