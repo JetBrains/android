@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="platform-api" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" />
-    <orderEntry type="library" name="fest" level="project" />
+    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="gradle" scope="TEST" />
