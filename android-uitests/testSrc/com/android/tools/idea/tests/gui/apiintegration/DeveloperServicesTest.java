@@ -32,7 +32,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class DeveloperServicesTest {
