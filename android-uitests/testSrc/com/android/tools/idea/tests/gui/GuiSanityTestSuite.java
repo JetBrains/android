@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.gradle.BuildTypesTest;
 import com.android.tools.idea.tests.gui.gradle.FlavorsTest;
 import com.android.tools.idea.tests.gui.gradle.GradleSyncTest;
 import com.android.tools.idea.tests.gui.gradle.NewModuleTest;
+import com.android.tools.idea.tests.gui.layout.LayoutInspectorTest;
 import com.android.tools.idea.tests.gui.layout.NewProjectTest;
 import com.android.tools.idea.tests.gui.layout.NlEditorTest;
 import com.android.tools.idea.tests.gui.npw.NewActivityTest;
@@ -38,6 +39,7 @@ import org.junit.runners.Suite;
   FlavorsTest.class,
   GradleSyncTest.class,
   LaunchAndroidApplicationTest.class,
+  LayoutInspectorTest.class,
   NewActivityTest.class,
   NewModuleTest.class,
   NewProjectTest.class,
