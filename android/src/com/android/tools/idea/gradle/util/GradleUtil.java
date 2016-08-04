@@ -214,6 +214,10 @@ public final class GradleUtil {
     return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
+  public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
+    return modelVersion.compareIgnoringQualifiers("2.3.0") >= 0;
+  }
+
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     String existingJvmArgs = settings.getGradleVmOptions();
