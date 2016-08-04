@@ -22,13 +22,11 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.androidTarget.MockAddonTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.util.ThreeState;
 import junit.framework.TestCase;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -112,9 +110,9 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     EnumSet<IDevice.HardwareFeature> requiredFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    Set<String> supportedAbis = Sets.newLinkedHashSet(Collections.singletonList(Abi.ARMEABI_V7A.toString()));
+    Set<String> supportedAbis = ImmutableSet.of(Abi.ARMEABI_V7A.toString());
 
-    List<Abi> deviceAbis = Lists.newArrayList(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
+    List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures,
                                                                            supportedAbis, createMockDevice(8, null, false, deviceAbis));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
@@ -124,9 +122,9 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     EnumSet<IDevice.HardwareFeature> requiredFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    Set<String> supportedAbis = Sets.newLinkedHashSet(Collections.singleton(Abi.X86_64.toString()));
+    Set<String> supportedAbis = ImmutableSet.of(Abi.X86_64.toString());
 
-    List<Abi> deviceAbis = Lists.newArrayList(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
+    List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures,
                                                                            supportedAbis, createMockDevice(8, null, false, deviceAbis));
     assertEquals(new LaunchCompatibility(ThreeState.NO, "Device supports armeabi, armeabi-v7a, arm64-v8a, but APK only supports x86_64"),
@@ -137,9 +135,9 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     EnumSet<IDevice.HardwareFeature> requiredFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    Set<String> supportedAbis = Sets.newLinkedHashSet(Collections.emptyList());
+    Set<String> supportedAbis = ImmutableSet.of();
 
-    List<Abi> deviceAbis = Lists.newArrayList(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
+    List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures,
                                                                            supportedAbis, createMockDevice(8, null, false, deviceAbis));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
@@ -150,7 +148,7 @@ public class LaunchCompatibilityTest extends TestCase {
   }
 
   private static AndroidDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature) {
-    return createMockDevice(api, codeName, supportsFeature, Lists.emptyList());
+    return createMockDevice(api, codeName, supportsFeature, ImmutableList.of());
   }
 
   private static AndroidDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature, List<Abi> abis) {
