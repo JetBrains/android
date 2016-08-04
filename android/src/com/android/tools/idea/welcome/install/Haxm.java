@@ -174,11 +174,6 @@ public final class Haxm extends InstallableComponent {
     return FirstRunWizardDefaults.getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize());
   }
 
-  @NotNull
-  private static IPkgDesc createExtra(@NotNull IdDisplay vendor, @NotNull String path) {
-    return PkgDesc.Builder.newExtra(vendor, path, "", null, new Revision(Revision.MISSING_MAJOR_REV)).create();
-  }
-
   @Override
   public void init(@NotNull ProgressStep progressStep) {
     myProgressStep = progressStep;
@@ -188,7 +183,7 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   @Override
   public Collection<DynamicWizardStep> createSteps() {
-    return Collections.<DynamicWizardStep>singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
+    return Collections.singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
   }
 
   @Override
