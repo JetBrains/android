@@ -428,7 +428,7 @@ public class ConstraintUtilities {
       }
 
       NlModel model = targetComponent.getModel();
-      if (supportsStartEnd(model)) { // If we need to set RTL attributes
+      if (supportsStartEnd(anchor, model)) { // If we need to set RTL attributes
         if (marginRtl == null) {
           if (margin != null) {
             marginRtl = margin;
@@ -1389,7 +1389,11 @@ public class ConstraintUtilities {
     return AndroidModuleInfo.get(model.getFacet()).getTargetSdkVersion();
   }
 
-  static boolean supportsStartEnd(@NotNull NlModel model) {
+  static boolean supportsStartEnd(ConstraintAnchor anchor, @NotNull NlModel model) {
+    if (anchor.getType() != ConstraintAnchor.Type.LEFT
+      && anchor.getType() != ConstraintAnchor.Type.RIGHT) {
+      return false;
+    }
     AndroidVersion compileSdkVersion = getCompileSdkVersion(model);
     return (compileSdkVersion == null ||
             compileSdkVersion.isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START)
