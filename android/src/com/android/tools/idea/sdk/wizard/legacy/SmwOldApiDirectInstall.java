@@ -152,10 +152,15 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       }
       else {
         requestedPackages = InstallerUtil.computeRequiredPackages(requestedPackages, packages, repoProgress);
-        InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
-        BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
-        logger.setIndicator(indicator);
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+        if (requestedPackages == null) {
+          notFound = true;
+        }
+        else {
+          InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
+          BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+          logger.setIndicator(indicator);
+          ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+        }
       }
       if (notFound) {
         myErrorLabel.setText("Problem: Some required packages could not be installed. Check internet connection.");
