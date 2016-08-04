@@ -82,9 +82,9 @@ iml_module(
         "//tools:idea/lib/asm4-all",
         "//tools/adt/idea:android/lib/fest-assert-1.5.0-SNAPSHOT[test]",
         "//tools/adt/idea:android/lib/fest-reflect-2.0-SNAPSHOT[test]",
-        "//tools/adt/idea:android/lib/fest-swing-1.4-SNAPSHOT[test]",
         "//tools/adt/idea:android/lib/fest-util-1.3.0-SNAPSHOT[test]",
         "//tools/adt/idea:android/lib/jsr305-1.3.9",
+        "//tools/adt/idea:android/lib/MultithreadedTC-1.01[test]",
         "//tools:idea.platform-main[module, test]",
         "//tools:idea.bootstrap[module]",
         "//tools:idea/lib/jcip-annotations",
@@ -340,14 +340,6 @@ java_import(
 )
 
 java_import(
-  name = "android/lib/fest-swing-1.4-SNAPSHOT",
-  jars = [
-      "android/lib/fest-swing-1.4-SNAPSHOT.jar",
-    ],
-  visibility = ["//visibility:public"],
-)
-
-java_import(
   name = "android/lib/jogl-all-natives-windows-amd64",
   jars = [
       "android/lib/jogl-all-natives-windows-amd64.jar",
@@ -418,6 +410,14 @@ java_import(
   name = "android/lib/fest-assert-1.5.0-SNAPSHOT",
   jars = [
       "android/lib/fest-assert-1.5.0-SNAPSHOT.jar",
+    ],
+  visibility = ["//visibility:public"],
+)
+
+java_import(
+  name = "android/lib/MultithreadedTC-1.01",
+  jars = [
+      "android/lib/MultithreadedTC-1.01.jar",
     ],
   visibility = ["//visibility:public"],
 )
