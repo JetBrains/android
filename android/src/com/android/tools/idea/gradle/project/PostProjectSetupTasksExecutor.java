@@ -638,25 +638,6 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  // After a sync, the contents of an IDEA SDK does not get refreshed. This is an issue when an IDEA SDK is corrupt (e.g. missing libraries
-  // like android.jar) and then it is restored by installing the missing platform from within the IDE (using a "quick fix.") After the
-  // automatic project sync (triggered by the SDK restore) the contents of the SDK are not refreshed, and references to Android classes are
-  // not found in editors. Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors
-  // work again.
-  private static void refreshLibrariesIn(@NotNull Sdk sdk) {
-    VirtualFile[] libraries = sdk.getRootProvider().getFiles(CLASSES);
-
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(CLASSES);
-    sdkModificator.commitChanges();
-
-    sdkModificator = sdk.getSdkModificator();
-    for (VirtualFile library : libraries) {
-      sdkModificator.addRoot(library, CLASSES);
-    }
-    sdkModificator.commitChanges();
-  }
-
   private void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider modelsProvider) {
     LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
 

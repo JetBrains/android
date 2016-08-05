@@ -958,6 +958,28 @@ public final class AndroidSdkUtils {
     return bridge;
   }
 
+  /**
+   * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
+   *
+   * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
+   * The referenced {@link VirtualFile}s can be obsolete, new files may be created, or files may be deleted. The result is that
+   * references to Android classes may not be found in editors.
+   * Removing and adding the libraries effectively refreshes the contents of the IDEA SDK, and references in editors work again.
+   */
+  public static void refreshLibrariesIn(@NotNull Sdk sdk) {
+    VirtualFile[] libraries = sdk.getRootProvider().getFiles(CLASSES);
+
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    sdkModificator.removeRoots(CLASSES);
+    sdkModificator.commitChanges();
+
+    sdkModificator = sdk.getSdkModificator();
+    for (VirtualFile library : libraries) {
+      sdkModificator.addRoot(library, CLASSES);
+    }
+    sdkModificator.commitChanges();
+  }
+
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {
     private final Future<AndroidDebugBridge> myFuture;
     private boolean myCancelled; // set/read only on EDT

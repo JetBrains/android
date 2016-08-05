@@ -39,6 +39,7 @@ public class StudioSdkInstallListenerFactory extends SdkInstallListenerFactory {
   @Override
   public List<PackageOperation.StatusChangeListener> createListeners(@NotNull RepoPackage p) {
     List<PackageOperation.StatusChangeListener> result = super.createListeners(p);
+    result.add(new VfsInstallListener());
     if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
       result.add(new HaxmInstallListener());
     }
