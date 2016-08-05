@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -139,10 +140,17 @@ public final class ProxyUtil {
             value = m.invoke(object);
           } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            value = THROWABLE_CACHE.get(cause.getMessage());
-            if (value == null) {
+            // Sometimes we end up with a null cause, which shouldn't happen (the Tooling API will construct a proper
+            // InvocationTargetException for non-existent methods), but might be caused by a more serious mismatch in the model.
+            if (cause != null && cause.getMessage() != null) {
+              value = THROWABLE_CACHE.get(cause.getMessage());
+              if (value == null) {
+                value = new InvocationErrorValue(cause);
+                THROWABLE_CACHE.put(cause.getMessage(), (InvocationErrorValue)value);
+              }
+            } else {
               value = new InvocationErrorValue(cause);
-              THROWABLE_CACHE.put(cause.getMessage(), (InvocationErrorValue) value);
+              Logger.getInstance(ProxyUtil.class).error(String.format("Calling %s on %s unexpectedly threw %s", m, object, cause));
             }
           }
           values.put(m.toGenericString().intern(), reproxy(m.getGenericReturnType(), value));
