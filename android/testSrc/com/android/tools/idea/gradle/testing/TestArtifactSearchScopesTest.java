@@ -82,16 +82,16 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     Library gson = libraryTable.getLibraryByName("gson-2.4"); // used by android test
 
     FileRootSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
-    assertAcceptLibrary(unitTestExcludeScope, guava, true);
-    assertAcceptLibrary(unitTestExcludeScope, gson, true);
-    assertAcceptLibrary(unitTestExcludeScope, junit, false);
-    assertAcceptLibrary(unitTestExcludeScope, hamcrest, false);
+    assertScopeContainsLibrary(unitTestExcludeScope, guava, true);
+    assertScopeContainsLibrary(unitTestExcludeScope, gson, true);
+    assertScopeContainsLibrary(unitTestExcludeScope, junit, false);
+    assertScopeContainsLibrary(unitTestExcludeScope, hamcrest, false);
 
     FileRootSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
-    assertAcceptLibrary(androidTestExcludeScope, junit, true);
-    assertAcceptLibrary(androidTestExcludeScope, gson, false);
-    assertAcceptLibrary(androidTestExcludeScope, guava, true);
-    assertAcceptLibrary(androidTestExcludeScope, hamcrest, true);
+    assertScopeContainsLibrary(androidTestExcludeScope, junit, true);
+    assertScopeContainsLibrary(androidTestExcludeScope, gson, false);
+    assertScopeContainsLibrary(androidTestExcludeScope, guava, false);
+    assertScopeContainsLibrary(androidTestExcludeScope, hamcrest, false);
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
@@ -101,8 +101,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     Library gson = libraryTable.getLibraryByName("gson-2.4");
     // In the beginning only unit test exclude gson
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson, true);
-    assertAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
+    assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, true);
+    assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
 
     // Now add gson to unit test dependencies as well
     VirtualFile buildFile = getGradleBuildFile(scopes.getModule());
@@ -133,8 +133,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     scopes = TestArtifactSearchScopes.get(scopes.getModule());
     assertNotNull(scopes);
     gson = libraryTable.getLibraryByName("gson-2.4");
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson, false);
-    assertAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
+    assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, false);
+    assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
@@ -170,10 +170,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     return testArtifactSearchScopes;
   }
 
-  private static void assertAcceptLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean expectedAcceptValue) {
+  private static void assertScopeContainsLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean contains) {
     assertNotNull(library);
     for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
-      assertEquals(expectedAcceptValue, scope.accept(file));
+      assertEquals(contains, scope.accept(file));
     }
   }
 }
