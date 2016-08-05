@@ -115,7 +115,7 @@ public class ValueWithDisplayString {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myValue);
+    return Objects.hash(myValue, myDisplay);
   }
 
   @Override
@@ -123,7 +123,8 @@ public class ValueWithDisplayString {
     if (!(other instanceof ValueWithDisplayString)) {
       return false;
     }
-    return Objects.equals(myValue, ((ValueWithDisplayString)other).myValue);
+    return Objects.equals(myValue, ((ValueWithDisplayString)other).myValue) &&
+           Objects.equals(myDisplay, ((ValueWithDisplayString)other).myDisplay);
   }
 }
 
