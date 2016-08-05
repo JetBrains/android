@@ -107,7 +107,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @return Dp values
    */
   public int pxToDp(@AndroidCoordinate int px) {
-    return (int)(px / myDpiFactor);
+    return (int)(0.5f + px / myDpiFactor);
   }
 
   /**
@@ -117,7 +117,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @return android pixels
    */
   public int dpToPx(@AndroidDpCoordinate int dp) {
-    return (int)(dp * myDpiFactor);
+    return (int)(0.5f + dp * myDpiFactor);
   }
 
   /**
