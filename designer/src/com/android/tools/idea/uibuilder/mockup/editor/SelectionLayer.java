@@ -31,9 +31,9 @@ import java.awt.geom.Rectangle2D;
  */
 public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
-  private static final int KNOB_SIZE = 8;
-  private static final int KNOB_COUNT = 8;
-  private static final JBColor HOVERED_KNOB_COLOR = new JBColor(new Color(0x1955A8), new Color(0x4D83CD));
+  private static final int KNOB_SIZE = 15;
+  private static final int KNOB_COUNT = 9;
+  private static final JBColor HOVERED_KNOB_COLOR = new JBColor(new Color(0x551955A8, true), new Color(0x554D83CD, true));
   private static final JBColor KNOB_COLOR = JBColor.BLACK;
   private static final Color KNOB_OUTLINE = JBColor.WHITE;
   private static final BasicStroke DASH = new BasicStroke(1.0f,
@@ -51,7 +51,21 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private final static int NE = 3;
   private final static int SE = 5;
   private final static int SW = 7;
-  private final static int MOVE = KNOB_COUNT;
+  private final static int MOVE = KNOB_COUNT - 1;
+
+  private final static Cursor[] CURSORS = new Cursor[KNOB_COUNT];
+
+  static {
+    CURSORS[N] = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+    CURSORS[E] = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+    CURSORS[S] = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
+    CURSORS[W] = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+    CURSORS[NW] = Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+    CURSORS[NE] = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+    CURSORS[SE] = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+    CURSORS[SW] = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+    CURSORS[MOVE] = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+  }
 
   /**
    * We specify which of x,y,width or/and height of the selection each knob can modify.
@@ -61,7 +75,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
    * 0 -> the property wont change
    * -1 -> the property will increase by the opposite of the distance of the cursor
    */
-  private static final short[][] myKnobsMoves = new short[KNOB_COUNT + 1][];
+  private static final short[][] myKnobsMoves = new short[KNOB_COUNT][];
   private static final int X_MOVE = 0;
   private static final int Y_MOVE = 1;
   private static final int W_MOVE = 2;
@@ -94,7 +108,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   public SelectionLayer(JPanel parent) {
     myParent = parent;
     for (int i = 0; i < myKnobs.length; i++) {
-      myKnobs[i] = new Rectangle(KNOB_SIZE, KNOB_SIZE);
+      myKnobs[i] = new Rectangle();
     }
   }
 
@@ -112,15 +126,9 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     final Stroke oldStroke = g.getStroke();
     g.setStroke(DASH);
     g.draw(mySelection);
-    g.setStroke(oldStroke);
-    for (int i = 0; i < myKnobs.length; i++) {
-      Rectangle knob = myKnobs[i];
-      g.setColor(KNOB_COLOR);
-      g.fill(knob);
-      g.setColor(KNOB_OUTLINE);
-      g.draw(knob);
-    }
-    if (myHoveredKnob >= 0) {
+
+    if (myHoveredKnob >= 0 && myHoveredKnob != MOVE) {
+      g.setStroke(oldStroke);
       g.setColor(HOVERED_KNOB_COLOR);
       g.fill(myKnobs[myHoveredKnob]);
       g.setColor(KNOB_OUTLINE);
@@ -132,20 +140,36 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
    * Set the knobs position regarding the values of the current selection
    */
   private void updateKnobPosition() {
-    final int x1 = mySelection.x - KNOB_SIZE / 2;
-    final int y1 = mySelection.y - KNOB_SIZE / 2;
-    final int x2 = x1 + mySelection.width;
-    final int y2 = y1 + mySelection.height;
 
-    myKnobs[NW].setLocation(x1, y1);
-    myKnobs[NE].setLocation(x2, y1);
-    myKnobs[SE].setLocation(x2, y2);
-    myKnobs[SW].setLocation(x1, y2);
+    final int x1, y1, x2, y2, hSize, vSize;
+    if (mySelection.height < KNOB_SIZE * 3 || mySelection.width < KNOB_SIZE * 3) {
+      x1 = mySelection.x - KNOB_SIZE;
+      y1 = mySelection.y - KNOB_SIZE;
+      x2 = mySelection.x + mySelection.width;
+      y2 = mySelection.y + mySelection.height;
+      hSize = mySelection.width;
+      vSize = mySelection.height;
+      myKnobs[MOVE].setBounds(mySelection);
+    }
+    else {
+      x1 = mySelection.x;
+      y1 = mySelection.y;
+      x2 = x1 + mySelection.width - KNOB_SIZE;
+      y2 = y1 + mySelection.height - KNOB_SIZE;
+      hSize = mySelection.width - KNOB_SIZE * 2;
+      vSize = mySelection.height - KNOB_SIZE * 2;
+      myKnobs[MOVE].setBounds(x1 + KNOB_SIZE, y1 + KNOB_SIZE, hSize, vSize);
+    }
 
-    myKnobs[N].setLocation((x2 + x1) / 2, y1);
-    myKnobs[E].setLocation(x2, (y2 + y1) / 2);
-    myKnobs[S].setLocation((x2 + x1) / 2, y2);
-    myKnobs[W].setLocation(x1, (y2 + y1) / 2);
+    myKnobs[NW].setBounds(x1, y1, KNOB_SIZE, KNOB_SIZE);
+    myKnobs[NE].setBounds(x2, y1, KNOB_SIZE, KNOB_SIZE);
+    myKnobs[SE].setBounds(x2, y2, KNOB_SIZE, KNOB_SIZE);
+    myKnobs[SW].setBounds(x1, y2, KNOB_SIZE, KNOB_SIZE);
+
+    myKnobs[N].setBounds((x1 + KNOB_SIZE), y1, hSize, KNOB_SIZE);
+    myKnobs[E].setBounds(x2, y1 + KNOB_SIZE, KNOB_SIZE, vSize);
+    myKnobs[S].setBounds(x1 + KNOB_SIZE, y2, hSize, KNOB_SIZE);
+    myKnobs[W].setBounds(x1, y1 + KNOB_SIZE, KNOB_SIZE, vSize);
   }
 
   @Override
@@ -177,10 +201,6 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
       mySelectedKnob = SE;
       updateKnobPosition();
     }
-    else {
-      // Clicked inside current selection make it move
-      mySelectedKnob = MOVE;
-    }
   }
 
   @Override
@@ -190,10 +210,8 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseDragged(MouseEvent e) {
-
-    // Clamp the mouse coordinate inside the bounds
-    final int x = Math.min(myBounds.x + myBounds.width, Math.max(myBounds.x, e.getX()));
-    final int y = Math.min(myBounds.y + myBounds.height, Math.max(myBounds.y, e.getY()));
+    final int x = e.getX();
+    final int y = e.getY();
 
     // Compute the drag distance
     int dx = x - myClickOrigin.x;
@@ -248,17 +266,18 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
           hovered = i;
         }
       }
+    }
 
-      // Repaint only if the hovered change changed
-      if (hovered != myHoveredKnob) {
-        if (myHoveredKnob >= 0) {
-          myParent.repaint(myKnobs[myHoveredKnob]);
-        }
-        myHoveredKnob = hovered;
-        if (myHoveredKnob >= 0) {
-          myParent.repaint(myKnobs[myHoveredKnob]);
-        }
+    // Repaint only if the hovered change changed
+    if (hovered != myHoveredKnob) {
+      myHoveredKnob = hovered;
+      if (hovered >= 0) {
+        myParent.setCursor(CURSORS[hovered]);
       }
+      else {
+        myParent.setCursor(Cursor.getDefaultCursor());
+      }
+      myParent.repaint();
     }
   }
 
