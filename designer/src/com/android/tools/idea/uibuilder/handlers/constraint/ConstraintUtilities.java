@@ -759,8 +759,8 @@ public class ConstraintUtilities {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
-        Integer dp = ResourceHelper.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return dp == null ? 0 : (int)(dp / (configuration.getDensity().getDpiValue() / 160.0f));
+        Integer px = ResourceHelper.resolveDimensionPixelSize(resourceResolver, value, configuration);
+        return px == null ? 0 : (int)(0.5f + px / (configuration.getDensity().getDpiValue() / 160.0f));
       }
     }
     return 0;
