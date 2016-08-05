@@ -531,11 +531,15 @@ public class Mockup implements ModelListener {
   public void modelRendered(@NotNull NlModel model) {
   }
 
-  public void addMockupModelListener(MockupModelListener listener) {
+  public void addMockupListener(MockupModelListener listener) {
     if (listener != null) {
       myListeners.remove(listener);
       myListeners.add(listener);
     }
+  }
+
+  public void removeMockupListener(MockupModelListener listener) {
+      myListeners.remove(listener);
   }
 
   private void notifyListeners() {

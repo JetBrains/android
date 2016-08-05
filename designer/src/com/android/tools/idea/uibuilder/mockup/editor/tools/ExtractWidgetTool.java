@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
 
 import javax.swing.*;
@@ -36,17 +37,22 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
   private float myAlpha = 0;
+  private final MockupEditor.MockupEditorListener myMockupEditorListener;
 
   /**
    * @param mockup          Mockup used to extract new widget
    * @param screenView      Current screenView where the mockup is displayed
    * @param mockupViewPanel {@link MockupViewPanel} associated with this tool
+   * @param mockupEditor
    */
-  public ExtractWidgetTool(Mockup mockup, ScreenView screenView, MockupViewPanel mockupViewPanel) {
+  public ExtractWidgetTool(Mockup mockup, ScreenView screenView, MockupViewPanel mockupViewPanel, MockupEditor mockupEditor) {
     super();
     myMockupViewPanel = mockupViewPanel;
     mySelectionListener = new MySelectionListener();
     myWidgetCreator = new WidgetCreator(mockup, screenView);
+    myMockupEditorListener = m -> hideTooltipActions();
+    mockupEditor.addListener(myMockupEditorListener);
+    setBorder(BorderFactory.createLineBorder(JBColor.background(),1, true));
     add(createActionButtons());
   }
 
@@ -58,6 +64,10 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
     super.paint(g2d);
     g2d.setComposite(composite);
+  }
+
+  private void updateMockup(Mockup mockup) {
+    myWidgetCreator.setMockup(mockup);
   }
 
   /**
