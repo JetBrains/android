@@ -139,10 +139,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     // This will show a warning to the user once installation starts and will disable the next/finish button until installation finishes
-    String finishedText = "Please wait until the installation finishes to continue";
+    String finishedText = "Please wait until the installation finishes";
     myValidatorPanel.registerValidator(myInstallationFinished, new TrueValidator(Validator.Severity.INFO, finishedText));
 
-    String installError = "Install failed. Please check the installation log and try again.";
+    String installError = "Installation did not complete successfully. See the IDE log for details";
     myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
 
     myBackgroundAction.setWizard(wizard);
@@ -489,10 +489,21 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     private void appendText(@NotNull final String s) {
       UIUtil.invokeLaterIfNeeded(() -> {
         String current = mySdkManagerOutput.getText();
+        String separator = "\n";
         if (current == null) {
           current = "";
         }
-        mySdkManagerOutput.setText(current + "\n" + s);
+        else if (current.endsWith("\n")) {
+          // Want to chew the first "extra" newline since in different places
+          // the messages either end with an explicit "\n" or not, but the intention is always
+          // to have one trailing newline.
+          //
+          // The calling code can still supply more than one newline,
+          // and it will result in empty lines, since 2+ explicitly provided newlines
+          // probably mean that this was the intention
+          separator = "";
+        }
+        mySdkManagerOutput.setText(current + separator + s);
       });
     }
 

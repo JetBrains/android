@@ -127,7 +127,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    */
   public void print(@NotNull String s, @NotNull ConsoleViewContentType contentType) {
     myHighlighter.setModalityState(ModalityState.stateForComponent(myConsole));
-    myHighlighter.print(s, contentType.getAttributes());
+    myHighlighter.print(s + (s.endsWith("\n") ? "" : "\n"), contentType.getAttributes());
   }
 
   /**
