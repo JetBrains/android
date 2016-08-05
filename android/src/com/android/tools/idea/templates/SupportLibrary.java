@@ -38,6 +38,7 @@ public enum SupportLibrary {
   RECYCLERVIEW_V7("com.android.support", "recyclerview-v7"),
   TEST_RUNNER("com.android.support.test", "runner"),
   ESPRESSO_CORE("com.android.support.test.espresso", "espresso-core"),
+  ESPRESSO_CONTRIB("com.android.support.test.espresso", "espresso-contrib"),
 
   // Google repo:
   PLAY_SERVICES("com.google.android.gms", "play-services"),
