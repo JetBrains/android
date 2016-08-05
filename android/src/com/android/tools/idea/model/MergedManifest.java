@@ -342,7 +342,7 @@ public class MergedManifest {
 
   private void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assert facet != null;
+    assert facet != null : "Attempt to obtain manifest info from a non Android module: " + myModule.getName();
 
     if (myManifestFile == null) {
       myManifestFile = ManifestInfo.ManifestFile.create(facet);
