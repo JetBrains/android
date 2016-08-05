@@ -262,7 +262,14 @@ public final class SdkQuickfixUtils {
       throw new PackageResolutionException(warning.get());
     }
     Set<String> requiredPaths = requiredPackages.stream().map(RemotePackage::getPath).collect(Collectors.toCollection(LinkedHashSet::new));
-    result.addAll(Collections2.transform(requiredPaths, packages.getConsolidatedPkgs()::get));
+    Map<String, UpdatablePackage> allPackages = packages.getConsolidatedPkgs();
+    for (String path : requiredPaths) {
+      UpdatablePackage requiredPackage = allPackages.get(path);
+      if (requiredPackage == null) {
+        throw new PackageResolutionException("Failed to find package with key " + path);
+      }
+      result.add(requiredPackage);
+    }
 
     return result;
   }
