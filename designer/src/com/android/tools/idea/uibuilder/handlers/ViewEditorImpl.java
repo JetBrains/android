@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.assetstudiolib.AssetStudio;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -158,6 +159,13 @@ public class ViewEditorImpl extends ViewEditor {
   public boolean isModuleDependency(@NotNull String artifact) {
     AndroidGradleModel gradleModel = AndroidGradleModel.get(getModel().getFacet());
     return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
+  }
+
+  @Nullable
+  @Override
+  public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(getModel().getFacet());
+    return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
   }
 
   @Nullable
