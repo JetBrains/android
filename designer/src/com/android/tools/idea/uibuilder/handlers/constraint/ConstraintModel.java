@@ -620,6 +620,13 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
         else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
           widget = new Guideline();
+          String orientation = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION);
+          if (orientation != null) {
+            if (SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL.equalsIgnoreCase(orientation)) {
+              Guideline guideline = (Guideline)widget;
+              guideline.setOrientation(Guideline.VERTICAL);
+            }
+          }
         }
         else {
           if (component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
