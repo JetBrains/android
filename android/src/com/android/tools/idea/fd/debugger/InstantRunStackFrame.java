@@ -67,7 +67,8 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
 
   @Override
   public boolean isHiddenVariable(@NotNull String name) {
-    return InstantRunDebuggerExtension.INSTANT_RUN_THIS.equals(name);
+    return super.isHiddenVariable(name) ||
+           InstantRunDebuggerExtension.INSTANT_RUN_THIS.equals(name);
   }
 
   @Override
