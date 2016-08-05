@@ -16,23 +16,15 @@
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.nio.file.Path;
 
 /**
  * Tool Allowing the extraction of widget or layout from the current selection
@@ -40,33 +32,56 @@ import java.nio.file.Path;
 public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
   private final MockupViewPanel myMockupViewPanel;
-  private final Mockup myMockup;
-  private final ScreenView myScreenView;
+  private final WidgetCreator myWidgetCreator;
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
+  private float myAlpha = 0;
 
+  /**
+   * @param mockup          Mockup used to extract new widget
+   * @param screenView      Current screenView where the mockup is displayed
+   * @param mockupViewPanel {@link MockupViewPanel} associated with this tool
+   */
   public ExtractWidgetTool(Mockup mockup, ScreenView screenView, MockupViewPanel mockupViewPanel) {
     super();
-    myMockup = mockup;
     myMockupViewPanel = mockupViewPanel;
-    myScreenView = screenView;
     mySelectionListener = new MySelectionListener();
+    myWidgetCreator = new WidgetCreator(mockup, screenView);
     add(createActionButtons());
   }
 
   // TODO make it look nice
   @Override
-  protected void paintComponent(Graphics g) {
+  public void paint(Graphics g) {
+    Graphics2D g2d = (Graphics2D)g;
+    final Composite composite = g2d.getComposite();
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
+    super.paint(g2d);
+    g2d.setComposite(composite);
   }
 
   /**
    * Display the buttons of this tool inside the {@link MockupViewPanel} next to selection
+   *
    * @param selection the current selection in {@link MockupViewPanel}
    */
   private void displayTooltipActions(Rectangle selection) {
     mySelection = selection;
     myMockupViewPanel.removeAll();
     if (!selection.isEmpty()) {
+      Timer timer = new Timer(20, e -> {
+        float alpha = myAlpha;
+        alpha += 0.1;
+        if (alpha > 1) {
+          alpha = 1;
+          ((Timer)e.getSource()).setRepeats(false);
+        }
+        myAlpha = alpha;
+        repaint();
+      });
+      timer.setRepeats(true);
+      timer.setCoalesce(true);
+      timer.start();
       myMockupViewPanel.add(this);
       myMockupViewPanel.doLayout();
     }
@@ -77,43 +92,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
    */
   private void hideTooltipActions() {
     myMockupViewPanel.remove(this);
-  }
-
-  /**
-   * Create a new widget of of the size and location of selection
-   * @param selection the selection in {@link MockupViewPanel}
-   */
-  private void createWidget(Rectangle selection) {
-    final NlComponent parent = myMockup.getComponent();
-    final Rectangle parentCropping = myMockup.getRealCropping();
-    final NlModel model = parent.getModel();
-    final Path xmlFilePath = MockupFileHelper.getXMLFilePath(myScreenView.getModel().getProject(), myMockup.getFilePath());
-    final String stringPath = xmlFilePath != null ? xmlFilePath.toString() : "";
-
-    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create widget", model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        // For now only create a view at the correct coordinate
-        final NlComponent component = model.createComponent(myScreenView, SdkConstants.VIEW, parent, null, InsertType.CREATE);
-        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                               String.format("%ddp", Coordinates.pxToDp(myScreenView, selection.x)));
-        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                               String.format("%ddp", Coordinates.pxToDp(myScreenView, selection.y)));
-        component.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH,
-                               String.format("%ddp", Coordinates.pxToDp(myScreenView, selection.width)));
-        component.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT,
-                               String.format("%ddp", Coordinates.pxToDp(myScreenView, selection.height)));
-
-
-        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP, stringPath);
-
-        // Add the selected part of the mockup as the new mockup of this component
-        final Mockup newMockup = Mockup.create(component);
-        newMockup.setCropping(parentCropping.x + selection.x, parentCropping.y + selection.y, selection.width, selection.height);
-        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION, MockupFileHelper.getPositionString(newMockup));
-      }
-    };
-    action.execute();
+    myAlpha = 0;
   }
 
   private JComponent createActionButtons() {
@@ -141,7 +120,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   /**
    * Action to create the new widget
    */
-  class NewWidgetAction extends AnAction {
+  private class NewWidgetAction extends AnAction {
 
     public static final String TITLE = "Create new widget from selection";
 
@@ -152,12 +131,14 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      createWidget(mySelection);
+      myWidgetCreator.createWidget(mySelection, SdkConstants.VIEW);
     }
   }
 
-
-  class NewLayoutAction extends AnAction {
+  /**
+   * Action to create the new layout
+   */
+  private class NewLayoutAction extends AnAction {
 
     public static final String TITLE = "Create new layout from selection";
 
@@ -167,7 +148,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-
+      myWidgetCreator.createNewIncludedLayout(mySelection);
     }
   }
 
