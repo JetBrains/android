@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import lombok.ast.This;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -744,9 +745,42 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static class NamedParser extends KXmlParser {
     @Nullable
     private final String myName;
+    /**
+     * Attribute that caches whether the tools prefix has been defined or not. This allow us to save unnecessary checks in the most common
+     * case ("tools" is not defined).
+     */
+    private boolean hasToolsNamespace;
 
     public NamedParser(@Nullable String name) {
       myName = name;
+    }
+
+    @Override
+    public int next() throws XmlPullParserException, IOException {
+      int tagType = super.next();
+
+      // We check if the tools namespace is still defined in two cases:
+      // - If it's a start tag and it was defined by a previous tag
+      // - If it WAS defined by a previous tag, and we are closing a tag (going out of scope)
+      if ((!hasToolsNamespace && tagType == XmlPullParser.START_TAG) ||
+          (hasToolsNamespace && tagType == XmlPullParser.END_TAG)) {
+        hasToolsNamespace = getNamespace("tools") != null;
+      }
+
+      return tagType;
+    }
+
+    @Override
+    public String getAttributeValue(String namespace, String name) {
+      if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
+        // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
+        String toolsValue = super.getAttributeValue(TOOLS_URI, name);
+        if (toolsValue != null) {
+          return toolsValue;
+        }
+      }
+
+      return super.getAttributeValue(namespace, name);
     }
 
     @Override
