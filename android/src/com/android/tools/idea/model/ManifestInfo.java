@@ -21,6 +21,7 @@ import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -34,6 +35,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
@@ -178,9 +180,10 @@ final class ManifestInfo {
         // We do not want to do this check if we have no library manifests.
         // findModuleForFile does not work for other build systems (e.g. bazel)
         if (!libManifests.isEmpty()) {
-          Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
-          if (fileModule != null && !module.equals(fileModule)) {
-            MergedManifest manifest = MergedManifest.get(fileModule);
+          Module moduleContainingManifest = getAndroidModuleForManifest(vFile);
+          if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
+            MergedManifest manifest = MergedManifest.get(moduleContainingManifest);
+
             Document document = manifest.getDocument();
             if (document != null) { // normally the case, but can fail on merge fail
               // This is not very efficient. Consider enhancing the manifest merger API
@@ -205,6 +208,37 @@ final class ManifestInfo {
           // the case in the typical scenario where we hit process canceled.
         }
         return super.getInputStream(file);
+      }
+
+      @Nullable
+      private Module getAndroidModuleForManifest(@NotNull VirtualFile vFile) {
+        // See https://code.google.com/p/android/issues/detail?id=219141
+        // Earlier, we used to get the module containing a manifest by doing: ModuleUtilCore.findModuleForFile(vFile, project)
+        // This method of getting the module simply returns the module that contains this file. However, if the manifest sources are
+        // remapped, this could be incorrect. i.e. for a project with the following structure:
+        //     root
+        //       |--- modules/a
+        //       |       |------- build.gradle
+        //       |--- external/a
+        //               |------- AndroidManifest.xml
+        // where the build.gradle remaps the sources to point to $root/external/a/AndroidManifest.xml, obtaining the module containing the
+        // file will return root where it should have been "a". So the correct scheme is to actually iterate through all the modules in the
+        // project and look at their source providers
+        for (Module m : ModuleManager.getInstance(project).getModules()) {
+          AndroidFacet androidFacet = AndroidFacet.getInstance(m);
+          if (androidFacet == null) {
+            continue;
+          }
+
+          List<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
+          for (VirtualFile manifestFile : manifestFiles) {
+            if (vFile.equals(manifestFile)) {
+              return m;
+            }
+          }
+        }
+
+        return null;
       }
     });
 
