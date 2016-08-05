@@ -16,16 +16,32 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by haowei on 6/19/16.
  */
 public interface IfBranchingNode extends ConditionCheckNode {
+
+  /**
+   * Get the CFG for the true branch
+   * @return The CFG for the true branch
+   */
+  @NotNull
   BlockGraph getThenBranchCFG();
 
+  /**
+   * Get the CFG for the else branch. Will be null if
+   * "else" does not exist.
+   * @return The CFG for the else branch
+   */
+  @Nullable
   BlockGraph getElseBranchCFG();
 
+  /**
+   * Check if this if has "else" branch
+   * @return Return true if this IF has "else"
+   */
   boolean hasElse();
-
-
 }

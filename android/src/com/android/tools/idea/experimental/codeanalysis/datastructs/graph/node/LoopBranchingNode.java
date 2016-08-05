@@ -18,6 +18,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -48,19 +49,51 @@ public interface LoopBranchingNode extends GraphNode {
   @Nullable
   public GraphNode getConditionCheckNode();
 
-  /*Only available in for loop*/
+  /**
+   * for (initExpr; condExpr; postExpr);
+   * Return the nodes that evaluate the postExpr.
+   * Return null if it is not a for loop.
+   * @return The node for the post code.
+   */
+  @Nullable
   public GraphNode getPostCode();
 
+  /**
+   * Return the loop body.
+   * @return The CFG for the loop body
+   */
+  @NotNull
   public BlockGraph getLoopBlock();
 
-  /*Only available in foreach loop*/
+  /**
+   * for (iterParam : iterValue)
+   * return the Param wrapper of "iterParam"
+   * return null if it is not a foreach loop.
+   * @return The param wrapper.
+   */
   @Nullable
   public Param getForeachIteratorParam();
 
+  /**
+   * for (iterParam : iterValue)
+   * return the Value of "iterValue"
+   * return null if it is not a foreach loop.
+   * @return The value wrapper.
+   */
   @Nullable
   public Value getForeachIteratorValue();
 
-  /*Maybe you should use enum types*/
+  /**
+   * Return the loop type of this loop.
+   * It can be
+   * LoopBranchingNode.FOR_LOOP
+   * LoopBranchingNode.WHILE_LOOP
+   * LoopBranchingNode.DOWHILE_LOOP
+   * LoopBranchingNode.FOREACH_LOOP
+   *
+   * The return value should be changed to enum type in the future.
+   * @return The loop type.
+   */
   public int getLoopType();
 
   public static final int FOR_LOOP = 0x00;
