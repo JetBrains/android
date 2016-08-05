@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Quantity implements Comparable<Quantity> {
-  private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(\\d+(\\.\\d+)?)(.*)$");
+  private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(-?\\d+(\\.\\d+)?)(.*)$");
 
   private final int myValue;
   private final String myUnit;
@@ -39,7 +39,7 @@ public class Quantity implements Comparable<Quantity> {
       return null;
     }
     try {
-      return new Quantity(Integer.parseInt(matcher.group(1)), matcher.group(3));
+      return new Quantity(Integer.parseInt(matcher.group(1)), matcher.group(3).trim());
     }
     catch (NumberFormatException ignore) {
       return null;  // Format this value as if this was not a value with a unit
@@ -71,12 +71,12 @@ public class Quantity implements Comparable<Quantity> {
     myUnit = unit;
   }
 
-  private int getValue() {
+  public int getValue() {
     return myValue;
   }
 
   @NotNull
-  private String getUnit() {
+  public String getUnit() {
     return myUnit;
   }
 

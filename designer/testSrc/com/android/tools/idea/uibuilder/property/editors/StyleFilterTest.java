@@ -93,6 +93,16 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     assertStyle("Yang", !FRAMEWORK, USER_DEFINED, !IS_DERIVED_STYLE, FILTERED_OUT);
   }
 
+  public void testAppCompatThemes() {
+    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("Theme.AppCompat", false).collect(Collectors.toList());
+    assertStylesSorted("TextAppearance", styles, 0, 5, 0,
+                       ImmutableList.of(),
+                       ImmutableList.of("Theme.AppCompat",
+                                        "Theme.Design",
+                                        "Theme.Design.NoActionBar"),
+                       ImmutableList.of());
+  }
+
   public void testStylesByTagName() {
     assertTagStyle(SdkConstants.BUTTON, 0, 6, 46,
                    ImmutableList.of(),
@@ -149,6 +159,10 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     assertTagStyle(SdkConstants.TEXT_INPUT_LAYOUT, 0, 1, 0,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.Design.TextInputLayout"),
+                   ImmutableList.of());
+    assertTagStyle("UNKNOWN_TAG", 0, 0, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of(),
                    ImmutableList.of());
   }
 
