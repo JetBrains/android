@@ -74,7 +74,7 @@ public class MockupViewPanel extends JPanel {
      * 0,0 means on top left of the image on screen (and NOT the panel)
      *
      * @param mockupViewPanel The panel on which the seleciton is being done
-     * @param selection the selection in the the displayed image coordinate system
+     * @param selection       the selection in the the displayed image coordinate system
      **/
     void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection);
   }
@@ -288,7 +288,7 @@ public class MockupViewPanel extends JPanel {
       convertedSelection = new Rectangle(0, 0, -1, -1);
     }
     else {
-      if(myDisplayOnlyCroppedRegion) {
+      if (myDisplayOnlyCroppedRegion) {
 
         final Rectangle bounds = mySelectionLayer.getBounds();
         final Rectangle realCropping = myMockup.getRealCropping();
@@ -298,9 +298,10 @@ public class MockupViewPanel extends JPanel {
                         realCropping.getHeight() / bounds.getHeight());
         transform.translate(-bounds.x, -bounds.y);
         convertedSelection = transform.createTransformedShape(selection).getBounds();
-      } else {
+      }
+      else {
         convertedSelection = myImageTransform.convertInverse(selection, null);
-        Rectangle2D.intersect(convertedSelection, new Rectangle(myImage.getWidth(), myImage.getHeight()),convertedSelection);
+        Rectangle2D.intersect(convertedSelection, new Rectangle(myImage.getWidth(), myImage.getHeight()), convertedSelection);
       }
     }
     for (int i = 0; i < mySelectionListeners.size(); i++) {
@@ -402,12 +403,10 @@ public class MockupViewPanel extends JPanel {
 
     @Override
     public void addLayoutComponent(String name, Component comp) {
-
     }
 
     @Override
     public void removeLayoutComponent(Component comp) {
-
     }
 
     @Override
