@@ -32,6 +32,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -324,6 +325,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
+
+    String ideVersion = ApplicationInfo.getInstance().getStrictVersion();
+    // TODO replace with AndroidProject#PROPERTY_STUDIO_VERSION once builder-model gets updated.
+    args.add(createProjectProperty("android.injected.studio.version", ideVersion));
 
     // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
