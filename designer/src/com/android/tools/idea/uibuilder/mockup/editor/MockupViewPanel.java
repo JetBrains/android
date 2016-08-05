@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.uibuilder.mockup.CoordinateConverter;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.editor.tools.MockupEditor;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,13 +41,7 @@ import java.util.List;
 public class MockupViewPanel extends JPanel {
 
   private AffineTransform myDisplayedImageAffineTransform;
-
-  public void resetState() {
-    setDisplayOnlyCroppedRegion(true);
-    getSelectionLayer().clearSelection();
-    getSelectionLayer().setFixedRatio(false);
-    repaint();
-  }
+  private Mockup.MockupModelListener myMockupListener;
 
   /**
    * Listener to notify the tools when a selection ended
@@ -80,7 +75,7 @@ public class MockupViewPanel extends JPanel {
   }
 
   public static final float ADJUST_SCALE = 0.95f;
-  private final Mockup myMockup;
+  private Mockup myMockup;
 
   private final SelectionLayer mySelectionLayer;
 
@@ -96,13 +91,15 @@ public class MockupViewPanel extends JPanel {
   /**
    * Create a new MockupView Panel displaying the given mockup
    *
-   * @param mockup the mockup to display
+   * @param mockup       the mockup to display
+   * @param mockupEditor
    */
-  public MockupViewPanel(@NotNull Mockup mockup) {
+  public MockupViewPanel(@NotNull Mockup mockup, MockupEditor mockupEditor) {
+    myMockupListener = this::updateDisplayedImage;
+    mockupEditor.addListener(this::update);
     setLayout(new MyLayoutManager());
-    setBackground(JBColor.background());
-    myMockup = mockup;
-    myMockup.addMockupModelListener(this::updateDisplayedImage);
+    setBackground(JBColor.background().brighter());
+    setMockup(mockup);
     updateDisplayedImage(mockup);
     mySelectionLayer = new SelectionLayer(this);
     addMouseListener(new MyMouseInteraction());
@@ -118,15 +115,43 @@ public class MockupViewPanel extends JPanel {
     myImageTransform.setCenterInDestination();
   }
 
+  private void update(Mockup mockup) {
+    resetState();
+    setMockup(mockup);
+    repaint();
+  }
+
   /**
    * Update the displayed image.
    *
    * @param mockup
    */
   private void updateDisplayedImage(@NotNull Mockup mockup) {
-    myImage = mockup.getImage();
+    final BufferedImage image = mockup.getImage();
+    if (image != myImage) {
+      myImage = image;
+    }
     myDisplayedImage = null;
     repaint();
+  }
+
+  public void resetState() {
+    removeAll();
+    setDisplayOnlyCroppedRegion(true);
+    getSelectionLayer().clearSelection();
+    getSelectionLayer().setFixedRatio(false);
+    repaint();
+  }
+
+  public void setMockup(Mockup mockup) {
+    if (mockup != myMockup) {
+      if (myMockup != null) {
+        myMockup.removeMockupListener(myMockupListener);
+      }
+      myMockup = mockup;
+      myMockup.addMockupListener(myMockupListener);
+    }
+    updateDisplayedImage(mockup);
   }
 
   /**
@@ -209,7 +234,7 @@ public class MockupViewPanel extends JPanel {
   private BufferedImage createDisplayedImage(@NotNull BufferedImage image, @NotNull Rectangle cropping) {
     BufferedImage displayedImage;
 
-    if (myDisplayOnlyCroppedRegion) {
+    if (myDisplayOnlyCroppedRegion && !cropping.isEmpty()) {
       Rectangle2D.intersect(cropping, new Rectangle(image.getWidth(), image.getHeight()), cropping);
       final BufferedImage subImage = image.getSubimage(cropping.x, cropping.y, cropping.width, cropping.height);
       myImageTransform.setDimensions(getWidth(), getHeight(), cropping.width, cropping.height, ADJUST_SCALE);
