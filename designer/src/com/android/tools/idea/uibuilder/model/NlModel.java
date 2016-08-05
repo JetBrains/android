@@ -104,7 +104,7 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
-  @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
+  @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private static final int RENDER_DELAY_MS = 10;
   private final Set<String> myPendingIds = Sets.newHashSet();
