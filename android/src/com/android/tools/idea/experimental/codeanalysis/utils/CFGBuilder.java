@@ -1203,13 +1203,55 @@ public class CFGBuilder {
       return;
     }
     else if (statement instanceof PsiTryStatement) {
-      //TODO
+      dfsPsiTryStatementBuilder((PsiTryStatement) statement);
     }
     else if (statement instanceof PsiBlockStatement) {
       dfsPsiBlockStatementBuilder((PsiBlockStatement)statement);
     }
     else if (statement instanceof PsiLabeledStatement) {
       dfsPsiLabeledStatementBuilder((PsiLabeledStatement)statement);
+    }
+  }
+
+  /**
+   * Create node for try catch nodes, a temp workaround
+   * @param statement The try statement.
+   */
+  public void dfsPsiTryStatementBuilder(PsiTryStatement statement) {
+    PsiCodeBlock psiTryBlock = statement.getTryBlock();
+    PsiCodeBlock psiFinallyBlock = statement.getFinallyBlock();
+
+    if (psiTryBlock != null) {
+      BlockGraphImpl tryBlockStatementGraph = new BlockGraphImpl();
+      tryBlockStatementGraph.setParentGraph(this.mGraph);
+      tryBlockStatementGraph.setParentStmt(statement);
+      CFGBuilder tryBuilder =
+        new CFGBuilder(this.mScene, tryBlockStatementGraph, this.containerClass, psiTryBlock);
+
+      tryBuilder.setNestedLabelMap(mLabelMap);
+      tryBuilder.setNestedStack(mNestedStack);
+      tryBuilder.build();
+      connectCurrentWorkingNode(tryBlockStatementGraph.getEntryNode());
+      curWorkingNodeList.clear();
+      //TODO: What if the exit node unreachable?
+      curWorkingNodeList.add(tryBlockStatementGraph.getExitNode());
+    }
+
+    if (psiFinallyBlock != null) {
+      BlockGraphImpl finallyBlockStatementGraph = new BlockGraphImpl();
+      finallyBlockStatementGraph.setParentGraph(this.mGraph);
+      finallyBlockStatementGraph.setParentStmt(statement);
+      CFGBuilder finallyBuilder =
+        new CFGBuilder(this.mScene, finallyBlockStatementGraph, this.containerClass,
+                       psiFinallyBlock);
+
+      finallyBuilder.setNestedLabelMap(mLabelMap);
+      finallyBuilder.setNestedStack(mNestedStack);
+      finallyBuilder.build();
+      connectCurrentWorkingNode(finallyBlockStatementGraph.getEntryNode());
+      curWorkingNodeList.clear();
+      //TODO: What if the exit node unreachable?
+      curWorkingNodeList.add(finallyBlockStatementGraph.getExitNode());
     }
   }
 
