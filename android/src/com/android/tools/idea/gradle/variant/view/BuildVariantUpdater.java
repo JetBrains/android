@@ -104,14 +104,13 @@ class BuildVariantUpdater {
     }
     if (nativeAndroidFacet != null) {
       NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
-      if (nativeAndroidModel == null || !updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
-        return null;
+      if (updateSelectedVariant(nativeAndroidFacet, variant, nativeAndroidModel)) {
+        affectedNativeAndroidFacets.add(nativeAndroidFacet);
       }
-      affectedNativeAndroidFacets.add(nativeAndroidFacet);
     }
     if (androidFacet != null) {
       AndroidGradleModel androidModel = getAndroidModel(androidFacet, variant);
-      if (androidModel == null || !updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
+      if (androidModel == null || !updateSelectedVariant(androidModel, androidFacet, variant, affectedAndroidFacets)) {
         return null;
       }
       affectedAndroidFacets.add(androidFacet);
@@ -125,8 +124,29 @@ class BuildVariantUpdater {
     return moduleManager.findModuleByName(moduleName);
   }
 
-  private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
-                                        @NotNull AndroidGradleModel androidModel,
+  private static boolean updateSelectedVariant(@NotNull NativeAndroidGradleFacet nativeAndroidFacet,
+                                               @NotNull String variantToSelect,
+                                               @Nullable NativeAndroidGradleModel nativeAndroidModel) {
+    // Always keep the facet in sync.
+    // See https://code.google.com/p/android/issues/detail?id=219116
+    nativeAndroidFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
+
+    if (nativeAndroidModel != null) {
+      NativeVariant selectedVariant = nativeAndroidModel.getSelectedVariant();
+      if (variantToSelect.equals(selectedVariant.getName())) {
+        return false;
+      }
+      nativeAndroidModel.setSelectedVariantName(variantToSelect);
+      invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
+
+      // TODO: Also update the dependent modules variants.
+      return true;
+    }
+    return false;
+  }
+
+  private boolean updateSelectedVariant(@NotNull AndroidGradleModel androidModel,
+                                        @NotNull AndroidFacet androidFacet,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
     Variant selectedVariant = androidModel.getSelectedVariant();
@@ -147,21 +167,6 @@ class BuildVariantUpdater {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
     }
-    return true;
-  }
-
-  private static boolean updateSelectedVariant(@NotNull NativeAndroidGradleFacet nativeAndroidFacet,
-                                               @NotNull NativeAndroidGradleModel nativeAndroidModel,
-                                               @NotNull String variantToSelect) {
-    NativeVariant selectedVariant = nativeAndroidModel.getSelectedVariant();
-    if (variantToSelect.equals(selectedVariant.getName())) {
-      return false;
-    }
-    nativeAndroidModel.setSelectedVariantName(variantToSelect);
-    nativeAndroidFacet.getConfiguration().SELECTED_BUILD_VARIANT = nativeAndroidModel.getSelectedVariant().getName();
-    invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
-
-    // TODO: Also update the dependent modules variants.
     return true;
   }
 
@@ -279,7 +284,7 @@ class BuildVariantUpdater {
       return;
     }
 
-    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
+    if (!updateSelectedVariant(androidModel, facet, variant, affectedFacets)) {
       return;
     }
     affectedFacets.add(facet);
