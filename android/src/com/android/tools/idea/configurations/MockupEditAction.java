@@ -16,9 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
-import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.uibuilder.mockup.old.MockupEditorPopup;
-import com.android.tools.idea.uibuilder.mockup.editor.tools.MockupEditor;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;

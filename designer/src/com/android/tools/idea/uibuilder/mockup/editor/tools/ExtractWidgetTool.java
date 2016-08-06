@@ -17,12 +17,14 @@ package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +54,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     myWidgetCreator = new WidgetCreator(mockup, screenView);
     myMockupEditorListener = m -> hideTooltipActions();
     mockupEditor.addListener(myMockupEditorListener);
-    setBorder(BorderFactory.createLineBorder(JBColor.background(),1, true));
+    setBorder(BorderFactory.createLineBorder(JBColor.background(), 1, true));
     add(createActionButtons());
   }
 
@@ -66,7 +68,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     g2d.setComposite(composite);
   }
 
-  private void updateMockup(Mockup mockup) {
+  private void updateMockup(@NotNull Mockup mockup) {
     myWidgetCreator.setMockup(mockup);
   }
 
@@ -89,6 +91,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
         myAlpha = alpha;
         repaint();
       });
+      timer.setRepeats(true);
       timer.setRepeats(true);
       timer.setCoalesce(true);
       timer.start();

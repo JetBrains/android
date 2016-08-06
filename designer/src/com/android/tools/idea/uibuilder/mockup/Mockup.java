@@ -539,7 +539,7 @@ public class Mockup implements ModelListener {
   }
 
   public void removeMockupListener(MockupModelListener listener) {
-      myListeners.remove(listener);
+    myListeners.remove(listener);
   }
 
   private void notifyListeners() {

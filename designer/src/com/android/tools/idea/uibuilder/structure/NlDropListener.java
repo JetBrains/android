@@ -45,11 +45,11 @@ import static com.android.tools.idea.uibuilder.structure.NlComponentTree.Inserti
  * Both internal moves and drags from the palette and other structure panes are supported.
  */
 public class NlDropListener extends DropTargetAdapter {
-  private final List<NlComponent> myDragged;
-  private final NlComponentTree myTree;
+  protected final List<NlComponent> myDragged;
+  protected final NlComponentTree myTree;
   private DnDTransferItem myTransferItem;
-  private NlComponent myDragReceiver;
-  private NlComponent myNextDragSibling;
+  protected NlComponent myDragReceiver;
+  protected NlComponent myNextDragSibling;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
     myDragged = new ArrayList<>();
@@ -149,6 +149,15 @@ public class NlDropListener extends DropTargetAdapter {
     }
   }
 
+  protected boolean shouldInsert(NlComponent component, InsertionPoint insertionPoint) {
+    ViewHandler handler = component.getViewHandler();
+    return insertionPoint == INSERT_INTO && handler instanceof ViewGroupHandler;
+  }
+
+  protected boolean canAddComponent(NlModel model, NlComponent component) {
+    return model.canAddComponents(myDragged, component, component.getChild(0));
+  }
+
   @Nullable
   private Pair<TreePath, InsertionPoint> findInsertionPoint(@NotNull NlDropEvent event) {
     myDragReceiver = null;
@@ -173,10 +182,9 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     InsertionPoint insertionPoint = findTreeStateInsertionPoint(event.getLocation().y, bounds);
-    ViewHandler handler = component.getViewHandler();
 
-    if (insertionPoint == INSERT_INTO && handler instanceof ViewGroupHandler) {
-      if (!model.canAddComponents(myDragged, component, component.getChild(0))) {
+    if (shouldInsert(component, insertionPoint)) {
+      if (!canAddComponent(model, component)) {
         return null;
       }
       myDragReceiver = component;
@@ -207,7 +215,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   @NotNull
-  private static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
+  protected static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
     int delta = bounds.height / 9;
     if (bounds.y + delta > y) {
       return INSERT_BEFORE;
@@ -222,7 +230,7 @@ public class NlDropListener extends DropTargetAdapter {
     myTree.markInsertionPoint(null, INSERT_BEFORE);
   }
 
-  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+  protected void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;

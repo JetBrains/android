@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.uibuilder.mockup.CoordinateConverter;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.editor.tools.MockupEditor;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +93,7 @@ public class MockupViewPanel extends JPanel {
    * @param mockup       the mockup to display
    * @param mockupEditor
    */
-  public MockupViewPanel(@NotNull Mockup mockup, MockupEditor mockupEditor) {
+  public MockupViewPanel(@NotNull Mockup mockup, @NotNull MockupEditor mockupEditor) {
     myMockupListener = this::updateDisplayedImage;
     mockupEditor.addListener(this::update);
     setLayout(new MyLayoutManager());
