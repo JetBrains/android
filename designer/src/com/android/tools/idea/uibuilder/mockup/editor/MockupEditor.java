@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.mockup.editor.tools;
+package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
-import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
+import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
+import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -93,6 +95,8 @@ public class MockupEditor implements Disposable {
     myComponentTree = new NlComponentTree(myScreenView.getSurface());
     myComponentTree.addMouseListener(new ComponentTreeMouseListener());
     myComponentTree.setToggleClickCount(3);
+    myComponentTree.setDropTarget(new DropTarget(myComponentTree, new MockupDropListener(myComponentTree)));
+    myComponentTree.setExpandableItemsEnabled(true);
   }
 
   /**

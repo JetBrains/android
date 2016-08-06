@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.*;

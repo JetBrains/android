@@ -76,7 +76,7 @@ public class WidgetCreator {
       .execute();
   }
 
-  public void setMockup(Mockup mockup) {
+  public void setMockup(@NotNull Mockup mockup) {
     myMockup = mockup;
   }
 
