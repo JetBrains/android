@@ -318,7 +318,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
-    AccelerationErrorCode error = checkAcceration();
+    AccelerationErrorCode error = checkAcceleration();
     ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
     if (errorResult != null) {
       return errorResult;
@@ -493,7 +493,7 @@ public class AvdManagerConnection {
    * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.
    * Return a {@link AccelerationErrorCode}.
    */
-  public AccelerationErrorCode checkAcceration() {
+  public AccelerationErrorCode checkAcceleration() {
     if (!initIfNecessary()) {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
@@ -506,10 +506,7 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
     }
     if (!hasQEMU2Installed()) {
-      // TODO: Return this error when the new emulator has been released.
-      // return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
-      // TODO: For now just ignore the rest of the checks
-      return AccelerationErrorCode.ALREADY_INSTALLED;
+      return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
     File checkBinary = getEmulatorCheckBinary();
     GeneralCommandLine commandLine = new GeneralCommandLine();
