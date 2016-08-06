@@ -120,7 +120,7 @@ public final class Haxm extends InstallableComponent {
       return CANNOT_INSTALL_ON_THIS_OS;
     }
     AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
-    return manager.checkAcceration();
+    return manager.checkAcceleration();
   }
 
   public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall, boolean installUpdates) {

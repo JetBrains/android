@@ -412,7 +412,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private void refreshErrorCheck() {
     boolean refreshUI = myNotificationPanel.getComponentCount() > 0;
     myNotificationPanel.removeAll();
-    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceration();
+    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
     if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
       refreshUI = true;
       myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myProject, new Runnable() {
