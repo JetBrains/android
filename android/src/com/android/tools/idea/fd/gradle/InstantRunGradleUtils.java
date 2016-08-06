@@ -45,17 +45,18 @@ public class InstantRunGradleUtils {
       return InstantRunGradleSupport.NO_GRADLE_MODEL;
     }
 
-    if (!modelSupportsInstantRun(model)) {
-      return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
-    }
-
     try {
       InstantRunGradleSupport modelStatus = InstantRunGradleSupport.fromModel(model);
       if (modelStatus != InstantRunGradleSupport.SUPPORTED) {
         return modelStatus;
       }
     } catch (UnsupportedOperationException e) {
-      // gradle model does not support getting instant run status, query the variant
+      // If we failed to get details about why IR is not supported, then it is possible we are using an older version of the model
+      if (!modelSupportsInstantRun(model)) {
+        return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
+      }
+
+      // If model is high enough that it supports instant run, then check whether the variant supports it as well..
       if (!variantSupportsInstantRun(model)) {
         return InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN;
       }
