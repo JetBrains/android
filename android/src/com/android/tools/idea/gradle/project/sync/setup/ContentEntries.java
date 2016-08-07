@@ -25,6 +25,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,21 +33,27 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.FilePaths.isPathInContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
-public class ContentEntries {
-  public void removeExisting(@NotNull ModifiableRootModel rootModel) {
+public abstract class ContentEntries {
+  @NotNull private final ModifiableRootModel myRootModel;
+  @NotNull private final Collection<ContentEntry> myValues;
+  @NotNull private final List<RootSourceFolder> myOrphans = new ArrayList<>();
+
+  protected ContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull Collection<ContentEntry> values) {
+    myRootModel = rootModel;
+    myValues = values;
+    removeExistingContentEntries(rootModel);
+  }
+
+  private static void removeExistingContentEntries(@NotNull ModifiableRootModel rootModel) {
     for (ContentEntry contentEntry : rootModel.getContentEntries()) {
       rootModel.removeContentEntry(contentEntry);
     }
   }
 
-  public void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
-                              @NotNull File folderPath,
-                              @NotNull JpsModuleSourceRootType type,
-                              @NotNull List<RootSourceFolder> orphans,
-                              boolean generated) {
-    ContentEntry parent = findParentContentEntry(folderPath, contentEntries);
+  protected void addSourceFolder(@NotNull File folderPath, @NotNull JpsModuleSourceRootType type, boolean generated) {
+    ContentEntry parent = findParentContentEntry(folderPath, myValues);
     if (parent == null) {
-      orphans.add(new RootSourceFolder(folderPath, type, generated));
+      myOrphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
     }
 
@@ -69,11 +76,24 @@ public class ContentEntries {
     }
   }
 
-  public boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File folderPath) {
+  protected boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File folderPath) {
     if (!isPathInContentEntry(folderPath, contentEntry)) {
       return false;
     }
     contentEntry.addExcludeFolder(pathToIdeaUrl(folderPath));
     return true;
+  }
+
+  protected void addOrphans() {
+    for (RootSourceFolder orphan : myOrphans) {
+      File path = orphan.getPath();
+      ContentEntry contentEntry = myRootModel.addContentEntry(pathToIdeaUrl(path));
+      addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
+    }
+  }
+
+  @NotNull
+  protected Collection<ContentEntry> getValues() {
+    return myValues;
   }
 }
