@@ -276,21 +276,18 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    // TODO: revert in 2.2 Beta 1
-    // This check forces update from 2.1.0 to latest alpha plugin. This seems related to checking for instant run, but it is not clear
-    // if it should be there. Disabling since this behavior is new in 2.2 P7
-    //if (modelVersions != null) {
-    //  String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(modelVersions);
-    //  if (obsoletePluginVersion != null) {
-    //    boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
-    //    if (upgrade) {
-    //      if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
-    //        // plugin version updated and a project sync was requested. No need to continue.
-    //        return;
-    //      }
-    //    }
-    //  }
-    //}
+    if (modelVersions != null) {
+      String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(modelVersions);
+      if (obsoletePluginVersion != null) {
+        boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
+        if (upgrade) {
+          if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
+            // plugin version updated and a project sync was requested. No need to continue.
+            return;
+          }
+        }
+      }
+    }
 
     if (myGenerateSourcesAfterSync) {
       if (!myCleanProjectAfterSync) {
@@ -331,10 +328,6 @@ public class PostProjectSetupTasksExecutor {
     GradleVersion gradleVersionToUpdateTo = null;
 
     boolean isStable = isStableVersion(modelVersions);
-    if (isStable) {
-      return null;
-    }
-
     String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, modelVersions.isExperimentalPlugin());
     GradleVersion pluginVersion = modelVersions.getCurrent();
 
@@ -377,12 +370,6 @@ public class PostProjectSetupTasksExecutor {
 
       if (modelVersions != null) {
         boolean stable = isStableVersion(modelVersions);
-        if (stable) {
-          // Temporary: we don't have a 2.1.3 released yet
-          // We can't update gradle to 2.14.1 as well since 2.1.x isn't compatible with 2.14.1
-          return false;
-        }
-
         latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
         updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
       }
@@ -441,9 +428,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static String latestStablePluginWithSecurityFix(boolean experimentalPlugin) {
-    // TODO enable this when plugin 1.2.3 and 0.7.3 are released.
-    // return experimentalPlugin ? "0.7.3" : "2.1.3";
-    return latestPreviewPluginWithSecurityFix(experimentalPlugin);
+    return experimentalPlugin ? "0.7.3" : "2.1.3";
   }
 
   @NotNull
