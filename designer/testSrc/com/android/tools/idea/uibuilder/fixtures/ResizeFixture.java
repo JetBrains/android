@@ -58,11 +58,22 @@ public class ResizeFixture {
     } else if (horizontalEdge == SegmentType.BOTTOM) {
       if (verticalEdge == SegmentType.LEFT) {
         position = SelectionHandle.Position.BOTTOM_LEFT;
-      } else if (verticalEdge == SegmentType.RIGHT) {
+      }
+      else if (verticalEdge == SegmentType.RIGHT) {
         position = SelectionHandle.Position.BOTTOM_RIGHT;
-      } else {
+      }
+      else {
         assertNull(verticalEdge);
         position = SelectionHandle.Position.BOTTOM_MIDDLE;
+      }
+    } else if (horizontalEdge == null) {
+      if (verticalEdge == SegmentType.LEFT) {
+        position = SelectionHandle.Position.LEFT_MIDDLE;
+      } else if (verticalEdge == SegmentType.RIGHT) {
+        position = SelectionHandle.Position.RIGHT_MIDDLE;
+      } else {
+        fail("Can't resize from center");
+        position = null;
       }
     } else {
       // Can't resize from edges like the baseline

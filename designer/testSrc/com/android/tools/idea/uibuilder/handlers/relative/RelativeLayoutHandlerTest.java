@@ -22,8 +22,307 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline;
+import static com.android.tools.idea.uibuilder.model.SegmentType.*;
+import static java.awt.event.InputEvent.SHIFT_MASK;
 
 public class RelativeLayoutHandlerTest extends LayoutTestCase {
+
+  public void testResizeToNowhereWithModifierKeepsPosition() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP, LEFT)
+      .drag(0, 0)
+      .modifiers(SHIFT_MASK)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testResizeTopRemovesVerticalConstraint() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP)
+      .drag(10, 10)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_toRightOf=\"@id/button\"\n" +
+                 "        android:layout_marginLeft=\"100dp\" />");
+  }
+
+  public void testResizeLeftRemovesHorizontalConstraint() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(LEFT)
+      .drag(10, 10)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@id/button\"\n" +
+                 "        android:layout_marginTop=\"100dp\" />");
+  }
+
+  public void testResizeTopLeftSnapToLeftOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP, LEFT)
+      .drag(-195, 10)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_alignLeft=\"@+id/button\" />");
+  }
+
+  // Resize left, top: snap to top edge of button
+  public void testResizeTopLeftSnapToTopOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP, LEFT)
+      .drag(100, -195)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_alignTop=\"@+id/button\" />");
+  }
+
+  public void testResizeTopLeftWithModifierSnapToBottomLeftOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP, LEFT)
+      .modifiers(SHIFT_MASK)
+      .drag(-195, -100)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
+                 "        android:layout_alignLeft=\"@+id/button\" />");
+  }
+
+  public void testResizeTopLeftWithModifierCloseToBottomLeftOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(TOP, LEFT)
+      .modifiers(SHIFT_MASK)
+      .drag(-175, -78)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"26dp\"\n" +
+                 "        android:layout_marginTop=\"22dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
+                 "        android:layout_alignLeft=\"@+id/button\" />");
+  }
+
+  public void testResizeBottomRightWithModifier() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(BOTTOM, RIGHT)
+      .modifiers(SHIFT_MASK)
+      .drag(10, 10)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@id/button\"\n" +
+                 "        android:layout_toRightOf=\"@id/button\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_alignParentBottom=\"true\"\n" +
+                 "        android:layout_alignParentRight=\"true\"\n" +
+                 "        android:layout_marginRight=\"670dp\"\n" +
+                 "        android:layout_marginBottom=\"670dp\" />");
+  }
+
+  public void testResizeBottomRightWithModifierSnapToBottomOfLayout() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(BOTTOM, RIGHT)
+      .modifiers(SHIFT_MASK)
+      .drag(670, 670)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@id/button\"\n" +
+                 "        android:layout_toRightOf=\"@id/button\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_alignParentBottom=\"true\"\n" +
+                 "        android:layout_alignParentRight=\"true\" />");
+  }
+
+  public void testResizeBottomRightWithModifierToBottomOfLayout() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .resize(BOTTOM, RIGHT)
+      .modifiers(SHIFT_MASK)
+      .drag(580, 580)
+      .release()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@id/button\"\n" +
+                 "        android:layout_toRightOf=\"@id/button\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_alignParentBottom=\"true\"\n" +
+                 "        android:layout_alignParentRight=\"true\"\n" +
+                 "        android:layout_marginRight=\"100dp\"\n" +
+                 "        android:layout_marginBottom=\"100dp\" />");
+  }
+
+  public void testMoveToNowhere() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(0, 0)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"100dp\"\n" +
+                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testMoveSnapToTopOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(30, -200)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"130dp\"\n" +
+                 "        android:layout_alignTop=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testMoveCloseToTopOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(30, -179)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"130dp\"\n" +
+                 "        android:layout_marginTop=\"22dp\"\n" +
+                 "        android:layout_alignTop=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testMoveSnapToBottomOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(150, -120)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"250dp\"\n" +
+                 "        android:layout_alignBottom=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testMoveCloseToBottomOfButton() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(150, -150)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"250dp\"\n" +
+                 "        android:layout_alignBottom=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\"\n" +
+                 "        android:layout_marginBottom=\"30dp\" />");
+  }
+
+  public void testMoveSnapToMiddleOfLayout() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .drag(200, 200)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_centerVertical=\"true\"\n" +
+                 "        android:layout_centerHorizontal=\"true\" />");
+  }
+
+  public void testMoveWithModifier() {
+    surface().screen(createModel())
+      .get("@id/checkbox")
+      .drag()
+      .modifiers(SHIFT_MASK)
+      .drag(30, 30)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_below=\"@+id/button\"\n" +
+                 "        android:layout_toRightOf=\"@+id/button\" />");
+  }
+
+  public void testMoveSnapToBaseline() {
+    surface().screen(createModel())
+      .get("@id/textView")
+      .drag()
+      .drag(0, -153)
+      .release()
+      .primary()
+      .expectXml("<TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginLeft=\"80dp\"\n" +
+                 "        android:layout_alignBaseline=\"@+id/checkbox\"\n" +
+                 "        android:layout_alignBottom=\"@+id/checkbox\"\n" +
+                 "        android:layout_toRightOf=\"@+id/checkbox\" />");
+  }
 
   public void testMoveDoesNotReorderComponents() throws Exception {
     //noinspection XmlUnusedNamespaceDeclaration
@@ -70,6 +369,19 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "</RelativeLayout>");
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // The dependency checker for Relative Layout maintains a static cache with wek references.
+      // For tests this can be cleared
+      DependencyGraph.clearCacheAfterTests();
+    }
+    finally {
+      //noinspection ThrowFromFinallyBlock
+      super.tearDown();
+    }
+  }
+
   @NotNull
   private NlModel createModel() {
     ModelBuilder builder = model("relative.xml",
@@ -92,6 +404,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
                                      component(CHECK_BOX)
                                        .withBounds(300, 300, 20, 20)
+                                       .viewObject(mockViewWithBaseline(17))
                                        .id("@id/checkbox")
                                        .width("20dp")
                                        .height("20dp")
@@ -102,6 +415,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
                                      component(TEXT_VIEW)
                                        .withBounds(400, 400, 100, 100)
+                                       .viewObject(mockViewWithBaseline(70))
                                        .id("@id/textView")
                                        .width("100dp")
                                        .height("100dp")
