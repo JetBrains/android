@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import android.view.View;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -266,5 +267,11 @@ public class LayoutTestUtilities {
     else {
       return '<' + tag.getName() + '>';
     }
+  }
+
+  public static View mockViewWithBaseline(int baseline) {
+    View view = mock(View.class);
+    when(view.getBaseline()).thenReturn(baseline);
+    return view;
   }
 }
