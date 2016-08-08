@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
+import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceBundle;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.*;
@@ -36,9 +37,11 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.StatusText;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +71,7 @@ public class ShadersController extends Controller implements ResourceCollection.
     public final ResourcePath path;
     public String source;
     public Map<GfxAPIProtos.ShaderType, ResourceID> shaderResources = Collections.emptyMap();
+    public Uniform[] uniforms;
 
     public ShaderData(ResourceInfo resource, ResourcePath path) {
       this.resource = resource;
@@ -85,8 +89,25 @@ public class ShadersController extends Controller implements ResourceCollection.
     }
   }
 
+  private static class UniformData extends CellList.Data {
+    public static final UniformData EMPTY = new UniformData(null);
+
+    public final Uniform data;
+
+    public UniformData(Uniform data) {
+      this.data = data;
+    }
+
+    @Override
+    public String toString() {
+      return data.getType() + " " + data.getFormat() + " " + data.getName();
+    }
+
+  }
+
   @NotNull private final JPanel myPanel = new JPanel(new CardLayout());
   @NotNull private final JBSplitter mySplitter = new JBSplitter(false, 0.3f);
+  @NotNull private final CellList<UniformData> myUniformsList;
   private final EmptyPanel myEmptyPanel = new EmptyPanel();
 
   private static class EmptyPanel extends JComponent {
@@ -126,25 +147,65 @@ public class ShadersController extends Controller implements ResourceCollection.
     myProgramsList = new ShaderCellController(editor, CellList.Orientation.VERTICAL, GfxTraceEditor.SELECT_ATOM);
     myShadersList = new ShaderCellController(editor, CellList.Orientation.VERTICAL, GfxTraceEditor.SELECT_ATOM);
 
-    // Set listeners for selection actions.
-    myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
-      myShadersList.getList().selectItem(-1, false);
-      mySourcePanel.setData(item);
-      loadProgramSource(item);
-    });
-    myShadersList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
-      myProgramsList.getList().selectItem(-1, false);
-      mySourcePanel.setData(item);
-    });
-
     // Add shader and programs lists to tabs.
     JBRunnerTabs tabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
     tabs.addTab(new TabInfo(myShadersList.getList()).setText("Shaders"));
     tabs.addTab(new TabInfo(myProgramsList.getList()).setText("Programs"));
 
+    // Init uniform panel.
+    final CellRenderer.CellLoader<UniformData> uniformsLoader = (cell, onLoad) -> onLoad.run();
+
+    final CellRenderer<UniformData> uniformsRenderer = new CellRenderer<UniformData>(uniformsLoader) {
+      private final JBLabel label = new JBLabel() {{
+        setOpaque(true);
+      }};
+
+      @Override
+      protected UniformData createNullCell() {
+        return UniformData.EMPTY;
+      }
+
+      @Override
+      protected Component getRendererComponent(@NotNull JList list, @NotNull UniformData cell) {
+        label.setText(cell.toString());
+        label.setBackground(UIUtil.getListBackground(cell.isSelected));
+        return label;
+      }
+
+      @Nullable
+      @Override
+      public Dimension getInitialCellSize() {
+        return null;
+      }
+    };
+
+    // Init uniform list.
+    myUniformsList = new CellList<UniformData>(CellList.Orientation.VERTICAL, "Select a program", uniformsLoader) {
+      @Override
+      protected CellRenderer<UniformData> createCellRenderer(CellRenderer.CellLoader<UniformData> loader) {
+        return uniformsRenderer;
+      }
+    };
+
+    // Set listeners for selection actions.
+    myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
+      myShadersList.getList().selectItem(-1, false);
+      mySourcePanel.setData(item);
+      loadProgramSource(item);
+      loadUniforms(item);
+    });
+    myShadersList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
+      myProgramsList.getList().selectItem(-1, false);
+      mySourcePanel.setData(item);
+      myUniformsList.clearData();
+    });
+
     // Set up full UI.
+    JBSplitter programDataPanel = new JBSplitter(true, 0.8f);
+    programDataPanel.setFirstComponent(mySourcePanel);
+    programDataPanel.setSecondComponent(myUniformsList);
     mySplitter.setFirstComponent(tabs);
-    mySplitter.setSecondComponent(mySourcePanel);
+    mySplitter.setSecondComponent(programDataPanel);
     myPanel.add(mySplitter, CARD_SHADERS);
     myPanel.add(myEmptyPanel, CARD_EMPTY);
     ((CardLayout)myPanel.getLayout()).show(myPanel, CARD_EMPTY);
@@ -165,8 +226,10 @@ public class ShadersController extends Controller implements ResourceCollection.
     public void onTextLoadSuccess(Object result, ShaderData cell) {
       if (result instanceof Program) {
         cell.shaderResources = ((Program)result).getShaders();
+        cell.uniforms = ((Program)result).getUniforms();
         if (cell == myProgramsList.getList().getSelectedItem()) {
           loadProgramSource(cell);
+          loadUniforms(cell);
         }
       }
       else if (result instanceof Shader) {
@@ -184,6 +247,18 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     @Override
     public void notifyPath(PathEvent event) {
+    }
+  }
+
+  // Load uniform labels for selected program.
+  private void loadUniforms(ShaderData cell) {
+    if (cell.uniforms != null){
+      List<UniformData> uniforms = new LinkedList<>();
+      for (Uniform uniform : cell.uniforms) {
+        uniforms.add(new UniformData(uniform));
+      }
+      myUniformsList.setData(uniforms);
+      myUniformsList.repaint();
     }
   }
 

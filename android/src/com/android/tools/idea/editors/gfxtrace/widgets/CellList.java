@@ -27,6 +27,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -102,10 +103,12 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
       model.addElement(item);
     }
     myList.setModel(model);
+  }
 
-    if (data.size() == 0) {
-      myList.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
-    }
+  public void clearData() {
+    this.setData(Collections.emptyList());
+    DefaultListModel model = new DefaultListModel();
+    myList.setModel(model);
   }
 
   @Override
