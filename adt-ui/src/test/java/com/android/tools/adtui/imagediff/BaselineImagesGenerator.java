@@ -22,20 +22,24 @@ import java.io.File;
  */
 class BaselineImagesGenerator {
 
-  /**
-   * This class has ".../tools/idea" as their working directory, while {@link ImageDiffUtil} has ".../tools/adt/idea".
-   * Therefore, a relative path needs to be passed to {@link ImageDiffUtil#exportBaselineImage}.
-   * TODO: figure out a better way of getting the resources directory.
-   */
-  private static final String TEST_RESOURCES_RELATIVE_DIR = "../adt/idea/adt-ui/src/test/resources/imagediff";
-
   public static void main(String[] args) {
+    String resourcesDir;
+
+    try {
+      resourcesDir = args[0];
+    } catch (IndexOutOfBoundsException e) {
+      System.err.println("Usage: BaselineImagesGenerator <path>\nwhere <path> is a path to the imagediff test resources on your machine\n" +
+                         "e.g. ../tools/adt/idea/adt-ui/src/test/resources/imagediff");
+      return;
+    }
+
     for (ImageDiffEntry entry : ImageDiffUtil.IMAGE_DIFF_ENTRIES) {
-      // TODO: use TestResources.getFile to get/create the destination file
-      File destinationFile = new File(TEST_RESOURCES_RELATIVE_DIR, entry.getBaselineFilename());
+      File destinationFile = new File(resourcesDir, entry.getBaselineFilename());
       ImageDiffUtil.exportBaselineImage(destinationFile, entry.generateComponentImage());
     }
-    // TODO: investigate why this explicitly exit call is necessary.
+
+    // The program hangs unless I call System.exit(0) explicitly. The AWT event thread seems to keep running.
+    // TODO: investigate why it's happening and how to proper handle the workflow to avoid calling System.exit explicitly.
     System.exit(0);
   }
 }
