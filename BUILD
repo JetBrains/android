@@ -150,6 +150,14 @@ iml_module(
 )
 
 java_import(
+  name = "android/lib/asm-tree-5.0.3",
+  jars = [
+      "android/lib/asm-tree-5.0.3.jar",
+    ],
+  visibility = ["//visibility:public"],
+)
+
+java_import(
   name = "android/lib/jogl-all-natives-windows-i586",
   jars = [
       "android/lib/jogl-all-natives-windows-i586.jar",
@@ -238,6 +246,14 @@ java_import(
   name = "android/lib/gluegen-rt-natives-windows-amd64",
   jars = [
       "android/lib/gluegen-rt-natives-windows-amd64.jar",
+    ],
+  visibility = ["//visibility:public"],
+)
+
+java_import(
+  name = "android/lib/asm-analysis-5.0.3",
+  jars = [
+      "android/lib/asm-analysis-5.0.3.jar",
     ],
   visibility = ["//visibility:public"],
 )
@@ -398,6 +414,14 @@ java_import(
   name = "android/lib/jogl-all-natives-macosx-universal",
   jars = [
       "android/lib/jogl-all-natives-macosx-universal.jar",
+    ],
+  visibility = ["//visibility:public"],
+)
+
+java_import(
+  name = "android/lib/asm-5.0.3",
+  jars = [
+      "android/lib/asm-5.0.3.jar",
     ],
   visibility = ["//visibility:public"],
 )
