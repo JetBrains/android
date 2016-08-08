@@ -89,7 +89,7 @@ public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGr
 
     //noinspection TestOnlyProblems
     UserInputValidator validator = new UserInputValidator(model.getProject());
-    myListeners.listenAll(model.archive(), model.gradlePath()).withAndFire(validator::copyDataAndInvalidate);
+    myListeners.listenAll(model.archive(), model.gradlePath()).with(validator::copyDataAndInvalidate);
   }
 
   static boolean isValidExtension(VirtualFile file) {
