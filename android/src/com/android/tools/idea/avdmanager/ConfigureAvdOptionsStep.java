@@ -344,7 +344,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     String avdDisplayName;
     if (!getModel().isInEditMode().get() && getModel().systemImage().get().isPresent() && getModel().device().get().isPresent()) {
-      avdDisplayName = getModel().device().getValue().getDisplayName();
+      // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
+      // a display name. Ensure that the display name does not include any forbidden characters.
+      avdDisplayName = AvdNameVerifier.stripBadCharacters( getModel().device().getValue().getDisplayName() );
+
       getModel().avdDisplayName()
         .set(connection.uniquifyDisplayName(String.format(Locale.getDefault(), "%1$s API %2$s", avdDisplayName, getSelectedApiString())));
     }
@@ -636,13 +639,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         String errorMessage = "";
         if (value.isEmpty()) {
           severity = Severity.ERROR;
-          errorMessage = "The AVD name cannot be empty";
+          errorMessage = "The AVD name cannot be empty.";
         }
-        if (!value.matches("^[0-9a-zA-Z-_. ()]+$")) {
+        else if (!AvdNameVerifier.isValid(value)) {
           severity = Severity.ERROR;
-          errorMessage = "The AVD name can only contain the characters a-z A-Z 0-9 . _ - ( )";
+          errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
         }
-        if (!getModel().isInEditMode().get() && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+        else if (!getModel().isInEditMode().get() && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
           severity = Severity.ERROR;
           errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
         }
