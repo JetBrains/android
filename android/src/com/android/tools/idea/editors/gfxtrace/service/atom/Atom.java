@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class Atom {
   public static Atom wrap(BinaryObject object) {
@@ -31,18 +28,9 @@ public abstract class Atom {
     return (Atom)object;
   }
 
-  public void buildTree(@NotNull DefaultMutableTreeNode parent, long index) {
-    DefaultMutableTreeNode atomNode = new DefaultMutableTreeNode(new AtomController.Node(index, this), true);
-    parent.add(atomNode);
-    Observations observations = getObservations();
-    if (observations != null) {
-      for (Observation read : observations.getReads()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, read, true), false));
-      }
-      for (Observation write : observations.getWrites()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, write, false), false));
-      }
-    }
+  public int getObservationCount() {
+    Observations obs = getObservations();
+    return (obs == null) ? 0 : obs.getReads().length + obs.getWrites().length;
   }
 
   @NotNull
