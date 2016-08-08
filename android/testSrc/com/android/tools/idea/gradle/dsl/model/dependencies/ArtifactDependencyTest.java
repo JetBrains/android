@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,21 +36,68 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link DependenciesModel} and {@link ArtifactDependencyModel}.
  */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
-  public void testParsingWithCompactNotationAndConfigurationClosure() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('org.hibernate:hibernate:3.1') {\n" +
-                  "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
-                  "     force = true\n" +
-                  "\n" +
-                  "     //excluding a particular transitive dependency:\n" +
-                  "     exclude module: 'cglib' //by artifact name\n" +
-                  "     exclude group: 'org.jmock' //by group\n" +
-                  "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
-                  "\n" +
-                  "     //disabling all transitive dependencies of this dependency\n" +
-                  "     transitive = false\n" +
-                  "   }" +
-                  "}";
+
+  private static final String CONFIGURATION_CLOSURE_PARENS =
+    "dependencies {\n" +
+    "  compile('org.hibernate:hibernate:3.1') {\n" +
+    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
+    "     force = true\n" +
+    "\n" +
+    "     //excluding a particular transitive dependency:\n" +
+    "     exclude module: 'cglib' //by artifact name\n" +
+    "     exclude group: 'org.jmock' //by group\n" +
+    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
+    "\n" +
+    "     //disabling all transitive dependencies of this dependency\n" +
+    "     transitive = false\n" +
+    "   }" +
+    "}";
+
+  private static final String CONFIGURATION_CLOSURE_NO_PARENS =
+    "dependencies {\n" +
+    "  compile 'org.hibernate:hibernate:3.1', {\n" +
+    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
+    "     force = true\n" +
+    "\n" +
+    "     //excluding a particular transitive dependency:\n" +
+    "     exclude module: 'cglib' //by artifact name\n" +
+    "     exclude group: 'org.jmock' //by group\n" +
+    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
+    "\n" +
+    "     //disabling all transitive dependencies of this dependency\n" +
+    "     transitive = false\n" +
+    "   }" +
+    "}";
+
+  private static final String CONFIGURATION_CLOSURE_WITHIN_PARENS =
+    "dependencies {\n" +
+    "  compile('org.hibernate:hibernate:3.1', {\n" +
+    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
+    "     force = true\n" +
+    "\n" +
+    "     //excluding a particular transitive dependency:\n" +
+    "     exclude module: 'cglib' //by artifact name\n" +
+    "     exclude group: 'org.jmock' //by group\n" +
+    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
+    "\n" +
+    "     //disabling all transitive dependencies of this dependency\n" +
+    "     transitive = false\n" +
+    "   })" +
+    "}";
+
+  public void testParsingWithCompactNotationAndConfigurationClosure_parens() throws IOException {
+    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_PARENS);
+  }
+
+  public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
+    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_NO_PARENS);
+  }
+
+  public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
+    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_WITHIN_PARENS);
+  }
+
+  private void doTestParsingConfigurationVersion(String text) throws IOException {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -62,21 +110,19 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
-  public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('org.hibernate:hibernate:3.1') {\n" +
-                  "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
-                  "     force = true\n" +
-                  "\n" +
-                  "     //excluding a particular transitive dependency:\n" +
-                  "     exclude module: 'cglib' //by artifact name\n" +
-                  "     exclude group: 'org.jmock' //by group\n" +
-                  "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
-                  "\n" +
-                  "     //disabling all transitive dependencies of this dependency\n" +
-                  "     transitive = false\n" +
-                  "   }" +
-                  "}";
+  public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_parens() throws IOException {
+    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_PARENS);
+  }
+
+  public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
+    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_NO_PARENS);
+  }
+
+  public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
+    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_WITHIN_PARENS);
+  }
+
+  private void doTestSetVersionWithConfigurationClosure(String text) throws IOException {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -173,6 +219,40 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testAddDependencyWithConfigurationClosure() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    ArtifactDependencySpec newDependency = new ArtifactDependencySpec("espresso-contrib", "com.android.support.test.espresso", "2.2.2");
+    dependenciesModel.addArtifact(ANDROID_TEST_COMPILE,
+                                  newDependency,
+                                  ImmutableList.of(new ArtifactDependencySpec("support-v4", "com.android.support", null),
+                                                   new ArtifactDependencySpec("support-annotations", "com.android.support", null),
+                                                   new ArtifactDependencySpec("recyclerview-v7", "com.android.support", null),
+                                                   new ArtifactDependencySpec("design", "com.android.support", null)));
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk14";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(ANDROID_TEST_COMPILE, "espresso-contrib", "com.android.support.test.espresso", "2.2.2");
+    expected.assertMatches(dependencies.get(1));
+
+    // TODO: how to assert contents of the build.file
   }
 
 

@@ -19,8 +19,12 @@ import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 
 import java.util.List;
 
@@ -91,10 +95,29 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
 
   static void createAndAddToList(@NotNull GradleDslElementList list,
                                  @NotNull String configurationName,
-                                 @NotNull ArtifactDependencySpec dependency) {
+                                 @NotNull ArtifactDependencySpec dependency,
+                                 @NotNull List<ArtifactDependencySpec> excludes) {
     GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
     literal.setValue(dependency.compactNotation());
+
+    if (!excludes.isEmpty()) {
+      GrClosableBlock configBlock = buildExcludesBlock(excludes, list.getDslFile().getProject());
+      literal.setConfigBlock(configBlock);
+    }
+
     list.addNewElement(literal);
+  }
+
+  private static GrClosableBlock buildExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes, @NotNull Project project) {
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
+    GrClosableBlock block = factory.createClosureFromText("{\n}");
+    for (ArtifactDependencySpec spec : excludes) {
+      String text = String.format("exclude group: '%s', module: '%s'", spec.group, spec.name);
+      block.addBefore(factory.createStatementFromText(text), block.getLastChild());
+      PsiElement lineTerminator = factory.createLineTerminator(1);
+      block.addBefore(lineTerminator, block.getLastChild());
+    }
+    return block;
   }
 
   private static class MapNotation extends ArtifactDependencyModel {
