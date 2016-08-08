@@ -23,6 +23,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public final class Range implements BinaryObject {
   public boolean isValid() {
@@ -43,11 +46,51 @@ public final class Range implements BinaryObject {
   }
 
   /** @return whether any of the ranges contains the given index */
-  public static boolean contains(Range[] list, long atomIndex) {
-    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+  public static int contains(Range[] list, long atomIndex) {
+    return Arrays.binarySearch(list, null, (x, ignored) ->
       (atomIndex < x.myStart) ? 1 :
       (atomIndex >= x.myEnd) ? -1 : 0);
+  }
+
+  public static boolean overlaps(Range[] list, Range range) {
+    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+      (range.getEnd() <= x.myStart) ? 1 :
+      (range.getStart() >= x.myEnd) ? -1 : 0);
     return rangeIndex >= 0;
+  }
+
+  public static List<Range> intersection(Range[] list, Range range) {
+    assert range.getCount() > 0;
+
+    // find something that matches in the list
+    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+      (range.getEnd() <= x.myStart) ? 1 :
+      (range.getStart() >= x.myEnd) ? -1 : 0);
+
+    if (rangeIndex < 0) {
+      return Collections.emptyList();
+    }
+
+    LinkedList<Range> intersections = new LinkedList<>();
+    intersections.add(intersection(range, list[rangeIndex]));
+
+    int back = rangeIndex - 1;
+    while (back > 0 && list[back].overlaps(range)) {
+      intersections.addFirst(intersection(range, list[back]));
+      back--;
+    }
+
+    int forward = rangeIndex + 1;
+    while (forward < list.length && list[forward].overlaps(range)) {
+      intersections.addLast(intersection(range, list[forward]));
+      forward++;
+    }
+
+    return intersections;
+  }
+
+  private static Range intersection(Range range, Range foundRange) {
+    return new Range().setStart(Math.max(range.getStart(), foundRange.getStart())).setEnd(Math.min(range.getEnd(), foundRange.getEnd()));
   }
 
   /** @return whether this range has any overlap with the given range */
