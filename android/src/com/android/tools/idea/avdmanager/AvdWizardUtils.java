@@ -188,7 +188,7 @@ public class AvdWizardUtils {
    * @return The modified filename.
    */
   public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
-    candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
+    candidateBase = AvdNameVerifier.stripBadCharactersAndCollapse(candidateBase);
     if (candidateBase.isEmpty()) {
       candidateBase = "myavd";
     }
