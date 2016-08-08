@@ -17,6 +17,7 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.testutils.TestResources;
+import com.android.tools.adtui.common.AdtUiUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -37,13 +38,11 @@ import static org.junit.Assert.*;
  */
 public final class ImageDiffUtil {
 
-  /**
-   * Font that can be used in image comparison tests that generate images that contain a lot of text. Lucida Sans Regular looks similar in
-   * different OS, so it seems a good choice for these kinds of test.
-   */
-  public static final Font DEFAULT_IMG_DIFF_FONT = new Font("Lucida Sans Regular", Font.PLAIN, 12);
-
   private static final String TEST_DATA_DIR = "/imagediff/";
+
+  private static final String DEFAULT_FONT_PATH = "/fonts/OpenSans-Regular.ttf";
+
+  private static final float DEFAULT_FONT_SIZE = 12f;
 
   private static final Dimension TEST_IMAGE_DIMENSION = new Dimension(640, 480);
 
@@ -155,6 +154,22 @@ public final class ImageDiffUtil {
     g2d.drawImage(inputImg, 0, 0, null);
     g2d.dispose();
     return outputImg;
+  }
+
+  /**
+   * This font can be used in image comparison tests that generate images containing a lot of text.
+   * As logical fonts might differ considerably depending on the OS and JDK, using a TrueType Font is safer.
+   */
+  public static Font getDefaultFont() {
+    try {
+      Font font = Font.createFont(Font.TRUETYPE_FONT, TestResources.getFile(ImageDiffUtil.class, DEFAULT_FONT_PATH));
+      // Font is created with 1pt, so deriveFont can be used to resize it.
+      return font.deriveFont(DEFAULT_FONT_SIZE);
+
+    } catch (IOException | FontFormatException e) {
+      System.err.println("Couldn't load default TrueType Font. Using a logical font instead.");
+      return AdtUiUtils.DEFAULT_FONT;
+    }
   }
 
   public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
