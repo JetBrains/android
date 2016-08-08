@@ -70,6 +70,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private JButton myProfileButton;
 
+  private Range myFlameChartRange;
+
   public CpuProfilerUiManager(@NotNull Range timeViewRange,
                               @NotNull Range timeSelectionRange,
                               @NotNull Choreographer choreographer,
@@ -118,11 +120,12 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   }
 
   private void createTracingButton(@NotNull JPanel toolbar) {
-    myProfileButton  = new JButton();
+    myProfileButton = new JButton();
     myProfileButton.setVisible(true);
     myProfileButton.setIcon(AndroidIcons.Ddms.StartMethodProfiling);
     myProfileButton.setText("Start Tracing...");
-    myProfileButton.addActionListener(new TraceRequestHandler(myProfileButton, mySelectedDeviceProfilerService, myDeviceContext, myProject));
+    myProfileButton
+      .addActionListener(new TraceRequestHandler(myProfileButton, mySelectedDeviceProfilerService, myDeviceContext, myProject));
     toolbar.add(myProfileButton);
   }
 
@@ -141,6 +144,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
     myTabbedPane.add("Top-down stats", myTopdownJpanel);
     detailPanel.add(myTabbedPane);
+
+    myFlameChartRange = new Range();
+    myChoreographer.register(myFlameChartRange);
   }
 
   @Override
@@ -148,6 +154,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
     myChoreographer.unregister(myThreadSegment);
     myChoreographer.unregister(myFlameChart);
+    myChoreographer.unregister(myFlameChartRange);
     myChoreographer.unregister(myExecutionChart);
     overviewPanel.remove(myThreadSegment);
     detailPanel.remove(myTabbedPane);
@@ -193,7 +200,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     SparseArray<HNode<MethodUsage>> usageTrees = trace.getTopdownStats();
     HNode<MethodUsage> usageTree = usageTrees.get(threadId);
     myFlameChart.setHTree(usageTree);
-    myFlameChart.setXRange(new Range(usageTree.getStart(), usageTree.getEnd()));
+    myFlameChartRange.set(usageTree.getStart(), usageTree.getEnd());
+    myFlameChart.setXRange(myFlameChartRange);
 
     // Setup selection (blue highlight)
     myTimeSelectionRange.set(executionTree.getStart(), executionTree.getEnd());
