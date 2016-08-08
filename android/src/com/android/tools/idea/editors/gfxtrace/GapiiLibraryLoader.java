@@ -56,6 +56,8 @@ public class GapiiLibraryLoader {
 
   private static final String DEVICE_TMP_DIR = "/data/local/tmp";
   private static final long LIB_INSTALLATION_TIMEOUT_MS = 60000;
+  private static final int CLIENT_READY_CHECK_ATTEMPTS = 40;
+  private static final long CLIENT_READY_CHECK_INTERVAL_MS = 250;
 
   private IDevice myDevice;
   private Project myProject;
@@ -70,7 +72,14 @@ public class GapiiLibraryLoader {
 
     LOG.debug("Attaching to " + pkg);
     AndroidJavaDebugger debugger = new AndroidJavaDebugger();
-    Client client = myDevice.getClient(pkg);
+
+    Client clientCandidate = myDevice.getClient(pkg);
+    for (int retry = 0; retry < CLIENT_READY_CHECK_ATTEMPTS && clientCandidate == null; retry++) {
+      Thread.sleep(CLIENT_READY_CHECK_INTERVAL_MS);
+      clientCandidate = myDevice.getClient(pkg);
+    }
+
+    Client client = clientCandidate;
     if (client == null) {
       throw new RuntimeException("Failed to attach to process.");
     }
