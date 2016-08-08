@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.npw.ChooseTemplateStep;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.WizardPath;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -92,17 +90,17 @@ public class WrapArchiveWizardPath implements WizardPath {
   @Override
   public void createModule() {
     if (myProject != null) {
-      File archivePath = new File(myWizardState.getString(KEY_ARCHIVE));
+      String archivePath = myWizardState.getString(KEY_ARCHIVE);
       String path = myWizardState.getString(KEY_GRADLE_PATH);
       boolean move = myWizardState.getBoolean(KEY_MOVE_ARCHIVE);
       Module[] modules = (Module[])myWizardState.get(KEY_MODULES_FOR_DEPENDENCY_UPDATE);
-      if (modules == null) {
-        modules = new Module[0];
+      Module containingModule = null;
+      if (modules != null && modules.length > 0) {
+        containingModule = modules[0];
       }
       String gradlePath = makeAbsolute(path);
-      GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);
       CreateModuleFromArchiveAction action =
-          new CreateModuleFromArchiveAction(myProject, settingsFile, gradlePath, archivePath, move, modules);
+        new CreateModuleFromArchiveAction(myProject, gradlePath, archivePath, move, containingModule);
       action.execute();
     }
   }
