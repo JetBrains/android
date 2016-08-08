@@ -137,8 +137,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
-    updateDefaultProperties(propertiesManager);
-    myInspectorPanel.refresh();
+    UIUtil.invokeLaterIfNeeded(() -> {
+      // Bug:219552 : Make sure updateDefaultProperties is always called from the same thread (the UI thread)
+      updateDefaultProperties(propertiesManager);
+      myInspectorPanel.refresh();
+    });
   }
 
   private void updateDefaultProperties(@NotNull NlPropertiesManager propertiesManager) {
