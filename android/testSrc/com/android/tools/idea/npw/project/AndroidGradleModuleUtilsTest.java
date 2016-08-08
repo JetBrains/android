@@ -26,15 +26,15 @@ import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getCon
 public class AndroidGradleModuleUtilsTest extends AndroidGradleImportTestCase {
 
   public void testGetContainingModule() {
-    final Project project = getProject();
-    final File archiveToImport = createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
+    Project project = getProject();
+    File archiveToImport = createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
     assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
   }
 
   public void testGetContainingModuleNested() {
-    final Project project = getProject();
-    final File archiveToImport = createArchiveInModuleWithinCurrentProject(true, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
+    Project project = getProject();
+    File archiveToImport = createArchiveInModuleWithinCurrentProject(true, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
 
     assertEquals(getContainingModule(archiveToImport, project), ModuleManager.getInstance(project).findModuleByName(SOURCE_MODULE_NAME));
   }

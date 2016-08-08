@@ -62,12 +62,12 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleImportTestCase {
   }
 
   public void testValidatePath() throws IOException {
-    final ArchiveToGradleModuleStep.UserInputValidator validator = myStep.new UserInputValidator(getProject());
-    final File notAJarOrAArFile = new File(getWorkingDir(), "test.abc");
+    ArchiveToGradleModuleStep.UserInputValidator validator = myStep.new UserInputValidator(getProject());
+    File notAJarOrAArFile = new File(getWorkingDir(), "test.abc");
     Files.touch(notAJarOrAArFile);
-    final File aJarFile = new File(getWorkingDir(), "test.jar");
+    File aJarFile = new File(getWorkingDir(), "test.jar");
     Files.touch(aJarFile);
-    final File anAarFile = new File(getWorkingDir(), "test.aar");
+    File anAarFile = new File(getWorkingDir(), "test.aar");
     Files.touch(anAarFile);
 
     validator.setData("", "");
@@ -84,8 +84,8 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleImportTestCase {
   }
 
   public void testValidateName() throws IOException {
-    final ArchiveToGradleModuleStep.UserInputValidator validator = myStep.new UserInputValidator(getProject());
-    final String archive = getJarNotInProject().getAbsolutePath();
+    ArchiveToGradleModuleStep.UserInputValidator validator = myStep.new UserInputValidator(getProject());
+    String archive = getJarNotInProject().getAbsolutePath();
     validator.setData(archive, "");
     assertThat(validator.validate()).isEqualTo(AndroidBundle.message("android.wizard.module.import.library.no.name"));
     validator.setData(archive, "not/valid");

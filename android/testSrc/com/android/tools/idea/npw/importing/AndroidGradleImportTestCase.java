@@ -57,7 +57,7 @@ import java.util.jar.Manifest;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-public class AndroidGradleImportTestCase extends AndroidGradleTestCase {
+public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase {
   protected static final String LIB_DIR_NAME = "lib";
   protected static final String LIBS_DEPENDENCY = "compile fileTree(include: ['*.jar'], dir: '" + LIB_DIR_NAME + "')";
   protected static final String ARCHIVE_NAME = "library";
@@ -95,11 +95,11 @@ public class AndroidGradleImportTestCase extends AndroidGradleTestCase {
    */
   @NotNull
   protected static byte[] createRealJarArchive() throws IOException {
-    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-    final Manifest manifest = new Manifest();
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    Manifest manifest = new Manifest();
     manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 
-    try (final JarOutputStream jar = new JarOutputStream(buffer, manifest)) {
+    try (JarOutputStream jar = new JarOutputStream(buffer, manifest)) {
       jar.putNextEntry(new JarEntry("/dummy.txt"));
       jar.write(TOP_LEVEL_BUILD_GRADLE.getBytes(Charset.defaultCharset()));
       return buffer.toByteArray();
@@ -150,7 +150,7 @@ public class AndroidGradleImportTestCase extends AndroidGradleTestCase {
 
   @NotNull
   protected File createArchiveInModuleWithinCurrentProject(boolean nested, String sourceModuleBuildGradleBody) {
-    final File newArchiveFile = new CreateGradleModuleWithinProjectAction(
+    File newArchiveFile = new CreateGradleModuleWithinProjectAction(
       getProject(),
       nested,
       sourceModuleBuildGradleBody).execute().getResultObject();
@@ -171,55 +171,55 @@ public class AndroidGradleImportTestCase extends AndroidGradleTestCase {
     }
 
     private static VirtualFile createGradleBuildFile(VirtualFile directory, String contents) throws IOException {
-      final VirtualFile archive = directory.createChildData(Integer.valueOf(0), SdkConstants.FN_BUILD_GRADLE);
+      VirtualFile archive = directory.createChildData(Integer.valueOf(0), SdkConstants.FN_BUILD_GRADLE);
       VfsUtil.saveText(archive, contents);
       return archive;
     }
 
     @Override
-    protected void run(@NotNull final Result<File> result) throws Throwable {
+    protected void run(@NotNull Result<File> result) throws Throwable {
       String moduleDirectoryName = SOURCE_MODULE_NAME + "/" + LIB_DIR_NAME;
       if (myIsNested) {
         moduleDirectoryName = PARENT_MODULE_NAME + "/" + moduleDirectoryName;
       }
-      final File path = new File(virtualToIoFile(myProject.getBaseDir()), moduleDirectoryName);
-      final VirtualFile archiveDirectory = VfsUtil.createDirectories(path.getAbsolutePath());
-      final VirtualFile moduleDirectory = archiveDirectory.getParent();
+      File path = new File(virtualToIoFile(myProject.getBaseDir()), moduleDirectoryName);
+      VirtualFile archiveDirectory = VfsUtil.createDirectories(path.getAbsolutePath());
+      VirtualFile moduleDirectory = archiveDirectory.getParent();
 
-      final VirtualFile archive = archiveDirectory.createChildData(this, ARCHIVE_JAR_NAME);
+      VirtualFile archive = archiveDirectory.createChildData(this, ARCHIVE_JAR_NAME);
       archive.setBinaryContent(createRealJarArchive());
 
-      final VirtualFile moduleBuildGradle = createGradleBuildFile(moduleDirectory, mySourceModuleBuildGradleBody);
-      final VirtualFile topBuildGradle = createGradleBuildFile(myProject.getBaseDir(), TOP_LEVEL_BUILD_GRADLE);
-      final VirtualFile parentBuildGradle =
+      VirtualFile moduleBuildGradle = createGradleBuildFile(moduleDirectory, mySourceModuleBuildGradleBody);
+      VirtualFile topBuildGradle = createGradleBuildFile(myProject.getBaseDir(), TOP_LEVEL_BUILD_GRADLE);
+      VirtualFile parentBuildGradle =
         myIsNested ? createGradleBuildFile(moduleDirectory.getParent(), String.format(BUILD_GRADLE_TEMPLATE, ""))
                    : null;
       PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
       GradleSettingsFile settingsGradle = GradleSettingsFile.getOrCreate(myProject);
 
-      final String gradlePath = myIsNested ? PARENT_MODULE_GRADLE_PATH + SOURCE_MODULE_GRADLE_PATH : SOURCE_MODULE_GRADLE_PATH;
+      String gradlePath = myIsNested ? PARENT_MODULE_GRADLE_PATH + SOURCE_MODULE_GRADLE_PATH : SOURCE_MODULE_GRADLE_PATH;
       if (myIsNested) {
         settingsGradle.addModule(PARENT_MODULE_GRADLE_PATH, virtualToIoFile(moduleDirectory.getParent()));
       }
       settingsGradle.addModule(gradlePath, virtualToIoFile(moduleDirectory));
 
-      final AtomicReference<String> error = Atomics.newReference();
-      final AtomicBoolean done = new AtomicBoolean(false);
+      AtomicReference<String> error = Atomics.newReference();
+      AtomicBoolean done = new AtomicBoolean(false);
       GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
 
         private void createFacet(String moduleName,
                                  String gradlePath,
                                  VirtualFile gradleFile) {
-          final Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleName);
+          Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleName);
           assertThat(module).isNotNull();
-          final FacetManager facetManager = FacetManager.getInstance(module);
-          final ModifiableFacetModel modifiableModel = facetManager.createModifiableModel();
-          final AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-          final GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
+          FacetManager facetManager = FacetManager.getInstance(module);
+          ModifiableFacetModel modifiableModel = facetManager.createModifiableModel();
+          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
                                                                     gradlePath,
                                                                     virtualToIoFile(topBuildGradle),
                                                                     "compile");
-          final GradleModel gradleModel = GradleModel.create(moduleName, gradleProject, virtualToIoFile(gradleFile), "2.2.1");
+          GradleModel gradleModel = GradleModel.create(moduleName, gradleProject, virtualToIoFile(gradleFile), "2.2.1");
           facet.setGradleModel(gradleModel);
           modifiableModel.addFacet(facet);
           modifiableModel.commit();
