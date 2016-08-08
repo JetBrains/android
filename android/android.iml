@@ -36,6 +36,7 @@
     <orderEntry type="module" module-name="properties" />
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
+    <orderEntry type="library" exported="" name="asm" level="project" />
     <orderEntry type="module" module-name="android-common" exported="" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
