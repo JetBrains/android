@@ -59,6 +59,8 @@ iml_module(
         "//tools:idea.properties[module]",
         "//tools:idea/lib/xpp3-1.1.4-min",
         "//tools:idea.testng[module]",
+        "//tools:idea/lib/asm",
+        "//tools:idea/lib/asm-commons",
         "//tools/adt/idea:android-common[module]",
         "//tools/adt/idea:android-rt[module]",
         "//tools:idea.java-indexing-api[module]",
@@ -144,7 +146,11 @@ iml_module(
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:common[module]",
     ],
-    exports = ["//tools/adt/idea:android-common"],
+    exports = [
+        "//tools:idea/lib/asm",
+        "//tools:idea/lib/asm-commons",
+        "//tools/adt/idea:android-common",
+    ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
