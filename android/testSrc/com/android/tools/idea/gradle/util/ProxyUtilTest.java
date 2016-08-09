@@ -82,10 +82,10 @@ public class ProxyUtilTest extends TestCase {
     assertFalse(reproxy.hashCode() == myProxy.hashCode());
     assertTrue(reproxy.equals(reproxy));
     assertTrue(reproxy.hashCode() == reproxy.hashCode());
-    assertFalse(reproxy.equals(reproxy2));
-    assertFalse(reproxy.hashCode() == reproxy2.hashCode());
-    assertFalse(reproxy2.equals(reproxy));
-    assertFalse(reproxy2.hashCode() == reproxy.hashCode());
+    assertTrue(reproxy.equals(reproxy2));
+    assertTrue(reproxy.hashCode() == reproxy2.hashCode());
+    assertTrue(reproxy2.equals(reproxy));
+    assertTrue(reproxy2.hashCode() == reproxy.hashCode());
   }
 
   public void testToString() throws Exception {
