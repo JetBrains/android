@@ -99,7 +99,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private final boolean myAndroidTests;
 
   public String DEBUGGER_TYPE;
-  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates = Maps.newHashMap();
+  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates;
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -113,10 +113,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       builder.put(provider.getId(), provider.createState());
     }
     myDeployTargetStates = builder.build();
+
     DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+    // ImmutableSortedMap.naturalOrder is used to make sure that state entries are persisted in the same order.
+    ImmutableSortedMap.Builder<String, AndroidDebuggerState> androidDebuggerStateBuilder = ImmutableSortedMap.naturalOrder();
     for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
+      androidDebuggerStateBuilder.put(androidDebugger.getId(), androidDebugger.createState());
     }
+    myAndroidDebuggerStates = androidDebuggerStateBuilder.build();
   }
 
   @Override
