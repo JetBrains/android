@@ -339,6 +339,9 @@ public class ConstraintUtilities {
    * @return
    */
   private static boolean versionGreaterThan(GradleVersion v, int major, int minor, int micro, int beta, int alpha) {
+    if (v == null) { // if you could not get the version assume it is the latest
+      return true;
+    }
     if (v.getMajor() != major) {
       return v.getMajor() > major;
     }
