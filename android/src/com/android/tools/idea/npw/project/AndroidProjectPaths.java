@@ -37,8 +37,6 @@ import java.util.List;
  * where the source provider returns multiple paths, we always take the first match.
  */
 public final class AndroidProjectPaths {
-  @NotNull private final AndroidFacet myAndroidFacet;
-
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcDirectory;
   @Nullable private File myTestDirectory;
@@ -51,17 +49,30 @@ public final class AndroidProjectPaths {
   }
 
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet, @NotNull SourceProvider sourceProvider) {
-    myAndroidFacet = androidFacet;
-    Module module = getModule();
+    init(sourceProvider);
+
+    Module module = androidFacet.getModule();
     VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
     if (roots.length > 0) {
       myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
     }
 
-    mySrcDirectory = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
-
     List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
     myTestDirectory = testsRoot.size() == 0 ? null : VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+  }
+
+  /**
+   * This constructor should be used when there is still no AndroidFacet (eg when creating a new module or Project)
+   */
+  public AndroidProjectPaths(@NotNull File moduleRoot, @NotNull File testDirectory, @NotNull SourceProvider sourceProvider) {
+    init(sourceProvider);
+
+    myModuleRoot = moduleRoot;
+    myTestDirectory = testDirectory;
+  }
+
+  private void init(@NotNull SourceProvider sourceProvider) {
+    mySrcDirectory = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
 
     Collection<File> resDirectories = sourceProvider.getResDirectories();
     if (!resDirectories.isEmpty()) {
@@ -88,16 +99,6 @@ public final class AndroidProjectPaths {
     else {
       return IdeaSourceProvider.getAllSourceProviders(androidFacet);
     }
-  }
-
-  @NotNull
-  public AndroidFacet getAndroidFacet() {
-    return myAndroidFacet;
-  }
-
-  @NotNull
-  public Module getModule() {
-    return myAndroidFacet.getModule();
   }
 
   @Nullable
