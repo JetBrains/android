@@ -37,24 +37,24 @@ public class AndroidGradleModuleUtils {
    */
   @Nullable
   static public Module getContainingModule(File file, Project project) {
-    final VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
+    VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
     if (vFile == null) {
       return null;
     }
     Module bestMatch = null;
     int bestMatchValue = Integer.MAX_VALUE;
-    for (final Module module : ModuleManager.getInstance(project).getModules()) {
-      final AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
       if (facet != null) {
-        final GradleModel gradleModel = facet.getGradleModel();
+        GradleModel gradleModel = facet.getGradleModel();
         assert gradleModel != null;
-        final VirtualFile buildFile = gradleModel.getBuildFile();
+        VirtualFile buildFile = gradleModel.getBuildFile();
         if (buildFile != null) {
-          final VirtualFile root = buildFile.getParent();
+          VirtualFile root = buildFile.getParent();
           if (VfsUtilCore.isAncestor(root, vFile, true)) {
-            final String relativePath = VfsUtilCore.getRelativePath(vFile, root, '/');
+            String relativePath = VfsUtilCore.getRelativePath(vFile, root, '/');
             if (relativePath != null) {
-              final int value = Iterables.size(Splitter.on('/').split(relativePath));
+              int value = Iterables.size(Splitter.on('/').split(relativePath));
               if (value < bestMatchValue) {
                 bestMatch = module;
                 bestMatchValue = value;

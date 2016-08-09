@@ -93,7 +93,7 @@ public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGr
   }
 
   static boolean isValidExtension(VirtualFile file) {
-    @NonNls final String extension = file.getExtension();
+    @NonNls String extension = file.getExtension();
     return extension != null && SUPPORTED_EXTENSIONS.contains(extension.toLowerCase());
   }
 
@@ -163,11 +163,11 @@ public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGr
       if (Strings.isNullOrEmpty(myArchive)) {
         return AndroidBundle.message("android.wizard.module.import.library.no.path");
       }
-      final File archiveFile = new File(myArchive);
+      File archiveFile = new File(myArchive);
       if (!archiveFile.isFile()) {
         return AndroidBundle.message("android.wizard.module.import.library.bad.path");
       }
-      final VirtualFile archiveVirtualFile = VfsUtil.findFileByIoFile(archiveFile, true);
+      VirtualFile archiveVirtualFile = VfsUtil.findFileByIoFile(archiveFile, true);
       if (!isValidExtension(archiveVirtualFile)) {
         return AndroidBundle.message("android.wizard.module.import.library.bad.extension");
       }
@@ -175,7 +175,7 @@ public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGr
       if (Strings.isNullOrEmpty(myGradlePath)) {
         return AndroidBundle.message("android.wizard.module.import.library.no.name");
       }
-      final int invalidCharIndex = GradleUtil.isValidGradlePath(myGradlePath);
+      int invalidCharIndex = GradleUtil.isValidGradlePath(myGradlePath);
       if (invalidCharIndex >= 0) {
         return AndroidBundle.message("android.wizard.module.import.library.bad.name", myGradlePath.charAt(invalidCharIndex));
       }

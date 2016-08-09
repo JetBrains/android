@@ -46,27 +46,27 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
   }
 
   @NotNull
-  public final Project getProject() {
+  public Project getProject() {
     return myProject;
   }
 
   @NotNull
-  public final StringProperty archive() {
+  public StringProperty archive() {
     return myArchive;
   }
 
   @NotNull
-  public final StringProperty gradlePath() {
+  public StringProperty gradlePath() {
     return myGradlePath;
   }
 
   @NotNull
-  public final BoolProperty moveArchive() {
+  public BoolProperty moveArchive() {
     return myMoveArchive;
   }
 
   @NotNull
-  public final BooleanExpression inModule() {
+  public BooleanExpression inModule() {
     return new BooleanExpression(myArchive) {
       @NotNull
       @Override
