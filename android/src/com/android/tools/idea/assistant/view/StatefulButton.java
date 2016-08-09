@@ -20,13 +20,19 @@ import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
+import com.intellij.ide.ui.laf.intellij.MacIntelliJBorder;
+import com.intellij.ide.ui.laf.intellij.MacIntelliJButtonBorder;
+import com.intellij.ide.ui.laf.intellij.MacIntelliJIconCache;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.plaf.ButtonUI;
+import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
@@ -37,7 +43,6 @@ import java.awt.event.ActionListener;
 public class StatefulButton extends JPanel {
 
   private ActionButton myButton;
-
   private String mySuccessMessage;
   private StatefulButtonMessage myMessage;
   private AssistActionStateManager myStateManager;
@@ -54,9 +59,30 @@ public class StatefulButton extends JPanel {
     // etc.
     mySuccessMessage = action.getSuccessMessage();
 
-    myButton = new ActionButton(action, listener, this);
-    // Override the button's ui to avoid white-on-white that appears with Mac rendering.
-    myButton.setUI((ButtonUI)StatefulButtonUI.createUI(myButton));
+    myButton = new ActionButton(action, listener, this) {
+      @Override
+      public void setUI(ButtonUI ui) {
+        // Custom ButtonUI needed to avoid white-on-white that appears with Mac rendering.
+        // Overriding setUI ensures a platform theme change doesn't undo the ButtonUI override.
+
+        // Hack: Hardcoding a custom ButtonUI since the platform specific customization for Mac, MacIntelliJButtonUI, doesn't always draw
+        // with get*Color* colors. Using a custom implementation that always draws using those colors.
+        super.setUI(StatefulButtonUI.createUI(myButton));
+        // TODO: Ask IntelliJ whether MacIntelliJButtonUI.paint should use get*Color*() to draw buttons when MacIntelliJButtonBorder present
+
+        // Super hack: Below is an unfortunate side effect of the hardcoding above. The Mac and Darcula button border implementation classes
+        // use dramatically different inset sizes, but the custom ButtonUI implementation is a fork of DarculaButtonUI which assumes a
+        // larger inset. The code below injects a padded border with the Darcula insets when the Mac border is present.
+        JButton defaultButton = new JButton();
+        Border defaultButtonBorder = defaultButton.getBorder();
+        if (defaultButtonBorder instanceof MacIntelliJButtonBorder) {
+          defaultButtonBorder = new DarculaButtonPainter();
+        }
+        Insets insets = defaultButtonBorder.getBorderInsets(defaultButton);
+        setBorder(BorderFactory.createEmptyBorder(insets.top, insets.left, insets.bottom, insets.right));
+      }
+    };
+
     add(myButton);
     // Initialize to hidden until state management is completed.
     myButton.setVisible(false);
@@ -181,7 +207,5 @@ public class StatefulButton extends JPanel {
     public DeveloperServiceList getDeveloperServices() {
       return myButtonWrapper.getServices();
     }
-
   }
-
 }
