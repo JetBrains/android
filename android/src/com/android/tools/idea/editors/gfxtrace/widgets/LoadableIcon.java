@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,9 +25,8 @@ import java.awt.image.BufferedImage;
 
 public class LoadableIcon extends JComponent implements Icon {
   private final int myWidth, myHeight;
-  private ListenableFuture<BufferedImage> myFuture;
   private BufferedImage myImage;
-  private State myState = State.LOADED;
+  private State myState = State.LOADING;
   private Component myRepaintComponent = this;
 
   public LoadableIcon(int width, int height) {
@@ -39,61 +35,33 @@ public class LoadableIcon extends JComponent implements Icon {
     setBounds(0, 0, width, height);
   }
 
-  public LoadableIcon withImage(final ListenableFuture<BufferedImage> future) {
-    synchronized (this) {
-      myState = State.LOADING;
-      myFuture = future;
-      myImage = null;
-    }
-
-    Futures.addCallback(future, new FutureCallback<BufferedImage>() {
-      @Override
-      public void onSuccess(BufferedImage result) {
-        update(result, State.LOADED);
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
-        update(null, State.FAILED);
-      }
-
-      private void update(BufferedImage image, State state) {
-        synchronized (LoadableIcon.this) {
-          if (future == myFuture) {
-            myState = state;
-            myFuture = null;
-            myImage = image;
-          }
-        }
-        repaint();
-      }
-    }, EdtExecutor.INSTANCE);
+  public LoadableIcon withImage(@Nullable("image still loading or loading failed") BufferedImage image, boolean loadingFailed) {
+    myState = loadingFailed ? State.FAILED : (image == null) ? State.LOADING : State.LOADED;
+    myImage = image;
     repaint();
     return this;
   }
 
-  public synchronized LoadableIcon withRepaintComponent(Component component) {
+  public LoadableIcon withRepaintComponent(Component component) {
     myRepaintComponent = component;
     return this;
   }
 
   @Override
   public void paintIcon(Component c, Graphics g, int x, int y) {
-    synchronized (this) {
-      switch (myState) {
-        case LOADING:
-          LoadingIndicator.paint(c, g, x, y, getWidth(), getHeight());
-          LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(myRepaintComponent));
-          break;
-        case LOADED:
-          if (myImage != null) {
-            RenderUtils.drawImage(c, g, myImage, x, y, getWidth(), getHeight());
-          }
-          break;
-        case FAILED:
-          RenderUtils.drawIcon(c, g, AllIcons.General.Warning, x, y, getWidth(), getHeight());
-          break;
-      }
+    switch (myState) {
+      case LOADING:
+        LoadingIndicator.paint(c, g, x, y, getWidth(), getHeight());
+        LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(myRepaintComponent));
+        break;
+      case LOADED:
+        if (myImage != null) {
+          RenderUtils.drawImage(c, g, myImage, x, y, getWidth(), getHeight());
+        }
+        break;
+      case FAILED:
+        RenderUtils.drawIcon(c, g, AllIcons.General.Warning, x, y, getWidth(), getHeight());
+        break;
     }
   }
 
@@ -109,9 +77,7 @@ public class LoadableIcon extends JComponent implements Icon {
 
   @Override
   public Dimension getPreferredSize() {
-    synchronized (this) {
-      return (myImage != null) ? new Dimension(myImage.getWidth(), myImage.getHeight()) : new Dimension(myWidth, myHeight);
-    }
+    return (myImage != null) ? new Dimension(myImage.getWidth(), myImage.getHeight()) : new Dimension(myWidth, myHeight);
   }
 
   @Override

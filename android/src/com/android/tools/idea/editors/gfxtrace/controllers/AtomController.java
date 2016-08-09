@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -31,6 +33,8 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolN
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
 import com.android.tools.idea.logcat.RegexFilterComponent;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
@@ -68,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -186,7 +191,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
     public final Atom lastLeaf;
     public final long indexOfLastLeaf;
 
-    private ListenableFuture<BufferedImage> thumbnail;
+    private ListenableFuture<BufferedImage> previewFuture;
+    private LoadableIcon thumbnail, preview;
     private DevicePath lastDevicePath;
 
     public Group(AtomGroup group, Atom lastLeaf, long indexOfLastLeaf) {
@@ -195,14 +201,48 @@ public class AtomController extends TreeController implements AtomStream.Listene
       this.indexOfLastLeaf = indexOfLastLeaf;
     }
 
-    public ListenableFuture<BufferedImage> getThumbnail(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
-      synchronized (this) {
-        if (thumbnail == null || !Objects.equal(lastDevicePath, devicePath)) {
-          lastDevicePath = devicePath;
-          thumbnail = FetchedImage.loadLevel(FetchedImage.load(client, client.getFramebufferColor(
+    public LoadableIcon getThumbnail(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
+      updateIcons(client, devicePath, atomsPath);
+      return thumbnail;
+    }
+
+    public LoadableIcon getPreview(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
+      updateIcons(client, devicePath, atomsPath);
+      return preview;
+    }
+
+    private void updateIcons(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
+      if (previewFuture == null || !Objects.equal(lastDevicePath, devicePath)) {
+        lastDevicePath = devicePath;
+        previewFuture = FetchedImage.loadLevel(FetchedImage.load(client, client.getFramebufferColor(
             devicePath, new AtomPath().setAtoms(atomsPath).setIndex(indexOfLastLeaf), THUMBNAIL_SETTINGS)), 0);
-        }
-        return thumbnail;
+        thumbnail = new LoadableIcon(THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+        preview = new LoadableIcon(PREVIEW_SIZE, PREVIEW_SIZE);
+
+        Rpc.listen(previewFuture, LOG, new UiErrorCallback<BufferedImage, BufferedImage, Void>() {
+          @Override
+          protected ResultOrError<BufferedImage, Void> onRpcThread(Rpc.Result<BufferedImage> result) {
+            try {
+              return success(result.get());
+            }
+            catch (RpcException | ExecutionException e) {
+              LOG.warn("Failed to load image", e);
+              return error(null);
+            }
+          }
+
+          @Override
+          protected void onUiThreadSuccess(BufferedImage result) {
+            thumbnail.withImage(result, false);
+            preview.withImage(result, false);
+          }
+
+          @Override
+          protected void onUiThreadError(Void error) {
+            thumbnail.withImage(null, true);
+            preview.withImage(null, true);
+          }
+        });
       }
     }
 
@@ -486,8 +526,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
                 AtomsPath atoms = myEditor.getAtomStream().getPath();
                 if (device != null && atoms != null) {
                   lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(
-                      new LoadableIcon(Group.PREVIEW_SIZE, Group.PREVIEW_SIZE)
-                        .withImage(group.getThumbnail(myEditor.getClient(), device, atoms)))
+                        group.getPreview(myEditor.getClient(), device, atoms))
                     .setAnimationCycle(100)
                     .createBalloon();
                   lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
@@ -549,9 +588,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
-            setIcon(new LoadableIcon(Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE)
-                    .withRepaintComponent(tree)
-                    .withImage(group.getThumbnail(myEditor.getClient(), device, atoms)));
+            setIcon(group.getThumbnail(myEditor.getClient(), device, atoms).withRepaintComponent(tree));
           }
         }
       }
