@@ -15,23 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
-import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -40,11 +32,9 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.tools.lint.checks.ConstraintLayoutDetector.LATEST_KNOWN_VERSION;
 
 /**
  * Quickfix which updates the constraint layout version to the latest available
@@ -65,47 +55,15 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
       StudioLoggerProgressIndicator
         progress = new StudioLoggerProgressIndicator(AndroidLintInspectionToolProvider.AndroidLintMissingConstraintsInspection.class);
-      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
-      GradleCoordinate gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-      assert gc != null;
-      Collection<? extends LocalPackage> localPackages = packages.getLocalPackages().values();
-      RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(gc, localPackages);
-      Project project = module.getProject();
-      if (constraintPackage == null) {
-        Collection<RemotePackage> remotePackages = packages.getRemotePackages().values();
-        constraintPackage = SdkMavenRepository.findBestPackageMatching(gc, remotePackages);
-        if (constraintPackage != null) {
-          List<String> paths = Collections.singletonList(constraintPackage.getPath());
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, paths);
-          if (dialog != null && !dialog.showAndGet()) {
-            // User cancelled - don't proceed to update dependency below
-            return;
-          }
+
+      RepoPackage p = SdkMavenRepository.findLatestVersion(LATEST_KNOWN_VERSION, sdkHandler, progress);
+      if (p != null) {
+        GradleCoordinate gc = SdkMavenRepository.getCoordinateFromSdkPath(p.getPath());
+        if (gc != null) { // should always be the case unless the version suffix is somehow wrong
+          // Update version dependency in the module. Note that this will trigger a sync too.
+          GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+          manager.updateLibrariesToVersion(module, Collections.singletonList(gc), null);
         }
-        else {
-          // Not found. This should not happen.
-          return;
-        }
-      }
-
-      // NOT constraintPackage.getVersion(), which isn't the maven version but the revision of this package
-      // (e.g. 1.0.0-alpha2 has version "1")
-      // The version
-      String version = constraintPackage.getPath();
-      version = version.substring(version.lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
-
-      // Temporary hack: the maven repository lookup might compute the most
-      // recent installed version in the SDK area when a newer one is available:
-      // make sure we use the latest
-      if (ConstraintLayoutDetector.LATEST_KNOWN_VERSION.compareTo(version) > 0) {
-        version = SdkConstants.LATEST_CONSTRAINT_LAYOUT_VERSION;
-      }
-
-      gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ':' + version);
-      if (gc != null) { // should always be the case unless the version suffix is somehow wrong
-        // Update version dependency in the module. Note that this will trigger a sync too.
-        GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-        manager.updateLibrariesToVersion(module, Collections.singletonList(gc), null);
       }
     }
   }
