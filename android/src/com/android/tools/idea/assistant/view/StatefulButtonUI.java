@@ -34,7 +34,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 
 /**
- * Button UI to address edge cases where default treatment is innapropriate (primarily due to our lighter background than most buttons
+ * Button UI to address edge cases where default treatment is inappropriate (primarily due to our lighter background than most buttons
  * are placed over. This is a fork of {@see DarculaButtonUI} with the colors changed.
  */
 public class StatefulButtonUI extends BasicButtonUI {
