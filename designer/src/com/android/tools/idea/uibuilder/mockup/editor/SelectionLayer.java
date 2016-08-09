@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Contract;
 
@@ -22,6 +23,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -99,17 +102,22 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private final Rectangle myOriginalSelection = new Rectangle();
   private final Point myClickOrigin = new Point();
   private final JPanel myParent;
+  private final AffineTransform myAffineTransform;
+  private final Point myConvertedMousePoint;
   private int mySelectedKnob = -1;
   private int myHoveredKnob = -1;
   private boolean myFixedRatio;
   private double myRatioWidth;
   private double myRatioHeight;
+  private int myConvertedKnobSize;
 
-  public SelectionLayer(JPanel parent) {
+  public SelectionLayer(JPanel parent, AffineTransform affineTransform) {
     myParent = parent;
     for (int i = 0; i < myKnobs.length; i++) {
       myKnobs[i] = new Rectangle();
     }
+    myAffineTransform = affineTransform;
+    myConvertedMousePoint = new Point();
   }
 
   @Override
@@ -136,15 +144,20 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
   }
 
+  public void contentResized() {
+    updateKnobPosition();
+  }
+
   /**
    * Set the knobs position regarding the values of the current selection
    */
   private void updateKnobPosition() {
+    myConvertedKnobSize = (int)Math.round(KNOB_SIZE / myAffineTransform.getScaleX());
 
     final int x1, y1, x2, y2, hSize, vSize;
-    if (mySelection.height < KNOB_SIZE * 3 || mySelection.width < KNOB_SIZE * 3) {
-      x1 = mySelection.x - KNOB_SIZE;
-      y1 = mySelection.y - KNOB_SIZE;
+    if (mySelection.height < myConvertedKnobSize * 3 || mySelection.width < myConvertedKnobSize * 3) {
+      x1 = mySelection.x - myConvertedKnobSize;
+      y1 = mySelection.y - myConvertedKnobSize;
       x2 = mySelection.x + mySelection.width;
       y2 = mySelection.y + mySelection.height;
       hSize = mySelection.width;
@@ -154,52 +167,59 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     else {
       x1 = mySelection.x;
       y1 = mySelection.y;
-      x2 = x1 + mySelection.width - KNOB_SIZE;
-      y2 = y1 + mySelection.height - KNOB_SIZE;
-      hSize = mySelection.width - KNOB_SIZE * 2;
-      vSize = mySelection.height - KNOB_SIZE * 2;
-      myKnobs[MOVE].setBounds(x1 + KNOB_SIZE, y1 + KNOB_SIZE, hSize, vSize);
+      x2 = x1 + mySelection.width - myConvertedKnobSize;
+      y2 = y1 + mySelection.height - myConvertedKnobSize;
+      hSize = mySelection.width - myConvertedKnobSize * 2;
+      vSize = mySelection.height - myConvertedKnobSize * 2;
+      myKnobs[MOVE].setBounds(x1 + myConvertedKnobSize, y1 + myConvertedKnobSize, hSize, vSize);
     }
 
-    myKnobs[NW].setBounds(x1, y1, KNOB_SIZE, KNOB_SIZE);
-    myKnobs[NE].setBounds(x2, y1, KNOB_SIZE, KNOB_SIZE);
-    myKnobs[SE].setBounds(x2, y2, KNOB_SIZE, KNOB_SIZE);
-    myKnobs[SW].setBounds(x1, y2, KNOB_SIZE, KNOB_SIZE);
+    myKnobs[NW].setBounds(x1, y1, myConvertedKnobSize, myConvertedKnobSize);
+    myKnobs[NE].setBounds(x2, y1, myConvertedKnobSize, myConvertedKnobSize);
+    myKnobs[SE].setBounds(x2, y2, myConvertedKnobSize, myConvertedKnobSize);
+    myKnobs[SW].setBounds(x1, y2, myConvertedKnobSize, myConvertedKnobSize);
 
-    myKnobs[N].setBounds((x1 + KNOB_SIZE), y1, hSize, KNOB_SIZE);
-    myKnobs[E].setBounds(x2, y1 + KNOB_SIZE, KNOB_SIZE, vSize);
-    myKnobs[S].setBounds(x1 + KNOB_SIZE, y2, hSize, KNOB_SIZE);
-    myKnobs[W].setBounds(x1, y1 + KNOB_SIZE, KNOB_SIZE, vSize);
+    myKnobs[N].setBounds((x1 + myConvertedKnobSize), y1, hSize, myConvertedKnobSize);
+    myKnobs[E].setBounds(x2, y1 + myConvertedKnobSize, myConvertedKnobSize, vSize);
+    myKnobs[S].setBounds(x1 + myConvertedKnobSize, y2, hSize, myConvertedKnobSize);
+    myKnobs[W].setBounds(x1, y1 + myConvertedKnobSize, myConvertedKnobSize, vSize);
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
-    myClickOrigin.x = Math.max(myBounds.x, Math.min(myBounds.x + myBounds.width, e.getX()));
-    myClickOrigin.y = Math.max(myBounds.y, Math.min(myBounds.y + myBounds.height, e.getY()));
-    myOriginalSelection.setBounds(mySelection);
+    try {
+      myAffineTransform.inverseTransform(e.getPoint(), myClickOrigin);
 
-    // Check if the click occurred on one of the knobs
-    if (!mySelection.isEmpty()) {
-      for (int i = 0; i < myKnobs.length; i++) {
-        if (myKnobs[i].contains(myClickOrigin)) {
-          mySelectedKnob = i;
-          return;
+      myClickOrigin.x = Math.max(myBounds.x, Math.min(myBounds.x + myBounds.width, myClickOrigin.x));
+      myClickOrigin.y = Math.max(myBounds.y, Math.min(myBounds.y + myBounds.height, myClickOrigin.y));
+      myOriginalSelection.setBounds(mySelection);
+
+      // Check if the click occurred on one of the knobs
+      if (!mySelection.isEmpty()) {
+        for (int i = 0; i < myKnobs.length; i++) {
+          if (myKnobs[i].contains(myClickOrigin)) {
+            mySelectedKnob = i;
+            return;
+          }
         }
       }
-    }
-    else {
-      myOriginalSelection.setLocation(myClickOrigin);
-    }
+      else {
+        myOriginalSelection.setLocation(myClickOrigin);
+      }
 
-    if (!mySelection.contains(myClickOrigin)) {
-      // If the click is outside the selection, delete the selection
-      // and create a new one
-      mySelection.setSize(0, 0);
-      mySelection.setLocation(myClickOrigin);
-      Rectangle2D.intersect(myBounds, mySelection, mySelection);
-      myOriginalSelection.setBounds(mySelection);
-      mySelectedKnob = SE;
-      updateKnobPosition();
+      if (!mySelection.contains(myClickOrigin)) {
+        // If the click is outside the selection, delete the selection
+        // and create a new one
+        mySelection.setSize(0, 0);
+        mySelection.setLocation(myClickOrigin);
+        Rectangle2D.intersect(myBounds, mySelection, mySelection);
+        myOriginalSelection.setBounds(mySelection);
+        mySelectedKnob = SE;
+        updateKnobPosition();
+      }
+    }
+    catch (NoninvertibleTransformException e1) {
+      Logger.getInstance(SelectionLayer.class).warn(e1);
     }
   }
 
@@ -210,74 +230,83 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    final int x = e.getX();
-    final int y = e.getY();
+    try {
+      myAffineTransform.inverseTransform(e.getPoint(), myConvertedMousePoint);
+      // Compute the drag distance
+      final int dx = myConvertedMousePoint.x - myClickOrigin.x;
+      final int dy = myConvertedMousePoint.y - myClickOrigin.y;
 
-    // Compute the drag distance
-    int dx = x - myClickOrigin.x;
-    int dy = y - myClickOrigin.y;
+      // Compute the new coordinate of the selection
+      int nx = myOriginalSelection.x + dx * myKnobsMoves[mySelectedKnob][X_MOVE];
+      int ny = myOriginalSelection.y + dy * myKnobsMoves[mySelectedKnob][Y_MOVE];
+      int nw = myOriginalSelection.width + dx * myKnobsMoves[mySelectedKnob][W_MOVE];
+      int nh = myOriginalSelection.height + dy * myKnobsMoves[mySelectedKnob][H_MOVE];
 
-    // Compute the new coordinate of the selection
-    int nx = myOriginalSelection.x + dx * myKnobsMoves[mySelectedKnob][X_MOVE];
-    int ny = myOriginalSelection.y + dy * myKnobsMoves[mySelectedKnob][Y_MOVE];
-    int nw = myOriginalSelection.width + dx * myKnobsMoves[mySelectedKnob][W_MOVE];
-    int nh = myOriginalSelection.height + dy * myKnobsMoves[mySelectedKnob][H_MOVE];
-
-    if (myFixedRatio) {
-      nh = (int)Math.round(nw * (myRatioHeight / myRatioWidth));
-    }
-
-    // Invert the selection direction if the mouse go behind
-    // the selection rectangle location
-    if (nw < 0) {
-      nx += nw;
-      nw = -nw;
-    }
-    if (nh < 0) {
-      ny += nh;
-      nh = -nh;
-    }
-
-    // Ensure that the selection does not go outside the bounds
-    if (mySelectedKnob == MOVE) {
-      mySelection.setLocation(
-        Math.min(Math.max(myBounds.x, nx), myBounds.x + myBounds.width - nw),
-        Math.min(Math.max(myBounds.y, ny), myBounds.y + myBounds.height - nh)
-      );
-    }
-    else {
-      if (!myFixedRatio || myBounds.contains(nx, ny, nw, nh)) {
-        mySelection.setBounds(nx, ny, nw, nh);
+      if (myFixedRatio) {
+        nh = (int)Math.round(nw * (myRatioHeight / myRatioWidth));
       }
-      if (!myFixedRatio) {
-        Rectangle2D.intersect(myBounds, mySelection, mySelection);
+
+      // Invert the selection direction if the mouse go behind
+      // the selection rectangle location
+      if (nw < 0) {
+        nx += nw;
+        nw = -nw;
       }
+      if (nh < 0) {
+        ny += nh;
+        nh = -nh;
+      }
+
+      // Ensure that the selection does not go outside the bounds
+      if (mySelectedKnob == MOVE) {
+        mySelection.setLocation(
+          Math.min(Math.max(myBounds.x, nx), myBounds.x + myBounds.width - nw),
+          Math.min(Math.max(myBounds.y, ny), myBounds.y + myBounds.height - nh)
+        );
+      }
+      else {
+        if (!myFixedRatio || myBounds.contains(nx, ny, nw, nh)) {
+          mySelection.setBounds(nx, ny, nw, nh);
+        }
+        if (!myFixedRatio) {
+          Rectangle2D.intersect(myBounds, mySelection, mySelection);
+        }
+      }
+      updateKnobPosition();
+      myParent.repaint();
     }
-    updateKnobPosition();
-    myParent.repaint();
+    catch (NoninvertibleTransformException e1) {
+      Logger.getInstance(SelectionLayer.class).warn(e1);
+    }
   }
 
   @Override
   public void mouseMoved(MouseEvent e) {
-    int hovered = -1;
-    if (!mySelection.isEmpty()) {
-      for (int i = 0; i < myKnobs.length; i++) {
-        if (myKnobs[i].contains(e.getPoint())) {
-          hovered = i;
+    try {
+      myAffineTransform.inverseTransform(e.getPoint(), myConvertedMousePoint);
+      int hovered = -1;
+      if (!mySelection.isEmpty()) {
+        for (int i = 0; i < myKnobs.length; i++) {
+          if (myKnobs[i].contains(myConvertedMousePoint)) {
+            hovered = i;
+          }
         }
       }
-    }
 
-    // Repaint only if the hovered change changed
-    if (hovered != myHoveredKnob) {
-      myHoveredKnob = hovered;
-      if (hovered >= 0) {
-        myParent.setCursor(CURSORS[hovered]);
+      // Repaint only if the hovered change changed
+      if (hovered != myHoveredKnob) {
+        myHoveredKnob = hovered;
+        if (hovered >= 0) {
+          myParent.setCursor(CURSORS[hovered]);
+        }
+        else {
+          myParent.setCursor(Cursor.getDefaultCursor());
+        }
+        myParent.repaint();
       }
-      else {
-        myParent.setCursor(Cursor.getDefaultCursor());
-      }
-      myParent.repaint();
+    }
+    catch (NoninvertibleTransformException e1) {
+      Logger.getInstance(SelectionLayer.class).warn(e1);
     }
   }
 
