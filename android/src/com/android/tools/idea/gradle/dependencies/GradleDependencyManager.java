@@ -123,10 +123,17 @@ public class GradleDependencyManager {
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     List<GradleCoordinate> missingLibraries = Lists.newArrayList();
     for (GradleCoordinate coordinate : dependencies) {
-      coordinate = manager.resolveDynamicCoordinate(coordinate, null);
-      if (coordinate == null) {
-        // TODO Should this be an error ?
-        continue;
+      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, null);
+      if (resolvedCoordinate == null) {
+        // We don't have anything installed, but we can keep trying with the unresolved coordinate if we have enough info
+        if (coordinate.getArtifactId() == null || coordinate.getGroupId() == null) {
+          // We don't have enough info to continue. Skip.
+          // TODO Should this be an error ?
+          continue;
+        }
+      }
+      else {
+        coordinate = resolvedCoordinate;
       }
 
       boolean dependencyFound = false;
