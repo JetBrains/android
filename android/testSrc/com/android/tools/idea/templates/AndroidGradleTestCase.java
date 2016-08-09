@@ -392,6 +392,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                    contents.substring(matcher.end(1));
         changed = true;
       }
+      else {
+        // Try "experimental" plugin.
+        pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]");
+        matcher = pattern.matcher(contents);
+        if (matcher.find()) {
+          contents = contents.substring(0, matcher.start(1)) + GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION +
+                     contents.substring(matcher.end(1));
+          changed = true;
+        }
+      }
 
       pattern = Pattern.compile("buildToolsVersion ['\"](.+)['\"]");
       matcher = pattern.matcher(contents);

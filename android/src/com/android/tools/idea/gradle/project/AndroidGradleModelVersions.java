@@ -16,19 +16,15 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidGradleExperimentalPluginVersionFromBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
-import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 
 class AndroidGradleModelVersions {
   @NotNull private final GradleVersion myCurrent;
@@ -37,32 +33,12 @@ class AndroidGradleModelVersions {
 
   @Nullable
   static AndroidGradleModelVersions find(@NotNull Project project) {
-    Module module = getAppAndroidModule(project);
-    if (module != null) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject != null) {
-        if (isUsingExperimentalPlugin(module)) {
-          // TODO: Add the plugin version to the model and get it from there directly.
-          GradleVersion current = getAndroidGradleExperimentalPluginVersionFromBuildFile(project);
-          if (current != null) {
-            return new AndroidGradleModelVersions(current, true);
-          }
-        }
-        else {
-          GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
-          return new AndroidGradleModelVersions(current, false);
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static Module getAppAndroidModule(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject != null && !androidProject.isLibrary()) {
-        return module;
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
+    if (androidPluginInfo != null) {
+      GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
+      if (pluginVersion != null) {
+        AndroidPluginGeneration pluginGeneration = androidPluginInfo.getPluginGeneration();
+        return new AndroidGradleModelVersions(pluginVersion, pluginGeneration == AndroidPluginGeneration.COMPONENT);
       }
     }
     return null;
