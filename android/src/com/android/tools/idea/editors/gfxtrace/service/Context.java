@@ -33,9 +33,6 @@ public class Context implements BinaryObject {
     public boolean contains(long index) { return true; }
 
     @Override
-    public boolean contains(Range range) { return true; }
-
-    @Override
     public Range[] getRanges(AtomList atoms) {
       return new Range[]{ new Range().setEnd(atoms.getAtoms().length) };
     }
@@ -48,10 +45,6 @@ public class Context implements BinaryObject {
   /** @return true if the atom with the specified index belongs to this context */
   public boolean contains(long index) {
     return Range.contains(myRanges, index);
-  }
-
-  public boolean contains(Range range) {
-    return Range.overlaps(myRanges, range);
   }
 
   public Range[] getRanges(AtomList atoms) {
