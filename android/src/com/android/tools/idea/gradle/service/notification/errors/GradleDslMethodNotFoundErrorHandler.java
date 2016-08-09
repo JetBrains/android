@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
@@ -40,9 +42,9 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandler {
@@ -115,9 +117,13 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
 
   private static boolean gradleModelIsRecent(@NotNull Project project) {
     // Sync has failed, so we can only check the build file.
-    GradleVersion fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
-    if (fromBuildFile != null) {
-      return fromBuildFile.compareTo(GRADLE_PLUGIN_RECOMMENDED_VERSION) >= 0;
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
+    if (androidPluginInfo != null) {
+      GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
+      if (pluginVersion != null) {
+        AndroidPluginGeneration pluginGeneration = androidPluginInfo.getPluginGeneration();
+        return pluginVersion.compareTo(pluginGeneration.getRecommendedVersion()) > 0;
+      }
     }
     return false;
   }
