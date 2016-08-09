@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
@@ -30,15 +30,19 @@ import java.util.Map;
 
 public class AndroidDebuggerContext implements JDOMExternalizable {
   public String DEBUGGER_TYPE;
-  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates = Maps.newHashMap();
+  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates;
   private final String myDefaultDebuggerType;
 
   public AndroidDebuggerContext(@NotNull String defaultDebuggerType) {
     myDefaultDebuggerType = defaultDebuggerType;
     DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+
+    // ImmutableSortedMap.naturalOrder is used to make sure that state entries are persisted in the same order.
+    ImmutableSortedMap.Builder<String, AndroidDebuggerState> builder = ImmutableSortedMap.naturalOrder();
     for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
+      builder.put(androidDebugger.getId(), androidDebugger.createState());
     }
+    myAndroidDebuggerStates = builder.build();
   }
 
   @Override
