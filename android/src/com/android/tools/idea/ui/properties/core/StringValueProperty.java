@@ -27,7 +27,7 @@ public final class StringValueProperty extends StringProperty {
 
   private String myValue;
 
-  public StringValueProperty(final String value) {
+  public StringValueProperty(@NotNull String value) {
     myValue = value;
   }
 
