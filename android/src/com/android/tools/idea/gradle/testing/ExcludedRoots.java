@@ -170,16 +170,20 @@ class ExcludedRoots {
       }
     }
 
-    // Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
-    // excluded.
-    // https://code.google.com/p/android/issues/detail?id=206481
-    Project project = myModule.getProject();
-    for (ModuleDependency dependency : dependencies.onModules()) {
-      Module module = dependency.getModule(project);
-      if (module != null) {
-        addLibraryPaths(module);
-      }
-    }
+    // Reverted this change because there are still issues with tests scopes.
+    // Apparently, we are still being too aggressive and excluding too much.
+    // See https://code.google.com/p/android/issues/detail?id=219707
+
+    //// Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
+    //// excluded.
+    //// https://code.google.com/p/android/issues/detail?id=206481
+    //Project project = myModule.getProject();
+    //for (ModuleDependency dependency : dependencies.onModules()) {
+    //  Module module = dependency.getModule(project);
+    //  if (module != null) {
+    //    addLibraryPaths(module);
+    //  }
+    //}
   }
 
   private void addLibraryPaths(@NotNull Module module) {
