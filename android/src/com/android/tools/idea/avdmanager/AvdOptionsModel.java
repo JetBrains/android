@@ -48,6 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 /**
  * {@link WizardModel} containing useful configuration settings for defining an AVD image.
  *
@@ -73,7 +75,7 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
 
   private BoolProperty myHasDeviceFrame = new BoolValueProperty(true);
-  private BoolProperty myUseExternalSdCard = new BoolValueProperty();
+  private BoolProperty myUseExternalSdCard = new BoolValueProperty(false);
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
     new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
@@ -390,7 +392,7 @@ public final class AvdOptionsModel extends WizardModel {
     else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
       sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
     }
-    existingSdLocation = new StringValueProperty(sdCardLocation);
+    existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
 
     String dataFolderPath = avdInfo.getDataFolderPath();
     File sdLocationFile = null;
@@ -571,7 +573,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
-    boolean hasSdCard;
+    boolean hasSdCard = false;
     if (!useExisting) {
 
       userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
@@ -583,7 +585,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
       hasSdCard = storage != null && storage.getSize() > 0;
     }
-    else {
+    else if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
       sdCard = existingSdLocation.get();
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;

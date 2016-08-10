@@ -25,7 +25,7 @@ public final class DoubleValueProperty extends DoubleProperty {
 
   private Double myValue;
 
-  public DoubleValueProperty(final Double value) {
+  public DoubleValueProperty(@NotNull Double value) {
     myValue = value;
   }
 

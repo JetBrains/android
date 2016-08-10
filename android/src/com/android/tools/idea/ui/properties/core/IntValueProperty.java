@@ -25,7 +25,7 @@ public final class IntValueProperty extends IntProperty {
 
   private Integer myValue;
 
-  public IntValueProperty(final Integer value) {
+  public IntValueProperty(@NotNull Integer value) {
     myValue = value;
   }
 
