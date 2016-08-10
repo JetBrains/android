@@ -17,8 +17,16 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.google.common.collect.ImmutableMap;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -31,6 +39,7 @@ public class RepositoryUrlManagerTest extends TestCase {
   private RepositoryUrlManager myRepositoryUrlManager;
   private File mySdkDir;
   private MockFileOp myFileOp;
+  private AndroidSdkHandler mySdkHandler;
 
   @Override
   public void setUp() throws Exception {
@@ -38,6 +47,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     myFileOp = new MockFileOp();
     mySdkDir = new File("/sdk-from-setUp");
     myRepositoryUrlManager = new RepositoryUrlManager();
+    mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp);
 
     String[] paths = new String[]{
       // Android repository
@@ -201,11 +211,11 @@ public class RepositoryUrlManagerTest extends TestCase {
   }
 
   private String resolveDynamicCoordinateVersion(GradleCoordinate coordinate) {
-    return myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null, mySdkDir, myFileOp);
+    return myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null, mySdkHandler);
   }
 
   private GradleCoordinate resolveDynamicCoordinate(GradleCoordinate coordinate) {
-    return myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null, mySdkDir, myFileOp);
+    return myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null, mySdkHandler);
   }
 
   public void testResolvedCoordinate_sdkMissing() throws Exception {
@@ -214,4 +224,23 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertNull(resolveDynamicCoordinateVersion(coordinate));
   }
 
+  public void testResolvedCoordinateLocalFirst() throws Exception {
+    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0", new Revision(1), null);
+    RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
+    RepoManager mgr = new FakeRepoManager(pkgs);
+    mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp, mgr);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
+    assertNotNull(coordinate);
+    assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));
+  }
+
+  public void testResolvedCoordinateRemoteSdk() throws Exception {
+    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0", new Revision(1), null);
+    RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
+    RepoManager mgr = new FakeRepoManager(pkgs);
+    mySdkHandler = new AndroidSdkHandler(new File("/emptysdk"), myFileOp, mgr);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
+    assertNotNull(coordinate);
+    assertEquals("4.5.0", resolveDynamicCoordinateVersion(coordinate));
+  }
 }
