@@ -54,6 +54,7 @@ public final class Render {
   public static final int NO_TAG = -1;
   public static final int STATE_VALUE_TAG = 0;
   public static final int REPORT_ITEM_ATOM_ID_TAG = 0;
+  public static final int REPORT_MESSAGE_VIEW_TAG = 100;
 
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
@@ -672,8 +673,17 @@ public final class Render {
     return getFieldIndex(tree, node, x, expanded, 2);
   }
 
-  public static int getReportNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
-    return getFieldIndex(tree, node, x, expanded, 0);
+  /**
+   * NodeCellRenderer has to be handled in a specific way.
+   */
+  public static int getReportNodeFieldIndex(@NotNull ReportController.NodeCellRenderer renderer, int x) {
+    for (int index = renderer.findFragmentAt(x); index >= 0; index--) {
+      Object tag = renderer.getFragmentTag(index, x);
+      if (tag != null && tag instanceof Integer) {
+        return (Integer)tag;
+      }
+    }
+    return NO_TAG;
   }
 
   private static int getFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded, int minIndex) {

@@ -54,10 +54,10 @@ public class ViewTextAction extends AbstractAction {
   /**
    * @see com.intellij.debugger.actions.ViewTextAction.MyDialog
    */
-  private static class MyDialog extends DialogWrapper {
+  public static class MyDialog extends DialogWrapper {
     private final EditorTextField myTextViewer;
 
-    private MyDialog(Project project) {
+    public MyDialog(Project project) {
       super(project, false);
       setModal(false);
       setCancelButtonText("Close");
