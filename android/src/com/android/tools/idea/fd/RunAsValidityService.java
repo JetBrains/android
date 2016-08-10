@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -50,10 +50,12 @@ public class RunAsValidityService implements RunAsValidator {
       workingRunAs = checkForWorkingRunAs(device, applicationId);
       ourRunAsStateByDevice.put(device.getSerialNumber(), workingRunAs);
     }
-    return workingRunAs;
+
+    return workingRunAs != null && workingRunAs.booleanValue();
   }
 
-  private Boolean checkForWorkingRunAs(@NotNull IDevice device, @NotNull String applicationId) {
+  @Nullable
+  private static Boolean checkForWorkingRunAs(@NotNull IDevice device, @NotNull String applicationId) {
     String cmd = "run-as " + applicationId + " ls";
     CollectingOutputReceiver receiver = new CollectingOutputReceiver();
     try {
@@ -66,9 +68,11 @@ public class RunAsValidityService implements RunAsValidator {
     String runAsOutput = receiver.getOutput();
     Logger.getInstance(RunAsValidityService.class).info("Output of " + cmd + ": " + runAsOutput);
 
-    // Broken devices give a "run-as: Package 'com.foo' is unknown" message
+    // Broken devices give one of the following outputs:
+    //    "run-as: Package 'com.foo' is unknown"
+    //    "run-as: Could not set capabilities: Operation not permitted" (Samsung S6 - SM-G900F, 6.0.1, API 23)
     // Note that some devices may have other spurious output, so we explicitly check for the existence
-    // of the error message
-    return !runAsOutput.contains("run-as: Package");
+    // of one of the above error messages
+    return !runAsOutput.contains("run-as: Package") && !runAsOutput.contains("run-as: Could not set capabilities");
   }
 }
