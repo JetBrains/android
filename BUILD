@@ -151,6 +151,9 @@ iml_module(
         "//tools:idea/lib/asm-commons",
         "//tools/adt/idea:android-common",
     ],
+    test_data = glob([
+        "designer/testData/**/*",
+    ]),
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
