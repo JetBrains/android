@@ -35,21 +35,32 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.border.IdeaTitledBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
+import com.intellij.util.containers.*;
+import com.intellij.util.containers.HashMap;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.UniformFormat.*;
 
 /**
  * Controller for displaying shaders/programs.
@@ -57,6 +68,99 @@ import java.util.concurrent.ExecutionException;
 public class ShadersController extends Controller implements ResourceCollection.Listener, AtomStream.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new ShadersController(editor).myPanel;
+  }
+
+  private static abstract class CharMemoryModel {
+    private int rows;
+    private int cols;
+
+    public CharMemoryModel(int rows, int cols) {
+      this.rows = rows;
+      this.cols = cols;
+    }
+
+    public String formatMatrix() {
+      StringBuilder sb = new StringBuilder(50);
+      for (int row = 0; row < rows - 1; row++) {
+        sb.append(formatLine(row, cols) + "\n");
+      }
+      sb.append(formatLine(rows - 1, cols));
+      return sb.toString();
+    }
+
+    private String formatLine(int row, int cols) {
+      StringBuilder sb = new StringBuilder(50);
+      int CHARS_PER_FLOAT = 10;
+      int FLOAT_SEPARATOR = 1;
+      int myCharsPerRow = (CHARS_PER_FLOAT + FLOAT_SEPARATOR) * cols;
+
+      char[] buffer = new char[myCharsPerRow];
+      Arrays.fill(buffer, ' ');
+
+      for (int i = row * cols, j = 0; i < row * cols + cols; i++, j += CHARS_PER_FLOAT + FLOAT_SEPARATOR) {
+        sb.setLength(0);
+        if (validIndex(i)) {
+          charsFromInput(i, sb);
+        }
+        else {
+          charsFromUnknown(sb);
+        }
+        int count = Math.min(CHARS_PER_FLOAT, sb.length());
+        int dstBegin = j + CHARS_PER_FLOAT - count + 1;
+        sb.getChars(0, count, buffer, dstBegin);
+      }
+      return new String(buffer);
+    }
+
+    public abstract boolean validIndex(int index);
+
+    public abstract void charsFromInput(int index, StringBuilder sb);
+
+    public abstract void charsFromUnknown(StringBuilder sb);
+  }
+
+  private static class UniformDimensions {
+    public Map<GfxAPIProtos.UniformFormat, ArrayDimensions> matrixFormat;
+
+    public UniformDimensions() {
+      matrixFormat = new HashMap<>();
+      matrixFormat.put(Scalar, new ArrayDimensions(1, 1));
+      matrixFormat.put(Vec2, new ArrayDimensions(1, 2));
+      matrixFormat.put(Vec3, new ArrayDimensions(1, 3));
+      matrixFormat.put(Vec4, new ArrayDimensions(1, 4));
+      matrixFormat.put(Mat2, new ArrayDimensions(2, 2));
+      matrixFormat.put(Mat3, new ArrayDimensions(3, 3));
+      matrixFormat.put(Mat4, new ArrayDimensions(4, 4));
+      matrixFormat.put(Mat2x3, new ArrayDimensions(2, 3));
+      matrixFormat.put(Mat2x4, new ArrayDimensions(2, 4));
+      matrixFormat.put(Mat3x2, new ArrayDimensions(3, 2));
+      matrixFormat.put(Mat3x4, new ArrayDimensions(3, 4));
+      matrixFormat.put(Mat4x2, new ArrayDimensions(4, 2));
+      matrixFormat.put(Mat4x3, new ArrayDimensions(4, 3));
+      matrixFormat.put(Sampler, new ArrayDimensions(1, 1));
+    }
+
+    public ArrayDimensions getDimensions(GfxAPIProtos.UniformFormat uniformFormat) {
+      return matrixFormat.get(uniformFormat);
+    }
+  }
+
+  private static class ArrayDimensions {
+    private int rows = -1;
+    private int cols = -1;
+
+    public ArrayDimensions(int rows, int cols) {
+      this.rows = rows;
+      this.cols = cols;
+    }
+
+    public int getRows() {
+      return rows;
+    }
+
+    public int getCols() {
+      return cols;
+    }
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(ShadersController.class);
@@ -100,13 +204,66 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     @Override
     public String toString() {
-      return data.getType() + " " + data.getFormat() + " " + data.getName();
+      if (data == null) {
+        return "";
+      }
+      else {
+        return data.getType() + " " + data.getFormat() + " " + data.getName();
+      }
     }
 
+    private String formatData(int[] data, GfxAPIProtos.UniformFormat format) {
+      ArrayDimensions dims = new UniformDimensions().getDimensions(format);
+      CharMemoryModel intModel = new CharMemoryModel(dims.getRows(), dims.getCols()) {
+        @Override
+        public boolean validIndex(int index) {
+          return index < data.length;
+        }
+
+        @Override
+        public void charsFromInput(int index, StringBuilder sb) {
+          sb.append(data[index]);
+        }
+
+        @Override
+        public void charsFromUnknown(StringBuilder sb) {
+          sb.append("0");
+        }
+      };
+      return intModel.formatMatrix();
+    }
+
+    private String formatData(float[] data, GfxAPIProtos.UniformFormat format) {
+      ArrayDimensions dims = new UniformDimensions().getDimensions(format);
+      CharMemoryModel floatModel = new CharMemoryModel(dims.getRows(), dims.getCols()) {
+        @Override
+        public boolean validIndex(int index) {
+          return index < data.length;
+        }
+
+        @Override
+        public void charsFromInput(int index, StringBuilder sb) {
+          sb.append(data[index]);
+        }
+
+        @Override
+        public void charsFromUnknown(StringBuilder sb) {
+          sb.append("0.0");
+        }
+      };
+      return floatModel.formatMatrix();
+    }
+
+    public String getFormattedValue() {
+      return data.getType() == GfxAPIProtos.UniformType.Float ?
+             formatData((float[])data.getValue(), data.getFormat()) :
+             formatData((int[])data.getValue(), data.getFormat());
+
+    }
   }
 
   @NotNull private final JPanel myPanel = new JPanel(new CardLayout());
-  @NotNull private final JBSplitter mySplitter = new JBSplitter(false, 0.3f);
+  @NotNull private final ThreeComponentsSplitter mySplitter = new ThreeComponentsSplitter(false);
   @NotNull private final CellList<UniformData> myUniformsList;
   private final EmptyPanel myEmptyPanel = new EmptyPanel();
 
@@ -137,6 +294,7 @@ public class ShadersController extends Controller implements ResourceCollection.
   @NotNull private final ShaderCellController myProgramsList;
   @NotNull private final ShaderCellController myShadersList;
   @NotNull private final SourcePanel mySourcePanel = new SourcePanel();
+  @NotNull private final JTextArea myUniformValuePanel = new JTextArea();
 
   public ShadersController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -190,6 +348,7 @@ public class ShadersController extends Controller implements ResourceCollection.
     // Set listeners for selection actions.
     myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
       myShadersList.getList().selectItem(-1, false);
+      myUniformsList.clearData();
       mySourcePanel.setData(item);
       loadProgramSource(item);
       loadUniforms(item);
@@ -199,17 +358,58 @@ public class ShadersController extends Controller implements ResourceCollection.
       mySourcePanel.setData(item);
       myUniformsList.clearData();
     });
+    myUniformsList.addSelectionListener(new CellWidget.SelectionListener<UniformData>() {
+      @Override
+      public void selected(UniformData item) {
+        myUniformValuePanel.setText(item.getFormattedValue());
+        myUniformsList.selectItem(myUniformsList.getSelectedIndex(), false);
+      }
+    });
+
+
+    // Set up splitters.
+    ThreeComponentsSplitter programDataPanel = new ThreeComponentsSplitter(true);
+    ThreeComponentsSplitter uniformDataPanel = new ThreeComponentsSplitter(false);
+
+    // Register for future garbage collection.
+    Disposer.register(this, programDataPanel);
+    Disposer.register(this, uniformDataPanel);
+    Disposer.register(this, mySplitter);
+
+    // Set up borders.
+    JPanel uniformCompositePanel = new JPanel();
+    uniformCompositePanel.setLayout(new BoxLayout(uniformCompositePanel, BoxLayout.Y_AXIS));
+    TitledBorder uniformBorder = new IdeaTitledBorder("Uniforms", 0, new Insets(0, 0, 0, 0));
+    uniformBorder.setTitleJustification(IdeaTitledBorder.CENTER);
+    uniformCompositePanel.setBorder(uniformBorder);
+    uniformCompositePanel.add(uniformDataPanel);
+
+    JPanel shaderCompositePanel = new JPanel();
+    shaderCompositePanel.setLayout(new BoxLayout(shaderCompositePanel, BoxLayout.Y_AXIS));
+    IdeaTitledBorder shaderBorder = new IdeaTitledBorder("Shader source", 0, new Insets(5, 5, 5, 5));
+    shaderBorder.setTitleJustification(IdeaTitledBorder.CENTER);
+    shaderCompositePanel.setBorder(shaderBorder);
+    shaderCompositePanel.add(programDataPanel);
+
 
     // Set up full UI.
-    JBSplitter programDataPanel = new JBSplitter(true, 0.8f);
+    programDataPanel.setDividerWidth(5);
+    programDataPanel.setFirstSize(JBUI.scale(600));
+    uniformDataPanel.setDividerWidth(5);
+    uniformDataPanel.setFirstSize(JBUI.scale(200));
+    mySplitter.setDividerWidth(5);
+    mySplitter.setFirstSize(JBUI.scale(200));
+
+    myUniformValuePanel.setEditable(false);
+    uniformDataPanel.setFirstComponent(myUniformsList);
+    uniformDataPanel.setLastComponent(new JBScrollPane(myUniformValuePanel));
     programDataPanel.setFirstComponent(mySourcePanel);
-    programDataPanel.setSecondComponent(myUniformsList);
+    programDataPanel.setLastComponent(uniformCompositePanel);
     mySplitter.setFirstComponent(tabs);
-    mySplitter.setSecondComponent(programDataPanel);
+    mySplitter.setLastComponent(shaderCompositePanel);
     myPanel.add(mySplitter, CARD_SHADERS);
     myPanel.add(myEmptyPanel, CARD_EMPTY);
     ((CardLayout)myPanel.getLayout()).show(myPanel, CARD_EMPTY);
-
   }
 
   public class ShaderCellController extends TextCellController<ShaderData> {
@@ -252,7 +452,7 @@ public class ShadersController extends Controller implements ResourceCollection.
 
   // Load uniform labels for selected program.
   private void loadUniforms(ShaderData cell) {
-    if (cell.uniforms != null){
+    if (cell.uniforms != null) {
       List<UniformData> uniforms = new LinkedList<>();
       for (Uniform uniform : cell.uniforms) {
         uniforms.add(new UniformData(uniform));
