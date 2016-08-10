@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
+import com.android.SdkConstants;
 import com.android.repository.Revision;
+import com.android.repository.api.RepoPackage;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,7 +61,8 @@ public class Version {
   }
 
   public String getSdkPackagePath() {
-    return "extras;android;gapid;" + major;
+    return String.join(String.valueOf(RepoPackage.PATH_SEPARATOR), SdkConstants.FD_EXTRAS, SdkConstants.FD_ANDROID_EXTRAS,
+                       SdkConstants.FD_GAPID, String.valueOf(major));
   }
 
   @Override
