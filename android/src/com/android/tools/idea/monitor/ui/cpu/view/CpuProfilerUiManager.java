@@ -36,6 +36,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.EventDispatcher;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -67,7 +68,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private JPanel myTopdownJpanel;
 
-  private CPUTraceController myCPUTraceControlsUI;
+  private JButton myProfileButton;
 
   private Range myFlameChartRange;
 
@@ -119,9 +120,13 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   }
 
   private void createTracingButton(@NotNull JPanel toolbar) {
-    TraceRequestHandler traceRequestHandler = new TraceRequestHandler(mySelectedDeviceProfilerService, myDeviceContext, myProject);
-    myCPUTraceControlsUI = new CPUTraceController(traceRequestHandler);
-    toolbar.add(myCPUTraceControlsUI);
+    myProfileButton = new JButton();
+    myProfileButton.setVisible(true);
+    myProfileButton.setIcon(AndroidIcons.Ddms.StartMethodProfiling);
+    myProfileButton.setText("Start Tracing...");
+    myProfileButton
+      .addActionListener(new TraceRequestHandler(myProfileButton, mySelectedDeviceProfilerService, myDeviceContext, myProject));
+    toolbar.add(myProfileButton);
   }
 
   @Override
@@ -153,13 +158,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myChoreographer.unregister(myExecutionChart);
     overviewPanel.remove(myThreadSegment);
     detailPanel.remove(myTabbedPane);
-    toolbar.remove(myCPUTraceControlsUI);
-  }
-
-  private void resetDetailedComponents() {
-    myTopdownJpanel.removeAll();
-    myExecutionChart.setHTree(null);
-    myFlameChart.setHTree(null);
+    toolbar.remove(myProfileButton);
   }
 
   @Override
@@ -177,18 +176,15 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
       return;
     }
 
-    resetDetailedComponents();
-
     ThreadStatesDataModel selectedThread = selectedThreads.get(0);
     int threadId = selectedThread.getPid();
     AppTrace trace = TraceDataStore.getInstance().getLastThreadsActivity(myProject.getName());
-    if (trace == null) { // No trace have been generated.
-      return;
-    }
-
     SparseArray<HNode<Method>> availableThreads = trace.getThreadsGraph();
 
+    myTopdownJpanel.removeAll();
     if (availableThreads.get(threadId) == null) {
+      myExecutionChart.setHTree(null);
+      myFlameChart.setHTree(null);
       return;
     }
 

@@ -43,11 +43,6 @@ public class TraceArt extends AppTrace {
   }
 
   @Override
-  public Source getSource() {
-    return Source.ART;
-  }
-
-  @Override
   public void parse() throws IOException {
     // Parse raw myData into perflib representation.
     VmTraceParser parser = new VmTraceParser(this.myTraceFile);
