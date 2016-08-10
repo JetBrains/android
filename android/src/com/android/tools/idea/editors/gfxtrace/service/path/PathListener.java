@@ -75,5 +75,9 @@ public interface PathListener {
     public ContextPath findContextPath() {
       return findPathOfType(ContextPath.class);
     }
+
+    public ReportItemPath findReportItemPath() {
+      return findPathOfType(ReportItemPath.class);
+    }
   }
 }

@@ -45,6 +45,7 @@ public class MainController extends Controller {
   @NotNull private final Content myStateTab;
   @NotNull private final Content myMemoryTab;
   @NotNull private final Content myGeoTab;
+  @NotNull private final Content myReportTab;
 
   private MainController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -94,7 +95,7 @@ public class MainController extends Controller {
     myGeoTab = addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
     myStateTab = addTab(myLayoutUi, StateController.createUI(editor), "GPU State", PlaceInGrid.center);
     myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
-    addTab(myLayoutUi, ReportController.createUI(editor), "Report", PlaceInGrid.right);
+    myReportTab = addTab(myLayoutUi, ReportController.createUI(editor), "Report", PlaceInGrid.right);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
 
@@ -136,6 +137,9 @@ public class MainController extends Controller {
     }
     else if (event.findAtomPath() != null) {
       select(myAtomTab);
+    }
+    else if (event.findReportItemPath() != null) {
+      select(myReportTab);
     }
   }
 

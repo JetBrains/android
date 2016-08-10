@@ -20,10 +20,45 @@ package com.android.tools.idea.editors.gfxtrace.service;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.*;
+import java.util.Map;
 
 public final class Report implements BinaryObject {
+  private Map<Long, List<Integer>> myAtomReportItemIdMap;
+
+  @Nullable("there's no report item associated to a given atom id")
+  public List<Integer> getForAtom(long atomId) {
+    return myAtomReportItemIdMap.get(atomId);
+  }
+
+  @NotNull
+  public List<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
+    List<Integer> list = new ArrayList<>();
+    for (long i = firstAtomId; i <= lastAtomId; ++i) {
+      List<Integer> value = myAtomReportItemIdMap.get(i);
+      if (value != null) {
+        list.addAll(value);
+      }
+    }
+    return list;
+  }
+
+  public void buildMap() {
+    myAtomReportItemIdMap = new HashMap<>();
+    for (int i = 0; i < myItems.length; ++i) {
+      ReportItem item = myItems[i];
+      List<Integer> items = myAtomReportItemIdMap.get(item.getAtom());
+      if (items == null) {
+        items = new ArrayList<>();
+        myAtomReportItemIdMap.put(item.getAtom(), items);
+      }
+      items.add(i);
+    }
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private ReportItem[] myItems;
 
