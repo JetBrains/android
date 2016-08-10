@@ -19,6 +19,10 @@ import com.android.testutils.JarTestSuiteRunner;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
+@JarTestSuiteRunner.ExcludeClasses({
+  com.android.tools.idea.IdeaTestSuite.class,
+  com.android.tools.idea.rendering.RenderSecurityManagerTest.class,
+})
 public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
