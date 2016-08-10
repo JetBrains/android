@@ -18,6 +18,13 @@ package com.android.tools.idea.assistant.view;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.editor.CaretState;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.VisualPosition;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -25,6 +32,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -169,6 +177,67 @@ public class TutorialStep extends JPanel {
   }
 
   /**
+   * Selects all text within an {@link EditorEx} when a simple click (without drag or selection) happens in the editor.
+   *
+   * Achieved through tracking whether text is selected when the mouse is depressed. If nothing was selected then and nothing
+   * is selected after the mouse is released then select all of the text.
+   */
+  private static class AutoTextSelectionListener implements EditorMouseListener {
+    private final EditorEx myEditor;
+    private boolean myIsTextSelectedOnMousePressed = false;
+
+    AutoTextSelectionListener(@NotNull EditorEx editor) {
+      myEditor = editor;
+    }
+
+    private boolean isNothingSelected() {
+      return Strings.isNullOrEmpty(myEditor.getSelectionModel().getSelectedText(true));
+    }
+
+    private boolean isAnythingSelected() {
+      return !Strings.isNullOrEmpty(myEditor.getSelectionModel().getSelectedText(true));
+    }
+
+    @Override
+    public void mouseClicked(EditorMouseEvent e) {
+      if (!myIsTextSelectedOnMousePressed && isNothingSelected()) {
+        selectAllText();
+        e.consume();
+      }
+    }
+
+    @Override
+    public void mousePressed(EditorMouseEvent e) {
+      myIsTextSelectedOnMousePressed = isAnythingSelected();
+    }
+
+    private void selectAllText() {
+      int lineCount = myEditor.getDocument().getLineCount() - 1;
+      if (lineCount < 0) {
+        // Tutorials shouldn't have empty code snippets, but just in case.
+        return;
+      }
+      int lastLineEndOffset = myEditor.getDocument().getLineEndOffset(lineCount);
+      LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
+      LogicalPosition docEnd = myEditor.visualToLogicalPosition(new VisualPosition(lineCount, lastLineEndOffset));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docEnd)));
+    }
+
+    @Override
+    public void mouseEntered(EditorMouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(EditorMouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(EditorMouseEvent e) {
+    }
+
+  }
+
+  /**
    * A custom border used to create a circle around a specifically sized step number.
    */
   class NumberBorder extends AbstractBorder {
@@ -273,6 +342,7 @@ public class TutorialStep extends JPanel {
       EditorEx editor = super.createEditor();
       // Set the background manually as it appears to persist as an old color on theme change.
       editor.setBackgroundColor(UIUtils.getBackgroundColor());
+      editor.addEditorMouseListener(new AutoTextSelectionListener(editor));
 
       JScrollPane scroll = editor.getScrollPane();
 
