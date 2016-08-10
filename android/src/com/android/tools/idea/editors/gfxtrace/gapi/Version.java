@@ -59,7 +59,7 @@ public class Version {
   }
 
   public String getSdkPackagePath() {
-    return "extras;android;gapid" + (major == 1 ? "" : "_" + major);
+    return "extras;android;gapid;" + major;
   }
 
   @Override
