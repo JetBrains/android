@@ -18,14 +18,11 @@ public class TraceSimplePerf extends AppTrace {
 
   SparseArray<HNode<Method>> forest;
 
+  private static final String KERNEL_SYMBOL = "[kernel.kallsyms]";
+
   public TraceSimplePerf(File traceFile) {
     myTraceFile = traceFile;
     forest = new SparseArray<>();
-  }
-
-  @Override
-  public Source getSource() {
-    return Source.SIMPLEPERF;
   }
 
   @Override
@@ -106,6 +103,11 @@ public class TraceSimplePerf extends AppTrace {
     //2. Those are new calls on the stack: Add them to the tree.
     while (depth >= 0) {
       SimpleperfReport.Sample.CallChainEntry invocation = sample.getCallchain(depth);
+
+      // Discard all kernel stack frames
+      if (KERNEL_SYMBOL.equals(invocation.getFile())) {
+        break;
+      }
 
       // New node data is a Method.
       Method m = new Method();
