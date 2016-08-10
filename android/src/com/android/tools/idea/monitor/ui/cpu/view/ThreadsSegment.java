@@ -217,10 +217,6 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     panel.add(centerPane, BorderLayout.CENTER);
   }
 
-  public void setSelectedThread(int[] selectedIndices) {
-    mThreadsList.setSelectedIndices(selectedIndices);
-  }
-
   @NotNull
   public ThreadAddedNotifier getThreadAddedNotifier() {
     return myThreadAddedNotifier;

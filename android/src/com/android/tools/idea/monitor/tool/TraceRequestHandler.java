@@ -24,7 +24,6 @@ import com.android.tools.idea.monitor.datastore.TraceDataStore;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.ui.cpu.model.TraceArt;
-import com.android.tools.idea.monitor.ui.cpu.model.TraceSimplePerf;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,18 +35,20 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
-public class TraceRequestHandler {
-
-  public enum Profiler {ART, SIMPLEPERF};
-  public enum Mode {SAMPLING, INSTRUMENTING}
+public class TraceRequestHandler implements ActionListener {
 
   private static final Logger LOG = Logger.getInstance(TraceRequestHandler.class);
 
   //  Folder name under which ART traces are stored when downloaded from the device.
   private static final String CAPTURES_DIRECTORY_NAME = "art_trace";
+
+  private final JButton myProfileButton;
 
   @Nullable
   private final DeviceProfilerService mySelectedDeviceProfilerService;
@@ -59,38 +60,28 @@ public class TraceRequestHandler {
 
   private final Project myProject;
 
+  private boolean tracing;
 
   // Path where ART trace is generate on the device when tracing.
   private String myRemotePath;
 
-  public TraceRequestHandler(
+  public TraceRequestHandler(@NotNull JButton button,
                              @NotNull DeviceProfilerService selectedDeviceProfilerService,
                              @NotNull DeviceContext deviceContext,
                              @NotNull Project project) {
+    myProfileButton = button;
     mySelectedDeviceProfilerService = selectedDeviceProfilerService;
     myDeviceContext = deviceContext;
     myProject = project;
+    tracing = false;
   }
 
-  public void startTracing(Profiler profiler, Mode mode) {
+  private void startTracing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
     String appPackageName = myDeviceContext.getSelectedClient().getClientData().getPackageName();
 
     CpuProfiler.CpuProfilingAppStartRequest.Builder requestBuilder =
       CpuProfiler.CpuProfilingAppStartRequest.newBuilder().setAppPkgName(appPackageName);
-
-    if (profiler == Profiler.ART) {
-      requestBuilder.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART);
-    } else {
-      requestBuilder.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF);
-    }
-
-    if (mode == Mode.SAMPLING) {
-      requestBuilder.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    } else {
-      requestBuilder.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    }
-
     CpuProfiler.CpuProfilingAppStartResponse response = cpuService.startProfilingApp(requestBuilder.build());
 
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
@@ -100,37 +91,29 @@ public class TraceRequestHandler {
     }
 
     myRemotePath = response.getTraceFilename();
+    myProfileButton.setText("Stop Tracing...");
+    tracing = true;
   }
 
-  public void stopTracing(Profiler profiler) {
+  private void stopTracing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
     String appPackageName = myDeviceContext.getSelectedClient().getClientData().getPackageName();
+    myProfileButton.setText("Start Tracing...");
 
     // Stop profiling.
     CpuProfiler.CpuProfilingAppStopRequest.Builder requestBuilder =
       CpuProfiler.CpuProfilingAppStopRequest.newBuilder().setAppPkgName(appPackageName);
-    if (profiler == Profiler.ART) {
-      requestBuilder.setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART);
-    } else {
-      requestBuilder.setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.SIMPLE_PERF);
-    }
-    CpuProfiler.CpuProfilingAppStopResponse response = cpuService.stopProfilingApp(requestBuilder.build());
-    if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
-      LOG.error("Unable to stop tracing:" + response.getStatus());
-      LOG.error(response.getErrorMessage());
-      myRemotePath = null;
-      return;
-    }
+    cpuService.stopProfilingApp(requestBuilder.build());
 
     // Download file from device, process it and store it in the datastore.
-    String localFileName = myRemotePath.substring(myRemotePath.lastIndexOf("/") + 1);
+    String filename = myRemotePath.substring(myRemotePath.lastIndexOf("/") + 1);
     final File[] dst = {null};
     try {
       ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Object, IOException>() {
                                                            @Override
                                                            public Object compute() throws IOException {
                                                              try {
-                                                               dst[0] = createLocalFile(localFileName);
+                                                               dst[0] = createLocalFile(filename);
                                                                IDevice selectedDevice = myDeviceContext.getSelectedDevice();
                                                                selectedDevice.pullFile(myRemotePath, dst[0].getAbsolutePath());
                                                                //TODO: Delete this file from the device.
@@ -142,19 +125,24 @@ public class TraceRequestHandler {
                                                            }
                                                          }
       );
-      AppTrace trace;
-      if (profiler == Profiler.ART) {
-        trace = new TraceArt(dst[0]);
-      } else {
-        trace = new TraceSimplePerf(dst[0]);
-      }
+      AppTrace trace = new TraceArt(dst[0]);
       trace.parse();
       TraceDataStore.getInstance().addTrace(myProject.getName(), trace);
     }
     catch (IOException e) {
       e.printStackTrace();
     }
-    myRemotePath = null;
+    tracing = false;
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent ae) {
+    if (tracing) {
+      stopTracing();
+    }
+    else {
+      startTracing();
+    }
   }
 
   // Create File to store the raw ART trace. This file is automatically deleted when AS stops.
