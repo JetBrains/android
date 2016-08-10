@@ -25,7 +25,7 @@ public final class BoolValueProperty extends BoolProperty {
 
   private Boolean myValue;
 
-  public BoolValueProperty(final Boolean value) {
+  public BoolValueProperty(@NotNull Boolean value) {
     myValue = value;
   }
 
