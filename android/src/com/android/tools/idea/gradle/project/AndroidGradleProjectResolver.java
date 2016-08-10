@@ -410,13 +410,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
     List<String> classPath = Lists.newArrayList();
     // Android module jars
-    addIfNotNull(getJarPathForClass(getClass()), classPath);
+    addIfNotNull(classPath, getJarPathForClass(getClass()));
     // Android sdklib jar
-    addIfNotNull(getJarPathForClass(Revision.class), classPath);
+    addIfNotNull(classPath, getJarPathForClass(Revision.class));
     // Android common jar
-    addIfNotNull(getJarPathForClass(AndroidGradleSettings.class), classPath);
+    addIfNotNull(classPath, getJarPathForClass(AndroidGradleSettings.class));
     // Android gradle model jar
-    addIfNotNull(getJarPathForClass(AndroidProject.class), classPath);
+    addIfNotNull(classPath, getJarPathForClass(AndroidProject.class));
     parameters.getClassPath().addAll(classPath);
   }
 }
