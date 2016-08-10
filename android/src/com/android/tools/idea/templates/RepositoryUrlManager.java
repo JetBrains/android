@@ -21,11 +21,14 @@ import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
 import com.android.ide.common.repository.MavenRepositories;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.utils.FileUtils;
@@ -298,11 +301,7 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public GradleCoordinate resolveDynamicCoordinate(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdk == null) {
-      return null;
-    }
-    return resolveDynamicCoordinate(coordinate, project, sdk.getLocation(), FileOpUtils.create());
+    return resolveDynamicCoordinate(coordinate, project, AndroidSdkUtils.tryToChooseSdkHandler());
   }
 
   /**
@@ -328,9 +327,8 @@ public class RepositoryUrlManager {
   @Nullable
   public GradleCoordinate resolveDynamicCoordinate(@NotNull GradleCoordinate coordinate,
                                                    @Nullable Project project,
-                                                   @NotNull File sdkLocation,
-                                                   @NotNull FileOp fileOp) {
-    String version = resolveDynamicCoordinateVersion(coordinate, project, sdkLocation, fileOp);
+                                                   @NotNull AndroidSdkHandler sdkHandler) {
+    String version = resolveDynamicCoordinateVersion(coordinate, project, sdkHandler);
     if (version != null && coordinate.getGroupId() != null && coordinate.getArtifactId() != null) {
       List<GradleCoordinate.RevisionComponent> revisions = GradleCoordinate.parseRevisionNumber(version);
       if (!revisions.isEmpty()) {
@@ -363,20 +361,14 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdk == null) {
-      return null;
-    }
-
-    return resolveDynamicCoordinateVersion(coordinate, project, sdk.getLocation(), FileOpUtils.create());
+    return resolveDynamicCoordinateVersion(coordinate, project, AndroidSdkUtils.tryToChooseSdkHandler());
   }
 
   @Nullable
   @VisibleForTesting
   String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate,
                                                 @Nullable Project project,
-                                                @NotNull File sdkLocation,
-                                                @NotNull FileOp fileOp) {
+                                                @NotNull AndroidSdkHandler sdkHandler) {
     if (coordinate.getGroupId() == null || coordinate.getArtifactId() == null) {
       return null;
     }
@@ -388,35 +380,47 @@ public class RepositoryUrlManager {
     }
     filter = filter.substring(0, filter.length() - 1);
 
-    // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-    // have that repository available.
-    String libraryCoordinate = getLibraryRevision(coordinate.getGroupId(),
-                                                  coordinate.getArtifactId(),
-                                                  filter,
-                                                  false,
-                                                  sdkLocation,
-                                                  fileOp);
-    if (libraryCoordinate != null) {
-      return libraryCoordinate;
-    }
+    File sdkLocation = sdkHandler.getLocation();
+    if (sdkLocation != null) {
+      // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
+      // have that repository available.
+      String libraryCoordinate = getLibraryRevision(coordinate.getGroupId(),
+                                                    coordinate.getArtifactId(),
+                                                    filter,
+                                                    false,
+                                                    sdkLocation,
+                                                    sdkHandler.getFileOp());
+      if (libraryCoordinate != null) {
+        return libraryCoordinate;
+      }
 
-    // If that didn't yield any matches, try again, this time allowing preview platforms.
-    // This is necessary if the artifact filter includes enough of a version where there are
-    // only preview matches.
-    libraryCoordinate = getLibraryRevision(coordinate.getGroupId(),
-                                           coordinate.getArtifactId(),
-                                           filter,
-                                           true,
-                                           sdkLocation,
-                                           fileOp);
-    if (libraryCoordinate != null) {
-      return libraryCoordinate;
+      // If that didn't yield any matches, try again, this time allowing preview platforms.
+      // This is necessary if the artifact filter includes enough of a version where there are
+      // only preview matches.
+      libraryCoordinate = getLibraryRevision(coordinate.getGroupId(),
+                                             coordinate.getArtifactId(),
+                                             filter,
+                                             true,
+                                             sdkLocation,
+                                             sdkHandler.getFileOp());
+      if (libraryCoordinate != null) {
+        return libraryCoordinate;
+      }
     }
-
     // Regular Gradle dependency? Look in Gradle cache
     GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(coordinate, filter, project);
     if (found != null) {
       return found.getRevision();
+    }
+
+    // Maybe it's available for download as an SDK component
+    RemotePackage sdkPackage = SdkMavenRepository
+      .findLatestRemoteVersion(coordinate, sdkHandler, new StudioLoggerProgressIndicator(getClass()));
+    if (sdkPackage != null) {
+      found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
+      if (found != null) {
+        return found.getRevision();
+      }
     }
 
     // Perform network lookup to resolve current best version, if possible
