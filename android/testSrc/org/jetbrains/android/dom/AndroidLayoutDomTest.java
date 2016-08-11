@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * @author coyote
  */
-public class AndroidLayoutDomTest extends AndroidDomTest {
+public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public AndroidLayoutDomTest() {
     super(false, "dom/layout");
   }

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class AndroidManifestDomTest extends AndroidDomTest {
+public class AndroidManifestDomTest extends AndroidDomTestCase {
   public AndroidManifestDomTest() {
     super(false, "dom/manifest");
   }

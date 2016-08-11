@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Arrays;
 import java.util.List;
 
-public class AndroidXmlResourcesDomTest extends AndroidDomTest {
+public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public AndroidXmlResourcesDomTest() {
     super(false, "dom/xml");
   }

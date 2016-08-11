@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidMenuTest extends AndroidDomTest {
+public class AndroidMenuTest extends AndroidDomTestCase {
   public AndroidMenuTest() {
     super(false, "dom/menu");
   }

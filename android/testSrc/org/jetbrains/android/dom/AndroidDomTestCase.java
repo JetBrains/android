@@ -43,10 +43,10 @@ import java.util.List;
  * {@link #getTestName(String, boolean)} and similar methods to spot that.
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
-abstract class AndroidDomTest extends AndroidTestCase {
+abstract class AndroidDomTestCase extends AndroidTestCase {
   protected final String testFolder;
 
-  protected AndroidDomTest(boolean createManifest, String testFolder) {
+  protected AndroidDomTestCase(boolean createManifest, String testFolder) {
     super(createManifest);
     this.testFolder = testFolder;
   }
