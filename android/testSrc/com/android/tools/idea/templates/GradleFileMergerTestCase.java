@@ -29,7 +29,7 @@ import java.io.File;
  * Each test will supply its own version of {@link #mergeGradleFile}.
  */
 @SuppressWarnings("unused")
-public abstract class GradleFileBaseMergerTest extends AndroidTestCase {
+public abstract class GradleFileMergerTestCase extends AndroidTestCase {
 
   /**
    * This method is implemented in the 2 actual tests: {@link GradleFilePsiMergerTest} and {@link GradleFileSimpleMergerTest}.
