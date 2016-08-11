@@ -32,7 +32,6 @@ public class EnergyPoller extends Poller {
     SeriesDataType.ENERGY_SCREEN,
     SeriesDataType.ENERGY_CPU_SYSTEM,
     SeriesDataType.ENERGY_CPU_USER,
-    SeriesDataType.ENERGY_SENSORS,
     SeriesDataType.ENERGY_CELL_NETWORK,
     SeriesDataType.ENERGY_WIFI_NETWORK,
     SeriesDataType.ENERGY_TOTAL,
@@ -94,9 +93,8 @@ public class EnergyPoller extends Poller {
       myAdapters.get(SeriesDataType.ENERGY_SCREEN).update(timestamp, sample.getScreenPowerUsage());
       myAdapters.get(SeriesDataType.ENERGY_CPU_SYSTEM).update(timestamp, sample.getCpuSystemPowerUsage());
       myAdapters.get(SeriesDataType.ENERGY_CPU_USER).update(timestamp, sample.getCpuUserPowerUsage());
-      myAdapters.get(SeriesDataType.ENERGY_SENSORS).update(timestamp, 0);
-      myAdapters.get(SeriesDataType.ENERGY_CELL_NETWORK).update(timestamp, 0);
-      myAdapters.get(SeriesDataType.ENERGY_WIFI_NETWORK).update(timestamp, 0);
+      myAdapters.get(SeriesDataType.ENERGY_CELL_NETWORK).update(timestamp, sample.getCellNetworkPowerUsage());
+      myAdapters.get(SeriesDataType.ENERGY_WIFI_NETWORK).update(timestamp, sample.getWifiNetworkPowerUsage());
 
       for (SeriesDataType type : ENERGY_DATA_TYPES) {
         if (type != SeriesDataType.ENERGY_TOTAL) {
