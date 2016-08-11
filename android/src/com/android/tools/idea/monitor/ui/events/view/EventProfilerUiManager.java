@@ -23,6 +23,7 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.events.model.EventDataPoller;
+import com.android.tools.idea.monitor.ui.events.model.WakeLockDataPoller;
 import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
@@ -52,7 +53,8 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
   @Override
   public Set<Poller> createPollers(int pid) {
-    return Sets.newHashSet(new EventDataPoller(myDataStore.getDeviceProfilerService(), pid, myDataStore));
+    return Sets.newHashSet(new EventDataPoller(myDataStore.getDeviceProfilerService(), pid, myDataStore),
+                           new WakeLockDataPoller(myDataStore, pid));
   }
 
   /**
