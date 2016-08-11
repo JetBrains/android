@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInsight.daemon.GroupNames;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.reference.RefMethod;
@@ -68,6 +69,25 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
 
   private Map<PsiMethod, PsiElement> taggedMethodsWithElement;
 
+  public final String DISPLAY_NAME = "Permission Check for Location APIs";
+  public final String SHORT_NAME = "PermissionUsageInspection";
+
+
+
+  @Override
+  public String getDisplayName() {
+    return DISPLAY_NAME;
+  }
+
+  @Override
+  public String getGroupDisplayName() {
+    return GroupNames.PERFORMANCE_GROUP_NAME;
+  }
+
+  @Override
+  public String getShortName() {
+    return SHORT_NAME;
+  }
 
   @Override
   public boolean isGraphNeeded() {
