@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 
-public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
+public class LinearLayoutHandlerTest extends LayoutTestCase {
 
   public void testDragNothing() throws Exception {
     surface().screen(createModel())
