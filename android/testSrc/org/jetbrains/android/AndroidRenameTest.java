@@ -182,6 +182,7 @@ public class AndroidRenameTest extends AndroidTestCase {
         PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
         PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
 
+        assertNotNull(aPackage);
         final PsiDirectory[] dirs = aPackage.getDirectories();
         assertEquals(dirs.length, 1);
 
@@ -744,6 +745,18 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
   }
 
+  // Regression test for http://b.android.com/205527
+  public void testRenameLocalisedResourceFromUsage() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values/dimens.xml");
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values-en/dimens.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout16.xml", "res/layout/layout16.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRenameUsingHandler("localised_newname_value");
+    myFixture.checkResultByFile(BASE_PATH + "layout16_after.xml");
+    myFixture.checkResultByFile("res/values/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+    myFixture.checkResultByFile("res/values-en/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+  }
+
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
@@ -803,5 +816,14 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
     // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
     myFixture.renameElementAtCaret(newName);
+  }
+
+  private void checkAndRenameUsingHandler(String newName) {
+    final RenameElementAction action = new RenameElementAction();
+    final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
+    action.update(e);
+    assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
+    // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
+    myFixture.renameElementAtCaretUsingHandler(newName);
   }
 }
