@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -14,6 +15,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -21,6 +23,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -31,6 +34,10 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
@@ -48,6 +55,11 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true) != null) {
       return true;
     }
+
+    if (getResourceReferenceTarget(editor) != null) {
+      return true;
+    }
+
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
     if (project == null) {
@@ -55,6 +67,28 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     }
     final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
     return element != null && isPackageAttributeInManifest(project, element);
+  }
+
+  /**
+   * Determine if this editor's caret is currently on a reference to an Android resource and if so return the root definition of that
+   * resource
+   */
+  @Nullable
+  private static PsiElement getResourceReferenceTarget(@NotNull Editor editor) {
+
+    PsiReference reference = TargetElementUtil.findReference(editor, editor.getCaretModel().getOffset());
+    if (!(reference instanceof AndroidResourceReference)) {
+      return null;
+    }
+
+    Collection<PsiElement> elements = TargetElementUtil.getInstance().getTargetCandidates(reference);
+    if (elements.isEmpty()) {
+      return null;
+    }
+
+    ArrayList<PsiElement> elementList = new ArrayList<>(elements);
+    Collections.sort(elementList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    return elementList.get(0);
   }
 
   @Override
@@ -82,7 +116,13 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       }
     }
     else {
-      performApplicationPackageRenaming(project, editor, dataContext);
+      PsiElement element = getResourceReferenceTarget(editor);
+      if (element != null) {
+        performResourceReferenceRenaming(project, editor, dataContext, element);
+      }
+      else {
+        performApplicationPackageRenaming(project, editor, dataContext);
+      }
     }
   }
 
@@ -114,6 +154,13 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, resourceFields[0], null, editor));
       }
     }
+  }
+
+  private static void performResourceReferenceRenaming(@NotNull Project project,
+                                                       @NotNull Editor editor,
+                                                       @NotNull DataContext dataContext,
+                                                       @NotNull PsiElement element) {
+    RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, element, null, editor));
   }
 
   @Nullable
@@ -181,7 +228,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     }
     final VirtualFile vFile = psiFile.getVirtualFile();
 
-    if (vFile == null || !vFile.equals(AndroidRootUtil.getManifestFile(facet))) {
+    if (vFile == null || !vFile.equals(AndroidRootUtil.getPrimaryManifestFile(facet))) {
       return false;
     }
     if (!(element instanceof XmlAttributeValue)) {
