@@ -768,7 +768,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongRegion" displayName="Suspicious Language/Region Combination" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintWrongRegionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongViewCast" displayName="Mismatched view type" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintWrongViewCastInspection"/>
 
-    <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="PermissionUsageInspection" displayName="Permission Check for Location APIs" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.experimental.PermissionUsageInspection"/>
 
     <codeInspection.InspectionExtension implementation="org.jetbrains.android.inspections.lint.AndroidInspectionExtensionsFactory"/>
     <codeInsight.linkHandler prefix="#lint/" handlerClass="org.jetbrains.android.inspections.lint.LintInspectionDescriptionLinkHandler"/>
