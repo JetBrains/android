@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 
-public class MockupFileHelperTest extends MockupBaseTest {
+public class MockupFileHelperTest extends MockupTestCase {
 
   @Mock
   Project mockProject;
