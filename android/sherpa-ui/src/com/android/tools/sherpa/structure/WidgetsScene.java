@@ -513,7 +513,8 @@ public class WidgetsScene {
      */
     public void transformContainerToContainer(WidgetContainer oldContainer,
             ConstraintWidgetContainer newContainer) {
-        ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
+        WidgetContainer parent = (WidgetContainer) oldContainer.getParent();
+
         if (newContainer.getCompanionWidget() == null) {
             newContainer.setCompanionWidget(oldContainer.getCompanionWidget());
         }
