@@ -37,8 +37,9 @@ import java.util.List;
 public class EventSegment extends BaseSegment {
 
   private static final String SEGMENT_NAME = "Events";
-  private static final int ACTIVITY_GRAPH_SIZE = 25;
+  private static final int ACTIVITY_GRAPH_SIZE = 25; // TODO what size is this?
   private static final int FRAGMENT_GRAPH_SIZE = 25;
+  private static final int WAKE_LOCK_GRAPH_SIZE = 25;
 
   public enum EventActionType {
     TOUCH,
@@ -55,6 +56,9 @@ public class EventSegment extends BaseSegment {
 
   @NotNull
   private StackedEventComponent mActivityEvents;
+
+  @NotNull
+  private StackedEventComponent mWakeLockEvents;
 
   @NotNull
   private final SeriesDataStore mDataStore;
@@ -75,20 +79,24 @@ public class EventSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    DataStoreSeries<EventAction<SimpleEventComponent.Action, EventActionType>> systemEventData = new DataStoreSeries<>(mDataStore,
-                                                                                                                       SeriesDataType.EVENT_SIMPLE_ACTION);
-    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData = new DataStoreSeries<>(mDataStore,
-                                                                                                                 SeriesDataType.EVENT_FRAGMENT_ACTION);
-    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData = new DataStoreSeries<>(mDataStore,
-                                                                                                                 SeriesDataType.EVENT_ACTIVITY_ACTION);
+    DataStoreSeries<EventAction<SimpleEventComponent.Action, EventActionType>> systemEventData =
+      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_SIMPLE_ACTION);
+    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData =
+      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_FRAGMENT_ACTION);
+    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData =
+      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_ACTIVITY_ACTION);
+    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> wakeLockEventData =
+      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_WAKE_LOCK_ACTION);
 
     mSystemEvents = new SimpleEventComponent(new RangedSeries<>(mXRange, systemEventData), mIcons);
     mFragmentEvents = new StackedEventComponent(new RangedSeries<>(mXRange, fragmentEventData), FRAGMENT_GRAPH_SIZE);
     mActivityEvents = new StackedEventComponent(new RangedSeries<>(mXRange, activityEventData), ACTIVITY_GRAPH_SIZE);
+    mWakeLockEvents = new StackedEventComponent(new RangedSeries<>(mXRange, wakeLockEventData), WAKE_LOCK_GRAPH_SIZE);
 
     animatables.add(mSystemEvents);
     animatables.add(mFragmentEvents);
     animatables.add(mActivityEvents);
+    animatables.add(mWakeLockEvents);
   }
 
   @Override
@@ -109,6 +117,8 @@ public class EventSegment extends BaseSegment {
     layeredPane.add(mFragmentEvents, gbc);
     gbc.gridy = 2;
     layeredPane.add(mActivityEvents, gbc);
+    gbc.gridy = 3;
+    layeredPane.add(mWakeLockEvents, gbc);
     panel.add(layeredPane, BorderLayout.CENTER);
   }
 }

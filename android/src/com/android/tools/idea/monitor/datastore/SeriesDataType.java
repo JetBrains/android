@@ -55,6 +55,7 @@ public enum SeriesDataType {
   EVENT_SIMPLE_ACTION, // EventAction
   EVENT_FRAGMENT_ACTION, // EventAction
   EVENT_ACTIVITY_ACTION, // EventAction
+  EVENT_WAKE_LOCK_ACTION, // EventAction
 
   ENERGY_TOTAL, //long
   ENERGY_SCREEN, //long
