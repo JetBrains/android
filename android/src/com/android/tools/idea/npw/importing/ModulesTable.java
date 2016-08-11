@@ -34,10 +34,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.Collator;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Table for showing a list of modules that will be imported.
@@ -199,6 +196,19 @@ public final class ModulesTable extends JBPanel implements Scrollable {
 
   public Set<ModuleToImport> getSelectedModules() {
     return myListModel.getSelectedModules();
+  }
+
+  public Map<String, VirtualFile> getSelectedModulesMap() {
+    final Collection<ModuleToImport> modules = myListModel.getSelectedModules();
+    if (modules.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, VirtualFile> selectedModules = Maps.newHashMap();
+    for (ModuleToImport module : modules) {
+      selectedModules.put(myListModel.getModuleName(module), module.location);
+    }
+    return selectedModules;
   }
 
   public void setModules(@Nullable Project project, @Nullable VirtualFile currentPath, @Nullable Iterable<ModuleToImport> modules) {
