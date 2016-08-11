@@ -42,6 +42,13 @@ public final class ProxyUtil {
 
   private static final Map<String, InvocationErrorValue> THROWABLE_CACHE = ContainerUtil.createConcurrentSoftValueMap();
 
+  /*
+   * Map from de-serialized object to reproxied object, in order to avoid reproxying the same object multiple times.
+   * The values are soft references, such that when the holding AndroidGradleModel is disposed, the reproxied objects become eligible for
+   * GC and this in turn will remove the keys from the map.
+   */
+  private static final Map<Object, Object> proxyCache = ContainerUtil.createConcurrentSoftValueMap();
+
   private ProxyUtil() {
   }
 
@@ -131,6 +138,13 @@ public final class ProxyUtil {
     }
     Class<?> clazz = interfaces[0];
 
+    // Before reproxying, try to find it in the proxyCache. The degree of deduplication we achieve depends on hashCode() and equals() being
+    // properly implemented in the various model classes.
+    Object cached = proxyCache.get(object);
+    if (cached != null) {
+      return (T) cached;
+    }
+
     final Map<String, Object> values = Maps.newHashMap();
     for (Method m : clazz.getMethods()) {
       try {
@@ -160,7 +174,9 @@ public final class ProxyUtil {
         throw new IllegalStateException("A non public method shouldn't have been called.", e);
       }
     }
-    return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new WrapperInvocationHandler(values));
+    Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new WrapperInvocationHandler(values));
+    proxyCache.put(object, proxy);
+    return (T)proxy;
   }
 
   static class WrapperInvocationHandler implements InvocationHandler, Serializable {
