@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
-public class TestArtifactsResolveTest extends TestArtifactsCodeInsightTest {
+public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   public void testDependencyResolvableOnlyInUnitTest() throws Exception {
     // Junit is a dependency for android test, defined in project's build.gradle.
     String importString = "import org.junit.Ass<caret>ert;";

@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public class TestArtifactsFindUsageTest extends TestArtifactsCodeInsightTest {
+public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   private static final String CLASS_TEXT = "class My<caret>Class {};";
   private static final String USAGE_TEXT = "import MyClass;";
 

@@ -24,7 +24,7 @@ import java.io.File;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-public abstract class TestArtifactsCodeInsightTest extends AndroidGradleTestCase {
+public abstract class TestArtifactsTestCase extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {
