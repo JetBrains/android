@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
-public abstract class MockupBaseTest extends LayoutTestCase {
+public abstract class MockupTestCase extends LayoutTestCase {
 
   public static final String DEFAULT_TEST_POSITION = "10 10 60 60 20 20 60 60";
   public static final String MOCKUP_PSD = "mockup/mockup.psd";
