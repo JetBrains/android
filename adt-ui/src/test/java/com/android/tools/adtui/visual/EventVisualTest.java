@@ -31,58 +31,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
 public class EventVisualTest extends VisualTest {
 
   private static final int IMAGE_WIDTH = 16;
+
   private static final int IMAGE_HEIGHT = 16;
+
   private static final String[] ACTIVITY_NAMES = {
-    "SigninActivity",
-    "GamemodeActivity",
+    "SignInActivity",
+    "GameModeActivity",
     "MainMenuActivity",
     "OptionsActivity",
     "MultiplayerActivity"
   };
-
-  class MockActivity {
-
-    String myName;
-    long myStartTimeUs;
-
-    public MockActivity() {
-      myName = EventVisualTest.ACTIVITY_NAMES[(int)(Math.random() * ACTIVITY_NAMES.length)];
-      myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      addSelf();
-    }
-
-    private void addSelf() {
-      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<StackedEventComponent.Action, String>(myStartTimeUs, 0,
-                                                              StackedEventComponent.Action.ACTIVITY_STARTED, myName);
-      mActivityData.add(nowUs, event);
-    }
-
-    public void tearDown() {
-      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<StackedEventComponent.Action, String>(myStartTimeUs, nowUs,
-                                                              StackedEventComponent.Action.ACTIVITY_COMPLETED, myName);
-      mActivityData.add(nowUs, event);
-    }
-  }
-
-  private static Icon buildStaticImage(Color color) {
-    BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
-                                            BufferedImage.TYPE_4BYTE_ABGR);
-    for (int y = 0; y < IMAGE_HEIGHT; y++) {
-      for (int x = 0; x < IMAGE_WIDTH; x++) {
-        image.setRGB(x, y, color.getRGB());
-      }
-    }
-    ImageIcon icon = new ImageIcon(image);
-    return icon;
-  }
 
   private static final Icon[] MOCK_ICONS = {
     buildStaticImage(Color.red),
@@ -90,34 +51,35 @@ public class EventVisualTest extends VisualTest {
     buildStaticImage(Color.blue),
   };
 
-  /**
-   * Enum that defines what Icon to draw for an event action.
-   */
-  public enum ActionType {
-    TOUCH,
-    HOLD,
-    DOUBLE_TAP;
-  }
+  private static final int AXIS_SIZE = 100;
 
+  private static final int ACTIVITY_GRAPH_SIZE = 31;
 
-  private ArrayList<MockActivity> myOpenActivites;
+  private ArrayList<MockActivity> myOpenActivities;
 
-  private SimpleEventComponent mSimpleEventComponent;
+  private SimpleEventComponent mySimpleEventComponent;
 
   private StackedEventComponent myStackedEventComponent;
 
-  private AxisComponent mTimeAxis;
+  private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<SimpleEventComponent.Action, ActionType>>
-    mData;
+  private DefaultDataSeries<EventAction<SimpleEventComponent.Action, ActionType>> myData;
 
-  private DefaultDataSeries<EventAction<StackedEventComponent.Action, String>>
-    mActivityData;
+  private DefaultDataSeries<EventAction<StackedEventComponent.Action, String>> myActivityData;
 
-  private AnimatedTimeRange mAnimatedRange;
-  private AnimatedTimeRange mTimelineRange;
-  private static final int AXIS_SIZE = 100;
-  private static final int ACTIVITY_GRAPH_SIZE = 31;
+  private AnimatedTimeRange myAnimatedRange;
+
+  private AnimatedTimeRange myTimelineRange;
+
+  private static Icon buildStaticImage(Color color) {
+    BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, BufferedImage.TYPE_4BYTE_ABGR);
+    for (int y = 0; y < IMAGE_HEIGHT; y++) {
+      for (int x = 0; x < IMAGE_WIDTH; x++) {
+        image.setRGB(x, y, color.getRGB());
+      }
+    }
+    return new ImageIcon(image);
+  }
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -125,28 +87,26 @@ public class EventVisualTest extends VisualTest {
     Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     Range xTimelineRange = new Range(0, 0);
 
-    mData = new DefaultDataSeries<>();
-    mActivityData = new DefaultDataSeries<>();
-    mSimpleEventComponent = new SimpleEventComponent(new RangedSeries<>(xRange, mData), MOCK_ICONS);
-    myStackedEventComponent = new StackedEventComponent(new RangedSeries(xRange, mActivityData), ACTIVITY_GRAPH_SIZE);
-    mAnimatedRange = new AnimatedTimeRange(xRange, 0);
-    mTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
-    myOpenActivites = new ArrayList<>();
+    myData = new DefaultDataSeries<>();
+    myActivityData = new DefaultDataSeries<>();
+    mySimpleEventComponent = new SimpleEventComponent<>(new RangedSeries<>(xRange, myData), MOCK_ICONS);
+    myStackedEventComponent = new StackedEventComponent(new RangedSeries<>(xRange, myActivityData), ACTIVITY_GRAPH_SIZE);
+    myAnimatedRange = new AnimatedTimeRange(xRange, 0);
+    myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
+    myOpenActivities = new ArrayList<>();
     // add horizontal time axis
-    mTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME",
-                                  AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
+    myTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE,
+                                   false, TimeAxisFormatter.DEFAULT);
     List<Animatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);
     componentsList.add(xTimelineRange);
-    componentsList.add(mAnimatedRange);
-    componentsList.add(mTimelineRange);
-    componentsList.add(mTimeAxis);
-    componentsList.add(mSimpleEventComponent);
+    componentsList.add(myAnimatedRange);
+    componentsList.add(myTimelineRange);
+    componentsList.add(myTimeAxis);
+    componentsList.add(mySimpleEventComponent);
     componentsList.add(myStackedEventComponent);
     return componentsList;
-
   }
 
   @Override
@@ -157,23 +117,21 @@ public class EventVisualTest extends VisualTest {
   private void performTapAction() {
     long now = System.currentTimeMillis();
     EventAction<SimpleEventComponent.Action, ActionType> event =
-      new EventAction<SimpleEventComponent.Action, ActionType>(now,
-                                                               0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
-    mData.add(now, event);
-    event = new EventAction<SimpleEventComponent.Action, ActionType>(now,
-                                                                     now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
-    mData.add(now, event);
+      new EventAction<>(now, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+    myData.add(now, event);
+    event = new EventAction<>(now, now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+    myData.add(now, event);
   }
 
   private void addActivityCreatedEvent() {
     performTapAction();
-    myOpenActivites.add(new MockActivity());
+    myOpenActivities.add(new MockActivity());
   }
 
   private void addActivityFinishedEvent() {
     //Find existing open activity.
-    if (myOpenActivites.size() > 0) {
-      MockActivity activity = myOpenActivites.remove(myOpenActivites.size() - 1);
+    if (myOpenActivities.size() > 0) {
+      MockActivity activity = myOpenActivities.remove(myOpenActivities.size() - 1);
       activity.tearDown();
       performTapAction();
     }
@@ -189,27 +147,14 @@ public class EventVisualTest extends VisualTest {
     LayoutManager manager = new BoxLayout(controls, BoxLayout.Y_AXIS);
     controls.setLayout(manager);
     panel.add(controls, BorderLayout.WEST);
-    controls.add(VisualTest.createButton("Add Activity", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        addActivityCreatedEvent();
-      }
-    }));
-    controls.add(VisualTest.createButton("Close Top Activity", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        addActivityFinishedEvent();
-      }
-    }));
-    controls.add(VisualTest.createButton("Close Random Activity", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        int size = myOpenActivites.size();
-        if(size != 0) {
-          MockActivity m = myOpenActivites.remove((int)(Math.random() * size));
-          m.tearDown();
-          performTapAction();
-        }
+    controls.add(VisualTest.createButton("Add Activity", e -> addActivityCreatedEvent()));
+    controls.add(VisualTest.createButton("Close Top Activity", e -> addActivityFinishedEvent()));
+    controls.add(VisualTest.createButton("Close Random Activity", e -> {
+      int size = myOpenActivities.size();
+      if (size != 0) {
+        MockActivity m = myOpenActivities.remove((int)(Math.random() * size));
+        m.tearDown();
+        performTapAction();
       }
     }));
     JButton tapButton = VisualTest.createButton("Tap Me");
@@ -219,7 +164,7 @@ public class EventVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<SimpleEventComponent.Action, ActionType> event =
           new EventAction<>(nowUs, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
-        mData.add(nowUs, event);
+        myData.add(nowUs, event);
       }
 
       @Override
@@ -227,16 +172,13 @@ public class EventVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<SimpleEventComponent.Action, ActionType> event =
           new EventAction<>(nowUs, nowUs, SimpleEventComponent.Action.UP, ActionType.TOUCH);
-        mData.add(nowUs, event);
+        myData.add(nowUs, event);
       }
     });
     controls.add(tapButton);
-    controls.add(VisualTest.createCheckbox("Shift xRange Min", new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        mAnimatedRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);
-        mTimelineRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);
-      }
+    controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent -> {
+      myAnimatedRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);
+      myTimelineRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);
     }));
 
     controls.add(
@@ -246,8 +188,8 @@ public class EventVisualTest extends VisualTest {
 
   private JLayeredPane createMockTimeline() {
     JLayeredPane timelinePane = new JLayeredPane();
-    timelinePane.add(mTimeAxis);
-    timelinePane.add(mSimpleEventComponent);
+    timelinePane.add(myTimeAxis);
+    timelinePane.add(mySimpleEventComponent);
     timelinePane.add(myStackedEventComponent);
     timelinePane.addComponentListener(new ComponentAdapter() {
       @Override
@@ -285,5 +227,40 @@ public class EventVisualTest extends VisualTest {
     });
 
     return timelinePane;
+  }
+
+  /**
+   * Enum that defines what Icon to draw for an event action.
+   */
+  public enum ActionType {
+    TOUCH,
+    HOLD,
+    DOUBLE_TAP
+  }
+
+  class MockActivity {
+
+    String myName;
+    long myStartTimeUs;
+
+    public MockActivity() {
+      myName = EventVisualTest.ACTIVITY_NAMES[(int)(Math.random() * ACTIVITY_NAMES.length)];
+      myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+      addSelf();
+    }
+
+    private void addSelf() {
+      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+      EventAction<StackedEventComponent.Action, String> event =
+        new EventAction<>(myStartTimeUs, 0, StackedEventComponent.Action.ACTIVITY_STARTED, myName);
+      myActivityData.add(nowUs, event);
+    }
+
+    public void tearDown() {
+      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+      EventAction<StackedEventComponent.Action, String> event =
+        new EventAction<>(myStartTimeUs, nowUs, StackedEventComponent.Action.ACTIVITY_COMPLETED, myName);
+      myActivityData.add(nowUs, event);
+    }
   }
 }
