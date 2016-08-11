@@ -22,7 +22,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.AndroidTestUtils;
 
-public class CreateMissingClassFixTest extends AndroidDomTest {
+public class CreateMissingClassFixTest extends AndroidDomTestCase {
   public CreateMissingClassFixTest() {
     super(false, "dom/manifest");
   }

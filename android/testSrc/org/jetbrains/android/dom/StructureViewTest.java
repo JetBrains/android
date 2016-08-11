@@ -32,7 +32,7 @@ import org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilder;
 import org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilder;
 import org.jetbrains.annotations.NotNull;
 
-public class StructureViewTest extends AndroidDomTest {
+public class StructureViewTest extends AndroidDomTestCase {
   public StructureViewTest() {
     super(false, "dom");
   }

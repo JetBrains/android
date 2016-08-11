@@ -24,7 +24,7 @@ import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.XmlWrongFileTypeInspection;
 import org.jetbrains.annotations.NotNull;
 
-public class XmlWrongFileTypeInspectionTest extends AndroidDomTest {
+public class XmlWrongFileTypeInspectionTest extends AndroidDomTestCase {
   public XmlWrongFileTypeInspectionTest() {
     super(true, "dom/anim");
   }

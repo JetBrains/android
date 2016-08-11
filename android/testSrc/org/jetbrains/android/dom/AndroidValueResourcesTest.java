@@ -44,7 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AndroidValueResourcesTest extends AndroidDomTest {
+public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public AndroidValueResourcesTest() {
     super(false, "dom/resources");
   }

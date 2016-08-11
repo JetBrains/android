@@ -18,7 +18,7 @@ package org.jetbrains.android.dom;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidColorStateListDomTest extends AndroidDomTest {
+public class AndroidColorStateListDomTest extends AndroidDomTestCase {
   public AndroidColorStateListDomTest() {
     super(true, "dom/color");
   }
