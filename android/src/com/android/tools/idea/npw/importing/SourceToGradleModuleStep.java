@@ -81,6 +81,7 @@ public final class SourceToGradleModuleStep extends ModelWizardStep<SourceToGrad
   private final BoolProperty myCanGoForward = new BoolValueProperty();
   private final ObjectProperty<PathValidationResult> myPageValidationResult = new ObjectValueProperty<>(PathValidationResult.ofType(OK));
 
+  @NotNull private PathValidationResult myLocationValidationResult = PathValidationResult.ofType(OK);
   // Facade is initialised dynamically
   @Nullable private Facade myFacade;
 
@@ -118,7 +119,7 @@ public final class SourceToGradleModuleStep extends ModelWizardStep<SourceToGrad
     myModulesPanel.bindPrimaryModuleEntryComponents(new PrimaryModuleImportSettings(), myRequiredModulesLabel);
     myModulesPanel.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, event -> {
       if (ModulesTable.PROPERTY_SELECTED_MODULES.equals(event.getPropertyName())) {
-        updateStepStatus(myPageValidationResult.get());
+        updateStepStatus();
       }
     });
 
@@ -183,21 +184,26 @@ public final class SourceToGradleModuleStep extends ModelWizardStep<SourceToGrad
   }
 
   private void applyValidationResult(@NotNull PathValidationResult result) {
+    myLocationValidationResult = result;
+
     myModulesPanel.setModules(getModel().getProject(), result.myVFile, result.myModules);
     myModulesScroller.setVisible(myModulesPanel.getComponentCount() > 0);
-    ModuleImporter.setImporter(getModel().getContext(), result.myImporter);
+
     // Setting the active importer affects the visibility of other steps in the wizard so we need to call updateNavigationProperties
     // to make sure Finish / Next is displayed correctly
+    ModuleImporter.setImporter(getModel().getContext(), result.myImporter);
     assert myFacade != null;
     myFacade.updateNavigationProperties();
-    updateStepStatus(result);
+
+    updateStepStatus();
   }
 
-  private void updateStepStatus(@NotNull PathValidationResult result) {
-    if (result.myStatus.severity != ERROR) {
-      if (myModulesPanel.getSelectedModules().isEmpty()) {
-        result = PathValidationResult.ofType(NO_MODULES_SELECTED);
-      }
+  private void updateStepStatus() {
+    PathValidationResult result = myLocationValidationResult;
+
+    // Validation of import location can be superseded by lack of modules selected for import
+    if (result.myStatus.severity != ERROR && myModulesPanel.getSelectedModules().isEmpty()) {
+      result = PathValidationResult.ofType(NO_MODULES_SELECTED);
     }
 
     myPageValidationResult.set(result);
