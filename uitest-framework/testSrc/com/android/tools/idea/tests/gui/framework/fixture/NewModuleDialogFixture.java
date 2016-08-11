@@ -23,6 +23,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
@@ -56,8 +57,22 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   }
 
   @NotNull
+  public NewModuleDialogFixture chooseModuleSubtype(@NotNull String name) {
+    // The actual label of the combo box in the UI is "Module Type" but since we already have a `chooseModuleType`
+    // method, we call this `chooseModuleSubtype`.
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "ModuleTypesCombo", JComboBox.class)).selectItem(name);
+    return this;
+  }
+
+  @NotNull
   public NewModuleDialogFixture setModuleName(String name) {
     new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).deleteText().enterText(name);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleDialogFixture setPackageName(@NotNull String name) {
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "PackageName", JTextField.class)).deleteText().enterText(name);
     return this;
   }
 
@@ -86,6 +101,12 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
       () -> robot().finder().findAll(target(), JLabelMatcher.withText(name).andShowing()).size() == 1);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleDialogFixture chooseClientModule(@NotNull String name) {
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "ClientModule", JComboBox.class)).selectItem(name);
     return this;
   }
 

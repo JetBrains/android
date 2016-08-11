@@ -26,6 +26,7 @@ import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -44,7 +45,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
@@ -123,6 +123,28 @@ public class ProjectViewFixture extends ToolWindowFixture {
         }
       });
       return this;
+    }
+
+    /* Returns {@code true} if the tree root has a child {@link Module} with {@code name}, {@code false} otherwise. */
+    @NotNull
+    public boolean hasModuleRootNode(@NotNull String name) {
+      final AbstractTreeStructure treeStructure = getTreeStructure();
+      ProjectViewNode node = GuiActionRunner.execute(new GuiQuery<ProjectViewNode>() {
+        @Nullable
+        @Override
+        protected ProjectViewNode executeInEDT() throws Throwable {
+          Object[] childElements = treeStructure.getChildElements(treeStructure.getRootElement());
+          for (Object child : childElements) {
+            ProjectViewNode childNode = (ProjectViewNode)child;
+            Object value = childNode.getValue();
+            if (value instanceof Module && ((Module)value).getName().equals(name)) {
+              return childNode;
+            }
+          }
+          return null;
+        }
+      });
+      return (node != null);
     }
 
     @NotNull
