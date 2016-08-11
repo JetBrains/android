@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.testing;
 
 import com.intellij.psi.PsiClass;
 
-public class TestArtifactsRenameTest extends TestArtifactsCodeInsightTest {
+public class TestArtifactsRenameTest extends TestArtifactsTestCase {
   private static final String MY_CLASS_TEXT = "class My<caret>Class {}";
 
   @Override
