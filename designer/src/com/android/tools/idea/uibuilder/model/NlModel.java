@@ -1377,8 +1377,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * right before the given sibling or null to append at the end.)
    * <p/>
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
-   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link DragHandler#commit(int, int, int)}.
+   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate} and {@link DragHandler#commit}.
    *
    * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
@@ -1697,7 +1696,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                             @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
-      XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
+      XmlTag tag = createTag(screenView.getModel().getProject(), dndComponent.getRepresentation());
       NlComponent component = createComponent(screenView, tag, null, null, insertType);
       if (component == null) {
         return null;  // User may have cancelled
@@ -1710,9 +1709,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  private static XmlTag createTagFromTransferItem(@NotNull ScreenView screenView, @NotNull String text) {
-    NlModel model = screenView.getModel();
-    Project project = model.getFacet().getModule().getProject();
+  @VisibleForTesting
+  public static XmlTag createTag(@NotNull Project project, @NotNull String text) {
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
     XmlTag tag = null;
     if (XmlUtils.parseDocumentSilently(text, false) != null) {

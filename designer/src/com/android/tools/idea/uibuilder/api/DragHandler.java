@@ -32,7 +32,7 @@ public abstract class DragHandler {
   @NotNull protected final ViewEditor editor;
   @NotNull protected final ViewGroupHandler handler;
   @NotNull protected final List<NlComponent> components;
-  @NotNull protected final NlComponent layout;
+  @NotNull protected NlComponent layout;
   @NotNull protected DragType type = DragType.COPY;
   @AndroidCoordinate protected int startX;
   @AndroidCoordinate protected int startY;
@@ -64,13 +64,16 @@ public abstract class DragHandler {
   /**
    * Sets new drag type. This can happen during a drag (e.g. when the user presses a
    * modifier key.
+   *
    * @param type the new type to use
    */
   public void setDragType(@NotNull DragType type) {
     this.type = type;
   }
 
-  /** Aborts a drag in this handler's view */
+  /**
+   * Aborts a drag in this handler's view
+   */
   public void cancel() {
   }
 
