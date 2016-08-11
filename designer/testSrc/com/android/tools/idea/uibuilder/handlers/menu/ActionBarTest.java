@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.uibuilder.handlers.HandlerTestFactory;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.junit.Test;
 
@@ -26,10 +27,10 @@ import static org.junit.Assert.assertEquals;
 public final class ActionBarTest {
   @Test
   public void addToItemsOrOverflowItemsItemWidthAndHeightAreNegativeOne() {
-    NlComponent item = TestFactory.newNlComponent("item");
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
     item.setBounds(0, 0, -1, -1);
 
-    NlComponent menu = TestFactory.newNlComponent("menu");
+    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
     menu.addChild(item);
 
     ActionBar actionBar = new ActionBar(menu);
@@ -40,13 +41,13 @@ public final class ActionBarTest {
 
   @Test
   public void addToItemsOrOverflowItemsItemIsGroup() {
-    NlComponent item = TestFactory.newNlComponent("item");
-    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
+    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
 
-    NlComponent group = TestFactory.newNlComponent("group");
+    NlComponent group = HandlerTestFactory.newNlComponent("group");
     group.addChild(item);
 
-    NlComponent menu = TestFactory.newNlComponent("menu");
+    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
     menu.addChild(group);
 
     ActionBar actionBar = new ActionBar(menu);
@@ -57,10 +58,10 @@ public final class ActionBarTest {
 
   @Test
   public void addToItemsOrOverflowItemsItemViewTypeIsActionBarMenu() {
-    NlComponent item = TestFactory.newNlComponent("item");
-    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
+    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
 
-    NlComponent menu = TestFactory.newNlComponent("menu");
+    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
     menu.addChild(item);
 
     ActionBar actionBar = new ActionBar(menu);
@@ -71,10 +72,10 @@ public final class ActionBarTest {
 
   @Test
   public void addToItemsOrOverflowItemsItemViewTypeIsActionBarOverflowMenu() {
-    NlComponent item = TestFactory.newNlComponent("item");
-    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
+    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
 
-    NlComponent menu = TestFactory.newNlComponent("menu");
+    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
     menu.addChild(item);
 
     ActionBar actionBar = new ActionBar(menu);

@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
@@ -51,10 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.DOT_XML;
@@ -104,6 +102,24 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public NlModel getModel() {
     return myScreen.getModel();
+  }
+
+  @NotNull
+  @Override
+  public Collection<ViewInfo> getRootViews() {
+    RenderResult result = myScreen.getModel().getRenderResult();
+
+    if (result == null) {
+      return Collections.emptyList();
+    }
+
+    Collection<ViewInfo> views = result.getRootViews();
+
+    if (views == null) {
+      return Collections.emptyList();
+    }
+
+    return views;
   }
 
   @Override
