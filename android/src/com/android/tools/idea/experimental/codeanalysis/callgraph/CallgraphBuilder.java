@@ -67,17 +67,14 @@ public class CallgraphBuilder {
 
   public void build() {
     //Initiate
-    System.out.println("Start building call graph");
+
     this.mCallGraphInstance = new Callgraph();
 
     //Retrive all callsites
-    int i = 0;
+
     GraphNode[] invocationNodes = mScene.getAllInvocationNode();
     for (GraphNode invocationNode : invocationNodes) {
-      i++;
-      if (i % 10 == 0) {
-        System.out.println("..........");
-      }
+
       processSingleInvocation(invocationNode);
     }
   }
