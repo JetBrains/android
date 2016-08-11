@@ -76,6 +76,12 @@ public class BuildFailureParser implements PatternAwareOutputParser {
 
   // This is a compiler message from clang or gcc.
   private static final Pattern COMPILE_FAILURE_MESSAGE = Pattern.compile("^> Build command failed.");
+  // Format:
+  // <path to file>:<line>:<column>: <message type>: <message>
+  // E.g.,
+  // /foo/bar/test.cpp:8:5: error: use of undeclared identifier 'foo'; did you mean 'for'?
+  // /foo/bar/test.cpp:7:5: warning: expression result unused [-Wunused-value]
+  // C:\foo\bar\test.cpp:2:10: fatal error: 'garbage' file not found
   private static final Pattern COMPILE_LINE_PARSER = Pattern.compile("^\\s*(.+):(\\d+):(\\d+): (([^:]+): .*)$");
 
   private enum State {
