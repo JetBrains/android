@@ -152,8 +152,11 @@ iml_module(
         "//tools/adt/idea:android-common",
     ],
     test_data = glob([
+        "android/testData/**/*",
         "designer/testData/**/*",
     ]),
+    test_timeout = "long",
+    test_class = "com.android.tools.idea.IdeaTestSuite",
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
