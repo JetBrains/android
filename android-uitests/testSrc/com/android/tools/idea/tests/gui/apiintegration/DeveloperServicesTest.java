@@ -21,18 +21,22 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.net.NetUtils;
+import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import java.util.regex.Pattern;
+
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.regex.Pattern.DOTALL;
 
 @RunWith(GuiTestRunner.class)
 public class DeveloperServicesTest {
@@ -142,5 +146,67 @@ public class DeveloperServicesTest {
         assertThat(dependencyIsPresent(buildModel, "play-services-gcm")).isFalse();
       }
     });
+  }
+
+  /**
+   * Verifies that App Engine Java Servlet Module backend is added to Android Studio and the backend starts successfully through localhost.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14583297
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. File > New > New Module
+   *   2. Select "Google Cloud Module"
+   *   3. For Module Type, select "App Engine Java Servlet Module"
+   *   4. For Module Name, enter in "backend"
+   *   5. For Package Name, enter in "com.google.sampleapp.backend"
+   *   6. For Client Module, select "app (google.simpleapplication)"
+   *   7. Click "Finish" button. (Verify A)
+   *   8. Edit run configurations to select "backend" (Verify B)
+   *   Verify:
+   *   A: The values entered into Module Name and Package Name fields are used in the class.
+   *      At the root of the Project Navigator, there is a module called "backend"
+   *   B: Backend starts successfully through telnet localhost 8080.
+   *      The test gets a fixture for the output window of the Run tool and waits for the text "Dev App Server is now running" to appear,
+   *      which shows that the server is running. After that it verifies the test can connect to port 8080 on localhost.
+   *   </pre>
+   */
+  @Category(GuiSanityTestSuite.class)
+  @Test
+  public void createAppEngineJavaServletModule() throws Exception {
+    final String MODULE_NAME = "backend";
+
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+
+    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Google Cloud Module")
+      .clickNextToStep("New Google Cloud Module")
+      .chooseModuleSubtype("App Engine Java Servlet Module")
+      .setModuleName(MODULE_NAME)
+      .setPackageName("com.google.sampleapp.backend")
+      .chooseClientModule("app (google.simpleapplication)")
+      .clickFinish();
+
+    ProjectViewFixture.PaneFixture pane = ideFrame.getProjectView().selectAndroidPane();
+    ideFrame.waitForGradleProjectSyncToFinish();
+    assertThat(pane.hasModuleRootNode(MODULE_NAME)).isTrue();
+
+    String fileContents = guiTest.ideFrame()
+      .getEditor()
+      .open("backend/src/main/java/com/google/sampleapp/backend/MyServlet.java")
+      .getCurrentFileContents();
+
+    assertThat(fileContents).contains("package com.google.sampleapp.backend;");
+
+    ideFrame.runNonAndroidApp(MODULE_NAME);
+    ExecutionToolWindowFixture runToolWindow = ideFrame.getRunToolWindow();
+    runToolWindow
+      .findContent(MODULE_NAME)
+      .waitForOutput(new PatternTextMatcher(Pattern.compile(".*Dev App Server is now running.*", DOTALL)), 120);
+
+    assertThat(NetUtils.canConnectToRemoteSocket(NetUtils.getLocalHostString(), 8080)).isTrue();
+    runToolWindow.findContent(MODULE_NAME).stop();
   }
 }
