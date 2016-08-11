@@ -25,6 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -34,31 +35,53 @@ import java.util.Set;
  */
 public class Callgraph {
 
+  //A map from GraphNode that contains an invocation statement to the target PsiCFGMethods.
   public Multimap<GraphNode, PsiCFGMethod> callerNodeToMethodsMap;
 
+  //A map from the taret PsiCFGMethod BACK to the invocation GraphNode.
   public Multimap<PsiCFGMethod, GraphNode> calleeMethodToCallerGraphNodeMap;
 
   //Callee GraphNode is the EntryNode
+  //A map from GraphNode that contains the invocation statement to the GraphNodes which are the
+  //EntryNode of target methods.
   public Multimap<GraphNode, GraphNode> callerNodeToCalleeNodeMap;
 
-  //Callee GraphNode here is the exit node
+  //Callee GraphNode here is the ExitNode
+  //A map from GraphNode that is the ExitNode of the target method back to the GraphNodes that
+  //contains the invocation statements.
   public Multimap<GraphNode, GraphNode> calleeNodeToCallerNodeMap;
 
-
+  //A map from the method that contains the invocation statement to the target methods.
   public Multimap<PsiCFGMethod, PsiCFGMethod> callerMethodToCalleeMethodMap;
 
+  //A map from the target method back to the methods that contains the invocation.
   public Multimap<PsiCFGMethod, PsiCFGMethod> calleeMethodToCallerMethodReturnMap;
 
 
   public PsiCFGMethod[] findCalleeMethodForGraphNode(GraphNode node) {
+    if (callerNodeToMethodsMap.containsKey(node)) {
+      Collection<PsiCFGMethod> methodCollection = callerNodeToMethodsMap.get(node);
+      return methodCollection.toArray(PsiCFGMethod.EMPTY_ARRAY);
+    }
+
     return PsiCFGMethod.EMPTY_ARRAY;
   }
 
   public GraphNode[] findCalleeGraphNodeForGraphNode(GraphNode node) {
+    if (callerNodeToCalleeNodeMap.containsKey(node)) {
+      Collection<GraphNode> graphNodeCollection = callerNodeToCalleeNodeMap.get(node);
+      return graphNodeCollection.toArray(GraphNode.EMPTY_ARRAY);
+    }
+
     return GraphNode.EMPTY_ARRAY;
   }
 
   public PsiCFGMethod[] findCalleeForMethod(PsiCFGMethod method) {
+    if (calleeMethodToCallerMethodReturnMap.containsKey(method)) {
+      Collection<PsiCFGMethod> methodsCollection = calleeMethodToCallerMethodReturnMap.get(method);
+      return methodsCollection.toArray(PsiCFGMethod.EMPTY_ARRAY);
+    }
+
     return PsiCFGMethod.EMPTY_ARRAY;
   }
 
