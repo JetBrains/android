@@ -32,8 +32,8 @@ import java.util.Collection;
  */
 public abstract class ModelWizardStep<M extends WizardModel> implements Disposable {
 
-  @NotNull private final String myTitle;
-  @NotNull private M myModel;
+  @NotNull private final M myModel;
+  @NotNull private String myTitle;
 
   protected ModelWizardStep(@NotNull M model, @NotNull String title) {
     myModel = model;
@@ -46,6 +46,14 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   @NotNull
   public final String getTitle() {
     return myTitle;
+  }
+
+  /**
+   * Sets title of this step. Used if the title depends on some data in the model that can change.
+   * This method is usually called from {@link #onEntering()}
+   */
+  protected final void setTitle(@NotNull String title) {
+    myTitle = title;
   }
 
   /**
