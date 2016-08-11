@@ -1045,14 +1045,12 @@ public class ConstraintUtilities {
     String left2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
     String right1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
     String right2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
-    String centerX = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_CENTER_X_TO_CENTER_X_OF);
 
     String top1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
     String top2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
     String bottom1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     String bottom2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     String baseline = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
-    String centerY = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_CENTER_Y_TO_CENTER_Y_OF);
 
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     companion.getWidgetProperties().clear();
@@ -1069,9 +1067,6 @@ public class ConstraintUtilities {
     setEndMargin(right1, component, widget);
     setTarget(model, scene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
     setEndMargin(right2, component, widget);
-    setTarget(model, scene, centerX, widget, ConstraintAnchor.Type.CENTER_X, ConstraintAnchor.Type.CENTER_X);
-    setStartMargin(centerX, component, widget);
-    setEndMargin(centerX, component, widget);
 
     setTarget(model, scene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
     setTopMargin(top1, component, widget);
@@ -1082,9 +1077,6 @@ public class ConstraintUtilities {
     setTarget(model, scene, bottom2, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.BOTTOM);
     setBottomMargin(bottom2, component, widget);
     setTarget(model, scene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
-    setTarget(model, scene, centerY, widget, ConstraintAnchor.Type.CENTER_Y, ConstraintAnchor.Type.CENTER_Y);
-    setTopMargin(centerY, component, widget);
-    setBottomMargin(centerY, component, widget);
 
     setBias(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, component, widget);
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
