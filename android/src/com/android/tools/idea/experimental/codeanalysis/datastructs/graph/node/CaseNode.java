@@ -18,6 +18,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
 /**
+ * Represents a "case label:" statement.
  * Created by haowei on 6/29/16.
  */
 public interface CaseNode extends GraphNode {
