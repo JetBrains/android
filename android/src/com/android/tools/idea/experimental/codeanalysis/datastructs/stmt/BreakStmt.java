@@ -18,7 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 /**
  * Does not need to do anything because the target node is
  * already inside the parent node
- * Created by haowei on 6/13/16.
  */
 public interface BreakStmt extends Stmt {
 }

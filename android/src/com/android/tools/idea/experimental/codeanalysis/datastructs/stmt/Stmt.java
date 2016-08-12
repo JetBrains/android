@@ -20,7 +20,6 @@ import com.intellij.psi.PsiElement;
 
 /**
  * The base of all statment contained in a node inside the CFG
- * Created by haowei on 6/13/16.
  */
 public interface Stmt {
   public boolean containsInvokeExpr();

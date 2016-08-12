@@ -17,7 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 /**
  * Represent InvokeVirtual
- * Created by haowei on 6/13/16.
  */
 public interface InstanceInvokeExpr extends InvokeExpr {
   public Value getBase();

@@ -21,9 +21,6 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class ParamImpl implements Param {
 
   private PsiParameter mPsiRef;

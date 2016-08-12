@@ -41,9 +41,6 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by haowei on 6/10/16.
- */
 public class CFGUtil {
 
   public static final String NODE_TYPE_GRAPHNODE = "GraphNode";
@@ -235,7 +232,7 @@ public class CFGUtil {
     className = cfgClass.getQualifiedClassName().replace(".", "-");
     String fileName = className + "-" + methodName + ".dot";
     BufferedWriter bw = null;
-    try {
+    try  {
       File dotFile = new File(path, fileName);
       if (dotFile.exists()) {
         dotFile.delete();

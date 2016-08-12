@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.SwitchBranchingNode;
 
-/**
- * Created by haowei on 6/29/16.
- */
 public interface SwitchCaseGraph extends BlockGraph {
   GraphNode[] getCaseNodes();
 

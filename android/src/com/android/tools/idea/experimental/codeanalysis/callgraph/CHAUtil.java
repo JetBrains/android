@@ -29,7 +29,6 @@ import java.util.Set;
  * Currently reserved. As it requires the class set
  * information computed from the intraprocedural data
  * flow analysis.
- * Created by haowei on 7/13/16.
  */
 public class CHAUtil {
   protected PsiCFGScene mScene;

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
-/**
- * Created by haowei on 6/13/16.
- */
+
 public interface Expr extends Value {
 }

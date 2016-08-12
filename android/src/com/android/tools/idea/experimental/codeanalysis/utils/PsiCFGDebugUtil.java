@@ -20,9 +20,6 @@ import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 
 import java.util.logging.Logger;
 
-/**
- * Created by haowei on 6/9/16.
- */
 public class PsiCFGDebugUtil {
   public static final Logger LOG = Logger.getLogger(PsiCFGDebugUtil.class.getSimpleName());
 

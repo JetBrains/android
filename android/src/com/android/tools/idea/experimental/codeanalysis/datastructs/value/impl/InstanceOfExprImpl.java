@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/17/16.
- */
 public class InstanceOfExprImpl implements InstanceOfExpr {
   private Value mOperand;
   private PsiType mCheckedType;

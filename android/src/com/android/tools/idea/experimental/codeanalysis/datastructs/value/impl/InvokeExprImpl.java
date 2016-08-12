@@ -25,9 +25,6 @@ import com.intellij.psi.PsiType;
 
 import java.util.ArrayList;
 
-/**
- * Created by haowei on 6/23/16.
- */
 public abstract class InvokeExprImpl implements InvokeExpr {
   protected PsiCFGMethod mTargetMethod;
   protected ArrayList<Value> mArgsList;

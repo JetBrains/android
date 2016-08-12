@@ -17,7 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 /**
  * Base interface for Entry in a graph
- * Created by haowei on 6/8/16.
  */
 public interface EntryNode extends DummyNode {
 

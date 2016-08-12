@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 
-/**
- * Created by haowei on 6/18/16.
- */
 public class ConditionTrueNode extends DummyNodeImpl {
   public ConditionTrueNode(BlockGraph parentGraph) {
     super(parentGraph);

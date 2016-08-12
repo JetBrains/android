@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs;
 
-/**
- * Created by haowei on 6/9/16.
- */
 public interface ClassMember {
   public PsiCFGClass getDeclaringClass();
 

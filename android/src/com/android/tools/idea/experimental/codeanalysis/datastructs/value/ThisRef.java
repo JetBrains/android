@@ -17,9 +17,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
 
-/**
- * Created by haowei on 6/16/16.
- */
+
 public interface ThisRef extends IdentityRef {
   PsiCFGClass getRefClass();
 }

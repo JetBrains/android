@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
-/**
- * Created by haowei on 6/27/16.
- */
 public interface SynchronizedBlockGraph extends BlockGraph {
   public Value getSynchronizedExpression();
 }

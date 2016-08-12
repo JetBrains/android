@@ -29,9 +29,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Logger;
 
-/**
- * Created by haowei on 6/1/16.
- */
 public class CodeAnalysisMain {
 
   private static Map<Project, CodeAnalysisMain> instanceMap = Maps.newHashMap();
@@ -67,9 +64,9 @@ public class CodeAnalysisMain {
 
     //Get list of java files available in this project
     int fileCount = scope.getFileCount();
-    LOG.info("File count in scope " + fileCount);
+    //LOG.info("File count in scope " + fileCount);
     PsiFile[] allFilesInScope = findAllJavaFiles(mProject, scope);
-    LOG.info("File count in visitor " + allFilesInScope.length);
+    //LOG.info("File count in visitor " + allFilesInScope.length);
     //outputFileNames(allFilesInScope);
 
     //Extract all java classes from java files.
@@ -84,7 +81,7 @@ public class CodeAnalysisMain {
     AnalysisUtil.performStage2();
     AnalysisUtil.performStage3();
     AnalysisUtil.performStage4();
-    AnalysisUtil.summarizeStage();
+    //AnalysisUtil.summarizeStage();
     AnalysisUtil.performStage5();
     AnalysisUtil.performStage6();
   }

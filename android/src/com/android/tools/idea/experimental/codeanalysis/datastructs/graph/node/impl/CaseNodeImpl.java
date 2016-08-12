@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.C
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.intellij.psi.PsiLiteralExpression;
 
-/**
- * Created by haowei on 6/29/16.
- */
 public class CaseNodeImpl extends GraphNodeImpl implements CaseNode {
 
   protected Value mLabelValue;

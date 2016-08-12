@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by haowei on 6/20/16.
- */
 public interface ReturnStmt extends Stmt {
   /**
    * Get the value returned by the return statement. It can be null due to the void return.

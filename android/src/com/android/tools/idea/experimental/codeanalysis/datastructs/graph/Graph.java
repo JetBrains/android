@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
  * The base interface for a graph.
  * Unless the Graph is used to represent a conditional check expression,
  * It should only contain 1 exit node.
- * Created by haowei on 6/18/16.
  */
 public interface Graph {
 

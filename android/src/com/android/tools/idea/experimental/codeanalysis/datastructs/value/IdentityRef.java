@@ -15,8 +15,5 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
-/**
- * Created by haowei on 6/16/16.
- */
 public interface IdentityRef extends Ref {
 }

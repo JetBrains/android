@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignStmt;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public interface SynthesizedLocal extends Local {
   public AssignStmt getAssignmentSite();
 }
