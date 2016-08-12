@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
 import com.intellij.ui.SimpleTextAttributes;
 
 import javax.swing.*;
@@ -121,7 +122,7 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean hasFocus) {
     String title = myTitle;
     if (title == null) {
-      title = SummaryTreeNode.getDescription(myVersion);
+      title = SdkVersionInfo.getVersionWithCodename(myVersion);
     }
     renderer.getTextRenderer()
       .append(title, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
