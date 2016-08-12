@@ -84,7 +84,7 @@ public class PermissionUsageQuickFix extends LocalQuickFixAndIntentionActionOnPs
   @NotNull
   @Override
   public String getText() {
-    return "Insert guards for permiision usage";
+    return "Insert guards for permission usage";
   }
 
   @Nls
