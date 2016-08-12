@@ -46,7 +46,6 @@ public class CodeAnalysisActionWDlg extends BaseAnalysisAction {
     super(actionTitle, description);
     //Temporarily change the log level
     LOG.setLevel(Level.ALL);
-    LOG.info("CodeAnalysisActionWDlg Constructor invoked");
   }
 
   @Override
