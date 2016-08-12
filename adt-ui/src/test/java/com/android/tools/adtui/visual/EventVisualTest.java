@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visual;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.EventAction;
@@ -26,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -46,9 +46,9 @@ public class EventVisualTest extends VisualTest {
   };
 
   private static final Icon[] MOCK_ICONS = {
-    buildStaticImage(Color.red),
-    buildStaticImage(Color.green),
-    buildStaticImage(Color.blue),
+    AdtUiUtils.buildStaticImage(Color.red, IMAGE_WIDTH, IMAGE_HEIGHT),
+    AdtUiUtils.buildStaticImage(Color.green, IMAGE_WIDTH, IMAGE_HEIGHT),
+    AdtUiUtils.buildStaticImage(Color.blue, IMAGE_WIDTH, IMAGE_HEIGHT)
   };
 
   private static final int AXIS_SIZE = 100;
@@ -71,15 +71,6 @@ public class EventVisualTest extends VisualTest {
 
   private AnimatedTimeRange myTimelineRange;
 
-  private static Icon buildStaticImage(Color color) {
-    BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, BufferedImage.TYPE_4BYTE_ABGR);
-    for (int y = 0; y < IMAGE_HEIGHT; y++) {
-      for (int x = 0; x < IMAGE_WIDTH; x++) {
-        image.setRGB(x, y, color.getRGB());
-      }
-    }
-    return new ImageIcon(image);
-  }
 
   @Override
   protected List<Animatable> createComponentsList() {

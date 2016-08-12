@@ -61,21 +61,22 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private final int myMaxHeight;
 
+  private float myLineThickness = 2.0f;
+
   /**
    * This map is used to pair actions, to their draw location. This is used primarily to store the
    * location where to draw the name of the incoming event.
    */
-  private HashMap<EventAction<Action, String>, EventRenderData> myActionToDrawLocationMap =
-    new HashMap<EventAction<Action, String>, EventRenderData>();
+  private HashMap<EventAction<Action, String>, EventRenderData> myActionToDrawLocationMap = new HashMap<>();
 
   /**
    * @param data The state chart data.
    */
-  public StackedEventComponent(@NotNull RangedSeries<EventAction<Action, String>> data,
-                               int maxHeight) {
+  public StackedEventComponent(@NotNull RangedSeries<EventAction<Action, String>> data, int maxHeight) {
     mData = data;
     myMaxHeight = maxHeight;
-    mPaths = new ArrayList<Shape>();
+    mPaths = new ArrayList<>();
+    setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
   @Override
@@ -87,15 +88,14 @@ public class StackedEventComponent extends AnimatedComponent {
     // EventAction competed events with the EventAction start events. This is done this way as
     // a event started and completed events may come in in any order at any time.
     // TODO: Combine start/stop events, that means pulling this logic out into the supportlib.
-    HashMap<Long, EventAction<Action, String>> downEvents
-      = new HashMap<Long, EventAction<Action, String>>();
+    HashMap<Long, EventAction<Action, String>> downEvents = new HashMap<>();
 
     // This map is needed because the index to draw our path can change from the time we get a
     // start event to the time we get a completed event. The key in this map and the key in the
     // downEvents map should be the same. The value in this map is the index that the start
     // event is drawn at. We use this when we get an end event to draw the completed line at the
     // same index.
-    HashMap<Long, Integer> drawOrderIndex = new HashMap<Long, Integer>();
+    HashMap<Long, Integer> drawOrderIndex = new HashMap<>();
 
     // A queue of open index values, this allows us to pack our events without leaving gaps.
     PriorityQueue<Integer> offsetValues = new PriorityQueue<Integer>();
@@ -142,6 +142,7 @@ public class StackedEventComponent extends AnimatedComponent {
       if (data.getValue() == Action.ACTIVITY_STARTED) {
         downEvents.put(data.getStartUs(), data);
       } else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
+        // TODO: check/assert that ACTIVITY_COMPLETED event time is greater than or equal to ACTIVITY_STARTED time
         assert drawOrderIndex.containsKey(data.getStartUs());
         int index = drawOrderIndex.get(data.getStartUs());
         drawOrderIndex.remove(data.getStartUs());
@@ -196,7 +197,7 @@ public class StackedEventComponent extends AnimatedComponent {
     double min = mData.getXRange().getMin();
     double max = mData.getXRange().getMax();
     Stroke current = g2d.getStroke();
-    BasicStroke str = new BasicStroke(2.0f);
+    BasicStroke str = new BasicStroke(myLineThickness);
     g2d.setStroke(str);
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, 1);
     for (int i = 0; i < mPaths.size(); i++) {
@@ -211,7 +212,7 @@ public class StackedEventComponent extends AnimatedComponent {
       g2d.draw(shape);
     }
     g2d.setStroke(current);
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(getFont());
     FontMetrics metrics = g2d.getFontMetrics();
     for (EventAction<Action, String> event : myActionToDrawLocationMap.keySet()) {
       EventRenderData positionData = myActionToDrawLocationMap.get(event);
@@ -251,6 +252,10 @@ public class StackedEventComponent extends AnimatedComponent {
   @Override
   protected void debugDraw(Graphics2D g) {
     super.debugDraw(g);
+  }
+
+  public void setLineThickness(float lineThickness) {
+    myLineThickness = lineThickness;
   }
 }
 

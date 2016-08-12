@@ -19,7 +19,9 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -88,5 +90,18 @@ public final class AdtUiUtils {
     }
 
     return text + ELLIPSIS;
+  }
+
+  /**
+   * Creates a static rectangular image with given color, width and height.
+   */
+  public static Icon buildStaticImage(Color color, int width, int height) {
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        image.setRGB(x, y, color.getRGB());
+      }
+    }
+    return new ImageIcon(image);
   }
 }

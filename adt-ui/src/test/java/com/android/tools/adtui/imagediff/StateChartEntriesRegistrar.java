@@ -168,7 +168,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     /**
      * Add a series to the state chart.
      */
-    void addSeries() {
+    protected void addSeries() {
       DefaultDataSeries<TestState> series = new DefaultDataSeries<>();
       RangedSeries<TestState> rangedSeries = new RangedSeries<>(myXRange, series);
       myData.add(series);
