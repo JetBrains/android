@@ -131,7 +131,7 @@ public class DesignSurface extends JPanel implements Disposable {
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
 
-  private double myScale = 1;
+  private double myScale = -1;
   @NotNull private final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   private boolean myDeviceFrames = false;
@@ -184,8 +184,7 @@ public class DesignSurface extends JPanel implements Disposable {
     addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        updateScrolledAreaSize();
-        if (isShowing() && getWidth() > 0 && getHeight() > 0) {
+        if (isShowing() && getWidth() > 0 && getHeight() > 0 && myScale < 0) {
           zoomToFit();
         }
       }
@@ -413,12 +412,13 @@ public class DesignSurface extends JPanel implements Disposable {
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
     Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                          size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
     if (myScreenMode == ScreenMode.BOTH) {
       if (isStackVertically()) {
         dimension.setSize(dimension.getWidth(),
                           dimension.getHeight() + size.height + SCREEN_DELTA);
-      } else {
+      }
+      else {
         dimension.setSize(dimension.getWidth() + size.width + SCREEN_DELTA,
                           dimension.getHeight());
       }
