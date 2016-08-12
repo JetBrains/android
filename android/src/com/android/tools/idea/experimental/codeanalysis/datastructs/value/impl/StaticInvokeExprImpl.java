@@ -23,9 +23,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/23/16.
- */
 public class StaticInvokeExprImpl extends InvokeExprImpl implements StaticInvokeExpr {
 
   protected PsiCFGClass mBase;

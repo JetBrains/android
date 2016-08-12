@@ -23,9 +23,6 @@ import com.google.common.collect.Sets;
 
 import java.util.HashSet;
 
-/**
- * Created by haowei on 6/29/16.
- */
 public class SwitchCaseGraphImpl extends BlockGraphImpl implements SwitchCaseGraph {
 
   protected HashSet<GraphNode> mCaseNodesSet;

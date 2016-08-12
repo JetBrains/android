@@ -21,9 +21,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by haowei on 6/20/16.
- */
 public class ReturnStmtImpl implements ReturnStmt {
 
   protected Value mReturnValue;

@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
-/**
- * (Expr) ? Expr : Expr
- * Created by haowei on 6/15/16.
- */
 public interface ConditionOpExpr extends Expr {
   public Expr getCondition();
 

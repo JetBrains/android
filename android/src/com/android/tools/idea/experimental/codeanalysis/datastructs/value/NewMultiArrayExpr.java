@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface NewMultiArrayExpr extends AnyNewExpr {
   public PsiType getBaseType();
 

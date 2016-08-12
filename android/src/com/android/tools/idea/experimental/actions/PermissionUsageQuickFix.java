@@ -31,9 +31,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by haowei on 7/26/16.
- */
 public class PermissionUsageQuickFix extends LocalQuickFixAndIntentionActionOnPsiElement {
   public PermissionUsageQuickFix(@Nullable PsiElement element) {
     super(element);
@@ -45,10 +42,7 @@ public class PermissionUsageQuickFix extends LocalQuickFixAndIntentionActionOnPs
                      @Nullable("is null when called from inspection") Editor editor,
                      @NotNull PsiElement startElement,
                      @NotNull PsiElement endElement) {
-    System.out.println("File: " + file.getName());
-    System.out.println("Editor: " + (editor == null ? "NULL" : editor.toString()));
-    System.out.println("startElement: " + startElement.getText() + " " + startElement.hashCode());
-    System.out.println("endElement: " + endElement.getText() + " " + endElement.hashCode());
+
 
     //The Editor can be null at any time.
     //Open the editor manually

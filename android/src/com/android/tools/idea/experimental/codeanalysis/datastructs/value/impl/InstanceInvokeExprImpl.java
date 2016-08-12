@@ -22,9 +22,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/24/16.
- */
 public class InstanceInvokeExprImpl extends InvokeExprImpl implements InstanceInvokeExpr {
   protected Value mBase;
 

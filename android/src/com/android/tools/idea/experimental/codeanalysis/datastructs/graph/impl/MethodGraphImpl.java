@@ -26,9 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class MethodGraphImpl extends BlockGraphImpl implements MethodGraph {
 
   private PsiCFGMethod mCFGMethod;

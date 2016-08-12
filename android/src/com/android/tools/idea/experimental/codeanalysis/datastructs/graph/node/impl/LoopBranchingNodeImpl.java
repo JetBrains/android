@@ -28,9 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-/**
- * Created by haowei on 6/19/16.
- */
 public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchingNode {
   protected int mLoopType;
   protected BlockGraph mLoopBody;

@@ -50,7 +50,6 @@ import java.util.Stack;
 
 /**
  * The CFG Builder for a single code block.
- * Created by haowei on 6/17/16.
  */
 public class CFGBuilder {
 
@@ -1302,7 +1301,7 @@ public class CFGBuilder {
     }
     PsiIdentifier label = statement.getLabelIdentifier();
     if (label == null) {
-      //Great. unlabeled break. Only available in loops
+      //Unlabeled break. Only available in loops
       GraphNode curTop = mNestedStack.peek();
       if (curTop instanceof LoopBranchingNodeImpl) {
         LoopBranchingNodeImpl curLoop = (LoopBranchingNodeImpl)curTop;

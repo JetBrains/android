@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class GraphNodeUtil {
   /**
    * Connect A to B. A.out->B ; B.in->A

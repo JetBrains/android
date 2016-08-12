@@ -37,9 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Map;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class BlockGraphImpl implements BlockGraph {
   protected EntryNode mEntryNode;
 

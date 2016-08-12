@@ -43,9 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * Created by haowei on 7/25/16.
- */
 public class PermissionUsageInspection extends GlobalInspectionTool {
 
 
@@ -131,7 +128,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
         PsiMethod methodRef = (PsiMethod) methodRefRAW;
         return checkPsiMethod(methodRef, manager);
       } else {
-        System.out.println("RefMethod for " + refEntity.getName() + " Not resolved to PsiMethod");
+        //System.out.println("RefMethod for " + refEntity.getName() + " Not resolved to PsiMethod");
       }
     }
     return null;
@@ -160,7 +157,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     getTargetMethodsList();
 
     if (targetMethodList.isEmpty()) {
-      System.out.println("No Location API used in this project.");
+      //System.out.println("No Location API used in this project.");
       return;
     }
 
@@ -176,7 +173,7 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
       PsiCFGMethod currentMethod = singleInvoke.getFirst();
       PsiElement currentElement = singleInvoke.getSecond();
       if (currentElement != null) {
-        System.out.println(String.format("In %s method, Invoke Element %s", currentMethod.getName(), currentElement.getText()));
+        //System.out.println(String.format("In %s method, Invoke Element %s", currentMethod.getName(), currentElement.getText()));
       }
     }
   }
@@ -198,21 +195,16 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
                      null,
                      method);
 
-    System.out.println("Target API: " + method.getDeclaringClass().getQualifiedClassName()
-                       + "." + method.getName());
+
 
     for (int i = 0; i < longestMethodStack.size(); i++) {
       GraphNode currentNode = longestNodeStack.get(i);
       PsiCFGMethod currentMethod = longestMethodStack.get(i);
-      System.out.println(currentMethod.getDeclaringClass().getQualifiedClassName()
-                         + "." + currentMethod.getName() + ":"
-                         + (currentNode == null ? "NULL" : currentNode.getStatements()[0].getSimpleName()));
     }
     PsiCFGMethod topMethod = longestMethodStack.get(longestMethodStack.size() - 1);
     GraphNode topNode = longestNodeStack.get(longestNodeStack.size() - 1);
     PsiElement psiRef = extractPsiElement(topNode);
     invocationSiteCollection.add(new Pair<>(topMethod, psiRef));
-    System.out.println("");
   }
 
   private PsiElement extractPsiElement(GraphNode node) {
@@ -316,12 +308,6 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
           taggedMethodsWithElement.put(methodRef, element);
         }
       }
-    }
-
-    for (PsiMethod method : taggedMethodsWithElement.keySet()) {
-      System.out.println(String.format("method: %s, element: %s\n",
-                                       method.getName(),
-                                       taggedMethodsWithElement.get(method).getText()));
     }
   }
 }

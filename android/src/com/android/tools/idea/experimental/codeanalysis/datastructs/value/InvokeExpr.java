@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod;
 import com.intellij.psi.PsiMethod;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface InvokeExpr extends Expr {
   public PsiCFGMethod getMethod();
 

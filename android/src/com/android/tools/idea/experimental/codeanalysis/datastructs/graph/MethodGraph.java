@@ -21,7 +21,6 @@ import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Created by haowei on 6/10/16.
  *
  * A Control Flow Graph represent the control flow of a method
  * Add method params based on the block graph

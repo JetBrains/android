@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.D
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import com.google.common.collect.Sets;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class DummyNodeImpl extends GraphNodeImpl implements DummyNode {
 
   public DummyNodeImpl(BlockGraph parentGraph) {

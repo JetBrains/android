@@ -21,9 +21,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/21/16.
- */
 public abstract class UnaryExprImpl implements UnaryExpr {
   protected PsiElement mPsiRef;
   protected IElementType mOperator;
