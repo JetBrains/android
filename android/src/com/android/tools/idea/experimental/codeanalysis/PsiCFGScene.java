@@ -35,9 +35,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Created by haowei on 6/1/16.
- *
- * A singleton class that saves all information of the interprocedural control
+ * A class that saves all information of the interprocedural control
  * flow analysis
  */
 public class PsiCFGScene {

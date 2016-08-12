@@ -31,7 +31,6 @@ import java.util.Set;
 /**
  * Callgraph class which store the call graph
  * built from the Callgraph Builder
- * Created by haowei on 7/11/16.
  */
 public class Callgraph {
 

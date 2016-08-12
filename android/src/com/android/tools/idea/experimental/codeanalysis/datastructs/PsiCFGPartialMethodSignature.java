@@ -17,11 +17,9 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs;
 
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 7/13/16.
- */
 public class PsiCFGPartialMethodSignature {
 
+  private static final int BIG_PRIME = 536870923;
   public String methodName;
 
   public PsiType[] parameterTypes;
@@ -33,16 +31,18 @@ public class PsiCFGPartialMethodSignature {
     int retHash = 0;
     retHash += methodName.hashCode();
     if (parameterTypes != null) {
+      //Calculate the hash
       for (PsiType curType : parameterTypes) {
-        retHash = retHash % 536870923;
+        retHash = retHash % BIG_PRIME;
         retHash *= 3;
         retHash += curType.hashCode();
       }
     }
 
+    //Calculate the hash
     if (isVarArgs) {
       retHash >>= 1;
-      retHash = retHash % 536870923;
+      retHash = retHash % BIG_PRIME;
       retHash *= 3;
     }
     return retHash;

@@ -23,7 +23,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
  * Unlike the graphnode. ConditionCheckNode will always
  * have 2 out edges. true and false.
  * This node can also be used in the conditional operator "? :"
- * Created by haowei on 6/18/16.
  */
 public interface ConditionCheckNode extends GraphNode {
   /**

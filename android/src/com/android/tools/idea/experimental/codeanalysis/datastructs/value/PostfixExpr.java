@@ -15,8 +15,5 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
-/**
- * Created by haowei on 6/21/16.
- */
 public interface PostfixExpr extends UnaryExpr {
 }

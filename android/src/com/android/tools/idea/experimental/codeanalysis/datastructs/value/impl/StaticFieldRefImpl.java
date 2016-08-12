@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Static
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/16/16.
- */
 public class StaticFieldRefImpl extends FieldRefImpl implements StaticFieldRef {
   public StaticFieldRefImpl(PsiType type, PsiCFGField cfgFieldRef, PsiElement element) {
     this.mType = type;

@@ -19,9 +19,6 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 7/13/16.
- */
 public class PsiCFGPartialMethodSignatureBuilder {
   public static PsiCFGPartialMethodSignature buildFromPsiMethod(PsiMethod psiMethod) {
     PsiCFGPartialMethodSignature retSignature = new PsiCFGPartialMethodSignature();

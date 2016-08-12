@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 
 /**
  * Entry class for the interprocedural analysis
- * Created by haowei on 6/8/16.
  */
 public class CodeAnalysisActionWDlg extends BaseAnalysisAction {
 

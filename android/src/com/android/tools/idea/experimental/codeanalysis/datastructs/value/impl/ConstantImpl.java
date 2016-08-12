@@ -20,9 +20,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/15/16.
- */
+
 public class ConstantImpl implements Constant {
 
   private PsiLiteralExpression mLiteral;

@@ -17,7 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 /**
  * Represents a continue statement.
- * Created by haowei on 6/28/16.
  */
 public interface ContinueBranchingNode extends GraphNode {
 }

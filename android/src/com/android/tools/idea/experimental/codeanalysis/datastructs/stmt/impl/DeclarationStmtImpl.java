@@ -23,9 +23,6 @@ import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class DeclarationStmtImpl implements DeclarationStmt {
 
   PsiType mPsiType;

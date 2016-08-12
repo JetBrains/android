@@ -21,9 +21,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class LocalImpl implements Local {
 
   PsiType mPsiType;

@@ -20,9 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
-/**
- * Created by haowei on 6/10/16.
- */
 public class ExceptionHandlingBlock {
 
   @NotNull

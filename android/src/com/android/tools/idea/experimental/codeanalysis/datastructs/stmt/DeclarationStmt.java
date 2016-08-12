@@ -20,9 +20,6 @@ import com.intellij.psi.PsiLocalVariable;
 import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public interface DeclarationStmt extends Stmt {
 
   /**

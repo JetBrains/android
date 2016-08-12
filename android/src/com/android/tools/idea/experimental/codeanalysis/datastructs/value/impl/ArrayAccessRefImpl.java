@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 7/19/16.
- */
 public class ArrayAccessRefImpl implements ArrayAccessRef {
 
   protected PsiElement mPsiRef;

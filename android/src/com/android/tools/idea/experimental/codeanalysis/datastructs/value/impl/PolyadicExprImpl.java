@@ -25,9 +25,6 @@ import com.intellij.psi.tree.IElementType;
 
 import java.util.ArrayList;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class PolyadicExprImpl implements PolyadicExpr {
   ArrayList<Value> mExprList;
   IElementType mOperator;

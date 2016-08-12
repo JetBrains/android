@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Base for all nodes in a CFG.
- * Created by haowei on 6/7/16.
  */
 public interface GraphNode {
 

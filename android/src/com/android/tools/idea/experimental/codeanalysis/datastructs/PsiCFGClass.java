@@ -29,9 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by haowei on 6/1/16.
- */
 public class PsiCFGClass implements PsiAnnotationOwner {
 
   public static PsiAnnotation[] emptyAnnotationArray = new PsiAnnotation[0];

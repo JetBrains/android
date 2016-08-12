@@ -21,9 +21,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiThisExpression;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/16/16.
- */
 public class ThisRefImpl implements ThisRef {
 
   private PsiType mType;
