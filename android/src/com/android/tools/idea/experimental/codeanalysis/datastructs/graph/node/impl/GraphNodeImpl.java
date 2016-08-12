@@ -25,9 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Set;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public class GraphNodeImpl implements GraphNode {
 
   protected BlockGraph mBlockGraph;

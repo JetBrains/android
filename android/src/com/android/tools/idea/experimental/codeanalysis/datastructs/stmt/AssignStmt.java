@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface AssignStmt extends DefinitionStmt {
   /**
    * Get the operator of this assign.

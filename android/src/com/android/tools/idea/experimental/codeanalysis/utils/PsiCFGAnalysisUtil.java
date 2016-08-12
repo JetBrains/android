@@ -30,9 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Set;
 
-/**
- * Created by haowei on 6/8/16.
- */
 public class PsiCFGAnalysisUtil {
   private PsiCFGScene mScene;
   private PsiClass mLangOjectClass;

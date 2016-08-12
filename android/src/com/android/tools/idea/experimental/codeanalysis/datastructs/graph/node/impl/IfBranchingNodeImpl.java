@@ -21,9 +21,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.IfBranchingNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
-/**
- * Created by haowei on 6/18/16.
- */
 public class IfBranchingNodeImpl extends ConditionCheckNodeImpl implements IfBranchingNode {
   protected BlockGraph mThenBranchCFG;
   protected BlockGraph mElseBranchCFG;

@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface BinopExpr extends Expr {
   public Value getOp1();
 

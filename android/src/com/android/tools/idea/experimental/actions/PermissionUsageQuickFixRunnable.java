@@ -24,9 +24,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 
-/**
- * Created by haowei on 7/26/16.
- */
 public class PermissionUsageQuickFixRunnable implements Runnable {
 
   private Project project;

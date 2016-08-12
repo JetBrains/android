@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.BreakBranchingNode;
 
-/**
- * Created by haowei on 6/28/16.
- */
 public class BreakBranchingNodeImpl extends GraphNodeImpl implements BreakBranchingNode {
   public BreakBranchingNodeImpl(BlockGraph graph) {
     super(graph);

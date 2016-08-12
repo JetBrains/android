@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface StaticInvokeExpr extends InvokeExpr {
   PsiCFGClass getBaseClass();
 

@@ -17,9 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public interface InvokeStmt extends Stmt {
   public void setInvokeExpr(Value invokeExpr);
 }

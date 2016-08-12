@@ -25,9 +25,6 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by haowei on 6/29/16.
- */
 public class SwitchBranchingNodeImpl extends GraphNodeImpl implements SwitchBranchingNode {
 
   protected Value mCheckedValue;

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
-/**
- * Created by haowei on 6/14/16.
- */
 public interface Local extends Value {
   public String getName();
 

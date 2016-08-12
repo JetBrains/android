@@ -25,9 +25,6 @@ import com.intellij.psi.PsiType;
 
 import java.util.ArrayList;
 
-/**
- * Created by haowei on 6/27/16.
- */
 public class NewExprImpl implements NewExpr {
   protected PsiType mType;
   protected PsiCFGClass mBaseClass;

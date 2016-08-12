@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.ContinueBranchingNode;
 
-/**
- * Created by haowei on 6/28/16.
- */
 public class ContinueBranchingNodeImpl extends GraphNodeImpl implements ContinueBranchingNode {
   public ContinueBranchingNodeImpl(BlockGraph graph) {
     super(graph);

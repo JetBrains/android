@@ -21,9 +21,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNodeUtil;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
-/**
- * Created by haowei on 6/18/16.
- */
 public class ConditionCheckNodeImpl extends GraphNodeImpl implements ConditionCheckNode {
 
   protected ConditionTrueNode mTrueNode;

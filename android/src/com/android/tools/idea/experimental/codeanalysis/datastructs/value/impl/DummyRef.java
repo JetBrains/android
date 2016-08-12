@@ -22,7 +22,6 @@ import com.intellij.psi.PsiType;
 /**
  * A Temporary place holder for the hard
  * to solve issue of ReferenceExpression in the PsiTree
- * Created by haowei on 6/17/16.
  */
 public class DummyRef implements Ref {
   private PsiType mType;

@@ -22,9 +22,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class AssignStmtImpl implements AssignStmt {
 
   private boolean mbSynthesized;

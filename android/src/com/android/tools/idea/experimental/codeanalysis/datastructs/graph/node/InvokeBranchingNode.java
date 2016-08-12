@@ -19,7 +19,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.Method
 
 /**
  * Reserved for invocation that does not record the return value.
- * Created by haowei on 6/13/16.
  */
 public interface InvokeBranchingNode extends GraphNode {
 

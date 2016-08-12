@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Synthe
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class SynthesizedLocalImpl extends LocalImpl implements SynthesizedLocal {
 
   public PsiElement mPsiElement;

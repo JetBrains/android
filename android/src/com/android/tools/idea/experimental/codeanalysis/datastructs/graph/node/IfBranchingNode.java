@@ -19,9 +19,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockG
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by haowei on 6/19/16.
- */
 public interface IfBranchingNode extends ConditionCheckNode {
 
   /**

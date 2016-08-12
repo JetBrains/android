@@ -20,9 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.i
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 
-/**
- * Created by haowei on 6/27/16.
- */
 public class SynchronizedBlockGraphImpl extends BlockGraphImpl implements SynchronizedBlockGraph {
   protected Value mSyncExpr;
 

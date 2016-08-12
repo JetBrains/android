@@ -18,9 +18,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by haowei on 6/13/16.
- */
 public interface DefinitionStmt extends Stmt {
 
   /**

@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
  * For the GraphNode after the LoopNode, its In Edge's source should always be the last condition
  * check code.
  *
- * Created by haowei on 6/13/16.
  */
 public interface LoopBranchingNode extends GraphNode {
   /*Only available when the looping is for loop*/

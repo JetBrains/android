@@ -20,9 +20,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/21/16.
- */
 public class PostfixExprImpl extends UnaryExprImpl {
   public PostfixExprImpl(PsiElement psiRef,
                          IElementType operator,

@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by haowei on 6/9/16.
- */
 public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
 
   protected PsiMethod mMethodRef;

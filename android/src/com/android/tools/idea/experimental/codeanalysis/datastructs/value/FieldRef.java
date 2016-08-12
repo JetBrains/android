@@ -17,9 +17,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.value;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGField;
 
-/**
- * Created by haowei on 6/16/16.
- */
+
 public interface FieldRef extends ConcreteRef {
   public PsiCFGField getField();
 }

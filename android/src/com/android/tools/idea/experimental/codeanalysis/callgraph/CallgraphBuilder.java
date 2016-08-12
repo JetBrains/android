@@ -44,7 +44,6 @@ import java.util.Set;
  * A call graph builder.
  * It based on the results of the intraprocedural CFG
  * generated in stage 3.
- * Created by haowei on 7/12/16.
  */
 public class CallgraphBuilder {
 

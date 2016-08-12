@@ -22,9 +22,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.tree.IElementType;
 
-/**
- * Created by haowei on 6/15/16.
- */
 public class BinopExprImpl implements BinopExpr {
   protected Value mOp1;
   protected Value mOp2;

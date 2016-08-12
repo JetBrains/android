@@ -17,7 +17,6 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 /**
  * Represent a break statement
- * Created by haowei on 6/13/16.
  */
 public interface BreakBranchingNode extends GraphNode {
 }
