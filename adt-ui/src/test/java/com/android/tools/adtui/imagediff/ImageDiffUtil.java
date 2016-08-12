@@ -44,8 +44,6 @@ public final class ImageDiffUtil {
 
   private static final float DEFAULT_FONT_SIZE = 12f;
 
-  private static final Dimension TEST_IMAGE_DIMENSION = new Dimension(640, 480);
-
   private static final String IMG_DIFF_TEMP_DIR = getTempDir() + "/imagediff";
 
   /**
@@ -56,6 +54,7 @@ public final class ImageDiffUtil {
   public static final List<ImageDiffEntry> IMAGE_DIFF_ENTRIES = Collections.unmodifiableList(new ArrayList<ImageDiffEntry>() {{
     addAll(new LineChartEntriesRegistrar().getImageDiffEntries());
     addAll(new StateChartEntriesRegistrar().getImageDiffEntries());
+    addAll(new EventEntriesRegistrar().getImageDiffEntries());
   }});
 
   static {
@@ -111,8 +110,6 @@ public final class ImageDiffUtil {
    * Creates a {@link BufferedImage} from a Swing component.
    */
   public static BufferedImage getImageFromComponent(Component component) {
-    component.setSize(TEST_IMAGE_DIMENSION);
-    component.setPreferredSize(TEST_IMAGE_DIMENSION);
     // Call doLayout in the content pane and its children
     doLayoutComponentTree(component);
 
