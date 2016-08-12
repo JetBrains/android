@@ -22,6 +22,6 @@ import org.junit.runner.RunWith;
 public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
-    System.setProperty("idea.home", System.getenv("TEST_TMPDIR"));
+    System.setProperty("idea.home", System.getProperty("java.io.tmpdir"));
   }
 }
