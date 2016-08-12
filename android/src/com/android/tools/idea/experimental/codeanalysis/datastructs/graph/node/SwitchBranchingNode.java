@@ -18,31 +18,82 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.SwitchCaseGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by haowei on 6/13/16.
  */
 public interface SwitchBranchingNode extends GraphNode {
 
+  /**
+   * switch (value) {
+   *   case label1:
+   *    break;
+   *   case label2:
+   *    break;
+   *   default:
+   *    break;
+   * }
+   * @return the value.
+   */
+  @NotNull
   public Value getCheckedValue();
 
+  /**
+   * switch (value) {
+   *   case label1:
+   *    break;
+   *   case label2:
+   *    break;
+   *   default:
+   *    break;
+   * }
+   * @return The nodes after the default. Return null if default does not exist.
+   */
+  @Nullable
   public GraphNode getDefaultTarget();
 
-  public void setDefaultTarget(GraphNode target);
+  /**
+   * Set the target node of default.
+   * @param target The target node.
+   */
+  public void setDefaultTarget(@NotNull GraphNode target);
 
   /**
-   * The type should be constants
-   *
-   * @return
+   * Get all the labels after the case statements.
+   * @return A new array of values of labels.
    */
+  @NotNull
   public Value[] getKeys();
 
+  /**
+   * Get the target node of a certain label.
+   * Return null if not found.
+   * @param key The value of the label.
+   * @return The target node
+   */
+  @Nullable
   public GraphNode getTargetViaKey(Value key);
 
-  public void setTargetViaKey(Value key, GraphNode target);
+  /**
+   * Set the target node of a given label.
+   * @param key The value of the label.
+   * @param target The target.
+   */
+  public void setTargetViaKey(@NotNull Value key, @NotNull GraphNode target);
 
-  public void setSwitchCaseGraph(SwitchCaseGraph graph);
+  /**
+   * Set the BlockGraph body for this switch case statement.
+   * @param graph The graph body.
+   */
+  public void setSwitchCaseGraph(@NotNull SwitchCaseGraph graph);
 
+  /**
+   * Get the BlockGraph of the code body of this switch case statement.
+   * @return The graph body
+   */
+  @NotNull
   public SwitchCaseGraph getSwitchCaseGraph();
 
 }

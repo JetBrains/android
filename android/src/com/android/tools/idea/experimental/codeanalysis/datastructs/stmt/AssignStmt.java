@@ -21,5 +21,10 @@ import com.intellij.psi.tree.IElementType;
  * Created by haowei on 6/13/16.
  */
 public interface AssignStmt extends DefinitionStmt {
+  /**
+   * Get the operator of this assign.
+   * It can be "=" "+=" "-=" etc.
+   * @return The operator.
+   */
   IElementType getOperator();
 }

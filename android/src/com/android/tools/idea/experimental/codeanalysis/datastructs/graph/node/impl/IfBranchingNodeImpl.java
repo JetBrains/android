@@ -57,7 +57,7 @@ public class IfBranchingNodeImpl extends ConditionCheckNodeImpl implements IfBra
 
   @Override
   public boolean hasElse() {
-    return mElseBranchCFG == null;
+    return mElseBranchCFG != null;
   }
 
   @Override

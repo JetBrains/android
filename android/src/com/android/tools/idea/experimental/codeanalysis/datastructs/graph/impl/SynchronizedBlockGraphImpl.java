@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.impl;
 
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.SynchronizedBlockGraph;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.SynchronizedBlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphEntryNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.BlockGraphExitNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;

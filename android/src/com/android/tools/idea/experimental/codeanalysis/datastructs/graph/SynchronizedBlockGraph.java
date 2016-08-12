@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
+package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;

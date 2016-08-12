@@ -31,7 +31,6 @@ import java.util.Map;
  */
 public class MethodGraphImpl extends BlockGraphImpl implements MethodGraph {
 
-  private Map<PsiParameter, Param> mParamMap;
   private PsiCFGMethod mCFGMethod;
 
   @Override
@@ -41,7 +40,6 @@ public class MethodGraphImpl extends BlockGraphImpl implements MethodGraph {
 
   public MethodGraphImpl(@NotNull PsiCFGMethod methodRef) {
     super();
-    mParamMap = Maps.newHashMap();
     this.mCFGMethod = methodRef;
     if (mEntryNode instanceof BlockGraphEntryNodeImpl) {
       ((BlockGraphEntryNodeImpl)mEntryNode).setTag("[Method]");
