@@ -64,6 +64,10 @@ public class PsiCFGScene {
 
   //private Map<PsiClass, PsiCFGClassBase> mPsiClassPsiMap;
 
+  /**
+   * Return the project associated to this scene object.
+   * @return
+   */
   @NotNull
   public Project getProject() {
     return this.mProject;
@@ -97,6 +101,18 @@ public class PsiCFGScene {
     return mInvocationNodes.toArray(GraphNode.EMPTY_ARRAY);
   }
 
+  /**
+   * Get the Scene object for this project.
+   * The original idea is that the CFG does not need be recreated each time it is used.
+   * So the the instance of the PsiCFGScene is saved into a Project, PsiCFGSCene map.
+   *
+   * However, in the entry of the analysis, the CFG and call graph is still recreated each
+   * time the analysis is invoked.
+   *
+   * This may raise a memory leak issue.
+   * @param proj The current project instance
+   * @return The PsiCFGScene associated with this project.
+   */
   public static PsiCFGScene getInstance(Project proj) {
     if (instanceMap.containsKey(proj)) {
       //A instance of Static Analysis Scene is already existed
@@ -110,6 +126,11 @@ public class PsiCFGScene {
     }
   }
 
+  /**
+   * Create a fresh PsiCFGScene for this project. It there is one exists, discard it.
+   * @param proj The current project instance
+   * @return The PsiCFGScene associated with this project.
+   */
   public static PsiCFGScene createFreshInstance(Project proj) {
     if (instanceMap.containsKey(proj)) {
       //A instance of Static Analysis Scene is already existed
@@ -120,6 +141,10 @@ public class PsiCFGScene {
     return instance;
   }
 
+  /**
+   * Get all PsiClass instances found by visiting all java files in the project.
+   * @return A new array of PsiClass instances which are application classes.
+   */
   public PsiClass[] getAllApplicationPsiClasses() {
     PsiClass[] retArray = new PsiClass[mAppClassNamePsiMap.size()];
     int i = 0;
@@ -131,6 +156,10 @@ public class PsiCFGScene {
     return retArray;
   }
 
+  /**
+   * Get all PsiCFGClass instances constructed from the application classses.
+   * @return A new array of PsiCFGClass instances which are application classes will be returned.
+   */
   public PsiCFGClass[] getAllApplicationClasses() {
     PsiCFGClass[] retArray = new PsiCFGClass[mAppClassNamePsiMap.size()];
     int i = 0;
@@ -141,10 +170,18 @@ public class PsiCFGScene {
     return retArray;
   }
 
+  /**
+   * Get the set of PsiCFGClass instances which are application classes.
+   * @return A new set of PsiCFGClass instances which are application classes will be returned.
+   */
   public Set<PsiClass> getAllLibraryClassPsiSet() {
     return Sets.newHashSet(this.mLibraryPsiClassPsiCFGClassMap.keySet());
   }
 
+  /**
+   * Get all PsiCFGClass instances constructed from the library classses.
+   * @return A new array of PsiCFGClass instances which are library classes will be returned.
+   */
   public PsiCFGClass[] getAllLibraryClasses() {
     PsiCFGClass[] retArray = new PsiCFGClass[mLibraryClassNamePsiMap.size()];
     int i = 0;
@@ -155,6 +192,11 @@ public class PsiCFGScene {
     return retArray;
   }
 
+  /**
+   * Get all PsiCFGClass instances constructed from the lambda expression.
+   * @return A new array of PsiCFGClass instances which are lambda anonymous classes will be
+   * returned.
+   */
   public PsiCFGClass[] getAllLambdaClass() {
     PsiCFGClass[] retArray = new PsiCFGClass[mLambdaPsiCFGClassMap.size()];
     int i = 0;
@@ -165,6 +207,12 @@ public class PsiCFGScene {
     return retArray;
   }
 
+  /**
+   * Get the PsiCFGClass by the full qualified class name.
+   * Return null if it does not exist.
+   * @param name The qualified name of the class
+   * @return The PsiCFGClass instance.
+   */
   public PsiCFGClass getPsiCFGClass(String name) {
     if (mAppClassNamePsiMap.containsKey(name)) {
       return mAppClassNamePsiMap.get(name);
@@ -178,6 +226,12 @@ public class PsiCFGScene {
     }
   }
 
+  /**
+   * Get the PsiCFGClass by the instance PsiClass
+   * Return null if it does not exist.
+   * @param name The PsiClass
+   * @return The PsiCFGClass instance.
+   */
   public PsiCFGClass getPsiCFGClass(PsiClass psiClazz) {
     if (mAppPsiClassPsiCFGClassMap.containsKey(psiClazz)) {
       return mAppPsiClassPsiCFGClassMap.get(psiClazz);
