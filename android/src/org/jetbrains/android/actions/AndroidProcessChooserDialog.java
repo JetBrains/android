@@ -68,6 +68,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
   @NonNls private static final String SHOW_ALL_PROCESSES_PROPERTY = "SHOW_ALL_PROCESSES";
   @NonNls private static final String DEBUGGABLE_DEVICE_PROPERTY = "DEBUGGABLE_DEVICE";
+  @NonNls private static final String DEBUGGER_ID_PROPERTY = "DEBUGGER_ID";
 
   private final Project myProject;
   private final boolean myShowDebuggerSelection;
@@ -101,6 +102,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
     myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
     myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
+    String lastSelectedDebuggerId = properties.getValue(DEBUGGER_ID_PROPERTY);
 
     final boolean showAllProcesses = Boolean.parseBoolean(properties.getValue(SHOW_ALL_PROCESSES_PROPERTY));
 
@@ -130,7 +132,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     myShowAllProcessesCheckBox.addActionListener(e -> updateTree());
 
-    setupDebuggerSelection(showDebuggerSelection);
+    setupDebuggerSelection(showDebuggerSelection, lastSelectedDebuggerId);
 
     myProcessTree.addTreeSelectionListener(e -> {
       IDevice selectedDevice = getSelectedDevice();
@@ -184,7 +186,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     init();
   }
 
-  private void setupDebuggerSelection(boolean showDebuggerSelection) {
+  private void setupDebuggerSelection(boolean showDebuggerSelection, @Nullable String lastSelectedDebuggerId) {
     if (!showDebuggerSelection) {
       myDebuggerLabel.setVisible(false);
       myDebuggerTypeCombo.setVisible(false);
@@ -192,14 +194,24 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     }
 
     AndroidDebugger selectedDebugger = null;
+    AndroidDebugger defaultDebugger = null;
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
     for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
       if (androidDebugger.supportsProject(myProject)) {
         androidDebuggers.add(androidDebugger);
-        if (androidDebugger.shouldBeDefault()) {
+        if (selectedDebugger == null &&
+            lastSelectedDebuggerId != null &&
+            androidDebugger.getId().equals(lastSelectedDebuggerId)) {
           selectedDebugger = androidDebugger;
         }
+        else if (androidDebugger.shouldBeDefault()) {
+          defaultDebugger = androidDebugger;
+        }
       }
+    }
+
+    if (selectedDebugger == null) {
+      selectedDebugger = defaultDebugger;
     }
 
     androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
@@ -416,6 +428,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPersistableName(selectedDevice));
     properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(mySelectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
+    properties.setValue(DEBUGGER_ID_PROPERTY, myAndroidDebugger.getId());
 
     super.doOKAction();
   }
