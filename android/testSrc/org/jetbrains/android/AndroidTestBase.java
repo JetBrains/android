@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
@@ -74,8 +75,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     //}
     //return PathUtil.getCanonicalPath(androidHomePath + "/testData");
 
-    // getTestDataPath already gives the absolute path anyway:
-    String path = getTestDataPath();
+    String path = Paths.get(getTestDataPath()).toAbsolutePath().toString();
     assertTrue(new File(path).isAbsolute());
     return path;
   }
