@@ -16,20 +16,28 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
+import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
+import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
@@ -68,6 +76,39 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     }
     return names;
   }
+
+  @NotNull
+  public IdeSettingsDialogFixture selectSdkPage() {
+    JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
+    checkNotNull(optionsEditor);
+
+    List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
+    JComponent tree = Iterables.getOnlyElement(trees);
+
+    JTree jTree = field("myTree").ofType(JTree.class).in(tree).get();
+    JTreeFixture jTreeFixture = new JTreeFixture(robot(), checkNotNull(jTree));
+    jTreeFixture.replaceCellReader(TREE_NODE_CELL_READER);
+    // It takes a few seconds to load the whole tree.
+    Wait.seconds(5).expecting("The desired path is loaded").until(() -> {
+      try {
+        jTreeFixture.selectPath("Appearance & Behavior/System Settings/Android SDK");
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
+    return this;
+  }
+
+  private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {
+    Object userObject = ((DefaultMutableTreeNode)modelValue).getUserObject();
+    if (userObject instanceof String) { // It is a String ("loading...") if the cell is not loaded yet.
+      return (String)userObject;
+    } else {
+      return field("myDisplayName").ofType(String.class)
+        .in(((FilteringTreeStructure.FilteringNode)userObject).getDelegate()).get();
+    }
+  };
 
   @NotNull
   private static List<JComponent> findComponentsOfType(@NotNull JComponent parent, @NotNull String typeName) {
