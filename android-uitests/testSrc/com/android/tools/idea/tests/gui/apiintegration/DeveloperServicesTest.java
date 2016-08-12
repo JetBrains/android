@@ -176,35 +176,37 @@ public class DeveloperServicesTest {
   public void createAppEngineJavaServletModule() throws Exception {
     final String MODULE_NAME = "backend";
 
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    boolean moduleAppears = guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Google Cloud Module")
       .clickNextToStep("New Google Cloud Module")
       .chooseModuleSubtype("App Engine Java Servlet Module")
       .setModuleName(MODULE_NAME)
       .setPackageName("com.google.sampleapp.backend")
       .chooseClientModule("app (google.simpleapplication)")
-      .clickFinish();
-
-    ProjectViewFixture.PaneFixture pane = ideFrame.getProjectView().selectAndroidPane();
-    ideFrame.waitForGradleProjectSyncToFinish();
-    assertThat(pane.hasModuleRootNode(MODULE_NAME)).isTrue();
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getProjectView()
+      .selectAndroidPane()
+      .hasModuleRootNode(MODULE_NAME);
+    assertThat(moduleAppears).isTrue();
 
     String fileContents = guiTest.ideFrame()
       .getEditor()
       .open("backend/src/main/java/com/google/sampleapp/backend/MyServlet.java")
       .getCurrentFileContents();
-
     assertThat(fileContents).contains("package com.google.sampleapp.backend;");
 
-    ideFrame.runNonAndroidApp(MODULE_NAME);
-    ExecutionToolWindowFixture runToolWindow = ideFrame.getRunToolWindow();
-    runToolWindow
+    guiTest.ideFrame()
+      .runNonAndroidApp(MODULE_NAME)
+      .getRunToolWindow()
       .findContent(MODULE_NAME)
       .waitForOutput(new PatternTextMatcher(Pattern.compile(".*Dev App Server is now running.*", DOTALL)), 120);
-
     assertThat(NetUtils.canConnectToRemoteSocket(NetUtils.getLocalHostString(), 8080)).isTrue();
-    runToolWindow.findContent(MODULE_NAME).stop();
+
+    guiTest.ideFrame()
+      .getRunToolWindow()
+      .findContent(MODULE_NAME)
+      .stop();
   }
 }
