@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import com.android.sdklib.devices.Device;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.pixelprobe.*;
+import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.FrameWrapper;
@@ -43,6 +50,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +59,7 @@ import java.util.Set;
 
 
 public class MockupEditor implements Disposable {
-
+  public static final Logger LOG = Logger.getInstance(MockupEditor.class);
   public static final String TITLE = "Mockup Editor";
 
   private static final double RELATIVE_SIZE_TO_SOURCE = 0.90;
@@ -249,7 +258,52 @@ public class MockupEditor implements Disposable {
 
       FileChooser.chooseFile(
         descriptor, null, myContentPane, selectedFile,
-        (virtualFile) -> MockupFileHelper.writeFileNameToXML(virtualFile, myMockup.getComponent()));
+        (virtualFile) -> {
+          if (myMockup.getComponent().isRoot()) {
+            openDeviceChoiceDialog(virtualFile);
+          }
+          else {
+            saveMockupFile(virtualFile);
+          }
+        });
+    }
+
+    /**
+     * Open a dialog asking to choose a device whose dimensions match those of the image
+     * @param virtualFile
+     */
+    private void openDeviceChoiceDialog(VirtualFile virtualFile) {
+      if (virtualFile.exists() && !virtualFile.isDirectory()) {
+        try {
+          final Image probe = PixelProbe.probe(virtualFile.getInputStream());
+          final BufferedImage image = probe.getMergedImage();
+          if (image == null) {
+            return;
+          }
+          final NlModel model = myMockup.getComponent().getModel();
+          final Configuration configuration = model.getConfiguration();
+          final Device device = configuration.getDevice();
+          if (device == null) {
+            return;
+          }
+
+          ApplicationManager.getApplication().invokeLater(() -> {
+            final DeviceSelectionPopup deviceSelectionPopup =
+              new DeviceSelectionPopup(model.getProject(), configuration, image);
+            if (deviceSelectionPopup.showAndGet()) {
+              saveMockupFile(virtualFile);
+            }
+          });
+        }
+        catch (IOException e1) {
+          LOG.warn("Unable to open this file\n" + e1.getMessage());
+        }
+      }
+    }
+
+    private void saveMockupFile(VirtualFile virtualFile) {
+      MockupFileHelper.writeFileNameToXML(virtualFile, myMockup.getComponent());
+      myFileChooser.setText(virtualFile.getName());
     }
   }
 
