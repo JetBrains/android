@@ -413,6 +413,13 @@ public class LayoutParamsManager {
         return setField(layoutParams, mappedField, defaultValue);
     }
     else {
+      // TODO: correctly fixes enum resolution
+      String layoutParamsName = layoutParams.getClass().getName();
+      if (inferredType == FieldType.INTEGER
+          && value.equalsIgnoreCase(SdkConstants.ATTR_PARENT)
+          && layoutParamsName.equalsIgnoreCase(SdkConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS)) {
+        value = "0";
+      }
       boolean fieldSet;
       switch (inferredType) {
         case DIMENSION:
