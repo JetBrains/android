@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ResourceBundle;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
+import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -55,10 +56,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.UniformFormat.*;
 
@@ -305,10 +309,40 @@ public class ShadersController extends Controller implements ResourceCollection.
     myProgramsList = new ShaderCellController(editor, CellList.Orientation.VERTICAL, GfxTraceEditor.SELECT_ATOM);
     myShadersList = new ShaderCellController(editor, CellList.Orientation.VERTICAL, GfxTraceEditor.SELECT_ATOM);
 
+    // Set up search fields.
+    RegexFilterComponent myShaderSearchField = new RegexFilterComponent(ShadersController.class.getName(), 10);
+    RegexFilterComponent myProgramSearchField = new RegexFilterComponent(ShadersController.class.getName(), 10);
+    JPanel programsTab = new JPanel();
+    programsTab.setLayout(new BorderLayout());
+    JPanel shadersTab = new JPanel();
+    shadersTab.setLayout(new BorderLayout());
+
+    myShaderSearchField.getTextEditor().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+          searchList(myShadersList.getList(), myShaderSearchField, false);
+        }
+      }
+    });
+
+    myProgramSearchField.getTextEditor().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent evt) {
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+          searchList(myProgramsList.getList(), myProgramSearchField, true);
+        }
+      }
+    });
+    shadersTab.add(myShaderSearchField, BorderLayout.NORTH);
+    shadersTab.add(myShadersList.getList(), BorderLayout.CENTER);
+    programsTab.add(myProgramSearchField, BorderLayout.NORTH);
+    programsTab.add(myProgramsList.getList(), BorderLayout.CENTER);
+
     // Add shader and programs lists to tabs.
     JBRunnerTabs tabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
-    tabs.addTab(new TabInfo(myShadersList.getList()).setText("Shaders"));
-    tabs.addTab(new TabInfo(myProgramsList.getList()).setText("Programs"));
+    tabs.addTab(new TabInfo(shadersTab).setText("Shaders"));
+    tabs.addTab(new TabInfo(programsTab).setText("Programs"));
 
     // Init uniform panel.
     final CellRenderer.CellLoader<UniformData> uniformsLoader = (cell, onLoad) -> onLoad.run();
@@ -390,7 +424,6 @@ public class ShadersController extends Controller implements ResourceCollection.
     shaderBorder.setTitleJustification(IdeaTitledBorder.CENTER);
     shaderCompositePanel.setBorder(shaderBorder);
     shaderCompositePanel.add(programDataPanel);
-
 
     // Set up full UI.
     programDataPanel.setDividerWidth(5);
@@ -505,6 +538,31 @@ public class ShadersController extends Controller implements ResourceCollection.
       protected void onUiThreadError(String error) {
       }
     });
+  }
+
+  // Search for next occurrence of pattern in given CellList.
+  public void searchList(CellList<ShaderData> cellList, RegexFilterComponent searchField, boolean isProgram) {
+    Pattern pattern = searchField.getPattern();
+
+    if (pattern == null) {
+      return;
+    }
+
+    int currentIndex = cellList.getSelectedIndex() + 1;
+    ShaderData currentItem = cellList.getItemAtIndex(currentIndex);
+    while (currentItem != null && !pattern.matcher(currentItem.resource.getName()).find()) {
+      currentIndex++;
+      currentItem = cellList.getItemAtIndex(currentIndex);
+    }
+
+    if (currentItem != null) {
+      cellList.selectItem(currentIndex, false);
+      mySourcePanel.setData(cellList.getSelectedItem());
+      if(isProgram){
+        loadProgramSource(cellList.getSelectedItem());
+        loadUniforms(cellList.getSelectedItem());
+      }
+    }
   }
 
   private static final ResourceInfo[] NO_RESOURCES = new ResourceInfo[0];
