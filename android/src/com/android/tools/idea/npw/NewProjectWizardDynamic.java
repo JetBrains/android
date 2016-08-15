@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
+import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
@@ -64,7 +65,6 @@ import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY
  * Presents a wizard to the user to create a new project.
  */
 public class NewProjectWizardDynamic extends DynamicWizard {
-
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
   private Project myProject;
 
@@ -256,20 +256,57 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   }
 
   @Override
-  protected void doFinish() throws IOException {
-    final String location = myState.get(PROJECT_LOCATION_KEY);
-    final String name = myState.get(APPLICATION_NAME_KEY);
-    assert location != null && name != null;
-    new WriteCommandAction.Simple(getProject()) {
+  public void doFinishAction() {
+    final String projectLocation = myState.get(PROJECT_LOCATION_KEY);
+    assert projectLocation != null;
+
+    boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(getProject(), new Computable<Boolean>() {
       @Override
-      protected void run() throws Throwable {
-        VfsUtil.createDirectoryIfMissing(location);
+      public Boolean compute() {
+        // We generally assume that the path has passed a fair amount of prevalidation checks
+        // at the project configuration step before. Write permissions check can be tricky though in some cases,
+        // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
+        // Anyway, it seems better to check that we were really able to create the target location and are able to
+        // write to it right here when the wizard is about to close, than running into some internal IDE errors
+        // caused by these problems downstream
+        // Note: this change was originally caused by http://b.android.com/219851, but then
+        // during further discussions that a more important bug was in path validation in the old wizards,
+        // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
+        // already used in new wizard's PathValidator.
+        // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
+        try {
+          if (VfsUtil.createDirectoryIfMissing(projectLocation) != null
+              && FileOpUtils.create().canWrite(new File(projectLocation))) {
+            return true;
+          }
+        } catch (Exception e) {
+          LOG.error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
+        }
+        return false;
       }
-    }.execute();
+    });
+    if(!couldEnsureLocationExists) {
+      Messages.showErrorDialog(String.format("Could not ensure the target project location exists and is accessible:\n\n%1$s\n\n" +
+                                             "Please try to specify another path.", projectLocation),
+                                             "Error Creating Project");
+      navigateToNamedStep(ConfigureAndroidProjectStep.STEP_NAME, true);
+      myHost.shakeWindow();
+      return;
+    }
+
+    super.doFinishAction();
+  }
+
+  @Override
+  protected void doFinish() throws IOException {
+    final String projectLocation = myState.get(PROJECT_LOCATION_KEY);
+    final String name = myState.get(APPLICATION_NAME_KEY);
+    assert projectLocation != null && name != null;
+
     myProject = UIUtil.invokeAndWaitIfNeeded(new Computable<Project>() {
       @Override
       public Project compute() {
-        return ProjectManager.getInstance().createProject(name, location);
+        return ProjectManager.getInstance().createProject(name, projectLocation);
       }
     });
     super.doFinish();
