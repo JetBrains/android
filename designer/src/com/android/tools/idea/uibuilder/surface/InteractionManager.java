@@ -430,7 +430,7 @@ public class InteractionManager {
       }
 
       SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
+      NlComponent component = Coordinates.findImmediateComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
         // If we cannot find an element where we clicked, try to use the first element currently selected
         // (if any) to find the view group handler that may want to handle the mousePressed()
@@ -517,7 +517,7 @@ public class InteractionManager {
         return;
       }
       SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(screenView, x, y);
+      NlComponent component = Coordinates.findImmediateComponent(screenView, x, y);
 
       if (component == null) {
         // Clicked component resize handle?
@@ -551,7 +551,7 @@ public class InteractionManager {
       if (screenView == null) {
         return null;
       }
-      return Coordinates.findComponent(screenView, x, y);
+      return Coordinates.findImmediateComponent(screenView, x, y);
     }
 
     @Override
@@ -604,13 +604,23 @@ public class InteractionManager {
         }
         else {
           NlModel model = screenView.getModel();
-          NlComponent component = model.findLeafAt(ax, ay, false);
+          NlComponent component = null;
+
+          // Make sure we start from root if we don't have anything selected
+          if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
+            selectionModel.setSelection(Collections.singleton(model.getComponents().get(0).getRoot()));
+          }
 
           // See if you're dragging inside a selected parent; if so, drag the selection instead of any
           // leaf nodes inside it
           NlComponent primary = selectionModel.getPrimary();
           if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
             component = primary;
+          } else if (primary != null) {
+            component = primary.findImmediateLeafAt(ax, ay);
+          }
+          if (component == null) {
+            component = model.findLeafAt(ax, ay, false);
           }
 
           if (component == null || component.isRoot()) {

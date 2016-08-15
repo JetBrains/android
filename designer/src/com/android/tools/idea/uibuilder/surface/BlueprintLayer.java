@@ -90,7 +90,16 @@ public class BlueprintLayer extends Layer {
     component = component.getRoot();
 
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(model.getFacet());
-    drawComponent(g, component, viewHandlerManager, false);
+    // Draw the components
+    if (drawComponent(g, component, viewHandlerManager, false)) {
+      Dimension size = myScreenView.getSize();
+      DesignSurface surface = myScreenView.getSurface();
+      if (size.width != 0 && size.height != 0) {
+        surface.repaint(myScreenView.getX(), myScreenView.getY(), size.width, size.height);
+      } else {
+        surface.repaint();
+      }
+    }
 
     g.dispose();
   }
@@ -102,11 +111,12 @@ public class BlueprintLayer extends Layer {
    * @param component          the component we want to draw
    * @param viewHandlerManager the view handler
    */
-  private void drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
+  private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
                              @NotNull ViewHandlerManager viewHandlerManager,
                              boolean parentHandlesPainting) {
+    boolean needsRepaint = false;
     if (component.viewInfo == null) {
-      return;
+      return needsRepaint;
     }
 
     ViewHandler handler = component.getViewHandler();
@@ -118,8 +128,9 @@ public class BlueprintLayer extends Layer {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {
         if (handler.paintConstraints(myScreenView, gc, component)) {
-          return;
+          return needsRepaint;
         }
+        needsRepaint |= viewGroupHandler.drawGroup(gc, myScreenView, component);
         handlesPainting = true;
       }
     }
@@ -179,8 +190,9 @@ public class BlueprintLayer extends Layer {
 
     // Draw the children of the component...
     for (NlComponent child : component.getChildren()) {
-      drawComponent(gc, child, viewHandlerManager, handlesPainting);
+      needsRepaint |= drawComponent(gc, child, viewHandlerManager, handlesPainting);
     }
+    return needsRepaint;
   }
 
   /**
