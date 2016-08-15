@@ -59,7 +59,6 @@ public class MainController extends Controller {
     }};
 
     experimentalBanner.setVisible(false);
-    myEditor.addConnectionListener((server) -> experimentalBanner.setVisible(!server.getFeatures().isStable()));
 
     JBPanel top = new JBPanel(new GridLayout(2, 1));
     top.add(experimentalBanner);
@@ -98,6 +97,15 @@ public class MainController extends Controller {
     myReportTab = addTab(myLayoutUi, ReportController.createUI(editor), "Report", PlaceInGrid.right);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
+
+    // We have to be sure that myLayoutUi and myReportTab are initialized.
+    myEditor.addConnectionListener((server) -> {
+      experimentalBanner.setVisible(!server.getFeatures().isStable());
+      if (!server.getFeatures().hasReport()) {
+        // Remove myReportTab.
+        myLayoutUi.removeContent(myReportTab, true);
+      }
+    });
 
     // we need to make sure that none of the ThreeComponentsSplitter have a size 0
     // or we can risk either setting, or saving a size of 0 for one of its children
