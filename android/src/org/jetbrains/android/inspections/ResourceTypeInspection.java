@@ -2274,7 +2274,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (resolved instanceof PsiField) {
         return getLongValue(((PsiField)resolved).getInitializer(), defaultValue);
       }
-    } // TODO: Allow inlined arithmetic here? If so look for operator nodes
+    }
+
+    if (value instanceof PsiExpression) {
+      Object o = JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)value, false);
+      if (o instanceof Number) {
+        return ((Number)o).longValue();
+      }
+    }
 
     return defaultValue;
   }
@@ -2287,12 +2294,31 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (o instanceof Number) {
         return ((Number)o).doubleValue();
       }
+    } else if (value instanceof PsiPrefixExpression) {
+      // negative number
+      PsiPrefixExpression exp = (PsiPrefixExpression)value;
+      if (exp.getOperationTokenType() == JavaTokenType.MINUS) {
+        PsiExpression operand = exp.getOperand();
+        if (operand instanceof PsiLiteral) {
+          Object o = ((PsiLiteral)operand).getValue();
+          if (o instanceof Number) {
+            return -((Number)o).doubleValue();
+          }
+        }
+      }
     } else if (value instanceof PsiReferenceExpression) {
       PsiElement resolved = ((PsiReferenceExpression)value).resolve();
       if (resolved instanceof PsiField) {
         return getDoubleValue(((PsiField)resolved).getInitializer(), defaultValue);
       }
-    } // TODO: Allow inlined arithmetic here? If so look for operator nodes
+    }
+
+    if (value instanceof PsiExpression) {
+      Object o = JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)value, false);
+      if (o instanceof Number) {
+        return ((Number)o).doubleValue();
+      }
+    }
 
     return defaultValue;
   }

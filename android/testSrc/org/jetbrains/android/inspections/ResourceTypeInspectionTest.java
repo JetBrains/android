@@ -442,6 +442,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    public void printBetweenFromExclusiveToInclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromInclusiveToExclusive(@FloatRange(from=2.5,to=5.0,toInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromExclusiveToExclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false,toInclusive=false) float arg) { }\n" +
+            "    public void printNegativeRange(@FloatRange(from=-90.0,to=-5.0) float arg) { }\n" +
             "    public static final int MINIMUM = -1;\n" +
             "    public static final int MAXIMUM = 42;\n" +
             "    public static final int SIZE = 5;\n" +
@@ -582,6 +583,9 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetweenFromExclusiveToExclusive(2.51f); // OK\n" +
             "        printBetweenFromExclusiveToExclusive(4.99f); // OK\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        printNegativeRange(/*Value must be ≥ -90.0 and ≤ -5.0 (was -150.0)*/-150.0f/**/); // ERROR\n" +
+            "        printNegativeRange/*'printNegativeRange(float)' in 'X' cannot be applied to '(double)'*/(-10.0)/**/; // OK\n" +
+            "        printNegativeRange(/*Value must be ≥ -90.0 and ≤ -5.0 (was -3.0)*/-3.0f/**/); // ERROR\n" +
             "    }\n" +
             "}\n");
   }
