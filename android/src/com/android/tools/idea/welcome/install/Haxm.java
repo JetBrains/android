@@ -16,14 +16,12 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
-import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
-import com.android.sdklib.repository.legacy.descriptors.PkgDesc;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.AccelerationErrorCode;
+import com.android.tools.idea.avdmanager.AccelerationErrorSolution;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.ElevatedCommandLine;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
@@ -38,6 +36,7 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -68,6 +67,9 @@ public final class Haxm extends InstallableComponent {
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
   public static final String REPO_PACKAGE_PATH = "extras;intel;" + COMPONENT_PATH;
   public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
+
+  private static final int INTEL_HAXM_INSTALLER_EXIT_CODE_SUCCESS = 0;
+  private static final int INTEL_HAXM_INSTALLER_EXIT_CODE_REBOOT_REQUIRED = 2;
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
@@ -200,15 +202,14 @@ public final class Haxm extends InstallableComponent {
           runInstaller(installContext, commandLine);
         }
         catch (WizardException e) {
-          LOG.error(String.format("Tried to install HAXM on %s OS with %s memory size",
-                                  Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())));
+          LOG.warn(String.format("Tried to install HAXM on %s OS with %s memory size",
+                                  Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())), e);
           installContext.print("Unable to install Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
           String message = e.getMessage();
           if (!StringUtil.endsWithLineBreak(message)) {
             message += "\n";
           }
           installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
-          LOG.error(e);
         }
         break;
 
@@ -240,7 +241,17 @@ public final class Haxm extends InstallableComponent {
       });
       myProgressStep.attachToProcess(process);
       int exitCode = process.runProcess().getExitCode();
-      if (exitCode != 0) {
+      if (exitCode != INTEL_HAXM_INSTALLER_EXIT_CODE_SUCCESS) {
+        // According to the installer docs for Windows, installer may signify that a reboot is required
+        if (SystemInfo.isWindows && exitCode == INTEL_HAXM_INSTALLER_EXIT_CODE_REBOOT_REQUIRED) {
+          String rebootMessage = "Reboot required: HAXM installation succeeded, however the installer reported that a reboot is " +
+                                 "required in order for the changes to take effect";
+          installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT);
+          AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.NON_MODAL);
+
+          return;
+        }
+
         // HAXM is not required so we do not stop setup process if this install failed.
         installContext.print(
           String.format("HAXM installation failed. To install HAXM follow the instructions found at: %s",
@@ -263,7 +274,7 @@ public final class Haxm extends InstallableComponent {
     }
     catch (ExecutionException e) {
       installContext.print("Unable to run Intel HAXM installer: " + e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-      LOG.error(e);
+      LOG.warn(e);
     }
   }
 
