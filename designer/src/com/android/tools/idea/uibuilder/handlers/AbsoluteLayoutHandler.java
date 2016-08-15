@@ -54,7 +54,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
         // TODO: Remove all existing layout parameters; if you're dragging from one layout type to another, you don't
         // want stale layout parameters (e.g. layout_alignLeft from a previous RelativeLayout in a new GridLayout, and so on.)
 
@@ -65,6 +65,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
           component.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, editor.pxToDpWithUnits(component.x - layout.x + deltaX));
           component.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, editor.pxToDpWithUnits(component.y - layout.y + deltaY));
         }
+        insertComponents(-1, insertType);
       }
     };
   }

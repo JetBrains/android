@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -47,7 +44,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(700, 100, 0);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(700, 100, 0));
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(700, 100, 0, InsertType.MOVE_INTO));
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 
@@ -70,7 +67,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(600, 100, 0);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(600, 100, 0));
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(600, 100, 0, InsertType.MOVE_INTO));
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 
@@ -96,7 +93,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(740, 100, 16);
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(740, 100, 16));
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> handler.commit(740, 100, 16, InsertType.MOVE_INTO));
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
 

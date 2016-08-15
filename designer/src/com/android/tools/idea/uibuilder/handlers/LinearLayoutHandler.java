@@ -481,12 +481,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    public int getInsertIndex() {
-      return myInsertPos;
-    }
-
-    @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+      insertComponents(myInsertPos, insertType);
     }
   }
 
