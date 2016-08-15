@@ -98,10 +98,7 @@ public class DeveloperServicesTest {
   public void toggleDevServicesDependencies() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
-    ProjectStructureDialogFixture projectStructureDialog =
-      ideFrameFixture.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-
-    projectStructureDialog
+    ideFrameFixture.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .setServiceEnabled("Ads", true)
       .setServiceEnabled("Authentication", true)
       .setServiceEnabled("Notifications", true)
@@ -129,7 +126,8 @@ public class DeveloperServicesTest {
       .setServiceEnabled("Ads", false)
       .setServiceEnabled("Authentication", false)
       .setServiceEnabled("Notifications", false)
-      .clickOk();
+      .clickOk()
+      .waitForGradleProjectSyncToFinish();
 
     gradleFileContents = getBuildGradleFileContents();
     assertThat(gradleFileContents).doesNotContain("compile 'com.google.android.gms:play-services-ads:");
