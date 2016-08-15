@@ -38,7 +38,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
@@ -73,6 +73,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoIni
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
+import static com.intellij.openapi.util.Pair.pair;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -251,22 +252,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   @NotNull
-  public List<KeyValue<String, String>> getExtraJvmArgs() {
-    if (isInProcessMode(GRADLE_SYSTEM_ID)) {
-      List<KeyValue<String, String>> args = Lists.newArrayList();
-
-      if (!isAndroidStudio()) {
-        LocalProperties localProperties = getLocalProperties();
-        if (localProperties.getAndroidSdkPath() == null) {
-          File androidHomePath = IdeSdks.getAndroidSdkPath();
-          // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
-          if (androidHomePath != null) {
-            args.add(KeyValue.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
-          }
+  public List<Pair<String, String>> getExtraJvmArgs() {
+    if (isInProcessMode(GRADLE_SYSTEM_ID) && !isAndroidStudio()) {
+      LocalProperties localProperties = getLocalProperties();
+      if (localProperties.getAndroidSdkPath() == null) {
+        File androidHomePath = IdeSdks.getAndroidSdkPath();
+        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
+        if (androidHomePath != null) {
+          return Collections.singletonList(pair(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
         }
       }
-      return args;
     }
+
     return Collections.emptyList();
   }
 
