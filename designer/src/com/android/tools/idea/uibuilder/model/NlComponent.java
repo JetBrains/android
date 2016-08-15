@@ -253,6 +253,28 @@ public class NlComponent implements NlAttributesHolder {
     return result;
   }
 
+  /**
+   * Return the leaf at coordinates x, y that is an immediate child of this {@linkplain NlComponent}
+   *
+   * @param px x coordinate
+   * @param py y coordinate
+   * @return an immediate child of ours, or ourself (if we are under the coordinates), or null otherwise.
+   */
+  @Nullable
+  public NlComponent findImmediateLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
+    if (children != null) {
+      // Search BACKWARDS such that if the children are painted on top of each
+      // other (as is the case in a FrameLayout) I pick the last one which will
+      // be topmost!
+      for (int i = children.size() - 1; i >= 0; i--) {
+        NlComponent child = children.get(i);
+        if (child.x <= px && child.y <= py && (child.x + child.w >= px) && (child.y + child.h >= py)) {
+          return child;
+        }
+      }
+    }
+    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+  }
 
   @Nullable
   public NlComponent findLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
