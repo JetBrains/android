@@ -286,7 +286,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  enum InsertionPoint {
+  public enum InsertionPoint {
     INSERT_INTO,
     INSERT_BEFORE,
     INSERT_AFTER

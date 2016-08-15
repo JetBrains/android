@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.*;
@@ -35,7 +36,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
   private final JBLabel myCropLabel = new JBLabel("0,0 0x0", SwingConstants.CENTER);
   private final MockupEditor myMockupEditor;
-  private final Mockup myMockup;
+  private Mockup myMockup;
   private final MockupViewPanel.SelectionListener mySelectionListener;
   boolean myActive;
   private MockupViewPanel myMockupViewPanel;
@@ -44,13 +45,21 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
   public CropTool(Mockup mockup, MockupEditor mockupEditor) {
     super(new BorderLayout());
     myMockupEditor = mockupEditor;
-    myMockup = mockup;
-    setCropLabel(mockup);
-    mockup.addMockupModelListener(this::setCropLabel);
+    myMockupEditor.addListener(this::update);
+    update(mockup);
     add(myCropLabel, BorderLayout.CENTER);
     add(createCropButton(), BorderLayout.EAST);
     add(createBottomToolBar(), BorderLayout.SOUTH);
     mySelectionListener = new MySelectionListener();
+  }
+
+  private void update(@NotNull Mockup mockup) {
+    if(myMockup != null) {
+      myMockup.removeMockupListener(this::setCropLabel);
+    }
+    myMockup = mockup;
+    myMockup.addMockupListener(this::setCropLabel);
+    setCropLabel(mockup);
   }
 
   private Component createBottomToolBar() {

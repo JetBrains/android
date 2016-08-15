@@ -160,7 +160,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
     myImageToPanel = new CoordinateConverter();
 
     myMockup.getComponent().getModel().addListener(this);
-    myMockup.addMockupModelListener(this);
+    myMockup.addMockupListener(this);
 
     // Creating two list of guidelines to store the selected and unselected guidelines
     // The two list should not contain the same element at the same time

@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.old.MockupEditorPopup;
-import com.android.tools.idea.uibuilder.mockup.editor.tools.MockupEditor;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -37,10 +37,13 @@ public class MockupEditAction extends AnAction {
   private final static String ADD_ACTION_TITLE = "Add Mockup";
   private final ScreenView myCurrentScreenView;
 
-  public MockupEditAction(DesignSurface surface) {
-    super(ADD_ACTION_TITLE);
+  public MockupEditAction(DesignSurface designSurface) {
+    this(designSurface.getCurrentScreenView());
+  }
 
-    myCurrentScreenView = surface.getCurrentScreenView();
+  public MockupEditAction(ScreenView screenView) {
+    super(ADD_ACTION_TITLE);
+    myCurrentScreenView = screenView;
     if (myCurrentScreenView != null) {
       List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
