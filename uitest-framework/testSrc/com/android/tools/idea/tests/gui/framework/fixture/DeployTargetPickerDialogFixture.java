@@ -64,16 +64,22 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
    * {@code getListCellRendererComponent} method returns {@code this}, which is also a {@code SimpleColoredComponent}, whose
    * {@code toString} method returns what gets rendered to the cell. You may vomit now.
    */
-  private static final JListCellReader DEVICE_PICKER_CELL_READER = (jList, index) ->
-    jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
+  private static final JListCellReader DEVICE_PICKER_CELL_READER =
+      (jList, index) -> {
+        String deviceName =
+            jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
+        int i = deviceName.lastIndexOf("(");
+        return i > 0 ? deviceName.substring(0, i).trim() : deviceName;
+      };
 
   @NotNull
   public DeployTargetPickerDialogFixture selectDevice(String text) {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
-    Wait.seconds(5).expecting(String.format("Deployment Target list to contain %s", text))
-      .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
+    Wait.seconds(5)
+        .expecting(String.format("Deployment Target list to contain %s", text))
+        .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
     jListFixture.selectItem(text);
     return this;
   }
