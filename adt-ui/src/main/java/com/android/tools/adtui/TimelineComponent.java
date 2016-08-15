@@ -410,9 +410,12 @@ public final class TimelineComponent extends AnimatedComponent {
                 float distance = (float)Point2D.distance(x0, y0, x1, y1);
                 float delta = mTimes[i] * X_SCALE;
                 scale = distance / (x1 - x0);
-                str = new BasicStroke(1.0f, BasicStroke.CAP_ROUND,
-                                      BasicStroke.JOIN_ROUND, 0.0f, new float[]{step * scale},
-                                      (delta * scale) % (step * scale * 2));
+                float dash = step * scale;
+                float dashPhase = (delta * scale) % (step * scale * 2);
+                if (dash > 0.0f && dashPhase >= 0.0f) {
+                  str = new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                                        0.0f, new float[]{dash}, dashPhase);
+                }
               }
               if (scale != strokeScale) {
                 if (stroke != null) {
