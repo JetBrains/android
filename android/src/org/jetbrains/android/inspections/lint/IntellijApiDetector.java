@@ -204,6 +204,18 @@ public class IntellijApiDetector extends ApiDetector {
     public void visitMethod(PsiMethod method) {
       super.visitMethod(method);
 
+      // API check for default methods
+      if (method.getModifierList().hasExplicitModifier(PsiModifier.DEFAULT)) {
+        int api = 24; // minSdk for default methods
+        int minSdk = getMinSdk(myContext);
+
+        if (!isSuppressed(api, method, minSdk)) {
+          Location location = IntellijLintUtils.getLocation(myContext.file, method);
+          String message = String.format("Default method requires API level %1$d (current min is %2$d)", api, minSdk);
+          myContext.report(UNSUPPORTED, location, message);
+        }
+      }
+
       if (!myCheckOverride) {
         return;
       }
@@ -260,6 +272,24 @@ public class IntellijApiDetector extends ApiDetector {
 
       if (!myCheckAccess) {
         return;
+      }
+
+      if (aClass.isAnnotationType()) {
+        PsiModifierList modifierList = aClass.getModifierList();
+        if (modifierList != null) {
+          for (PsiAnnotation annotation : modifierList.getAnnotations()) {
+            String name = annotation.getQualifiedName();
+            if ("java.lang.annotation.Repeatable".equals(name)) {
+              int api = 24; // minSdk for repeatable annotations
+              int minSdk = getMinSdk(myContext);
+              if (!isSuppressed(api, aClass, minSdk)) {
+                Location location = IntellijLintUtils.getLocation(myContext.file, annotation);
+                String message = String.format("Repeatable annotation requires API level %1$d (current min is %2$d)", api, minSdk);
+                myContext.report(UNSUPPORTED, location, message);
+              }
+            }
+          }
+        }
       }
 
       for (PsiClassType type : aClass.getSuperTypes()) {
