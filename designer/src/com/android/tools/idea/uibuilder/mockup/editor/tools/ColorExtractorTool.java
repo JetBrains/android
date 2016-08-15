@@ -58,7 +58,7 @@ public class ColorExtractorTool implements MockupTool, ColorPanel.ColorHoveredLi
     myImageCache = new HashMap<>();
     myMainPanel = new MainPanel();
 
-    myMockup.addMockupModelListener(mockup1 -> {
+    myMockup.addMockupListener(mockup1 -> {
       myImage = mockup1.getImage();
     });
 

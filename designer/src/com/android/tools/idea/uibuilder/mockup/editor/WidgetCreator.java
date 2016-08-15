@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -28,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.impl.source.xml.XmlTagImpl;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -50,7 +52,7 @@ public class WidgetCreator {
 
   private final ScreenView myScreenView;
   private final NlModel myModel;
-  Mockup myMockup;
+  private Mockup myMockup;
 
   public WidgetCreator(Mockup mockup, ScreenView screenView) {
     myMockup = mockup;
@@ -69,8 +71,13 @@ public class WidgetCreator {
     final Rectangle parentCropping = myMockup.getRealCropping();
     final NlModel model = parent.getModel();
     final String stringPath = getMockupImagePath();
+
     new CreateNewWidgetAction(model, fqcn, parent, selection, parentCropping, stringPath)
       .execute();
+  }
+
+  public void setMockup(@NotNull Mockup mockup) {
+    myMockup = mockup;
   }
 
   /**
@@ -84,7 +91,6 @@ public class WidgetCreator {
     new WriteIncludeTagAction(resourceName, bounds, stringPath)
       .execute();
   }
-
 
   /**
    * Create a new layout that will be included as a child of the mockup component
