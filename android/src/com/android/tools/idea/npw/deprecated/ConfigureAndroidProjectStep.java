@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -54,6 +55,8 @@ import java.util.Set;
  * @deprecated Replaced by {@link com.android.tools.idea.npw.project.ConfigureAndroidProjectStep}
  */
 public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndDescription {
+  public static final String STEP_NAME = "Create Android Project";
+
   private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 
@@ -177,7 +180,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @NotNull
   @Override
   public String getStepName() {
-    return "Create Android Project";
+    return STEP_NAME;
   }
 
   @Override
