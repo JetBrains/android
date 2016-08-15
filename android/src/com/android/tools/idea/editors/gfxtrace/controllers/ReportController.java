@@ -19,14 +19,12 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.forms.ReportControls;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
-import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.TreeUtil;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.utils.SparseArray;
@@ -59,7 +57,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class ReportController extends TreeController implements ReportStream.Listener {
+public class ReportController extends TreeController implements ReportStream.Listener, AtomStream.Listener {
   public static JComponent createUI(@NotNull GfxTraceEditor editor) {
     return new ReportController(editor).myPanel;
   }
@@ -71,7 +69,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
     protected static final int CACHE_SIZE = 100;
 
     protected SparseArray<Reference<Renderable>> mySoftChildren;
-    protected Context myContext;
     @NotNull protected final Report myReport;
 
     public final int myChildIndex;
@@ -117,14 +114,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
         }
       }
 
-      // TODO: React to context selection
       child = createChild(filteredIndex, myIndexMap.get(filteredIndex));
       child.myFilter = myFilter;
       mySoftChildren.put(filteredIndex, new SoftReference<>(child));
       return child;
     }
 
-    public void resetFilter(Predicate<BinaryObject> filter) {
+    public void resetFilter(@NotNull Predicate<BinaryObject> filter) {
       if (!Objects.equals(myFilter, filter)) {
         myFilter = filter;
         myIndexMap.clear();
@@ -409,6 +405,10 @@ public class ReportController extends TreeController implements ReportStream.Lis
     private class SeverityFilter implements Predicate<BinaryObject> {
       @NotNull private final LogProtos.Severity myMinimumSeverity;
 
+      public SeverityFilter() {
+        myMinimumSeverity = LogProtos.Severity.Debug;
+      }
+
       public SeverityFilter(@NotNull LogProtos.Severity minimumSeverity) {
         myMinimumSeverity = minimumSeverity;
       }
@@ -462,22 +462,50 @@ public class ReportController extends TreeController implements ReportStream.Lis
       }
     }
 
-    @NotNull private Object myRoot;
-    @Nullable private Predicate<BinaryObject> myFilter;
-    @Nullable private SeverityFilter mySeverityFilter;
-    @Nullable private TagFilter myTagFilter;
-    private boolean myFilterAfterLoad;
+    private class ContextFilter implements Predicate<BinaryObject> {
+      @NotNull private final Context mySelectedContext;
 
-    @NotNull private final List<TreeModelListener> myListenerList = new ArrayList<>();
+      public ContextFilter() {
+        mySelectedContext = Context.ALL;
+      }
+
+      public ContextFilter(@NotNull Context selectedContext) {
+        mySelectedContext = selectedContext;
+      }
+
+      @Override
+      public boolean test(BinaryObject binaryObject) {
+        if (mySelectedContext == Context.ALL || binaryObject instanceof Report || binaryObject instanceof MsgRef) {
+          return true;
+        }
+        if (binaryObject instanceof ReportGroup && myReport != null) {
+          return testGroup((ReportGroup)binaryObject, this, myReport);
+        }
+        if (binaryObject instanceof ReportItem) {
+          return mySelectedContext.contains(((ReportItem)binaryObject).getAtom());
+        }
+        return false;
+      }
+    }
+
+    @NotNull private Object myRoot;
     @Nullable private Report myReport;
+
+    @NotNull private Predicate<BinaryObject> myFilter = x -> true;
+    @NotNull private SeverityFilter mySeverityFilter = new SeverityFilter();
+    @NotNull private TagFilter myTagFilter = new TagFilter();
+    @NotNull private ContextFilter myContextFilter = new ContextFilter();
+    @NotNull private final List<TreeModelListener> myListenerList = new ArrayList<>();
 
     public ReportTreeModel(@NotNull Object root) {
       myRoot = root;
     }
 
-    public ReportTreeModel(@NotNull Object root, @NotNull Report report) {
+    public void rebuild(@NotNull Renderable root, @NotNull Report report) {
       myRoot = root;
       myReport = report;
+      myListenerList.forEach(l -> l.treeStructureChanged(new TreeModelEvent(root, new TreePath(root))));
+      changeFilter();
     }
 
     @NotNull
@@ -535,49 +563,37 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     public boolean shallowTest(@NotNull BinaryObject obj) {
       if (obj instanceof ReportItem) {
-        return myFilter == null || myFilter.test(obj);
+        return myFilter.test(obj);
       }
       return true;
     }
 
     public void clearFilter() {
-      mySeverityFilter = null;
-      myTagFilter = null;
-      buildFilter();
-      ((Renderable)getRoot()).resetFilter(myFilter);
-      ((ReportTreeModel)getModel()).reload();
+      mySeverityFilter = new SeverityFilter();
+      myTagFilter = new TagFilter();
+      myContextFilter = new ContextFilter();
+      changeFilter();
     }
 
     public void setMinimumSeverity(@NotNull final LogProtos.Severity minimumSeverity) {
       // Change it now so model will display new items according to a new filter.
-      Object root = getRoot();
-      if (root instanceof Renderable) {
-        mySeverityFilter = new SeverityFilter(minimumSeverity);
-        buildFilter();
-        if (myReport == null) {
-          myFilterAfterLoad = true;
-        }
-        else {
-          ((Renderable)root).resetFilter(myFilter);
-          reload();
-        }
-      }
+      mySeverityFilter = new SeverityFilter(minimumSeverity);
+      changeFilter();
     }
 
     public void addTagToFilter(@NotNull MsgRef ref) {
       myTagFilter = new TagFilter(myTagFilter, ref);
-      buildFilter();
-      ((Renderable)getRoot()).resetFilter(myFilter);
-      reload();
+      changeFilter();
     }
 
     public void clearTagsFromFilter() {
-      if (myTagFilter != null) {
-        myTagFilter = new TagFilter();
-        buildFilter();
-        ((Renderable)getRoot()).resetFilter(myFilter);
-        reload();
-      }
+      myTagFilter = new TagFilter();
+      changeFilter();
+    }
+
+    public void setContext(@NotNull Context context) {
+      myContextFilter = new ContextFilter(context);
+      changeFilter();
     }
 
     public void reload() {
@@ -606,13 +622,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
       }
     }
 
-    private void buildFilter() {
-      myFilter = x -> true;
-      if (mySeverityFilter != null) {
+    private void changeFilter() {
+      if (myReport != null) {
+        myFilter = myContextFilter;
         myFilter = myFilter.and(mySeverityFilter);
-      }
-      if (myTagFilter != null) {
         myFilter = myFilter.and(myTagFilter);
+        ((Renderable)getRoot()).resetFilter(myFilter);
+        reload();
       }
     }
   }
@@ -622,6 +638,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   private ReportController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
     myEditor.getReportStream().addListener(this);
+    myEditor.getAtomStream().addListener(this);
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 
@@ -774,7 +791,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   @Override
   public void notifyPath(PathEvent event) {
-
   }
 
   @NotNull
@@ -879,6 +895,23 @@ public class ReportController extends TreeController implements ReportStream.Lis
     updateSelection(root, new TreePath(root), reportItem);
   }
 
+  @Override
+  public void onAtomLoadingStart(AtomStream atoms) {
+  }
+
+  @Override
+  public void onAtomLoadingComplete(AtomStream atoms) {
+  }
+
+  @Override
+  public void onAtomsSelected(AtomRangePath path, Object source) {
+  }
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
+    ((ReportTreeModel)getModel()).setContext(context);
+  }
+
   private void updateSelection(Renderable root, TreePath path, final ReportItem reportItem) {
     TreePath treePath = root.pathTo(reportItem, path);
     if (treePath != null) {
@@ -905,8 +938,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
     if (report == null) {
       return;
     }
-    final Renderable root = new ReportNode(report);
-    setModel(new ReportTreeModel(root, report));
+    ((ReportTreeModel)getModel()).rebuild(new ReportNode(report), report);
     if (report.getChildCount() == 0) {
       myControls.setVisible(false);
     }
