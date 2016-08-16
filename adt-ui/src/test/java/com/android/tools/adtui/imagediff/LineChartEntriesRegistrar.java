@@ -170,7 +170,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       }
     }
 
-    void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig) {
+    protected void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig) {
       Range yRange = new Range(rangeMin, rangeMax);
       myComponents.add(yRange);
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
@@ -179,7 +179,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myLineChart.addLine(rangedSeries, lineConfig);
     }
 
-    void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
+    protected void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
       DefaultDataSeries<DurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
       EventConfig eventConfig = new EventConfig(eventColor).setText("Test Event").setIcon(UIManager.getIcon("Tree.leafIcon"));

@@ -51,9 +51,15 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
    */
   protected static final long TIME_DELTA_US = TimeUnit.MILLISECONDS.toMicros(50);
 
+  private static final Dimension MAIN_COMPONENT_DIMENSION = new Dimension(640, 480);
+
   protected JPanel myContentPane;
 
   protected long myCurrentTimeUs;
+
+  protected long myRangeStartUs;
+
+  protected long myRangeEndUs;
 
   protected Range myXRange;
 
@@ -98,9 +104,13 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
   private void setUpBase() {
     // TODO: add one more level to the hierarchy and move this to a base class that can be subclassed by generators of different components
     myContentPane = new JPanel(new BorderLayout());
+    myContentPane.setSize(MAIN_COMPONENT_DIMENSION);
+    myContentPane.setPreferredSize(MAIN_COMPONENT_DIMENSION);
 
     myCurrentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    myXRange = new Range(myCurrentTimeUs, myCurrentTimeUs + TOTAL_VALUES * TIME_DELTA_US);
+    myRangeStartUs = myCurrentTimeUs;
+    myRangeEndUs = myRangeStartUs + TOTAL_VALUES * TIME_DELTA_US;
+    myXRange = new Range(myRangeStartUs, myRangeEndUs);
     // We don't need to set a proper FPS to the choreographer, as we're interested in the final image only, not the animation.
     myChoreographer = new Choreographer(-1, myContentPane);
     myChoreographer.setUpdate(false);
