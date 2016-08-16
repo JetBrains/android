@@ -14,10 +14,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -46,6 +49,18 @@ public class AndroidLintTest extends AndroidTestCase {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     myFixture.allowTreeAccessForAllFiles();
+    CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    new AndroidXmlPredefinedCodeStyle().apply(settings);
+    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(settings);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @Override
