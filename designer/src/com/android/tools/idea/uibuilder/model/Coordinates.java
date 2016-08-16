@@ -157,4 +157,31 @@ public class Coordinates {
                                           @SwingCoordinate int swingY) {
     return view.getModel().findLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY), false);
   }
+
+  /**
+   * Returns the component at the given (x,y) coordinate in the Swing coordinate system which is the
+   * immediate child of the current selection (or the selection itself if no children found and the
+   * selection intersects).
+   */
+  @Nullable
+  public static NlComponent findImmediateComponent(@NotNull ScreenView view,
+                                                   @SwingCoordinate int swingX,
+                                                   @SwingCoordinate int swingY) {
+    if (view.getModel().getComponents().isEmpty()) {
+      return null;
+    }
+    SelectionModel selectionModel = view.getSelectionModel();
+    NlComponent start = null;
+    if (selectionModel.isEmpty()) {
+      // If we don't have a selection, start the search from root
+      start = view.getModel().getComponents().get(0).getRoot();
+    } else {
+      start = selectionModel.getPrimary();
+    }
+    NlComponent found = start.findImmediateLeafAt(getAndroidX(view, swingX), getAndroidY(view, swingY));
+    if (found == null) {
+      found = findComponent(view, swingX, swingY);
+    }
+    return found;
+  }
 }

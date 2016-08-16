@@ -394,7 +394,6 @@ public class DesignSurface extends JPanel implements Disposable {
   private void addBlueprintLayers(@NotNull ScreenView view) {
     myLayers.add(new BlueprintLayer(view));
     myLayers.add(new SelectionLayer(view));
-    myLayers.add(new ConstraintsLayer(this, view, false));
     myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
   }
