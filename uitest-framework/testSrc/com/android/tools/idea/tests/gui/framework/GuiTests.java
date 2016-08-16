@@ -594,7 +594,7 @@ public final class GuiTests {
                                                        @NotNull GenericTypeMatcher<T> matcher) {
     AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.minutes(2).expecting("matching " + typeName)
+    Wait.seconds(10).expecting("matching " + typeName)
       .until(() -> {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);
