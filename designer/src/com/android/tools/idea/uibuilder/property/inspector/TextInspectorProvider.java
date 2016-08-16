@@ -218,11 +218,6 @@ public class TextInspectorProvider implements InspectorProvider {
       myColorEditor.setProperty(myColor);
     }
 
-    @Override
-    public void requestFocus() {
-      myTextEditor.requestFocus();
-    }
-
     @Nullable
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {

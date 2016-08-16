@@ -136,11 +136,6 @@ public class IdInspectorProvider implements InspectorProvider {
       }
     }
 
-    @Override
-    public void requestFocus() {
-      myIdEditor.requestFocus();
-    }
-
     @Nullable
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
