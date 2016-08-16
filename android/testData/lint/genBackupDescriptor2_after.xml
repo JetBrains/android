@@ -3,8 +3,8 @@
           package="test.pkg" >
   <uses-sdk android:targetSdkVersion="23"/>
   <application
-          android:icon="@drawable/ic_launcher"
-          android:allowBackup="true"
-          android:fullBackupContent="">
+      android:icon="@drawable/ic_launcher"
+      android:allowBackup="true"
+      android:fullBackupContent="">
   </application>
 </manifest>
