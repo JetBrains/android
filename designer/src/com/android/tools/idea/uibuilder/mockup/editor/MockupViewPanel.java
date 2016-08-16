@@ -15,32 +15,57 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
-import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.uibuilder.mockup.CoordinateConverter;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.Math.*;
 
 /**
  * Panel that show the Mockup in the Editor window
  */
 public class MockupViewPanel extends JPanel {
 
-  private AffineTransform myDisplayedImageAffineTransform;
+  public static final int MAX_SCALE = 10;
+  public static final float MIN_SCALE = 0.95f;
+  private static RenderingHints HQ_RENDERING = new RenderingHints(null);
+
+  static {
+    HQ_RENDERING.put(RenderingHints.KEY_ANTIALIASING,
+                     RenderingHints.VALUE_ANTIALIAS_ON);
+    HQ_RENDERING.put(RenderingHints.KEY_RENDERING,
+                     RenderingHints.VALUE_RENDER_QUALITY);
+  }
+
+  private final SelectionLayer mySelectionLayer;
+  private Mockup myMockup;
+
+  private float myZoom = MIN_SCALE;
+  @Nullable private BufferedImage myDisplayedImage;
+  @Nullable private BufferedImage myImage;
+  private boolean myDisplayOnlyCroppedRegion = true;
+  private boolean mySelectionMode = true;
+  PanZoomManager myPanZoomManager;
   private Mockup.MockupModelListener myMockupListener;
+
+  private List<SelectionListener> mySelectionListeners = new ArrayList<>();
+  AffineTransform myImageTransform = new AffineTransform();
+  Point2D.Float myImageOffset = new Point2D.Float();
+  private boolean myHqRendering = true;
+
 
   /**
    * Listener to notify the tools when a selection ended
@@ -49,43 +74,24 @@ public class MockupViewPanel extends JPanel {
 
     /**
      * Called when a selection is started on the {@link SelectionLayer}
-     * The given coordinate are in mockupViewPanel coordinate system.
-     * 0,0 means on top left of the panel.
-     *
-     * The coordinate can be converted using {@link #getImageTransform()}
-     * to get the coordinates in the whole image
+     * The given coordinate are in displayed Image coordinate system.
      *
      * @param mockupViewPanel The panel on which the selection is being done
-     * @param x               x origin of the selection in mockupViewPanel coordinate system.
-     * @param y               y origin of the selection in mockupViewPanel coordinate system.
+     * @param x               x origin of the selection in displayed image coordinate system.
+     * @param y               y origin of the selection in displayed image coordinate system.
      */
     void selectionStarted(MockupViewPanel mockupViewPanel, int x, int y);
 
     /**
      * Called when a selection is started on the {@link SelectionLayer}
      * The given coordinate are in the displayed image coordinate system.
-     * They gave been converted using the inverse of {@link #getDisplayedImageTransform()}
-     * 0,0 means on top left of the image on screen (and NOT the panel)
      *
-     * @param mockupViewPanel The panel on which the seleciton is being done
+     * @param mockupViewPanel The panel on which the selection is being done
      * @param selection       the selection in the the displayed image coordinate system
      **/
     void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection);
   }
 
-  public static final float ADJUST_SCALE = 0.95f;
-  private Mockup myMockup;
-
-  private final SelectionLayer mySelectionLayer;
-
-  @Nullable private BufferedImage myDisplayedImage;
-  @Nullable private BufferedImage myImage;
-  private boolean myDisplayOnlyCroppedRegion = true;
-  private boolean mySelectionMode = true;
-  CoordinateConverter myDisplayedImageTransform;
-
-  CoordinateConverter myImageTransform;
-  private List<SelectionListener> mySelectionListeners = new ArrayList<>();
 
   /**
    * Create a new MockupView Panel displaying the given mockup
@@ -93,25 +99,25 @@ public class MockupViewPanel extends JPanel {
    * @param mockup       the mockup to display
    * @param mockupEditor
    */
+
+
   public MockupViewPanel(@NotNull Mockup mockup, @NotNull MockupEditor mockupEditor) {
+
     myMockupListener = this::updateDisplayedImage;
     mockupEditor.addListener(this::update);
     setLayout(new MyLayoutManager());
     setBackground(JBColor.background().brighter());
     setMockup(mockup);
     updateDisplayedImage(mockup);
-    mySelectionLayer = new SelectionLayer(this);
+    mySelectionLayer = new SelectionLayer(this, myImageTransform);
     addMouseListener(new MyMouseInteraction());
     addMouseMotionListener(new MyMouseInteraction());
+    addMouseWheelListener(new MyMouseInteraction());
     addComponentListener(new MyComponentListener());
+    myDisplayedImage = myImage;
 
-    myDisplayedImageTransform = new CoordinateConverter();
-    myDisplayedImageTransform.setFixedRatio(true);
-    myDisplayedImageTransform.setCenterInDestination();
-
-    myImageTransform = new CoordinateConverter();
-    myImageTransform.setFixedRatio(true);
-    myImageTransform.setCenterInDestination();
+    myPanZoomManager = new PanZoomManager();
+    resetState();
   }
 
   private void update(Mockup mockup) {
@@ -126,11 +132,10 @@ public class MockupViewPanel extends JPanel {
    * @param mockup
    */
   private void updateDisplayedImage(@NotNull Mockup mockup) {
-    final BufferedImage image = mockup.getImage();
-    if (image != myImage) {
-      myImage = image;
+    myImage = mockup.getImage();
+    if (myImage != null) {
+      myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
     }
-    myDisplayedImage = null;
     repaint();
   }
 
@@ -161,10 +166,12 @@ public class MockupViewPanel extends JPanel {
    */
   public void setDisplayOnlyCroppedRegion(boolean displayOnlyCroppedRegion) {
     if (myDisplayOnlyCroppedRegion != displayOnlyCroppedRegion) {
-      myDisplayedImage = null;
+      myDisplayOnlyCroppedRegion = displayOnlyCroppedRegion;
+      if (myImage != null) {
+        myDisplayedImage = createDisplayedImage(myImage, myMockup.getRealCropping());
+      }
+      repaint();
     }
-    myDisplayOnlyCroppedRegion = displayOnlyCroppedRegion;
-    repaint();
   }
 
   /**
@@ -178,46 +185,55 @@ public class MockupViewPanel extends JPanel {
     repaint();
   }
 
+
   @Override
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
     final Graphics2D g2d = ((Graphics2D)g.create());
-    paintMockup(g2d, myMockup);
-    if (mySelectionMode) {
-      mySelectionLayer.paint(g2d);
+    if (myHqRendering) {
+      g2d.setRenderingHints(HQ_RENDERING);
     }
+    paintMockup(g2d);
     g2d.dispose();
-  }
-
-  /**
-   * Create an image scaled using the provided {@link CoordinateConverter}
-   *
-   * @param original       original image
-   * @param imageTransform used to scale the image to the {@link CoordinateConverter} destination
-   * @return the original image scaled in a new instance of {@link BufferedImage}
-   */
-  private static BufferedImage createScaledImage(@NotNull BufferedImage original,
-                                                 @NotNull CoordinateConverter imageTransform) {
-    final AffineTransform affineTransform = imageTransform.getAffineTransform();
-    return ImageUtils.scale(original, affineTransform.getScaleX(), affineTransform.getScaleY());
   }
 
   /**
    * Paint the mockup using the provided graphic context
    *
-   * @param g2d    the graphic context
-   * @param mockup the mockup to dray
+   * @param g2d the graphic context
    */
-  private void paintMockup(Graphics2D g2d, Mockup mockup) {
-
+  private void paintMockup(Graphics2D g2d) {
     if (myDisplayedImage == null) {
-      if (myImage == null) {
-        return;
-      }
-      myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
+      return;
     }
-    myDisplayedImageAffineTransform = myDisplayedImageTransform.getAffineTransform();
-    g2d.drawImage(myDisplayedImage, myDisplayedImageAffineTransform, null);
+    final AffineTransform tx = g2d.getTransform();
+    int sw = getWidth();
+    int sh = getHeight();
+    int iw = myDisplayedImage.getWidth();
+    int ih = myDisplayedImage.getHeight();
+    float scale = (float)(myZoom * min(sw / (double)iw, sh / (double)ih));
+    updateTransform(sw, sh, iw, ih, scale);
+    if (!isValid()) {
+      doLayout();
+    }
+    g2d.transform(myImageTransform);
+    g2d.drawImage(myDisplayedImage, 0, 0, iw, ih, null);
+    painScaled(g2d);
+    g2d.setTransform(tx);
+  }
+
+  private void updateTransform(int sw, int sh, int iw, int ih, float scale) {
+    myImageTransform.setToIdentity();
+    myImageTransform.translate(
+      (1 + myImageOffset.x) * (sw - iw * scale) / 2,
+      (1 + myImageOffset.y) * (sh - ih * scale) / 2);
+    myImageTransform.scale(scale, scale);
+  }
+
+  private void painScaled(Graphics2D g2d) {
+    if (mySelectionMode) {
+      mySelectionLayer.paint(g2d);
+    }
   }
 
   /**
@@ -229,23 +245,20 @@ public class MockupViewPanel extends JPanel {
    * @param cropping Mockup cropping area : {@link Mockup#getRealCropping()}
    * @return the scaled image
    */
-  @NotNull
-  private BufferedImage createDisplayedImage(@NotNull BufferedImage image, @NotNull Rectangle cropping) {
+  @Nullable
+  private BufferedImage createDisplayedImage(@Nullable BufferedImage image, @NotNull Rectangle cropping) {
+    if (image == null) {
+      return null;
+    }
     BufferedImage displayedImage;
-
-    if (myDisplayOnlyCroppedRegion && !cropping.isEmpty()) {
+    if (myDisplayOnlyCroppedRegion) {
+      // Ensure the cropping is inside the image bounds
       Rectangle2D.intersect(cropping, new Rectangle(image.getWidth(), image.getHeight()), cropping);
-      final BufferedImage subImage = image.getSubimage(cropping.x, cropping.y, cropping.width, cropping.height);
-      myImageTransform.setDimensions(getWidth(), getHeight(), cropping.width, cropping.height, ADJUST_SCALE);
-      displayedImage = createScaledImage(subImage, myImageTransform);
+      displayedImage = image.getSubimage(cropping.x, cropping.y, cropping.width, cropping.height);
     }
     else {
-      myImageTransform.setDimensions(getWidth(), getHeight(), image.getWidth(), image.getHeight(), ADJUST_SCALE);
-      displayedImage = createScaledImage(image, myImageTransform);
+      displayedImage = image;
     }
-    myDisplayedImageTransform.setDimensions(getWidth(), getHeight(),
-                                            displayedImage.getWidth(), displayedImage.getHeight(),
-                                            ADJUST_SCALE);
     return displayedImage;
   }
 
@@ -253,11 +266,7 @@ public class MockupViewPanel extends JPanel {
    * Set the selection of the {@link SelectionLayer} to match the mockup crop
    */
   public void setSelectionToMockupCrop() {
-    if (myImage != null && mySelectionMode) {
-      myImageTransform.setDimensions(getWidth(), getHeight(), myImage.getWidth(), myImage.getHeight(), ADJUST_SCALE);
-      final Rectangle cropping = myMockup.getRealCropping();
-      mySelectionLayer.setSelection(myImageTransform.convert(cropping, mySelectionLayer.getSelection()));
-    }
+    mySelectionLayer.setSelection(myMockup.getRealCropping());
   }
 
   /**
@@ -279,57 +288,22 @@ public class MockupViewPanel extends JPanel {
     return mySelectionLayer;
   }
 
-  public CoordinateConverter getImageTransform() {
-    return myImageTransform;
-  }
-
-  public CoordinateConverter getDisplayedImageTransform() {
-    return myDisplayedImageTransform;
-  }
-
   /**
    * Ensure that the current selection is resized when this panel is resized
    */
   private void resizeSelection() {
-    Rectangle selection = mySelectionLayer.getSelection();
-    if (myImage == null || selection.isEmpty()) {
-      return;
+    if (mySelectionMode) {
+      mySelectionLayer.contentResized();
     }
-    myImageTransform.setDimensions(getWidth(), getHeight(), myImage.getWidth(), myImage.getHeight(), ADJUST_SCALE);
-    myImageTransform.convert(myMockup.getRealCropping(), selection);
-    mySelectionLayer.setSelection(selection.x, selection.y, selection.width, selection.height);
   }
 
   /**
    * Convert the selection in the Mockup's image coordinate system,
    * and notify the listener with the converted selection
-   *
-   * @param selection the {@link Rectangle} returned by {@link SelectionLayer#getSelection()}
    */
-  private void notifySelectionEnded(Rectangle selection) {
-    final Rectangle convertedSelection;
-    if (selection.isEmpty() || myImage == null) {
-      convertedSelection = new Rectangle(0, 0, -1, -1);
-    }
-    else {
-      if (myDisplayOnlyCroppedRegion) {
-
-        final Rectangle bounds = mySelectionLayer.getBounds();
-        final Rectangle realCropping = myMockup.getRealCropping();
-        final AffineTransform transform = new AffineTransform();
-
-        transform.scale(realCropping.getWidth() / bounds.getWidth(),
-                        realCropping.getHeight() / bounds.getHeight());
-        transform.translate(-bounds.x, -bounds.y);
-        convertedSelection = transform.createTransformedShape(selection).getBounds();
-      }
-      else {
-        convertedSelection = myImageTransform.convertInverse(selection, null);
-        Rectangle2D.intersect(convertedSelection, new Rectangle(myImage.getWidth(), myImage.getHeight()), convertedSelection);
-      }
-    }
+  private void notifySelectionEnded() {
     for (int i = 0; i < mySelectionListeners.size(); i++) {
-      mySelectionListeners.get(i).selectionEnded(this, convertedSelection);
+      mySelectionListeners.get(i).selectionEnded(this, mySelectionLayer.getSelection());
     }
   }
 
@@ -343,7 +317,6 @@ public class MockupViewPanel extends JPanel {
 
     @Override
     public void componentResized(ComponentEvent e) {
-      myDisplayedImage = null;
       if (mySelectionMode) {
         resizeSelection();
       }
@@ -359,6 +332,7 @@ public class MockupViewPanel extends JPanel {
 
     @Override
     public void componentHidden(ComponentEvent e) {
+      myPanZoomManager.stop();
     }
   }
 
@@ -366,11 +340,18 @@ public class MockupViewPanel extends JPanel {
 
     @Override
     public void mousePressed(MouseEvent e) {
+      if (isPanAction(e)) {
+        myPanZoomManager.mousePressed(e);
+        return;
+      }
+      final Point origin = new Point(e.getPoint());
+      myImageTransform.transform(e.getPoint(), e.getPoint());
       if (mySelectionMode) {
         toSelectionLayer(e);
         notifySelectionStarted(e.getX(), e.getY());
         repaint();
       }
+      e.getPoint().setLocation(origin);
     }
 
     /**
@@ -379,37 +360,38 @@ public class MockupViewPanel extends JPanel {
      * @param e MouseEvent
      */
     private void toSelectionLayer(MouseEvent e) {
-      if (myImage == null) {
+      if (myDisplayedImage == null) {
         mySelectionLayer.setBounds(0, 0, getWidth(), getHeight());
       }
-
-      if (myDisplayedImage == null) {
-        myDisplayedImage = createDisplayedImage(myImage, myMockup.getRealCropping());
+      else {
+        mySelectionLayer.setBounds(0, 0, myDisplayedImage.getWidth(), myDisplayedImage.getHeight());
       }
-      myDisplayedImageTransform.setDimensions(getWidth(), getHeight(),
-                                              myDisplayedImage.getWidth(), myDisplayedImage.getHeight(),
-                                              ADJUST_SCALE);
-
-      // Set the bounds of the selectable area
-      mySelectionLayer.setBounds(myDisplayedImageTransform.x(0),
-                                 myDisplayedImageTransform.y(0),
-                                 myDisplayedImageTransform.dX(myDisplayedImageTransform.getSourceSize().width),
-                                 myDisplayedImageTransform.dY(myDisplayedImageTransform.getSourceSize().height));
       mySelectionLayer.mousePressed(e);
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-      if (mySelectionMode) {
+      if (isPanAction(e)) {
+        myPanZoomManager.mouseDragged(e);
+      }
+      else if (mySelectionMode) {
         mySelectionLayer.mouseDragged(e);
       }
     }
 
+    private boolean isPanAction(MouseEvent e) {
+      return SwingUtilities.isMiddleMouseButton(e)
+             || (e.getModifiers() & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK;
+    }
+
     @Override
     public void mouseReleased(MouseEvent e) {
+      if (isPanAction(e)) {
+        return;
+      }
       if (mySelectionMode) {
         mySelectionLayer.mouseReleased(e);
-        notifySelectionEnded(mySelectionLayer.getSelection());
+        notifySelectionEnded();
       }
     }
 
@@ -419,8 +401,18 @@ public class MockupViewPanel extends JPanel {
         mySelectionLayer.mouseMoved(e);
       }
     }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      if (isPanAction(e)) {
+        myPanZoomManager.zoomAnimate(e.getWheelRotation(), e.getPoint());
+      }
+    }
   }
 
+  /**
+   * Displays the components next to the selection, inside the bounds of the panel
+   */
   private class MyLayoutManager implements LayoutManager {
 
     public static final int H_GAP = 10;
@@ -450,20 +442,195 @@ public class MockupViewPanel extends JPanel {
       }
       final Component component = parent.getComponent(0);
       final Rectangle selection = mySelectionLayer.getSelection();
+
       if (!selection.isEmpty()) {
+        final int selectionWidth = (int)round(selection.width * myImageTransform.getScaleX());
+
+        float[] selectionOrigin = new float[]{selection.x, selection.y};
+        myImageTransform.transform(selectionOrigin, 0, selectionOrigin, 0, 1);
+
+        final int selectionX = round(selectionOrigin[0]);
+        final int selectionY = round(selectionOrigin[1]);
+
         final Dimension preferredSize = component.getPreferredSize();
-        int x = selection.x + selection.width + H_GAP;
-        final int y = selection.y;
+        int x = selectionX + selectionWidth + H_GAP;
         final int width = preferredSize.width;
         final int height = preferredSize.height;
         if (x + width > getWidth()) {
-          x = selection.x + selection.width - H_GAP - width;
+          x = selectionX + selectionWidth - H_GAP - width;
         }
-        component.setBounds(x, y, width, height);
+        component.setBounds(x, selectionY, width, height);
       }
       else {
         component.setVisible(false);
       }
+    }
+  }
+
+  /**
+   * Handle the zoom and pan interaction on the image
+   */
+  class PanZoomManager {
+    private final static int ANIMATION_DURATION = 200;
+    private final static int ZOOM_DELAY = 20;
+    private float myTargetZoom;
+    private Timer myZoomTimer;
+    private Point myMouseDown = new Point();
+    private Point2D.Float myImageDown = new Point.Float();
+    private Point2D.Float myDownOffset = new Point.Float();
+    private Point2D.Float myBounds = new Point2D.Float(1, 1);
+    private long myStartTime;
+    private float myStartZoom;
+
+    private PanZoomManager() {
+      // Timer to make the  zoom smoother
+      myZoomTimer = new Timer(ZOOM_DELAY, et -> {
+        final long currentTime = System.currentTimeMillis();
+        final float zoom;
+
+        final float t = (currentTime - myStartTime) / (float)ANIMATION_DURATION;
+        if (t > 1) {
+          ((Timer)et.getSource()).stop();
+          zoom = myTargetZoom;
+          myHqRendering = true;
+        }
+        else {
+          myHqRendering = false;
+          zoom = myStartZoom + (myTargetZoom - myStartZoom) * t;
+        }
+        zoomExact(zoom, myMouseDown);
+      });
+      myZoomTimer.setRepeats(true);
+      //myZoomTimer.setCoalesce(true);
+      myZoomTimer.setInitialDelay(0);
+    }
+
+    /**
+     * Same as {@link #zoom(float, Point)} but smoother
+     *
+     * @param amount
+     * @param screenDown
+     */
+    private void zoomAnimate(float amount, Point screenDown) {
+      myMouseDown.setLocation(screenDown);
+      if (!myZoomTimer.isRunning()) {
+        myTargetZoom = myZoom;
+        myStartTime = System.currentTimeMillis();
+        myStartZoom = myZoom;
+        myZoomTimer.restart();
+      }
+      myTargetZoom *= (1 - amount / 10f);
+    }
+
+    /**
+     * Zoom the image by 1/10th of amount centered on screenDown.
+     *
+     * @param amount
+     * @param screenDown point where to center the zoom
+     */
+    private void zoom(float amount, Point screenDown) {
+      zoomExact(myZoom * (1 - amount / 10f), screenDown);
+    }
+
+    /**
+     * Set the zoom to exactly the provided value. The zoom is centered on screenDown
+     *
+     * @param zoom
+     * @param screenDown
+     */
+    private void zoomExact(float zoom, Point screenDown) {
+      if (myDisplayedImage == null) {
+        return;
+      }
+      float oldZoom = myZoom;
+      myZoom = max(MIN_SCALE, min(MAX_SCALE, zoom));
+      int screenDownX = screenDown.x;
+      int screenDownY = screenDown.y;
+      myDownOffset.x = myImageOffset.x;
+      myDownOffset.y = myImageOffset.y;
+      try {
+        myImageTransform.inverseTransform(screenDown, myImageDown);
+
+        // CALC the transform
+        int sw = getWidth();
+        int sh = getHeight();
+        int iw = myDisplayedImage.getWidth();
+        int ih = myDisplayedImage.getHeight();
+        float scale = (float)(myZoom * min(sw / (double)iw, sh / (double)ih));
+        updateTransform(sw, sh, iw, ih, scale);
+
+        // CALC the transform
+        myImageTransform.transform(myImageDown, myImageDown);
+        float wrongDownX = (float)myImageDown.getX();
+        float wrongDownY = (float)myImageDown.getY();
+        float dx = screenDownX - wrongDownX;
+        float dy = screenDownY - wrongDownY;
+
+        if (iw * scale <= sw && oldZoom > myZoom) {
+          // Ensure that the image stays centered when zooming out
+          myImageOffset.x = 0;
+        }
+        else {
+          myImageOffset.x = myDownOffset.x + 2 * (dx / (sw - scale * iw));
+        }
+
+        if (ih * scale <= sh && oldZoom > myZoom) {
+          // Ensure that the image stays centered when zooming out
+          myImageOffset.y = 0;
+        }
+        else {
+          myImageOffset.y = myDownOffset.y + 2 * (dy / (sh - scale * ih));
+        }
+
+        myBounds.x = max(1, abs(myImageOffset.x));
+        myBounds.y = max(1, abs(myImageOffset.y));
+      }
+      catch (NoninvertibleTransformException e1) {
+        Logger.getInstance(MockupViewPanel.class).warn(e1);
+      }
+
+      // Remove antialiasing when getting closer to enable
+      // the user to make a pixel perfect selection
+      myHqRendering = zoom <= MIN_SCALE + (MAX_SCALE - MIN_SCALE) / 2f;
+      mySelectionLayer.contentResized();
+      repaint();
+    }
+
+    /**
+     * Stop the zoom animation
+     */
+    private void stop() {
+      myZoomTimer.stop();
+    }
+
+    public void mousePressed(MouseEvent e) {
+      myMouseDown.setLocation(e.getPoint());
+      myDownOffset.setLocation(myImageOffset);
+    }
+
+    public void mouseDragged(MouseEvent e) {
+      if (myDisplayedImage == null) {
+        return;
+      }
+      int dx = e.getX() - myMouseDown.x;
+      int dy = e.getY() - myMouseDown.y;
+
+      int sw = getWidth();
+      int sh = getHeight();
+      int iw = myDisplayedImage.getWidth();
+      int ih = myDisplayedImage.getHeight();
+      float scale = myZoom * min(sw / (float)iw, sh / (float)ih);
+      if (iw * scale > sw) {
+        myImageOffset.x = myDownOffset.x + 2 * (dx / (sw - scale * iw));
+        myImageOffset.x = max(min(myImageOffset.x, myBounds.x), -myBounds.x);
+      }
+
+      if (ih * scale > sh) {
+        myImageOffset.y = myDownOffset.y + 2 * (dy / (sh - scale * ih));
+        myImageOffset.y = max(min(myImageOffset.y, myBounds.y), -myBounds.y);
+      }
+      invalidate();
+      repaint();
     }
   }
 }
