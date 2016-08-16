@@ -170,28 +170,28 @@ class ExcludedRoots {
       }
     }
 
-    // Reverted this change because there are still issues with tests scopes.
-    // Apparently, we are still being too aggressive and excluding too much.
-    // See https://code.google.com/p/android/issues/detail?id=219707
-
     //// Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
     //// excluded.
     //// https://code.google.com/p/android/issues/detail?id=206481
-    //Project project = myModule.getProject();
-    //for (ModuleDependency dependency : dependencies.onModules()) {
-    //  Module module = dependency.getModule(project);
-    //  if (module != null) {
-    //    addLibraryPaths(module);
-    //  }
-    //}
+    Project project = myModule.getProject();
+    for (ModuleDependency dependency : dependencies.onModules()) {
+      Module module = dependency.getModule(project);
+      if (module != null) {
+        addLibraryPaths(module);
+      }
+    }
   }
 
   private void addLibraryPaths(@NotNull Module module) {
     AndroidGradleModel model = AndroidGradleModel.get(module);
     if (model != null) {
       BaseArtifact exclude = myAndroidTest ? model.getUnitTestArtifactInSelectedVariant() : model.getAndroidTestArtifactInSelectedVariant();
+      BaseArtifact include = myAndroidTest ? model.getAndroidTestArtifactInSelectedVariant() : model.getUnitTestArtifactInSelectedVariant();
       if (exclude != null) {
         addLibraryPaths(exclude, model);
+      }
+      if (include != null) {
+        removeLibraryPaths(include, model);
       }
     }
   }
@@ -222,6 +222,22 @@ class ExcludedRoots {
     // See:
     // https://code.google.com/p/android/issues/detail?id=219089
     return myIncludedRootNames.contains(file.getName());
+  }
+
+  private void removeLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidGradleModel model) {
+    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      if (isEmpty(library.getProject())) {
+        for (File file : library.getLocalJars()) {
+          myExcludedRoots.remove(file);
+        }
+      }
+    }
+    for (JavaLibrary library : dependencies.getJavaLibraries()) {
+      if (isEmpty(getProject(library))) {
+        myExcludedRoots.remove(library.getJarFile());
+      }
+    }
   }
 
   @Nullable
