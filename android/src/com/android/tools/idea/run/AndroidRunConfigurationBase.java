@@ -64,11 +64,8 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.LEGACY_MULTIDEX_REQUIRES_ART;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN;
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
@@ -251,18 +248,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
-    if (errors.isEmpty()) {
-      return;
-    }
-    for (ValidationError error: errors) {
-      if (error.getQuickfix() != null) {
-        if (Messages.showYesNoDialog(getProject(), error.getMessage() + " - do you want to fix it?", "Quick fix", null) == Messages.YES) {
-          error.getQuickfix().run();
-          continue;
-        }
-      }
-      throw new ExecutionException(error.getMessage());
-    }
+    ValidationUtil.promptAndQuickFixErrors(getProject(), errors);
   }
 
   @Override
