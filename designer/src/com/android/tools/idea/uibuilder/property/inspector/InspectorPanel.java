@@ -74,13 +74,6 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   }
 
   @Override
-  public void requestFocus() {
-    if (!myInspectors.isEmpty()) {
-      myInspectors.get(0).requestFocus();
-    }
-  }
-
-  @Override
   public void addNotify() {
     super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
