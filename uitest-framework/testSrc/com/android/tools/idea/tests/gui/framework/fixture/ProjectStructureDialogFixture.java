@@ -73,8 +73,8 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
-    GuiTests.waitForBackgroundTasks(robot());  // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return myIdeFrameFixture;
+    // Changing the project structure can cause a Gradle build and Studio re-indexing.
+    return myIdeFrameFixture.waitForGradleProjectSyncToFinish();
   }
 
   @NotNull
