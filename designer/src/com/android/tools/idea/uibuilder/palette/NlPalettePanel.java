@@ -606,6 +606,7 @@ public class NlPalettePanel extends JPanel
   @Override
   public boolean changed(int flags) {
     updateConfiguration();
+    setColors();
     repaint();
     return true;
   }
