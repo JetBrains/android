@@ -77,7 +77,7 @@ public class AndroidDebuggerPanel {
     }
   }
 
-  void resetFrom(@NotNull AndroidDebuggerContext androidDebuggerContext) {
+  public void resetFrom(@NotNull AndroidDebuggerContext androidDebuggerContext) {
     AndroidDebugger<AndroidDebuggerState> debugOption = androidDebuggerContext.getAndroidDebugger();
     if (debugOption != null) {
       myDebuggerType.setSelectedItem(debugOption);
@@ -85,7 +85,7 @@ public class AndroidDebuggerPanel {
     }
   }
 
-  void applyTo(@NotNull AndroidDebuggerContext androidDebuggerContext) {
+  public void applyTo(@NotNull AndroidDebuggerContext androidDebuggerContext) {
     AndroidDebugger<AndroidDebuggerState> androidDebugger = (AndroidDebugger)myDebuggerType.getSelectedItem();
     androidDebuggerContext.setDebuggerType(androidDebugger.getId());
     AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = getConfigurable(androidDebugger);
