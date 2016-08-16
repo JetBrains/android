@@ -126,8 +126,7 @@ public class DeveloperServicesTest {
       .setServiceEnabled("Ads", false)
       .setServiceEnabled("Authentication", false)
       .setServiceEnabled("Notifications", false)
-      .clickOk()
-      .waitForGradleProjectSyncToFinish();
+      .clickOk();
 
     gradleFileContents = getBuildGradleFileContents();
     assertThat(gradleFileContents).doesNotContain("compile 'com.google.android.gms:play-services-ads:");
