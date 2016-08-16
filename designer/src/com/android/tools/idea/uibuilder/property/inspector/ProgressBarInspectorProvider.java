@@ -158,11 +158,6 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myIndeterminateEditor.setProperty(myIndeterminate);
     }
 
-    @Override
-    public void requestFocus() {
-      myStyleEditor.requestFocus();
-    }
-
     @Nullable
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {

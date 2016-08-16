@@ -96,10 +96,6 @@ public class NlPreviewManager implements ProjectComponent {
     });
   }
 
-  public boolean isWindowVisible() {
-    return myToolWindow != null && myToolWindow.isVisible();
-  }
-
   protected boolean isUseInteractiveSelector() {
     return true;
   }

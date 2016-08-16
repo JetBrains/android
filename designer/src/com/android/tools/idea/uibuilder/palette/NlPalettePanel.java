@@ -160,14 +160,6 @@ public class NlPalettePanel extends JPanel
     return myPaletteTree;
   }
 
-  public void activatePalette() {
-    myPaletteTree.requestFocus();
-  }
-
-  public void activateComponentTree() {
-    myStructureTree.requestFocus();
-  }
-
   public enum Mode {
     ICON_AND_TEXT("Show Icon and Text"),
     PREVIEW("Show Preview");
