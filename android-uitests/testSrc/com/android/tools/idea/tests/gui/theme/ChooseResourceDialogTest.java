@@ -285,10 +285,13 @@ public class ChooseResourceDialogTest {
     assertNotNull(layout);
     layout.waitForRenderToFinish();
 
-    // Find and click the first text view
+    // Select the first image view
     NlComponentFixture imageView = layout.findView("ImageView", 0);
+    NlComponentFixture frameLayout = layout.findView("FrameLayout", 0);
     imageView.click();
-    layout.requireSelection(Collections.singletonList(imageView));
+    layout.requireSelection(Collections.singletonList(frameLayout)); // the first click selects the parent FrameLayout
+    imageView.click();
+    layout.requireSelection(Collections.singletonList(imageView)); // the second click selects the ImageView
 
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
