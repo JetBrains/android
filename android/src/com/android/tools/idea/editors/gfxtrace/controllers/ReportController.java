@@ -541,24 +541,19 @@ public class ReportController extends TreeController implements ReportStream.Lis
         if (followPath == null) {
           // set empty path so we do not make any more calls to the server for this path
           node.setFollowPath(Path.EMPTY);
-          if (myEditor.getFeatures().hasReportItems()) {
-            Path path = getReportItemPath(node);
-            Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
-              @Override
-              public void onSuccess(Path result) {
-                node.setFollowPath(result);
-                pathStore.update(result);
-              }
+          Path path = getReportItemPath(node);
+          Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
+            @Override
+            public void onSuccess(Path result) {
+              node.setFollowPath(result);
+              pathStore.update(result);
+            }
 
-              @Override
-              public void onFailure(Throwable t) {
-                LOG.warn("Error for path " + path, t);
-              }
-            });
-          }
-          else {
-            node.setFollowable(false);
-          }
+            @Override
+            public void onFailure(Throwable t) {
+              LOG.warn("Error for path " + path, t);
+            }
+          });
         }
         else {
           // Put existing path to pathStore in order to handle the node properly in further code.
@@ -576,12 +571,9 @@ public class ReportController extends TreeController implements ReportStream.Lis
                                                                    .setTracePath(path.toString())));
           myEditor.activatePath(path, ReportController.this);
         }
-        else if (myEditor.getFeatures().hasReportItems()) {
+        else {
           // this can happen if the server takes too long to respond, or responds with a error
           LOG.warn("mouseClicked(), but we don't have a path");
-        }
-        else {
-          LOG.warn("mouseClicked(), but ReportItemPath are not supported in GAPIS");
         }
       }
 

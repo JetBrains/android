@@ -21,16 +21,13 @@ import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.Report;
 import com.android.tools.idea.editors.gfxtrace.service.ReportItem;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
-import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -40,19 +37,22 @@ import java.util.concurrent.ExecutionException;
 public class ReportStream implements PathListener {
   private static final Logger LOG = Logger.getInstance(ReportStream.class);
 
-  private final GfxTraceEditor myEditor;
-  private final PathStore<ReportPath> myReportPath = new PathStore<>();
-  private final PathStore<ReportItemPath> myReportItemPath = new PathStore<>();
-  private Report myReport;
+  @NotNull private final GfxTraceEditor myEditor;
+  @NotNull private final PathStore<ReportPath> myReportPath = new PathStore<>();
+  @NotNull private final PathStore<ReportItemPath> myReportItemPath = new PathStore<>();
+  @Nullable("no report has been fetched yet") private Report myReport;
 
-  private final Listeners myListeners = new Listeners();
+  @NotNull private final Listeners myListeners = new Listeners();
 
-  public ReportStream(GfxTraceEditor editor) {
+  public ReportStream(@NotNull GfxTraceEditor editor) {
     myEditor = editor;
   }
 
   @Override
   public void notifyPath(PathEvent event) {
+    if (!myEditor.getFeatures().hasReport()) {
+      return;
+    }
     if (myReportPath.updateIfNotNull(CapturePath.report(event.findCapturePath()))) {
       myListeners.onReportLoadingStart(this);
       ListenableFuture<Object> future = myEditor.getClient().get(myReportPath.getPath());
@@ -92,22 +92,24 @@ public class ReportStream implements PathListener {
    */
   public LogProtos.Severity maxSeverity(List<Integer> reportItemIndices) {
     LogProtos.Severity maxSeverity = LogProtos.Severity.Debug;
-    for (int i = 0; i < reportItemIndices.size() && maxSeverity != LogProtos.Severity.Emergency; ++i) {
-      ReportItem item = myReport.getItems()[reportItemIndices.get(i)];
-      LogProtos.Severity itemSeverity = item.getSeverity();
-      if (maxSeverity.compareTo(itemSeverity) > 0) {
-        maxSeverity = itemSeverity;
+    if (myReport != null) {
+      for (int i = 0; i < reportItemIndices.size() && maxSeverity != LogProtos.Severity.Emergency; ++i) {
+        ReportItem item = myReport.getItems()[reportItemIndices.get(i)];
+        LogProtos.Severity itemSeverity = item.getSeverity();
+        if (maxSeverity.compareTo(itemSeverity) > 0) {
+          maxSeverity = itemSeverity;
+        }
       }
     }
     return maxSeverity;
   }
 
   public ReportItemPath getReportItemPath(long atomId) {
-    return buildReportItemPath(myReport.getForAtom(atomId));
+    return myReport == null ? null : buildReportItemPath(myReport.getForAtom(atomId));
   }
 
   public ReportItemPath getReportItemPath(long atomGroupStartId, long atomGroupLastId) {
-    return buildReportItemPath(myReport.getForAtoms(atomGroupStartId, atomGroupLastId));
+    return myReport == null ? null : buildReportItemPath(myReport.getForAtoms(atomGroupStartId, atomGroupLastId));
   }
 
   /**
@@ -124,10 +126,14 @@ public class ReportStream implements PathListener {
   }
 
   public boolean hasReportItems(long atomId) {
+    if (myReport == null) {
+      return false;
+    }
     List<Integer> reportItemIndices = myReport.getForAtom(atomId);
     return reportItemIndices != null && !reportItemIndices.isEmpty();
   }
 
+  @Nullable
   public Report getReport() {
     return myReport;
   }
