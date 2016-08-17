@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
@@ -42,17 +43,18 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   private final MockupEditor.MockupEditorListener myMockupEditorListener;
 
   /**
-   * @param mockup          Mockup used to extract new widget
-   * @param screenView      Current screenView where the mockup is displayed
-   * @param mockupViewPanel {@link MockupViewPanel} associated with this tool
+   * @param screenView   Current screenView where the mockup is displayed
    * @param mockupEditor
    */
-  public ExtractWidgetTool(Mockup mockup, ScreenView screenView, MockupViewPanel mockupViewPanel, MockupEditor mockupEditor) {
+  public ExtractWidgetTool(@NotNull DesignSurface surface, @NotNull MockupEditor mockupEditor) {
     super();
-    myMockupViewPanel = mockupViewPanel;
+    myMockupViewPanel = mockupEditor.getMockupViewPanel();
     mySelectionListener = new MySelectionListener();
-    myWidgetCreator = new WidgetCreator(mockup, screenView);
-    myMockupEditorListener = m -> hideTooltipActions();
+    myWidgetCreator = new WidgetCreator(mockupEditor, surface);
+    myMockupEditorListener = newMockup -> {
+      hideTooltipActions();
+      updateMockup(newMockup);
+    };
     mockupEditor.addListener(myMockupEditorListener);
     setBorder(BorderFactory.createLineBorder(JBColor.background(), 1, true));
     add(createActionButtons());
@@ -119,13 +121,15 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   }
 
   @Override
-  public void enable(MockupViewPanel mockupViewPanel) {
+  public void enable(@NotNull MockupEditor mockupEditor) {
+    MockupViewPanel mockupViewPanel = mockupEditor.getMockupViewPanel();
     mockupViewPanel.addSelectionListener(mySelectionListener);
     mockupViewPanel.resetState();
   }
 
   @Override
-  public void disable(MockupViewPanel mockupViewPanel) {
+  public void disable(@NotNull MockupEditor mockupEditor) {
+    MockupViewPanel mockupViewPanel = mockupEditor.getMockupViewPanel();
     mockupViewPanel.removeSelectionListener(mySelectionListener);
     hideTooltipActions();
   }
