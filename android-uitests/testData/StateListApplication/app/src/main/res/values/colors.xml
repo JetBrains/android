@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorForeground">#fed5e4</color>
+    <color name="myColor">#ed4326f2</color>
+    <color name="ref_color">@color/myColor</color>
+</resources>

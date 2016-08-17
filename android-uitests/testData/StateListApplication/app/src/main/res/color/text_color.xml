@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:alpha="@dimen/text_alpha" android:color="?android:attr/colorForeground" />
+    <item android:state_checked="true" android:color="#5034FAB2" />
+    <item android:state_pressed="true" android:color="@color/invalidColor" />
+    <item android:color="?attr/myColorAttribute" />
+</selector>

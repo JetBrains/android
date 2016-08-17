@@ -1,0 +1,1 @@
+include ':app', ':androidlib1', ':androidlib2', ':javalib1', ':javalib2'
