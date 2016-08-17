@@ -20,11 +20,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.InspectionProfileEntry;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
@@ -39,31 +44,41 @@ import java.util.List;
 
 @SuppressWarnings("StatementWithEmptyBody")
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
-
   private String myOldCharset;
+
+  @NotNull
+  @Override
+  protected LightProjectDescriptor getProjectDescriptor() {
+    return new LightProjectDescriptor() {
+      @Nullable
+      @Override
+      public Sdk getSdk() {
+        return JAVA_1_7.getSdk();
+      }
+
+      @Override
+      protected void configureModule(@NotNull Module module, @NotNull ModifiableRootModel model, @NotNull ContentEntry contentEntry) {
+        // Module must have Android facet or resource type inspection will become a no-op
+        if (AndroidFacet.getInstance(module) == null) {
+          String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
+          String platform = AndroidTestBase.getDefaultPlatformDir();
+          AndroidTestCase.addAndroidFacet(module, sdkPath, platform, false);
+          Sdk sdk = AndroidTestBase.createAndroidSdk(sdkPath, platform);
+          model.setSdk(sdk);
+
+          @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
+          ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+          sdkModificator.commitChanges();
+
+          model.getModuleExtension(LanguageLevelModuleExtension.class).setLanguageLevel(LanguageLevel.JDK_1_8);
+        }
+      }
+    };
+  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    //noinspection StatementWithEmptyBody
-    if (getName().equals("testNotAndroid")) {
-      // Don't add an Android facet here; we're testing that we're a no-op outside of Android projects
-      // since the inspection is registered at the .java source type level
-      return;
-    }
-
-    // Module must have Android facet or resource type inspection will become a no-op
-    if (AndroidFacet.getInstance(myModule) == null) {
-      String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
-      String platform = AndroidTestBase.getDefaultPlatformDir();
-      AndroidTestCase.addAndroidFacet(myModule, sdkPath, platform, true);
-      Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-      assertNotNull(sdk);
-      @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
-      ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-      sdkModificator.commitChanges();
-    }
 
     // Required by testLibraryRevocablePermissions (but placing it there leads to
     // test ordering issues)
