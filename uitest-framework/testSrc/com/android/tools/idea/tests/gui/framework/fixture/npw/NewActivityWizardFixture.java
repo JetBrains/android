@@ -16,8 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,19 +27,22 @@ import javax.swing.*;
 
 public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityWizardFixture> {
 
-  private NewActivityWizardFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(NewActivityWizardFixture.class, robot, target);
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  private NewActivityWizardFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target) {
+    super(NewActivityWizardFixture.class, ideFrameFixture.robot(), target);
+    myIdeFrameFixture = ideFrameFixture;
   }
 
   @NotNull
-  public static NewActivityWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "New Android Activity"));
-    return new NewActivityWizardFixture(robot, dialog);
+  public static NewActivityWizardFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "New Android Activity"));
+    return new NewActivityWizardFixture(ideFrameFixture, dialog);
   }
 
   @NotNull
   public ConfigureBasicActivityStepFixture getConfigureActivityStep() {
     JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture(robot(), rootPane);
+    return new ConfigureBasicActivityStepFixture(myIdeFrameFixture, rootPane, this);
   }
 }
