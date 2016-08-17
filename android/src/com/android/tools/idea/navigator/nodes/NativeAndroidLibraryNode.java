@@ -18,8 +18,10 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -37,35 +39,34 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
 public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> implements DirectoryGroupNode {
+  private static final Set<String> HEADER_FILE_EXTENSIONS = ImmutableSet.of("h", "hpp", "hh", "h++", "hxx");
+
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
-  @NotNull private final Collection<String> myFileExtensions;
+  @NotNull private final Collection<String> mySourceFileExtensions;
 
   public NativeAndroidLibraryNode(@NotNull Project project,
                                   @NotNull String nativeLibraryName,
                                   @NotNull String nativeLibraryType,
                                   @NotNull Collection<NativeArtifact> artifacts,
                                   @NotNull ViewSettings settings,
-                                  @NotNull Collection<String> fileExtensions) {
+                                  @NotNull Collection<String> sourceFileExtensions) {
     super(project, artifacts, settings);
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
-    myFileExtensions = fileExtensions;
+    mySourceFileExtensions = sourceFileExtensions;
   }
 
   @NotNull
   public static Collection<AbstractTreeNode> getSourceDirectoryNodes(@NotNull Project project,
                                                                      @NotNull Collection<NativeArtifact> artifacts,
                                                                      @NotNull ViewSettings settings,
-                                                                     @NotNull Collection<String> fileExtensions) {
+                                                                     @NotNull Collection<String> sourceFileExtensions) {
     TreeMap<String, RootDirectory> rootDirectories = new TreeMap<>();
 
     for (NativeArtifact artifact : artifacts) {
@@ -80,6 +81,11 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
     if (rootDirectories.size() > 1) {
       mergeDirectories(rootDirectories);
     }
+
+    Set<String> fileExtensions = Sets.newHashSetWithExpectedSize(sourceFileExtensions.size() + HEADER_FILE_EXTENSIONS.size());
+    fileExtensions.addAll(sourceFileExtensions);
+    // add header files extension explicitly as the model only provides the extensions of source files.
+    fileExtensions.addAll(HEADER_FILE_EXTENSIONS);
 
     PsiManager psiManager = PsiManager.getInstance(project);
     List<AbstractTreeNode> children = Lists.newArrayList();
@@ -137,8 +143,9 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
     for (NativeFile sourceFile : artifact.getSourceFiles()) {
       File source = sourceFile.getFilePath();
       sourceFiles.add(source);
-      File header = new File(source.getParentFile(), getNameWithoutExtension(source) + ".h");
-      sourceFiles.add(header);
+      for (String extension : HEADER_FILE_EXTENSIONS) {
+        sourceFiles.add(new File(source.getParentFile(), getNameWithoutExtension(source) + "." + extension));
+      }
     }
 
     return convertToVirtualFiles(sourceFiles);
@@ -240,7 +247,8 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    Collection<AbstractTreeNode> sourceDirectoryNodes = getSourceDirectoryNodes(myProject, getArtifacts(), getSettings(), myFileExtensions);
+    Collection<AbstractTreeNode> sourceDirectoryNodes =
+      getSourceDirectoryNodes(myProject, getArtifacts(), getSettings(), mySourceFileExtensions);
     if (sourceDirectoryNodes.size() == 1) {
       AbstractTreeNode node = Iterables.getOnlyElement(sourceDirectoryNodes);
       assert node instanceof NativeAndroidSourceDirectoryNode;

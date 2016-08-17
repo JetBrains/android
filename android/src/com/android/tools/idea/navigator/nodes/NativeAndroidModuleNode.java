@@ -46,15 +46,7 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
                                                                   @NotNull NativeAndroidGradleModel nativeAndroidModel,
                                                                   @NotNull ViewSettings viewSettings) {
     NativeAndroidProject nativeAndroidProject = nativeAndroidModel.getNativeAndroidProject();
-
-    Collection<String> fileExtensions = Sets.newHashSet();
-    // add header files extension explicitly as the model only return the extensions of source file
-    fileExtensions.add("h");
-    fileExtensions.add("hpp");
-    fileExtensions.add("hh");
-    fileExtensions.add("h++");
-    fileExtensions.add("hxx");
-    fileExtensions.addAll(nativeAndroidProject.getFileExtensions().keySet());
+    Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
     NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
@@ -64,7 +56,7 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
     }
 
     if(nativeLibraries.keySet().size() == 1) {
-      return getSourceDirectoryNodes(project, nativeLibraries.values(), viewSettings, fileExtensions);
+      return getSourceDirectoryNodes(project, nativeLibraries.values(), viewSettings, sourceFileExtensions);
     }
 
     List<AbstractTreeNode> children = Lists.newArrayList();
@@ -86,7 +78,7 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
                                                 nativeLibraryType,
                                                 nativeLibraries.get(name),
                                                 viewSettings,
-                                                fileExtensions));
+                                                sourceFileExtensions));
     }
     return children;
   }
