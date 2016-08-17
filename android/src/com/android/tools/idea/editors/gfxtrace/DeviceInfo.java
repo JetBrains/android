@@ -261,7 +261,7 @@ public class DeviceInfo {
       }
 
       private void installApk() throws Exception {
-        File apk = GapiPaths.findPkgInfoApk();
+        File apk = GapiPaths.pkgInfoApk();
         if (!apk.exists()) {
           throw new RuntimeException("pkginfo.apk not found at " + apk.getAbsolutePath());
         }
