@@ -29,14 +29,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
   public static final Version REQUIRED_GAPI_VERSION = Version.VERSION_3;
@@ -92,37 +88,46 @@ public final class GapiPaths {
   private static File myPkgInfoPath;
 
   public static synchronized boolean isValid() {
+    if (myGapisPath != null && allExist()) {
+      return true;
+    }
     findTools();
-    return myGapisPath.exists();
+    return allExist();
   }
 
   @NotNull
   public static synchronized File base() {
-    findTools();
+    isValid();
     return myBaseDir;
   }
 
   @NotNull
   public static synchronized File gapis() {
-    findTools();
+    isValid();
     return myGapisPath;
   }
 
   @NotNull
   public static synchronized File gapir() {
-    findTools();
+    isValid();
     return myGapirPath;
   }
 
   @NotNull
   public static synchronized File strings() {
-    findTools();
+    isValid();
     return myStringsPath;
   }
 
   @NotNull
+  public static synchronized File pkgInfoApk() {
+    isValid();
+    return myPkgInfoPath;
+  }
+
+  @NotNull
   private static File findLibrary(@NotNull String libraryName, @NotNull String abi) throws IOException {
-    findTools();
+    isValid();
     File lib = FileUtils.join(myBaseDir, OS_ANDROID, ABI_REMAP.getOrDefault(abi, abi), libraryName);
     if (lib.exists()) {
       return lib;
@@ -138,12 +143,6 @@ public final class GapiPaths {
   @NotNull
   public static synchronized File findInterceptorLibrary(@NotNull String abi) throws IOException {
     return findLibrary(INTERCEPTOR_LIBRARY_NAME, abi);
-  }
-
-  @NotNull
-  public static synchronized File findPkgInfoApk() {
-    findTools();
-    return myPkgInfoPath;
   }
 
   /**
@@ -180,7 +179,12 @@ public final class GapiPaths {
     myGapirPath = FileUtils.join(dir, HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
     myPkgInfoPath = FileUtils.join(dir, OS_ANDROID, PKG_INFO_NAME);
     myStringsPath = new File(dir, STRINGS_DIR_NAME);
-    return myGapisPath.exists();
+    return allExist();
+  }
+
+  private static boolean allExist() {
+    // We handle a missing strings dir explicitly, so ignore if it's missing.
+    return myGapisPath.exists() && myGapirPath.exists() && myPkgInfoPath.exists();
   }
 
   private static File pathJoin(String... components) {
@@ -192,9 +196,6 @@ public final class GapiPaths {
   }
 
   private static void findTools() {
-    if (myGapisPath != null && myGapisPath.exists()) {
-      return;
-    }
     ImmutableList.<Supplier<File>>of(
       () -> {
         String gapidRoot = System.getenv(GAPID_ROOT_ENV_VAR);
