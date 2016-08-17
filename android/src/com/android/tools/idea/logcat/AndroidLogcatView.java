@@ -18,8 +18,6 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.logcat.LogCatHeader;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
@@ -115,21 +113,19 @@ public abstract class AndroidLogcatView implements Disposable {
     return myLogConsole;
   }
 
+  // TODO: Now that clearLogcat lives in AndroidLogcatService, this should go away using a listener
+  // pattern.
   public final void clearLogcat(@Nullable IDevice device) {
     if (device == null) {
       return;
     }
 
     myLogFilterModel.beginRejectingOldMessages();
-    AndroidLogcatUtils.clearLogcat(myProject, device);
+    AndroidLogcatService.getInstance().clearLogcat(device, myProject);
 
-    // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
-    // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
-    // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
-    // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
-    // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
-    if (device.equals(getSelectedDevice())) {
-      notifyDeviceUpdated(true);
+    // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
+    if (myLogConsole.getConsole() != null) {
+      myLogConsole.clear();
     }
   }
 

@@ -16,7 +16,9 @@
 package com.android.tools.idea.logcat;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
@@ -25,12 +27,15 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
@@ -82,6 +87,13 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   @GuardedBy("myLock")
   private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<>();
 
+  /**
+   * A logcat connection does not cancel immediately, so we use a countdown latch to inform us when
+   * a channel actually is done closing. A latch should be set to 1 (active) or 0 (closed) at any
+   * given time. See also {@link #stopReceiving(IDevice)}.
+   */
+  private final Map<IDevice, CountDownLatch> myDeviceLatches = new ConcurrentHashMap<>();
+
   private final LogcatRunner myLogcatRunner;
 
   @NotNull
@@ -99,6 +111,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
           public void run() {
             try {
               AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
+              myDeviceLatches.get(device).countDown();
             }
             catch (Exception e) {
               getLog().info(String.format(
@@ -137,6 +150,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     };
     final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logLineListener);
 
+    myDeviceLatches.put(device, new CountDownLatch(1));
     synchronized (myLock) {
       myLogBuffers.put(device, new LogcatBuffer());
       myLogReceivers.put(device, receiver);
@@ -146,11 +160,27 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   private void stopReceiving(@NotNull IDevice device) {
     synchronized (myLock) {
+      if (!isReceivingFrom(device)) {
+        return;
+      }
+
       if (myLogReceivers.containsKey(device)) {
         myLogReceivers.get(device).cancel();
       }
       myLogReceivers.remove(device);
       myLogBuffers.remove(device);
+    }
+    CountDownLatch latch = myDeviceLatches.get(device);
+    if (latch != null) {
+      try {
+        latch.await();
+      }
+      catch (InterruptedException ignored) {
+      }
+
+      // This must happen after the await call above, or else the countdown logic elsewhere in
+      // this class will throw an NPE if we remove this too soon.
+      myDeviceLatches.remove(device);
     }
   }
 
@@ -158,6 +188,20 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       return myLogBuffers.containsKey(device);
     }
+  }
+
+  /**
+   * Clears logs for the current device.
+   */
+  public void clearLogcat(@NotNull IDevice device, @NotNull Project project) {
+    // In theory, we only need to clear the buffer. However, due to issues in the platform, clearing logcat via "logcat -c" could
+    // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
+    // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
+    // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
+    // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
+    stopReceiving(device);
+    AndroidLogcatUtils.clearLogcat(project, device);
+    startReceiving(device);
   }
 
   /**
