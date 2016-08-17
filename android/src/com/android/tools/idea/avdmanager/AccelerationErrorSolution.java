@@ -54,7 +54,7 @@ public class AccelerationErrorSolution {
     " 2) Start the emulator on a non-virtualized operating system\n" +
     " 3) Use an Android Virtual Device based on an ARM system image (This is 10x slower than hardware accelerated virtualization)\n";
 
-  static final String SOLUTION_ACCERATION_NOT_SUPPORTED =
+  static final String SOLUTION_ACCELERATION_NOT_SUPPORTED =
     "Unfortunately, your computer does not support hardware accelerated virtualization.\n" +
     "Here are some of your options:\n" +
     " 1) Use a physical device for testing\n" +
@@ -220,7 +220,7 @@ public class AccelerationErrorSolution {
           @Override
           public void run() {
             try {
-              HaxmWizard wizard = new HaxmWizard();
+              HaxmWizard wizard = new HaxmWizard(false);
               wizard.init();
               myChangesMade = wizard.showAndGet();
             }
@@ -291,13 +291,14 @@ public class AccelerationErrorSolution {
   }
 
   /**
-   * Async version of promptAndReboot(), which uses {@link ModalityState} to determine when to prompt for the reboot.
+   * Async version of {@link #promptAndReboot(String)}, which uses {@link ModalityState} to determine when to prompt for the reboot.
    * This is required when a reboot may be requested from multiple places during one wizard execution, and:
    * - we don't want the prompt to appear before the wizard finishes
    * - we don't want the prompt to appear several times
    *
    * If one reboot request is already queued, subsequent calls will be a no-op even when called with a different
-   * {@link ModalityState} or reboot message.
+   * {@link ModalityState} or reboot message. Once a prompt is released to the user and the choice has been made,
+   * another call to this method will queue another reboot request.
    *
    * @param prompt the message to display to the user
    * @param modality ModalityState which determines when the reboot prompt will actually appear

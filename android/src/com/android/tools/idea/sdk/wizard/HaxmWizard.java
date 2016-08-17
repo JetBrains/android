@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
@@ -25,6 +27,8 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,11 +43,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Wizard that downloads (if necessary), configures, and installs HAXM.
  */
 public class HaxmWizard extends DynamicWizard {
-  HaxmPath myHaxmPath;
+  private static final String SDK_PACKAGE_CLEANUP_FAILED =
+    "HAXM installer cleanup failed. The status of the package in the SDK manager may " +
+    "be reflected incorrectly. Reinstalling the package may solve the issue" +
+    (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)." : ".");
 
-  public HaxmWizard() {
+  HaxmPath myHaxmPath;
+  boolean myInvokedToUninstall;
+
+  public HaxmWizard(boolean invokedToUninstall) {
     super(null, null, "HAXM");
-    myHaxmPath = new HaxmPath(myHost);
+    myInvokedToUninstall = invokedToUninstall;
+    myHaxmPath = new HaxmPath();
     addPath(myHaxmPath);
   }
 
@@ -55,10 +66,35 @@ public class HaxmWizard extends DynamicWizard {
   @Override
   public void doCancelAction() {
     if (myHaxmPath.canPerformFinishingActions()) {
-      super.doFinishAction();
+      doFinishAction();
       return;
     }
+
+    // The wizard was invoked to install, but installer invocation failed or was cancelled.
+    // Have to ensure the SDK package is removed
+    if (!myInvokedToUninstall) {
+      try {
+        AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+        ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+        sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
+        componentInstaller.ensureSdkPackagesUninstalled(myHaxmPath.myHaxm.getRequiredSdkPackages(), progress);
+      }
+      catch(Exception e) {
+        Messages.showErrorDialog(SDK_PACKAGE_CLEANUP_FAILED, "Cleanup Error");
+        LOG.warn("Failed to make sure HAXM SDK package is uninstalled after HAXM wizard was cancelled", e);
+      }
+    }
     super.doCancelAction();
+  }
+
+  @Override
+  public void doFinishAction() {
+    if (!myHaxmPath.canPerformFinishingActions()) {
+      doCancelAction();
+      return;
+    }
+    super.doFinishAction();
   }
 
   @NotNull
@@ -76,11 +112,13 @@ public class HaxmWizard extends DynamicWizard {
     private Haxm myHaxm;
     private final AtomicBoolean myIsSuccessfullyCompleted = new AtomicBoolean(false);
     private DynamicWizardHost myHost;
+    private StudioLoggerProgressIndicator myProgressIndicator;
 
     public SetupProgressStep(Disposable parentDisposable, Haxm haxm, DynamicWizardHost host) {
-      super(parentDisposable);
+      super(parentDisposable, "Invoking installer");
       myHaxm = haxm;
       myHost = host;
+      myProgressIndicator = new StudioLoggerProgressIndicator(getClass());
     }
 
     @Override
@@ -97,10 +135,10 @@ public class HaxmWizard extends DynamicWizard {
         public void run() {
           try {
             setupHaxm();
-            myIsSuccessfullyCompleted.set(true);
+            myIsSuccessfullyCompleted.set(myHaxm.isConfiguredSuccessfully());
           }
           catch (Exception e) {
-            Logger.getInstance(getClass()).error(e);
+            LOG.warn("Exception caught while trying to configure HAXM", e);
             showConsole();
             print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
           }
@@ -117,21 +155,34 @@ public class HaxmWizard extends DynamicWizard {
       final InstallContext installContext = new InstallContext(FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
       final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
       myHaxm.updateState(sdkHandler);
+      final ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
-      installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
-      // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
-      InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(sdkHandler), 0.5);
+      double configureHaxmProgressRatio = 1.0;
+      if (myHaxm.getInstallationIntention() == Haxm.HaxmInstallationIntention.INSTALL_WITH_UPDATES) {
+        configureHaxmProgressRatio = 0.5; // leave the first half of the progress to the updates check & install operation
+      }
+
+      InstallOperation<File, File> configureHaxmOperation = InstallOperation.wrap(installContext, new Function<File, File>() {
+        @Override
+        public File apply(@Nullable File input) {
+          myHaxm.configure(installContext, sdkHandler);
+          return input;
+        }
+      }, configureHaxmProgressRatio);
+
+      InstallOperation<File, File> opChain;
+      if (myHaxm.getInstallationIntention() == Haxm.HaxmInstallationIntention.INSTALL_WITH_UPDATES) {
+        InstallComponentsOperation install =
+          new InstallComponentsOperation(installContext, selectedComponents, componentInstaller, 0.5);
+        opChain = install.then(configureHaxmOperation);
+      }
+      else {
+        opChain = configureHaxmOperation;
+      }
 
       try {
-        install.then(InstallOperation.wrap(installContext, new Function<File, File>() {
-          @Override
-          public File apply(@Nullable File input) {
-            myHaxm.configure(installContext, sdkHandler);
-            return input;
-          }
-        }, 0.5)).execute(sdkHandler.getLocation());
+        opChain.execute(sdkHandler.getLocation());
       }
       catch (InstallationCancelledException e) {
         installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
@@ -139,31 +190,46 @@ public class HaxmWizard extends DynamicWizard {
       catch (WizardException e) {
         throw new RuntimeException(e);
       }
+      finally {
+        if (!myHaxm.isConfiguredSuccessfully() && myHaxm.getInstallationIntention() != Haxm.HaxmInstallationIntention.UNINSTALL) {
+          try {
+            // The intention was to install HAXM, but the installation failed. Ensure we don't leave the SDK package behind
+            sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
+            componentInstaller
+              .ensureSdkPackagesUninstalled(myHaxm.getRequiredSdkPackages(), myProgressIndicator);
+          }
+          catch (WizardException e) {
+            LOG.warn("HAXM SDK package cleanup failed due to an exception", e);
+            installContext.print(SDK_PACKAGE_CLEANUP_FAILED, ConsoleViewContentType.ERROR_OUTPUT);
+          }
+        }
+      }
       installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT);
     }
   }
 
   private class HaxmPath extends DynamicWizardPath {
-    DynamicWizardHost myHost;
     SetupProgressStep mySetupProgressStep;
-
-    public HaxmPath(DynamicWizardHost host) {
-      myHost = host;
-    }
+    Haxm myHaxm;
 
     @Override
     protected void init() {
       ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey("ShowHaxmSteps", ScopedStateStore.Scope.PATH, Boolean.class);
       myState.put(canShow, true);
-      Haxm haxm = new Haxm(getState(), canShow, true);
+      Haxm.HaxmInstallationIntention haxmInstallationIntention =
+        HaxmWizard.this.myInvokedToUninstall ? Haxm.HaxmInstallationIntention.UNINSTALL
+                                             : Haxm.HaxmInstallationIntention.INSTALL_WITH_UPDATES;
+      myHaxm = new Haxm(haxmInstallationIntention, getState(), canShow);
 
-      for (DynamicWizardStep step : haxm.createSteps()) {
+      for (DynamicWizardStep step : myHaxm.createSteps()) {
         addStep(step);
       }
-      addStep(new LicenseAgreementStep(getWizard().getDisposable()));
-      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), haxm, myHost);
+      if (!HaxmWizard.this.myInvokedToUninstall) {
+        addStep(new LicenseAgreementStep(getWizard().getDisposable()));
+      }
+      mySetupProgressStep = new SetupProgressStep(getWizard().getDisposable(), myHaxm, HaxmWizard.this.myHost);
       addStep(mySetupProgressStep);
-      haxm.init(mySetupProgressStep);
+      myHaxm.init(mySetupProgressStep);
     }
 
     @NotNull

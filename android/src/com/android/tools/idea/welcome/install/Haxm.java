@@ -25,6 +25,7 @@ import com.android.tools.idea.avdmanager.AccelerationErrorSolution;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.ElevatedCommandLine;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
+import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -60,6 +61,12 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorCode.CANNOT_INS
  * Intel® HAXM installable component
  */
 public final class Haxm extends InstallableComponent {
+  public enum HaxmInstallationIntention {
+    INSTALL_WITH_UPDATES,
+    INSTALL_WITHOUT_UPDATES,
+    UNINSTALL
+  }
+
   // In UI we cannot use longs, so we need to pick a unit other then byte
   public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
   public static final Logger LOG = Logger.getInstance(Haxm.class);
@@ -74,7 +81,29 @@ public final class Haxm extends InstallableComponent {
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ProgressStep myProgressStep;
+  private HaxmInstallationIntention myInstallationIntention;
+  private boolean myHaxmInstallerSuccessfullyCompleted = false;
   private static AccelerationErrorCode ourInitialCheck;
+
+  public Haxm(@NotNull HaxmInstallationIntention installationIntention,
+              @NotNull ScopedStateStore store,
+              @NotNull ScopedStateStore.Key<Boolean> isCustomInstall) {
+    super(store, "Performance (Intel ® HAXM)",
+          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+          "Android app emulation on your development computer. (Recommended)",
+          (installationIntention == HaxmInstallationIntention.INSTALL_WITH_UPDATES),
+          FileOpUtils.create());
+    myIsCustomInstall = isCustomInstall;
+    myInstallationIntention = installationIntention;
+  }
+
+  public HaxmInstallationIntention getInstallationIntention() {
+    return myInstallationIntention;
+  }
+
+  public boolean isConfiguredSuccessfully() {
+    return myHaxmInstallerSuccessfullyCompleted;
+  }
 
   /**
    * Return true if it is possible to install Haxm on the current machine without any other configuration changes.
@@ -125,13 +154,6 @@ public final class Haxm extends InstallableComponent {
     return manager.checkAcceleration();
   }
 
-  public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall, boolean installUpdates) {
-    super(store, "Performance (Intel ® HAXM)", "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-                                                        "Android app emulation on your development computer. (Recommended)",
-          installUpdates, FileOpUtils.create());
-    myIsCustomInstall = isCustomInstall;
-  }
-
   /**
    * Modifies cl with parameters used during installation and returns it.
    * @param cl The command line for the base command. Modified in-place by this method.
@@ -141,6 +163,17 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   private static GeneralCommandLine addInstallParameters(@NotNull GeneralCommandLine cl, int memorySize) {
     cl.addParameters("-m", String.valueOf(memorySize));
+    return cl;
+  }
+
+  /**
+   * Modifies cl with parameters used during uninstallation and returns it.
+   * @param cl The command line for the base command. Modified in-place by this method.
+   * @return cl
+   */
+  @NotNull
+  private static GeneralCommandLine addUninstallParameters(@NotNull GeneralCommandLine cl) {
+    cl.addParameters("-u");
     return cl;
   }
 
@@ -179,22 +212,62 @@ public final class Haxm extends InstallableComponent {
   @Override
   public void init(@NotNull ProgressStep progressStep) {
     myProgressStep = progressStep;
-    myStateStore.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    if (myInstallationIntention == HaxmInstallationIntention.INSTALL_WITH_UPDATES
+        || myInstallationIntention == HaxmInstallationIntention.INSTALL_WITHOUT_UPDATES) {
+      myStateStore.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    }
   }
 
   @NotNull
   @Override
   public Collection<DynamicWizardStep> createSteps() {
+    if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
+      return Collections.singleton(new HaxmUninstallInfoStep());
+    }
     return Collections.singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
   }
 
   @Override
   public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
-    AccelerationErrorCode error = checkHaxmInstallation();
-    if (error == ALREADY_INSTALLED) {
+    AccelerationErrorCode accelerationErrorCode = checkHaxmInstallation();
+
+    if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
+      if (accelerationErrorCode == ALREADY_INSTALLED) {
+        try {
+          GeneralCommandLine commandLine = getUninstallCommandLine(sdkHandler.getLocation());
+          runInstaller(installContext, commandLine);
+        }
+        catch (WizardException e) {
+          LOG.warn(String.format("Tried to uninstall HAXM on %s OS", Platform.current().name()), e);
+          installContext.print("Unable to uninstall Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
+          String message = e.getMessage();
+          if (!StringUtil.endsWithLineBreak(message)) {
+            message += "\n";
+          }
+          installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+        }
+      }
+      else {
+        // HAXM is not installed and the intention is to uninstall, so nothing to do here
+        // This should not normally be the case unless some of the previous HAXM installation/uninstallation
+        // operations failed or were executed outside of Studio
+        LOG.info("Acceleration check signified that HAXM is not installed, so not proceeding with its uninstallation. " +
+                 "The acceleration check result was: " + accelerationErrorCode.getProblem());
+        myHaxmInstallerSuccessfullyCompleted = true;
+      }
       return;
     }
-    switch (error.getSolution()) {
+
+    AccelerationErrorSolution.SolutionCode solution = accelerationErrorCode.getSolution();
+    if (accelerationErrorCode == ALREADY_INSTALLED) {
+      if (myInstallationIntention == HaxmInstallationIntention.INSTALL_WITHOUT_UPDATES) {
+        myHaxmInstallerSuccessfullyCompleted = true;
+        return;
+      }
+      // Force reinstall
+      solution = AccelerationErrorSolution.SolutionCode.REINSTALL_HAXM;
+    }
+    switch (solution) {
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
         try {
@@ -214,7 +287,7 @@ public final class Haxm extends InstallableComponent {
         break;
 
       case NONE:
-        String message = String.format("Unable to install Intel HAXM\n%1$s\n%2$s\n", error.getProblem(), error.getSolutionMessage());
+        String message = String.format("Unable to install Intel HAXM\n%1$s\n%2$s\n", accelerationErrorCode.getProblem(), accelerationErrorCode.getSolutionMessage());
         installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
         break;
 
@@ -227,8 +300,10 @@ public final class Haxm extends InstallableComponent {
   private void runInstaller(InstallContext installContext, GeneralCommandLine commandLine) {
     try {
       ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-      progressIndicator.setIndeterminate(true);
-      progressIndicator.setText(RUNNING_INTEL_HAXM_INSTALLER_MESSAGE);
+      if (progressIndicator != null) {
+        progressIndicator.setIndeterminate(true);
+        progressIndicator.setText(RUNNING_INTEL_HAXM_INSTALLER_MESSAGE);
+      }
       installContext.print(RUNNING_INTEL_HAXM_INSTALLER_MESSAGE + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
       final StringBuffer output = new StringBuffer();
@@ -241,6 +316,8 @@ public final class Haxm extends InstallableComponent {
       });
       myProgressStep.attachToProcess(process);
       int exitCode = process.runProcess().getExitCode();
+      // TODO: For some reason, this can be a deceptive zero exit code on Mac when emulator instances are running
+      // More testing of bash scripts invocation with intellij process wrappers might be useful.
       if (exitCode != INTEL_HAXM_INSTALLER_EXIT_CODE_SUCCESS) {
         // According to the installer docs for Windows, installer may signify that a reboot is required
         if (SystemInfo.isWindows && exitCode == INTEL_HAXM_INSTALLER_EXIT_CODE_REBOOT_REQUIRED) {
@@ -248,29 +325,40 @@ public final class Haxm extends InstallableComponent {
                                  "required in order for the changes to take effect";
           installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT);
           AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.NON_MODAL);
+          myHaxmInstallerSuccessfullyCompleted = true;
 
           return;
         }
 
         // HAXM is not required so we do not stop setup process if this install failed.
-        installContext.print(
-          String.format("HAXM installation failed. To install HAXM follow the instructions found at: %s",
-                        SystemInfo.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
-                                             : FirstRunWizardDefaults.HAXM_MAC_INSTALL_URL),
-          ConsoleViewContentType.ERROR_OUTPUT);
+        if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
+          installContext.print("HAXM uninstallation failed", ConsoleViewContentType.ERROR_OUTPUT);
+        }
+        else {
+          installContext.print(
+            String.format("HAXM installation failed. To install HAXM follow the instructions found at: %s",
+                            SystemInfo.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
+                                                 : FirstRunWizardDefaults.HAXM_MAC_INSTALL_URL),
+            ConsoleViewContentType.ERROR_OUTPUT);
+        }
         Matcher m = Pattern.compile("installation log:\\s*\"(.*)\"").matcher(output.toString());
         if (m.find()) {
           String file = m.group(1);
+          installContext.print(String.format("Installer log is located at %s", file), ConsoleViewContentType.ERROR_OUTPUT);
           try {
-            installContext.print("Installer log:\n", ConsoleViewContentType.ERROR_OUTPUT);
+            installContext.print("Installer log contents:\n", ConsoleViewContentType.ERROR_OUTPUT);
             installContext.print(FileUtil.loadFile(new File(file), "UTF-16"), ConsoleViewContentType.NORMAL_OUTPUT);
           }
           catch (IOException e) {
             installContext.print("Failed to read installer output log.\n", ConsoleViewContentType.ERROR_OUTPUT);
           }
         }
+        progressIndicator.setFraction(1);
+        myHaxmInstallerSuccessfullyCompleted = false;
+        return;
       }
       progressIndicator.setFraction(1);
+      myHaxmInstallerSuccessfullyCompleted = true;
     }
     catch (ExecutionException e) {
       installContext.print("Unable to run Intel HAXM installer: " + e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
@@ -287,13 +375,11 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   private GeneralCommandLine getInstallCommandLine(File sdk) throws WizardException {
     int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
-    String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
-    File sourceLocation = new File(sdk, path);
     if (SystemInfo.isMac) {
-      return addInstallParameters(getMacHaxmCommandLine(sourceLocation), memorySize);
+      return addInstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)), memorySize);
     }
     else if (SystemInfo.isWindows) {
-      return addInstallParameters(getWindowsHaxmCommandLine(sourceLocation), memorySize);
+      return addInstallParameters(getWindowsHaxmCommandLine(getSourceLocation(sdk)), memorySize);
     }
     else {
       assert !canRun();
@@ -302,8 +388,28 @@ public final class Haxm extends InstallableComponent {
   }
 
   @NotNull
+  private GeneralCommandLine getUninstallCommandLine(File sdk) throws WizardException {
+    if (SystemInfo.isMac) {
+      return addUninstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)));
+    }
+    else if (SystemInfo.isWindows) {
+      return addUninstallParameters(getWindowsHaxmCommandLine(getSourceLocation(sdk)));
+    }
+    else {
+      assert !canRun();
+      throw new IllegalStateException("Unsupported OS");
+    }
+  }
+
+  @NotNull
+  private File getSourceLocation(File sdk) {
+    String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
+    return new File(sdk, path);
+  }
+
+  @NotNull
   @Override
-  protected Collection<String> getRequiredSdkPackages() {
+  public Collection<String> getRequiredSdkPackages() {
     return ImmutableList.of(REPO_PACKAGE_PATH);
   }
 }

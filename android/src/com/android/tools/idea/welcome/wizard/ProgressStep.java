@@ -52,7 +52,11 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   private double myFraction = 0;
 
   public ProgressStep(@NotNull Disposable parent) {
-    super("Downloading Components");
+    this(parent, "Downloading Components");
+  }
+
+  public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
+    super(name);
     setComponent(myRoot);
     myLabel.setText("Installing");
     //noinspection ConstantConditions
