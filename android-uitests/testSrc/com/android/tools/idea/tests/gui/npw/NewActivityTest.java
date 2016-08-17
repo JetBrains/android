@@ -68,7 +68,7 @@ public class NewActivityTest {
     );
 
     guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
-    myDialog = NewActivityWizardFixture.find(guiTest.robot());
+    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
 
     myConfigActivity = myDialog.getConfigureActivityStep();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
