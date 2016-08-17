@@ -26,10 +26,13 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import junit.framework.TestCase;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Tests for the local repository utility class
@@ -40,14 +43,17 @@ public class RepositoryUrlManagerTest extends TestCase {
   private File mySdkDir;
   private MockFileOp myFileOp;
   private AndroidSdkHandler mySdkHandler;
+  private AndroidSdkData mySdk;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFileOp = new MockFileOp();
     mySdkDir = new File("/sdk-from-setUp");
-    myRepositoryUrlManager = new RepositoryUrlManager();
+    myRepositoryUrlManager = new RepositoryUrlManager(true /* force repository checks */);
     mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp);
+    mySdk = Mockito.mock(AndroidSdkData.class);
+    Mockito.when(mySdk.getLocation()).thenReturn(mySdkDir);
 
     String[] paths = new String[]{
       // Android repository
@@ -64,10 +70,12 @@ public class RepositoryUrlManagerTest extends TestCase {
       "extras/android/m2repository/com/android/support/support-v13/21.0.0/support-v13-21.0.0.aar",
       "extras/android/m2repository/com/android/support/support-v13/21.0.2/support-v13-21.0.2.aar",
       "extras/android/m2repository/com/android/support/support-v4/13.0.0/support-v4-13.0.0.jar", // JARs were used before 19.0.0
+      "extras/android/m2repository/com/android/support/support-v4/19.0.1/support-v4-19.0.1.aar",
       "extras/android/m2repository/com/android/support/support-v4/20.0.0/support-v4-20.0.0.aar",
       "extras/android/m2repository/com/android/support/support-v4/20.0.0/support-v4-20.0.0-rc1.aar",
       "extras/android/m2repository/com/android/support/support-v4/21.0.0/support-v4-21.0.0.aar",
       "extras/android/m2repository/com/android/support/support-v4/21.0.2/support-v4-21.0.2.aar",
+      "extras/android/m2repository/com/android/support/constraint/constraint-layout/1.0.0-alpha7/constraint-layout-1.0.0-alpha7.aar",
 
       // Google repository
       "extras/google/m2repository/com/google/android/gms/play-services/3.1.36/play-services-3.1.36.aar",
@@ -84,7 +92,8 @@ public class RepositoryUrlManagerTest extends TestCase {
       "extras/google/m2repository/com/google/android/gms/play-services-wearable/5.0.77/play-services-wearable-5.0.77.aar",
       "extras/google/m2repository/com/google/android/gms/play-services-wearable/6.1.11/play-services-wearable-6.1.11.aar",
       "extras/google/m2repository/com/google/android/gms/play-services-wearable/6.1.71/play-services-wearable-6.1.71.aar",
-      "extras/google/m2repository/com/google/android/support/wearable/1.0.0/wearable-1.0.0.aar"
+      "extras/google/m2repository/com/google/android/support/wearable/1.0.0/wearable-1.0.0.aar",
+      "extras/google/m2repository/com/google/android.wearable/wearable/2.0.0-alpha2/wearable-2.0.0-alpha2.aar",
     };
 
     for (String path : paths) {
@@ -242,5 +251,48 @@ public class RepositoryUrlManagerTest extends TestCase {
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNotNull(coordinate);
     assertEquals("4.5.0", resolveDynamicCoordinateVersion(coordinate));
+  }
+
+  public void testResolveDynamicSdkDependencies() {
+    Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:19.+"));
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:+"));
+    dependencies.put("com.google.android.support:wearable", GradleCoordinate.parseCoordinateString("com.google.android.support:wearable:+"));
+    dependencies.put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:+"));
+    dependencies.put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.2.+"));
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "23.", mySdk, myFileOp);
+    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    assertEquals("com.android.support:appcompat-v7:19.1.0", result.get(0).toString());
+    assertEquals("com.google.android.gms:play-services:4.2.42", result.get(1).toString());
+    assertEquals("com.google.android.support:wearable:1.0.0", result.get(2).toString());
+    assertEquals(3, result.size());
+  }
+
+  public void testResolveDynamicSdkDependenciesWithSupportVersionFromFilter() {
+    Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:+"));
+    dependencies.put("com.google.android.support:wearable", GradleCoordinate.parseCoordinateString("com.google.android.support:wearable:0.+"));
+    dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+"));
+    dependencies.put("com.android.support.constraint:constraint-layout", GradleCoordinate.parseCoordinateString("com.android.support.constraint:constraint-layout:0.+"));
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
+    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    assertEquals("com.android.support.constraint:constraint-layout:1.0.0-alpha7", result.get(0).toString());
+    assertEquals("com.android.support:appcompat-v7:20.0.0", result.get(1).toString());
+    assertEquals("com.android.support:support-v4:20.0.0", result.get(2).toString());
+    assertEquals("com.google.android.support:wearable:1.0.0", result.get(3).toString());
+    assertEquals(4, result.size());
+  }
+
+  public void testResolveDynamicSdkDependenciesWithSupportVersionFromExplicitVersion() {
+    Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:+"));
+    dependencies.put("com.google.android.support:wearable", GradleCoordinate.parseCoordinateString("com.google.android.support:wearable:2.0.0-alpha2"));
+    dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:19.0.1"));
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
+    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    assertEquals("com.android.support:appcompat-v7:19.0.1", result.get(0).toString());
+    assertEquals("com.android.support:support-v4:19.0.1", result.get(1).toString());
+    assertEquals("com.google.android.support:wearable:2.0.0-alpha2", result.get(2).toString());
+    assertEquals(3, result.size());
   }
 }

@@ -54,8 +54,10 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_M2_REPOSITORY;
@@ -80,12 +82,15 @@ public class RepositoryUrlManager {
 
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
+  private final boolean myForceRepositoryChecksInTests;
+
   public static RepositoryUrlManager get() {
-    return new RepositoryUrlManager();
+    return new RepositoryUrlManager(false);
   }
 
   @VisibleForTesting
-  RepositoryUrlManager() {
+  RepositoryUrlManager(boolean forceRepositoryChecks) {
+    myForceRepositoryChecksInTests = forceRepositoryChecks;
   }
 
   @Nullable
@@ -324,7 +329,7 @@ public class RepositoryUrlManager {
    * there is no local cache and the network query is not successful.
    *
    * @param coordinate  the coordinate whose version we want to resolve
-   * @param project     the current project, if known. This is equired if you want to
+   * @param project     the current project, if known. This is required if you want to
    *                    perform a network lookup of the current best version if we can't
    *                    find a locally cached version of the library
    * @return the resolved coordinate, or null if not successful
@@ -450,9 +455,13 @@ public class RepositoryUrlManager {
    */
   public List<GradleCoordinate> resolveDynamicSdkDependencies(@NotNull Multimap<String, GradleCoordinate> dependencies,
                                                               @Nullable String supportLibVersionFilter,
-                                                              @NotNull AndroidSdkData sdk) {
-    FileOp fileOp = FileOpUtils.create();
+                                                              @NotNull AndroidSdkData sdk,
+                                                              @NotNull FileOp fileOp) {
     List<GradleCoordinate> result = Lists.newArrayListWithCapacity(dependencies.size());
+    String supportFilter = findExistingExplicitVersion(dependencies.values());
+    if (supportFilter != null) {
+      supportLibVersionFilter = supportFilter;
+    }
 
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
@@ -461,31 +470,38 @@ public class RepositoryUrlManager {
       }
 
       // For test consistency, don't depend on installed SDK state while testing
-      if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
+      if (myForceRepositoryChecksInTests || !ApplicationManager.getApplication().isUnitTestMode()) {
         // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
         // that we can add instead of a plus revision.
-        String filter = null;
-        boolean includePreviews = false;
-        if (highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
-          filter = supportLibVersionFilter;
-          includePreviews = true;
-        }
-        String version =
-          getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
-        if (version == null && filter != null) {
-          // No library found at the support lib version filter level, so look for any match
-          version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, sdk.getLocation(), fileOp);
-        }
-        if (version != null) {
-          String libraryCoordinate = highest.getId() + ":" + version;
-          GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-          if (available != null) {
-            File archiveFile = getArchiveForCoordinate(available, sdk.getLocation(), fileOp);
-            if (((archiveFile != null && archiveFile.exists())
-                 // Not a known library hardcoded in RepositoryUrlManager?
-                 || SupportLibrary.forGradleCoordinate(available) == null)
-                && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
-              highest = available;
+        String filter = highest.getRevision();
+        if (filter.endsWith("+")) {
+          filter = filter.length() > 1 ? filter.substring(0, filter.length() - 1) : null;
+          boolean includePreviews = false;
+          if (filter == null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
+            filter = supportLibVersionFilter;
+            includePreviews = true;
+          }
+          String version =
+            getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
+          if (version == null && filter != null) {
+            // No library found at the support lib version filter level, so look for any match
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
+          }
+          if (version == null && !includePreviews) {
+            // Still no library found, check preview versions
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, sdk.getLocation(), fileOp);
+          }
+          if (version != null) {
+            String libraryCoordinate = highest.getId() + ":" + version;
+            GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+            if (available != null) {
+              File archiveFile = getArchiveForCoordinate(available, sdk.getLocation(), fileOp);
+              if (((archiveFile != null && fileOp.exists(archiveFile))
+                   // Not a known library hardcoded in RepositoryUrlManager?
+                   || SupportLibrary.forGradleCoordinate(available) == null)
+                  && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+                highest = available;
+              }
             }
           }
         }
@@ -493,5 +509,19 @@ public class RepositoryUrlManager {
       result.add(highest);
     }
     return result;
+  }
+
+  private static String findExistingExplicitVersion(@NotNull Collection<GradleCoordinate> dependencies) {
+    Optional<GradleCoordinate> highest = dependencies.stream()
+      .filter(coordinate -> ImportModule.SUPPORT_GROUP_ID.equals(coordinate.getGroupId()))
+      .max(COMPARE_PLUS_LOWER);
+    if (!highest.isPresent()) {
+      return null;
+    }
+    String version = highest.get().getRevision();
+    if (version.endsWith("+")) {
+      return version.length() > 1 ? version.substring(0, version.length() - 1) : null;
+    }
+    return version;
   }
 }
