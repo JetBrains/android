@@ -176,7 +176,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
     tempDir.delete();
   }
 
-  @Bombed(user = "Dmitry Avdeev", month = Calendar.AUGUST, day = 1)
+  @Bombed(user = "Dmitry Avdeev", month = Calendar.SEPTEMBER, day = 1)
   public void testOnlyChangesAreSavedToFile() throws IOException {
     myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
