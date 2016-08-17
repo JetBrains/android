@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +39,9 @@ import static java.lang.Math.*;
  */
 public class MockupViewPanel extends JPanel {
 
-  public static final int MAX_SCALE = 10;
-  public static final float MIN_SCALE = 0.95f;
+  private static final int MAX_SCALE = 10;
+  private static final float MIN_SCALE = 0.95f;
+  private static final Color BACKGROUND = UIUtil.getPanelBackground();
   private static RenderingHints HQ_RENDERING = new RenderingHints(null);
 
   static {
@@ -51,7 +52,7 @@ public class MockupViewPanel extends JPanel {
   }
 
   private final SelectionLayer mySelectionLayer;
-  private Mockup myMockup;
+  @Nullable private Mockup myMockup;
 
   private float myZoom = MIN_SCALE;
   @Nullable private BufferedImage myDisplayedImage;
@@ -92,31 +93,33 @@ public class MockupViewPanel extends JPanel {
     void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection);
   }
 
-
   /**
    * Create a new MockupView Panel displaying the given mockup
    *
-   * @param mockup       the mockup to display
    * @param mockupEditor
    */
-
-
-  public MockupViewPanel(@NotNull Mockup mockup, @NotNull MockupEditor mockupEditor) {
-
+  public MockupViewPanel(@NotNull MockupEditor mockupEditor) {
     myMockupListener = this::updateDisplayedImage;
     mockupEditor.addListener(this::update);
     setLayout(new MyLayoutManager());
-    setBackground(JBColor.background().brighter());
-    setMockup(mockup);
-    updateDisplayedImage(mockup);
+    setBackground(BACKGROUND);
+    setOpaque(true);
+    Mockup mockup = mockupEditor.getMockup();
+    if(mockup != null) {
+      setMockup(mockup);
+      updateDisplayedImage(mockup);
+    }
     mySelectionLayer = new SelectionLayer(this, myImageTransform);
-    addMouseListener(new MyMouseInteraction());
-    addMouseMotionListener(new MyMouseInteraction());
-    addMouseWheelListener(new MyMouseInteraction());
+
+    MyMouseInteraction mouseInteraction = new MyMouseInteraction();
+    addMouseListener(mouseInteraction);
+    addMouseMotionListener(mouseInteraction);
+    addMouseWheelListener(mouseInteraction);
     addComponentListener(new MyComponentListener());
     addKeyListener(new MyKeyListener());
     myDisplayedImage = myImage;
-
+    setPreferredSize(new Dimension(200,200));
+    setMinimumSize(new Dimension(100,100));
     myPanZoomManager = new PanZoomManager();
     resetState();
   }
@@ -132,7 +135,10 @@ public class MockupViewPanel extends JPanel {
    *
    * @param mockup
    */
-  private void updateDisplayedImage(@NotNull Mockup mockup) {
+  private void updateDisplayedImage(@Nullable Mockup mockup) {
+    if (mockup == null) {
+      return;
+    }
     myImage = mockup.getImage();
     if (myImage != null) {
       myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
@@ -148,13 +154,17 @@ public class MockupViewPanel extends JPanel {
     repaint();
   }
 
-  public void setMockup(Mockup mockup) {
+  public void setMockup(@Nullable Mockup mockup) {
     if (mockup != myMockup) {
       if (myMockup != null) {
         myMockup.removeMockupListener(myMockupListener);
       }
       myMockup = mockup;
-      myMockup.addMockupListener(myMockupListener);
+      myImage = null;
+      myDisplayedImage = null;
+      if (myMockup != null) {
+        myMockup.addMockupListener(myMockupListener);
+      }
     }
     updateDisplayedImage(mockup);
   }
@@ -168,7 +178,7 @@ public class MockupViewPanel extends JPanel {
   public void setDisplayOnlyCroppedRegion(boolean displayOnlyCroppedRegion) {
     if (myDisplayOnlyCroppedRegion != displayOnlyCroppedRegion) {
       myDisplayOnlyCroppedRegion = displayOnlyCroppedRegion;
-      if (myImage != null) {
+      if (myImage != null && myMockup != null) {
         myDisplayedImage = createDisplayedImage(myImage, myMockup.getRealCropping());
       }
       repaint();
@@ -185,7 +195,6 @@ public class MockupViewPanel extends JPanel {
     mySelectionLayer.clearSelection();
     repaint();
   }
-
 
   @Override
   public void paintComponent(Graphics g) {
@@ -267,6 +276,10 @@ public class MockupViewPanel extends JPanel {
    * Set the selection of the {@link SelectionLayer} to match the mockup crop
    */
   public void setSelectionToMockupCrop() {
+    if(myMockup == null) {
+      mySelectionLayer.setSelection(0,0,0,0);
+      return;
+    }
     mySelectionLayer.setSelection(myMockup.getRealCropping());
   }
 
@@ -312,6 +325,11 @@ public class MockupViewPanel extends JPanel {
     for (int i = 0; i < mySelectionListeners.size(); i++) {
       mySelectionListeners.get(i).selectionStarted(this, x, y);
     }
+  }
+
+  @Nullable
+  public Mockup getMockup() {
+    return myMockup;
   }
 
   private class MyComponentListener implements ComponentListener {

@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.Lists;
@@ -82,6 +83,7 @@ public class DesignSurface extends JPanel implements Disposable {
 
   private boolean myIsCanvasResizing = false;
   private boolean myMockupVisible;
+  private MockupEditor myMockupEditor;
 
   public enum ScreenMode {
     SCREEN_ONLY(ScreenViewType.NORMAL),
@@ -115,7 +117,6 @@ public class DesignSurface extends JPanel implements Disposable {
           return mode;
         }
       }
-
       return BOTH;
     }
 
@@ -1579,5 +1580,14 @@ public class DesignSurface extends JPanel implements Disposable {
 
   public boolean isMockupVisible() {
     return myMockupVisible;
+  }
+
+  public void setMockupEditor(@Nullable MockupEditor mockupEditor) {
+    myMockupEditor = mockupEditor;
+  }
+
+  @Nullable
+  public MockupEditor getMockupEditor() {
+    return myMockupEditor;
   }
 }

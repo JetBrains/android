@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -58,6 +60,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   private final XmlFile myFile;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
+  private final MockupEditor myMockupEditor;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(new BorderLayout());
@@ -71,18 +74,35 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
-    myContentSplitter = new ThreeComponentsSplitter();
+    myMockupEditor = new MockupEditor(mySurface, model);
+    mySurface.setMockupEditor(myMockupEditor);
 
-    // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
-    // used for the palette and the structure/properties panes.
-    JPanel contentPanel = new JPanel(new LightFillLayout());
+    JPanel contentPanel = new JPanel(new BorderLayout());
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
-    contentPanel.add(toolbarComponent);
+    contentPanel.add(toolbarComponent, BorderLayout.NORTH);
     contentPanel.add(mySurface);
 
+    // Hold the surface and MockupEditor
+    AnimatedComponentSplitter surfaceMockupWrapper = new AnimatedComponentSplitter(false, true);
+    surfaceMockupWrapper.setInnerComponent(contentPanel);
+    surfaceMockupWrapper.setLastComponent(myMockupEditor);
+    surfaceMockupWrapper.setDividerWidth(1);
+    surfaceMockupWrapper.setDividerMouseZoneSize(1);
+
+    /**
+     * Needed so the inner child of my ContentSplitter has LightFillLayout Manager
+     * The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
+     * used for the palette and the structure/properties panes.
+     **/
+    JPanel lightFillLayoutPanel = new JPanel(new LightFillLayout());
+    lightFillLayoutPanel.add(new JComponent() {
+    }); // Need an empty action bar for the LightFillLayout otherwise it shrink on itself
+    lightFillLayoutPanel.add(surfaceMockupWrapper);
+
+    myContentSplitter = new ThreeComponentsSplitter();
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
-    myContentSplitter.setInnerComponent(contentPanel);
+    myContentSplitter.setInnerComponent(lightFillLayoutPanel);
     myContentSplitter.setHonorComponentsMinimumSize(true);
     add(myContentSplitter, BorderLayout.CENTER);
   }
