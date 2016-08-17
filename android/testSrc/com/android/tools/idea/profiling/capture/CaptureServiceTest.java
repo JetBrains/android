@@ -44,6 +44,8 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class CaptureServiceTest extends IdeaTestCase {
 
+  public static final String SNAPSHOT_PATH = "profiling/snapshot.hprof";
+
   static Element readElement(String text) throws Exception {
     return new SAXBuilder().build(new StringReader(text)).getRootElement();
   }
@@ -78,7 +80,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     CaptureService service = CaptureService.getInstance(myProject);
     String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
 
-    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    File testHprofFile = new File(testDataPath, toSystemDependentName("profiling/snapshot.hprof"));
     byte[] testFileBytes = readFully(testHprofFile);
 
     Capture capture = service.createCapture(HprofCaptureType.class, testFileBytes, "snapshot");
@@ -99,7 +101,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     CaptureService service = CaptureService.getInstance(myProject);
     String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
 
-    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    File testHprofFile = new File(testDataPath, toSystemDependentName("profiling/snapshot.hprof"));
     byte[] testFileBytes = readFully(testHprofFile);
 
     CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot", true);
@@ -123,7 +125,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     CaptureService service = CaptureService.getInstance(myProject);
     String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
 
-    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    File testHprofFile = new File(testDataPath, toSystemDependentName(SNAPSHOT_PATH));
     byte[] testFileBytes = readFully(testHprofFile);
 
     CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot", false);
