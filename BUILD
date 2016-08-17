@@ -87,7 +87,7 @@ iml_module(
         "//tools:idea/lib/jcip-annotations",
         "//prebuilts/tools/common/m2:repository/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5[test]",
         "//tools/base/rpclib:rpclib[module]",
-        "//tools/adt/idea:adt-ui[module]",
+        "//tools/adt/idea/adt-ui:adt-ui[module]",
         "//tools/adt/idea:android/lib/spantable",
         "//tools/adt/idea:android/lib/jsr305-1.3.9",
         "//tools:idea/lib/dev/easymock[test]",
@@ -199,27 +199,6 @@ java_import(
       "android/lib/jogl-all.jar",
     ],
   visibility = ["//visibility:public"],
-)
-
-iml_module(
-    name = "adt-ui",
-    srcs = ["adt-ui/src/main/java"],
-    test_srcs = ["adt-ui/src/test/java"],
-    test_resources = ["adt-ui/src/test/resources"],
-    deps = [
-        "//tools/base/annotations:android-annotations[module]",
-        "//tools:idea/lib/trove4j",
-        "//tools:idea.platform-api[module]",
-        "//tools:idea.MM_RegExpSupport[module]",
-        "//tools:idea/lib/hamcrest-core-1.3[test]",
-        "//tools:idea/lib/junit-4.12[test]",
-        "//tools/base/common:common[module]",
-        "//prebuilts/tools/common/m2:repository/com/google/truth/truth/0.28/truth-0.28",
-        "//prebuilts/tools/common/m2:repository/com/google/truth/truth/0.28/truth-0.28-sources",
-        "//tools/base/testutils:testutils[module, test]",
-    ],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
 )
 
 java_import(
