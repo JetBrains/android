@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -445,7 +445,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    GradleUtil.createGradleWrapper(projectRoot);
+    GradleWrapper.create(projectRoot);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {

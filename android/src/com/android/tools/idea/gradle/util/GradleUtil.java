@@ -87,8 +87,6 @@ import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findA
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
@@ -138,7 +136,6 @@ public final class GradleUtil {
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
   }
@@ -150,9 +147,9 @@ public final class GradleUtil {
       DistributionType distributionType = gradleSettings.getDistributionType();
 
       if (distributionType == DEFAULT_WRAPPED) {
-        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-        if (wrapperPropertiesFile != null) {
-          return updateGradleDistributionUrl(gradleVersion.toString(), wrapperPropertiesFile);
+        GradleWrapper gradleWrapper = GradleWrapper.find(project);
+        if (gradleWrapper != null) {
+          return gradleWrapper.updateDistributionUrlAndDisplayFailure(gradleVersion.toString());
         }
       }
       else if (distributionType == LOCAL) {
@@ -442,80 +439,6 @@ public final class GradleUtil {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
-  @NotNull
-  public static File getGradleWrapperPropertiesFilePath(@NotNull File projectRootDir) {
-    return new File(projectRootDir, GRADLEW_PROPERTIES_PATH);
-  }
-
-  /**
-   * Updates the 'distributionUrl' in the given Gradle wrapper properties file. An unexpected errors that occur while updating the file will
-   * be displayed in an error dialog.
-   *
-   * @param project        the project containing the properties file to update.
-   * @param gradleVersion  the Gradle version to update the property to.
-   * @param propertiesFile the given Gradle wrapper properties file.
-   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
-   * correct value.
-   */
-  public static boolean updateGradleDistributionUrl(@NotNull Project project, @NotNull File propertiesFile, @NotNull String gradleVersion) {
-    try {
-      boolean updated = updateGradleDistributionUrl(gradleVersion, propertiesFile);
-      if (updated) {
-        VirtualFile virtualFile = findFileByIoFile(propertiesFile, true);
-        if (virtualFile != null) {
-          virtualFile.refresh(false, false);
-        }
-        return true;
-      }
-    }
-    catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
-      msg += e.getMessage();
-      Messages.showErrorDialog(project, msg, "Unexpected Error");
-    }
-    return false;
-  }
-
-  /**
-   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
-   *
-   * @param gradleVersion  the Gradle version to update the property to.
-   * @param propertiesFile the given Gradle wrapper properties file.
-   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
-   * correct value.
-   * @throws IOException if something goes wrong when saving the file.
-   */
-  public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
-    Properties properties = getProperties(propertiesFile);
-    String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
-    String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
-      return false;
-    }
-    properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistributionUrl);
-    savePropertiesToFile(properties, propertiesFile, null);
-    return true;
-  }
-
-  @Nullable
-  public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
-    Properties properties = getProperties(propertiesFile);
-    String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (url != null) {
-      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
-      if (m.matches()) {
-        return m.group(1);
-      }
-    }
-    return null;
-  }
-
-  @NotNull
-  private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
-    String suffix = binOnly ? "bin" : "all";
-    return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
-  }
-
   @Nullable
   public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
@@ -540,17 +463,6 @@ public final class GradleUtil {
       LOG.info("Failed to obtain Gradle execution settings", e);
       return null;
     }
-  }
-
-  @Nullable
-  public static File findWrapperPropertiesFile(@NotNull Project project) {
-    String basePath = project.getBasePath();
-    if (basePath == null) {
-      return null;
-    }
-    File baseDir = new File(basePath);
-    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(baseDir);
-    return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
   }
 
   @Nullable
@@ -688,10 +600,10 @@ public final class GradleUtil {
     if (gradleSettings != null) {
       DistributionType distributionType = gradleSettings.getDistributionType();
       if (distributionType == DEFAULT_WRAPPED) {
-        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-        if (wrapperPropertiesFile != null) {
+        GradleWrapper gradleWrapper = GradleWrapper.find(project);
+        if (gradleWrapper != null) {
           try {
-            String wrapperVersion = getGradleWrapperVersion(wrapperPropertiesFile);
+            String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
               return GradleVersion.tryParse(removeTimestampFromGradleVersion(wrapperVersion));
             }
@@ -756,19 +668,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
-   *
-   * @param projectDirPath the project's root directory.
-   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
-   * not created (e.g. the template files for the wrapper were not found.)
-   * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
-   */
-  public static boolean createGradleWrapper(@NotNull File projectDirPath) throws IOException {
-    return createGradleWrapper(projectDirPath, GRADLE_LATEST_VERSION);
-  }
-
-  /**
    * Creates the Gradle wrapper in the project at the given directory.
    *
    * @param projectDirPath the project's root directory.
@@ -779,7 +678,7 @@ public final class GradleUtil {
    * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @VisibleForTesting
-  public static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
+  static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
     if (!projectWrapperDirPath.isDirectory()) {
       File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
@@ -799,11 +698,12 @@ public final class GradleUtil {
       }
       copyDirContent(wrapperSrcDirPath, projectDirPath);
     }
-    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
-    updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
+
+    File wrapperPropertiesFile = GradleWrapper.getDefaultPropertiesFilePath(projectDirPath);
+    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFile);
+    gradleWrapper.updateDistributionUrl(gradleVersion);
     return true;
   }
-
 
   /**
    * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
@@ -898,16 +798,16 @@ public final class GradleUtil {
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
     if (isAndroidStudio()) {
-      File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-      if (wrapperPropertiesFile != null) {
+      GradleWrapper gradleWrapper = GradleWrapper.find(project);
+      if (gradleWrapper != null) {
         String gradleVersion = null;
         try {
-          Properties properties = getProperties(wrapperPropertiesFile);
+          Properties properties = gradleWrapper.getProperties();
           String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
           gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
         }
         catch (IOException e) {
-          LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
+          LOG.warn("Failed to read file " + gradleWrapper.getPropertiesFilePath().getPath());
         }
         if (gradleVersion != null &&
             isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
@@ -1270,9 +1170,9 @@ public final class GradleUtil {
   }
 
   public static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                   @NotNull String pluginVersion,
-                                                   @Nullable String gradleVersion,
-                                                   boolean usingExperimentalPlugin) {
+                                                  @NotNull String pluginVersion,
+                                                  @Nullable String gradleVersion,
+                                                  boolean usingExperimentalPlugin) {
     return updateGradlePluginVersion(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin);
   }
 
@@ -1317,15 +1217,20 @@ public final class GradleUtil {
     if (updateModels && isNotEmpty(gradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
-        File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
-        GradleVersion current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
-        if (current != null && !isSupportedGradleVersion(current)) {
-          try {
-            updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
+        File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(new File(basePath));
+        GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
+        try {
+          String current = gradleWrapper.getGradleVersion();
+          GradleVersion parsedCurrent = null;
+          if (current != null) {
+            parsedCurrent = GradleVersion.tryParse(current);
           }
-          catch (IOException e) {
-            LOG.warn("Failed to update Gradle version in wrapper", e);
+          if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
+            gradleWrapper.updateDistributionUrl(gradleVersion);
           }
+        }
+        catch (IOException e) {
+          LOG.warn("Failed to update Gradle version in wrapper", e);
         }
       }
     }
@@ -1335,21 +1240,6 @@ public final class GradleUtil {
   private static boolean isAndroidPlugin(@NotNull ArtifactDependencyModel dependency, boolean checkForExperimentalPlugin) {
     String pluginArtifactId = checkForExperimentalPlugin ? ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID : ANDROID_PLUGIN_ARTIFACT_ID;
     return ANDROID_PLUGIN_GROUP_ID.equals(dependency.group().value()) && pluginArtifactId.equals(dependency.name().value());
-  }
-
-  @Nullable
-  private static GradleVersion getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
-    String version = null;
-    try {
-      version = getGradleWrapperVersion(wrapperPropertiesFilePath);
-    }
-    catch (IOException e) {
-      LOG.warn("Failed to obtain Gradle version in wrapper", e);
-    }
-    if (isNotEmpty(version)) {
-      return GradleVersion.tryParse(version);
-    }
-    return null;
   }
 
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {

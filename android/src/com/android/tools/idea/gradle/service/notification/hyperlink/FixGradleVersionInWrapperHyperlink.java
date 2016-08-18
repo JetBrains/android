@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -25,16 +26,15 @@ import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import javax.swing.event.HyperlinkEvent;
-import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
  */
 public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
-  @NotNull private final File myWrapperPropertiesFile;
+  @NotNull private final GradleWrapper myGradleWrapper;
   @NotNull private final String myGradleVersion;
 
   /**
@@ -46,30 +46,30 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
    */
   @Nullable
   public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null) {
+    GradleWrapper gradleWrapper = GradleWrapper.find(project);
+    if (gradleWrapper != null) {
       String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
-      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, version);
+      return new FixGradleVersionInWrapperHyperlink(gradleWrapper, version);
     }
     return null;
   }
 
-  private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
+  private FixGradleVersionInWrapperHyperlink(@NotNull GradleWrapper gradleWrapper, @NotNull String gradleVersion) {
     super("fixGradleVersionInWrapper", "Fix Gradle wrapper and re-import project");
-    myWrapperPropertiesFile = wrapperPropertiesFile;
+    myGradleWrapper = gradleWrapper;
     myGradleVersion = gradleVersion;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    updateGradleDistributionUrl(project, myWrapperPropertiesFile, myGradleVersion);
+    myGradleWrapper.updateDistributionUrlAndDisplayFailure(myGradleVersion);
     setDistributionTypeAndSync(project);
   }
 
   @Override
   public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
     // we need HyperlinkEvent for the link deactivation after the fix apply
-    boolean updated = updateGradleDistributionUrl(project, myWrapperPropertiesFile, myGradleVersion);
+    boolean updated = myGradleWrapper.updateDistributionUrlAndDisplayFailure(myGradleVersion);
     if (updated) {
       EditableNotificationMessageElement.disableLink(event);
       setDistributionTypeAndSync(project);
