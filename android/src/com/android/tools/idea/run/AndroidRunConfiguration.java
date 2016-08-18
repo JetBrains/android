@@ -23,6 +23,7 @@ import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
@@ -180,6 +181,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         return console;
       }
     };
+  }
+
+  @Override
+  public int getUserIdFromAmParameters() {
+    return MultiUserUtils.getUserIdFromAmParameters(ACTIVITY_EXTRA_FLAGS);
   }
 
   @Override

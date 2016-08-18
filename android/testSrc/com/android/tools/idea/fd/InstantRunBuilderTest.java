@@ -197,6 +197,7 @@ public class InstantRunBuilderTest {
   @Test
   public void cleanRerunForcesClean() throws Exception {
     myRunConfigContext.setCleanRerun(true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
