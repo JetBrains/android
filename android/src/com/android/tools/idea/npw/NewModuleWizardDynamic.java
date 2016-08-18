@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
@@ -105,9 +106,12 @@ public class NewModuleWizardDynamic extends DynamicWizard {
         return versionInUse.toString();
       }
 
-      GradleVersion versionFromBuildFile = GradleUtil.getAndroidGradleModelVersionFromBuildFile(project);
-      if (versionFromBuildFile != null) {
-        return versionFromBuildFile.toString();
+      AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
+      if (androidPluginInfo != null) {
+        GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
+        if (pluginVersion != null) {
+          return pluginVersion.toString();
+        }
       }
     }
     return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.ImmutableList;
@@ -41,8 +42,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
-import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static javax.swing.SwingConstants.TOP;
 
@@ -82,7 +83,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
-      if (isUsingExperimentalPlugin(module)) {
+      if (AndroidPluginGeneration.find(module) == COMPONENT) {
         myEditors.add(new GenericEditor<>("Information", DslNotSupportedPanel::new));
       }
       else {
