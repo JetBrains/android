@@ -58,6 +58,8 @@ public class MouseInteraction {
     private final WidgetMotion mWidgetMotion;
     private final WidgetResize mWidgetResize;
 
+    private ConstraintWidget mInteractionComponent;
+
     // Points used for the selection / dragging of widgets
 
     private Point mStartPoint = new Point();
@@ -123,6 +125,14 @@ public class MouseInteraction {
     /*-----------------------------------------------------------------------*/
     // Accessors
     /*-----------------------------------------------------------------------*/
+
+    /**
+     * Set the current interaction component
+     * @param interactionComponent
+     */
+    public void setInteractionComponent(ConstraintWidget interactionComponent) {
+        mInteractionComponent = interactionComponent;
+    }
 
     /**
      * Return the current snap candidates from widget motion
@@ -385,6 +395,9 @@ public class MouseInteraction {
                 if ((widget.isRoot() || widget.isRootContainer()) && mMode != DRAG_MODE && mMode != CLICK_MODE) {
                     continue;
                 }
+                if (widget == mInteractionComponent && mMode == CLICK_MODE) {
+                    continue;
+                }
                 addWidgetToPicker(widget, mPicker);
             }
         }
@@ -644,7 +657,21 @@ public class MouseInteraction {
 
         // don't allow direct interactions with root
         if (widget != null && (widget.isRoot() || widget.isRootContainer())) {
-            widget = null;
+            if (mInteractionComponent != null && widget != mInteractionComponent) {
+                // The selected widget is the leaf widget -- in case of nested layout,
+                // we need to check if we should keep the existing selection (for drag)
+                // before disgarding it.
+                ConstraintWidget selection = mSelection.getFirstElement().widget;
+                if (widget.hasAncestor(selection)) {
+                    // we were going to say "no selection" and thus clear out the selection.
+                    // let's keep the current selection instead.
+                    widget = selection;
+                } else {
+                    widget = null;
+                }
+            } else {
+                widget = null;
+            }
         }
 
         if (!isAltDown() ^ mMoveOnlyMode) { // alt down only accept moving
@@ -909,7 +936,9 @@ public class MouseInteraction {
                     mSelection.remove(widget);
                 }
             }
-            mMouseMode = MouseMode.MOVE;
+            if (!mSelection.isEmpty()) {
+                mMouseMode = MouseMode.MOVE;
+            }
         }
         int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         mLastMousePosition.setLocation(x, y);
