@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -81,6 +82,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
     mySurface = new DesignSurface(manager.getProject(), this);
+    Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
@@ -291,7 +293,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       setActiveModel(null);
     } else {
       XmlFile xmlFile = (XmlFile)file;
-      NlModel model = NlModel.create(mySurface, xmlFile.getProject(), facet, xmlFile);
+      NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
       myPendingFile = new Pending(xmlFile, model);
     }
     return true;
@@ -302,6 +304,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     ScreenView currentScreenView = mySurface.getCurrentScreenView();
     if (currentScreenView != null) {
       currentScreenView.getModel().deactivate();
+      Disposer.dispose(currentScreenView.getModel());
     }
 
     if (model == null) {
