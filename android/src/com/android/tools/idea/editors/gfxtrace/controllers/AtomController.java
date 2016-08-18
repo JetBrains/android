@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
@@ -27,7 +26,9 @@ import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Observations;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
@@ -38,6 +39,7 @@ import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.android.utils.SparseArray;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
@@ -60,30 +62,38 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.JBUI;
-import javax.swing.tree.DefaultTreeModel;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class AtomController extends TreeController implements AtomStream.Listener, ReportStream.Listener {
+
   public static JComponent createUI(GfxTraceEditor editor) {
     return new AtomController(editor).myPanel;
   }
@@ -91,11 +101,18 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
 
-  private interface Renderable {
-     void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
+  public static abstract class Renderable {
+
+    public final int myChildIndex;
+
+    public Renderable(int childIndex) {
+      myChildIndex = childIndex;
+    }
+
+    abstract void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
   }
 
-  public static class Node implements Renderable {
+  public static class Node extends Renderable {
     public static final int REPORT_ICON_WIDTH = AllIcons.General.Error.getIconWidth();
     public static final int REPORT_ICON_HEIGHT = AllIcons.General.Error.getIconHeight();
     public static final int REPORT_BALLOON_ANIMATION_CYCLES = 100;
@@ -116,7 +133,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
     // Follow paths index by atom.fieldIndex. Null means don't know if followable and empty path means it's not followable.
     private final Path[] followPaths;
 
-    public Node(long index, Atom atom) {
+    public Node(int childIndex, long index, Atom atom) {
+      super(childIndex);
       this.index = index;
       this.atom = atom;
       this.followPaths = new Path[atom.getFieldCount()];
@@ -183,6 +201,16 @@ public class AtomController extends TreeController implements AtomStream.Listene
       Render.render(this, component, attributes);
     }
 
+    public Memory getChild(int childIndex) {
+      Observations obs = atom.getObservations();
+      if (childIndex < obs.getReads().length) {
+        return new Memory(childIndex, this.index, obs.getReads()[childIndex], true);
+      }
+      else {
+        return new Memory(childIndex, this.index, obs.getWrites()[childIndex - obs.getReads().length], false);
+      }
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
@@ -206,7 +234,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
   }
 
-  public static class Group implements Renderable {
+  public static class Group extends Renderable {
     public static final int THUMBNAIL_SIZE = JBUI.scale(18);
     public static final int PREVIEW_SIZE = JBUI.scale(200);
 
@@ -221,10 +249,23 @@ public class AtomController extends TreeController implements AtomStream.Listene
     private LoadableIcon thumbnail, preview;
     private DevicePath lastDevicePath;
 
-    public Group(AtomGroup group, Atom lastLeaf, long indexOfLastLeaf) {
+    private Context myContextUsed;
+    private int myChildCount;
+    private Lookup myGroupLookup;
+    private Lookup myAtomLookup;
+    private List<Reference<Renderable>> mySoftChildren;
+
+    public Group(int childIndex, @NotNull AtomGroup group, @NotNull AtomList atoms) {
+      super(childIndex);
       this.group = group;
-      this.lastLeaf = lastLeaf;
-      this.indexOfLastLeaf = indexOfLastLeaf;
+      if (group.getRange().getCount() > 0) {
+        this.lastLeaf = atoms.get(group.getRange().getLast());
+        this.indexOfLastLeaf = group.getRange().getLast();
+      }
+      else { // root or empty node
+        this.lastLeaf = null;
+        this.indexOfLastLeaf = -1;
+      }
     }
 
     public LoadableIcon getThumbnail(GfxTraceEditor gfxTraceEditor, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
@@ -278,6 +319,101 @@ public class AtomController extends TreeController implements AtomStream.Listene
       Render.render(this, component, attributes);
     }
 
+    public int getChildCount(Context context, AtomList atoms) {
+      setupChildLookups(context, atoms);
+      return myChildCount;
+    }
+
+    public Object getChild(int childIndex, Context context, AtomList atoms) {
+      setupChildLookups(context, atoms);
+
+      Reference<Renderable> ref = mySoftChildren.get(childIndex);
+      if (ref != null) {
+        Renderable child = ref.get();
+        if (child != null) {
+          return child;
+        }
+      }
+
+      int groupIndex = (int)myGroupLookup.lookup(childIndex);
+      Renderable child;
+      if (groupIndex >= 0) {
+        child = new Group(childIndex, this.group.getSubGroups()[groupIndex], atoms);
+      }
+      else {
+        long atomIndex = myAtomLookup.lookup(childIndex);
+        assert atomIndex >= 0;
+        child = new Node(childIndex, atomIndex, atoms.get(atomIndex));
+      }
+      mySoftChildren.set(childIndex, new SoftReference<>(child));
+      return child;
+    }
+
+    private void setupChildLookups(Context context, AtomList atoms) {
+      if (context != myContextUsed) {
+        Map<Range, Long> atomMap = new HashMap<>();
+        Map<Range, Long> groupMap = new HashMap<>();
+        List<Range> atomRanges = new ArrayList<>();
+        List<Range> groupsRanges = new ArrayList<>();
+        int childIndex = 0;
+        long next = group.getRange().getStart();
+        for (int groupIndex = 0; groupIndex < group.getSubGroups().length; groupIndex++) {
+          AtomGroup subGroup = group.getSubGroups()[groupIndex];
+          Range range = new Range().setStart(next).setEnd(subGroup.getRange().getStart());
+          if (range.getCount() > 0) {
+            List<Range> intersection = Range.intersection(context.getRanges(atoms), range);
+            for (Range r : intersection) {
+              long start = r.getStart();
+              long size = r.getCount();
+              r.setStart(childIndex).setEnd(childIndex + size);
+              atomMap.put(r, start);
+              childIndex += size;
+              atomRanges.add(r);
+            }
+          }
+          if (context.contains(subGroup.getRange())) {
+            Range lastRange = groupsRanges.isEmpty() ? null : groupsRanges.get(groupsRanges.size() - 1);
+            if (lastRange != null && lastRange.getEnd() == childIndex && (groupMap.get(lastRange) + lastRange.getCount()) == groupIndex) {
+              long orgGroupIndex = groupMap.remove(lastRange);
+              lastRange.setEnd(lastRange.getEnd() + 1); // will change the hash, as we remove then add
+              groupMap.put(lastRange, orgGroupIndex);
+            }
+            else {
+              Range newRange = new Range().setStart(childIndex).setEnd(childIndex + 1);
+              groupMap.put(newRange, (long)groupIndex);
+              groupsRanges.add(newRange);
+            }
+            childIndex++;
+          }
+          next = subGroup.getRange().getEnd();
+        }
+        Range range = new Range().setStart(next).setEnd(group.getRange().getEnd());
+        if (range.getCount() > 0) {
+          List<Range> intersection = Range.intersection(context.getRanges(atoms), range);
+          for (Range r : intersection) {
+            long start = r.getStart();
+            long size = r.getCount();
+            r.setStart(childIndex).setEnd(childIndex + size);
+            atomMap.put(r, start);
+            childIndex += size;
+            atomRanges.add(r);
+          }
+        }
+
+        myGroupLookup = new Lookup(groupMap, groupsRanges);
+        myAtomLookup = new Lookup(atomMap, atomRanges);
+        myChildCount = childIndex;
+        myContextUsed = context;
+        if (myChildCount < 100) {
+          //noinspection unchecked
+          mySoftChildren = Arrays.asList(new Reference[myChildCount]);
+        }
+        else {
+          mySoftChildren = new SparseArrayList<>(100);
+        }
+      }
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
@@ -301,12 +437,61 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
   }
 
-  public static class Memory implements Renderable {
+  static class Lookup {
+
+    private final Range[] myRanges;
+    private final Map<Range, Long> myMap;
+
+    public Lookup(Map<Range, Long> map, List<Range> list) {
+      assert map.size() == list.size();
+      myMap = map;
+      myRanges = list.toArray(new Range[list.size()]);
+    }
+
+    public long lookup(int childIndex) {
+      int result = Range.contains(myRanges, childIndex);
+      if (result >= 0) {
+        Range groupIndexRange = myRanges[result];
+        assert childIndex >= groupIndexRange.getStart() && childIndex < groupIndexRange.getEnd();
+        return myMap.get(groupIndexRange) + (childIndex - groupIndexRange.getStart());
+      }
+      return -1;
+    }
+  }
+
+  static class SparseArrayList<T> extends AbstractList<T> {
+
+    private final SparseArray<T> myData;
+
+    public SparseArrayList(int initialCapacity) {
+      myData = new SparseArray<>(initialCapacity);
+    }
+
+    @Override
+    public T get(int index) {
+      return myData.get(index);
+    }
+
+    @Override
+    public T set(int index, T element) {
+      myData.put(index, element);
+      return null;
+    }
+
+    @Override
+    public int size() {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  public static class Memory extends Renderable {
+
     public final long index;
     public final Observation observation;
     public final boolean isRead;
 
-    public Memory(long index, Observation observation, boolean isRead) {
+    public Memory(int childIndex, long index, Observation observation, boolean isRead) {
+      super(childIndex);
       this.index = index;
       this.observation = observation;
       this.isRead = isRead;
@@ -358,9 +543,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     myTree.addTreeSelectionListener(treeSelectionEvent -> {
       if (treeSelectionEvent.isAddedPath()) {
         AtomStream atoms = myEditor.getAtomStream();
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
-        if (node == null || node.getUserObject() == null) return;
-        Object object = node.getUserObject();
+        Renderable object = (Renderable)myTree.getLastSelectedPathComponent();
 
         UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(EventCategory.GPU_PROFILER)
@@ -386,6 +569,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
       public void keyPressed(KeyEvent evt) {
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
           findNextNode(mySearchField.getPattern());
+          // Move the focus back to the search box.
+          ApplicationManager.getApplication().invokeLater(() -> mySearchField.getTextEditor().requestFocus());
         }
       }
     });
@@ -418,10 +603,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (e.isPopupTrigger()) {
           TreePath path = myTree.getPathForLocation(e.getX(), e.getY());
           if (path != null) {
-            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
-            Object userObject = treeNode.getUserObject();
-            if (userObject instanceof Node) {
-              EditAtomParametersAction editAction = EditAtomParametersAction.getEditActionFor((Node)userObject, myEditor);
+            Object treeNode = path.getLastPathComponent();
+            if (treeNode instanceof Node) {
+              EditAtomParametersAction editAction = EditAtomParametersAction.getEditActionFor((Node)treeNode, myEditor);
               if (editAction != null) {
                 popupMenu.removeAll();
                 popupMenu.add(editAction);
@@ -458,7 +642,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
           if (bounds != null) {
             int x = mouseX - bounds.x, y = mouseY - bounds.y;
             if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
-              updateHovering((DefaultMutableTreeNode)path.getLastPathComponent(), bounds, x, y);
+              Object obj = path.getLastPathComponent();
+              updateHovering((Renderable)obj, bounds, x, y);
               return;
             }
           }
@@ -466,21 +651,20 @@ public class AtomController extends TreeController implements AtomStream.Listene
         clearHovering();
       }
 
-      private void updateHovering(@NotNull DefaultMutableTreeNode node, @NotNull Rectangle bounds, int x, int y) {
-        Object userObject = node.getUserObject();
+      private void updateHovering(@NotNull Renderable node, @NotNull Rectangle bounds, int x, int y) {
         hoverHand(myTree, myEditor.getAtomStream().getPath(), null);
 
         // Check if hovering the preview icon.
-        if (userObject instanceof Group && shouldShowPreview((Group)userObject) && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
-          setHoveringGroup((Group)userObject, bounds.x + Group.THUMBNAIL_SIZE, bounds.y + Group.THUMBNAIL_SIZE / 2);
+        if (node instanceof Group && shouldShowPreview((Group)node) && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
+          setHoveringGroup((Group)node, bounds.x + Group.THUMBNAIL_SIZE, bounds.y + Group.THUMBNAIL_SIZE / 2);
           setHoveringNode(null, 0);
         }
         else {
           setHoveringGroup(null, 0, 0);
 
           // Check if hovering an atom parameter.
-          if (userObject instanceof Node) {
-            Node atomNode = (Node)userObject;
+          if (node instanceof Node) {
+            Node atomNode = (Node)node;
             int index = Render.getNodeFieldIndex(myTree, node, x, false);
             if (index >= 0) {
               setHoveringNode(atomNode, index);
@@ -675,25 +859,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
     return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(
-          @NotNull final JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-        if (value instanceof DefaultMutableTreeNode) {
-          DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
-          Object obj = treeNode.getUserObject();
-          if (obj instanceof Renderable) {
-            Renderable renderable = (Renderable)obj;
-            renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-          }
-          else {
-            assert false;
-          }
+          @NotNull final JTree tree, Object node, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+        if (node instanceof Renderable) {
+          Renderable renderable = (Renderable)node;
+          renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
         }
-        else {
-          assert false;
-        }
-        Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
         LoadableIcon loadableIcon = customizeFramePreviewRendering(
-          tree, userObject, myRenderDevice.getPath(), myEditor.getAtomStream().getPath());
-        Icon reportIcon = customizeReportInfoRendering(userObject);
+          tree, node, myRenderDevice.getPath(), myEditor.getAtomStream().getPath());
+        Icon reportIcon = customizeReportInfoRendering(node);
         if (loadableIcon != null || reportIcon != null) {
           setupRowIcon(loadableIcon, reportIcon);
         }
@@ -779,7 +952,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @Override
   @NotNull
   protected TreeModel createEmptyModel() {
-    return new DefaultTreeModel(new DefaultMutableTreeNode());
+    return new AtomTreeModel(new AtomGroup().setRange(new Range()).setSubGroups(new AtomGroup[0]), new AtomList(), Context.ALL);
   }
 
   @NotNull
@@ -808,71 +981,20 @@ public class AtomController extends TreeController implements AtomStream.Listene
    * object at the specified path.
    */
   @Nullable
-  private Object getDataObjectAt(@Nullable TreePath path) {
+  @Contract("null -> null;!null -> !null")
+  private Renderable getDataObjectAt(@Nullable TreePath path) {
     if (path == null) {
       return null;
     }
-    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
-    return treeNode.getUserObject();
+    return (Renderable)path.getLastPathComponent();
   }
 
   private void findNextNode(Pattern pattern) {
-    DefaultMutableTreeNode start = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
-    if (start == null) {
-      start = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+    AtomTreeModel model = (AtomTreeModel)getModel();
+    TreePath next = model.findNextNode(myTree.getSelectionPath(), pattern);
+    if (next != null) {
+      updateSelection(next, true);
     }
-    DefaultMutableTreeNode change = findMatchingChild(start, pattern);
-    if (change == null) {
-      DefaultMutableTreeNode node = start;
-      while (change == null && node != null) {
-        change = findMatchingSibling(node, pattern);
-        node = (DefaultMutableTreeNode)node.getParent();
-      }
-    }
-    if (change == null && start != myTree.getModel().getRoot()) {
-      // TODO: this searches the entire tree again.
-      change = findMatchingChild((DefaultMutableTreeNode)myTree.getModel().getRoot(), pattern);
-    }
-    if (change != null) {
-      myTree.setSelectionPath(new TreePath(change.getPath()));
-    }
-  }
-
-  private DefaultMutableTreeNode findMatchingChild(DefaultMutableTreeNode node, Pattern pattern) {
-    for (int i = 0; i < node.getChildCount(); i++) {
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
-      if (matches(child, pattern)) {
-        return child;
-      }
-      DefaultMutableTreeNode result = findMatchingChild(child, pattern);
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
-  }
-
-  private DefaultMutableTreeNode findMatchingSibling(DefaultMutableTreeNode node, Pattern pattern) {
-    DefaultMutableTreeNode sibling = node.getNextSibling();
-    while (sibling != null) {
-      if (matches(sibling, pattern)) {
-        return sibling;
-      }
-      DefaultMutableTreeNode result = findMatchingChild(sibling, pattern);
-      if (result != null) {
-        return result;
-      }
-      sibling = sibling.getNextSibling();
-    }
-    return null;
-  }
-
-  private boolean matches(DefaultMutableTreeNode child, Pattern pattern) {
-    Object node = child.getUserObject();
-    if (node instanceof Node) {
-      return pattern.matcher(((Node)node).atom.getName()).find();
-    }
-    return false;
   }
 
   private static boolean shouldShowPreview(Group group) {
@@ -880,16 +1002,18 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   private void updateTree(AtomStream atoms) {
-    final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
     Hierarchy hierarchy = mySelectedHierarchies.get(mySelectedContext);
     if (hierarchy == null) {
       // No hierarchy selection made for this context yet, select the first one.
       hierarchy = atoms.getHierarchies().firstWithContext(mySelectedContext.getID());
       mySelectedHierarchies.put(mySelectedContext.getID(), hierarchy);
     }
-    hierarchy.getRoot().addChildren(root, atoms.getAtoms(), atoms.getContexts().count() > 1 ? mySelectedContext : Context.ALL);
     Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(getModel().getRoot()));
-    setRoot(root);
+    Context context = atoms.getContexts().count() > 1 ? mySelectedContext : Context.ALL;
+    assert hierarchy != null;
+
+    myTree.setModel(new AtomTreeModel(hierarchy.getRoot(), atoms.getAtoms(), context));
+
     if (treeState != null) {
       while (treeState.hasMoreElements()) {
         myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
@@ -897,8 +1021,176 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
   }
 
-  public void setRoot(DefaultMutableTreeNode root) {
-    setModel(new DefaultTreeModel(root));
+  static class AtomTreeModel implements TreeModel {
+
+    @NotNull private final AtomList myAtoms;
+    @NotNull private final Context myContext;
+    @NotNull private final Group myRoot;
+
+    public AtomTreeModel(@NotNull AtomGroup root, @NotNull AtomList atoms, @NotNull Context context) {
+      myAtoms = atoms;
+      myContext = context;
+      myRoot = new Group(-1, root, atoms);
+    }
+
+    @Override
+    @NotNull
+    public Group getRoot() {
+      return myRoot;
+    }
+
+    @Override
+    public Object getChild(Object element, int index) {
+      if (element instanceof Group) {
+        Group group = (Group)element;
+        return group.getChild(index, myContext, myAtoms);
+      }
+      if (element instanceof Node) {
+        Node node = (Node)element;
+        return node.getChild(index);
+      }
+      return null;
+    }
+
+    @Override
+    public int getChildCount(Object element) {
+      if (element instanceof Group) {
+        Group group = (Group)element;
+        return group.getChildCount(myContext, myAtoms);
+      }
+      if (element instanceof Node) {
+        Node node = (Node)element;
+        return node.atom.getObservationCount();
+      }
+      return 0;
+    }
+
+    @Override
+    public boolean isLeaf(Object node) {
+      if (node instanceof Group) {
+        return false;
+      }
+      if (node instanceof Node) {
+        return ((Node)node).atom.getObservationCount() == 0;
+      }
+      return true;
+    }
+
+    @Override
+    public int getIndexOfChild(Object parent, Object child) {
+      return ((Renderable)child).myChildIndex;
+    }
+
+    public TreePath findNextNode(TreePath path, Pattern pattern) {
+      long start = 0;
+      if (path != null) {
+        Object node = path.getLastPathComponent();
+        if (node instanceof Group) {
+          start = ((Group)node).group.getRange().getStart();
+        }
+        else if (node instanceof Node) {
+          start = ((Node)node).index + 1;
+        }
+        else if (node instanceof Memory) {
+          start = ((Memory)node).index + 1;
+        }
+      }
+      long next = search(start, myAtoms.getAtoms().length, pattern);
+      if (next < 0) {
+        next = search(0, start, pattern);
+      }
+      return (next < 0) ? null : getTreePathTo(new Range().setStart(next).setEnd(next + 1));
+    }
+
+    private long search(long start, long end, Pattern pattern) {
+      for (long index = start; index < end; index++) {
+        if (myContext.contains(index) && pattern.matcher(myAtoms.get(index).getName()).find()) {
+          return index;
+        }
+      }
+      return -1;
+    }
+
+    public TreePath getTreePathTo(Range range) {
+      return getTreePathTo(myRoot, new TreePath(myRoot), range);
+    }
+
+    private TreePath getTreePathTo(Renderable node, TreePath path, Range range) {
+      assert !isLeaf(node);
+
+      int found = searchChildren(this, node, child -> {
+        if (child instanceof Group) {
+          Range childRange = ((Group)child).group.getRange();
+          if (childRange.contains(range)) return 0;
+          if (range.getStart() > childRange.getLast()) return -1;
+          return 1;
+        }
+        if (child instanceof Node) {
+          long index = ((Node)child).index;
+          if (range.contains(index)) return 0;
+          if (range.getStart() > index) return -1;
+          return 1;
+        }
+        throw new IllegalStateException();
+      });
+
+      if (found >= 0) {
+        Renderable object = (Renderable)getChild(node, found);
+        if (object instanceof Node) {
+          assert range.getLast() == (((Node)object).index);
+          return path.pathByAddingChild(object);
+        }
+        else if (object instanceof Group) {
+          Range groupRange = ((Group)object).group.getRange();
+          if (groupRange.equals(range)) {
+            return path.pathByAddingChild(object);
+          }
+          else {
+            assert groupRange.contains(range.getLast());
+            return getTreePathTo(object, path.pathByAddingChild(object), range);
+          }
+        }
+        throw new IllegalStateException("what have we found " + object);
+      }
+      return null;
+    }
+
+    /**
+     * @see java.util.Collections#binarySearch(List, Object, Comparator)
+     */
+    private static <T> int searchChildren(TreeModel treeModel, T node, ToIntFunction<T> comparator) {
+      int low = 0;
+      int high = treeModel.getChildCount(node)-1;
+
+      while (low <= high) {
+        int mid = (low + high) >>> 1;
+        T midVal = (T)treeModel.getChild(node, mid);
+        int cmp = comparator.applyAsInt(midVal);
+
+        if (cmp < 0)
+          low = mid + 1;
+        else if (cmp > 0)
+          high = mid - 1;
+        else
+          return mid; // key found
+      }
+      return -(low + 1);  // key not found
+    }
+
+    @Override
+    public void valueForPathChanged(TreePath path, Object newValue) {
+      throw new UnsupportedOperationException(getClass().getName() + " does not support editing");
+    }
+
+    @Override
+    public void addTreeModelListener(TreeModelListener l) {
+      // We don't fire any events, so no need to track the listeners.
+    }
+
+    @Override
+    public void removeTreeModelListener(TreeModelListener l) {
+      // We don't fire any events, so no need to track the listeners.
+    }
   }
 
   private void selectContext(@NotNull ContextID id) {
@@ -906,6 +1198,13 @@ public class AtomController extends TreeController implements AtomStream.Listene
     Context context = atoms.getContexts().find(id, Context.ALL);
     if (!context.equals(mySelectedContext)) {
       mySelectedContext = context;
+
+      AtomTreeModel model = (AtomTreeModel)getModel();
+      if (model.getChildCount(model.getRoot()) == 0) {
+        // if onAtomLoadingComplete has not happened yet, we dont want to load anything.
+        return;
+      }
+
       // we are switching context, we don't want to try and preserve the selected (it would cause loads of selection changing events)
       myTree.setSelectionPath(null);
       updateTree(atoms);
@@ -969,7 +1268,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     Object found = null;
     for (Object node : path) {
       if (found == null) {
-        if (treeNodeEquals(root, node)) {
+        if (Objects.equal(root, node)) {
           found = root;
         }
         else {
@@ -980,7 +1279,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         Object foundChild = null;
         for (int i = 0; i < tree.getModel().getChildCount(found); i++) {
           Object child = tree.getModel().getChild(found, i);
-          if (treeNodeEquals(node, child)) {
+          if (Objects.equal(node, child)) {
             foundChild = child;
             break;
           }
@@ -995,52 +1294,15 @@ public class AtomController extends TreeController implements AtomStream.Listene
     return new TreePath(newPath.toArray());
   }
 
-  public static boolean treeNodeEquals(Object a, Object b) {
-    if (a instanceof DefaultMutableTreeNode && b instanceof DefaultMutableTreeNode) {
-      return Objects.equal(((DefaultMutableTreeNode)a).getUserObject(), ((DefaultMutableTreeNode)b).getUserObject());
-    }
-    return Objects.equal(a, b);
-  }
-
   @Override
   public void onAtomsSelected(AtomRangePath path, Object source) {
     // we NEED this check here as if the user selects a memory observation (a child of a Atom)
     // we want other controllers to update to the new Atom position, but we dont want to move
     // our own selection to the Atom, we want to keep it on the child.
     if (source != this) {
-      DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-      updateSelectionRange(root, new TreePath(root), path.getRange());
-    }
-  }
-
-  /**
-   * Attempts to select the highest possible node that represents the given range. If no such node exists,
-   * the last atom in the range is selected. This does not fire an event, but simply updates the UI.
-   */
-  private void updateSelectionRange(DefaultMutableTreeNode node, TreePath path, Range range) {
-    if (node.isLeaf()) {
-      updateSelection(path);
-      return;
-    }
-
-    // TODO: Searching through the list for now. Change to binary search.
-    for (Enumeration it = node.children(); it.hasMoreElements(); ) {
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode)it.nextElement();
-      Object object = child.getUserObject();
-      if (object instanceof Node && range.getLast() == (((Node)object).index)) {
-        updateSelection(path.pathByAddingChild(child));
-        return;
-      }
-      else if (object instanceof Group) {
-        Range groupRange = ((Group)object).group.getRange();
-        if (groupRange.equals(range)) {
-          updateSelection(path.pathByAddingChild(child));
-          return;
-        }
-        else if (groupRange.contains(range.getLast())) {
-          updateSelectionRange(child, path.pathByAddingChild(child), range);
-          return;
-        }
+      TreePath treePath = ((AtomTreeModel)getModel()).getTreePathTo(path.getRange());
+      if (treePath != null) {
+        updateSelection(treePath, false);
       }
     }
   }
@@ -1048,9 +1310,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
   /**
    * Selects the given path and makes sure it's visible. This does not fire an event, but simply updates the UI.
    */
-  private void updateSelection(TreePath path) {
-    myTree.expandPath(path.getParentPath());
-    myTree.setSelectionPath(path, false);
+  private void updateSelection(TreePath path, boolean fireEvent) {
+    myTree.setSelectionPath(path, fireEvent);
 
     // Only scroll vertically. JTree's scrollPathToVisible also scrolls horizontally, which is annoying.
     Rectangle bounds = myTree.getPathBounds(path);
