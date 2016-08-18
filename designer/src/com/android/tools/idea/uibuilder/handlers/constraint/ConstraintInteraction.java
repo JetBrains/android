@@ -34,6 +34,11 @@ public class ConstraintInteraction extends Interaction {
   private final ScreenView myScreenView;
 
   /**
+   * The component where we start the interaction
+   */
+  private final NlComponent myComponent;
+
+  /**
    * Base constructor
    *
    * @param screenView the ScreenView we belong to
@@ -42,6 +47,7 @@ public class ConstraintInteraction extends Interaction {
   public ConstraintInteraction(@NotNull ScreenView screenView,
                                @NotNull NlComponent component) {
     myScreenView = screenView;
+    myComponent = component;
   }
 
   /**
@@ -60,6 +66,7 @@ public class ConstraintInteraction extends Interaction {
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
 
     model.updateModifiers(startMask);
+    model.setInteractionComponent(myComponent.getParent() != null ? myComponent.getParent() : myComponent);
     model.mousePressed(androidX, androidY);
   }
 

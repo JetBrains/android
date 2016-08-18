@@ -96,6 +96,16 @@ class DrawConstraintModel {
     }
   }
 
+  /**
+   * Set the current interaction component
+   * @param component
+   */
+  public void setInteractionComponent(NlComponent component) {
+    WidgetsScene widgetsScene = myConstraintModel.getScene();
+    ConstraintWidget widget = widgetsScene.getWidget(component);
+    myMouseInteraction.setInteractionComponent(widget);
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // Interaction
   //////////////////////////////////////////////////////////////////////////////
