@@ -78,9 +78,9 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
-                 "            android:id=\"@id/myText1\"\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"/>");
+                 "        android:id=\"@id/myText1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\" />");
   }
 
   @NotNull

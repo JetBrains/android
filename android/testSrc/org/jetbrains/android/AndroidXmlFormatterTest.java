@@ -25,8 +25,6 @@ import java.util.Arrays;
 public class AndroidXmlFormatterTest extends AndroidTestCase {
   private static final String BASE_PATH = "formatter/xml/";
 
-  private CodeStyleSettings mySettings;
-
   public void testLayout1() throws Exception {
     doTestLayout("layout1.xml");
   }
@@ -293,23 +291,5 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
       }
     });
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
-  }
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 }
