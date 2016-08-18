@@ -73,10 +73,10 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    android:orientation=\"vertical\">\n" +
                       "\n" +
                       "    <TextView\n" +
-                      "            android:layout_width=\"match_parent\"\n" +
-                      "            android:layout_height=\"wrap_content\"\n" +
-                      "            android:text=\"Hello World\"\n" +
-                      "            android:id=\"@+id/textView\"/>\n" +
+                      "        android:layout_width=\"match_parent\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:text=\"Hello World\"\n" +
+                      "        android:id=\"@+id/textView\" />\n" +
                       "</LinearLayout>\n";
     assertEquals(expected, xmlFile.getText());
   }
