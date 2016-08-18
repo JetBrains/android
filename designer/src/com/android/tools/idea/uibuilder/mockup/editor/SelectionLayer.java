@@ -230,6 +230,14 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseDragged(MouseEvent e) {
+    if(mySelectedKnob < 0) {
+      // happens if the user began to do a PanAction in the MockupViewPanel
+      // then release the shift key and continue to drag
+      if(myHoveredKnob < 0) {
+        return;
+      }
+     mySelectedKnob = myHoveredKnob;
+    }
     try {
       myAffineTransform.inverseTransform(e.getPoint(), myConvertedMousePoint);
       // Compute the drag distance
