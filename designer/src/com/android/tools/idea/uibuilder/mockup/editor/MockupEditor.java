@@ -78,24 +78,22 @@ public class MockupEditor extends JPanel {
 
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
-    myModelListener = new myModelListener(this);
-    setModel(model);
-    surface.addListener(new MyDesignSurfaceListener(this));
     myMockupListener = this::repopulateFields;
+    myModelListener = new myModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
     myExtractWidgetTool = new ExtractWidgetTool(surface, this);
+    setModel(model);
+    surface.addListener(new MyDesignSurfaceListener(this));
 
     add(myMockupViewPanel, BorderLayout.CENTER);
-    myTopBar = new MyTopBar(this);
+    myTopBar = new MyTopBar(new CropTool(this), new FileChooserActionListener(this));
     add(myTopBar, BorderLayout.NORTH);
     myExtractWidgetTool.enable(this);
-
     setMinimumSize(MINIMUM_SIZE);
-    init();
+    initSelection();
   }
 
-
-  private void init() {
+  private void initSelection() {
     if (myModel != null) {
       List<NlComponent> selection = myModel.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
@@ -112,22 +110,20 @@ public class MockupEditor extends JPanel {
    * @param selection The selected component
    */
   private void selectionUpdated(@Nullable NlModel model, @NotNull List<NlComponent> selection) {
-    Mockup mockup = myMockup;
-    if (model != null &&
-        (selection.isEmpty() || !Mockup.hasMockupAttribute(selection.get(0)))) {
-      // If the first element of the selection does not have a mockup attribute
-      selection = model.getComponents();
-    }
-
+    NlComponent selectedComponent = null;
     if (!selection.isEmpty()) {
-      NlComponent component = selection.get(0);
-      mockup = Mockup.create(component, true);
-      if (mockup == null) {
-        return;
+      selectedComponent = selection.get(0);
+    }
+    else if (model != null) {
+      selection = model.getComponents();
+      if (!selection.isEmpty()) {
+        selectedComponent = selection.get(0);
       }
     }
-    if (mockup != myMockup) {
-      showMockupInEditor(mockup);
+    if(myMockup == null || selectedComponent != myMockup.getComponent()) {
+      showMockupInEditor(selectedComponent != null
+                         ? Mockup.create(selectedComponent, false)
+                         : null);
     }
   }
 
@@ -137,10 +133,10 @@ public class MockupEditor extends JPanel {
    * @param mockup the new mockup to display in the editor
    */
   private void showMockupInEditor(@Nullable Mockup mockup) {
-    resetTools();
     if (mockup != myMockup) {
       setMockup(mockup);
     }
+    resetTools();
     repopulateFields(mockup);
     notifyListeners(mockup);
   }
@@ -166,14 +162,17 @@ public class MockupEditor extends JPanel {
    * @param mockup
    */
   private void repopulateFields(@Nullable Mockup mockup) {
+    final String fileName;
     if (mockup == null) {
-      return;
+      fileName = "";
     }
-    VirtualFile virtualFile = mockup.getVirtualFile();
-    UIUtil.invokeLaterIfNeeded(() -> {
-      String fileName = virtualFile != null ? virtualFile.getPath() : null;
-      myTopBar.setFileName(fileName);
-    });
+    else {
+      VirtualFile virtualFile = mockup.getVirtualFile();
+      fileName = virtualFile != null ? virtualFile.getPath() : "";
+    }
+    if (myTopBar != null) {
+      UIUtil.invokeLaterIfNeeded(() -> myTopBar.setFileName(fileName));
+    }
   }
 
   public void addListener(@NotNull MockupEditorListener listener) {
@@ -200,7 +199,9 @@ public class MockupEditor extends JPanel {
       activeTool.disable(this);
     }
     myActiveTools.clear();
-    myExtractWidgetTool.enable(this);
+    if (myMockup != null) {
+      myExtractWidgetTool.enable(this);
+    }
   }
 
   /**
@@ -308,20 +309,17 @@ public class MockupEditor extends JPanel {
    * Bar on top showing the title and actions
    */
   private static class MyTopBar extends JPanel {
-    private final MockupEditor myMockupEditor;
     private TextFieldWithBrowseButton myFileChooser;
 
-    MyTopBar(@NotNull MockupEditor mockupEditor) {
+    MyTopBar(CropTool cropTool, FileChooserActionListener listener) {
       super(new BorderLayout());
-      myMockupEditor = mockupEditor;
-      add(createTitleBar(), BorderLayout.NORTH);
-      add(createActionBar(), BorderLayout.SOUTH);
+      add(createTitleBar(listener), BorderLayout.NORTH);
+      add(createActionBar(cropTool), BorderLayout.SOUTH);
     }
 
     @NotNull
-    private JPanel createActionBar() {
+    private static JPanel createActionBar(CropTool cropTool) {
       JPanel actionBar = new JPanel(new BorderLayout());
-      JPanel cropTool = new CropTool(myMockupEditor);
       actionBar.add(cropTool, BorderLayout.EAST);
       actionBar.setBorder(new CompoundBorder(
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
@@ -330,11 +328,11 @@ public class MockupEditor extends JPanel {
     }
 
     @NotNull
-    private JPanel createTitleBar() {
+    private JPanel createTitleBar(FileChooserActionListener listener) {
       JPanel titleBar = new JPanel(new BorderLayout());
       myFileChooser = new TextFieldWithBrowseButton();
       myFileChooser.setEditable(false);
-      myFileChooser.addActionListener(new FileChooserActionListener(myMockupEditor));
+      myFileChooser.addActionListener(listener);
 
       titleBar.add(myFileChooser, BorderLayout.EAST);
       titleBar.add(new JBLabel(TITLE), BorderLayout.WEST);
@@ -430,7 +428,7 @@ public class MockupEditor extends JPanel {
    * Notify when the currently displayed mockup has been changed
    */
   public interface MockupEditorListener {
-    void editorUpdated(Mockup mockup);
+    void editorUpdated(@Nullable Mockup mockup);
   }
 
   private static class myModelListener implements ModelListener {
