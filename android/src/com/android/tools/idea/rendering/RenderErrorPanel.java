@@ -178,6 +178,7 @@ public class RenderErrorPanel extends JPanel {
       myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
       myHTMLViewer = null;
     }
+    myResult = null;
   }
 
   @Nullable
