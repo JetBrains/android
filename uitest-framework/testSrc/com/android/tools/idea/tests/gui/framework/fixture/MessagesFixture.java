@@ -73,6 +73,7 @@ public class MessagesFixture {
   @NotNull
   public MessagesFixture click(@NotNull String text) {
     findAndClickButton(myDelegate, text);
+    waitUntilNotShowing();
     return this;
   }
 
