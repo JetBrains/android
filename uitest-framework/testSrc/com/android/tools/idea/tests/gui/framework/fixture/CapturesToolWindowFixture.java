@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.profiling.capture.CaptureType;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
@@ -75,6 +77,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
   private void show() {
     activate();
     waitUntilIsVisible();
+    GuiTests.waitUntilFound(myRobot, myToolWindow.getContentManager().getComponent(), Matchers.byType(JTree.class));
   }
 
   @NotNull
