@@ -182,6 +182,10 @@ public class AndroidPluginInfo {
     return myPluginVersion;
   }
 
+  public boolean isExperimental() {
+    return getPluginGeneration() == COMPONENT;
+  }
+
   private static class BuildFileSearchResult {
     @Nullable VirtualFile appVirtualFile;
     @Nullable AndroidPluginGeneration pluginGeneration;

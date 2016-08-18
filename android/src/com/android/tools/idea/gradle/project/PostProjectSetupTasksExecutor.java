@@ -34,6 +34,8 @@ import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
@@ -187,58 +189,62 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    AndroidGradleModelVersions modelVersions = AndroidGradleModelVersions.find(myProject);
-    if (modelVersions == null) {
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
+    if (pluginInfo == null) {
       Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
     }
     else {
-      log(modelVersions);
+      log(pluginInfo);
     }
 
-    if ((modelVersions != null && shouldForcePluginVersionUpgrade(modelVersions)) || myProject.isDisposed()) {
+    if ((pluginInfo != null && shouldForcePluginVersionUpgrade(pluginInfo)) || myProject.isDisposed()) {
       return;
     }
 
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     GradleVersion gradleVersion = getGradleVersion(myProject);
-    if (gradleVersion != null && modelVersions != null) {
-      Pair<GradleVersion, GradleVersion> versionsToUpdateTo = checkCompatibility(gradleVersion, modelVersions);
-      if (versionsToUpdateTo != null) {
-        GradleVersion pluginVersionToUpdateTo = versionsToUpdateTo.getFirst();
-        GradleVersion gradleVersionToUpdateTo = versionsToUpdateTo.getSecond();
+    if (gradleVersion != null && pluginInfo != null) {
+      GradleVersion currentPluginVersion = pluginInfo.getPluginVersion();
+      if (currentPluginVersion != null) {
+        Pair<GradleVersion, GradleVersion> versionsToUpdateTo =
+          checkCompatibility(gradleVersion, currentPluginVersion, pluginInfo.isExperimental());
+        if (versionsToUpdateTo != null) {
+          GradleVersion pluginVersionToUpdateTo = versionsToUpdateTo.getFirst();
+          GradleVersion gradleVersionToUpdateTo = versionsToUpdateTo.getSecond();
 
-        boolean updateGradleOnly = pluginVersionToUpdateTo.compareTo(modelVersions.getCurrent()) == 0;
-        String msg = String.format("Android plugin %1$s is not compatible with Gradle %2$s.", modelVersions.getCurrent(), gradleVersion);
-        Message message = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
+          boolean updateGradleOnly = pluginVersionToUpdateTo.compareTo(currentPluginVersion) == 0;
+          String msg = String.format("Android plugin %1$s is not compatible with Gradle %2$s.", currentPluginVersion, gradleVersion);
+          Message message = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
 
-        NotificationHyperlink updateVersionQuickFix;
-        if (updateGradleOnly) {
-          // Same plugin versions, just update Gradle.
-          updateVersionQuickFix =
-            FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, gradleVersionToUpdateTo.toString());
+          NotificationHyperlink updateVersionQuickFix;
+          if (updateGradleOnly) {
+            // Same plugin versions, just update Gradle.
+            updateVersionQuickFix =
+              FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, gradleVersionToUpdateTo.toString());
+          }
+          else {
+            updateVersionQuickFix =
+              new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo.toString(), gradleVersionToUpdateTo.toString(),
+                                                         pluginInfo.isExperimental());
+          }
+
+          List<NotificationHyperlink> quickFixes = new ArrayList<>();
+          if (updateVersionQuickFix != null) {
+            quickFixes.add(updateVersionQuickFix);
+          }
+
+          quickFixes
+            .add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
+
+          ProjectSyncMessages.getInstance(myProject).add(message, quickFixes);
+
+          setHasSyncErrors(myProject, true);
+          addSdkLinkIfNecessary();
+          checkSdkToolsVersion(myProject);
+          updateGradleSyncState();
+          return;
         }
-        else {
-          updateVersionQuickFix =
-            new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo.toString(), gradleVersionToUpdateTo.toString(),
-                                                       modelVersions.isExperimentalPlugin());
-        }
-
-        List<NotificationHyperlink> quickFixes = new ArrayList<>();
-        if (updateVersionQuickFix != null) {
-          quickFixes.add(updateVersionQuickFix);
-        }
-
-        quickFixes
-          .add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
-
-        ProjectSyncMessages.getInstance(myProject).add(message, quickFixes);
-
-        setHasSyncErrors(myProject, true);
-        addSdkLinkIfNecessary();
-        checkSdkToolsVersion(myProject);
-        updateGradleSyncState();
-        return;
       }
     }
 
@@ -271,13 +277,13 @@ public class PostProjectSetupTasksExecutor {
     setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
-    if (gradleVersion != null && recommendGradleUpdateIfNeeded(gradleVersion, modelVersions)) {
+    if (gradleVersion != null && recommendGradleUpdateIfNeeded(gradleVersion, pluginInfo)) {
       // Gradle version got updated and a project sync was requested. No need to continue.
       return;
     }
 
-    if (modelVersions != null) {
-      String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(modelVersions);
+    if (pluginInfo != null) {
+      String obsoletePluginVersion = shouldRecommendPluginVersionUpgrade(pluginInfo);
       if (obsoletePluginVersion != null) {
         boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
         if (upgrade) {
@@ -323,13 +329,13 @@ public class PostProjectSetupTasksExecutor {
   @Nullable
   // Pair: plugin version, gradle version. Both non-null if the pair is not null.
   static Pair<GradleVersion, GradleVersion> checkCompatibility(@NotNull GradleVersion gradleVersion,
-                                                               @NotNull AndroidGradleModelVersions modelVersions) {
+                                                               @NotNull GradleVersion pluginVersion,
+                                                               boolean isExperimentalPlugin) {
     GradleVersion pluginVersionToUpdateTo = null;
     GradleVersion gradleVersionToUpdateTo = null;
 
-    boolean isStable = isStableVersion(modelVersions);
-    String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, modelVersions.isExperimentalPlugin());
-    GradleVersion pluginVersion = modelVersions.getCurrent();
+    boolean isStable = isStableVersion(pluginVersion, isExperimentalPlugin);
+    String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, isExperimentalPlugin);
 
     if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) < 0 &&
         pluginVersion.compareTo(latestPluginVersionWithSecurityFix) >= 0) {
@@ -356,7 +362,7 @@ public class PostProjectSetupTasksExecutor {
     myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
   }
 
-  private boolean recommendGradleUpdateIfNeeded(@NotNull GradleVersion gradleVersion, @Nullable AndroidGradleModelVersions modelVersions) {
+  private boolean recommendGradleUpdateIfNeeded(@NotNull GradleVersion gradleVersion, @Nullable AndroidPluginInfo pluginInfo) {
     GradleVersion recommendedGradleVersion = GRADLE_VERSION_WITH_SECURITY_FIX;
     if (recommendedGradleVersion.compareTo(GRADLE_LATEST_VERSION) < 0) {
       // GRADLE_LATEST_VERSION is newer than 2.14.1. Take the latest.
@@ -368,10 +374,13 @@ public class PostProjectSetupTasksExecutor {
       String latestPluginVersion = null;
       boolean updatePluginVersion = false;
 
-      if (modelVersions != null) {
-        boolean stable = isStableVersion(modelVersions);
-        latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
-        updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
+      if (pluginInfo != null) {
+        GradleVersion currentVersion = pluginInfo.getPluginVersion();
+        if (currentVersion != null) {
+          boolean stable = isStableVersion(currentVersion, pluginInfo.isExperimental());
+          latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, pluginInfo.isExperimental());
+          updatePluginVersion = currentVersion.compareTo(latestPluginVersion) < 0;
+        }
       }
 
       GradleVersion newPluginVersion = updatePluginVersion ? GradleVersion.parse(latestPluginVersion) : null;
@@ -382,7 +391,7 @@ public class PostProjectSetupTasksExecutor {
           boolean result;
           if (newPluginVersion != null) {
             result = updateGradlePluginVersion(myProject, newPluginVersion.toString(), recommendedGradleVersion.toString(),
-                                               modelVersions.isExperimentalPlugin());
+                                               pluginInfo.isExperimental());
           }
           else {
             result = updateGradleVersion(myProject, recommendedGradleVersion);
@@ -417,9 +426,9 @@ public class PostProjectSetupTasksExecutor {
     return false;
   }
 
-  private static boolean isStableVersion(@NotNull AndroidGradleModelVersions modelVersions) {
-    String latestPreviewVersion = modelVersions.isExperimentalPlugin() ? "0.8.0" : "2.2.0";
-    return modelVersions.getCurrent().compareIgnoringQualifiers(latestPreviewVersion) < 0;
+  private static boolean isStableVersion(@NotNull GradleVersion pluginVersion, boolean isExperimentalPlugin) {
+    String latestPreviewVersion = isExperimentalPlugin ? "0.8.0" : "2.2.0";
+    return pluginVersion.compareIgnoringQualifiers(latestPreviewVersion) < 0;
   }
 
   @NotNull
@@ -436,19 +445,20 @@ public class PostProjectSetupTasksExecutor {
     return experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION : GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
-  private boolean shouldForcePluginVersionUpgrade(@NotNull AndroidGradleModelVersions modelVersions) {
-    if (isForcedPluginVersionUpgradeNecessary(modelVersions)) {
+  private boolean shouldForcePluginVersionUpgrade(@NotNull AndroidPluginInfo pluginInfo) {
+    if (isForcedPluginVersionUpgradeNecessary(pluginInfo.getPluginGeneration().getRecommendedVersion(), pluginInfo.getPluginVersion())) {
       updateGradleSyncState(); // Update the sync state before starting a new one.
 
-      boolean experimentalPlugin = modelVersions.isExperimentalPlugin();
+      boolean experimentalPlugin = pluginInfo.isExperimental();
       boolean update = new PluginVersionForcedUpdateDialog(myProject, experimentalPlugin).showAndGet();
-      GradleVersion latest = modelVersions.getLatest();
+      AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
+      GradleVersion recommended = GradleVersion.parse(pluginGeneration.getRecommendedVersion());
       if (update) {
         if (experimentalPlugin) {
-          updateGradleExperimentalPluginVersionAndNotifyFailure(myProject, latest, GRADLE_LATEST_VERSION, true);
+          updateGradleExperimentalPluginVersionAndNotifyFailure(myProject, recommended, GRADLE_LATEST_VERSION, true);
         }
         else {
-          updateGradlePluginVersionAndNotifyFailure(myProject, latest, GRADLE_LATEST_VERSION, true);
+          updateGradlePluginVersionAndNotifyFailure(myProject, recommended, GRADLE_LATEST_VERSION, true);
         }
         return true;
       }
@@ -471,11 +481,10 @@ public class PostProjectSetupTasksExecutor {
   }
 
   @VisibleForTesting
-  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull AndroidGradleModelVersions modelVersions) {
-    GradleVersion current = modelVersions.getCurrent();
-    if (current.getPreviewType() != null) {
+  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull String recommended, @Nullable GradleVersion current) {
+    if (current != null && current.getPreviewType() != null) {
       // current is a "preview" (alpha, beta, etc.)
-      return current.compareTo(modelVersions.getLatest()) < 0;
+      return current.compareTo(recommended) < 0;
     }
     return false;
   }
@@ -486,14 +495,14 @@ public class PostProjectSetupTasksExecutor {
    * @return the current version of the plugin being used if an upgrade recommendation is needed, {@code null} otherwise.
    */
   @Nullable
-  private static String shouldRecommendPluginVersionUpgrade(@NotNull AndroidGradleModelVersions modelVersions) {
-    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode() || modelVersions.isExperimentalPlugin()) {
+  private static String shouldRecommendPluginVersionUpgrade(@NotNull AndroidPluginInfo pluginInfo) {
+    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode() || pluginInfo.isExperimental()) {
       return null;
     }
 
     String latestInstantRunImprovements = "2.1.0";
-    GradleVersion current = modelVersions.getCurrent();
-    if (current.compareTo(latestInstantRunImprovements) <= 0) {
+    GradleVersion current = pluginInfo.getPluginVersion();
+    if (current != null && current.compareTo(latestInstantRunImprovements) <= 0) {
       return current.toString();
     }
     return null;
@@ -738,8 +747,10 @@ public class PostProjectSetupTasksExecutor {
     ourCheckedExpiration = true;
   }
 
-  private static void log(@NotNull AndroidGradleModelVersions versions) {
-    String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s", versions.getCurrent(), versions.getLatest());
+  private static void log(@NotNull AndroidPluginInfo pluginInfo) {
+    GradleVersion current = pluginInfo.getPluginVersion();
+    String recommended = pluginInfo.getPluginGeneration().getRecommendedVersion();
+    String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
     Logger.getInstance(PostProjectSetupTasksExecutor.class).info(message);
   }
 
