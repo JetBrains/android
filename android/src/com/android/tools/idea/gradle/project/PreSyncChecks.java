@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -116,17 +117,17 @@ final class PreSyncChecks {
     }
 
     GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+    GradleWrapper gradleWrapper = GradleWrapper.find(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
-    boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
+    boolean usingWrapper = (distributionType == null || distributionType == DEFAULT_WRAPPED) && gradleWrapper != null;
     if (usingWrapper && gradleSettings != null) {
       // Do this just to ensure that the right distribution type is set. If this is not set, build.gradle editor will not have code
       // completion (see BuildClasspathModuleGradleDataService, line 119).
       gradleSettings.setDistributionType(DEFAULT_WRAPPED);
     }
     else if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      if (wrapperPropertiesFile == null && gradleSettings != null) {
+      if (gradleWrapper == null && gradleSettings != null) {
         createWrapperIfNecessary(project, gradleSettings, distributionType);
       }
     }
@@ -230,17 +231,17 @@ final class PreSyncChecks {
     }
 
     if (createWrapper) {
-      File projectDirPath = getBaseDirPath(project);
+      File projectPath = getBaseDirPath(project);
 
       // attempt to delete the whole gradle wrapper folder.
-      File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
+      File gradleDirPath = new File(projectPath, SdkConstants.FD_GRADLE);
       if (!delete(gradleDirPath)) {
         // deletion failed. Let sync continue.
         return true;
       }
 
       try {
-        createGradleWrapper(projectDirPath);
+        GradleWrapper.create(projectPath);
         if (distributionType == null) {
           gradleSettings.setDistributionType(DEFAULT_WRAPPED);
         }
