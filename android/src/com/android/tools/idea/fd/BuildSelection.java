@@ -20,9 +20,15 @@ import org.jetbrains.annotations.NotNull;
 public class BuildSelection {
   @NotNull public final BuildMode mode;
   @NotNull public final BuildCause why;
+  public final boolean brokenForSecondaryUser;
 
   BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why) {
+    this(mode, why, false);
+  }
+
+  BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why, boolean brokenForSecondaryUser) {
     this.mode = mode;
     this.why = why;
+    this.brokenForSecondaryUser = brokenForSecondaryUser;
   }
 }

@@ -17,7 +17,9 @@ package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.OptionalCompilationStep;
-import com.android.ddmlib.*;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunBuildInfo;
@@ -28,6 +30,7 @@ import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
+import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +46,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_OPTIONAL_COMPILATION_STEPS;
 
@@ -116,26 +120,30 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   private BuildSelection getBuildSelection() {
     BuildCause buildCause = needsCleanBuild(myDevice);
     if (buildCause != null) {
-      return new BuildSelection(BuildMode.CLEAN, buildCause);
+      return new BuildSelection(BuildMode.CLEAN, buildCause, hasMultiUser(myDevice));
     }
 
     buildCause = needsFullBuild(myDevice);
     if (buildCause != null) {
-      return new BuildSelection(BuildMode.FULL, buildCause);
+      return new BuildSelection(BuildMode.FULL, buildCause, hasMultiUser(myDevice));
     }
 
     buildCause = needsColdswapPatches(myDevice);
     if (buildCause != null) {
-      return new BuildSelection(BuildMode.COLD, buildCause);
+      return new BuildSelection(BuildMode.COLD, buildCause, hasMultiUser(myDevice));
     }
 
     return new BuildSelection(BuildMode.HOT, BuildCause.INCREMENTAL_BUILD);
   }
 
+  private static boolean hasMultiUser(@Nullable IDevice device) {
+    return MultiUserUtils.hasMultipleUsers(device, 200, TimeUnit.MILLISECONDS, false);
+  }
+
   @Nullable
   @Contract("null -> !null")
   private BuildCause needsCleanBuild(@Nullable IDevice device) {
-    if (device == null) {
+    if (device == null) { // i.e. emulator is still launching..
       return BuildCause.NO_DEVICE;
     }
 

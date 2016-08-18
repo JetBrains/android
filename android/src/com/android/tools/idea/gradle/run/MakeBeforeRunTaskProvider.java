@@ -394,7 +394,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @Nullable
-  private static IDevice getLaunchedDevice(@NotNull AndroidDevice device) {
+  public static IDevice getLaunchedDevice(@NotNull AndroidDevice device) {
     if (!device.getLaunchedDevice().isDone()) {
       // If we don't have access to the device (this happens if the AVD is still launching)
       return null;
