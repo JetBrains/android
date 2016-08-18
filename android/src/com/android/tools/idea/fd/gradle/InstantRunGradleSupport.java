@@ -34,6 +34,7 @@ public enum InstantRunGradleSupport {
   LEGACY_MULTIDEX_REQUIRES_ART(AndroidBundle.message("instant.run.notification.ir.disabled.multidex.requires.21")),
 
   CANNOT_BUILD_FOR_MULTIPLE_DEVICES(AndroidBundle.message("instant.run.notification.ir.disabled.multiple.devices")),
+  CANNOT_DEPLOY_FOR_SECONDARY_USER(AndroidBundle.message("instant.run.notification.ir.disabled.secondary.user")),
 
   // Gradle 2.2.0-alpha6 and above can provide more fine grained info when IR is disabled.
   // The following status messages correspond to the values returned by the gradle plugin.

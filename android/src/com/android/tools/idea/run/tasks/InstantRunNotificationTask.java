@@ -15,34 +15,49 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.collect.Maps;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.HashSet;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
+import java.util.Map;
+import java.util.Set;
 
 public class InstantRunNotificationTask implements LaunchTask {
+  // We only need to show this message once per IDE session, but we do want to show it once per project
+  // So this is the set of all projects for which we've displayed that message once in this IDE session.
+  @GuardedBy("LOCK")
+  private static Set<String> ourBrokenForSecondaryUserMessageDisplayed = new HashSet<>();
+  private static final Object LOCK = new Object();
+
   private final Project myProject;
   private final InstantRunContext myContext;
   private final InstantRunNotificationProvider myNotificationsProvider;
+  private final boolean myShowBrokenForSecondaryUserMessage;
 
   public InstantRunNotificationTask(@NotNull Project project,
                                     @NotNull InstantRunContext context,
-                                    @NotNull InstantRunNotificationProvider provider) {
+                                    @NotNull InstantRunNotificationProvider provider,
+                                    boolean showBrokenForSecondaryUserMessage) {
     myProject = project;
     myContext = context;
     myNotificationsProvider = provider;
+    myShowBrokenForSecondaryUserMessage = showBrokenForSecondaryUserMessage;
   }
 
   @NotNull
@@ -63,13 +78,41 @@ public class InstantRunNotificationTask implements LaunchTask {
     }
 
     String notificationText = myNotificationsProvider.getNotificationText();
-    if (notificationText == null) {
-      return true;
+    if (notificationText != null) {
+      showNotification(myProject, myContext, notificationText);
     }
 
-    showNotification(myProject, myContext, notificationText);
+    if (myShowBrokenForSecondaryUserMessage) {
+      boolean show = false;
+      synchronized (LOCK) {
+        if (!ourBrokenForSecondaryUserMessageDisplayed.contains(myProject.getLocationHash())) {
+          ourBrokenForSecondaryUserMessageDisplayed.add(myProject.getLocationHash());
+          show = true;
+        }
+      }
+
+      if (show) {
+        showIrBrokenForSecondaryUsersNotification(myProject);
+      }
+    }
 
     return true;
+  }
+
+  private static void showIrBrokenForSecondaryUsersNotification(@NotNull Project project) {
+    NotificationListener l = (notification, event) -> {
+      if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) {
+        return;
+      }
+
+      String description = event.getDescription();
+      if ("learnmore".equals(description)) {
+        BrowserUtil.browse("http://developers.android.com/r/studio-ui/run-with-work-profile.html", project);
+      }
+    };
+
+    String message = "<html>" + AndroidBundle.message("instant.run.notification.ir.broken.for.secondary.user") + "</html";
+    InstantRunManager.NOTIFICATION_GROUP.createNotification("", message, NotificationType.INFORMATION, l).notify(project);
   }
 
   public static void showNotification(@NotNull Project project, @Nullable InstantRunContext context, @NotNull String notificationText) {
