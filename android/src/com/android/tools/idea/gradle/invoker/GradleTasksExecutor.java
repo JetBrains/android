@@ -85,7 +85,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConverter;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import javax.swing.*;
@@ -99,13 +98,12 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
@@ -113,8 +111,6 @@ import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.ui.MessageType.*;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.WARNING;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
@@ -274,7 +270,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
   private void invokeGradleTasks() {
     Project project = getNotNullProject();
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project, myContext.getUseEmbeddedGradle());
 
     Function<ProjectConnection, Void> executeTasksFunction = connection -> {
       Stopwatch stopwatch = Stopwatch.createStarted();
@@ -485,23 +481,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       }
     };
     invokeLaterIfNeeded(addMessageTask);
-  }
-
-  @Nullable
-  private GradleExecutionSettings getOrCreateGradleExecutionSettings(Project project) {
-    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-    if (isAndroidStudio() && myContext.getUseEmbeddedGradle()) {
-      if (executionSettings == null) {
-        File gradlePath = findEmbeddedGradleDistributionPath();
-        assert gradlePath != null && gradlePath.isDirectory();
-        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, DistributionType.LOCAL, null, false);
-        File jdkPath = IdeSdks.getJdkPath();
-        if (jdkPath != null) {
-          executionSettings.setJavaHome(jdkPath.getPath());
-        }
-      }
-    }
-    return executionSettings;
   }
 
   private void handleTaskExecutionError(@NotNull Throwable e) {
