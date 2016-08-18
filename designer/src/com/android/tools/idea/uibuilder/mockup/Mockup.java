@@ -557,6 +557,10 @@ public class Mockup implements ModelListener {
     myIsFullScreen = true;
   }
 
+  public void removeMockupModelListener(MockupModelListener listener) {
+    myListeners.remove(listener);
+  }
+
   public interface MockupModelListener {
     void mockupChanged(Mockup mockup);
   }
