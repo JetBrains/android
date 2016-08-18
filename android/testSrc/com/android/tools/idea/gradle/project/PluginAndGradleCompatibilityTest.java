@@ -18,61 +18,55 @@ package com.android.tools.idea.gradle.project;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
 import com.intellij.openapi.util.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor.checkCompatibility;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link PostProjectSetupTasksExecutor#checkCompatibility(GradleVersion, AndroidGradleModelVersions)}.
+ * Tests for {@link PostProjectSetupTasksExecutor#checkCompatibility(GradleVersion, GradleVersion, boolean)}.
  */
 public class PluginAndGradleCompatibilityTest {
-
   private GradleVersion mySecureGradleVersion;
   private GradleVersion myOldGradleVersion;
 
   private GradleVersion myLatestStablePluginVersion;
-  private AndroidGradleModelVersions mySecureStablePluginVersions;
-  private AndroidGradleModelVersions myOldStablePluginVersions;
+  private PluginVersions mySecureStablePluginVersions;
+  private PluginVersions myOldStablePluginVersions;
 
   private GradleVersion myLatestStableExperimentalPluginVersion;
-  private AndroidGradleModelVersions mySecureStableExperimentalPluginVersions;
-  private AndroidGradleModelVersions myOldStableExperimentalPluginVersions;
+  private PluginVersions mySecureStableExperimentalPluginVersions;
+  private PluginVersions myOldStableExperimentalPluginVersions;
 
   private GradleVersion myLatestPreviewPluginVersion;
-  private AndroidGradleModelVersions mySecurePreviewPluginVersions;
-  private AndroidGradleModelVersions myOldPreviewPluginVersions;
+  private PluginVersions mySecurePreviewPluginVersions;
+  private PluginVersions myOldPreviewPluginVersions;
 
   private GradleVersion myLatestPreviewExperimentalPluginVersion;
-  private AndroidGradleModelVersions mySecurePreviewExperimentalPluginVersions;
-  private AndroidGradleModelVersions myOldPreviewExperimentalPluginVersions;
+  private PluginVersions mySecurePreviewExperimentalPluginVersions;
+  private PluginVersions myOldPreviewExperimentalPluginVersions;
 
   @Before
   public void setUp() {
     mySecureGradleVersion = GradleVersion.parse("2.14.1");
     myOldGradleVersion = GradleVersion.parse("2.10");
 
-    myLatestStablePluginVersion = GradleVersion.parse("2.2.0-alpha7");
-    mySecureStablePluginVersions = new AndroidGradleModelVersions(myLatestStablePluginVersion, myLatestStablePluginVersion, false);
-    myOldStablePluginVersions = new AndroidGradleModelVersions(GradleVersion.parse("2.1.2"), myLatestStablePluginVersion, false);
+    myLatestStablePluginVersion = GradleVersion.parse("2.1.3");
+    mySecureStablePluginVersions = new PluginVersions(myLatestStablePluginVersion, false);
+    myOldStablePluginVersions = new PluginVersions(GradleVersion.parse("2.1.2"), false);
 
-    myLatestStableExperimentalPluginVersion = GradleVersion.parse("0.8.0-alpha7");
-    mySecureStableExperimentalPluginVersions =
-      new AndroidGradleModelVersions(myLatestStableExperimentalPluginVersion, myLatestStableExperimentalPluginVersion, true);
-    myOldStableExperimentalPluginVersions =
-      new AndroidGradleModelVersions(GradleVersion.parse("0.7.2"), myLatestStableExperimentalPluginVersion, true);
+    myLatestStableExperimentalPluginVersion = GradleVersion.parse("0.7.3");
+    mySecureStableExperimentalPluginVersions = new PluginVersions(myLatestStableExperimentalPluginVersion, true);
+    myOldStableExperimentalPluginVersions = new PluginVersions(GradleVersion.parse("0.7.2"), true);
 
     myLatestPreviewPluginVersion = GradleVersion.parse("2.2.0-alpha7");
-    mySecurePreviewPluginVersions = new AndroidGradleModelVersions(myLatestPreviewPluginVersion, myLatestPreviewPluginVersion, false);
-    myOldPreviewPluginVersions = new AndroidGradleModelVersions(GradleVersion.parse("2.2.0-alpha6"), myLatestPreviewPluginVersion, false);
+    mySecurePreviewPluginVersions = new PluginVersions(myLatestPreviewPluginVersion, false);
+    myOldPreviewPluginVersions = new PluginVersions(GradleVersion.parse("2.2.0-alpha6"), false);
 
     myLatestPreviewExperimentalPluginVersion = GradleVersion.parse("0.8.0-alpha7");
-    mySecurePreviewExperimentalPluginVersions =
-      new AndroidGradleModelVersions(myLatestPreviewExperimentalPluginVersion, myLatestPreviewExperimentalPluginVersion, true);
-    myOldPreviewExperimentalPluginVersions =
-      new AndroidGradleModelVersions(GradleVersion.parse("0.8.0-alpha6"), myLatestPreviewExperimentalPluginVersion, true);
+    mySecurePreviewExperimentalPluginVersions = new PluginVersions(myLatestPreviewExperimentalPluginVersion, true);
+    myOldPreviewExperimentalPluginVersions = new PluginVersions(GradleVersion.parse("0.8.0-alpha6"), true);
   }
 
   @Test
@@ -100,14 +94,12 @@ public class PluginAndGradleCompatibilityTest {
   }
 
   @Test
-  @Ignore
   public void stableNonExperimentalWithSecureGradleAndOldPlugin() {
     Pair<GradleVersion, GradleVersion> result = checkCompatibility(mySecureGradleVersion, myOldStablePluginVersions);
     verifyIncompatibilityUsingStablePlugin(result);
   }
 
   @Test
-  @Ignore
   public void stableExperimentalWithSecureGradleAndOldPlugin() {
     Pair<GradleVersion, GradleVersion> result = checkCompatibility(mySecureGradleVersion, myOldStableExperimentalPluginVersions);
     verifyIncompatibilityUsingStableExperimentalPlugin(result);
@@ -186,6 +178,12 @@ public class PluginAndGradleCompatibilityTest {
     verifyIncompatibilityUsingPreviewExperimentalPlugin(result);
   }
 
+  @Nullable
+  private static Pair<GradleVersion, GradleVersion> checkCompatibility(@NotNull GradleVersion gradleVersion,
+                                                                       @NotNull PluginVersions pluginVersions) {
+    return PostProjectSetupTasksExecutor.checkCompatibility(gradleVersion, pluginVersions.current, pluginVersions.experimental);
+  }
+
   private void verifyIncompatibilityUsingPreviewPlugin(@Nullable Pair<GradleVersion, GradleVersion> result) {
     assertNotNull(result);
     assertEquals(myLatestPreviewPluginVersion, result.getFirst());
@@ -196,5 +194,15 @@ public class PluginAndGradleCompatibilityTest {
     assertNotNull(result);
     assertEquals(myLatestPreviewExperimentalPluginVersion, result.getFirst());
     assertEquals(mySecureGradleVersion, result.getSecond());
+  }
+
+  private static class PluginVersions {
+    @NotNull final GradleVersion current;
+    final boolean experimental;
+
+    PluginVersions(@NotNull GradleVersion current, boolean experimental) {
+      this.current = current;
+      this.experimental = experimental;
+    }
   }
 }
