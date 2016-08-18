@@ -21,11 +21,11 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,22 +40,23 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
   private float myAlpha = 0;
-  private final MockupEditor.MockupEditorListener myMockupEditorListener;
+  @Nullable  private Mockup myMockup;
 
   /**
-   * @param screenView   Current screenView where the mockup is displayed
+   * @param surface   Current designSurface holding the mockupEditor
    * @param mockupEditor
    */
   public ExtractWidgetTool(@NotNull DesignSurface surface, @NotNull MockupEditor mockupEditor) {
     super();
     myMockupViewPanel = mockupEditor.getMockupViewPanel();
+    myMockup = mockupEditor.getMockup();
     mySelectionListener = new MySelectionListener();
     myWidgetCreator = new WidgetCreator(mockupEditor, surface);
-    myMockupEditorListener = newMockup -> {
+    MockupEditor.MockupEditorListener mockupEditorListener = newMockup -> {
       hideTooltipActions();
       updateMockup(newMockup);
     };
-    mockupEditor.addListener(myMockupEditorListener);
+    mockupEditor.addListener(mockupEditorListener);
     setBorder(BorderFactory.createLineBorder(JBColor.background(), 1, true));
     add(createActionButtons());
   }
@@ -70,19 +71,17 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     g2d.setComposite(composite);
   }
 
-  private void updateMockup(@NotNull Mockup mockup) {
+  private void updateMockup(@Nullable Mockup mockup) {
+    myMockup = mockup;
     myWidgetCreator.setMockup(mockup);
   }
 
   /**
    * Display the buttons of this tool inside the {@link MockupViewPanel} next to selection
-   *
-   * @param selection the current selection in {@link MockupViewPanel}
    */
-  private void displayTooltipActions(Rectangle selection) {
-    mySelection = selection;
+  private void displayTooltipActions() {
     myMockupViewPanel.removeAll();
-    if (!selection.isEmpty()) {
+    if (!mySelection.isEmpty()) {
       Timer timer = new Timer(20, e -> {
         float alpha = myAlpha;
         alpha += 0.1;
@@ -115,7 +114,6 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     final ActionToolbar actionToolbar = ActionManager.getInstance()
       .createActionToolbar(ActionPlaces.UNKNOWN, group, false);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-
     actionToolbar.setTargetComponent(this);
     return actionToolbar.getComponent();
   }
@@ -145,10 +143,11 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
       super(TITLE, TITLE, AndroidIcons.Mockup.CreateWidget);
     }
 
-
     @Override
     public void actionPerformed(AnActionEvent e) {
-      myWidgetCreator.createWidget(mySelection, SdkConstants.VIEW);
+      if(myMockup != null) {
+        myWidgetCreator.createWidget(mySelection, SdkConstants.VIEW, myMockup);
+      }
     }
   }
 
@@ -165,11 +164,14 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      myWidgetCreator.createNewIncludedLayout(mySelection);
+      if (myMockup != null) {
+        myWidgetCreator.createNewIncludedLayout(mySelection);
+      }
     }
   }
 
   private class MySelectionListener implements MockupViewPanel.SelectionListener {
+
     @Override
     public void selectionStarted(MockupViewPanel mockupViewPanel, int x, int y) {
       hideTooltipActions();
@@ -177,7 +179,11 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection) {
-      displayTooltipActions(selection);
+      mySelection = selection;
+      if(myMockup != null &&
+      myMockup.getComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+        displayTooltipActions();
+      }
     }
   }
 }

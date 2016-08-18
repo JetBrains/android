@@ -63,8 +63,8 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     myMockup = mockup;
     if (myMockup != null) {
       myMockup.addMockupListener(this::setCropLabel);
-      setCropLabel(mockup);
     }
+    setCropLabel(mockup);
   }
 
   private static void saveSelectionToMockup(@NotNull Rectangle selection, @NotNull Mockup mockup) {
@@ -92,7 +92,11 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    *
    * @param mockup
    */
-  private void setCropLabel(@NotNull Mockup mockup) {
+  private void setCropLabel(@Nullable Mockup mockup) {
+    if(mockup == null) {
+      UIUtil.invokeLaterIfNeeded(() -> myCropLabel.setText(""));
+      return;
+    }
     final Rectangle cropping = mockup.getRealCropping();
     final String cropString = String.format("%d,%d %dx%d",
                                             cropping.x, cropping.y, cropping.width, cropping.height);
