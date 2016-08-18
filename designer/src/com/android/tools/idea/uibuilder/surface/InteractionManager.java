@@ -430,7 +430,7 @@ public class InteractionManager {
       }
 
       SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findImmediateComponent(screenView, myLastMouseX, myLastMouseY);
+      NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
         // If we cannot find an element where we clicked, try to use the first element currently selected
         // (if any) to find the view group handler that may want to handle the mousePressed()
@@ -445,7 +445,7 @@ public class InteractionManager {
       if (viewGroupHandler == null) {
         return;
       }
-      Interaction interaction = viewGroupHandler.createInteraction(screenView, component);
+      Interaction interaction = null;
 
       // Give a chance to the current selection's parent handler
       if (interaction == null && !selectionModel.isEmpty()) {
@@ -461,6 +461,10 @@ public class InteractionManager {
             }
           }
         }
+      }
+
+      if (interaction == null) {
+        interaction = viewGroupHandler.createInteraction(screenView, component);
       }
 
       if (interaction != null) {
@@ -517,7 +521,7 @@ public class InteractionManager {
         return;
       }
       SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findImmediateComponent(screenView, x, y);
+      NlComponent component = Coordinates.findComponent(screenView, x, y);
 
       if (component == null) {
         // Clicked component resize handle?
@@ -551,7 +555,7 @@ public class InteractionManager {
       if (screenView == null) {
         return null;
       }
-      return Coordinates.findImmediateComponent(screenView, x, y);
+      return Coordinates.findComponent(screenView, x, y);
     }
 
     @Override
