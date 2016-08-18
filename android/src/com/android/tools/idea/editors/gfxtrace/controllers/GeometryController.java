@@ -22,10 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
 import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
-import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.FmtFloat32;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexBuffer;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.SemanticType;
@@ -199,13 +196,16 @@ public class GeometryController extends Controller implements AtomStream.Listene
     if (!myEditor.getFeatures().hasMeshes()) {
       myEmptyPanel.setEmptyText("Not supported in this version.");
     }
-    else if (myEditor.getAtomStream().getLastSelectedAtom().isDrawCall()) {
-      layout.show(myPanel, CARD_GEOMETRY);
-      fetchMeshes(path.getPathToLast());
-    }
     else {
-      myEmptyPanel.setEmptyText(GfxTraceEditor.SELECT_DRAW_CALL);
-      layout.show(myPanel, CARD_EMPTY);
+      AtomPath drawPath = myEditor.getAtomStream().getLastSelectedDrawCall();
+      if (drawPath != null) {
+        layout.show(myPanel, CARD_GEOMETRY);
+        fetchMeshes(drawPath);
+      }
+      else {
+        myEmptyPanel.setEmptyText(GfxTraceEditor.SELECT_DRAW_CALL);
+        layout.show(myPanel, CARD_EMPTY);
+      }
     }
   }
 
