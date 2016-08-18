@@ -160,9 +160,8 @@ public class DeveloperServicesTest {
 
     String filePath = String.format("%s/src/main/java/%s/%s", moduleName, packageName.replace(".", "/"), sourceFileName);
 
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    ProjectViewFixture.PaneFixture pane = guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Google Cloud Module")
       .clickNextToStep("New Google Cloud Module")
       .chooseModuleSubtype(moduleSubtype)
@@ -170,9 +169,9 @@ public class DeveloperServicesTest {
       .setPackageName("com.google.sampleapp.backend")
       .chooseClientModule("app (google.simpleapplication)")
       .clickFinish()
-      .waitForGradleProjectSyncToFinish();
-
-    ProjectViewFixture.PaneFixture pane = ideFrame.getProjectView().selectAndroidPane();
+      .waitForGradleProjectSyncToFinish()
+      .getProjectView()
+      .selectAndroidPane();
     assertThat(pane.hasModuleRootNode(moduleName)).isTrue();
 
     String fileContents = guiTest.ideFrame()
@@ -186,13 +185,16 @@ public class DeveloperServicesTest {
       assertThat(fileContents).contains("ownerName = \"" + domainName + "\"");
     }
 
-    ideFrame.runNonAndroidApp(moduleName);
-    ExecutionToolWindowFixture runToolWindow = ideFrame.getRunToolWindow();
+    ExecutionToolWindowFixture runToolWindow = guiTest.ideFrame()
+      .runNonAndroidApp(moduleName)
+      .getRunToolWindow();
+
     runToolWindow
       .findContent(moduleName)
       .waitForOutput(new PatternTextMatcher(Pattern.compile(".*Dev App Server is now running.*", DOTALL)), 120);
 
     assertThat(NetUtils.canConnectToRemoteSocket(NetUtils.getLocalHostString(), 8080)).isTrue();
+
     runToolWindow.findContent(moduleName).stop();
   }
 
