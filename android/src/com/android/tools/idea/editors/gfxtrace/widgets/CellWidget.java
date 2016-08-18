@@ -117,7 +117,10 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
   public abstract int getSelectedIndex();
 
   public T getSelectedItem() {
-    int index = getSelectedIndex();
+    return getItemAtIndex(getSelectedIndex());
+  }
+
+  public T getItemAtIndex(int index) {
     return (index < 0 || index >= myData.size()) ? null : myData.get(index);
   }
 
