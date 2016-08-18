@@ -92,7 +92,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         result.add(new MyLocalQuickFix(fix));
       }
     }
-    return result.toArray(new LocalQuickFix[result.size()]);
+    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
   }
 
   @Override
