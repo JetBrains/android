@@ -844,7 +844,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>

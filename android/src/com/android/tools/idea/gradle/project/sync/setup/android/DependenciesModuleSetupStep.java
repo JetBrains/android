@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.customizer.dependency.*;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.Dependencies;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -108,8 +108,9 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
       return;
     }
 
+    DependencySetupErrors dependencySetupErrors = DependencySetupErrors.getInstance(module.getProject());
     String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
-    SyncDependencySetupErrors.getInstance(module).addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
+    dependencySetupErrors.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
 
     // fall back to library dependency, if available.
     if (compiledArtifact != null) {
