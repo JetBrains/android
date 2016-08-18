@@ -238,6 +238,7 @@ public class PostProjectSetupTasksExecutor {
         addSdkLinkIfNecessary();
         checkSdkToolsVersion(myProject);
         updateGradleSyncState();
+        invalidateLastSync(myProject, msg);
         return;
       }
     }
