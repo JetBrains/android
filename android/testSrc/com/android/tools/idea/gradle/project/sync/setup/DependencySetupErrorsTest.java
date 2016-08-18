@@ -22,12 +22,12 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class SyncDependencySetupErrorsTest {
-  private SyncDependencySetupErrors myErrors;
+public class DependencySetupErrorsTest {
+  private DependencySetupErrors myErrors;
 
   @Before
   public void setUp() {
-    myErrors = new SyncDependencySetupErrors();
+    myErrors = new DependencySetupErrors();
   }
 
   @Test
@@ -37,23 +37,23 @@ public class SyncDependencySetupErrorsTest {
     myErrors.addMissingModule(":lib3", "app1", "library3.jar");
     myErrors.addMissingModule(":lib1", "app1", null);
 
-    List<SyncDependencySetupErrors.MissingModule> missingModules = myErrors.getMissingModules();
+    List<DependencySetupErrors.MissingModule> missingModules = myErrors.getMissingModules();
     assertThat(missingModules).hasSize(1);
 
-    SyncDependencySetupErrors.MissingModule missingModule = missingModules.get(0);
+    DependencySetupErrors.MissingModule missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib1");
-    assertThat(missingModule.dependentNames).containsExactly("app1");
+    assertThat(missingModule.getDependentNames()).containsExactly("app1");
 
     missingModules = myErrors.getMissingModulesWithBackupLibraries();
     assertThat(missingModules).hasSize(2);
 
     missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib2");
-    assertThat(missingModule.dependentNames).containsExactly("app1", "app2").inOrder();
+    assertThat(missingModule.getDependentNames()).containsExactly("app1", "app2").inOrder();
 
     missingModule = missingModules.get(1);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
-    assertThat(missingModule.dependentNames).containsExactly("app1");
+    assertThat(missingModule.getDependentNames()).containsExactly("app1");
   }
 
   @Test
