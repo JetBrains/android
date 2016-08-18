@@ -207,8 +207,6 @@ public class DesignSurface extends JPanel implements Disposable {
 
     myInteractionManager.registerListeners();
     myActionManager.registerActions(myLayeredPane);
-
-    Disposer.register(project, this);
   }
 
   @NotNull
@@ -400,6 +398,7 @@ public class DesignSurface extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    myErrorPanel.dispose();
   }
 
   /**
@@ -1539,14 +1538,14 @@ public class DesignSurface extends JPanel implements Disposable {
       if (small) {
         if (mySmallProgressIcon == null) {
           mySmallProgressIcon = new AsyncProcessIcon("Android layout rendering");
-          Disposer.register(myProject, mySmallProgressIcon);
+          Disposer.register(DesignSurface.this, mySmallProgressIcon);
         }
         return mySmallProgressIcon;
       }
       else {
         if (myLargeProgressIcon == null) {
           myLargeProgressIcon = new AsyncProcessIcon.Big("Android layout rendering");
-          Disposer.register(myProject, myLargeProgressIcon);
+          Disposer.register(DesignSurface.this, myLargeProgressIcon);
         }
         return myLargeProgressIcon;
       }

@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -294,6 +293,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public void dispose() {
+    setDesignSurface(null);
   }
 
   public interface DesignSurfaceChangedListener {

@@ -282,7 +282,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, myParent, null,
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
                                                   Alarm.ThreadToUse.OWN_THREAD);
         myRenderingQueue.setRestartTimerOnAdd(true);
       }
@@ -1787,6 +1787,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask.dispose();
           myRenderTask = null;
         }
+        myRenderResult = null;
       }
     });
   }
