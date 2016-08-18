@@ -270,9 +270,13 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      Density pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.isTv().get(),
-                                                            myDeviceData.screenDpi().get(),
-                                                            myDeviceData.screenResolutionHeight().get());
+      Density pixelDensity = myDeviceData.density().get();
+      if (pixelDensity == Density.NODPI) {
+        // We need to calculate the density
+        pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.isTv().get(),
+                                                      myDeviceData.screenDpi().get(),
+                                                      myDeviceData.screenResolutionHeight().get());
+      }
       g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
     }
   }
