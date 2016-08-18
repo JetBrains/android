@@ -18,11 +18,14 @@ package org.jetbrains.android.refactoring;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
+/**
+ * This tests unused resource removal for a JPS project. The gradle scenario is
+ * tested in {@link UnusedResourcesGradleTest}.
+ */
 public class UnusedResourcesTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/unusedResources/";
 
   public void test() throws Exception {
-    //deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout2.xml");

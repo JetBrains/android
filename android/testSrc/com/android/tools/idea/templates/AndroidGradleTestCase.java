@@ -58,6 +58,9 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -635,5 +638,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleModel model = AndroidGradleModel.get(myAndroidFacet);
     assert model != null;
     return model;
+  }
+
+  @NotNull
+  protected String getTextForFile(@NotNull String relativePath) {
+    Project project = getProject();
+    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    if (file != null) {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      if (psiFile != null) {
+        return psiFile.getText();
+      }
+    }
+
+    return "";
   }
 }
