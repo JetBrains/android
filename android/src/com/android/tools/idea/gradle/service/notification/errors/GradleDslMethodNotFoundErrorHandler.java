@@ -39,7 +39,6 @@ import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
