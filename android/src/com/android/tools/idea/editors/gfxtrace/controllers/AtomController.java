@@ -1121,15 +1121,12 @@ public class AtomController extends TreeController implements AtomStream.Listene
       int found = searchChildren(this, node, child -> {
         if (child instanceof Group) {
           Range childRange = ((Group)child).group.getRange();
-          if (childRange.contains(range)) return 0;
-          if (range.getStart() > childRange.getLast()) return -1;
+          if (childRange.contains(range.getLast())) return 0;
+          if (range.getLast() > childRange.getLast()) return -1;
           return 1;
         }
         if (child instanceof Node) {
-          long index = ((Node)child).index;
-          if (range.contains(index)) return 0;
-          if (range.getStart() > index) return -1;
-          return 1;
+          return Long.compare(((Node)child).index, range.getLast());
         }
         throw new IllegalStateException();
       });
