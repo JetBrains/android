@@ -85,14 +85,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
-    final LocalQuickFix[] result = new LocalQuickFix[fixes.length];
+    final List<LocalQuickFix> result = new ArrayList<>(fixes.length);
 
-    for (int i = 0; i < fixes.length; i++) {
-      if (fixes[i].isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
-        result[i] = new MyLocalQuickFix(fixes[i]);
+    for (AndroidLintQuickFix fix : fixes) {
+      if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
+        result.add(new MyLocalQuickFix(fix));
       }
     }
-    return result;
+    return result.toArray(new LocalQuickFix[result.size()]);
   }
 
   @Override
