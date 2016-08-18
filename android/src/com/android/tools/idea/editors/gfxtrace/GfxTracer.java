@@ -144,7 +144,7 @@ public class GfxTracer {
     myDevice.root();
 
     // Launch the app in debug mode.
-    captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
+    captureAdbShell(myDevice, "am start -S -D -n " + component);
     attachTracerAndCapture(pkg.myName, options);
   }
 
