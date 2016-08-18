@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -95,9 +96,11 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.*;
+import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
+import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final File myProjectPath;
@@ -697,10 +700,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) throws IOException {
-    File wrapperPropertiesFile = findWrapperPropertiesFile(getProject());
-    assertNotNull(wrapperPropertiesFile);
-    updateGradleDistributionUrl(version, wrapperPropertiesFile);
-
+    GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
+    assertNotNull(gradleWrapper);
+    gradleWrapper.updateDistributionUrlAndDisplayFailure(version);
     return this;
   }
 

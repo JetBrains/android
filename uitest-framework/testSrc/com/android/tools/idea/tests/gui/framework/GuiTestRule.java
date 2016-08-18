@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
@@ -299,7 +299,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    return GradleUtil.createGradleWrapper(projectDirPath, gradleVersion);
+    return GradleWrapper.create(projectDirPath, gradleVersion) != null;
   }
 
   protected void updateLocalProperties(File projectPath) throws IOException {

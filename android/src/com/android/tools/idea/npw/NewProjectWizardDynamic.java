@@ -19,11 +19,11 @@ import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
-import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
@@ -57,9 +57,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.ESPRESSO_VERSION_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Presents a wizard to the user to create a new project.
@@ -176,10 +174,9 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       return;
     }
     File rootLocation = new File(rootPath);
-
-    File wrapperPropertiesFilePath = GradleUtil.getGradleWrapperPropertiesFilePath(rootLocation);
+    File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation);
     try {
-      GradleUtil.updateGradleDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
+      GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION);
     }
     catch (IOException e) {
       // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".

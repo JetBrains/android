@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -29,7 +30,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.Nls;
@@ -37,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
@@ -124,42 +123,36 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
       throw new ConfigurationException(String.format("Build file %1$s is not writable", file.getPath()));
     }
 
-    CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
-            @Override
-            public void run() throws Exception {
-              for (BuildFileKey key : PROJECT_PROPERTIES) {
-                if (key == BuildFileKey.GRADLE_WRAPPER_VERSION || !myModifiedKeys.contains(key)) {
-                  continue;
-                }
-                Object value = myProjectProperties.get(key);
-                if (value != null) {
-                  myGradleBuildFile.setValue(key, value);
-                } else {
-                  myGradleBuildFile.removeValue(null, key);
-                }
-              }
-              Object wrapperVersion = myProjectProperties.get(BuildFileKey.GRADLE_WRAPPER_VERSION);
-              File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(myProject);
-              if (wrapperVersion != null && wrapperPropertiesFile != null) {
-                boolean updated = GradleUtil.updateGradleDistributionUrl(wrapperVersion.toString(), wrapperPropertiesFile);
-                if (updated) {
-                  VirtualFile virtualFile = VfsUtil.findFileByIoFile(wrapperPropertiesFile, true);
-                  if (virtualFile != null) {
-                    virtualFile.refresh(false, false);
-                  }
-                }
-              }
-              myModifiedKeys.clear();
+    CommandProcessor.getInstance().runUndoTransparentAction(() -> {
+      try {
+        ActionRunner.runInsideWriteAction(() -> {
+          for (BuildFileKey key : PROJECT_PROPERTIES) {
+            if (key == BuildFileKey.GRADLE_WRAPPER_VERSION || !myModifiedKeys.contains(key)) {
+              continue;
             }
-          });
-        }
-        catch (Exception e) {
-          LOG.error("Error while applying changes", e);
-        }
+            Object value = myProjectProperties.get(key);
+            if (value != null) {
+              myGradleBuildFile.setValue(key, value);
+            } else {
+              myGradleBuildFile.removeValue(null, key);
+            }
+          }
+          Object wrapperVersion = myProjectProperties.get(BuildFileKey.GRADLE_WRAPPER_VERSION);
+          GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+          if (wrapperVersion != null && gradleWrapper != null) {
+            boolean updated = gradleWrapper.updateDistributionUrlAndDisplayFailure(wrapperVersion.toString());
+            if (updated) {
+              VirtualFile virtualFile = gradleWrapper.getPropertiesFile();
+              if (virtualFile != null) {
+                virtualFile.refresh(false, false);
+              }
+            }
+          }
+          myModifiedKeys.clear();
+        });
+      }
+      catch (Exception e) {
+        LOG.error("Error while applying changes", e);
       }
     });
   }
@@ -178,9 +171,9 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
       }
     }
     try {
-      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(myProject);
-      if (wrapperPropertiesFile != null) {
-        String wrapperVersion = GradleUtil.getGradleWrapperVersion(wrapperPropertiesFile);
+      GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
+      if (gradleWrapper != null) {
+        String wrapperVersion = gradleWrapper.getGradleVersion();
         myProjectProperties.put(BuildFileKey.GRADLE_WRAPPER_VERSION, wrapperVersion);
       }
     } catch (Exception e) {

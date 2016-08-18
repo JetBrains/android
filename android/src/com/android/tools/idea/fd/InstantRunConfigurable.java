@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -45,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -228,9 +228,9 @@ public class InstantRunConfigurable
       GradleUtil.setBuildToolsVersion(project, buildToolsVersion);
 
       // Also update Gradle wrapper version
-      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-      if (wrapperPropertiesFile != null) {
-        GradleUtil.updateGradleDistributionUrl(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
+      GradleWrapper gradleWrapper = GradleWrapper.find(project);
+      if (gradleWrapper != null) {
+        gradleWrapper.updateDistributionUrlAndDisplayFailure(GRADLE_LATEST_VERSION);
       }
 
       // Request a sync
@@ -269,19 +269,16 @@ public class InstantRunConfigurable
   }
 
   private void updateUi(final boolean syncing, final boolean failed) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        if (myContentPanel.isShowing()) {
-          if (syncing) {
-            setSyncLinkMessage("(Syncing)");
-          } else if (failed) {
-            setSyncLinkMessage("(Sync Failed)");
-          } else {
-            setSyncLinkMessage("");
-          }
-          updateLinkState();
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if (myContentPanel.isShowing()) {
+        if (syncing) {
+          setSyncLinkMessage("(Syncing)");
+        } else if (failed) {
+          setSyncLinkMessage("(Sync Failed)");
+        } else {
+          setSyncLinkMessage("");
         }
+        updateLinkState();
       }
     });
   }
