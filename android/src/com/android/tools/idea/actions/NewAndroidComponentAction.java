@@ -20,6 +20,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -42,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An action to launch a wizard to create a component from a template.
@@ -127,6 +129,8 @@ public class NewAndroidComponentAction extends AnAction {
     String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
     RenderTemplateModel templateModel = new RenderTemplateModel(facet, new TemplateHandle(file), "New " + activityDescription);
     List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
+    List<AndroidSourceSet> sourceSets =
+      sourceProviders.stream().map(provider -> new AndroidSourceSet(facet, provider)).collect(Collectors.toList());
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
 
     boolean isActivity = isActivityTemplate();
@@ -135,7 +139,7 @@ public class NewAndroidComponentAction extends AnAction {
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder
-      .addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceProviders));
+      .addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceSets));
     ModelWizardDialog dialog =
       new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.getProject()).build();
     dialog.show();
