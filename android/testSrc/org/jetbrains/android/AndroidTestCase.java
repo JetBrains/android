@@ -18,6 +18,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -151,8 +152,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, myTestRootDisposable);
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    AndroidCodeStyleSettingsModifier.modify(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
