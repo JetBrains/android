@@ -44,6 +44,38 @@ public final class AndroidProjectPaths {
   @Nullable private File myAidlDirectory;
   @Nullable private File myManifestDirectory;
 
+  /**
+   * Convenience method to get {@link SourceProvider}s from the current project which can be used
+   * to instantiate an instance of this class.
+   */
+  @NotNull
+  public static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+    if (targetDirectory != null) {
+      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
+    }
+    else {
+      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
+    }
+  }
+
+  /**
+   * Create an instance of this class manually. You may wish to use one of the other
+   * convenience constructors instead, however.
+   */
+  public AndroidProjectPaths(@Nullable File moduleRoot,
+                             @Nullable File srcDirectory,
+                             @Nullable File testDirectory,
+                             @Nullable File resDirectory,
+                             @Nullable File aidlDirectory,
+                             @Nullable File manifestDirectory) {
+    myModuleRoot = moduleRoot;
+    mySrcDirectory = srcDirectory;
+    myTestDirectory = testDirectory;
+    myResDirectory = resDirectory;
+    myAidlDirectory = aidlDirectory;
+    myManifestDirectory = manifestDirectory;
+  }
+
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet) {
     this(androidFacet, getSourceProviders(androidFacet, null).get(0));
   }
@@ -85,20 +117,6 @@ public final class AndroidProjectPaths {
     }
 
     myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
-  }
-
-  /**
-   * Convenience method to get {@link SourceProvider}s from the current project which can be used
-   * to instantiate an instance of this class.
-   */
-  @NotNull
-  public static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
-    if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
-    }
-    else {
-      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
-    }
   }
 
   @Nullable
