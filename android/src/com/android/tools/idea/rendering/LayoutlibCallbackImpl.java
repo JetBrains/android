@@ -42,7 +42,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import lombok.ast.This;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
