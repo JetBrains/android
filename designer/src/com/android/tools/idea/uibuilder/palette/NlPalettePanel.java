@@ -187,7 +187,7 @@ public class NlPalettePanel extends JPanel
       }
     }
     Module newModule = null;
-    myDesignSurface = designSurface;
+    myDesignSurface = designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface : null;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
