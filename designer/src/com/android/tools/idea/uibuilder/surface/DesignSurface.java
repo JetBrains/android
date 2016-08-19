@@ -810,24 +810,14 @@ public class DesignSurface extends JPanel implements Disposable {
           requiredWidth += SCREEN_DELTA;
           requiredWidth += screenViewSize.width;
         }
-        if (requiredWidth < availableWidth) {
-          myScreenX = (availableWidth - requiredWidth) / 2;
-        }
-        else {
-          myScreenX = 0;
-        }
+        myScreenX = Math.max((availableWidth - requiredWidth) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X);
 
         int requiredHeight = screenViewSize.height;
         if (myScreenMode == ScreenMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
         }
-        if (requiredHeight < availableHeight) {
-          myScreenY = (availableHeight - requiredHeight) / 2;
-        }
-        else {
-          myScreenY = 0;
-        }
+        myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
         if (myDeviceFrames) {
