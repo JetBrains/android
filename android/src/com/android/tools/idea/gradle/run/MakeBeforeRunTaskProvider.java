@@ -299,22 +299,22 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getFeatureLevel())));
 
-    // If we are building for only one device, pass the density.
+    // If we are building for only one device, pass the density and the ABI
     if (devices.size() == 1) {
-      Density density = Density.getEnum(devices.get(0).getDensity());
+      AndroidDevice device = devices.get(0);
+      Density density = Density.getEnum(device.getDensity());
       if (density != null) {
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
       }
-    }
 
-    // Collect the set of all abis supported by all the devices
-    Set<String> abis =
-      devices.stream().map(AndroidDevice::getAbis)
-        .flatMap(Collection::stream)
+      // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
+      List<String> abis = device.getAbis()
+        .stream()
         .map(Abi::toString)
-        .collect(Collectors.toCollection(TreeSet::new));
-    if (!abis.isEmpty()) {
-      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
+        .collect(Collectors.toList());
+      if (!abis.isEmpty()) {
+        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
+      }
     }
 
     return properties;
