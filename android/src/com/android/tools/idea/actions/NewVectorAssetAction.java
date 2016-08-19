@@ -25,6 +25,8 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +82,7 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
   @NotNull
   @Override
   protected Dimension getWizardSize() {
-    return new Dimension(700, 500);
+    return JBUI.size(700, 500);
   }
 
   @Nullable
