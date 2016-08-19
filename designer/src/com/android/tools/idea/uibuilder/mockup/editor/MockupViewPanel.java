@@ -114,6 +114,7 @@ public class MockupViewPanel extends JPanel {
     addMouseMotionListener(new MyMouseInteraction());
     addMouseWheelListener(new MyMouseInteraction());
     addComponentListener(new MyComponentListener());
+    addKeyListener(new MyKeyListener());
     myDisplayedImage = myImage;
 
     myPanZoomManager = new PanZoomManager();
@@ -344,6 +345,10 @@ public class MockupViewPanel extends JPanel {
         myPanZoomManager.mousePressed(e);
         return;
       }
+
+      // We want to pass the mouse event to the selection layer
+      // but the pressed point need to be in the image coordinate system
+      // so we modify the location of the mouseEvent, then reset it to its original value
       final Point origin = new Point(e.getPoint());
       myImageTransform.transform(e.getPoint(), e.getPoint());
       if (mySelectionMode) {
@@ -379,20 +384,11 @@ public class MockupViewPanel extends JPanel {
       }
     }
 
-    private boolean isPanAction(MouseEvent e) {
-      return SwingUtilities.isMiddleMouseButton(e)
-             || (e.getModifiers() & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK;
-    }
-
     @Override
     public void mouseReleased(MouseEvent e) {
-      if (isPanAction(e)) {
-        return;
-      }
-      if (mySelectionMode) {
-        mySelectionLayer.mouseReleased(e);
-        notifySelectionEnded();
-      }
+      myPanZoomManager.mouseReleased(e);
+      mySelectionLayer.mouseReleased(e);
+      notifySelectionEnded();
     }
 
     @Override
@@ -407,7 +403,21 @@ public class MockupViewPanel extends JPanel {
       if (isPanAction(e)) {
         myPanZoomManager.zoomAnimate(e.getWheelRotation(), e.getPoint());
       }
+      if(SwingUtilities.isLeftMouseButton(e)) {
+        mySelectionLayer.mouseDragged(e);
+      }
     }
+  }
+
+  private static boolean isPanAction(MouseEvent e) {
+    return SwingUtilities.isMiddleMouseButton(e)
+           || isPanKey(e);
+  }
+
+  private static boolean isPanKey(InputEvent e) {
+    final int modifiers = e.getModifiers();
+    return (modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK
+           || (modifiers & InputEvent.CTRL_MASK) == InputEvent.CTRL_MASK;
   }
 
   /**
@@ -481,6 +491,7 @@ public class MockupViewPanel extends JPanel {
     private Point2D.Float myBounds = new Point2D.Float(1, 1);
     private long myStartTime;
     private float myStartZoom;
+    private boolean myIsPanning;
 
     private PanZoomManager() {
       // Timer to make the  zoom smoother
@@ -604,6 +615,7 @@ public class MockupViewPanel extends JPanel {
     }
 
     public void mousePressed(MouseEvent e) {
+      myIsPanning = true;
       myMouseDown.setLocation(e.getPoint());
       myDownOffset.setLocation(myImageOffset);
     }
@@ -611,6 +623,13 @@ public class MockupViewPanel extends JPanel {
     public void mouseDragged(MouseEvent e) {
       if (myDisplayedImage == null) {
         return;
+      }
+      if (!myIsPanning) {
+        // if the user kept the mouse down while pressing the shift key
+        // the mouse pressed event was not passed to the PanZoomManager.
+        // We simulate the mouse pressed here, meaning the key is now pressed
+        // so the drag event was passed
+        mousePressed(e);
       }
       int dx = e.getX() - myMouseDown.x;
       int dy = e.getY() - myMouseDown.y;
@@ -631,6 +650,22 @@ public class MockupViewPanel extends JPanel {
       }
       invalidate();
       repaint();
+    }
+
+    public void mouseReleased(@Nullable MouseEvent e) {
+      myIsPanning = false;
+    }
+  }
+
+  private class MyKeyListener extends KeyAdapter {
+    @Override
+    public void keyReleased(KeyEvent e) {
+      final int keyCode = e.getKeyCode();
+      // If the ctrl or shift key is release
+      // we simulate a mouse released for the PanZoomManager
+      if (keyCode == KeyEvent.VK_SHIFT || keyCode == KeyEvent.VK_CONTROL) {
+        myPanZoomManager.mouseReleased(null);
+      }
     }
   }
 }
