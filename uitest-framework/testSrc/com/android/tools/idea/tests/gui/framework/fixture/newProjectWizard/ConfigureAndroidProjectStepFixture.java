@@ -40,7 +40,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Company Domain:");
+    JTextComponent textField = findTextFieldWithLabel("Company domain:");
     replaceText(textField, text);
     return this;
   }
