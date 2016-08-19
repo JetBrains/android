@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.template;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
+import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.StringEvaluator;
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Step for supporting a template.xml's {@code <icon>} tag if one exists (which tells the template
@@ -49,11 +50,8 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
     assert iconType != null; // It's an error to create <icon> tags w/o types
     myGenerateIconsPanel = new GenerateIconsPanel(this, getModel().getFacet(), iconType);
 
-    myListeners.listenAndFire(model.getSourceSet(), new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myGenerateIconsPanel.setProjectPaths(getModel().getPaths());
-      }
+    myListeners.receiveAndFire(model.getSourceSet(), value -> {
+      myGenerateIconsPanel.setProjectPaths(value.map(AndroidSourceSet::getPaths).orElse(null));
     });
 
     myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel,
