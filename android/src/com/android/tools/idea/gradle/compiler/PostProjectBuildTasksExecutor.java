@@ -199,10 +199,6 @@ public class PostProjectBuildTasksExecutor {
 
       syncJavaLangLevel();
 
-      if (isSyncNeeded(buildMode, errorCount)) {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
-      }
-
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
