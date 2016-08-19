@@ -17,16 +17,10 @@ package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
-import com.google.common.collect.Iterables;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,6 +38,17 @@ import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 public final class AndroidSourceSet {
   @NotNull private final String myName;
   @NotNull private final AndroidProjectPaths myPaths;
+
+  /**
+   * Convenience method to get {@link AndroidSourceSet}s from the current project.
+   */
+  @NotNull
+  public static List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+    return AndroidProjectPaths.getSourceProviders(androidFacet, targetDirectory).stream()
+      .map(provider -> new AndroidSourceSet(androidFacet, provider))
+      .collect(
+        Collectors.toList());
+  }
 
 
   public AndroidSourceSet(@NotNull String name, @NotNull AndroidProjectPaths paths) {

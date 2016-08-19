@@ -49,7 +49,7 @@ public final class AndroidProjectPaths {
    * to instantiate an instance of this class.
    */
   @NotNull
-  public static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+  static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
     if (targetDirectory != null) {
       return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
     }
