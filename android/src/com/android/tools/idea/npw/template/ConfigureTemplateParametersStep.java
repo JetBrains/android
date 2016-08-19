@@ -21,13 +21,13 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
@@ -40,7 +40,6 @@ import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.cache.LoadingCache;
@@ -86,7 +85,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private static final String PROJECT_LOCATION_ID = "projectLocation";
 
-  private final List<SourceProvider> mySourceSets;
+  private final List<AndroidSourceSet> mySourceSets;
   private final StringProperty myPackageName = new StringValueProperty();
 
   private final BindingsManager myBindings = new BindingsManager();
@@ -122,7 +121,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
                                          @NotNull String initialPackageName,
-                                         @NotNull List<SourceProvider> sourceSets) {
+                                         @NotNull List<AndroidSourceSet> sourceSets) {
     super(model, title);
 
     mySourceSets = sourceSets;
@@ -259,7 +258,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
 
       //noinspection unchecked
-      SelectedItemProperty<SourceProvider> sourceSet = (SelectedItemProperty<SourceProvider>)row.getProperty();
+      SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
       assert sourceSet != null; // SourceSetComboProvider always sets this
       myBindings.bind(getModel().getSourceSet(), sourceSet);
 
@@ -387,7 +386,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-      OptionalProperty<SourceProvider> sourceSet = getModel().getSourceSet();
+      OptionalProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
       if (sourceSet.get().isPresent()) {
         additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getValue().getName());
       }
@@ -457,7 +456,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
     Module module = getModel().getModule();
-    SourceProvider sourceSet = getModel().getSourceSet().getValueOrNull();
+    SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -466,7 +465,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
 
       Set<Object> relatedValues = getRelatedValues(parameter);
-      message = parameter.validate(module.getProject(), module, sourceSet, myPackageName.get(), property.get(), relatedValues);
+      message = parameter.validate(module.getProject(), module, sourceProvider, myPackageName.get(), property.get(), relatedValues);
 
       if (message != null) {
         break;
@@ -530,11 +529,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Module module = getModel().getModule();
 
     // canGoForward guarantees this optional value is present
-    SourceProvider sourceSet = getModel().getSourceSet().getValue();
-
-    // This is always non-null when a sourceSet is valid (see also docs for getModel().getPaths())
-    AndroidProjectPaths paths = getModel().getPaths();
-    assert paths != null;
+    AndroidSourceSet sourceSet = getModel().getSourceSet().getValue();
+    AndroidProjectPaths paths = sourceSet.getPaths();
 
     File moduleRoot = paths.getModuleRoot();
     if (moduleRoot == null) {
@@ -790,8 +786,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Module module = getModel().getModule();
       Project project = module.getProject();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceSet = getModel().getSourceSet().getValueOrNull();
-      while (!parameter.uniquenessSatisfied(project, module, sourceSet, myPackageName.get(), suggested, relatedValues)) {
+      SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
+      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;
       }

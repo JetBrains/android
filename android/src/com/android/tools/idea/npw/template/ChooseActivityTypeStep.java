@@ -17,9 +17,10 @@ package com.android.tools.idea.npw.template;
 
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.ActivityGalleryStep;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -41,8 +42,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 
@@ -97,10 +99,13 @@ public class ChooseActivityTypeStep extends ModelWizardStep<RenderTemplateModel>
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(getModel().getFacet(), myTargetDirectory);
+    List<AndroidSourceSet> sourceSets =
+      sourceProviders.stream().map(provider -> new AndroidSourceSet(getModel().getFacet(), provider)).collect(
+        Collectors.toList());
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(getModel().getFacet(), sourceProviders, myTargetDirectory);
     String title = AndroidBundle.message("android.wizard.config.activity.title");
 
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(getModel(), title, initialPackageSuggestion, sourceProviders));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(getModel(), title, initialPackageSuggestion, sourceSets));
   }
 
   private static ASGallery<TemplateHandle> createGallery(String title) {
