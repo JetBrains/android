@@ -21,6 +21,7 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessAdapter;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -32,12 +33,16 @@ import com.intellij.debugger.engine.events.SuspendContextCommandImpl;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.FilteredRequestor;
 import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.concurrency.FutureResult;
 import com.sun.tools.jdi.StringReferenceImpl;
@@ -70,6 +75,17 @@ public class GapiiLibraryLoader {
   public void connectToProcessAndInstallLibraries(@NotNull String pkg) throws Exception {
     long startTime = System.nanoTime();
 
+    SettableFuture<ToolWindow> currentWindowFuture = SettableFuture.create();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      ToolWindowManager mgr = ToolWindowManager.getInstance(myProject);
+      String id = mgr.getActiveToolWindowId();
+      if (id == null) {
+        currentWindowFuture.set(null);
+      }
+      currentWindowFuture.set(mgr.getToolWindow(id));
+    });
+    final ToolWindow currentWindow = currentWindowFuture.get();
+
     LOG.debug("Attaching to " + pkg);
     AndroidJavaDebugger debugger = new AndroidJavaDebugger();
 
@@ -85,7 +101,7 @@ public class GapiiLibraryLoader {
     }
 
     final FutureResult<Void> evalCompletion = new FutureResult<>();
-    EdtExecutorService.getInstance().submit(() -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       debugger.attachToClient(myProject, client);
       DebuggerSession session = debugger.getDebuggerSession(client);
       DebugProcessImpl process = session.getProcess();
@@ -104,11 +120,14 @@ public class GapiiLibraryLoader {
         @Override
         public void processTerminated(ProcessEvent event) {
           // Once we've detached the debugger, this gets executed, and closes the debugger window.
-          EdtExecutorService.getInstance().submit(
-            () -> ExecutionManager.getInstance(myProject).getContentManager().removeRunContent(
+          EdtExecutorService.getInstance().submit(() -> {
+              ExecutionManager.getInstance(myProject).getContentManager().removeRunContent(
               DefaultDebugExecutor.getDebugExecutorInstance(),
-              session.getXDebugSession().getRunContentDescriptor())
-          );
+              session.getXDebugSession().getRunContentDescriptor());
+              if (currentWindow != null) {
+                currentWindow.activate(null, false, false);
+              }
+            });
         }
       });
     });
