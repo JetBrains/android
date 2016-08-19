@@ -84,6 +84,7 @@ public class DesignSurface extends JPanel implements Disposable {
   private boolean myIsCanvasResizing = false;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
+  private boolean myZoomFitted = true;
 
   public enum ScreenMode {
     SCREEN_ONLY(ScreenViewType.NORMAL),
@@ -186,8 +187,9 @@ public class DesignSurface extends JPanel implements Disposable {
     addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        updateScrolledAreaSize();
-        if (isShowing() && getWidth() > 0 && getHeight() > 0) {
+        if (isShowing() && getWidth() > 0 && getHeight() > 0 && myZoomFitted) {
+          // Only rescale if the user did not set the zoom
+          // to something else than fit
           zoomToFit();
         }
       }
@@ -603,7 +605,7 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void zoom(@NotNull ZoomType type) {
-
+    myZoomFitted = false;
     switch (type) {
       case IN: {
         double currentScale = myScale;
@@ -644,6 +646,7 @@ public class DesignSurface extends JPanel implements Disposable {
         break;
       case FIT:
       case FIT_INTO:
+        myZoomFitted = true;
         if (myScreenView == null) {
           return;
         }
@@ -699,6 +702,10 @@ public class DesignSurface extends JPanel implements Disposable {
     zoom(ZoomType.FIT);
   }
 
+  public boolean isZoomFitted() {
+    return myZoomFitted;
+  }
+
   /**
    * Returns true if we want to arrange screens vertically instead of horizontally
    */
@@ -752,7 +759,12 @@ public class DesignSurface extends JPanel implements Disposable {
     final double normalizedX = (viewPosition.x + myScrollPane.getWidth() / 2.0) / oldSize.getWidth();
     final double normalizedY = (viewPosition.y + myScrollPane.getHeight() / 2.0) / oldSize.getHeight();
 
-    if (Math.abs(scale - 1) < 0.0001) {
+    if (scale < 0) {
+      // We wait for component resized to be fired
+      // that will take care of calling zoomToFit
+      scale = -1;
+    }
+    else if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
     }
     else if (scale < 0.01) {
