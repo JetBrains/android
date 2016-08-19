@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -71,6 +72,11 @@ import static java.util.Locale.ROOT;
 public class ConvertToConstraintLayoutAction extends AnAction implements ModelListener {
   public static final String TITLE = "Convert to ConstraintLayout";
   public static final boolean ENABLED = true;
+
+  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_X = "layout_conversion_absoluteX"; //$NON-NLS-1$
+  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y = "layout_conversion_absoluteY"; //$NON-NLS-1$
+  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH = "layout_conversion_absoluteWidth"; //$NON-NLS-1$
+  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT = "layout_conversion_absoluteHeight"; //$NON-NLS-1$
 
   private final DesignSurface mySurface;
 
@@ -153,7 +159,6 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     // Step #3: Migrate
 
     NlModel model = screenView.getModel();
-    long preMigration = model.getModificationCount();
 
     @SuppressWarnings("ConstantConditions")
     ConstraintLayoutConverter converter = new ConstraintLayoutConverter(screenView, target, flatten, includeIds);
@@ -162,13 +167,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     // Finally we need to apply the infer constraints action; we can't do that from the above action
     // since we're holding the write lock
 
-    // Perform a render
-    if (model.getModificationCount() == preMigration) {
-      model.addListener(this);
-      model.requestRender(); // model listener will infer
-    } else {
-      inferConstraints(model);
-    }
+    inferConstraints(model);
   }
 
   private static void inferConstraints(NlModel model) {
@@ -176,38 +175,47 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     if (result == null || !result.getRenderResult().isSuccess()) {
       return;
     }
-    WriteCommandAction.runWriteCommandAction(model.getProject(), "Infer Constraints", null, new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      final ConstraintModel constraintModel = ConstraintModel.getConstraintModel(model);
+      if (constraintModel != null) {
+        int dpi = model.getConfiguration().getDensity().getDpiValue();
+        constraintModel.setDpiValue(dpi);
+        constraintModel.updateNlModel(model.getComponents(), true);
         // Infer new constraints
-        ConstraintModel constraintModel = ConstraintModel.getConstraintModel(model);
-        if (constraintModel != null) {
-          WidgetsScene scene = constraintModel.getScene();
-          try {
-            Scout.inferConstraints(scene);
-          } catch (Throwable t) {
-            Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
-          }
-          constraintModel.saveToXML(true);
-          constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
-
-          // Finally remove the width/height attributes
-          List<NlComponent> components = model.getComponents();
-          for (NlComponent root : components) {
-            removeAbsSizes(root);
-          }
+        WidgetsScene scene = constraintModel.getScene();
+        try {
+          Scout.inferConstraints(scene);
         }
+        catch (Throwable t) {
+          Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
+        }
+        WriteCommandAction.runWriteCommandAction(
+          model.getProject(), "Infer Constraints", null, new Runnable() {
+            @Override
+            public void run() {
+              constraintModel.saveToXML(true);
+              constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
+
+              // Finally remove the conversion x/y/width/height attributes
+              List<NlComponent> components = model.getComponents();
+              for (NlComponent root : components) {
+                removeAbsolutePositionAndSizes(root);
+              }
+            }
+          }, model.getFile());
       }
-    }, model.getFile());
+    }, ModalityState.any());
   }
 
-  /** Removes absolute width/height attributes */
-  private static void removeAbsSizes(NlComponent component) {
+  /** Removes absolute x/y/width/height conversion attributes */
+  private static void removeAbsolutePositionAndSizes(NlComponent component) {
     // Work bottom up to ensure the children aren't invalidated when processing the parent
     for (NlComponent child : component.getChildren()) {
-      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH, null);
-      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT, null);
-      removeAbsSizes(child);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_X, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, null);
+      removeAbsolutePositionAndSizes(child);
     }
   }
 
@@ -276,10 +284,10 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
         int dpw = myEditor.pxToDp(child.w);
         int dph = myEditor.pxToDp(child.h);
 
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
 
         // First gather attributes to delete; can delete during iteration (concurrent modification exceptions will ensure)
         List<String> toDelete = null;
