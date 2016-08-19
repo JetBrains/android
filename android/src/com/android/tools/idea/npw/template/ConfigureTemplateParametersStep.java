@@ -29,6 +29,7 @@ import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
@@ -126,10 +127,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     mySourceSets = sourceSets;
     myPackageName.set(initialPackageName);
-
-    if (mySourceSets.size() > 0) {
-      getModel().getSourceSet().setValue(mySourceSets.get(0));
-    }
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
@@ -260,7 +257,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
       assert sourceSet != null; // SourceSetComboProvider always sets this
-      myBindings.bind(getModel().getSourceSet(), sourceSet);
+      myBindings.bind(getModel().getSourceSet(), new OptionalToValuePropertyAdapter<>(sourceSet));
 
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
@@ -382,10 +379,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-      OptionalProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
-      if (sourceSet.get().isPresent()) {
-        additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getValue().getName());
-      }
+      ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
+      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
@@ -452,7 +447,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
     Module module = getModel().getModule();
-    SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
+    SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -496,7 +491,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return getModel().getSourceSet().isPresent().and(myValidatorPanel.hasErrors().not());
+    return myValidatorPanel.hasErrors().not();
   }
 
   private void createUIComponents() {
@@ -525,7 +520,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Module module = getModel().getModule();
 
     // canGoForward guarantees this optional value is present
-    AndroidSourceSet sourceSet = getModel().getSourceSet().getValue();
+    AndroidSourceSet sourceSet = getModel().getSourceSet().get();
     AndroidProjectPaths paths = sourceSet.getPaths();
 
     File moduleRoot = paths.getModuleRoot();
@@ -774,7 +769,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Module module = getModel().getModule();
       Project project = module.getProject();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
+      SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;
