@@ -17,13 +17,13 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.properties.core.ObjectProperty;
+import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
-  @NotNull private final OptionalProperty<AndroidSourceSet> mySourceSet = new OptionalValueProperty<>();
+  @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   // TODO: Remove dependency on AndroidFacet
   @NotNull private final AndroidFacet myAndroidFacet;
@@ -55,14 +55,14 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull AndroidFacet androidFacet, @NotNull TemplateHandle templateHandle, @NotNull String commandName) {
+  public RenderTemplateModel(@NotNull AndroidFacet androidFacet,
+                             @NotNull TemplateHandle templateHandle,
+                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull String commandName) {
     myAndroidFacet = androidFacet;
+    mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(RenderTemplateModel.class);
   }
 
   @NotNull
@@ -84,7 +84,7 @@ public final class RenderTemplateModel extends WizardModel {
    * paths the template's output will be rendered into).
    */
   @NotNull
-  public OptionalProperty<AndroidSourceSet> getSourceSet() {
+  public ObjectProperty<AndroidSourceSet> getSourceSet() {
     return mySourceSet;
   }
 
@@ -106,11 +106,7 @@ public final class RenderTemplateModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    if (!mySourceSet.get().isPresent()) {
-      getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
-      return;
-    }
-    AndroidProjectPaths paths = mySourceSet.getValue().getPaths();
+    AndroidProjectPaths paths = mySourceSet.get().getPaths();
 
     final Project project = getModule().getProject();
     boolean canRender = renderTemplate(true, paths, null, null);

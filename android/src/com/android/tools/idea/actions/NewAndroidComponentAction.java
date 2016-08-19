@@ -127,10 +127,12 @@ public class NewAndroidComponentAction extends AnAction {
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
-    RenderTemplateModel templateModel = new RenderTemplateModel(facet, new TemplateHandle(file), "New " + activityDescription);
     List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
+    assert sourceProviders.size() > 0;
     List<AndroidSourceSet> sourceSets =
       sourceProviders.stream().map(provider -> new AndroidSourceSet(facet, provider)).collect(Collectors.toList());
+    RenderTemplateModel templateModel =
+      new RenderTemplateModel(facet, new TemplateHandle(file), sourceSets.get(0), "New " + activityDescription);
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
 
     boolean isActivity = isActivityTemplate();
