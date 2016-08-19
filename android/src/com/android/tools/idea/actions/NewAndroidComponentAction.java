@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
@@ -43,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * An action to launch a wizard to create a component from a template.
@@ -127,21 +124,19 @@ public class NewAndroidComponentAction extends AnAction {
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
-    List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
-    assert sourceProviders.size() > 0;
-    List<AndroidSourceSet> sourceSets =
-      sourceProviders.stream().map(provider -> new AndroidSourceSet(facet, provider)).collect(Collectors.toList());
+    List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+    assert sourceSets.size() > 0;
     RenderTemplateModel templateModel =
-      new RenderTemplateModel(facet, new TemplateHandle(file), sourceSets.get(0), "New " + activityDescription);
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
+      new RenderTemplateModel(module.getProject(), new TemplateHandle(file), sourceSets.get(0), "New " + activityDescription);
+
+    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
     String stepTitle = AndroidBundle.message(isActivity ? "android.wizard.config.activity.title" : "android.wizard.config.component.title");
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder
-      .addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceSets));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceSets, facet));
     ModelWizardDialog dialog =
       new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.getProject()).build();
     dialog.show();

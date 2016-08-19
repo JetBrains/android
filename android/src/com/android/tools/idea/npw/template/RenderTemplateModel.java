@@ -24,6 +24,8 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.ObjectProperty;
 import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.android.tools.idea.ui.properties.core.OptionalProperty;
+import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,9 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,36 +47,30 @@ import java.util.Map;
  */
 public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
+  @NotNull private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  // TODO: Remove dependency on AndroidFacet
-  @NotNull private final AndroidFacet myAndroidFacet;
 
   @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull AndroidFacet androidFacet,
+  public RenderTemplateModel(@NotNull Project project,
                              @NotNull TemplateHandle templateHandle,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
-    myAndroidFacet = androidFacet;
+    myProject.setValue(project);
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
   }
 
+  private static Logger getLog() {
+    return Logger.getInstance(RenderTemplateModel.class);
+  }
+
   @NotNull
   public Map<String, Object> getTemplateValues() {
     return myTemplateValues;
-  }
-
-  public AndroidFacet getFacet() {
-    return myAndroidFacet;
-  }
-
-  @NotNull
-  public Module getModule() {
-    return myAndroidFacet.getModule();
   }
 
   /**
@@ -97,6 +91,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myTemplateHandle;
   }
 
+  @NotNull
+  public OptionalProperty<Project> getProject() {
+    return myProject;
+  }
+
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
@@ -106,10 +105,14 @@ public final class RenderTemplateModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
+    if (!myProject.get().isPresent()) {
+      getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
+      return;
+    }
     AndroidProjectPaths paths = mySourceSet.get().getPaths();
 
-    final Project project = getModule().getProject();
-    boolean canRender = renderTemplate(true, paths, null, null);
+    final Project project = myProject.getValue();
+    boolean canRender = renderTemplate(true, project, paths, null, null);
     if (!canRender) {
       // If here, there was a render conflict and the user chose to cancel creating the template
       return;
@@ -121,7 +124,7 @@ public final class RenderTemplateModel extends WizardModel {
     boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
-        boolean success = renderTemplate(false, paths, filesToOpen, filesToReformat);
+        boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
         if (success && myIconGenerator != null) {
           myIconGenerator.generateImageIconsIntoPath(paths);
         }
@@ -136,11 +139,10 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   private boolean renderTemplate(boolean dryRun,
+                                 @NotNull Project project,
                                  @NotNull AndroidProjectPaths paths,
                                  @Nullable List<File> filesToOpen,
                                  @Nullable List<File> filesToReformat) {
-    final Module module = getModule();
-    final Project project = module.getProject();
     final Template template = myTemplateHandle.getTemplate();
     File moduleRoot = paths.getModuleRoot();
     if (moduleRoot == null) {
@@ -152,7 +154,7 @@ public final class RenderTemplateModel extends WizardModel {
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
-      .withModule(getModule())
+      .withModuleRoot(paths.getModuleRoot())
       .withParams(myTemplateValues)
       .intoOpenFiles(filesToOpen)
       .intoTargetFiles(filesToReformat)

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -50,11 +49,11 @@ public final class AndroidPackageUtils {
    */
   @NotNull
   public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
-                                         @NotNull List<SourceProvider> sourceProviders,
+                                         @NotNull List<AndroidSourceSet> sourceSets,
                                          @NotNull VirtualFile targetDirectory) {
-    if (sourceProviders.size() > 0) {
+    if (sourceSets.size() > 0) {
       Module module = androidFacet.getModule();
-      File srcDirectory = new AndroidProjectPaths(androidFacet, sourceProviders.get(0)).getSrcDirectory();
+      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory();
       if (srcDirectory != null) {
         ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
         String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);
