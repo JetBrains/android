@@ -141,6 +141,11 @@ public class ComponentDescriptor {
     return this;
   }
 
+  public ComponentDescriptor unboundedChildren(@NotNull ComponentDescriptor... children) {
+    myChildren = children;
+    return this;
+  }
+
   public ComponentDescriptor viewObject(@Nullable Object viewObject) {
     myViewObject = viewObject;
     return this;

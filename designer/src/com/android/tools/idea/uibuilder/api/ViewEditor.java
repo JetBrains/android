@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -26,10 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
@@ -105,6 +103,9 @@ public abstract class ViewEditor {
    */
   @NotNull
   public abstract NlModel getModel();
+
+  @NotNull
+  public abstract Collection<ViewInfo> getRootViews();
 
   public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
 

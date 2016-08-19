@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.handlers.HandlerTestFactory;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -199,7 +200,7 @@ public final class GroupDragHandlerTest {
 
   @NotNull
   private static NlComponent newMenu(int x, int y, int width, int height) {
-    NlComponent menu = TestFactory.newNlComponent("menu");
+    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
     menu.setBounds(x, y, width, height);
 
     return menu;
@@ -208,8 +209,8 @@ public final class GroupDragHandlerTest {
   @NotNull
   @SuppressWarnings("SameParameterValue")
   private static NlComponent newActionBarItem(int x, int y, int width, int height) {
-    NlComponent item = TestFactory.newNlComponent("item");
-    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
+    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
     item.setBounds(x, y, width, height);
 
     return item;
@@ -218,8 +219,8 @@ public final class GroupDragHandlerTest {
   @NotNull
   @SuppressWarnings("SameParameterValue")
   private static NlComponent newOverflowItem(int x, int y, int width, int height) {
-    NlComponent item = TestFactory.newNlComponent("item");
-    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
+    NlComponent item = HandlerTestFactory.newNlComponent("item");
+    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
     item.setBounds(x, y, width, height);
 
     return item;
@@ -227,7 +228,7 @@ public final class GroupDragHandlerTest {
 
   @NotNull
   private static NlComponent newGroup(int x, int y, int width, int height) {
-    NlComponent group = TestFactory.newNlComponent("group");
+    NlComponent group = HandlerTestFactory.newNlComponent("group");
     group.setBounds(x, y, width, height);
 
     return group;
