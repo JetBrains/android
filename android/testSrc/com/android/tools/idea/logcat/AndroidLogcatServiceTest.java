@@ -70,6 +70,7 @@ public class AndroidLogcatServiceTest {
         receiver.processNewLine("First Line3");
         receiver.processNewLine("[ 09-20 16:39:11.439 1493:1595 W/DummySecond     ]");
         receiver.processNewLine("Second Line1");
+        myLogcatService.myDeviceLatches.get(device).countDown();
       }
     };
     myLogcatService = new AndroidLogcatService(logcatRunner);

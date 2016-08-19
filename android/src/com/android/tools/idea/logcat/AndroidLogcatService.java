@@ -92,7 +92,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    * a channel actually is done closing. A latch should be set to 1 (active) or 0 (closed) at any
    * given time. See also {@link #stopReceiving(IDevice)}.
    */
-  private final Map<IDevice, CountDownLatch> myDeviceLatches = new ConcurrentHashMap<>();
+  @VisibleForTesting
+  final Map<IDevice, CountDownLatch> myDeviceLatches = new ConcurrentHashMap<>();
 
   private final LogcatRunner myLogcatRunner;
 
