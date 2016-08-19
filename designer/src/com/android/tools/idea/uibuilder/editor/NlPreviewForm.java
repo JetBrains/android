@@ -313,8 +313,9 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     } else {
       myFile = model.getFile();
       mySurface.setModel(model);
-      if (!mySurface.isCanvasResizing()) {
+      if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
         // If we are resizing, keep the zoom level constant
+        // only if the zoom was previously set to FIT
         mySurface.zoomToFit();
       }
       setEditor(myManager.getActiveLayoutXmlEditor());
