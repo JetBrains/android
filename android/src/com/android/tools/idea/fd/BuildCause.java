@@ -32,6 +32,7 @@ public enum BuildCause {
   // reasons for forced cold swap build
   APP_NOT_RUNNING,
   APP_USES_MULTIPLE_PROCESSES,
+  ANDROID_TV_UNSUPPORTED,
 
   INCREMENTAL_BUILD,
   NO_INSTANT_RUN,

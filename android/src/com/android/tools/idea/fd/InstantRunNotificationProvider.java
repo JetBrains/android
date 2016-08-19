@@ -76,6 +76,8 @@ public class InstantRunNotificationProvider {
       return myDeployType == DeployType.NO_CHANGES ?
              AndroidBundle.message("instant.run.notification.coldswap.nochanges") :
              AndroidBundle.message("instant.run.notification.coldswap");
+    } else if (buildCause == BuildCause.ANDROID_TV_UNSUPPORTED) {
+      return AndroidBundle.message("instant.run.notification.coldswap.tv");
     }
 
     switch (myDeployType) {
