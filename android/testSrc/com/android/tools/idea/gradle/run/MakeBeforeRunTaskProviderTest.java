@@ -25,6 +25,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,6 +77,9 @@ public class MakeBeforeRunTaskProviderTest {
     List<String> arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(ImmutableList.of(device1, device2));
 
     assertTrue(arguments.contains("-Pandroid.injected.build.api=22"));
-    assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86,x86_64"));
+    for (String argument : arguments) {
+      assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
+                  argument.startsWith("-Pandroid.injected.build.abi"));
+    }
   }
 }
