@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
@@ -934,7 +935,8 @@ public class ConstraintUtilities {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
-    String absoluteWidth = attributes.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH);
+    String absoluteWidth = attributes.getAttribute(SdkConstants.TOOLS_URI,
+                                                   ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
     if (absoluteWidth != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
@@ -943,7 +945,8 @@ public class ConstraintUtilities {
       widget.setWidth(size);
     }
 
-    String absoluteHeight = attributes.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT);
+    String absoluteHeight = attributes.getAttribute(SdkConstants.TOOLS_URI,
+                                                    ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);
     if (absoluteHeight != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
@@ -1031,6 +1034,24 @@ public class ConstraintUtilities {
         x -= parentContainer.getDrawX();
         y -= parentContainer.getDrawY();
       }
+    }
+
+    String absoluteX = attributes.getAttribute(SdkConstants.TOOLS_URI,
+                                               ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_X);
+    if (absoluteX != null) {
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      int position = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteX, configuration);
+      x = constraintModel.pxToDp(position);
+    }
+
+    String absoluteY = attributes.getAttribute(SdkConstants.TOOLS_URI,
+                                               ConvertToConstraintLayoutAction.ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y);
+    if (absoluteY != null) {
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      int position = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteY, configuration);
+      y = constraintModel.pxToDp(position);
     }
 
     if (widget.getX() != x || widget.getY() != y) {
