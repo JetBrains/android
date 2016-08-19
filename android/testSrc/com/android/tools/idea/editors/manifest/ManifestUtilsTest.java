@@ -172,7 +172,8 @@ public class ManifestUtilsTest extends AndroidTestCase {
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<manifest xmlns:tools=\"http://schemas.android.com/tools\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
                 "<application>\n" +
-                "    <activity android:name=\"my.Activity\" android:windowSoftInputMode=\"stateAlwaysHidden\" tools:remove=\"android:label\" />\n" +
+                "    <activity android:name=\"my.Activity\" android:windowSoftInputMode=\"stateAlwaysHidden\"\n" +
+                "        tools:remove=\"android:label\" />\n" +
                 "    <activity android:name=\"other.Activity\"/>\n" +
                 "</application>\n" +
                 "</manifest>");
@@ -232,7 +233,8 @@ public class ManifestUtilsTest extends AndroidTestCase {
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<manifest xmlns:t=\"http://schemas.android.com/tools\" xmlns:a=\"http://schemas.android.com/apk/res/android\">\n" +
                 "<application>\n" +
-                "    <activity a:name=\"my.Activity\" a:windowSoftInputMode=\"stateAlwaysHidden\" t:remove=\"android:label\" />\n" +
+                "    <activity a:name=\"my.Activity\" a:windowSoftInputMode=\"stateAlwaysHidden\"\n" +
+                "        t:remove=\"android:label\" />\n" +
                 "</application>\n" +
                 "</manifest>");
 
