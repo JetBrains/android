@@ -46,7 +46,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
 
   @Override
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
-    if (designer == null) {
+    if (designer == null || !getLayoutType(designer).isSupportedByDesigner()) {
       myToolWindow.setAvailable(false, null);
       if (myPalette != null) {
         myPalette.setDesignSurface(null);

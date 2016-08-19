@@ -48,6 +48,7 @@ public class NlPaletteModel {
 
   @NotNull
   Palette getPalette(@NotNull NlLayoutType type) {
+    assert type.isSupportedByDesigner();
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {

@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -32,36 +33,51 @@ import java.util.Locale;
  * Describes the supported types of editors (where each editor type refers to the type of resource that the editor can handle
  */
 public enum NlLayoutType {
-  LAYOUT {
+  LAYOUT(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return LayoutDomFileDescription.isLayoutFile(file);
     }
   },
-  MENU {
+  MENU(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return MenuDomFileDescription.isMenuFile(file);
     }
   },
-  PREFERENCE_SCREEN {
+  PREFERENCE_SCREEN(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-        @Override
-        public Boolean compute() {
-          if (file.getProject().isDisposed()) {
-            return false;
-          }
-          if (AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.XML.getName())) {
-            XmlTag tag = file.getRootTag();
-            return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
-          }
+      return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+        if (file.getProject().isDisposed()) {
           return false;
         }
+        if (AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.XML.getName())) {
+          XmlTag tag = file.getRootTag();
+          return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
+        }
+        return false;
       });
     }
+  },
+  DRAWABLE(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return AndroidDrawableDomUtil.isDrawableResourceFile(file);
+    }
+  },
+  UNKNOWN(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return false;
+    }
   };
+
+  private final boolean mySupportedByDesigner;
+
+  NlLayoutType(boolean supportedByDesigner) {
+    mySupportedByDesigner = supportedByDesigner;
+  }
 
   public abstract boolean isResourceTypeOf(@NotNull XmlFile file);
 
@@ -70,13 +86,7 @@ public enum NlLayoutType {
   }
 
   public static boolean supports(@NotNull XmlFile file) {
-    for (NlLayoutType type : values()) {
-      if (type.isResourceTypeOf(file)) {
-        return true;
-      }
-    }
-
-    return false;
+    return typeOf(file).isSupportedByDesigner();
   }
 
   @NotNull
@@ -87,11 +97,16 @@ public enum NlLayoutType {
       }
     }
 
-    return LAYOUT;
+    return UNKNOWN;
+  }
+
+  public boolean isSupportedByDesigner() {
+    return mySupportedByDesigner;
   }
 
   @NotNull
   public final String getPaletteFileName() {
+    assert isSupportedByDesigner();
     return toString().toLowerCase(Locale.ROOT) + "_palette.xml";
   }
 }
