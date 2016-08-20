@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -27,29 +24,16 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.pixelprobe.PixelProbe;
-import com.android.tools.pixelprobe.Image;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.ui.TextAccessor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -74,20 +58,18 @@ public class MockupEditor extends JPanel {
 
   // UI
   private final MockupViewPanel myMockupViewPanel;
-  private final MyTopBar myTopBar;
 
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
-    myMockupListener = this::repopulateFields;
+    myMockupListener = this::notifyListeners;
     myModelListener = new myModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
     myExtractWidgetTool = new ExtractWidgetTool(surface, this);
     setModel(model);
     surface.addListener(new MyDesignSurfaceListener(this));
 
+    add(new MyTopBar(new CropTool(this)), BorderLayout.NORTH);
     add(myMockupViewPanel, BorderLayout.CENTER);
-    myTopBar = new MyTopBar(new CropTool(this), new FileChooserActionListener(this));
-    add(myTopBar, BorderLayout.NORTH);
     myExtractWidgetTool.enable(this);
     setMinimumSize(MINIMUM_SIZE);
     initSelection();
@@ -137,7 +119,6 @@ public class MockupEditor extends JPanel {
       setMockup(mockup);
     }
     resetTools();
-    repopulateFields(mockup);
     notifyListeners(mockup);
   }
 
@@ -153,26 +134,6 @@ public class MockupEditor extends JPanel {
 
   private void notifyListeners(Mockup mockup) {
     myEditorListeners.forEach(listener -> listener.editorUpdated(mockup));
-  }
-
-  /**
-   * Update the values of the file chooser and the viewTypeTextField to
-   * match the data of the mockup
-   *
-   * @param mockup
-   */
-  private void repopulateFields(@Nullable Mockup mockup) {
-    final String fileName;
-    if (mockup == null) {
-      fileName = "";
-    }
-    else {
-      VirtualFile virtualFile = mockup.getVirtualFile();
-      fileName = virtualFile != null ? virtualFile.getPath() : "";
-    }
-    if (myTopBar != null) {
-      UIUtil.invokeLaterIfNeeded(() -> myTopBar.setFileName(fileName));
-    }
   }
 
   public void addListener(@NotNull MockupEditorListener listener) {
@@ -309,11 +270,10 @@ public class MockupEditor extends JPanel {
    * Bar on top showing the title and actions
    */
   private static class MyTopBar extends JPanel {
-    private TextFieldWithBrowseButton myFileChooser;
 
-    MyTopBar(CropTool cropTool, FileChooserActionListener listener) {
+    MyTopBar(CropTool cropTool) {
       super(new BorderLayout());
-      add(createTitleBar(listener), BorderLayout.NORTH);
+      add(createTitleBar(), BorderLayout.NORTH);
       add(createActionBar(cropTool), BorderLayout.SOUTH);
     }
 
@@ -328,99 +288,14 @@ public class MockupEditor extends JPanel {
     }
 
     @NotNull
-    private JPanel createTitleBar(FileChooserActionListener listener) {
+    private static JPanel createTitleBar() {
       JPanel titleBar = new JPanel(new BorderLayout());
-      myFileChooser = new TextFieldWithBrowseButton();
-      myFileChooser.setEditable(false);
-      myFileChooser.addActionListener(listener);
 
-      titleBar.add(myFileChooser, BorderLayout.EAST);
       titleBar.add(new JBLabel(TITLE), BorderLayout.WEST);
       titleBar.setBorder(new CompoundBorder(
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        IdeBorderFactory.createEmptyBorder(1, 5, 1, 10)));
+        IdeBorderFactory.createEmptyBorder(4, 5, 4, 10)));
       return titleBar;
-    }
-
-    private void setFileName(String fileName) {
-      myFileChooser.setText(fileName);
-    }
-  }
-
-  /**
-   * Listener for the file chooser
-   */
-  private static class FileChooserActionListener implements ActionListener {
-
-    private MockupEditor myMockupEditor;
-
-    public FileChooserActionListener(@NotNull MockupEditor mockupEditor) {
-      myMockupEditor = mockupEditor;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-      Mockup mockup = myMockupEditor.getMockup();
-      if (mockup == null) {
-        return;
-      }
-      FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
-      VirtualFile selectedFile = mockup.getVirtualFile();
-
-      FileChooser.chooseFile(
-        descriptor, null, myMockupEditor, selectedFile,
-        (virtualFile) -> {
-          if (mockup.getComponent().isRoot()) {
-            openDeviceChoiceDialog(virtualFile, mockup);
-          }
-          else {
-            saveMockupFile(virtualFile, mockup);
-            TextAccessor textAccessor = e.getSource() instanceof TextAccessor ? ((TextAccessor)e.getSource()) : null;
-            if (textAccessor != null) {
-              textAccessor.setText(virtualFile.getPath());
-            }
-          }
-        });
-    }
-
-    /**
-     * Open a dialog asking to choose a device whose dimensions match those of the image
-     *
-     * @param virtualFile
-     * @param mockup
-     */
-    private static void openDeviceChoiceDialog(VirtualFile virtualFile, @NotNull Mockup mockup) {
-      if (virtualFile.exists() && !virtualFile.isDirectory()) {
-        try {
-          Image probe = PixelProbe.probe(virtualFile.getInputStream());
-          BufferedImage image = probe.getMergedImage();
-          if (image == null) {
-            return;
-          }
-          NlModel model = mockup.getComponent().getModel();
-          Configuration configuration = model.getConfiguration();
-          Device device = configuration.getDevice();
-          if (device == null) {
-            return;
-          }
-
-          ApplicationManager.getApplication().invokeLater(() -> {
-            DeviceSelectionPopup deviceSelectionPopup =
-              new DeviceSelectionPopup(model.getProject(), configuration, image);
-            if (deviceSelectionPopup.showAndGet()) {
-              saveMockupFile(virtualFile, mockup);
-            }
-          });
-        }
-        catch (IOException e1) {
-          LOG.warn("Unable to open this file\n" + e1.getMessage());
-        }
-      }
-    }
-
-    private static void saveMockupFile(VirtualFile virtualFile, @NotNull Mockup mockup) {
-      MockupFileHelper.writeFileNameToXML(virtualFile, mockup.getComponent());
     }
   }
 

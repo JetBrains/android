@@ -383,6 +383,11 @@ public class AttributeProcessingUtil {
           (psiClass.isEquivalentTo(drawerLayout) || psiClass.isInheritor(drawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
       }
+
+      // Mockup attributes can be associated with any View, even include tag
+      registerToolsAttribute(ATTR_MOCKUP, callback);
+      registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
+      registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
     }
 
     if (element instanceof Tag || element instanceof Include || element instanceof Data) {

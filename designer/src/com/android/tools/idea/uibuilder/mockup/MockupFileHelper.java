@@ -165,7 +165,7 @@ public class MockupFileHelper {
    * @return Relative or absolute path or null if the path couldn't be resolved
    */
   @Nullable
-  public static Path getXMLFilePath(Project project, String filePath) {
+  public static Path getXMLFilePath(@NotNull Project project, @NotNull String filePath) {
     final String basePath = project.getBasePath();
     if (basePath == null) {
       return null;

@@ -55,6 +55,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private static final int MIN_TEXT_WIDTH = 50;
 
   private final boolean myIncludeBrowseButton;
+
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
@@ -238,6 +239,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         maximum = 250;
         value = getValueInDp(180);
         break;
+      case SdkConstants.ATTR_MOCKUP_OPACITY:
       case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
         // Range: [0.0, 1.0] float (no unit)
         maximum = 10;
@@ -283,6 +285,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     int value = mySlider.getValue();
     switch (myProperty.getName()) {
       case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
+      case SdkConstants.ATTR_MOCKUP_OPACITY:
         if (value == 10) {
           return "1.0";
         }

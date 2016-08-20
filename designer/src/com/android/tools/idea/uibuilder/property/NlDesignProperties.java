@@ -36,6 +36,8 @@ public class NlDesignProperties {
   private final AttributeDefinition myLayoutDefinition;
   private final AttributeDefinition myParentTagDefinition;
   private final AttributeDefinition myMockupDefinition;
+  private final AttributeDefinition myMockupCropDefinition;
+  private final AttributeDefinition myMockupOpacityDefinition;
 
   public NlDesignProperties() {
     myContextDefinition = getDefinitionByName(ATTR_CONTEXT);
@@ -45,6 +47,8 @@ public class NlDesignProperties {
     myLayoutDefinition = getDefinitionByName(ATTR_LAYOUT);
     myParentTagDefinition = getDefinitionByName(ATTR_PARENT_TAG);
     myMockupDefinition = getDefinitionByName(ATTR_MOCKUP);
+    myMockupCropDefinition = getDefinitionByName(ATTR_MOCKUP_CROP);
+    myMockupOpacityDefinition = getDefinitionByName(ATTR_MOCKUP_OPACITY);
   }
 
   @NotNull
@@ -57,7 +61,9 @@ public class NlDesignProperties {
       new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
       new NlPropertyItem(components, TOOLS_URI, myParentTagDefinition),
       new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myMockupDefinition));
+      new NlPropertyItem(components, TOOLS_URI, myMockupDefinition),
+      new NlPropertyItem(components, TOOLS_URI, myMockupCropDefinition),
+      new NlPropertyItem(components, TOOLS_URI, myMockupOpacityDefinition));
   }
 
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {
