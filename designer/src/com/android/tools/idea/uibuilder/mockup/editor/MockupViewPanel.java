@@ -122,6 +122,8 @@ public class MockupViewPanel extends JPanel {
     setMinimumSize(new Dimension(100,100));
     myPanZoomManager = new PanZoomManager();
     resetState();
+    setFocusable(true);
+    requestFocusInWindow();
   }
 
   private void update(Mockup mockup) {
@@ -395,10 +397,23 @@ public class MockupViewPanel extends JPanel {
     @Override
     public void mouseDragged(MouseEvent e) {
       if (isPanAction(e)) {
+        if (!myPanZoomManager.isPanning()) {
+          // If pan was not initiated in mousePressed
+          // (it was a selection at the time mousePressed)
+          // we simulate the mouse pressed
+          myPanZoomManager.mousePressed(e);
+        }
         myPanZoomManager.mouseDragged(e);
       }
-      else if (mySelectionMode) {
-        mySelectionLayer.mouseDragged(e);
+      else {
+        if (mySelectionMode) {
+          mySelectionLayer.mouseDragged(e);
+        }
+        if (myPanZoomManager.isPanning()) {
+          //If the user continue to drag but has release the pan key,
+          // we simulate the mouse release
+          myPanZoomManager.mouseReleased(e);
+        }
       }
     }
 
@@ -421,7 +436,7 @@ public class MockupViewPanel extends JPanel {
       if (isPanAction(e)) {
         myPanZoomManager.zoomAnimate(e.getWheelRotation(), e.getPoint());
       }
-      if(SwingUtilities.isLeftMouseButton(e)) {
+      if (SwingUtilities.isLeftMouseButton(e)) {
         mySelectionLayer.mouseDragged(e);
       }
     }
@@ -673,9 +688,14 @@ public class MockupViewPanel extends JPanel {
     public void mouseReleased(@Nullable MouseEvent e) {
       myIsPanning = false;
     }
+
+    public boolean isPanning() {
+      return myIsPanning;
+    }
   }
 
   private class MyKeyListener extends KeyAdapter {
+
     @Override
     public void keyReleased(KeyEvent e) {
       final int keyCode = e.getKeyCode();
