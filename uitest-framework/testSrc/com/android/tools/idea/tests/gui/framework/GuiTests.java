@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -72,12 +73,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
-import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -105,10 +104,6 @@ public final class GuiTests {
    * AOSP-relative path to directory containing GUI test data
    */
   public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
-  /**
-   * Environment variable pointing to the JDK to be used for tests
-   */
-  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
@@ -160,12 +155,7 @@ public final class GuiTests {
 
   public static void setUpSdks() {
     File androidSdkPath = getAndroidSdkPath();
-
-    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
-    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
-      fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
-    }
-    File jdkPath = new File(jdkHome);
+    File jdkPath = AndroidTestCaseHelper.getJdkPath();
 
     execute(new GuiTask() {
       @Override

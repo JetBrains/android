@@ -103,7 +103,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
@@ -1408,9 +1407,6 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
-    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
-    assert jdkHome != null;
-    copyDir(new File(jdkHome), tempJdkDirectory);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
