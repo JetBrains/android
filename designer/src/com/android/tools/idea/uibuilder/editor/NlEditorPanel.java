@@ -60,7 +60,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   private final XmlFile myFile;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
-  private final MockupEditor myMockupEditor;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(new BorderLayout());
@@ -75,8 +74,8 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
-    myMockupEditor = new MockupEditor(mySurface, model);
-    mySurface.setMockupEditor(myMockupEditor);
+    MockupEditor mockupEditor = new MockupEditor(mySurface, model);
+    mySurface.setMockupEditor(mockupEditor);
 
     JPanel contentPanel = new JPanel(new BorderLayout());
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
@@ -86,7 +85,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // Hold the surface and MockupEditor
     AnimatedComponentSplitter surfaceMockupWrapper = new AnimatedComponentSplitter(false, true);
     surfaceMockupWrapper.setInnerComponent(contentPanel);
-    surfaceMockupWrapper.setLastComponent(myMockupEditor);
+    surfaceMockupWrapper.setLastComponent(mockupEditor);
     surfaceMockupWrapper.setDividerWidth(1);
     surfaceMockupWrapper.setDividerMouseZoneSize(1);
     Disposer.register(editor, surfaceMockupWrapper);
