@@ -16,6 +16,8 @@
 
 package com.android.tools.idea;
 
+import com.android.testutils.OsType;
+import com.android.testutils.TestUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.ProjectManager;
@@ -28,23 +30,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
-  /**
-   * Environment variable pointing to the JDK to be used for tests
-   */
-  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
+
+  private static final File JDK_HOME = new File(TestUtils.getWorkspaceRoot(), "prebuilts/studio/jdk/" + OsType.getHostOs().getFolderName());
 
   @NotNull
   public static File getJdkPath() {
-    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
-    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
-      fail("Please specify the path to a valid JDK using system property or environment variable " + JDK_HOME_FOR_TESTS);
-    }
-    return new File(jdkHome);
+    return JDK_HOME;
   }
 
   @NotNull
