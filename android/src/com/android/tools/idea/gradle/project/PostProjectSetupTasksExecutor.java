@@ -32,11 +32,11 @@ import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
@@ -97,12 +97,13 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -159,7 +160,7 @@ public class PostProjectSetupTasksExecutor {
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
-    if (lastGradleSyncFailed(myProject) && myUsingCachedProjectData) {
+    if (GradleSyncState.getInstance(myProject).lastSyncFailed() && myUsingCachedProjectData) {
       // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
       // version of such interfaces.
       myUsingCachedProjectData = false;
@@ -168,7 +169,7 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    SyncMessages messages = SyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
     messages.reportComponentIncompatibilities();
 
@@ -182,7 +183,7 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (hasErrors(myProject) || lastGradleSyncFailed(myProject)) {
+    if (hasErrors(myProject) || GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
@@ -215,7 +216,7 @@ public class PostProjectSetupTasksExecutor {
 
           boolean updateGradleOnly = pluginVersionToUpdateTo.compareTo(currentPluginVersion) == 0;
           String msg = String.format("Android plugin %1$s is not compatible with Gradle %2$s.", currentPluginVersion, gradleVersion);
-          Message message = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
+          SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
 
           NotificationHyperlink updateVersionQuickFix;
           if (updateGradleOnly) {
@@ -237,7 +238,8 @@ public class PostProjectSetupTasksExecutor {
           quickFixes
             .add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
 
-          ProjectSyncMessages.getInstance(myProject).add(message, quickFixes);
+          message.add(quickFixes);
+          SyncMessages.getInstance(myProject).report(message);
 
           setHasSyncErrors(myProject, true);
           addSdkLinkIfNecessary();
@@ -469,10 +471,13 @@ public class PostProjectSetupTasksExecutor {
           "Please update your project to use version " +
           (experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION : GRADLE_PLUGIN_LATEST_VERSION) + "."
         };
-        Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+        SyncMessage msg = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+
         String pluginName = experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_NAME : GRADLE_PLUGIN_NAME;
         NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(pluginName);
-        ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
+        msg.add(quickFix);
+
+        SyncMessages.getInstance(myProject).report(msg);
         invalidateLastSync(myProject, "Failed");
         return true;
       }
@@ -693,15 +698,16 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private void addSdkLinkIfNecessary() {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    SyncMessages messages = SyncMessages.getInstance(myProject);
 
     int sdkErrorCount = messages.getMessageCount(FAILED_TO_SET_UP_SDK);
     if (sdkErrorCount > 0) {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
       String text = "Open Android SDK Manager and install all missing platforms.";
-      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, NonNavigatable.INSTANCE, text);
-      messages.add(hint, new OpenAndroidSdkManagerHyperlink());
+      SyncMessage hint = new SyncMessage(FAILED_TO_SET_UP_SDK, INFO, NonNavigatable.INSTANCE, text);
+      hint.add(new OpenAndroidSdkManagerHyperlink());
+      messages.report(hint);
     }
   }
 
@@ -855,7 +861,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private void reinstallMissingPlatforms(@NotNull Collection<Sdk> invalidAndroidSdks) {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    SyncMessages messages = SyncMessages.getInstance(myProject);
 
     List<AndroidVersion> versionsToInstall = Lists.newArrayList();
     List<String> missingPlatforms = Lists.newArrayList();
@@ -877,8 +883,9 @@ public class PostProjectSetupTasksExecutor {
     if (!versionsToInstall.isEmpty()) {
       String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
       String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
-      Message msg = new Message(group, ERROR, text);
-      messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
+      SyncMessage msg = new SyncMessage(group, ERROR, text);
+      msg.add(new InstallPlatformHyperlink(versionsToInstall));
+      messages.report(msg);
     }
   }
 

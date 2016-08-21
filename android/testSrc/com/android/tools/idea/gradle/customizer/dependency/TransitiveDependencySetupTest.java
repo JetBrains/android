@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.*;
 import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   public void testTransitiveDependenciesFromJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module appModule = getAppModule();
+    Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
 
     // 'app' module should have 'guava' as dependency.
@@ -58,7 +57,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   public void testTransitiveDependenciesFromAndroidModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module appModule = getAppModule();
+    Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
 
     // 'app' module should have 'javawriter' as dependency.
@@ -84,7 +83,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   public void testTransitiveAndroidModuleDependency() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module appModule = getAppModule();
+    Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
 
     // 'app' module should have 'library1' as module dependency.
@@ -95,7 +94,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   public void testJavaLibraryModuleDependencies() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module appModule = getAppModule();
+    Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
 
     // 'app' module should have 'guava' as dependency.
@@ -107,7 +106,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   public void testDependencySetUpInJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module libModule = getModule("lib");
+    Module libModule = myModules.getModule("lib");
     assertThat(getLibraries(libModule, COMPILE)).doesNotContain("lib.lib");
   }
 
@@ -117,28 +116,15 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
     loadProject("projects/transitiveDependencies");
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
-    Module library2Module = getModule("library2");
+    Module library2Module = myModules.getModule("library2");
     verifyDependenciesAreResolved(library2Module);
     assertThat(getLibraries(library2Module, COMPILE)).contains("fakelib");
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
-    Module appModule = getAppModule();
+    Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
     assertThat(getLibraries(appModule, COMPILE)).contains("fakelib");
-  }
-
-  @NotNull
-  private Module getAppModule() {
-    String name = "app";
-    return getModule(name);
-  }
-
-  @NotNull
-  private Module getModule(@NotNull String name) {
-    Module module = ModuleManager.getInstance(getProject()).findModuleByName(name);
-    assertNotNull(module);
-    return module;
   }
 
   private static void verifyDependenciesAreResolved(@NotNull Module module) {

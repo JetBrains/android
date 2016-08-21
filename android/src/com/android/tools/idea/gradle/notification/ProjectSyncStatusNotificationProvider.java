@@ -34,7 +34,8 @@ import java.io.File;
 
 import static com.android.tools.idea.gradle.GradleSyncState.PROJECT_EXTERNAL_BUILD_FILES_CHANGED;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.Projects.hasErrors;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 
@@ -76,7 +77,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (syncState.isSyncInProgress()) {
       return NotificationPanel.Type.IN_PROGRESS;
     }
-    if (lastGradleSyncFailed(myProject)) {
+    if (GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
     if (hasErrors(myProject)) {
@@ -153,9 +154,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Sync Now", () -> {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      });
+      createActionLabel("Sync Now", () -> GradleProjectImporter.getInstance().requestProjectSync(project, null));
     }
   }
 
@@ -163,13 +162,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Try Again", () -> {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      });
+      createActionLabel("Try Again", () -> GradleProjectImporter.getInstance().requestProjectSync(project, null));
 
-      createActionLabel("Open 'Messages' View", () -> {
-        ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
-      });
+      createActionLabel("Open 'Messages' View", () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));
 
       createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
         File logFile = new File(PathManager.getLogPath(), "idea.log");

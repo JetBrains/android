@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
 
   @Override
   @Nullable
-  public FileLocation getVersionSource(@NotNull Module module) {
+  public PositionInFile getVersionSource(@NotNull Module module) {
     return null;
   }
 
@@ -61,7 +62,7 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   @NotNull
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
-                                                   @Nullable FileLocation location) {
+                                                   @Nullable PositionInFile location) {
     String version = SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
     if (expectedVersion != null && expectedVersion.contains(version)) {
       NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(version, null, false);

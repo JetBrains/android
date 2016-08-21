@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.compatibility;
 
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -45,8 +46,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.*;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.io.Closeables.close;
@@ -200,9 +202,9 @@ public class VersionCompatibilityService {
   }
 
   @NotNull
-  private static Message.Type getFailureType(@NotNull String value) {
-    Message.Type type = Message.Type.find(value);
-    return type != null ? type : Message.Type.ERROR;
+  private static MessageType getFailureType(@NotNull String value) {
+    MessageType type = MessageType.findByName(value);
+    return type != null ? type : ERROR;
   }
 
   @NotNull
@@ -225,7 +227,7 @@ public class VersionCompatibilityService {
   }
 
   @NotNull
-  public List<VersionIncompatibilityMessage> checkComponentCompatibility(@NotNull Project project) {
+  public List<SyncMessage> checkComponentCompatibility(@NotNull Project project) {
     CompatibilityChecker checker = new CompatibilityChecker(project, myMetadata);
     return checker.execute();
   }
@@ -246,7 +248,7 @@ public class VersionCompatibilityService {
     }
 
     @NotNull
-    List<VersionIncompatibilityMessage> execute() {
+    List<SyncMessage> execute() {
       Map<String, ComponentVersion.Incompatibility> incompatibilitiesByCheck = Maps.newHashMap();
 
       Module[] modules = ModuleManager.getInstance(myProject).getModules();
@@ -305,7 +307,7 @@ public class VersionCompatibilityService {
         return Collections.emptyList();
       }
 
-      List<VersionIncompatibilityMessage> failureMessages = Lists.newArrayList();
+      List<SyncMessage> failureMessages = Lists.newArrayList();
       for (ComponentVersion.Incompatibility incompatibility : incompatibilitiesByCheck.values()) {
         CompatibilityCheck check = incompatibility.compatibilityCheck;
 
@@ -321,8 +323,8 @@ public class VersionCompatibilityService {
         msg.append(componentName).append(" ").append(version);
 
         Module module = incompatibility.module;
-        FileLocation location = reader.getVersionSource(module);
-        if (!reader.isProjectLevel() && location == null) {
+        PositionInFile position = reader.getVersionSource(module);
+        if (!reader.isProjectLevel() && position == null) {
           msg.append(", in module '").append(module.getName()).append(",'");
         }
         msg.append(" requires ").append(requirementComponentName).append(" ");
@@ -344,9 +346,9 @@ public class VersionCompatibilityService {
           msg.append("</ul>");
         }
 
-        Message message;
+        SyncMessage message;
         String group = UNHANDLED_SYNC_ISSUE_TYPE;
-        Message.Type failureType = check.failureType;
+        MessageType failureCategory = check.myType;
 
         List<String> textLines = Lists.newArrayList();
         textLines.add(msg.toString());
@@ -357,20 +359,18 @@ public class VersionCompatibilityService {
         }
         String[] text = toStringArray(textLines);
 
-        if (location != null) {
-          message = new Message(myProject, group, failureType, location.file, location.lineNumber, location.column, text);
+        if (position != null) {
+          message = new SyncMessage(myProject, group, failureCategory, position, text);
         }
         else {
-          message = new Message(group, failureType, text);
+          message = new SyncMessage(group, failureCategory, text);
         }
 
-        List<NotificationHyperlink> quickFixes = Lists.newArrayList();
-        quickFixes.addAll(reader.getQuickFixes(module, null, null));
-        quickFixes.addAll(requirementVersionReader.getQuickFixes(module, requirementVersionRange, location));
+        message.add(reader.getQuickFixes(module, null, null));
+        message.add(requirementVersionReader.getQuickFixes(module, requirementVersionRange, position));
 
-        failureMessages.add(new VersionIncompatibilityMessage(message, quickFixes));
+        failureMessages.add(message);
       }
-
       return failureMessages;
     }
 
@@ -452,11 +452,11 @@ public class VersionCompatibilityService {
 
   private static class CompatibilityCheck {
     @NotNull final ComponentVersion myComponentVersion;
-    @NotNull final Message.Type failureType;
+    @NotNull final MessageType myType;
 
-    CompatibilityCheck(@NotNull ComponentVersion componentVersion, @NotNull Message.Type failureType) {
+    CompatibilityCheck(@NotNull ComponentVersion componentVersion, @NotNull MessageType type) {
       this.myComponentVersion = componentVersion;
-      this.failureType = failureType;
+      this.myType = type;
     }
   }
 
@@ -493,26 +493,6 @@ public class VersionCompatibilityService {
         this.requirement = requirement;
         this.requirementVersionReader = requirementVersionReader;
       }
-    }
-  }
-
-  public static class VersionIncompatibilityMessage {
-    @NotNull private final Message myMessage;
-    @NotNull private final NotificationHyperlink[] myQuickFixes;
-
-    VersionIncompatibilityMessage(@NotNull Message message, @NotNull List<NotificationHyperlink> quickFixes) {
-      myMessage = message;
-      myQuickFixes = quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]);
-    }
-
-    @NotNull
-    public Message getMessage() {
-      return myMessage;
-    }
-
-    @NotNull
-    public NotificationHyperlink[] getQuickFixes() {
-      return myQuickFixes;
     }
   }
 }

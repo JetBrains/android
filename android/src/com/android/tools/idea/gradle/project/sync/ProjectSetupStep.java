@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
-class FileLocation {
-  @NotNull final VirtualFile file;
-  final int lineNumber;
-  final int column;
-
-  FileLocation(@NotNull VirtualFile file) {
-    this(file, -1, -1);
-  }
-
-  FileLocation(@NotNull VirtualFile file, int lineNumber, int column) {
-    this.file = file;
-    this.lineNumber = lineNumber;
-    this.column = column;
-  }
+public abstract class ProjectSetupStep {
 }

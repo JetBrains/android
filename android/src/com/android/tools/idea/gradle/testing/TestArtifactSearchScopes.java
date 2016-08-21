@@ -19,6 +19,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.intellij.openapi.Disposable;
@@ -40,7 +41,6 @@ import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
@@ -59,7 +59,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @Nullable
   public static TestArtifactSearchScopes get(@NotNull VirtualFile file, @NotNull Project project) {
-    if (lastGradleSyncFailed(project)) {
+    if (GradleSyncState.getInstance(project).lastSyncFailed()) {
       return null;
     }
 

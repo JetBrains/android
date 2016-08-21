@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.compatibility;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +56,7 @@ interface ComponentVersionReader {
    * module.
    */
   @Nullable
-  FileLocation getVersionSource(@NotNull Module module);
+  PositionInFile getVersionSource(@NotNull Module module);
 
   /**
    * Returns the "quick fixes" that can be used when the component version return by this reader does not match an expected value or range
@@ -68,7 +69,7 @@ interface ComponentVersionReader {
    * of values.
    */
   @NotNull
-  List<NotificationHyperlink> getQuickFixes(@NotNull Module module, @Nullable VersionRange expectedVersion, @Nullable FileLocation location);
+  List<NotificationHyperlink> getQuickFixes(@NotNull Module module, @Nullable VersionRange expectedVersion, @Nullable PositionInFile location);
 
   /**
    * Indicates whether the component version is applicable to all modules in the project.

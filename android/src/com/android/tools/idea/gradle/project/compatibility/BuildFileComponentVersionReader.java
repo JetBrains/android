@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -66,10 +67,10 @@ class BuildFileComponentVersionReader implements ComponentVersionReader {
 
   @Override
   @Nullable
-  public FileLocation getVersionSource(@NotNull Module module) {
+  public PositionInFile getVersionSource(@NotNull Module module) {
     GradleBuildFile buildFile = GradleBuildFile.get(module);
     if (buildFile != null) {
-      return new FileLocation(buildFile.getFile());
+      return new PositionInFile(buildFile.getFile());
     }
     return null;
   }
@@ -78,8 +79,8 @@ class BuildFileComponentVersionReader implements ComponentVersionReader {
   @NotNull
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
-                                                   @Nullable FileLocation location) {
-    FileLocation source = location;
+                                                   @Nullable PositionInFile location) {
+    PositionInFile source = location;
     if (source == null) {
       source = getVersionSource(module);
     }
@@ -102,16 +103,16 @@ class BuildFileComponentVersionReader implements ComponentVersionReader {
   }
 
   private static class OpenBuildFileHyperlink extends NotificationHyperlink {
-    @NotNull private final FileLocation myFileLocation;
+    @NotNull private final PositionInFile myFileLocation;
 
-    OpenBuildFileHyperlink(@NotNull Module module, @NotNull FileLocation fileLocation) {
+    OpenBuildFileHyperlink(@NotNull Module module, @NotNull PositionInFile fileLocation) {
       super("openFile", String.format("Open build.gradle file in module '%1$s'", module.getName()));
       myFileLocation = fileLocation;
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      Navigatable openFile = new OpenFileDescriptor(project, myFileLocation.file, myFileLocation.lineNumber, myFileLocation.column, false);
+      Navigatable openFile = new OpenFileDescriptor(project, myFileLocation.file, myFileLocation.line, myFileLocation.column, false);
       if (openFile.canNavigate()) {
         openFile.navigate(true);
       }

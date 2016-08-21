@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Lists;
@@ -67,7 +67,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
     }
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
+    SyncMessages messages = SyncMessages.getInstance(moduleModel.getProject());
     messages.reportUnresolvedDependencies(unresolved, module);
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);

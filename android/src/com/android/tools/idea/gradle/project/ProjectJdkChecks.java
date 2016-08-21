@@ -19,9 +19,11 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.*;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -41,6 +43,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
@@ -69,35 +72,36 @@ final class ProjectJdkChecks {
         Project project = module.getProject();
 
         List<NotificationHyperlink> quickFixes = Lists.newArrayList(getJdkQuickFixes(project));
-        Message msg;
+        SyncMessage msg;
         String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7 or newer";
         VirtualFile buildFile = getGradleBuildFile(module);
         String groupName = "Project Configuration";
 
         if (buildFile != null) {
-          int lineNumber = -1;
+          int line = -1;
           int column = -1;
           Document document = FileDocumentManager.getInstance().getDocument(buildFile);
           if (document != null) {
             int offset = findCompileSdkVersionValueOffset(document.getText());
             if (offset > -1) {
-              lineNumber = document.getLineNumber(offset);
-              if (lineNumber > -1) {
-                int lineStartOffset = document.getLineStartOffset(lineNumber);
+              line = document.getLineNumber(offset);
+              if (line > -1) {
+                int lineStartOffset = document.getLineStartOffset(line);
                 column = offset - lineStartOffset;
               }
             }
           }
 
-          quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", lineNumber, column));
-          msg = new Message(project, groupName, Message.Type.ERROR, buildFile, lineNumber, column, text);
+          quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", line, column));
+          PositionInFile position = new PositionInFile(buildFile, line, column);
+          msg = new SyncMessage(project, groupName, ERROR, position, text);
         }
         else {
-          msg = new Message(groupName, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
+          msg = new SyncMessage(groupName, ERROR, NonNavigatable.INSTANCE, text);
         }
 
-        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-        messages.add(msg, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
+        msg.add(quickFixes);
+        SyncMessages.getInstance(project).report(msg);
 
         setHasWrongJdk(project, true);
         return false;

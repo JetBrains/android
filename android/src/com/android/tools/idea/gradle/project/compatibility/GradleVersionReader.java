@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.compatibility;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ class GradleVersionReader implements ComponentVersionReader {
 
   @Override
   @Nullable
-  public FileLocation getVersionSource(@NotNull Module module) {
+  public PositionInFile getVersionSource(@NotNull Module module) {
     return null;
   }
 
@@ -53,7 +54,7 @@ class GradleVersionReader implements ComponentVersionReader {
   @NotNull
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
-                                                   @Nullable FileLocation location) {
+                                                   @Nullable PositionInFile location) {
     return emptyList();
   }
 

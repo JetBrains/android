@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -31,7 +32,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +50,7 @@ import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.checkForJdk;
-import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
+import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -77,8 +76,8 @@ final class PreSyncChecks {
       return PreSyncCheckResult.success();
     }
 
-    ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
-    syncMessages.removeMessages(PROJECT_SYNC_ERROR_GROUP);
+    SyncMessages messages = SyncMessages.getInstance(project);
+    messages.removeMessages(PROJECT_SYNC_ERROR_GROUP);
 
     if (isAndroidStudio()) {
       try {
@@ -104,10 +103,11 @@ final class PreSyncChecks {
       checkHttpProxySettings(project);
 
       if (!Jdks.isApplicableJdk(jdk, JDK_1_8)) {
-        Message message = new Message(PROJECT_SYNC_ERROR_GROUP, Message.Type.ERROR, "Please use JDK 8 or newer.");
-
+        SyncMessage message = new SyncMessage(PROJECT_SYNC_ERROR_GROUP, MessageType.ERROR, "Please use JDK 8 or newer.");
         List<NotificationHyperlink> quickFixes = getJdkQuickFixes(project);
-        syncMessages.add(message, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
+        message.add(quickFixes);
+
+        messages.report(message);
         return PreSyncCheckResult.failure("Invalid Project Jdk");
       }
     }
@@ -193,7 +193,7 @@ final class PreSyncChecks {
     if (distributionType == null) {
       String msg = createUseWrapperQuestion("Gradle settings for this project are not configured yet.");
       int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
-      createWrapper = answer == Messages.OK;
+      createWrapper = answer == OK;
     }
     else if (distributionType == DEFAULT_WRAPPED) {
       createWrapper = true;
@@ -225,7 +225,7 @@ final class PreSyncChecks {
       }
       if (msg != null) {
         int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
-        createWrapper = answer == Messages.OK;
+        createWrapper = answer == OK;
         chooseLocalGradleHome = !createWrapper;
       }
     }

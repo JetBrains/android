@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -105,6 +106,7 @@ import static org.junit.Assert.assertTrue;
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final File myProjectPath;
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
+  @NotNull private final Modules myModules;
 
   private EditorFixture myEditor;
   private boolean myIsClosed;
@@ -132,7 +134,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
     super(IdeFrameFixture.class, robot, target);
     myProjectPath = projectPath;
-    final Project project = getProject();
+    Project project = getProject();
+    myModules = new Modules(project);
 
     Disposable disposable = new NoOpDisposable();
     Disposer.register(project, disposable);
@@ -182,11 +185,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Returns a list of system independent paths
    */
   @NotNull
-  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull final JpsModuleSourceRootType<?> sourceType) {
-    final Set<String> paths = Sets.newHashSet();
+  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull JpsModuleSourceRootType<?> sourceType) {
+    Set<String> paths = Sets.newHashSet();
 
     Module module = getModule(moduleName);
-    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
 
     execute(new GuiTask() {
       @Override
@@ -215,21 +218,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Module getModule(@NotNull String name) {
-    Module module = findModule(name);
-    assertNotNull("Unable to find module with name " + quote(name), module);
-    return module;
+    return myModules.getModule(name);
   }
 
   @Nullable
   public Module findModule(@NotNull String name) {
-    for (Module module : getModuleManager().getModules()) {
-      if (name.equals(module.getName())) {
-        return module;
-      }
-    }
-    return null;
+    return myModules.findModule(name);
   }
-
 
   @NotNull
   private ModuleManager getModuleManager() {
@@ -268,7 +263,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public GradleInvocationResult invokeProjectMake(@Nullable Runnable executeAfterInvokingMake) {
     myGradleProjectEventListener.reset();
 
-    final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
+    AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
     AndroidProjectBuildNotifications.subscribe(
       getProject(), context -> {
         if (context instanceof GradleBuildContext) {
@@ -290,7 +285,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture invokeProjectMakeAndSimulateFailure(@NotNull final String failure) {
+  public IdeFrameFixture invokeProjectMakeAndSimulateFailure(@NotNull String failure) {
     Runnable failTask = () -> {
       throw new ExternalSystemException(failure);
     };
@@ -301,11 +296,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public CompileContext invokeProjectMakeUsingJps() {
-    final Project project = getProject();
+    Project project = getProject();
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
 
-    final AtomicReference<CompileContext> contextRef = new AtomicReference<>();
+    AtomicReference<CompileContext> contextRef = new AtomicReference<>();
     CompilerManager compilerManager = CompilerManager.getInstance(project);
 
     Disposable disposable = new NoOpDisposable();
@@ -411,8 +406,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
-    final Project project = getProject();
+  public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode) {
+    Project project = getProject();
     if (buildMode == SOURCE_GEN && !GradleProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
       return this;
     }
@@ -463,7 +458,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture requestProjectSyncAndSimulateFailure(@NotNull final String failure) {
+  public IdeFrameFixture requestProjectSyncAndSimulateFailure(@NotNull String failure) {
     Runnable failTask = () -> {
       throw new ExternalSystemException(failure);
     };
@@ -513,7 +508,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToStart() {
     Project project = getProject();
-    final GradleSyncState syncState = GradleSyncState.getInstance(project);
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (!syncState.isSyncInProgress()) {
       Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
         .until(myGradleProjectEventListener::isSyncStarted);
@@ -527,8 +522,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  private void waitForGradleProjectSyncToFinish(final boolean expectSyncFailure) {
-    final Project project = getProject();
+  private void waitForGradleProjectSyncToFinish(boolean expectSyncFailure) {
+    Project project = getProject();
 
     // ensure GradleInvoker (in-process build) is always enabled.
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -687,10 +682,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture setGradleJvmArgs(@NotNull final String jvmArgs) {
+  public IdeFrameFixture setGradleJvmArgs(@NotNull String jvmArgs) {
     Project project = getProject();
 
-    final GradleSettings settings = GradleSettings.getInstance(project);
+    GradleSettings settings = GradleSettings.getInstance(project);
     settings.setGradleVmOptions(jvmArgs);
 
     Wait.minutes(2).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
@@ -707,7 +702,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull final String version) throws IOException {
+  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -723,7 +718,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
-    final Ref<GradleBuildModel> buildModelRef = new Ref<>();
+    Ref<GradleBuildModel> buildModelRef = new Ref<>();
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
@@ -742,7 +737,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public void selectApp(@NotNull String appName) {
-    final ActionButtonFixture runButton = findRunApplicationButton();
+    ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = execute(new GuiQuery<Container>() {
       @Override
       protected Container executeInEDT() throws Throwable {

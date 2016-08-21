@@ -55,7 +55,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -253,6 +253,10 @@ public class GradleSyncState {
 
       BuildVariantView.getInstance(myProject).updateContents();
     });
+  }
+
+  public boolean lastSyncFailed() {
+    return!isSyncInProgress() && isBuildWithGradle(myProject) && requiredAndroidModelMissing(myProject);
   }
 
   public boolean isSyncInProgress() {

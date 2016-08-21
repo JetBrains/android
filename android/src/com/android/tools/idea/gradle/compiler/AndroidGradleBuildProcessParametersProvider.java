@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -172,7 +173,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);
     Module[] modulesToBuild = buildSettings.getModulesToBuild();
 
-    if (modulesToBuild == null || (buildMode == ASSEMBLE && lastGradleSyncFailed(myProject))) {
+    if (modulesToBuild == null || (buildMode == ASSEMBLE && GradleSyncState.getInstance(myProject).lastSyncFailed())) {
       jvmArgs.add(createJvmArg(GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + 0, DEFAULT_ASSEMBLE_TASK_NAME));
       return;
     }
