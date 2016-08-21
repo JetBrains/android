@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -38,7 +38,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -115,8 +116,8 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
     String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     LOG.warn(text);
 
-    Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);
-    ProjectSyncMessages.getInstance(project).add(msg);
+    SyncMessage msg = new SyncMessage(FAILED_TO_SET_UP_SDK, ERROR, text);
+    SyncMessages.getInstance(project).report(msg);
   }
 
   @Nullable

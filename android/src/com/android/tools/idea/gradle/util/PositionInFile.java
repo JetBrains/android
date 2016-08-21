@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.messages;
+package com.android.tools.idea.gradle.util;
 
-import com.intellij.pom.Navigatable;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-/**
-* Base class for implementations of {@link com.intellij.pom.Navigatable}.
- */
-public abstract class AbstractNavigatable implements Navigatable {
-  @NotNull public static final Navigatable NOT_NAVIGATABLE = new AbstractNavigatable() {};
+public class PositionInFile {
+  @NotNull public final VirtualFile file;
 
-  @Override
-  public void navigate(boolean requestFocus) {}
+  public final int line;
+  public final int column;
 
-  @Override
-  public boolean canNavigate() {
-    return false;
+  public PositionInFile(@NotNull VirtualFile file) {
+    this(file, -1, -1);
+  }
+
+  public PositionInFile(@NotNull VirtualFile file, int line, int column) {
+    this.file = file;
+    this.line = line;
+    this.column = column;
   }
 
   @Override
-  public boolean canNavigateToSource() {
-    return false;
+  public String toString() {
+    return "{file=" + file + ", line=" + line + ", column=" + column + '}';
   }
 }

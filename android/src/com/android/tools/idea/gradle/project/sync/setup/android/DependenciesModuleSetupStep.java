@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.*;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
@@ -79,7 +79,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
 
     addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidProject);
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
+    SyncMessages messages = SyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
       messages.reportSyncIssues(syncIssues, module);

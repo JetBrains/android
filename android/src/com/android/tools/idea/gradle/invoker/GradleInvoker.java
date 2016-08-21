@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.invoker;
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
@@ -58,7 +59,6 @@ import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES
 import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -218,7 +218,7 @@ public class GradleInvoker {
 
     if (BuildMode.ASSEMBLE == buildMode) {
       Project project = modules[0].getProject();
-      if (lastGradleSyncFailed(project)) {
+      if (GradleSyncState.getInstance(project).lastSyncFailed()) {
         // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         return Collections.singletonList(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
       }

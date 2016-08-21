@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.compatibility;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ class IdeVersionReader implements ComponentVersionReader {
 
   @Nullable
   @Override
-  public FileLocation getVersionSource(@NotNull Module module) {
+  public PositionInFile getVersionSource(@NotNull Module module) {
     return null;
   }
 
@@ -49,7 +50,7 @@ class IdeVersionReader implements ComponentVersionReader {
   @Override
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
-                                                   @Nullable FileLocation location) {
+                                                   @Nullable PositionInFile location) {
     return emptyList();
   }
 

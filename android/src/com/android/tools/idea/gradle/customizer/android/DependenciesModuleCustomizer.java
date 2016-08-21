@@ -20,7 +20,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.*;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Sets;
@@ -76,7 +76,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     addExtraSdkLibrariesAsDependencies(module, modelsProvider, androidProject);
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
+    SyncMessages messages = SyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
       messages.reportSyncIssues(syncIssues, module);

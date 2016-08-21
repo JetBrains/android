@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.util;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.model.AndroidModel;
@@ -65,7 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
@@ -180,7 +179,7 @@ public final class Projects {
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
-      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+      SyncMessages messages = SyncMessages.getInstance(project);
       messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
                               VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
 
@@ -238,18 +237,11 @@ public final class Projects {
     project.putUserData(HAS_WRONG_JDK, hasWrongJdk);
   }
 
-  /**
-   * Indicates whether the last sync with Gradle failed.
-   */
-  public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return !GradleSyncState.getInstance(project).isSyncInProgress() && isBuildWithGradle(project) && requiredAndroidModelMissing(project);
-  }
-
   public static boolean hasErrors(@NotNull Project project) {
     if (hasSyncErrors(project) || hasWrongJdk(project)) {
       return true;
     }
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+    SyncMessages messages = SyncMessages.getInstance(project);
     return messages.getErrorCount() > 0;
   }
 

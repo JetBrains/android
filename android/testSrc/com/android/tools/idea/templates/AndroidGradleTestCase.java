@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
@@ -121,6 +122,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static AndroidSdkData ourPreviousSdkData;
 
   protected AndroidFacet myAndroidFacet;
+  protected Modules myModules;
 
   public AndroidGradleTestCase() {
   }
@@ -151,6 +153,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture.setTestDataPath(getTestDataPath());
       ensureSdkManagerAvailable();
       setUpSdks();
+
+      myModules = new Modules(getProject());
     }
     else {
       // This is necessary when we don't create a default project,

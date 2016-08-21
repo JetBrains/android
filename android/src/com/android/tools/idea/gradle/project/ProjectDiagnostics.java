@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -36,7 +36,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
@@ -63,7 +64,7 @@ public final class ProjectDiagnostics {
       Collection<Module> modules = modulesByPath.get(modulePath);
       int moduleCount = modules.size();
       if (moduleCount > 1) {
-        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+        SyncMessages messages = SyncMessages.getInstance(project);
         StringBuilder msg = new StringBuilder();
         msg.append("The modules ");
 
@@ -80,7 +81,7 @@ public final class ProjectDiagnostics {
         msg.append(" point to same directory in the file system.");
 
         String[] lines = { msg.toString(), "Each module has to have a unique path."};
-        Message message = new Message(PROJECT_STRUCTURE_ISSUES, Message.Type.ERROR, lines);
+        SyncMessage message = new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, lines);
 
         List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
         if (ProjectSubset.isSettingEnabled() ) {
@@ -95,12 +96,10 @@ public final class ProjectDiagnostics {
           }
         }
 
-        if (modulesToDisplayInDialog.isEmpty()) {
-          messages.add(message);
+        if (!modulesToDisplayInDialog.isEmpty()) {
+          message.add(new AddOrRemoveModulesHyperlink());
         }
-        else {
-          messages.add(message, new AddOrRemoveModulesHyperlink());
-        }
+        messages.report(message);
       }
     }
   }

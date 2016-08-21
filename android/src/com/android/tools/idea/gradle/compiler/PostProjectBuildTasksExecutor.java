@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
@@ -56,6 +55,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,8 +78,7 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
-  private static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC =
-    new Topic<GradleBuildListener>("Gradle project build", GradleBuildListener.class);
+  private static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle project build", GradleBuildListener.class);
 
   private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
   private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
@@ -107,7 +106,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   public void onBuildCompletion(@NotNull CompileContext context) {
-    Iterator<String> errors = Iterators.emptyIterator();
+    Iterator<String> errors = Collections.emptyIterator();
     CompilerMessage[] errorMessages = context.getMessages(CompilerMessageCategory.ERROR);
     if (errorMessages.length > 0) {
       errors = new CompilerMessageIterator(errorMessages);
@@ -158,7 +157,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
-    Iterator<String> errors = Iterators.emptyIterator();
+    Iterator<String> errors = Collections.emptyIterator();
     List<Message> errorMessages = result.getCompilerMessages(Message.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
       errors = new MessageIterator(errorMessages);
@@ -170,12 +169,7 @@ public class PostProjectBuildTasksExecutor {
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (requiresAndroidModel(myProject)) {
-      executeProjectChanges(myProject, new Runnable() {
-        @Override
-        public void run() {
-          excludeOutputFolders();
-        }
-      });
+      executeProjectChanges(myProject, () -> excludeOutputFolders());
 
       if (isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
@@ -214,7 +208,7 @@ public class PostProjectBuildTasksExecutor {
   private boolean isSyncNeeded(@Nullable BuildMode buildMode, int errorCount) {
     // The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
     // project build is successful, Gradle sync will be successful too.
-    if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0) {
+    if (DEFAULT_BUILD_MODE.equals(buildMode) && GradleSyncState.getInstance(myProject).lastSyncFailed() && errorCount == 0) {
       return true;
     }
 
@@ -321,12 +315,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   private void notifyBuildFinished(@Nullable final BuildMode buildMode) {
-    syncPublisher(new Runnable() {
-      @Override
-      public void run() {
-        myProject.getMessageBus().syncPublisher(GRADLE_BUILD_TOPIC).buildFinished(myProject, buildMode);
-      }
-    });
+    syncPublisher(() -> myProject.getMessageBus().syncPublisher(GRADLE_BUILD_TOPIC).buildFinished(myProject, buildMode));
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {

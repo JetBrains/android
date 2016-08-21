@@ -23,11 +23,10 @@ import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -59,15 +58,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
-import static com.android.tools.idea.gradle.messages.Message.Type.WARNING;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXTRA_GENERATED_SOURCES;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
@@ -138,7 +138,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
       protected void run() throws Throwable {
         LanguageLevel javaLangVersion = JDK_1_8;
 
-        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+        SyncMessages messages = SyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
 
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
@@ -191,7 +191,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
             for (File folder : sourceFolders) {
               // Have to add a word before the path, otherwise IDEA won't show it.
               String[] text = {"Folder " + folder.getPath()};
-              messages.add(new Message(EXTRA_GENERATED_SOURCES, WARNING, text));
+              messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, WARNING, text));
             }
           }
         }
@@ -209,7 +209,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         }
 
         if (hasExtraGeneratedFolders) {
-          messages.add(new Message(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
+          messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
         }
 
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
@@ -267,7 +267,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
       StringBuilder msg = new StringBuilder();
       msg.append("Build Tools 23.0.0 rc1 is <b>deprecated</b>.<br>\n")
-         .append("Please update these modules to use Build Tools 23.0.0 rc2 instead:");
+        .append("Please update these modules to use Build Tools 23.0.0 rc2 instead:");
       for (String moduleName : moduleNames) {
         msg.append("<br>\n * ").append(moduleName);
       }
@@ -284,19 +284,23 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
                                    encodings.getDefaultCharset().displayName(), newEncoding),
       "Mismatching encodings can lead to serious bugs."};
     encodings.setDefaultCharsetName(newEncoding);
-    NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
-    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text), openDocHyperlink);
+
+    SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text);
+    message.add(new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info..."));
+
+    SyncMessages.getInstance(project).report(message);
   }
 
   private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
     // See https://code.google.com/p/android/issues/detail?id=170841
-    NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(false);
-    NotificationHyperlink openDocHyperlink =
-      new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...");
-    String[] text =
-      {String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
-                     modelVersion)};
-    ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text), openDocHyperlink, quickFix);
+    String text = String.format("Using an obsolete version of the Gradle plugin (%1$s);", modelVersion);
+    text += " this can lead to layouts not rendering correctly.";
+
+    SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text);
+    message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(false),
+                              new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
+
+    SyncMessages.getInstance(project).report(message);
   }
 
   @NotNull

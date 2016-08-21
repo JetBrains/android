@@ -60,6 +60,7 @@ public class GradleSyncTest extends AndroidGradleTestCase {
 
   public void /*test*/FailedSync() throws Exception {
     prepareProjectForImport("projects/transitiveDependencies");
+    createLocalPropertiesFile(new File("blah")); // Trigger a sync fail.
     myGradleSetup.setUpGradle(getProject());
 
     SyncListener listener = new SyncListener();
@@ -109,9 +110,13 @@ public class GradleSyncTest extends AndroidGradleTestCase {
   }
 
   private void createLocalPropertiesFile() throws IOException {
-    LocalProperties localProperties = new LocalProperties(getProject());
     File androidSdkPath = IdeSdks.getAndroidSdkPath();
     assert androidSdkPath != null;
+    createLocalPropertiesFile(androidSdkPath);
+  }
+
+  private void createLocalPropertiesFile(@NotNull File androidSdkPath) throws IOException {
+    LocalProperties localProperties = new LocalProperties(getProject());
     localProperties.setAndroidSdkPath(androidSdkPath);
     localProperties.save();
   }

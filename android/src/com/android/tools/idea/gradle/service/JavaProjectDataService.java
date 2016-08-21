@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.*;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ModifiableFacetModel;
@@ -45,8 +45,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 
 public class JavaProjectDataService extends AbstractProjectDataService<JavaProject, Void> {
@@ -116,14 +116,14 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
                                @NotNull JavaProject javaProject) {
     if (javaProject.isAndroidProjectWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
-      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
+      SyncMessages messages = SyncMessages.getInstance(module.getProject());
       String[] text =
         {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
           "Please fix the module's configuration in the build.gradle file and sync the project again.",};
-      messages.add(new Message(PROJECT_STRUCTURE_ISSUES, ERROR, text));
+      messages.report(new SyncMessage(PROJECT_STRUCTURE_ISSUES, ERROR, text));
       cleanUpAndroidModuleWithoutVariants(module, modelsProvider);
       // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
-      // happen due to a project configuration error and there is a lot of module configuration missng, there is no point on even trying.
+      // happen due to a project configuration error and there is a lot of module configuration missing, there is no point on even trying.
       return;
     }
 

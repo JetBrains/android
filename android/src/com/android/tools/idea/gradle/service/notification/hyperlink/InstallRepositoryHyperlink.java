@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,39 +15,41 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
-public class InstallPlatformHyperlink extends NotificationHyperlink {
-  @NotNull private final AndroidVersion[] myAndroidVersions;
+public class InstallRepositoryHyperlink extends NotificationHyperlink {
+  @NotNull private final SdkMavenRepository myRepository;
 
-  public InstallPlatformHyperlink(@NotNull Collection<AndroidVersion> androidVersions) {
-    this(androidVersions.toArray(new AndroidVersion[androidVersions.size()]));
-  }
-
-  public InstallPlatformHyperlink(@NotNull AndroidVersion... androidVersions) {
-    super("install.android.platform", "Install missing platform(s) and sync project");
-    myAndroidVersions = androidVersions;
+  public InstallRepositoryHyperlink(@NotNull SdkMavenRepository repository) {
+    super("install.m2.repo", "Install Repository and sync project");
+    myRepository = repository;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     List<String> requested = Lists.newArrayList();
-    for (AndroidVersion version : myAndroidVersions) {
-      requested.add(DetailsTypes.getPlatformPath(version));
-    }
+    requested.add(myRepository.getPackageId());
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
-    if (dialog != null && dialog.showAndGet()) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    if (dialog != null) {
+      dialog.setTitle("Install Missing Components");
+      if (dialog.showAndGet()) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public SdkMavenRepository getRepository() {
+    return myRepository;
   }
 }
