@@ -19,10 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.resources.Keyboard;
-import com.android.resources.Navigation;
-import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
+import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
@@ -77,6 +74,7 @@ public final class AvdDeviceData {
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
+  private ObjectProperty<Density> myDensity = new ObjectValueProperty<Density>(Density.MEDIUM);
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
@@ -283,6 +281,11 @@ public final class AvdDeviceData {
     return mySkinSizeIsCompatible;
   }
 
+  @NotNull
+  public ObjectProperty<Density> density() {
+    return myDensity;
+  }
+
   /**
    * Initialize a reasonable set of default values (based on the Nexus 5)
    */
@@ -300,6 +303,7 @@ public final class AvdDeviceData {
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
     myNotLong.set(false);
+    myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
     myHasBackCamera.set(true);
@@ -370,6 +374,7 @@ public final class AvdDeviceData {
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
+    myDensity.set(defaultHardware.getScreen().getPixelDensity());
 
     List<State> states = device.getAllStates();
 

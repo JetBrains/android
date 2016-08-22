@@ -111,7 +111,7 @@ public final class AvdScreenData {
       // Search for the density enum whose value is closest to the density of our device.
       double minDifference = Double.MAX_VALUE;
       for (Density d : Density.values()) {
-        if (!d.isValidValueForDevice()) {
+        if (!d.isValidValueForDevice() || !d.isRecommended()) {
           continue;
         }
         double difference = Math.abs(d.getDpiValue() - dpi);
