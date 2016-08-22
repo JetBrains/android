@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,11 +25,13 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -60,5 +64,31 @@ public class GradleBuildTest {
     File actualJdkPath = IdeSdks.getInstance().getJdkPath();
     assertNotNull(actualJdkPath);
     assertEquals(jdkPath.getPath(), actualJdkPath.getPath());
+  }
+
+  /**
+   * Verifies that a simple app is configured to build using Jack and Jill.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14581579
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import the JackAndJillApp project.
+   *   2. Build the project.
+   *   Verify:
+   *   The project builds.
+   *   </pre>
+   * <p>
+   * This test does not try and run the project.
+   */
+  @Category(GuiSanityTestSuite.class)
+  @Test
+  public void compileWithJack() throws IOException {
+    GradleInvocationResult buildResult = guiTest.importProjectAndWaitForProjectSyncToFinish("JackAndJillApp")
+      .invokeProjectMake();
+
+    assertThat(buildResult.isBuildSuccessful()).named("Gradle build successful").isTrue();
   }
 }
