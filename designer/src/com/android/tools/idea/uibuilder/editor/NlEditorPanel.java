@@ -71,6 +71,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     assert myFile != null : file;
 
     mySurface = new DesignSurface(project, this);
+    Disposer.register(editor, mySurface);
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
