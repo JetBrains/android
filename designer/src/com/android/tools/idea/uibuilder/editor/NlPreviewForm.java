@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -323,14 +320,23 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myManager.setDesignSurface(mySurface);
       myActionsToolbar.setModel(model);
 
-      final Project project = myManager.getProject();
-      DumbService.getInstance(project).runWhenSmart(() -> {
+      attachPalette();
+    }
+  }
+
+  private void attachPalette() {
+    Project project = myManager.getProject();
+    DumbService.getInstance(project).runWhenSmart(() -> {
+      if (NlLayoutType.typeOf(myFile).isSupportedByDesigner()) {
         // While we wait for the index to be ready, the preview might become inactive so we need to check first
         if (isActive && myFile != null) {
           NlPaletteManager.get(project).bind(this);
         }
-      });
-    }
+      }
+      else {
+        NlPaletteManager.get(project).dispose(this);
+      }
+    });
   }
 
   @Nullable
