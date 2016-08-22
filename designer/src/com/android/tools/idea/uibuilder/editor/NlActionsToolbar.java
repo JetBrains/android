@@ -197,6 +197,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
       return;
     }
 
+    myActionToolbar.getComponent().setVisible(mySurface.getLayoutType().isSupportedByDesigner());
+
     // TODO: Perform caching
     myDynamicGroup.removeAll();
     NlComponent parent = findSharedParent(newSelection);
