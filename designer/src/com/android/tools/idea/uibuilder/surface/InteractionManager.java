@@ -964,11 +964,14 @@ public class InteractionManager {
 
       ScreenView screenView = mySurface.getScreenView(x, y);
       if (screenView == null) {
+        e.getComponent().getParent().dispatchEvent(e);
         return;
       }
 
       final NlComponent component = Coordinates.findComponent(screenView, x, y);
       if (component == null) {
+        // There is no component consuming the scroll
+        e.getComponent().getParent().dispatchEvent(e);
         return;
       }
 
