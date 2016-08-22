@@ -16,20 +16,17 @@
 package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.SdkConstants;
+import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.psi.impl.source.xml.XmlTagImpl;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -49,15 +46,16 @@ import static com.android.SdkConstants.*;
 public class WidgetCreator {
 
   public static final String MOCKUP_NEW_LAYOUT_CREATION_ID = "mockupNewLayoutCreation";
-
-  private final ScreenView myScreenView;
-  private final NlModel myModel;
+  @NotNull private final DesignSurface mySurface;
   private Mockup myMockup;
 
-  public WidgetCreator(Mockup mockup, ScreenView screenView) {
-    myMockup = mockup;
-    myScreenView = screenView;
-    myModel = myScreenView.getModel();
+  public WidgetCreator(@NotNull MockupEditor editor, @NotNull DesignSurface surface) {
+    Mockup mockup = editor.getMockup();
+    if (mockup != null) {
+      setMockup(mockup);
+    }
+    editor.addListener(this::setMockup);
+    mySurface = surface;
   }
 
   /**
@@ -66,13 +64,13 @@ public class WidgetCreator {
    * @param selection the selection in {@link MockupViewPanel}
    * @param fqcn
    */
-  public void createWidget(Rectangle selection, final String fqcn) {
+  public void createWidget(@NotNull Rectangle selection, @NotNull final String fqcn) {
     final NlComponent parent = myMockup.getComponent();
     final Rectangle parentCropping = myMockup.getRealCropping();
     final NlModel model = parent.getModel();
-    final String stringPath = getMockupImagePath();
+    final String stringPath = getMockupImagePath(myMockup);
 
-    new CreateNewWidgetAction(model, fqcn, parent, selection, parentCropping, stringPath)
+    new CreateNewComponentAction(mySurface, model, fqcn, parent, selection, parentCropping, stringPath)
       .execute();
   }
 
@@ -86,9 +84,10 @@ public class WidgetCreator {
    * @param bounds       bounds where the include tag will be located
    * @param resourceName name of the layout that will appear in the attribute include="@layout/resourceName"
    */
-  private void createIncludeTag(Rectangle bounds, String resourceName) {
-    final String stringPath = getMockupImagePath();
-    new WriteIncludeTagAction(resourceName, bounds, stringPath)
+  private void createIncludeTag(@NotNull Rectangle bounds, @NotNull String resourceName) {
+    final String stringPath = getMockupImagePath(myMockup);
+    new WriteIncludeTagAction(mySurface, myMockup, myMockup.getComponent().getModel(),
+                              resourceName, bounds, stringPath)
       .execute();
   }
 
@@ -97,21 +96,21 @@ public class WidgetCreator {
    *
    * @param bounds bounds of the include tag. Also use to define the size of the new layout
    */
-  public void createNewIncludedLayout(final Rectangle bounds) {
-    final AndroidFacet facet = myMockup.getComponent().getModel().getFacet();
-    final ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.LAYOUT);
-    final XmlFile newFile = CreateResourceFileAction.createFileResource(
+  public void createNewIncludedLayout(@NotNull Rectangle bounds) {
+    AndroidFacet facet = myMockup.getComponent().getModel().getFacet();
+    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.LAYOUT);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(
       facet, folderType, null, null, null, true, null, null, null, false);
 
     if (newFile == null) {
       return;
     }
-    final XmlTag rootTag = newFile.getRootTag();
+    XmlTag rootTag = newFile.getRootTag();
     if (rootTag == null) {
       return;
     }
-    final NlModel nlModel = NlModel.create(myScreenView.getSurface(), newFile.getProject(), facet, newFile);
-    final ModelListener listener = new ModelListener() {
+    NlModel nlModel = NlModel.create(mySurface, newFile.getProject(), facet, newFile);
+    ModelListener listener = new ModelListener() {
 
       @Override
       public void modelChanged(@NotNull NlModel model) {
@@ -123,15 +122,15 @@ public class WidgetCreator {
         if (model.getComponents().isEmpty()) {
           return;
         }
-        final NlComponent component = model.getComponents().get(0);
-        new AddAttributeToNewLayout(newFile, component, bounds)
+        NlComponent component = model.getComponents().get(0);
+        new AddAttributeToNewLayout(myMockup, newFile, component, bounds)
           .execute();
       }
     };
     nlModel.addListener(listener);
     nlModel.render();
 
-    final String resourceName = getResourceName(newFile);
+    String resourceName = getResourceName(newFile);
     createIncludeTag(bounds, resourceName);
   }
 
@@ -142,7 +141,7 @@ public class WidgetCreator {
    * @return the resource name
    */
   @NotNull
-  private static String getResourceName(XmlFile newFile) {
+  private static String getResourceName(@NotNull XmlFile newFile) {
     return AndroidCommonUtils.getResourceName(
       ResourceType.LAYOUT.getName(),
       newFile.getName());
@@ -153,15 +152,16 @@ public class WidgetCreator {
    *
    * @param component the component where the attributes will be added
    */
-  private void addShowInAttribute(NlComponent component) {
-    final String showInName = getResourceName(myScreenView.getModel().getFile());
+  private static void addShowInAttribute(@NotNull NlComponent component) {
+    final String showInName = getResourceName(component.getModel().getFile());
     component.setAttribute(TOOLS_URI, ATTR_SHOW_IN, LAYOUT_RESOURCE_PREFIX + showInName);
   }
 
-  private String getMockupImagePath() {
+  @NotNull
+  private static String getMockupImagePath(@NotNull Mockup mockup) {
     final Path xmlFilePath = MockupFileHelper.getXMLFilePath(
-      myScreenView.getModel().getProject(),
-      myMockup.getFilePath());
+      mockup.getComponent().getModel().getProject(),
+      mockup.getFilePath());
     return xmlFilePath != null ? xmlFilePath.toString() : "";
   }
 
@@ -170,7 +170,10 @@ public class WidgetCreator {
    *
    * @param component the component where the attributes will be added
    */
-  private static void addMockupAttributes(NlComponent component, Rectangle parentCropping, Rectangle bounds, String mockupImagePath) {
+  private static void addMockupAttributes(@NotNull NlComponent component,
+                                          @NotNull Rectangle parentCropping,
+                                          @NotNull Rectangle bounds,
+                                          @NotNull String mockupImagePath) {
     component.setAttribute(TOOLS_URI, ATTR_MOCKUP, mockupImagePath);
     // Add the selected part of the mockup as the new mockup of this component
     final Mockup newMockup = Mockup.create(component);
@@ -188,11 +191,12 @@ public class WidgetCreator {
    * @param component
    * @param bounds
    */
-  private void addLayoutEditorPositionAttribute(NlComponent component, Rectangle bounds) {
+  private static void addLayoutEditorPositionAttribute(@NotNull NlComponent component, @NotNull Rectangle bounds) {
+    final NlModel model = component.getModel();
     component.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                           String.format("%ddp", Coordinates.pxToDp(myScreenView, bounds.x)));
+                           String.format("%ddp", pxToDp(model, bounds.x)));
     component.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                           String.format("%ddp", Coordinates.pxToDp(myScreenView, bounds.y)));
+                           String.format("%ddp", pxToDp(model, bounds.y)));
   }
 
   /**
@@ -201,11 +205,12 @@ public class WidgetCreator {
    * @param component
    * @param bounds
    */
-  private void addSizeAttributes(NlComponent component, Rectangle bounds) {
+  private static void addSizeAttributes(@NotNull NlComponent component, @NotNull Rectangle bounds) {
+    final NlModel model = component.getModel();
     component.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH,
-                           String.format("%ddp", Coordinates.pxToDp(myScreenView, bounds.width)));
+                           String.format("%ddp", pxToDp(model, bounds.width)));
     component.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT,
-                           String.format("%ddp", Coordinates.pxToDp(myScreenView, bounds.height)));
+                           String.format("%ddp", pxToDp(model, bounds.height)));
   }
 
   /**
@@ -214,54 +219,75 @@ public class WidgetCreator {
    * @param component
    * @param resourceName
    */
-  private static void addIncludeAttribute(NlComponent component, String resourceName) {
+  private static void addIncludeAttribute(@NotNull NlComponent component, @NotNull String resourceName) {
     component.setAttribute(null, ATTR_LAYOUT, LAYOUT_RESOURCE_PREFIX + resourceName);
+  }
+
+  @AndroidDpCoordinate
+  private static int pxToDp(@NotNull NlModel model, @AndroidCoordinate int px) {
+    final float dpiValue = model.getConfiguration().getDensity().getDpiValue();
+    return Math.round(px * (Density.DEFAULT_DENSITY / dpiValue));
   }
 
   /**
    * Create a new include tag and add it to the NlModel
    */
-  private class WriteIncludeTagAction extends WriteCommandAction {
+  private static class WriteIncludeTagAction extends WriteCommandAction {
 
     public static final String ACTION_TITLE = "Include new layout";
     private final NlComponent myParent;
-    private final String myResourceName;
-    private final Rectangle mySelection;
+    @NotNull private final String myResourceName;
+    @NotNull private final Rectangle mySelection;
     private final Rectangle myParentCropping;
-    private final String myStringPath;
+    @NotNull private final String myStringPath;
+    @NotNull private final DesignSurface mySurface;
+    @NotNull private final NlModel myModel;
 
-    public WriteIncludeTagAction(String resourceName,
-                                 Rectangle selection,
-                                 String stringPath) {
-      super(myModel.getProject(), ACTION_TITLE, MOCKUP_NEW_LAYOUT_CREATION_ID, myModel.getFile());
-      myParent = myMockup.getComponent();
+    public WriteIncludeTagAction(@NotNull DesignSurface surface,
+                                 @NotNull Mockup mockup,
+                                 @NotNull NlModel model,
+                                 @NotNull String resourceName,
+                                 @NotNull Rectangle selection,
+                                 @NotNull String stringPath) {
+      super(model.getProject(), ACTION_TITLE, MOCKUP_NEW_LAYOUT_CREATION_ID, model.getFile());
+      mySurface = surface;
+      myModel = model;
+      myParent = mockup.getComponent();
       myResourceName = resourceName;
       mySelection = selection;
-      myParentCropping = myMockup.getRealCropping();
+      myParentCropping = mockup.getRealCropping();
       myStringPath = stringPath;
     }
 
     @Override
     protected void run(@NotNull Result result) throws Throwable {
-      final NlComponent component = myModel.createComponent(
-        myScreenView, VIEW_INCLUDE, myParent, null, InsertType.CREATE_PREVIEW);
-      addIncludeAttribute(component, myResourceName);
-      addLayoutEditorPositionAttribute(component, mySelection);
-      addSizeAttributes(component, mySelection);
-      addMockupAttributes(component, myParentCropping, mySelection, myStringPath);
+      final ScreenView currentScreenView = mySurface.getCurrentScreenView();
+      if (currentScreenView != null) {
+        final NlComponent component = myModel.createComponent(
+          currentScreenView, VIEW_INCLUDE, myParent, null, InsertType.CREATE_PREVIEW);
+        addIncludeAttribute(component, myResourceName);
+        addLayoutEditorPositionAttribute(component, mySelection);
+        addSizeAttributes(component, mySelection);
+        addMockupAttributes(component, myParentCropping, mySelection, myStringPath);
+      }
     }
   }
 
   /**
    * Add the mockup and size attribute to the newly created layout
    */
-  private class AddAttributeToNewLayout extends WriteCommandAction {
+  private static class AddAttributeToNewLayout extends WriteCommandAction {
 
-    private final NlComponent myComponent;
-    private final Rectangle mySelection;
+    @NotNull private final NlComponent myComponent;
+    @NotNull private final Rectangle mySelection;
+    @NotNull private final Mockup myMockup;
 
-    public AddAttributeToNewLayout(XmlFile newFile, NlComponent component, Rectangle selection) {
+    public AddAttributeToNewLayout(@NotNull Mockup mockup,
+                                   @NotNull XmlFile newFile,
+                                   @NotNull NlComponent component,
+                                   @NotNull Rectangle selection) {
       super(newFile.getProject(), "Create new layout", MOCKUP_NEW_LAYOUT_CREATION_ID, newFile);
+      myMockup = mockup;
       myComponent = component;
       mySelection = selection;
     }
@@ -269,7 +295,7 @@ public class WidgetCreator {
     @Override
     protected void run(@NotNull Result result) throws Throwable {
       addSizeAttributes(myComponent, mySelection);
-      addMockupAttributes(myComponent, myMockup.getCropping(), mySelection, getMockupImagePath());
+      addMockupAttributes(myComponent, myMockup.getCropping(), mySelection, getMockupImagePath(myMockup));
       addShowInAttribute(myComponent);
     }
   }
@@ -277,37 +303,43 @@ public class WidgetCreator {
   /**
    * Create a new widget, using the provided fqcn, inside the mockup's component
    */
-  private class CreateNewWidgetAction extends WriteCommandAction {
+  private static class CreateNewComponentAction extends WriteCommandAction {
 
-    private final NlModel myModel;
-    private final String myFqcn;
-    private final NlComponent myParent;
-    private final Rectangle mySelection;
-    private final Rectangle myParentCropping;
-    private final String myStringPath;
+    @NotNull private final NlModel myModel;
+    @NotNull private final String myFqcn;
+    @NotNull private final NlComponent myParent;
+    @NotNull private final Rectangle myComponentBounds;
+    @NotNull private final Rectangle myParentCropping;
+    @NotNull private final String myMockupPath;
+    @NotNull private final DesignSurface mySurface;
 
-    public CreateNewWidgetAction(NlModel model,
-                                 String fqcn,
-                                 NlComponent parent,
-                                 Rectangle selection,
-                                 Rectangle parentCropping,
-                                 String stringPath) {
+    public CreateNewComponentAction(@NotNull DesignSurface surface,
+                                    @NotNull NlModel model,
+                                    @NotNull String fqcn,
+                                    @NotNull NlComponent parent,
+                                    @NotNull Rectangle componentBounds,
+                                    @NotNull Rectangle parentCropping,
+                                    @NotNull String mockupPath) {
       super(model.getProject(), model.getFile());
+      mySurface = surface;
       myModel = model;
       myFqcn = fqcn;
       myParent = parent;
-      mySelection = selection;
+      myComponentBounds = componentBounds;
       myParentCropping = parentCropping;
-      myStringPath = stringPath;
+      myMockupPath = mockupPath;
     }
 
     @Override
     protected void run(@NotNull Result result) throws Throwable {
-      final NlComponent component = myModel.createComponent(
-        myScreenView, myFqcn, myParent, null, InsertType.CREATE);
-      addLayoutEditorPositionAttribute(component, mySelection);
-      addSizeAttributes(component, mySelection);
-      addMockupAttributes(component, myParentCropping, mySelection, myStringPath);
+      final ScreenView currentScreenView = mySurface.getCurrentScreenView();
+      if (currentScreenView != null) {
+        final NlComponent component = myModel.createComponent(
+          currentScreenView, myFqcn, myParent, null, InsertType.CREATE);
+        addLayoutEditorPositionAttribute(component, myComponentBounds);
+        addSizeAttributes(component, myComponentBounds);
+        addMockupAttributes(component, myParentCropping, myComponentBounds, myMockupPath);
+      }
     }
   }
 }

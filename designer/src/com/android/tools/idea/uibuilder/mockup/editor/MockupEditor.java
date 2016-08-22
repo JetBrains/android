@@ -21,91 +21,114 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
+import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.pixelprobe.*;
+import com.android.tools.pixelprobe.PixelProbe;
 import com.android.tools.pixelprobe.Image;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.TextAccessor;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.TreePath;
+import javax.swing.border.CompoundBorder;
 import java.awt.*;
-import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
+/**
+ * Panel displaying the mockup and allowing actions like
+ * cropping and widget extraction
+ */
+public class MockupEditor extends JPanel {
 
-public class MockupEditor implements Disposable {
   public static final Logger LOG = Logger.getInstance(MockupEditor.class);
-  public static final String TITLE = "Mockup Editor";
+  private static final String TITLE = "Mockup Editor";
+  private static final Dimension MINIMUM_SIZE = new Dimension(100, 100);
+  private final myModelListener myModelListener;
 
-  private static final double RELATIVE_SIZE_TO_SOURCE = 0.90;
-  private static WeakHashMap<ScreenView, MockupEditor> ourOpenedEditors = new WeakHashMap<>();
-  private Mockup myMockup;
-  private final ScreenView myScreenView;
+  @Nullable private NlModel myModel;
+  @Nullable private Mockup myMockup;
 
-  private FrameWrapper myFrameWrapper;
-  private JTextField myViewTypeTextField;
-  private TextFieldWithBrowseButton myFileChooser;
-  private JPanel myContentPane;
-  private JButton myCloseButton;
-  private JPanel myCropTool;
-  private NlComponentTree myComponentTree;
-  private MockupViewPanel myMockupViewPanel;
-  private List<MockupEditorListener> myEditorListeners;
-  private Set<Tool> myActiveTools;
-
-  private ExtractWidgetTool myExtractWidgetTool;
+  private final List<MockupEditorListener> myEditorListeners = new ArrayList<>();
+  private final Set<Tool> myActiveTools = new HashSet<>();
+  private final ExtractWidgetTool myExtractWidgetTool;
   private final Mockup.MockupModelListener myMockupListener;
 
-  public MockupEditor(ScreenView screenView, Mockup mockup) {
-    myMockup = mockup;
-    myScreenView = screenView;
+  // UI
+  private final MockupViewPanel myMockupViewPanel;
+  private final MyTopBar myTopBar;
+
+  public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    super(new BorderLayout());
+    myModelListener = new myModelListener(this);
+    setModel(model);
+    surface.addListener(new MyDesignSurfaceListener(this));
     myMockupListener = this::repopulateFields;
-    repopulateFields(myMockup);
-    myCloseButton.addActionListener(e -> {
-      ourOpenedEditors.remove(screenView);
-      Disposer.dispose(myFrameWrapper);
-    });
-    myFileChooser.addActionListener(new FileChooserActionListener());
+    myMockupViewPanel = new MockupViewPanel(this);
+    myExtractWidgetTool = new ExtractWidgetTool(surface, this);
+
+    add(myMockupViewPanel, BorderLayout.CENTER);
+    myTopBar = new MyTopBar(this);
+    add(myTopBar, BorderLayout.NORTH);
+    myExtractWidgetTool.enable(this);
+
+    setMinimumSize(MINIMUM_SIZE);
+    init();
   }
 
-  private void createUIComponents() {
-    myMockup.addMockupListener(myMockupListener);
-    myEditorListeners = new ArrayList<>();
-    myActiveTools = new HashSet<>();
-    myMockupViewPanel = new MockupViewPanel(myMockup, this);
-    myCropTool = new CropTool(myMockup, this);
-    myExtractWidgetTool = new ExtractWidgetTool(myMockup, myScreenView, myMockupViewPanel, this);
-    myExtractWidgetTool.enable(myMockupViewPanel);
-    myComponentTree = new NlComponentTree(myScreenView.getSurface());
-    myComponentTree.addMouseListener(new ComponentTreeMouseListener());
-    myComponentTree.setToggleClickCount(3);
-    myComponentTree.setDropTarget(new DropTarget(myComponentTree, new MockupDropListener(myComponentTree)));
-    myComponentTree.setExpandableItemsEnabled(true);
+
+  private void init() {
+    if (myModel != null) {
+      List<NlComponent> selection = myModel.getSelectionModel().getSelection();
+      if (selection.isEmpty()) {
+        selection = myModel.getComponents();
+      }
+      selectionUpdated(myModel, selection);
+    }
+  }
+
+  /**
+   * Update the currently displayed mockup with the new selection
+   *
+   * @param model     The model where the selection has been made
+   * @param selection The selected component
+   */
+  private void selectionUpdated(@Nullable NlModel model, @NotNull List<NlComponent> selection) {
+    Mockup mockup = myMockup;
+    if (model != null &&
+        (selection.isEmpty() || !Mockup.hasMockupAttribute(selection.get(0)))) {
+      // If the first element of the selection does not have a mockup attribute
+      selection = model.getComponents();
+    }
+
+    if (!selection.isEmpty()) {
+      NlComponent component = selection.get(0);
+      mockup = Mockup.create(component, true);
+      if (mockup == null) {
+        return;
+      }
+    }
+    if (mockup != myMockup) {
+      showMockupInEditor(mockup);
+    }
   }
 
   /**
@@ -113,7 +136,7 @@ public class MockupEditor implements Disposable {
    *
    * @param mockup the new mockup to display in the editor
    */
-  private void updateMockup(Mockup mockup) {
+  private void showMockupInEditor(@Nullable Mockup mockup) {
     resetTools();
     if (mockup != myMockup) {
       setMockup(mockup);
@@ -122,27 +145,18 @@ public class MockupEditor implements Disposable {
     notifyListeners(mockup);
   }
 
-  /**
-   * Brings this editor in front of others windows
-   */
-  private void toFront() {
-    if (myFrameWrapper != null) {
-      myFrameWrapper.getFrame().toFront();
-    }
-  }
-
-  private void setMockup(Mockup mockup) {
+  private void setMockup(@Nullable Mockup mockup) {
     if (myMockup != null) {
       myMockup.removeMockupListener(myMockupListener);
     }
     myMockup = mockup;
-    myMockup.addMockupListener(myMockupListener);
+    if (myMockup != null) {
+      myMockup.addMockupListener(myMockupListener);
+    }
   }
 
   private void notifyListeners(Mockup mockup) {
-    for (int i = 0; i < myEditorListeners.size(); i++) {
-      myEditorListeners.get(i).editorUpdated(mockup);
-    }
+    myEditorListeners.forEach(listener -> listener.editorUpdated(mockup));
   }
 
   /**
@@ -151,11 +165,14 @@ public class MockupEditor implements Disposable {
    *
    * @param mockup
    */
-  private void repopulateFields(Mockup mockup) {
-    final VirtualFile virtualFile = mockup.getVirtualFile();
+  private void repopulateFields(@Nullable Mockup mockup) {
+    if (mockup == null) {
+      return;
+    }
+    VirtualFile virtualFile = mockup.getVirtualFile();
     UIUtil.invokeLaterIfNeeded(() -> {
-      myFileChooser.setText(virtualFile != null ? virtualFile.getPath() : null);
-      myViewTypeTextField.setText(mockup.getComponent().getTagName());
+      String fileName = virtualFile != null ? virtualFile.getPath() : null;
+      myTopBar.setFileName(fileName);
     });
   }
 
@@ -165,11 +182,11 @@ public class MockupEditor implements Disposable {
     }
   }
 
-  public void removeListener(MockupEditorListener listener) {
+  public void removeListener(@NotNull MockupEditorListener listener) {
     myEditorListeners.remove(listener);
   }
 
-  @Nullable
+  @NotNull
   public MockupViewPanel getMockupViewPanel() {
     return myMockupViewPanel;
   }
@@ -180,10 +197,10 @@ public class MockupEditor implements Disposable {
    */
   private void resetTools() {
     for (Tool activeTool : myActiveTools) {
-      activeTool.disable(myMockupViewPanel);
+      activeTool.disable(this);
     }
     myActiveTools.clear();
-    myExtractWidgetTool.enable(myMockupViewPanel);
+    myExtractWidgetTool.enable(this);
   }
 
   /**
@@ -191,11 +208,11 @@ public class MockupEditor implements Disposable {
    *
    * @param tool the tool to disable
    */
-  public void disableTool(Tool tool) {
-    tool.disable(myMockupViewPanel);
+  public void disableTool(@NotNull Tool tool) {
+    tool.disable(this);
     myActiveTools.remove(tool);
     if (myActiveTools.isEmpty()) {
-      myExtractWidgetTool.enable(myMockupViewPanel);
+      myExtractWidgetTool.enable(this);
     }
   }
 
@@ -204,23 +221,33 @@ public class MockupEditor implements Disposable {
    *
    * @param tool the tool to enable
    */
-  public void enableTool(Tool tool) {
-    myExtractWidgetTool.disable(myMockupViewPanel);
-    tool.enable(myMockupViewPanel);
+  public void enableTool(@NotNull Tool tool) {
+    myExtractWidgetTool.disable(this);
+    tool.enable(this);
     myActiveTools.add(tool);
   }
 
-  protected JPanel getContentPane() {
-    return myContentPane;
+  @Nullable
+  public Mockup getMockup() {
+    return myMockup;
   }
 
-  @Override
-  public void dispose() {
-    ourOpenedEditors.remove(myScreenView);
-  }
+  private void setModel(@Nullable NlModel model) {
+    if (model == myModel) {
+      return;
+    }
+    if (myModel != null) {
+      myModel.removeListener(myModelListener);
+    }
+    myModel = model;
+    if (myModel != null) {
+      myModel.addListener(myModelListener);
+    }
+    List<NlComponent> selection = myModel != null
+                                  ? myModel.getSelectionModel().getSelection()
+                                  : Collections.emptyList();
 
-  public void setFrameWrapper(FrameWrapper frameWrapper) {
-    myFrameWrapper = frameWrapper;
+    selectionUpdated(myModel, selection);
   }
 
   /**
@@ -232,66 +259,159 @@ public class MockupEditor implements Disposable {
      * The implementing class should set mockupViewPanel to the
      * needed state for itself
      *
-     * @param mockupViewPanel The {@link MockupViewPanel} on which the {@link Tool} behave
+     * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
      */
-    void enable(MockupViewPanel mockupViewPanel);
+    void enable(@NotNull MockupEditor mockupEditor);
 
     /**
-     * The implementing class should reset mockupViewPanel to the state it was before {@link #enable(MockupViewPanel)}.
+     * The implementing class should reset mockupViewPanel to the state it was before {@link #enable(MockupEditor)}.
      * Can use {@link MockupViewPanel#resetState()}.
      * needed state for itself
      *
-     * @param mockupViewPanel The {@link MockupViewPanel} on which the {@link Tool} behave
+     * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
      */
-    void disable(MockupViewPanel mockupViewPanel);
+    void disable(@NotNull MockupEditor mockupEditor);
   }
 
-  private class FileChooserActionListener implements ActionListener {
+  /**
+   * Listener to update the editor when the selection or model has changed
+   */
+  private static class MyDesignSurfaceListener implements DesignSurfaceListener {
+    MockupEditor myEditor;
+
+    public MyDesignSurfaceListener(@NotNull MockupEditor editor) {
+      myEditor = editor;
+    }
+
+    @Override
+    public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+      myEditor.selectionUpdated(myEditor.myModel, newSelection);
+    }
+
+    @Override
+    public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+    }
+
+    @Override
+    public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+      myEditor.setModel(model);
+    }
+
+
+    @Override
+    public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+      return false;
+    }
+  }
+
+  /**
+   * Bar on top showing the title and actions
+   */
+  private static class MyTopBar extends JPanel {
+    private final MockupEditor myMockupEditor;
+    private TextFieldWithBrowseButton myFileChooser;
+
+    MyTopBar(@NotNull MockupEditor mockupEditor) {
+      super(new BorderLayout());
+      myMockupEditor = mockupEditor;
+      add(createTitleBar(), BorderLayout.NORTH);
+      add(createActionBar(), BorderLayout.SOUTH);
+    }
+
+    @NotNull
+    private JPanel createActionBar() {
+      JPanel actionBar = new JPanel(new BorderLayout());
+      JPanel cropTool = new CropTool(myMockupEditor);
+      actionBar.add(cropTool, BorderLayout.EAST);
+      actionBar.setBorder(new CompoundBorder(
+        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+        IdeBorderFactory.createEmptyBorder(0, 10, 0, 5)));
+      return actionBar;
+    }
+
+    @NotNull
+    private JPanel createTitleBar() {
+      JPanel titleBar = new JPanel(new BorderLayout());
+      myFileChooser = new TextFieldWithBrowseButton();
+      myFileChooser.setEditable(false);
+      myFileChooser.addActionListener(new FileChooserActionListener(myMockupEditor));
+
+      titleBar.add(myFileChooser, BorderLayout.EAST);
+      titleBar.add(new JBLabel(TITLE), BorderLayout.WEST);
+      titleBar.setBorder(new CompoundBorder(
+        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+        IdeBorderFactory.createEmptyBorder(1, 5, 1, 10)));
+      return titleBar;
+    }
+
+    private void setFileName(String fileName) {
+      myFileChooser.setText(fileName);
+    }
+  }
+
+  /**
+   * Listener for the file chooser
+   */
+  private static class FileChooserActionListener implements ActionListener {
+
+    private MockupEditor myMockupEditor;
+
+    public FileChooserActionListener(@NotNull MockupEditor mockupEditor) {
+      myMockupEditor = mockupEditor;
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (myMockup == null) {
+
+      Mockup mockup = myMockupEditor.getMockup();
+      if (mockup == null) {
         return;
       }
-      final FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
-      VirtualFile selectedFile = myMockup.getVirtualFile();
+      FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
+      VirtualFile selectedFile = mockup.getVirtualFile();
 
       FileChooser.chooseFile(
-        descriptor, null, myContentPane, selectedFile,
+        descriptor, null, myMockupEditor, selectedFile,
         (virtualFile) -> {
-          if (myMockup.getComponent().isRoot()) {
-            openDeviceChoiceDialog(virtualFile);
+          if (mockup.getComponent().isRoot()) {
+            openDeviceChoiceDialog(virtualFile, mockup);
           }
           else {
-            saveMockupFile(virtualFile);
+            saveMockupFile(virtualFile, mockup);
+            TextAccessor textAccessor = e.getSource() instanceof TextAccessor ? ((TextAccessor)e.getSource()) : null;
+            if (textAccessor != null) {
+              textAccessor.setText(virtualFile.getPath());
+            }
           }
         });
     }
 
     /**
      * Open a dialog asking to choose a device whose dimensions match those of the image
+     *
      * @param virtualFile
+     * @param mockup
      */
-    private void openDeviceChoiceDialog(VirtualFile virtualFile) {
+    private static void openDeviceChoiceDialog(VirtualFile virtualFile, @NotNull Mockup mockup) {
       if (virtualFile.exists() && !virtualFile.isDirectory()) {
         try {
-          final Image probe = PixelProbe.probe(virtualFile.getInputStream());
-          final BufferedImage image = probe.getMergedImage();
+          Image probe = PixelProbe.probe(virtualFile.getInputStream());
+          BufferedImage image = probe.getMergedImage();
           if (image == null) {
             return;
           }
-          final NlModel model = myMockup.getComponent().getModel();
-          final Configuration configuration = model.getConfiguration();
-          final Device device = configuration.getDevice();
+          NlModel model = mockup.getComponent().getModel();
+          Configuration configuration = model.getConfiguration();
+          Device device = configuration.getDevice();
           if (device == null) {
             return;
           }
 
           ApplicationManager.getApplication().invokeLater(() -> {
-            final DeviceSelectionPopup deviceSelectionPopup =
+            DeviceSelectionPopup deviceSelectionPopup =
               new DeviceSelectionPopup(model.getProject(), configuration, image);
             if (deviceSelectionPopup.showAndGet()) {
-              saveMockupFile(virtualFile);
+              saveMockupFile(virtualFile, mockup);
             }
           });
         }
@@ -301,9 +421,8 @@ public class MockupEditor implements Disposable {
       }
     }
 
-    private void saveMockupFile(VirtualFile virtualFile) {
-      MockupFileHelper.writeFileNameToXML(virtualFile, myMockup.getComponent());
-      myFileChooser.setText(virtualFile.getName());
+    private static void saveMockupFile(VirtualFile virtualFile, @NotNull Mockup mockup) {
+      MockupFileHelper.writeFileNameToXML(virtualFile, mockup.getComponent());
     }
   }
 
@@ -311,80 +430,24 @@ public class MockupEditor implements Disposable {
    * Notify when the currently displayed mockup has been changed
    */
   public interface MockupEditorListener {
-
     void editorUpdated(Mockup mockup);
   }
 
-  private class ComponentTreeMouseListener extends MouseAdapter {
+  private static class myModelListener implements ModelListener {
+    private final MockupEditor myMockupEditor;
+
+    public myModelListener(MockupEditor mockupEditor) {
+      myMockupEditor = mockupEditor;
+    }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-      if (e.getClickCount() == 1) {
-        TreePath path = myComponentTree.getPathForLocation(e.getX(), e.getY());
-        Object component;
-        if (path != null) {
-          component = path.getLastPathComponent();
-        }
-        else {
-          component = myComponentTree.getLastSelectedPathComponent();
-        }
-        if (component instanceof NlComponent) {
-          create(myScreenView, (NlComponent)component);
-        }
-      }
-    }
-  }
-
-  /**
-   * Create a popup showing the tools to edit the mockup of the selected component
-   */
-  public static void create(ScreenView screenView, @Nullable NlComponent component) {
-
-    // Do not show the popup if nothing is selected
-    if (component == null) {
-      return;
-    }
-    final Mockup mockup = Mockup.create(component, true);
-    if (mockup == null) {
-      return;
+    public void modelChanged(@NotNull NlModel model) {
+      myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection());
     }
 
-    final DesignSurface designSurface = screenView.getSurface();
-
-    // If an editor with the same screenView is already open,
-    // update it with the new mockup
-    if (ourOpenedEditors.containsKey(screenView)) {
-      final MockupEditor editor = ourOpenedEditors.get(screenView);
-      editor.updateMockup(mockup);
-      editor.toFront();
-      return;
+    @Override
+    public void modelRendered(@NotNull NlModel model) {
+      myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection());
     }
-
-    final MockupEditor editor = new MockupEditor(screenView, mockup);
-
-    // Find the parent window to display the editor in the middle
-    Component rootPane = SwingUtilities.getRoot(designSurface);
-    final Dimension minSize = new Dimension((int)Math.round(rootPane.getWidth() * RELATIVE_SIZE_TO_SOURCE),
-                                            (int)Math.round(rootPane.getHeight() * RELATIVE_SIZE_TO_SOURCE));
-
-    FrameWrapper frame = new FrameWrapper(designSurface.getProject());
-    frame.setTitle(String.format("%s - %s - %s",
-                                 screenView.getModel().getProject().getName(),
-                                 TITLE,
-                                 screenView.getModel().getFile().getName()));
-    frame.setComponent(editor.myContentPane);
-    frame.setSize(minSize);
-    frame.addDisposable(editor);
-    Point point = new Point(
-      (int)Math.round(rootPane.getX() + (rootPane.getWidth()) / 2 - minSize.getWidth() / 2),
-      (int)Math.round(rootPane.getY() + (rootPane.getHeight()) / 2 - minSize.getHeight() / 2));
-
-    frame.setLocation(point);
-    frame.getFrame().setSize(minSize);
-    frame.show();
-
-    editor.setFrameWrapper(frame);
-    // Keep track of the opened Editor to open only one by ScreenView
-    ourOpenedEditors.put(screenView, editor);
   }
 }
