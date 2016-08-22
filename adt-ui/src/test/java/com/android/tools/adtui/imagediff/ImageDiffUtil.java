@@ -55,6 +55,7 @@ public final class ImageDiffUtil {
     addAll(new LineChartEntriesRegistrar().getImageDiffEntries());
     addAll(new StateChartEntriesRegistrar().getImageDiffEntries());
     addAll(new EventEntriesRegistrar().getImageDiffEntries());
+    addAll(new AccordionEntriesRegistrar().getImageDiffEntries());
   }});
 
   static {
