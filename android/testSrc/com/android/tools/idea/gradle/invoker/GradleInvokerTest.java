@@ -47,7 +47,7 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject("guiTests/SimpleApplication", false);
+    loadProject("gradle/SimpleApplication", false);
     myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");
     assertNotNull(myModule);
 
@@ -178,7 +178,7 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
   }
 
   public void testNoTaskForAarModule() throws Exception {
-    loadProject("guiTests/LocalAarsAsModules", false);
+    loadProject("gradle/LocalAarsAsModules", false);
     myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("library-debug");
     assertNotNull(myModule);
     myInvoker = new GradleInvoker(getProject());
