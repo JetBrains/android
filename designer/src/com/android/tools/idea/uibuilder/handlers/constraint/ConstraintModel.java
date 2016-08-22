@@ -510,7 +510,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param components list of components in NlModel
    * @param deepUpdate do a thorough update or not
    */
-  private void updateNlModel(@NotNull List<NlComponent> components, boolean deepUpdate) {
+  public void updateNlModel(@NotNull List<NlComponent> components, boolean deepUpdate) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
     ArrayList<ConstraintWidget> widgets = new ArrayList<>(myWidgetsScene.getWidgets());
     if (widgets.size() > 0) {
@@ -654,7 +654,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   private static boolean isConstraintLayout(@NotNull NlComponent component) {
-    return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT);
+    return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)
+      || component.getTag().getName().equals(SdkConstants.CONSTRAINT_LAYOUT); // used during layout conversion
   }
 
   /**
