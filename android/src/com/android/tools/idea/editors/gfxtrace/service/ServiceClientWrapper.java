@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public class ServiceClientWrapper extends ServiceClient {
@@ -58,6 +59,10 @@ public class ServiceClientWrapper extends ServiceClient {
   @Override
   public ListenableFuture<String[]> getFeatures() {
     return myClient.getFeatures();
+  }
+  @Override
+  public ListenableFuture<ImageInfoPath> getFramebufferAttachment(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings) {
+    return myClient.getFramebufferAttachment(device, after, attachment, settings);
   }
   @Override
   public ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings) {
