@@ -140,6 +140,15 @@ public class GapidGrpc {
           io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance()));
   @io.grpc.ExperimentalApi
   public static final io.grpc.MethodDescriptor<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
+      com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> METHOD_GET_FRAMEBUFFER_ATTACHMENT =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "service.Gapid", "GetFramebufferAttachment"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
       com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> METHOD_GET_TIMING_INFO =
       io.grpc.MethodDescriptor.create(
           io.grpc.MethodDescriptor.MethodType.UNARY,
@@ -203,6 +212,9 @@ public class GapidGrpc {
     public void getFramebufferDepth(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
         io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver);
 
+    public void getFramebufferAttachment(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
+        io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver);
+
     public void getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
         io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver);
   }
@@ -234,6 +246,8 @@ public class GapidGrpc {
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferColor(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferDepth(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
+
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferAttachment(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
   }
@@ -277,6 +291,9 @@ public class GapidGrpc {
         com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getFramebufferDepth(
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getFramebufferAttachment(
         com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getTimingInfo(
@@ -392,6 +409,13 @@ public class GapidGrpc {
     }
 
     @java.lang.Override
+    public void getFramebufferAttachment(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
+        io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_GET_FRAMEBUFFER_ATTACHMENT, getCallOptions()), request, responseObserver);
+    }
+
+    @java.lang.Override
     public void getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
         io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver) {
       asyncUnaryCall(
@@ -492,6 +516,12 @@ public class GapidGrpc {
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferDepth(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
       return blockingUnaryCall(
           getChannel(), METHOD_GET_FRAMEBUFFER_DEPTH, getCallOptions(), request);
+    }
+
+    @java.lang.Override
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferAttachment(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_GET_FRAMEBUFFER_ATTACHMENT, getCallOptions(), request);
     }
 
     @java.lang.Override
@@ -610,6 +640,13 @@ public class GapidGrpc {
     }
 
     @java.lang.Override
+    public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getFramebufferAttachment(
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_GET_FRAMEBUFFER_ATTACHMENT, getCallOptions()), request);
+    }
+
+    @java.lang.Override
     public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getTimingInfo(
         com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
       return futureUnaryCall(
@@ -630,7 +667,8 @@ public class GapidGrpc {
   private static final int METHODID_GET_DEVICES = 10;
   private static final int METHODID_GET_FRAMEBUFFER_COLOR = 11;
   private static final int METHODID_GET_FRAMEBUFFER_DEPTH = 12;
-  private static final int METHODID_GET_TIMING_INFO = 13;
+  private static final int METHODID_GET_FRAMEBUFFER_ATTACHMENT = 13;
+  private static final int METHODID_GET_TIMING_INFO = 14;
 
   private static class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -698,6 +736,10 @@ public class GapidGrpc {
           break;
         case METHODID_GET_FRAMEBUFFER_DEPTH:
           serviceImpl.getFramebufferDepth((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) request,
+              (io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>) responseObserver);
+          break;
+        case METHODID_GET_FRAMEBUFFER_ATTACHMENT:
+          serviceImpl.getFramebufferAttachment((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) request,
               (io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>) responseObserver);
           break;
         case METHODID_GET_TIMING_INFO:
@@ -813,6 +855,13 @@ public class GapidGrpc {
               com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
               com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>(
                 serviceImpl, METHODID_GET_FRAMEBUFFER_DEPTH)))
+        .addMethod(
+          METHOD_GET_FRAMEBUFFER_ATTACHMENT,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>(
+                serviceImpl, METHODID_GET_FRAMEBUFFER_ATTACHMENT)))
         .addMethod(
           METHOD_GET_TIMING_INFO,
           asyncUnaryCall(

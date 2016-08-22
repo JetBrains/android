@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -38,6 +39,7 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<CapturePath[]> getCaptures();
   public abstract ListenableFuture<DevicePath[]> getDevices();
   public abstract ListenableFuture<String[]> getFeatures();
+  public abstract ListenableFuture<ImageInfoPath> getFramebufferAttachment(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings);
   public abstract ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings);
   public abstract ListenableFuture<ImageInfoPath> getFramebufferDepth(DevicePath device, AtomPath after);
   public abstract ListenableFuture<Message> getSchema();

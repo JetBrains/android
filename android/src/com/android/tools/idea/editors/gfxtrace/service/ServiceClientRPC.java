@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.android.tools.rpclib.rpccore.Broadcaster;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -66,6 +67,10 @@ public final class ServiceClientRPC extends ServiceClient {
   @Override
   public ListenableFuture<String[]> getFeatures() {
     return myExecutorService.submit(new GetFeaturesCallable());
+  }
+  @Override
+  public ListenableFuture<ImageInfoPath> getFramebufferAttachment(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings) {
+    return myExecutorService.submit(new GetFramebufferAttachmentCallable(device, after, attachment, settings));
   }
   @Override
   public ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings) {
@@ -203,6 +208,28 @@ public final class ServiceClientRPC extends ServiceClient {
     public String[] call() throws Exception {
       try {
         ResultGetFeatures result = (ResultGetFeatures)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class GetFramebufferAttachmentCallable implements Callable<ImageInfoPath> {
+    private final CallGetFramebufferAttachment myCall;
+    private final Exception myStack = new StackException();
+
+    private GetFramebufferAttachmentCallable(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings) {
+      myCall = new CallGetFramebufferAttachment();
+      myCall.setDevice(device);
+      myCall.setAfter(after);
+      myCall.setAttachment(attachment);
+      myCall.setSettings(settings);
+    }
+    @Override
+    public ImageInfoPath call() throws Exception {
+      try {
+        ResultGetFramebufferAttachment result = (ResultGetFramebufferAttachment)myBroadcaster.Send(myCall);
         return result.getValue();
       } catch (Exception e) {
         e.initCause(myStack);

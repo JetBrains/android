@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeActio
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -30,6 +31,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 
 public class FrameBufferController extends ImagePanelController implements AtomStream.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -38,14 +40,11 @@ public class FrameBufferController extends ImagePanelController implements AtomS
 
   private static final int MAX_SIZE = 0xffff;
 
-  public enum BufferType {
-    Color,
-    Depth
-  }
-
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   @NotNull private final RenderSettings mySettings = new RenderSettings();
-  @NotNull private BufferType myBufferType = BufferType.Color;
+  @NotNull private FramebufferAttachment myFramebufferAttachment = FramebufferAttachment.Color0;
+  private boolean myMRTSupport;
+  private FramebufferTypeAction[] myMRTActions;
 
   private FrameBufferController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -57,13 +56,33 @@ public class FrameBufferController extends ImagePanelController implements AtomS
     mySettings.setWireframeMode(WireframeMode.None);
 
     initToolbar(getToolbarActions(), false);
+
+    // DEPRECATED: Logic below is to support GAPIS without the 'framebuffer-attachment' feature.
+    editor.addConnectionListener(connection -> {
+      myMRTSupport = connection.getFeatures().hasFramebufferAttachment();
+      for (FramebufferTypeAction mrtAction : myMRTActions) {
+        mrtAction.setVisible(myMRTSupport);
+      }
+    });
+    // END DEPRECATED
   }
 
   private DefaultActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color Buffer", "Display the color framebuffer",
+    group.add(new FramebufferTypeAction(this, FramebufferAttachment.Color0, "Color Buffer 0", "Display the first color framebuffer",
                                         AndroidIcons.GfxTrace.ColorBuffer));
-    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth Buffer", "Display the depth framebuffer",
+    myMRTActions = new FramebufferTypeAction[] {
+      new FramebufferTypeAction(this, FramebufferAttachment.Color1, "Color Buffer 1", "Display the second color framebuffer",
+                                AndroidIcons.GfxTrace.ColorBuffer),
+      new FramebufferTypeAction(this, FramebufferAttachment.Color2, "Color Buffer 2", "Display the third color framebuffer",
+                                AndroidIcons.GfxTrace.ColorBuffer),
+      new FramebufferTypeAction(this, FramebufferAttachment.Color3, "Color Buffer 3", "Display the fourth color framebuffer",
+                                AndroidIcons.GfxTrace.ColorBuffer),
+    };
+    for (FramebufferTypeAction mrtAction : myMRTActions) {
+      group.add(mrtAction);
+    }
+    group.add(new FramebufferTypeAction(this, FramebufferAttachment.Depth, "Depth Buffer", "Display the depth framebuffer",
                                         AndroidIcons.GfxTrace.DepthBuffer));
     group.add(new Separator());
     group.add(new FramebufferWireframeAction(this, WireframeMode.None, "Shaded", "Display the framebuffer with shaded polygons",
@@ -78,13 +97,13 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   }
 
   @NotNull
-  public BufferType getBufferType() {
-    return myBufferType;
+  public FramebufferAttachment getFramebufferAttachment() {
+    return myFramebufferAttachment;
   }
 
-  public void setBufferType(@NotNull BufferType bufferType) {
-    if (!myBufferType.equals(bufferType)) {
-      myBufferType = bufferType;
+  public void setFramebufferAttachment(@NotNull FramebufferAttachment bufferType) {
+    if (!myFramebufferAttachment.equals(bufferType)) {
+      myFramebufferAttachment = bufferType;
       updateBuffer();
     }
   }
@@ -130,13 +149,19 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   }
 
   private ListenableFuture<ImageInfoPath> getImageInfoPath(AtomPath atomPath) {
-    switch (myBufferType) {
-      case Color:
-        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(),atomPath, mySettings);
+    if (myMRTSupport) {
+      return myEditor.getClient().getFramebufferAttachment(myRenderDevice.getPath(), atomPath, myFramebufferAttachment, mySettings);
+    }
+
+    // DEPRECATED: Logic below is to support GAPIS without the 'framebuffer-attachment' feature.
+    switch (myFramebufferAttachment) {
+      case Color0:
+        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), atomPath, mySettings);
       case Depth:
         return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), atomPath);
       default:
         return null;
     }
+    // END DEPRECATED
   }
 }
