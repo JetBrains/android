@@ -24,6 +24,8 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -35,19 +37,16 @@ public class MockupEditAction extends AnAction {
 
   private final static String EDIT_ACTION_TITLE = "Edit Mockup";
   private final static String ADD_ACTION_TITLE = "Add Mockup";
-  private final ScreenView myCurrentScreenView;
+  private final MockupToggleAction myMockupToggleAction;
 
-  public MockupEditAction(DesignSurface designSurface) {
-    this(designSurface.getCurrentScreenView());
-  }
-
-  public MockupEditAction(ScreenView screenView) {
+  public MockupEditAction(@NotNull DesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
-    myCurrentScreenView = screenView;
-    if (myCurrentScreenView != null) {
-      List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
+    myMockupToggleAction = new MockupToggleAction(designSurface);
+    ScreenView screenView = designSurface.getCurrentScreenView();
+    if (screenView != null) {
+      List<NlComponent> selection = screenView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
-        selection = myCurrentScreenView.getModel().getComponents();
+        selection = screenView.getModel().getComponents();
       }
       if (!selection.isEmpty()) {
         NlComponent nlComponent = selection.get(0);
@@ -68,23 +67,8 @@ public class MockupEditAction extends AnAction {
     }
   }
 
-
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (myCurrentScreenView != null) {
-      List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
-      if(selection.isEmpty()) {
-        selection = myCurrentScreenView.getModel().getComponents();
-      }
-      if (!selection.isEmpty()) {
-        NlComponent nlComponent = selection.get(0);
-        if ((e.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK) {
-          MockupEditorPopup.create(myCurrentScreenView, nlComponent);
-        }
-        else {
-          MockupEditor.create(myCurrentScreenView, nlComponent);
-        }
-      }
-    }
+    myMockupToggleAction.setSelected(e, true);
   }
 }

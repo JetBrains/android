@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.*;
 import icons.AndroidIcons;
@@ -31,11 +33,11 @@ import javax.swing.*;
 public class MockupToggleAction extends ToggleAction {
   private final DesignSurface mySurface;
 
-  private final static String TOGGLE_ACTION_TITLE =  "Show/Hide Mockup";
+  private final static String TOGGLE_ACTION_TITLE = "Show/Hide Mockup";
 
-  public MockupToggleAction(@Nullable DesignSurface surface) {
+  public MockupToggleAction(@NotNull DesignSurface surface) {
     Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(getDesignIcon(surface != null && surface.isMockupVisible()));
+    presentation.setIcon(getDesignIcon(surface.isMockupVisible()));
     presentation.setDescription(TOGGLE_ACTION_TITLE);
     mySurface = surface;
   }
@@ -52,11 +54,22 @@ public class MockupToggleAction extends ToggleAction {
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
+    getTemplatePresentation().setEnabled(state);
     mySurface.setMockupVisible(state);
+    final MockupEditor mockupEditor = mySurface.getMockupEditor();
+    if (mockupEditor != null) {
+      if (mockupEditor.getParent() instanceof AnimatedComponentSplitter) {
+        ((AnimatedComponentSplitter)mockupEditor.getParent())
+          .showAnimateChild(mockupEditor, state);
+      }
+      else {
+        mockupEditor.setSize(mySurface.getWidth() / 3, mySurface.getHeight());
+      }
+    }
   }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setIcon(getDesignIcon(mySurface != null && mySurface.isMockupVisible()));
+    event.getPresentation().setIcon(getDesignIcon(mySurface.isMockupVisible()));
   }
 }
