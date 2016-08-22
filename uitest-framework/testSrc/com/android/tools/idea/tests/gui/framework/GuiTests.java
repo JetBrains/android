@@ -27,11 +27,11 @@ import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -55,7 +55,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jetbrains.android.AndroidPlugin;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +75,6 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -355,11 +353,12 @@ public final class GuiTests {
 
   @NotNull
   public static File getTestProjectsRootDirPath() {
-    String testDataPath = AndroidTestBase.getTestDataPath();
-    assertNotNull(testDataPath);
-    assertThat(testDataPath).isNotEmpty();
+    String testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
+    if (!new File(testDataPath).exists()) {
+      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
+    }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
-    return new File(testDataPath, "guiTests");
+    return new File(testDataPath, "testData");
   }
 
   private GuiTests() {

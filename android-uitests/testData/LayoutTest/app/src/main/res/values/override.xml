@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Overriding a resource defined in appcompat -->
+    <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>
+
+</resources>
