@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +46,6 @@ public abstract class MockupTestCase extends LayoutTestCase {
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()
-      .withAttribute("xmlns:tools", TOOLS_URI)
       .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile);
 
     if(mockupPosition != null) {
@@ -75,7 +74,6 @@ public abstract class MockupTestCase extends LayoutTestCase {
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
-                                   .withAttribute("xmlns:tools", TOOLS_URI)
                                    .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile)
                                    .withAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, mockupPosition)
                                    .children(
@@ -83,7 +81,6 @@ public abstract class MockupTestCase extends LayoutTestCase {
                                        .withBounds(0, 0, 200, 200)
                                        .wrapContentWidth()
                                        .wrapContentHeight()
-                                       .withAttribute("xmlns:tools", TOOLS_URI)
                                        .withAttribute(TOOLS_URI, ATTR_MOCKUP, mockupFile)
                                        .withAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, mockupPosition)
                                        .children(
@@ -110,7 +107,7 @@ public abstract class MockupTestCase extends LayoutTestCase {
                  "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
     return model;
   }
 }

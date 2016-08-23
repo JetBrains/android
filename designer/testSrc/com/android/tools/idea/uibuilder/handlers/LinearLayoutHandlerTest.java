@@ -16,11 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -108,13 +106,8 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        CodeStyleManager.getInstance(getProject()).reformat(model.getFile());
-      }
-    });
+                 NlTreeDumper.dumpTree(model.getComponents()));
+    format(model.getFile());
     return model;
   }
 }
