@@ -575,6 +575,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return;
     }
 
+    if (ApiDetector.isWithinVersionCheckConditional(methodCall, api)) {
+      return;
+    }
+    if (ApiDetector.isPrecededByVersionCheckExit(methodCall, api)) {
+      return;
+    }
+
     PsiClass containingClass = method.getContainingClass();
     String fqcn = containingClass != null ? containingClass.getQualifiedName() : "";
     // Keep in sync with guessLintIssue
