@@ -20,8 +20,9 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  com.android.tools.idea.IdeaTestSuite.class,
-  com.android.tools.idea.rendering.RenderSecurityManagerTest.class,
+  com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
+  com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
+  com.android.tools.idea.templates.TemplateTest.class, // we typically set DISABLE_STUDIO_TEMPLATE_TESTS because it's so slow
 })
 public class IdeaTestSuite {
   // Initialize Idea specific environment
