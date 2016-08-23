@@ -89,6 +89,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     surfaceMockupWrapper.setLastComponent(myMockupEditor);
     surfaceMockupWrapper.setDividerWidth(1);
     surfaceMockupWrapper.setDividerMouseZoneSize(1);
+    Disposer.register(editor, surfaceMockupWrapper);
 
     /**
      * Needed so the inner child of my ContentSplitter has LightFillLayout Manager
