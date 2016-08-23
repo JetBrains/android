@@ -211,6 +211,19 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.APP_NOT_RUNNING;
     }
 
+    if (device.supportsFeature(IDevice.HardwareFeature.TV) ||
+        // Sadly the current emulator image for Android TV doesn't define the above hardware feature,
+        // so look for the Android TV SDK model name specifically until these images are obsolete
+        StringUtil.notNullize(device.getProperty(IDevice.PROP_DEVICE_MODEL)).contains("sdk_google_atv_")) {
+      // Android TV currently only supports coldswap. Many Android TV apps,
+      // such as the sample app bundled with Android Studio (and various others)
+      // crash if you attempt to invoke Activity#restartActivity. It looks like
+      // the Leanback library (and possibly others) make the assumption that
+      // activities will never be restarted, perhaps because configuration changes
+      // such as an orientation change never happen on Android TV.
+      return BuildCause.ANDROID_TV_UNSUPPORTED;
+    }
+
     if (myInstantRunContext.usesMultipleProcesses()) {
       return BuildCause.APP_USES_MULTIPLE_PROCESSES;
     }
