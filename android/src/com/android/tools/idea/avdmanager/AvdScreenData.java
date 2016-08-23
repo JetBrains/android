@@ -94,21 +94,31 @@ public final class AvdScreenData {
   }
 
   /**
-   * Calculate the density resource bucket for the given dots-per-inch
+   * Calculate the density resource bucket (the "generalized density")
+   * for the device, given its dots-per-inch
    */
   @NotNull
-  public static Density getScreenDensity(double dpi) {
-    double minDifference = Double.MAX_VALUE;
+  public static Density getScreenDensity(boolean isTv, double dpi, int screenHeight) {
     Density bucket = Density.MEDIUM;
-    for (Density d : Density.values()) {
-      if (!d.isValidValueForDevice()) {
-        continue;
-      }
+
+    if (isTv) {
+      // The 'generalized density' of a TV is based on its
+      // vertical resolution
+      bucket = (screenHeight <= 720) ? Density.TV : Density.XHIGH;
+    }
+    else {
+      // A hand-held device.
       // Search for the density enum whose value is closest to the density of our device.
-      double difference = Math.abs(d.getDpiValue() - dpi);
-      if (difference < minDifference) {
-        minDifference = Math.abs(d.getDpiValue() - dpi);
-        bucket = d;
+      double minDifference = Double.MAX_VALUE;
+      for (Density d : Density.values()) {
+        if (!d.isValidValueForDevice()) {
+          continue;
+        }
+        double difference = Math.abs(d.getDpiValue() - dpi);
+        if (difference < minDifference) {
+          minDifference = difference;
+          bucket = d;
+        }
       }
     }
     return bucket;
@@ -126,33 +136,27 @@ public final class AvdScreenData {
 
     screen.setScreenRound((myDeviceData.isScreenRound().get()) ? ScreenRound.ROUND : ScreenRound.NOTROUND);
 
-    screen.setDiagonalLength(myDeviceData.diagonalScreenSize().get());
-    screen.setSize(getScreenSize(myDeviceData.diagonalScreenSize().get()));
+    int screenWidth  = myDeviceData.screenResolutionWidth().get();
+    int screenHeight = myDeviceData.screenResolutionHeight().get();
+    double screenDiagonal = myDeviceData.diagonalScreenSize().get();
 
-    screen.setXDimension(myDeviceData.screenResolutionWidth().get());
-    screen.setYDimension(myDeviceData.screenResolutionHeight().get());
+    screen.setDiagonalLength(screenDiagonal);
+    screen.setSize(getScreenSize(screenDiagonal));
+    screen.setXDimension(screenWidth);
+    screen.setYDimension(screenHeight);
 
-    screen.setRatio(getScreenRatio(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get()));
+    screen.setRatio(getScreenRatio(screenWidth, screenHeight));
 
     Double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {
-      dpi = calculateDpi(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get(),
-                         myDeviceData.diagonalScreenSize().get());
+      dpi = calculateDpi(screenWidth, screenHeight, screenDiagonal);
     }
 
     dpi = Math.round(dpi * 100) / 100.0;
     screen.setYdpi(dpi);
     screen.setXdpi(dpi);
 
-    if (myDeviceData.isTv().get()) {
-      // TVs can have varied densities, including much lower than the normal range.
-      // Set the density explicitly in that case.
-      screen.setPixelDensity(Density.TV);
-    }
-    else {
-      screen.setPixelDensity(getScreenDensity(dpi));
-    }
-
+    screen.setPixelDensity( getScreenDensity(myDeviceData.isTv().get(), dpi, screenHeight) );
     return screen;
   }
 }
