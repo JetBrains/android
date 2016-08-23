@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.junit.Assert.assertNotNull;
 
 @RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
@@ -54,7 +53,6 @@ public class ConvertToConstraintLayoutTest {
     editor.open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    assertNotNull(layout);
     layout.waitForRenderToFinish();
 
     // Find and click the first button
@@ -200,7 +198,6 @@ public class ConvertToConstraintLayoutTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    assertNotNull(layout);
     layout.waitForRenderToFinish();
 
     // Find and click the first text View
