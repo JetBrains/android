@@ -97,7 +97,9 @@ public class GradleSync {
     callback.doWhenDone(() -> {
       assert callback instanceof SyncCallback;
       SyncAction.ProjectModels models = ((SyncCallback)callback).getModels();
-      setUpProject(models);
+      ProjectConfigurator configurator = new ProjectConfigurator(myProject);
+      configurator.apply(models);
+      configurator.commit(true /* synchronous */);
     });
   }
 
@@ -144,10 +146,6 @@ public class GradleSync {
 
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     return callback;
-  }
-
-  private void setUpProject(@Nullable SyncAction.ProjectModels models) {
-
   }
 
   @NotNull
