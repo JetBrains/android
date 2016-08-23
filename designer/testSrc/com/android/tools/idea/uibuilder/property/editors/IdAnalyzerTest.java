@@ -131,12 +131,6 @@ public class IdAnalyzerTest extends LayoutTestCase {
       ));
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    LayoutTestUtilities.resetComponentTestIds();
-    super.tearDown();
-  }
-
   private ModelBuilder createRelativeLayout() {
     return model("relative.xml", component(RELATIVE_LAYOUT)
       .withBounds(0, 0, 1000, 1000)

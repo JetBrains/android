@@ -87,13 +87,14 @@ public class NlPreviewManager implements ProjectComponent {
 
   @Override
   public void projectOpened() {
-    StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
-      @Override
-      public void run() {
-        myToolWindowReady = true;
-        processFileEditorChange(getActiveLayoutXmlEditor());
-      }
+    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
+      myToolWindowReady = true;
+      processFileEditorChange(getActiveLayoutXmlEditor());
     });
+  }
+
+  public boolean isWindowVisible() {
+    return myToolWindow != null && myToolWindow.isVisible();
   }
 
   protected boolean isUseInteractiveSelector() {

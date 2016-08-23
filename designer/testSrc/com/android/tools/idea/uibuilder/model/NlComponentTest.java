@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
@@ -26,8 +26,9 @@ import java.util.Collections;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public final class NlComponentTest extends AndroidTestCase {
   private NlModel myModel;
@@ -80,7 +81,7 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[10,110:400x100}",
-                 LayoutTestUtilities.toTree(Collections.singletonList(linearLayout)));
+                 NlTreeDumper.dumpTree(Collections.singletonList(linearLayout)));
   }
 
   private XmlTag createTagFromXml(String xml) {
