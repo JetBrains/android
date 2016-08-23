@@ -679,6 +679,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     companion.setWidgetTag(component);
     widget.setCompanionWidget(companion);
     widget.setDebugName(component.getId());
+    ConstraintUtilities.updateWidget(this, widget, component);
   }
 
   /**
@@ -739,7 +740,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
       }
     }
-    ConstraintUtilities.updateWidget(this, widget, component, deepUpdate);
+    ConstraintUtilities.updateWidget(this, widget, component);
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child, deepUpdate);
     }
@@ -768,11 +769,13 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       y += pxToDp(padding.top);
       WidgetContainer parentContainer = (WidgetContainer)container.getParent();
       if (parentContainer != null) {
-        x -= parentContainer.getDrawX();
-        y -= parentContainer.getDrawY();
         if (!(parentContainer instanceof ConstraintWidgetContainer)) {
-          container.setDimension(pxToDp(component.w),
-                                 pxToDp(component.h));
+          x = pxToDp(component.x - component.getParent().x);
+          y = pxToDp(component.y - component.getParent().y);
+        }
+        else {
+          x -= parentContainer.getDrawX();
+          y -= parentContainer.getDrawY();
         }
       }
       if (container.getX() != x || container.getY() != y) {

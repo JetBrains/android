@@ -905,16 +905,13 @@ public class ConstraintUtilities {
 
   /**
    * Update the constraint widget with the component information (coming from XML)
-   *
    * @param constraintModel the constraint model we are working with
    * @param widget          constraint widget
    * @param component       the model component
-   * @param deepUpdate      do a thorough update or not
    */
   static void updateWidget(@NotNull ConstraintModel constraintModel,
                            @Nullable ConstraintWidget widget,
-                           @Nullable NlComponent component,
-                           boolean deepUpdate) {
+                           @Nullable NlComponent component) {
     if (component == null || widget == null) {
       return;
     }
@@ -1010,7 +1007,7 @@ public class ConstraintUtilities {
           widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
         }
         else {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
         }
       }
     }
