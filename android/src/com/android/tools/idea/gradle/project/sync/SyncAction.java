@@ -107,6 +107,10 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
       }
     }
 
+    public <T> boolean hasModel(@NotNull Class<T> modelType) {
+      return findModel(modelType) != null;
+    }
+
     @Nullable
     public <T> T findModel(@NotNull Class<T> modelType) {
       Object model = myModelsByType.get(modelType);
@@ -115,6 +119,11 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
         return modelType.cast(model);
       }
       return null;
+    }
+
+    @NotNull
+    public IdeaModule getModule() {
+      return myModule;
     }
   }
 }

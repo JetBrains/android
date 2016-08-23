@@ -35,11 +35,11 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleDirPath;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getConfigPath;
 
-class ModuleCreator {
+class ModuleFactory {
   @NotNull private final Project myProject;
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
 
-  ModuleCreator(@NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
+  ModuleFactory(@NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
     myProject = project;
     myModelsProvider = modelsProvider;
   }

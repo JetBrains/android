@@ -94,6 +94,18 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
+  @Nullable
+  public static AndroidGradleModel get(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? get(facet) : null;
+  }
+
+  @Nullable
+  public static AndroidGradleModel get(@NotNull AndroidFacet androidFacet) {
+    AndroidModel androidModel = androidFacet.getAndroidModel();
+    return androidModel instanceof AndroidGradleModel ? (AndroidGradleModel)androidModel : null;
+  }
+
   /**
    * Creates a new {@link AndroidGradleModel}.
    *
@@ -909,18 +921,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   private void parseAndSetModelVersion() {
     // Old plugin versions do not return model version.
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
-  }
-
-  @Nullable
-  public static AndroidGradleModel get(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? get(facet) : null;
-  }
-
-  @Nullable
-  public static AndroidGradleModel get(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getAndroidModel();
-    return androidModel instanceof AndroidGradleModel ? (AndroidGradleModel)androidModel : null;
   }
 
   /**
