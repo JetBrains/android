@@ -39,6 +39,7 @@ public class ReportStream implements PathListener {
 
   @NotNull private final GfxTraceEditor myEditor;
   @NotNull private final PathStore<ReportPath> myReportPath = new PathStore<>();
+  @NotNull private final PathStore<DevicePath> myDevicePath = new PathStore<>();
   @NotNull private final PathStore<ReportItemPath> myReportItemPath = new PathStore<>();
   @Nullable("no report has been fetched yet") private Report myReport;
 
@@ -50,10 +51,13 @@ public class ReportStream implements PathListener {
 
   @Override
   public void notifyPath(PathEvent event) {
+    // TODO: What if we want to deselect a device?
+    myDevicePath.updateIfNotNull(event.findDevicePath());
+
     if (!myEditor.getFeatures().hasReport()) {
       return;
     }
-    if (myReportPath.updateIfNotNull(CapturePath.report(event.findCapturePath()))) {
+    if (myReportPath.updateIfNotNull(CapturePath.report(event.findCapturePath(), myDevicePath.getPath()))) {
       myListeners.onReportLoadingStart(this);
       ListenableFuture<Object> future = myEditor.getClient().get(myReportPath.getPath());
       Rpc.listen(future, new UiErrorCallback<Object, Report, String>(myEditor, LOG) {
