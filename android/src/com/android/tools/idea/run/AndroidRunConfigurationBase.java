@@ -22,12 +22,14 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -65,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.LEGACY_MULTIDEX_REQUIRES_ART;
@@ -629,13 +632,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return false;
   }
 
-  private static InstantRunGradleSupport canInstantRun(@NotNull Module module,
+  // Overridden in subclasses that allow customization of deployment user id
+  public int getUserIdFromAmParameters() {
+    return MultiUserUtils.PRIMARY_USERID;
+  }
+
+  private InstantRunGradleSupport canInstantRun(@NotNull Module module,
                                                        @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
       return CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
     }
 
-    return InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), targetDevices.get(0).getVersion());
+    AndroidDevice device = targetDevices.get(0);
+
+    IDevice targetDevice = MakeBeforeRunTaskProvider.getLaunchedDevice(device);
+    if (targetDevice != null) {
+      if (MultiUserUtils.hasMultipleUsers(targetDevice, 200, TimeUnit.MILLISECONDS, false)) {
+        if (getUserIdFromAmParameters() != MultiUserUtils.PRIMARY_USERID || // run config explicitly specifies launching as a different user
+            !MultiUserUtils.isCurrentUserThePrimaryUser(targetDevice, 200, TimeUnit.MILLISECONDS, true)) { // activity manager says current user is not primary
+          return CANNOT_DEPLOY_FOR_SECONDARY_USER;
+        }
+      }
+    }
+
+    return InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), device.getVersion());
   }
 
   @Override
