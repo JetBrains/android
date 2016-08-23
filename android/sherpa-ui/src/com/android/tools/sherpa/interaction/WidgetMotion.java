@@ -117,15 +117,15 @@ public class WidgetMotion {
         candidatePoint.setLocation(x - dX, y - dY);
         ConstraintWidget base = widget.widget.getParent();
         if (base != null) { // limit motion to inside base
-            if (candidatePoint.x < base.getX()) {
-                candidatePoint.x = base.getX();
-            } else if (candidatePoint.x > base.getRight()){
-                candidatePoint.x = base.getRight();
+            if (candidatePoint.x < base.getDrawX()) {
+                candidatePoint.x = base.getDrawX();
+            } else if (candidatePoint.x > base.getDrawRight()){
+                candidatePoint.x = base.getDrawRight();
             }
-            if (candidatePoint.y < base.getY()) {
-                candidatePoint.y = base.getY();
-            }else if (candidatePoint.y > base.getBottom()){
-                candidatePoint.y = base.getBottom();
+            if (candidatePoint.y < base.getDrawY()) {
+                candidatePoint.y = base.getDrawY();
+            }else if (candidatePoint.y > base.getDrawBottom()){
+                candidatePoint.y = base.getDrawBottom();
             }
         }
         mSnapCandidates.clear();
