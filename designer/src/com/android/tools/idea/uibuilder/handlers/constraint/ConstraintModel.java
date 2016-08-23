@@ -606,7 +606,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
           if (companion.getWidgetModel() == component) {
             widget = myDragDropWidget;
-            if (component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
+            if (component.isOrHasSuperclass(CLASS_VIEWGROUP)
+              || isDataBindingLayout(component)) {
               widget = new WidgetContainer();
             }
             widget.setCompanionWidget(null);
@@ -629,7 +630,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           }
         }
         else {
-          if (component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
+          if (component.isOrHasSuperclass(CLASS_VIEWGROUP)
+              || isDataBindingLayout(component)
+              || component.getChildCount() > 0) {
             widget = new WidgetContainer();
           }
           else {
@@ -656,6 +659,16 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private static boolean isConstraintLayout(@NotNull NlComponent component) {
     return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)
       || component.getTag().getName().equals(SdkConstants.CONSTRAINT_LAYOUT); // used during layout conversion
+  }
+
+  /**
+   * Returns true if the given component is a databinding layout tag
+   *
+   * @param component
+   * @return true if databinding layout tag, false otherwise
+   */
+  private static boolean isDataBindingLayout(@NotNull NlComponent component) {
+    return component.getTagName().equals(TAG_LAYOUT);
   }
 
   /**
