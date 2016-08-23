@@ -164,6 +164,7 @@ iml_module(
     ],
     test_data = glob([
         "android/annotations/**",
+        "android/device-art-resources/**",
         "android/testData/**/*",
         "designer/testData/**/*",
     ]) + [

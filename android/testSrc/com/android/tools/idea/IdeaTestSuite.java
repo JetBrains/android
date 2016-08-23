@@ -34,8 +34,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.avdmanager.AvdDisplayListTest.class,
   com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
-  com.android.tools.idea.ddms.screenshot.DeviceArtDescriptorTest.class,
-  com.android.tools.idea.ddms.screenshot.DeviceArtPainterTest.class,
   com.android.tools.idea.editors.AndroidGeneratedSourcesFilterTest.class,
   com.android.tools.idea.editors.hierarchyview.model.ViewNodeTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
@@ -126,6 +124,7 @@ public class IdeaTestSuite {
     symbolicLinkInWorkspace("tools/adt/idea/android/annotations", Paths.get(tmpDir, "android/android/annotations"));
     symbolicLinkInWorkspace("tools/idea/java/jdkAnnotations", Paths.get(tmpDir, "java/jdkAnnotations"));
     symbolicLinkInWorkspace("tools/base/templates", Paths.get(tmpDir, "android/tools-base/templates"));
+    symbolicLinkInWorkspace("tools/adt/idea/android/device-art-resources", Paths.get(tmpDir, "android/android/device-art-resources"));
   }
 
   private static void symbolicLinkInWorkspace(String target, Path linkName) {
