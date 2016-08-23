@@ -108,9 +108,12 @@ public class InstantRunBuildAnalyzer {
   @NotNull
   public LaunchTask getNotificationTask() {
     DeployType deployType = getDeployType();
+    BuildSelection buildSelection = myContext.getBuildSelection();
+
     InstantRunNotificationProvider notificationProvider =
-      new InstantRunNotificationProvider(myContext.getBuildSelection(), deployType, myBuildInfo.getVerifierStatus());
-    return new InstantRunNotificationTask(myProject, myContext, notificationProvider);
+      new InstantRunNotificationProvider(buildSelection, deployType, myBuildInfo.getVerifierStatus());
+
+    return new InstantRunNotificationTask(myProject, myContext, notificationProvider, buildSelection.brokenForSecondaryUser);
   }
 
   @NotNull
