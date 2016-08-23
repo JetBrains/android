@@ -42,13 +42,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.facet.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -148,6 +146,40 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
   private RenderService myRenderService;
   private DataBindingUtil.LightBrClass myLightBrClass;
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    AndroidFacet facet = getInstance(module);
+    if (facet == null) {
+      // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      facet = facetModel.getFacetByType(ID);
+    }
+    return facet;
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull Module module) {
+    return FacetManager.getInstance(module).getFacetByType(ID);
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull ConvertContext context) {
+    Module module = context.getModule();
+    return module != null ? getInstance(module) : null;
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull PsiElement element) {
+    Module module = getModuleSafely(element);
+    return module != null && !module.isDisposed() ? getInstance(module) : null;
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull DomElement element) {
+    Module module = element.getModule();
+    return module != null ? getInstance(module) : null;
+  }
 
   public AndroidFacet(@NotNull Module module, String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
@@ -544,29 +576,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       Disposer.dispose(myConfigurationManager);
     }
     myAndroidModel = null;
-  }
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(module).getFacetByType(ID);
-  }
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull ConvertContext context) {
-    Module module = context.getModule();
-    return module != null ? getInstance(module) : null;
-  }
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull PsiElement element) {
-    Module module = getModuleSafely(element);
-    return module != null && !module.isDisposed() ? getInstance(module) : null;
-  }
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull DomElement element) {
-    Module module = element.getModule();
-    return module != null ? getInstance(module) : null;
   }
 
   @Nullable

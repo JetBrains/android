@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -91,7 +91,7 @@ public final class Projects {
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
-  private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
+  private static final Key<SyncDependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
   private static final Key<Boolean> SKIP_SYNC_ISSUE_REPORTING = Key.create("project.sync.skip.sync.issue.reporting");
@@ -490,11 +490,11 @@ public final class Projects {
   }
 
   @Nullable
-  public static DependencySetupErrors getDependencySetupErrors(@NotNull Project project) {
+  public static SyncDependencySetupErrors getDependencySetupErrors(@NotNull Project project) {
     return project.getUserData(DEPENDENCY_SETUP_ERRORS);
   }
 
-  public static void setDependencySetupErrors(@NotNull Project project, @Nullable DependencySetupErrors errors) {
+  public static void setDependencySetupErrors(@NotNull Project project, @Nullable SyncDependencySetupErrors errors) {
     project.putUserData(DEPENDENCY_SETUP_ERRORS, errors);
   }
 

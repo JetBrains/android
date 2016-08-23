@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.project.sync.setup;
 
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,48 +35,23 @@ import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static java.io.File.separatorChar;
 
-public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
-  @Override
-  public void customizeModule(@NotNull Project project,
-                              @NotNull Module module,
-                              @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable T externalProjectModel) {
-    if (externalProjectModel == null) {
-      return;
-    }
-
-    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
-    removeExistingDependencies(moduleModel);
-    setUpDependencies(module, modelsProvider, externalProjectModel);
-  }
-
-  protected abstract void setUpDependencies(@NotNull Module module,
-                                            @NotNull IdeModifiableModelsProvider modelsProvider,
-                                            @NotNull T model);
-
-  private static void removeExistingDependencies(@NotNull ModifiableRootModel model) {
-    DependencyRemover dependencyRemover = new DependencyRemover(model);
-    for (OrderEntry orderEntry : model.getOrderEntries()) {
-      orderEntry.accept(dependencyRemover, null);
-    }
-  }
-
-  protected static void setUpLibraryDependency(@NotNull Module module,
-                                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                                               @NotNull String libraryName,
-                                               @NotNull DependencyScope scope,
-                                               @NotNull Collection<String> binaryPaths) {
+public class Dependencies {
+  public void setUpLibraryDependency(@NotNull Module module,
+                                     @NotNull IdeModifiableModelsProvider modelsProvider,
+                                     @NotNull String libraryName,
+                                     @NotNull DependencyScope scope,
+                                     @NotNull Collection<String> binaryPaths) {
     Collection<String> empty = Collections.emptyList();
     setUpLibraryDependency(module, modelsProvider, libraryName, scope, binaryPaths, empty, empty);
   }
 
-  protected static void setUpLibraryDependency(@NotNull Module module,
-                                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                                               @NotNull String libraryName,
-                                               @NotNull DependencyScope scope,
-                                               @NotNull Collection<String> binaryPaths,
-                                               @NotNull Collection<String> sourcePaths,
-                                               @NotNull Collection<String> documentationPaths) {
+  public void setUpLibraryDependency(@NotNull Module module,
+                                     @NotNull IdeModifiableModelsProvider modelsProvider,
+                                     @NotNull String libraryName,
+                                     @NotNull DependencyScope scope,
+                                     @NotNull Collection<String> binaryPaths,
+                                     @NotNull Collection<String> sourcePaths,
+                                     @NotNull Collection<String> documentationPaths) {
     Library library = modelsProvider.getLibraryByName(libraryName);
     if (library == null) {
       // Create library.
@@ -103,7 +76,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     // TODO: Add this to the model instead!
     for (String binaryPath : binaryPaths) {
       if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
-        binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
+          binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
         File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
         if (annotations.isFile()) {
           updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance(),
@@ -163,25 +136,5 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
       url += JAR_SEPARATOR;
     }
     return url;
-  }
-
-  private static class DependencyRemover extends RootPolicy<Object> {
-    @NotNull private final ModifiableRootModel myModel;
-
-    DependencyRemover(@NotNull ModifiableRootModel model) {
-      myModel = model;
-    }
-
-    @Override
-    public Object visitLibraryOrderEntry(LibraryOrderEntry libraryOrderEntry, Object value) {
-      myModel.removeOrderEntry(libraryOrderEntry);
-      return value;
-    }
-
-    @Override
-    public Object visitModuleOrderEntry(ModuleOrderEntry moduleOrderEntry, Object value) {
-      myModel.removeOrderEntry(moduleOrderEntry);
-      return value;
-    }
   }
 }

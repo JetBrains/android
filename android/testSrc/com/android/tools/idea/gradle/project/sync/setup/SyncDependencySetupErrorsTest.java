@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer.dependency;
+package com.android.tools.idea.gradle.project.sync.setup;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,12 +22,12 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class DependencySetupErrorsTest {
-  private DependencySetupErrors myErrors;
+public class SyncDependencySetupErrorsTest {
+  private SyncDependencySetupErrors myErrors;
 
   @Before
   public void setUp() {
-    myErrors = new DependencySetupErrors();
+    myErrors = new SyncDependencySetupErrors();
   }
 
   @Test
@@ -37,10 +37,10 @@ public class DependencySetupErrorsTest {
     myErrors.addMissingModule(":lib3", "app1", "library3.jar");
     myErrors.addMissingModule(":lib1", "app1", null);
 
-    List<DependencySetupErrors.MissingModule> missingModules = myErrors.getMissingModules();
+    List<SyncDependencySetupErrors.MissingModule> missingModules = myErrors.getMissingModules();
     assertThat(missingModules).hasSize(1);
 
-    DependencySetupErrors.MissingModule missingModule = missingModules.get(0);
+    SyncDependencySetupErrors.MissingModule missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib1");
     assertThat(missingModule.dependentNames).containsExactly("app1");
 
