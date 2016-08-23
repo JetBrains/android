@@ -284,7 +284,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private boolean shouldRecommendPluginVersionUpgrade() {
-    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
+    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode() || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       return false;
     }
     AndroidProject androidProject = getAppAndroidProject(myProject);
