@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.pixelprobe.*;
 import com.android.tools.pixelprobe.Image;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -146,6 +147,7 @@ public class Mockup implements ModelListener {
       else {
         final Mockup mockup = new Mockup(component);
         MOCKUP_CACHE.put(component, mockup);
+        Disposer.register(component.getModel(), () -> MOCKUP_CACHE.remove(component));
         return mockup;
       }
     }
