@@ -80,6 +80,7 @@ public class GradleSync {
     }
 
     // TODO: Handle sync cancellation.
+    // TODO: Show Gradle output.
 
     if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
       handleSyncFailure("Another 'Gradle Sync' task is currently running", syncListener);
