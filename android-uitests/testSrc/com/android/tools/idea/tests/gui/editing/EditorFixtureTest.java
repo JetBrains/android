@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.google.common.base.Strings;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,11 +75,11 @@ public class EditorFixtureTest {
 
   @Test
   public void open_selectsEditorTab() throws Exception {
-    NlEditorFixture layoutEditor = guiTest.importSimpleApplication()
+    VirtualFile file = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false);  // false: don't select the editor; expect it to be selected already
-    assertThat(layoutEditor).isNotNull();  // non-null means an AndroidDesignerEditor is selected
+      .getCurrentFile();
+    assertThat(ResourceHelper.getFolderType(file)).isEqualTo(ResourceFolderType.LAYOUT);
   }
 }

@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * UI tests for {@link NlEditor}
@@ -52,7 +51,6 @@ public class NlEditorTest {
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    assertNotNull(layout);
     layout.waitForRenderToFinish();
 
     // Find and click the first text view

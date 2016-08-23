@@ -31,6 +31,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
@@ -510,16 +511,10 @@ public class EditorFixture {
    * requests that it be opened if necessary
    *
    * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
-   * @return a layout editor fixture, or null if the current file is not a layout file or the
-   *     wrong tab is showing
+   * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
    */
-  @Nullable
+  @NotNull
   public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
     if (switchToTabIfNecessary) {
       selectEditorTab(Tab.DESIGN);
     }
@@ -528,16 +523,10 @@ public class EditorFixture {
       @Override
       @Nullable
       protected NlEditorFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
-        }
+        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+        checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
-        if (!(selected instanceof NlEditor)) {
-          return null;
-        }
-
+        checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), myFrame, (NlEditor)selected);
       }
     });

@@ -221,7 +221,6 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    assertNotNull(layout);
     layout.waitForRenderToFinish();
 
     // Find and click the first text view
@@ -282,7 +281,6 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    assertNotNull(layout);
     layout.waitForRenderToFinish();
 
     // Find and click the first text view

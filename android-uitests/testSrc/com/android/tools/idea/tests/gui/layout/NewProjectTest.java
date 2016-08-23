@@ -184,7 +184,6 @@ public class NewProjectTest {
     assertThat(editor.getCurrentFileName()).isEqualTo("activity_a.xml");
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForRenderToFinish();
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForRenderToFinish();
@@ -224,7 +223,6 @@ public class NewProjectTest {
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForRenderToFinish();
 
     // We could be showing an error message, but if we do, it should *not* say missing styles
