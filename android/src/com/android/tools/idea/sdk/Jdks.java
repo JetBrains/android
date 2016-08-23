@@ -122,12 +122,10 @@ public class Jdks {
     }
     list.addAll(jdkHomePaths);
     return getBestJdkHomePath(list, langLevel);
-
   }
 
-  @VisibleForTesting
   @Nullable
-  static String getBestJdkHomePath(@NotNull Collection<String> jdkHomePaths, @NotNull LanguageLevel langLevel) {
+  private static String getBestJdkHomePath(@NotNull Collection<String> jdkHomePaths, @NotNull LanguageLevel langLevel) {
     // Search for JDKs in both the suggest folder and all its sub folders.
     List<String> roots = Lists.newArrayList();
     for (String jdkHomePath : jdkHomePaths) {
