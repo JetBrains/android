@@ -1433,6 +1433,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
     doCheck("package test.pkg;\n" +
             "\n" +
             "import android.support.annotation.RequiresApi;\n" +
+            "import android.os.Build;\n" +
             "\n" +
             "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
             "public class X {\n" +
@@ -1454,6 +1455,21 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        public void requiresLollipop() {\n" +
             "            requiresKitKat(); // OK\n" +
             "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void something() {\n" +
+            "        /*Call requires API level 22 (current min is 17): test.pkg.X#requiresLollipop*/requiresLollipop()/**/; // ERROR\n" +
+            "        if (Build.VERSION.SDK_INT >= 22) {\n" +
+            "            requiresLollipop(); // OK\n" +
+            "        }\n" +
+            "        if (Build.VERSION.SDK_INT < 22) {\n" +
+            "            return;\n" +
+            "        }\n" +
+            "        requiresLollipop(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(22)\n" +
+            "    public void requiresLollipop() {\n" +
             "    }\n" +
             "}\n");
   }
