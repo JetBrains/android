@@ -23,14 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 public class EmbeddedDistributionPaths {
   private static final Logger LOG = Logger.getInstance(EmbeddedDistributionPaths.class);
@@ -44,7 +42,7 @@ public class EmbeddedDistributionPaths {
       return repoPath.isDirectory() ? ImmutableList.of(repoPath) : ImmutableList.of();
     }
     // Development build
-    List<File> repoPaths = new LinkedList<>();
+    List<File> repoPaths = new ArrayList<>();
     File repoPath;
 
     // Add prebuilt offline repo
