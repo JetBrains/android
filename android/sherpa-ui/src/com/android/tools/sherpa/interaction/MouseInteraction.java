@@ -657,7 +657,7 @@ public class MouseInteraction {
 
         // don't allow direct interactions with root
         if (widget != null && (widget.isRoot() || widget.isRootContainer())) {
-            if (mInteractionComponent != null && widget != mInteractionComponent) {
+            if (!mSelection.isEmpty() && mInteractionComponent != null && widget != mInteractionComponent) {
                 // The selected widget is the leaf widget -- in case of nested layout,
                 // we need to check if we should keep the existing selection (for drag)
                 // before disgarding it.
