@@ -147,7 +147,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (module == null) {
       throw new ClassNotFoundException(name);
     }
-    Class<?> aClass = loadClassFromModuleOrDependency(module, name, new HashSet<Module>());
+    Class<?> aClass = loadClassFromModuleOrDependency(module, name, new HashSet<>());
 
     if (aClass == null) {
       aClass = loadClassFromJar(name);
@@ -158,6 +158,23 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     throw new ClassNotFoundException(name);
+  }
+
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    // Give priority to loading class from this Class Loader. This will avoid leaking classes from the plugin
+    // into the project.
+    Class<?> loadedClass = findLoadedClass(name);
+    if (loadedClass != null) {
+      return loadedClass;
+    }
+
+    try {
+      return load(name);
+    } catch(ClassNotFoundException ignore) {
+    }
+
+    return super.loadClass(name);
   }
 
   @Nullable
@@ -314,7 +331,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (module == null) {
       return Collections.emptyList();
     }
-    final List<URL> result = new ArrayList<URL>();
+    final List<URL> result = new ArrayList<>();
 
     if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
       URL customWidgetsUrl = ThemeEditorUtils.getCustomWidgetsJarUrl();
@@ -474,5 +491,5 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<Module, ModuleClassLoader>();
+  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<>();
 }
