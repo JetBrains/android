@@ -68,7 +68,9 @@ public class ManifestEditorTest {
                                       "\n" +
                                       "app main manifest (this file)\n" +
                                       "\n" +
-                                      "library manifest", false);
+                                      "library manifest\n" +
+                                      "\n" +
+                                      "build.gradle injection", false);
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     editor.moveBetween("<application", "");
     editor.enterText(" android:isGame=\"true\"");
@@ -90,7 +92,9 @@ public class ManifestEditorTest {
 
     Color defaultBackgroundColor = mergedManifestFixture.getDefaultBackgroundColor();
     mergedManifestFixture.getTree().clickRow(1);
-    assertEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
+    assertThat(mergedManifestFixture.getSelectedNodeColor()).isNotEqualTo(defaultBackgroundColor);
+    mergedManifestFixture.getTree().clickRow(3);
+    assertThat(mergedManifestFixture.getSelectedNodeColor()).isEqualTo(defaultBackgroundColor);
     mergedManifestFixture.getTree().clickRow(2);
 
     mergedManifestFixture.requireText(
@@ -101,6 +105,8 @@ public class ManifestEditorTest {
       "myaarlibrary manifest\n" +
       "\n" +
       "play-services-base:7.3.0 manifest\n" +
+      "\n" +
+      "build.gradle injection\n" +
       " Other Manifest Files (Included in merge, but did not contribute any elements)\n" +
       "locallib manifest, Flavoredapp debug manifest, Flavoredapp flavor1 manifest,\n" +
       "support-v13:22.1.1 manifest, support-v4:22.1.1 manifest, play-services-ads:7.3.0\n" +
@@ -121,13 +127,13 @@ public class ManifestEditorTest {
     editor.open("src/debug/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     mergedManifestFixture = editor.getMergedManifestEditor();
-    mergedManifestFixture.getTree().clickRow(1);
+    mergedManifestFixture.getTree().clickRow(3);
     assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
 
     editor.open("src/flavor1/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     mergedManifestFixture = editor.getMergedManifestEditor();
-    mergedManifestFixture.getTree().clickRow(1);
+    mergedManifestFixture.getTree().clickRow(3);
     assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
   }
 
