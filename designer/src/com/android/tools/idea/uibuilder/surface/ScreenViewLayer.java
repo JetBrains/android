@@ -54,7 +54,7 @@ public class ScreenViewLayer extends Layer {
     }
 
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
-    if (Math.abs(scale - 0.5) > 0.01) {
+    if (Math.abs(scale - 0.5) > 0.001) {
       double retinaScale = 2 * scale;
       if (fastScaling) {
         original = ImageUtils.lowQualityFastScale(original, retinaScale, retinaScale);
