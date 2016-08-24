@@ -1467,7 +1467,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
     if (releaseArtifacts.size() > 0 &&
         AndroidJpsUtil.getRunConfigurationTypeId(context) != null) {
-      final String message = "Cannot build release Android artifacts in the 'make before run' session\n" +
+      final String message = "Cannot build release Android artifacts in the 'build before run' session\n" +
                              "Release artifacts: " + artifactsToString(releaseArtifacts);
       context.processMessage(new CompilerMessage(ANDROID_VALIDATOR, BuildMessage.Kind.ERROR, message));
       success = false;
