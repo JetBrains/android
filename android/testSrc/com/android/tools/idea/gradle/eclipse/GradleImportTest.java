@@ -3585,7 +3585,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
 
     String testSdkPath = getTestSdkPathLocal();
     if (testSdkPath != null) {
-      summary = summary.replace(testSdkPath, "$ADT_TEST_SDK_PATH");
+      summary = summary.replace(testSdkPath, "$ANDROID_HOME");
     }
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar,'/'), "$ROOT");
@@ -4051,7 +4051,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
   }
 
   /** Environment variable or system property containing the full path to an SDK install */
-  public static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
+  public static final String SDK_PATH_PROPERTY = "ANDROID_HOME";
 
   @Nullable
   protected static String getTestSdkPathLocal() {
