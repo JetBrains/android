@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
@@ -64,7 +66,7 @@ public class InstantRunStatsService {
   public void notifyDeployStarted() {
   }
 
-  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause) {
+  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause, @NotNull IDevice device) {
     long buildAndDeployTime;
     String sessionId;
 
@@ -80,14 +82,21 @@ public class InstantRunStatsService {
       sessionId = mySessionId.toString();
     }
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.STUDIO_BUILD)
-                                     .setKind(EventKind.INSTANT_RUN)
-                                     .setInstantRun(InstantRun.newBuilder()
-                                                      .setSessionId(sessionId)
-                                                      .setBuildTime(buildAndDeployTime)
-                                                      .setDeploymentKind(deployTypeToDeploymentKind(type))
-                                                      .setIdeBuildCause(buildCauseToProto(buildCause))));
+    AndroidStudioEvent.Builder studioEvent = AndroidStudioEvent.newBuilder()
+      .setCategory(EventCategory.STUDIO_BUILD)
+      .setKind(EventKind.INSTANT_RUN)
+      .setInstantRun(InstantRun.newBuilder()
+                       .setSessionId(sessionId)
+                       .setBuildTime(buildAndDeployTime)
+                       .setDeploymentKind(deployTypeToDeploymentKind(type))
+                       .setIdeBuildCause(buildCauseToProto(buildCause)));
+    if (buildCause == BuildCause.API_TOO_LOW_FOR_INSTANT_RUN || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_API21
+      || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS) {
+      studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device));
+    } else {
+      studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
+    }
+    UsageTracker.getInstance().log(studioEvent);
   }
 
   private static InstantRunIdeBuildCause buildCauseToProto(@Nullable BuildCause buildCause) {
