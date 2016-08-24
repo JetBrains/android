@@ -255,7 +255,7 @@ public class GuiTestRule implements TestRule {
    * <li>Creates a Gradle wrapper for the test project.</li>
    * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
    * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
-   * 'ADT_TEST_SDK_PATH'</li>
+   * 'ANDROID_HOME'</li>
    * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
    * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
    * <p/>
