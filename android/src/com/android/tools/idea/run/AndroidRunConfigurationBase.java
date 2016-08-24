@@ -74,7 +74,8 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
-                                                                                                               RunnerIconProvider {
+                                                                                                               RunnerIconProvider,
+                                                                                                               PreferGradleMake {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
