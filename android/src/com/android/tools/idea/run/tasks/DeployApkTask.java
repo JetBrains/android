@@ -90,9 +90,9 @@ public class DeployApkTask implements LaunchTask {
     }
 
     if (myInstantRunContext == null) {
-      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.LEGACY, BuildCause.NO_INSTANT_RUN);
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.LEGACY, BuildCause.NO_INSTANT_RUN, device);
     } else {
-      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why);
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why, device);
     }
     trackInstallation(device);
 
