@@ -16,8 +16,6 @@
 
 package com.android.tools.idea;
 
-import com.android.testutils.OsType;
-import com.android.testutils.TestUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.ProjectManager;
@@ -35,7 +33,7 @@ import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
 
-  private static final File JDK_HOME = new File(TestUtils.getWorkspaceRoot(), "prebuilts/studio/jdk/" + OsType.getHostOs().getFolderName());
+  private static final File JDK_HOME = new File(System.getProperty("java.home"));
 
   @NotNull
   public static File getJdkPath() {
