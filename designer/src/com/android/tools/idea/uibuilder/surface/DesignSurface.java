@@ -672,7 +672,8 @@ public class DesignSurface extends JPanel implements Disposable {
         double scaleY = (double)availableHeight / requiredHeight;
         double scale = Math.min(scaleX, scaleY);
         if (type == ZoomType.FIT_INTO) {
-          scale = Math.min(1.0, scale);
+          double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
+          scale = Math.min(min, scale);
         }
         setScale(scale);
         repaint();
