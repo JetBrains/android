@@ -31,10 +31,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfigContext;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.*;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -134,7 +131,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // "Gradle-aware Make" is only available in Android Studio.
     if (AndroidStudioInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
-      if (runConfiguration instanceof AndroidRunConfigurationBase) {
+      if (runConfiguration instanceof PreferGradleMake) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
         // In AndroidRunConfigurationType#configureBeforeTaskDefaults we disable the default make, which is
         // enabled by default. For other configurations we leave it disabled, so we don't end up with two different
@@ -153,7 +150,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     if (isApkProject(runConfiguration.getProject())) {
       return false;
     }
-    return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
+    return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
   }
 
   private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
