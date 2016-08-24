@@ -53,7 +53,9 @@ public final class ConfigureDeviceModel extends WizardModel {
         throw new IllegalArgumentException("Can't clone a device without specifying a device.");
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
-      // Clear a cloned device's density. This will cause us to calculate
+    }
+    if (cloneDevice || device == null) {
+      // Clear device's density. This will cause us to calculate
       // the most accurate setting based on the final screen size.
       myDeviceData.density().set(Density.NODPI);
     }
