@@ -287,7 +287,6 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testCanAdd() throws Exception {
-    LayoutTestUtilities.resetComponentTestIds();
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -324,7 +323,6 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
-    LayoutTestUtilities.resetComponentTestIds();
     ModelBuilder modelBuilder = model("linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -409,8 +407,13 @@ public class NlModelTest extends LayoutTestCase {
                  LayoutTestUtilities.toTree(model.getComponents(), true));
   }
 
-  private ModelBuilder createDefaultModelBuilder(boolean includeIds) {
+  @Override
+  public void tearDown() throws Exception {
     LayoutTestUtilities.resetComponentTestIds();
+    super.tearDown();
+  }
+
+  private ModelBuilder createDefaultModelBuilder(boolean includeIds) {
     return model("linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
