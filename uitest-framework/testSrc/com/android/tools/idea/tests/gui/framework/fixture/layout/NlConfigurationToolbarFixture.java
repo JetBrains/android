@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import icons.AndroidIcons;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
@@ -120,6 +122,20 @@ public class NlConfigurationToolbarFixture {
       }
       return false;
     });
+    return this;
+  }
+
+  /**
+   * Click on the "Show Design" button
+   */
+  public NlConfigurationToolbarFixture showDesign() {
+    ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        return "Show Design".equals(component.getAction().getTemplatePresentation().getDescription());
+      }
+    });
+    new ActionButtonFixture(myRobot, button).click();
     return this;
   }
 
