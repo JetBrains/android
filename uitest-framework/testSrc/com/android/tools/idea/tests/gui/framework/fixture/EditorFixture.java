@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.editors.manifest.ManifestEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
@@ -616,27 +615,18 @@ public class EditorFixture {
 
   @NotNull
   public MergedManifestFixture getMergedManifestEditor() {
-    robot.waitForIdle();
-    MergedManifestFixture found = execute(new GuiQuery<MergedManifestFixture>() {
+    //noinspection ConstantConditions
+    return execute(new GuiQuery<MergedManifestFixture>() {
       @Override
       @Nullable
       protected MergedManifestFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
-        }
-        FileEditor selected = editors[0];
-        if (!(selected instanceof ManifestEditor)) {
-          return null;
-        }
-        return new MergedManifestFixture(robot, (ManifestPanel)selected.getComponent().getComponent(0));
+        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+        checkState(editors.length > 0, "no selected editors");
+        Component manifestPanel = editors[0].getComponent().getComponent(0);
+        checkState(manifestPanel instanceof ManifestPanel, "not a %s: %s", ManifestPanel.class.getSimpleName(), manifestPanel);
+        return new MergedManifestFixture(robot, (ManifestPanel)manifestPanel);
       }
     });
-    if (found == null) {
-      throw new AssertionError("manifest editor not found");
-    }
-    return found;
   }
 
   /**
