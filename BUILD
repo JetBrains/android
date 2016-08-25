@@ -139,7 +139,7 @@ iml_module(
         "//tools/adt/idea:android/lib/dexlib2-util-2.0.8-dev",
         "//tools/base/apkparser:binary-resources[module]",
         "//tools/base/pixelprobe:pixelprobe[module]",
-        "//tools/base/bazel:prebuilts/studio-profiler-grpc-1.0-jarjar",
+        "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
