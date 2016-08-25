@@ -79,6 +79,10 @@ public final class CapturePath extends Path {
     return (capture == null) ? null : capture.report();
   }
 
+  public static ReportPath report(CapturePath capture, DevicePath device) {
+    return (capture == null) ? null : capture.report().setDevice(device);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 
