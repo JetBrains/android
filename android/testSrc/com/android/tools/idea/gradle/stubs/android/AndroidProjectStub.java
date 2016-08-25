@@ -95,6 +95,11 @@ public class AndroidProjectStub implements AndroidProject {
   }
 
   @Override
+  public int getProjectType() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   @NotNull
   public ProductFlavorContainerStub getDefaultConfig() {
     return myDefaultConfig;
