@@ -346,10 +346,12 @@ public class InteractionManager {
       }
 
       // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+      screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
+      if (screenView != null) {
         Dimension size = screenView.getSize();
         // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+        Rectangle resizeZone =
+          new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
         if (resizeZone.contains(x, y)) {
           mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
           return;
@@ -409,24 +411,27 @@ public class InteractionManager {
         return;
       }
 
-      // Check if we have a ViewGroupHandler that might want
-      // to handle the entire interaction
-
-      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      // Deal with the canvas resizing interaction at the bottom right of the screen view.
+      // If both screen views are present, only enable it next to the normal one.
+      ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
       if (screenView == null) {
         return;
       }
+      Dimension size = screenView.getSize();
+      // TODO: use constants for those numbers
+      Rectangle resizeZone =
+        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
+        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
+        return;
+      }
 
-      // Deal with the canvas resizing interaction at the bottom right of the screen view.
-      // If both screen views are present, only enable it next to the normal one.
-      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
-        Dimension size = screenView.getSize();
-        // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
-          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
-          return;
-        }
+      // Check if we have a ViewGroupHandler that might want
+      // to handle the entire interaction
+
+      screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      if (screenView == null) {
+        return;
       }
 
       SelectionModel selectionModel = screenView.getSelectionModel();
