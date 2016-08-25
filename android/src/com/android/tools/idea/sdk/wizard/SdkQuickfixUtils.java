@@ -127,7 +127,7 @@ public final class SdkQuickfixUtils {
 
     List<String> unknownPaths = new ArrayList<>();
     List<UpdatablePackage> resolvedPackages;
-    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, new StudioLoggerProgressIndicator(SdkQuickfixUtils.class),
+    mgr.loadSynchronously(0, new StudioLoggerProgressIndicator(SdkQuickfixUtils.class),
                           new StudioDownloader(), StudioSettingsController.getInstance());
     RepositoryPackages packages = mgr.getPackages();
     if (requestedPackages == null) {
