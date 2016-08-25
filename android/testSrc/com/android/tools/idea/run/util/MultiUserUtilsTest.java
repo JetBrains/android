@@ -61,6 +61,14 @@ public class MultiUserUtilsTest {
 
     device = createMockDevice(pmOutput, "");
     assertFalse(MultiUserUtils.hasMultipleUsers(device, 200, TimeUnit.MILLISECONDS, true));
+
+    // Some versions of the Android (e.g. emulator running x86, API 19) have this additional error message
+    pmOutput = "WARNING: linker: libdvm.so has text relocations. This is wasting memory and is a security risk. Please fix.\n" +
+               "Users:\n" +
+               "\tUserInfo{0:Owner:13}";
+
+    device = createMockDevice(pmOutput, "");
+    assertFalse(MultiUserUtils.hasMultipleUsers(device, 200, TimeUnit.MILLISECONDS, true));
   }
 
   @NotNull
