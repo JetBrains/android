@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +62,9 @@ public final class Report implements BinaryObject {
 
   //<<<Start:Java.ClassBody:1>>>
   private ReportItem[] myItems;
+  private ReportGroup[] myGroups;
+  private String[] myMsgIdentifiers;
+  private Arg[] myMsgArguments;
 
   // Constructs a default-initialized {@link Report}.
   public Report() {}
@@ -75,6 +79,33 @@ public final class Report implements BinaryObject {
     return this;
   }
 
+  public ReportGroup[] getGroups() {
+    return myGroups;
+  }
+
+  public Report setGroups(ReportGroup[] v) {
+    myGroups = v;
+    return this;
+  }
+
+  public String[] getMsgIdentifiers() {
+    return myMsgIdentifiers;
+  }
+
+  public Report setMsgIdentifiers(String[] v) {
+    myMsgIdentifiers = v;
+    return this;
+  }
+
+  public Arg[] getMsgArguments() {
+    return myMsgArguments;
+  }
+
+  public Report setMsgArguments(Arg[] v) {
+    myMsgArguments = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -84,6 +115,9 @@ public final class Report implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Items", new Slice("", new Struct(ReportItem.Klass.INSTANCE.entity()))),
+      new Field("Groups", new Slice("", new Struct(ReportGroup.Klass.INSTANCE.entity()))),
+      new Field("MsgIdentifiers", new Slice("", new Primitive("string", Method.String))),
+      new Field("MsgArguments", new Slice("", new Struct(Arg.Klass.INSTANCE.entity()))),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -106,6 +140,18 @@ public final class Report implements BinaryObject {
       for (int i = 0; i < o.myItems.length; i++) {
         e.value(o.myItems[i]);
       }
+      e.uint32(o.myGroups.length);
+      for (int i = 0; i < o.myGroups.length; i++) {
+        e.value(o.myGroups[i]);
+      }
+      e.uint32(o.myMsgIdentifiers.length);
+      for (int i = 0; i < o.myMsgIdentifiers.length; i++) {
+        e.string(o.myMsgIdentifiers[i]);
+      }
+      e.uint32(o.myMsgArguments.length);
+      for (int i = 0; i < o.myMsgArguments.length; i++) {
+        e.value(o.myMsgArguments[i]);
+      }
     }
 
     @Override
@@ -115,6 +161,20 @@ public final class Report implements BinaryObject {
       for (int i = 0; i <o.myItems.length; i++) {
         o.myItems[i] = new ReportItem();
         d.value(o.myItems[i]);
+      }
+      o.myGroups = new ReportGroup[d.uint32()];
+      for (int i = 0; i <o.myGroups.length; i++) {
+        o.myGroups[i] = new ReportGroup();
+        d.value(o.myGroups[i]);
+      }
+      o.myMsgIdentifiers = new String[d.uint32()];
+      for (int i = 0; i <o.myMsgIdentifiers.length; i++) {
+        o.myMsgIdentifiers[i] = d.string();
+      }
+      o.myMsgArguments = new Arg[d.uint32()];
+      for (int i = 0; i <o.myMsgArguments.length; i++) {
+        o.myMsgArguments[i] = new Arg();
+        d.value(o.myMsgArguments[i]);
       }
     }
     //<<<End:Java.KlassBody:2>>>

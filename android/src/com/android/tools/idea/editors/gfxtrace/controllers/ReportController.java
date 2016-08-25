@@ -20,11 +20,16 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
+import com.android.tools.idea.editors.gfxtrace.service.MsgRef;
+import com.android.tools.idea.editors.gfxtrace.service.Report;
 import com.android.tools.idea.editors.gfxtrace.service.ReportItem;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
+import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
+import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
@@ -42,6 +47,7 @@ import com.intellij.ui.speedSearch.ElementFilter;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeBuilder;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 // TODO: Check if there's a need of TreeController (probably some kind of ListController will satisfy this entity).
 public class ReportController extends TreeController implements ReportStream.Listener {
@@ -65,6 +72,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   }
 
   private static final @NotNull Logger LOG = Logger.getInstance(ReportController.class);
+  private static final Map<String, BinaryObject> myMsgMap = new HashMap<>();
 
   // Wrapper needed for FilteringTreeStructure since it has final filter.
   public static class ElementFilterWrapper implements ElementFilter<Renderable> {
@@ -119,16 +127,19 @@ public class ReportController extends TreeController implements ReportStream.Lis
     public final int index;
 
     private final @Nullable("instance represents ReportItem message") ReportItem myReportItem;
-    private final @Nullable("instance represents ReportItem") String myMessage;
+    private
+    @Nullable String myMessage;
 
     private @Nullable("not made server request yet") Path followPath;
     // True by default and is false when GAPIS doesn't support ReportItemPath
     private boolean followable = true;
 
     public static Node createInstance(@NotNull Renderable parent,
+                                      @NotNull Report report,
                                       @NotNull ReportItem item,
                                       int index) {
       Node node = new Node(parent, item, index);
+      node.constructMessage(report);
       node.addChild(new Node(node, item.getMessage().toString()));
       return node;
     }
@@ -208,6 +219,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     public boolean isLeaf() {
       return myChildren.size() == 0;
+    }
+
+    private void constructMessage(@NotNull Report report) {
+      MsgRef ref = myReportItem.getMessage();
+      myMsgMap.clear();
+      Arg.constructMap(report.getMsgArguments(), ref.getArguments(), myMsgMap);
+      myMessage = StringTable.getMessage(report.getMsgIdentifiers()[ref.getIdentifier()], myMsgMap);
     }
   }
 
@@ -696,8 +714,9 @@ public class ReportController extends TreeController implements ReportStream.Lis
       }
     };
     int index = 0;
-    for (ReportItem item : reportStream.getReport().getItems()) {
-      root.addChild(Node.createInstance(root, item, index++));
+    final Report report = reportStream.getReport();
+    for (ReportItem item : report.getItems()) {
+      root.addChild(Node.createInstance(root, report, item, index++));
     }
     myTreeBuilder = new ReportTreeBuilder(myTree, myFilter, new ReportTreeStructure(root), null);
     Disposer.register(myEditor, myTreeBuilder);

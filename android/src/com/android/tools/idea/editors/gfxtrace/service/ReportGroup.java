@@ -17,49 +17,38 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
-import com.android.tools.rpclib.schema.*;
-import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos.Severity;
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 
-public final class ReportItem implements BinaryObject {
+public final class ReportGroup implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private Severity mySeverity;
-  private MsgRef myMessage;
-  private long myAtom;
+  private MsgRef myName;
+  private int[] myItems;
   private MsgRef[] myTags;
 
-  // Constructs a default-initialized {@link ReportItem}.
-  public ReportItem() {}
+  // Constructs a default-initialized {@link ReportGroup}.
+  public ReportGroup() {}
 
 
-  public Severity getSeverity() {
-    return mySeverity;
+  public MsgRef getName() {
+    return myName;
   }
 
-  public ReportItem setSeverity(Severity v) {
-    mySeverity = v;
+  public ReportGroup setName(MsgRef v) {
+    myName = v;
     return this;
   }
 
-  public MsgRef getMessage() {
-    return myMessage;
+  public int[] getItems() {
+    return myItems;
   }
 
-  public ReportItem setMessage(MsgRef v) {
-    myMessage = v;
-    return this;
-  }
-
-  public long getAtom() {
-    return myAtom;
-  }
-
-  public ReportItem setAtom(long v) {
-    myAtom = v;
+  public ReportGroup setItems(int[] v) {
+    myItems = v;
     return this;
   }
 
@@ -67,7 +56,7 @@ public final class ReportItem implements BinaryObject {
     return myTags;
   }
 
-  public ReportItem setTags(MsgRef[] v) {
+  public ReportGroup setTags(MsgRef[] v) {
     myTags = v;
     return this;
   }
@@ -76,13 +65,12 @@ public final class ReportItem implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service", "ReportItem", "", "");
+  private static final Entity ENTITY = new Entity("service", "ReportGroup", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("Severity", new Primitive("log.Severity", Method.Int32)),
-      new Field("Message", new Pointer(new Struct(MsgRef.Klass.INSTANCE.entity()))),
-      new Field("Atom", new Primitive("uint64", Method.Uint64)),
+      new Field("Name", new Struct(MsgRef.Klass.INSTANCE.entity())),
+      new Field("Items", new Slice("", new Primitive("uint32", Method.Uint32))),
       new Field("Tags", new Slice("", new Struct(MsgRef.Klass.INSTANCE.entity()))),
     });
     Namespace.register(Klass.INSTANCE);
@@ -97,14 +85,16 @@ public final class ReportItem implements BinaryObject {
     public Entity entity() { return ENTITY; }
 
     @Override @NotNull
-    public BinaryObject create() { return new ReportItem(); }
+    public BinaryObject create() { return new ReportGroup(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      ReportItem o = (ReportItem)obj;
-      e.int32(o.mySeverity.getNumber());
-      e.object(o.myMessage);
-      e.uint64(o.myAtom);
+      ReportGroup o = (ReportGroup)obj;
+      e.value(o.myName);
+      e.uint32(o.myItems.length);
+      for (int i = 0; i < o.myItems.length; i++) {
+        e.uint32(o.myItems[i]);
+      }
       e.uint32(o.myTags.length);
       for (int i = 0; i < o.myTags.length; i++) {
         e.value(o.myTags[i]);
@@ -113,10 +103,13 @@ public final class ReportItem implements BinaryObject {
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      ReportItem o = (ReportItem)obj;
-      o.mySeverity = Severity.valueOf(d.int32());
-      o.myMessage = (MsgRef)d.object();
-      o.myAtom = d.uint64();
+      ReportGroup o = (ReportGroup)obj;
+      o.myName = new MsgRef();
+      d.value(o.myName);
+      o.myItems = new int[d.uint32()];
+      for (int i = 0; i <o.myItems.length; i++) {
+        o.myItems[i] = d.uint32();
+      }
       o.myTags = new MsgRef[d.uint32()];
       for (int i = 0; i <o.myTags.length; i++) {
         o.myTags[i] = new MsgRef();
