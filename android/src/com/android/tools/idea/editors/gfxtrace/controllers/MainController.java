@@ -50,7 +50,7 @@ public class MainController extends Controller {
     super(editor);
 
     JBLabel experimentalBanner = new JBLabel() {{
-      setText("The GPU debugger is experimental software.");
+      setText("The GPU Debugger is currently in beta.");
       setIcon(AllIcons.General.BalloonWarning);
       setBackground(new JBColor(0xffee88, 0xa49152));
       setBorder(JBUI.Borders.empty(0, 10));
