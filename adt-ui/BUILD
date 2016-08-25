@@ -14,7 +14,7 @@ iml_module(
         "//tools:idea/lib/hamcrest-core-1.3[test]",
         "//tools:idea/lib/junit-4.12[test]",
         "//tools/base/common:common[module]",
-        "//prebuilts/tools/common/m2/repository/com/google/truth/truth/0.28:jar[test]",
+        "//prebuilts/tools/common/m2/repository/com/google/truth/truth/0.28:jar",
         "//tools/base/testutils:testutils[module, test]",
     ],
     javacopts = ["-extra_checks:off"],
