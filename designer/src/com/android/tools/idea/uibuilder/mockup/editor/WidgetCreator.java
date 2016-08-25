@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlFile;
@@ -34,6 +35,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.nio.file.Path;
@@ -47,7 +49,7 @@ public class WidgetCreator {
 
   public static final String MOCKUP_NEW_LAYOUT_CREATION_ID = "mockupNewLayoutCreation";
   @NotNull private final DesignSurface mySurface;
-  private Mockup myMockup;
+  @Nullable private Mockup myMockup;
 
   public WidgetCreator(@NotNull MockupEditor editor, @NotNull DesignSurface surface) {
     Mockup mockup = editor.getMockup();
@@ -63,18 +65,21 @@ public class WidgetCreator {
    *
    * @param selection the selection in {@link MockupViewPanel}
    * @param fqcn
+   * @param mockup
    */
-  public void createWidget(@NotNull Rectangle selection, @NotNull final String fqcn) {
-    final NlComponent parent = myMockup.getComponent();
-    final Rectangle parentCropping = myMockup.getRealCropping();
+  public void createWidget(@NotNull Rectangle selection, @NotNull final String fqcn, @NotNull Mockup mockup) {
+    final NlComponent parent = mockup.getComponent();
+    final Rectangle parentCropping = mockup.getRealCropping();
     final NlModel model = parent.getModel();
-    final String stringPath = getMockupImagePath(myMockup);
+    final String stringPath = getMockupImagePath(mockup);
 
-    new CreateNewComponentAction(mySurface, model, fqcn, parent, selection, parentCropping, stringPath)
-      .execute();
+    if(parent.isOrHasSuperclass(CLASS_VIEWGROUP)) {
+      new CreateNewComponentAction(mySurface, model, fqcn, parent, selection, parentCropping, stringPath)
+        .execute();
+    }
   }
 
-  public void setMockup(@NotNull Mockup mockup) {
+  public void setMockup(@Nullable Mockup mockup) {
     myMockup = mockup;
   }
 
@@ -83,10 +88,11 @@ public class WidgetCreator {
    *
    * @param bounds       bounds where the include tag will be located
    * @param resourceName name of the layout that will appear in the attribute include="@layout/resourceName"
+   * @param mockup
    */
-  private void createIncludeTag(@NotNull Rectangle bounds, @NotNull String resourceName) {
-    final String stringPath = getMockupImagePath(myMockup);
-    new WriteIncludeTagAction(mySurface, myMockup, myMockup.getComponent().getModel(),
+  private void createIncludeTag(@NotNull Rectangle bounds, @NotNull String resourceName, @NotNull Mockup mockup) {
+    final String stringPath = getMockupImagePath(mockup);
+    new WriteIncludeTagAction(mySurface, mockup, mockup.getComponent().getModel(),
                               resourceName, bounds, stringPath)
       .execute();
   }
@@ -131,7 +137,7 @@ public class WidgetCreator {
     nlModel.render();
 
     String resourceName = getResourceName(newFile);
-    createIncludeTag(bounds, resourceName);
+    createIncludeTag(bounds, resourceName, myMockup);
   }
 
   /**
