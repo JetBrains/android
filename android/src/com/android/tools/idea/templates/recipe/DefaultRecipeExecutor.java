@@ -146,7 +146,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
       ArtifactDependencyModel targetDependencyModel = null;
       for (ArtifactDependencyModel dependencyModel : buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
-        if(equalsIgnoreVersion(toBeAddedDependency, ArtifactDependencySpec.create(dependencyModel))) {
+        if (toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(dependencyModel))) {
           targetDependencyModel = dependencyModel;
         }
       }
@@ -173,13 +173,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
     }
     myNeedsGradleSync = true;
-  }
-
-  private static boolean equalsIgnoreVersion(@NotNull ArtifactDependencySpec spec1, @NotNull ArtifactDependencySpec spec2) {
-    return Objects.equal(spec1.name, spec2.name) &&
-           Objects.equal(spec1.group, spec2.group) &&
-           Objects.equal(spec1.classifier, spec2.classifier) &&
-           Objects.equal(spec1.extension, spec2.extension);
   }
 
   @NotNull
