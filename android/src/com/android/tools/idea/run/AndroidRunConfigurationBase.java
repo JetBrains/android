@@ -18,6 +18,8 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
@@ -30,6 +32,8 @@ import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,9 +58,11 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import icons.AndroidIcons;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -414,6 +420,26 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
       InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
+      if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
+        AndroidVersion version = deviceFutures.getDevices().get(0).getVersion();
+        int result = Messages.showYesNoDialog(project,
+                                              AndroidBundle.message("instant.run.quickfix.missing.platform", version),
+                                              "Instant Run",
+                                              "Install and Continue", // yes button
+                                              "Proceed without Instant Run", // no button
+                                              Messages.getQuestionIcon());
+        if (result == Messages.OK) { // if ok, install platform and continue with instant run
+          ModelWizardDialog dialog =
+            SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(DetailsTypes.getPlatformPath(version)));
+          if (dialog == null) {
+            LOG.warn("Unable to get quick fix wizard to install missing platform required for instant run.");
+          }
+          else if (dialog.showAndGet()) {
+            gradleSupport = SUPPORTED;
+          }
+        }
+      }
+
       if (gradleSupport == SUPPORTED) {
         if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
           throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
@@ -638,7 +664,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private InstantRunGradleSupport canInstantRun(@NotNull Module module,
-                                                       @NotNull List<AndroidDevice> targetDevices) {
+                                                @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
       return CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
     }
@@ -649,13 +675,41 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (targetDevice != null) {
       if (MultiUserUtils.hasMultipleUsers(targetDevice, 200, TimeUnit.MILLISECONDS, false)) {
         if (getUserIdFromAmParameters() != MultiUserUtils.PRIMARY_USERID || // run config explicitly specifies launching as a different user
-            !MultiUserUtils.isCurrentUserThePrimaryUser(targetDevice, 200, TimeUnit.MILLISECONDS, true)) { // activity manager says current user is not primary
+            !MultiUserUtils.isCurrentUserThePrimaryUser(targetDevice, 200, TimeUnit.MILLISECONDS,
+                                                        true)) { // activity manager says current user is not primary
           return CANNOT_DEPLOY_FOR_SECONDARY_USER;
         }
       }
     }
 
-    return InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), device.getVersion());
+    AndroidVersion version = device.getVersion();
+    InstantRunGradleSupport irSupportStatus =
+      InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), version);
+    if (irSupportStatus != SUPPORTED) {
+      return irSupportStatus;
+    }
+
+    // Gradle will instrument against the runtime android.jar (see commit 353f46cbc7363e3fca44c53a6dc0b4d17347a6ac).
+    // This means that the SDK platform corresponding to the device needs to be installed, otherwise the build will fail.
+    // We do this as the last check because it is actually possible to recover from this failure. In the future, maybe issues
+    // that have fixes will have to be handled in a more generic way.
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    if (platform == null) {
+      return SUPPORTED;
+    }
+
+    IAndroidTarget[] targets = platform.getSdkData().getTargets();
+    for (int i = targets.length - 1; i >= 0; i--) {
+      if (!targets[i].isPlatform()) {
+        continue;
+      }
+
+      if (targets[i].getVersion().equals(version)) {
+        return SUPPORTED;
+      }
+    }
+
+    return TARGET_PLATFORM_NOT_INSTALLED;
   }
 
   @Override
