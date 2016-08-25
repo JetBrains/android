@@ -20,6 +20,7 @@ package com.android.tools.idea.editors.gfxtrace.service.msg;
 public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
+    Arg.register();
     Msg.register();
     //<<<End:Java.FactoryBody:2>>>
   }

@@ -42,8 +42,10 @@ public final class Factory {
     Hierarchy.register();
     HierarchyList.register();
     MemoryInfo.register();
+    MsgRef.register();
     RenderSettings.register();
     ReportItem.register();
+    ReportGroup.register();
     Report.register();
     ResourceInfo.register();
     ResourceBundle.register();
