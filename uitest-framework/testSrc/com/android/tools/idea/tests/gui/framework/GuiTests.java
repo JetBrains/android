@@ -101,7 +101,7 @@ public final class GuiTests {
   /**
    * AOSP-relative path to directory containing GUI test data
    */
-  public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
+  public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
