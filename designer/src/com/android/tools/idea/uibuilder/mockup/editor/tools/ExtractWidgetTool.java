@@ -15,53 +15,63 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
-import com.android.tools.idea.uibuilder.mockup.editor.WidgetCreator;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Tool Allowing the extraction of widget or layout from the current selection
  */
 public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
+  /**
+   * Here we define all the actions we want to display for the widget creation
+   */
+  private static ImmutableList<CreatorAction> ourWidgetCreationActions = new ImmutableList.Builder<CreatorAction>()
+    .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
+    .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout))
+    .build();
+
+  public static final Logger LOGGER = Logger.getLogger(ExtractWidgetTool.class.getName());
   private final MockupViewPanel myMockupViewPanel;
-  private final WidgetCreator myWidgetCreator;
+  private final MockupEditor myMockupEditor;
+  private final DesignSurface mySurface;
   private Rectangle mySelection;
   private MySelectionListener mySelectionListener;
   private float myAlpha = 0;
-  @Nullable  private Mockup myMockup;
 
   /**
-   * @param surface   Current designSurface holding the mockupEditor
+   * @param surface      Current designSurface holding the mockupEditor
    * @param mockupEditor
    */
   public ExtractWidgetTool(@NotNull DesignSurface surface, @NotNull MockupEditor mockupEditor) {
     super();
+    mySurface = surface;
     myMockupViewPanel = mockupEditor.getMockupViewPanel();
-    myMockup = mockupEditor.getMockup();
     mySelectionListener = new MySelectionListener();
-    myWidgetCreator = new WidgetCreator(mockupEditor, surface);
-    MockupEditor.MockupEditorListener mockupEditorListener = newMockup -> {
-      hideTooltipActions();
-      updateMockup(newMockup);
-    };
+    myMockupEditor = mockupEditor;
+    MockupEditor.MockupEditorListener mockupEditorListener = newMockup -> hideTooltipActions();
     mockupEditor.addListener(mockupEditorListener);
     setBorder(BorderFactory.createLineBorder(JBColor.background(), 1, true));
-    add(createActionButtons());
+    add(createActionToolbar());
   }
 
-  // TODO make it look nice
   @Override
   public void paint(Graphics g) {
     Graphics2D g2d = (Graphics2D)g;
@@ -69,11 +79,6 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
     super.paint(g2d);
     g2d.setComposite(composite);
-  }
-
-  private void updateMockup(@Nullable Mockup mockup) {
-    myMockup = mockup;
-    myWidgetCreator.setMockup(mockup);
   }
 
   /**
@@ -109,8 +114,12 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     myAlpha = 0;
   }
 
-  private JComponent createActionButtons() {
-    final DefaultActionGroup group = new DefaultActionGroup(new NewWidgetAction(), new NewLayoutAction());
+  /**
+   * Create the Action toolbar containing the buttons created using ourWidgetCreationActions list
+   * @return The toolbar JComponent to add to the layout
+   */
+  private JComponent createActionToolbar() {
+    final DefaultActionGroup group = new DefaultActionGroup(createActionsButtons());
     final ActionToolbar actionToolbar = ActionManager.getInstance()
       .createActionToolbar(ActionPlaces.UNKNOWN, group, false);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
@@ -118,6 +127,10 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     return actionToolbar.getComponent();
   }
 
+  /**
+   * Activate only the selection layer in the mockup editor
+   * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
+   */
   @Override
   public void enable(@NotNull MockupEditor mockupEditor) {
     MockupViewPanel mockupViewPanel = mockupEditor.getMockupViewPanel();
@@ -125,6 +138,10 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     mockupViewPanel.resetState();
   }
 
+  /**
+   * Disable the selection on the mockupEditor and hide any displayed actions
+   * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
+   */
   @Override
   public void disable(@NotNull MockupEditor mockupEditor) {
     MockupViewPanel mockupViewPanel = mockupEditor.getMockupViewPanel();
@@ -132,44 +149,40 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     hideTooltipActions();
   }
 
+
   /**
-   * Action to create the new widget
+   * Create AnActions from ourWidgetCreationActions that use WidgetCreator to create the new widgets
+   * @return a List of {@link AnAction}
    */
-  private class NewWidgetAction extends AnAction {
-
-    public static final String TITLE = "Create new widget from selection";
-
-    public NewWidgetAction() {
-      super(TITLE, TITLE, AndroidIcons.Mockup.CreateWidget);
+  private List<AnAction> createActionsButtons() {
+    List<AnAction> actions = new ArrayList<>(ourWidgetCreationActions.size());
+    for (CreatorAction creatorAction : ourWidgetCreationActions) {
+      actions.add(new AnAction(creatorAction.myTitle, creatorAction.myTitle, creatorAction.myIcon) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          Mockup mockup = myMockupEditor.getMockup();
+          ScreenView currentScreenView = mySurface.getCurrentScreenView();
+          if (mockup == null) {
+            myMockupEditor.showError("Cannot create a widget from an empty mockup");
+            LOGGER.warning("MockupEditor has no associated mockup");
+            return;
+          }
+          if (currentScreenView == null) {
+            myMockupEditor.showError("The designer is not ready to create a new widget");
+            LOGGER.warning("The DesignSurface does not have a current screen view");
+            return;
+          }
+          WidgetCreator.create(creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+        }
+      });
     }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      if(myMockup != null) {
-        myWidgetCreator.createWidget(mySelection, SdkConstants.VIEW, myMockup);
-      }
-    }
+    return actions;
   }
 
   /**
-   * Action to create the new layout
+   * Selection listener that hide the actions when the selection begin and show them when it end
+   * and is no empty
    */
-  private class NewLayoutAction extends AnAction {
-
-    public static final String TITLE = "Create new layout from selection";
-
-    public NewLayoutAction() {
-      super(TITLE, TITLE, AndroidIcons.Mockup.CreateLayout);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      if (myMockup != null) {
-        myWidgetCreator.createNewIncludedLayout(mySelection);
-      }
-    }
-  }
-
   private class MySelectionListener implements MockupViewPanel.SelectionListener {
 
     @Override
@@ -180,10 +193,23 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     @Override
     public void selectionEnded(MockupViewPanel mockupViewPanel, Rectangle selection) {
       mySelection = selection;
-      if(myMockup != null &&
-      myMockup.getComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+      final Mockup mockup = myMockupEditor.getMockup();
+      if (mockup != null &&
+          mockup.getComponent().isOrHasSuperclass(CLASS_VIEWGROUP)) {
         displayTooltipActions();
       }
+    }
+  }
+
+  static class CreatorAction {
+    String myAndroidClassName;
+    String myTitle;
+    Icon myIcon;
+
+    public CreatorAction(String androidClassName, String title, Icon icon) {
+      myAndroidClassName = androidClassName;
+      myTitle = title;
+      myIcon = icon;
     }
   }
 }

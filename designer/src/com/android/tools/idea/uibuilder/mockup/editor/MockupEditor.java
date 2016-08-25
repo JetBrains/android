@@ -26,12 +26,15 @@ import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
 import java.util.*;
@@ -58,6 +61,7 @@ public class MockupEditor extends JPanel {
 
   // UI
   private final MockupViewPanel myMockupViewPanel;
+  private final MyTopBar myTopBar;
 
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
@@ -68,8 +72,9 @@ public class MockupEditor extends JPanel {
     setModel(model);
     surface.addListener(new MyDesignSurfaceListener(this));
 
-    add(new MyTopBar(new CropTool(this)), BorderLayout.NORTH);
     add(myMockupViewPanel, BorderLayout.CENTER);
+    myTopBar = new MyTopBar(new CropTool(this));
+    add(myTopBar, BorderLayout.NORTH);
     myExtractWidgetTool.enable(this);
     setMinimumSize(MINIMUM_SIZE);
     initSelection();
@@ -212,6 +217,12 @@ public class MockupEditor extends JPanel {
     selectionUpdated(myModel, selection);
   }
 
+  public void showError(String message) {
+    if(myTopBar != null) {
+      myTopBar.showError(message);
+    }
+  }
+
   /**
    * Tool used in the mockup editor
    */
@@ -270,17 +281,25 @@ public class MockupEditor extends JPanel {
    * Bar on top showing the title and actions
    */
   private static class MyTopBar extends JPanel {
+    public static final int ERROR_MESSAGE_DISPLAY_DURATION = 2000;
+    private JLabel myErrorLabel;
+    private Timer myErrorTimer;
 
     MyTopBar(CropTool cropTool) {
       super(new BorderLayout());
       add(createTitleBar(), BorderLayout.NORTH);
       add(createActionBar(cropTool), BorderLayout.SOUTH);
+      myErrorTimer = new Timer(ERROR_MESSAGE_DISPLAY_DURATION, e -> showError(""));
+      myErrorTimer.setRepeats(false);
     }
 
     @NotNull
-    private static JPanel createActionBar(CropTool cropTool) {
+    private JPanel createActionBar(CropTool cropTool) {
       JPanel actionBar = new JPanel(new BorderLayout());
       actionBar.add(cropTool, BorderLayout.EAST);
+      myErrorLabel = new JLabel();
+      myErrorLabel.setForeground(JBColor.RED);
+      actionBar.add(myErrorLabel, BorderLayout.WEST);
       actionBar.setBorder(new CompoundBorder(
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
         IdeBorderFactory.createEmptyBorder(0, 10, 0, 5)));
@@ -296,6 +315,15 @@ public class MockupEditor extends JPanel {
         IdeBorderFactory.createBorder(SideBorder.BOTTOM),
         IdeBorderFactory.createEmptyBorder(4, 5, 4, 10)));
       return titleBar;
+    }
+
+    private void showError(String message) {
+      UIUtil.invokeLaterIfNeeded(() -> myErrorLabel.setText(message));
+      if(!message.isEmpty()) {
+        myErrorTimer.restart();
+      } else {
+        myErrorTimer.stop();
+      }
     }
   }
 

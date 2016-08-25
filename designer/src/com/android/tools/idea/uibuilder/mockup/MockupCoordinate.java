@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model;
+package com.android.tools.idea.uibuilder.mockup;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -21,8 +21,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
+
+/**
+ * Indicates a coordinate in the mockup image coordinate system
+ */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target({METHOD, PARAMETER, LOCAL_VARIABLE, FIELD})
-public @interface AndroidDpCoordinate {
+public @interface MockupCoordinate {
 }
