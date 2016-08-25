@@ -93,6 +93,8 @@ public class InstantRunStatsService {
     if (buildCause == BuildCause.API_TOO_LOW_FOR_INSTANT_RUN || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_API21
       || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS) {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device));
+    } else {
+      studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
     }
     UsageTracker.getInstance().log(studioEvent);
   }

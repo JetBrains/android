@@ -114,6 +114,17 @@ public class AndroidStudioUsageTracker {
   }
 
   /**
+   * Creates a {@link AndroidStudioStats.DeviceInfo} from a {@link IDevice} instance
+   * containing api level only.
+   */
+  @NotNull
+  public static AndroidStudioStats.DeviceInfo deviceToDeviceInfoApilLevelOnly(@NotNull IDevice device) {
+    return AndroidStudioStats.DeviceInfo.newBuilder()
+      .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
+      .build();
+  }
+
+  /**
    * Reads the channel selected by the user from UpdateSettings and converts it into a {@link SoftwareLifeCycleChannel} value.
    */
   private static SoftwareLifeCycleChannel lifecycleChannelFromUpdateSettings() {
