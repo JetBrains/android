@@ -54,11 +54,15 @@ public class MultiUserUtils {
       return defaultValue;
     }
 
+    String output = receiver.getOutput();
     try {
-      return Integer.parseInt(receiver.getOutput().trim()) == PRIMARY_USERID;
+      return Integer.parseInt(output.trim()) == PRIMARY_USERID;
     }
     catch (NumberFormatException e) {
-      Logger.getInstance(MultiUserUtils.class).warn("Error parsing output of `am get-current-user`: " + receiver.getOutput());
+      if (output.length() > 40) {
+        output = output.substring(0, 40) + "...";
+      }
+      Logger.getInstance(MultiUserUtils.class).warn("Error parsing output of `am get-current-user`: " + output);
       return defaultValue;
     }
   }
@@ -90,11 +94,20 @@ public class MultiUserUtils {
     }
 
     // Output is of the form:
+    // <some devices have error messages here, e.g. WARNING: linker: libdvm.so has text relocations
     // Users:
     //    UserInfo{0:Foo:13} running
     //    UserInfo{11:Sample Managed Profile:30} running
-    // To detect whether there are multiple users, we don't have to parse it but just count the number of lines
-    return receiver.getOutput().trim().split("\n").length > 2;
+
+    String[] lines = receiver.getOutput().trim().split("\n");
+    int numUsers = 0;
+    for (String line : lines) {
+      if (line.contains("UserInfo{")) {
+        numUsers++;
+      }
+    }
+
+    return numUsers > 1;
   }
 
   public static int getUserIdFromAmParameters(@NotNull String amFlags) {
