@@ -65,7 +65,7 @@ abstract class AnimatedComponentImageDiffEntry extends ImageDiffEntry {
 
   protected List<Animatable> myComponents;
 
-  private Choreographer myChoreographer;
+  protected Choreographer myChoreographer;
 
   AnimatedComponentImageDiffEntry(String baselineFilename, float similarityThreshold) {
     super(baselineFilename, similarityThreshold);

@@ -19,7 +19,7 @@ package com.android.tools.adtui;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Animates a time range assuming the data is represented in milliseconds since epoch.
+ * Animates a time range assuming the data is represented in microseconds since epoch.
  */
 public class AnimatedTimeRange implements Animatable {
 
