@@ -19,6 +19,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -210,6 +211,14 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testVersionCheck() throws Exception {
+    // Need to use minSdkVersion == 16 to get all the warnings to kick in
+    deleteManifest();
+    myFixture.copyFileToProject("formatter/xml/manifest1.xml", "AndroidManifest.xml");
+    doTest(new AndroidLintInspectionToolProvider.AndroidLintObsoleteSdkIntInspection(),
+                  "Unwrap 'if' statement", false);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     doTest(inspection, quickFixName, true);
   }
@@ -225,7 +234,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     myFixture.checkHighlighting(true, false, false);
 
     if (quickFixName != null) {
-      final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
+      IntentionAction quickFix = AndroidTestUtils.getIntentionAction(myFixture, quickFixName);
       assertNotNull(quickFix);
       myFixture.launchAction(quickFix);
       myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.java");
