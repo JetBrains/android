@@ -17,14 +17,53 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.AbstractList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.RandomAccess;
 
 public final class ReportGroup implements BinaryObject {
+
+  public boolean containsItemForAtom(long atomId, @NotNull Report report) {
+    return Arrays.stream(myItems).mapToObj(i -> report.getItems()[i])
+             .filter(item -> item.getAtom() == atomId).findAny().isPresent();
+  }
+
+  public int getItemCount() {
+    return myItems.length;
+  }
+
+  public int findItem(@NotNull Report report,
+                      @NotNull ReportItem item) {
+    final IndexList list = new IndexList(report, myItems);
+    return Collections.binarySearch(list, item, (lhs, rhs) -> (int)(lhs.getAtom() - rhs.getAtom()));
+  }
+
+  private static class IndexList extends AbstractList<ReportItem> implements RandomAccess {
+    @NotNull private final Report myReport;
+    @NotNull private final int[] myItems;
+
+    public IndexList(@NotNull Report report, @NotNull int[] items) {
+      myReport = report;
+      myItems = items;
+    }
+
+    @Override
+    public int size() {
+      return myItems.length;
+    }
+
+    @Override
+    public ReportItem get(int i) {
+      return myReport.getItems()[myItems[i]];
+    }
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private MsgRef myName;
   private int[] myItems;
