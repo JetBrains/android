@@ -1,13 +1,11 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -18,6 +16,7 @@ import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.daemon.impl.quickfix.SimplifyBooleanExpressionFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -1982,6 +1981,28 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.missing.version"), ManifestDetector.SET_VERSION);
     }
   }
+
+  public static class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBase {
+    public AndroidLintObsoleteSdkIntInspection() {
+      super(AndroidBundle.message("android.lint.inspections.obsolete.sdk.int"), ApiDetector.OBSOLETE_SDK);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      Boolean constant = ApiDetector.getVersionCheckConstant(message, RAW);
+      if (constant != null) {
+        PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
+        if (subExpression != null) {
+          return new AndroidLintQuickFix[]{
+            new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
+          };
+        }
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
   public static class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase {
     public AndroidLintOldTargetApiInspection() {
       super(AndroidBundle.message("android.lint.inspections.old.target.api"), ManifestDetector.TARGET_NEWER);
