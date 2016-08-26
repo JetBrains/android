@@ -198,7 +198,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @NotNull
   public String resolveValue(@NotNull String value) {
-    if (myDefaultValue != null && myDefaultValue.value != null && isDefaultValue(value)) {
+    if (myDefaultValue != null && isDefaultValue(value)) {
       if (myDefaultValue.value == null) {
         myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
       }
