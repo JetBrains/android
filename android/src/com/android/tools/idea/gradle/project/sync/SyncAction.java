@@ -75,17 +75,22 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
     @NotNull
     public ModuleModels getModels(@NotNull IdeaModule module) {
       String key = createMapKey(module);
-      return myModelsByModule.get(key);
-    }
-
-    @NotNull
-    public IdeaProject getProject() {
-      return myProject;
+      return getModels(key);
     }
 
     @NotNull
     private static String createMapKey(@NotNull IdeaModule module) {
       return module.getGradleProject().getPath();
+    }
+
+    @NotNull
+    public ModuleModels getModels(@NotNull String gradlePath) {
+      return myModelsByModule.get(gradlePath);
+    }
+
+    @NotNull
+    public IdeaProject getProject() {
+      return myProject;
     }
   }
 

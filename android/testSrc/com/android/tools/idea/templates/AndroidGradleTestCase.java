@@ -261,39 +261,28 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void loadProject(@NotNull String relativePath, boolean buildProject)
     throws IOException, ConfigurationException, InterruptedException {
-    loadProject(relativePath, buildProject, null);
+    loadProject(relativePath, null, buildProject);
   }
 
   protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName)
     throws IOException, ConfigurationException, InterruptedException {
 
-    loadProject(relativePath, false, null, chosenModuleName);
+    loadProject(relativePath, null, chosenModuleName, false);
   }
 
-  protected void loadProject(String relativePath, boolean buildProject, @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException, InterruptedException {
-    loadProject(relativePath, buildProject, listener, null);
+  protected void loadProject(@NotNull String relativePath,
+                             @Nullable GradleSyncListener listener,
+                             boolean buildProject) throws IOException, ConfigurationException, InterruptedException {
+    loadProject(relativePath, listener, null, buildProject);
   }
 
-  protected void loadProject(
-    String relativePath, boolean buildProject, @Nullable GradleSyncListener listener, @Nullable String chosenModuleName)
-    throws IOException, ConfigurationException, InterruptedException {
-    File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
-    assertTrue(root.getPath(), root.exists());
-    File build = new File(root, FN_BUILD_GRADLE);
-    File settings = new File(root, FN_SETTINGS_GRADLE);
-    assertTrue("Couldn't find build.gradle or settings.gradle in " + root.getPath(), build.exists() || settings.exists());
-
-    // Sync the model
+  protected void loadProject(@NotNull String relativePath,
+                             @Nullable GradleSyncListener listener,
+                             @Nullable String chosenModuleName,
+                             boolean buildProject) throws IOException, ConfigurationException, InterruptedException {
+    prepareProjectForImport(relativePath);
     Project project = myFixture.getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
-    copyDir(root, projectRoot);
-
-    // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot);
-
-    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateGradleVersions(projectRoot);
 
     if (buildProject) {
       try {
@@ -347,6 +336,26 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // is the cause of the issue, but not all files inside a project are seen while running unit tests.
     // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
     LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
+  }
+
+  protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
+    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
+    assertTrue(root.getPath(), root.exists());
+
+    File build = new File(root, FN_BUILD_GRADLE);
+    File settings = new File(root, FN_SETTINGS_GRADLE);
+    assertTrue("Couldn't find build.gradle or settings.gradle in " + root.getPath(), build.exists() || settings.exists());
+
+    // Sync the model
+    Project project = myFixture.getProject();
+    File projectRoot = virtualToIoFile(project.getBaseDir());
+    copyDir(root, projectRoot);
+
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot);
+
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateGradleVersions(projectRoot);
   }
 
   @NotNull

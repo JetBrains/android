@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -27,61 +28,78 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
-class ProjectSetup {
-  private static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
+interface ProjectSetup {
+  void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator);
 
-  @NotNull private final Project myProject;
-  @NotNull private final IdeModifiableModelsProvider myModelsProvider;
-  @NotNull private final ModuleFactory myModuleFactory;
-  @NotNull private final ModuleSetup myModuleSetup;
+  void commit(boolean synchronous);
 
-  ProjectSetup(@NotNull Project project) {
-    myProject = project;
-    myModelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    myModuleFactory = new ModuleFactory(myProject, myModelsProvider);
-    myModuleSetup = new ModuleSetup(myModelsProvider);
+  class Factory {
+    @NotNull
+    ProjectSetup create(@NotNull Project project) {
+      return new ProjectSetupImpl(project);
+    }
   }
 
-  void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
-    createModules(models, indicator);
-  }
+  class ProjectSetupImpl implements ProjectSetup {
+    private static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
-  private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
-    for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
-      // We need to create all modules before setting them up, in case we find inter-module dependencies.
-      SyncAction.ModuleModels moduleModels = projectModels.getModels(ideaModule);
-      Module module = myModuleFactory.createModule(ideaModule, moduleModels);
-      module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
+    @NotNull private final Project myProject;
+    @NotNull private final IdeModifiableModelsProvider myModelsProvider;
+    @NotNull private final ModuleFactory myModuleFactory;
+    @NotNull private final ModuleSetup myModuleSetup;
+
+
+    @VisibleForTesting
+    ProjectSetupImpl(@NotNull Project project) {
+      myProject = project;
+      myModelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+      myModuleFactory = new ModuleFactory(myProject, myModelsProvider);
+      myModuleSetup = new ModuleSetup(myModelsProvider);
     }
 
-    for (Module module : myModelsProvider.getModules()) {
-      SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
-      if (moduleModels == null) {
-        // This module was created in the last sync action. Mark this module for deletion.
-        // TODO remove module
-        continue;
+    @Override
+    public void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
+      createModules(models, indicator);
+    }
+
+    private void createModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
+      for (IdeaModule ideaModule : projectModels.getProject().getModules()) {
+        // We need to create all modules before setting them up, in case we find inter-module dependencies.
+        SyncAction.ModuleModels moduleModels = projectModels.getModels(ideaModule);
+        Module module = myModuleFactory.createModule(ideaModule, moduleModels);
+        module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
       }
-      myModuleSetup.setUpModule(module, moduleModels, indicator);
-      module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
-    }
-  }
 
-  void commit(boolean synchronous) {
-    try {
-      executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(myProject) {
-        @Override
-        public void execute() {
-          myModelsProvider.commit();
+      for (Module module : myModelsProvider.getModules()) {
+        SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
+        if (moduleModels == null) {
+          // This module was created in the last sync action. Mark this module for deletion.
+          // TODO remove module
+          continue;
         }
-      });
+        myModuleSetup.setUpModule(module, moduleModels, indicator);
+        module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
+      }
     }
-    catch (Throwable e) {
-      executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(myProject) {
-        @Override
-        public void execute() {
-          myModelsProvider.dispose();
-        }
-      });
+
+    @Override
+    public void commit(boolean synchronous) {
+      try {
+        executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(myProject) {
+          @Override
+          public void execute() {
+            myModelsProvider.commit();
+          }
+        });
+      }
+      catch (Throwable e) {
+        executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(myProject) {
+          @Override
+          public void execute() {
+            myModelsProvider.dispose();
+          }
+        });
+      }
     }
   }
 }

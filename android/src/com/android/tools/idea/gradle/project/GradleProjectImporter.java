@@ -22,11 +22,10 @@ import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.Application;
@@ -48,7 +47,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Pair;
@@ -64,7 +62,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
@@ -114,6 +111,7 @@ public class GradleProjectImporter {
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
   private final ImporterDelegate myDelegate;
+  private final GradleSetup myGradleSetup = new GradleSetup();
 
   /**
    * Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
@@ -298,7 +296,7 @@ public class GradleProjectImporter {
                              @Nullable GradleSyncListener listener) throws ConfigurationException {
     if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
-      setUpGradleSettings(project);
+      myGradleSetup.setUpGradle(project);
       resetProject(project);
       setGradleVersionUsed(project, null);
       doImport(project, progressExecutionMode, options, false /* existing project */, listener);
@@ -425,7 +423,7 @@ public class GradleProjectImporter {
     writeToFile(projectFile, contents);
   }
 
-  private static void setUpProject(@NotNull Project newProject, @Nullable LanguageLevel initialLanguageLevel) {
+  private void setUpProject(@NotNull Project newProject, @Nullable LanguageLevel initialLanguageLevel) {
     CommandProcessor.getInstance().executeCommand(newProject, () -> ApplicationManager.getApplication().runWriteAction(() -> {
       if (initialLanguageLevel != null) {
         LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
@@ -441,37 +439,11 @@ public class GradleProjectImporter {
       CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
       assert compilerProjectExt != null;
       compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
-      setUpGradleSettings(newProject);
+
+      myGradleSetup.setUpGradle(newProject);
       // This allows to customize UI when android project is opened inside IDEA with android plugin.
       setProjectType(newProject, AndroidModuleBuilder.ANDROID_PROJECT_TYPE);
     }), null, null);
-  }
-
-  private static void setUpGradleSettings(@NotNull Project project) {
-    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
-    if (projectSettings == null) {
-      projectSettings = new GradleProjectSettings();
-    }
-    setUpGradleProjectSettings(project, projectSettings);
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
-  }
-
-  private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
-    settings.setUseAutoImport(false);
-
-    // Workaround to make integration (non-UI) tests pass.
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      Sdk jdk = IdeSdks.getJdk();
-      if (jdk != null) {
-        settings.setGradleJvm(jdk.getName());
-      }
-    }
-
-    String basePath = project.getBasePath();
-    if (basePath != null) {
-      settings.setExternalProjectPath(basePath);
-    }
   }
 
   private void doImport(@NotNull Project project,
