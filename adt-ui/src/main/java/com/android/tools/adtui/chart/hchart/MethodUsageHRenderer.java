@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUiUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -34,7 +34,7 @@ public class MethodUsageHRenderer implements HRenderer<MethodUsage> {
 
 
   // To limit the number of object allocation we reuse the same Rectangle.
-  @NonNull
+  @NotNull
   private RoundRectangle2D.Float mRect;
 
   private static final Pattern dotPattern = Pattern.compile("\\.");
