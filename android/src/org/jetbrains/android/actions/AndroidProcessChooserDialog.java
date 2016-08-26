@@ -428,7 +428,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPersistableName(selectedDevice));
     properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(mySelectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
-    properties.setValue(DEBUGGER_ID_PROPERTY, myAndroidDebugger.getId());
+
+    if (myAndroidDebugger != null) {
+      properties.setValue(DEBUGGER_ID_PROPERTY, myAndroidDebugger.getId());
+    }
 
     super.doOKAction();
   }
