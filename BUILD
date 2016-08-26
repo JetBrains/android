@@ -162,7 +162,12 @@ iml_module(
         "//tools/idea/.idea/libraries:asm",
         "//tools/adt/idea:android-common",
     ],
-    test_data = glob(["android/testData/**/*", "designer/testData/**/*"]),
+    test_data = glob([
+        "android/testData/**/*",
+        "designer/testData/**/*",
+    ]) + [
+        "//tools/base/templates",
+    ],
     test_timeout = "long",
     test_class = "com.android.tools.idea.IdeaTestSuite",
     javacopts = ["-extra_checks:off"],

@@ -16,8 +16,14 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.apache.commons.io.FileUtils;
 import org.junit.runner.RunWith;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
@@ -256,9 +262,17 @@ import org.junit.runner.RunWith;
 public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
-    System.setProperty("idea.home", System.getProperty("java.io.tmpdir"));
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    System.setProperty("idea.home", tmpDir);
     if (System.getenv("TEST_SRCDIR") != null) {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
+    }
+
+    Logger logger = Logger.getLogger(IdeaTestSuite.class.getName());
+    try {
+      FileUtils.copyDirectory(TestUtils.getWorkspaceFile("tools/base/templates"), new File(tmpDir, "android/tools-base/templates"));
+    } catch (IOException e) {
+      logger.warning(e.getMessage());
     }
   }
 }
