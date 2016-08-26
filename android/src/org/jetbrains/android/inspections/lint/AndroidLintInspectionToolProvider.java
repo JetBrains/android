@@ -1579,6 +1579,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAllCapsInspection extends AndroidLintInspectionBase {
+    public AndroidLintAllCapsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.all.caps"), AllCapsDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintAllowAllHostnameVerifierInspection extends AndroidLintInspectionBase {
     public AndroidLintAllowAllHostnameVerifierInspection() {
       super(AndroidBundle.message("android.lint.inspections.allow.all.hostname.verifier"), AllowAllHostnameVerifierDetector.ISSUE);
