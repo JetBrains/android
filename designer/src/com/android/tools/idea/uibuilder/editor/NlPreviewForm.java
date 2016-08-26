@@ -249,7 +249,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       model.removeListener(this);
       if (valid) {
         valid = false;
-        ApplicationManager.getApplication().invokeLater(this);
+        ApplicationManager.getApplication().invokeLater(this, model.getProject().getDisposed());
       }
     }
 
