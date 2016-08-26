@@ -19,6 +19,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
@@ -341,8 +342,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
       if (gradleSupport == TARGET_PLATFORM_NOT_INSTALLED) {
         AndroidVersion version = deviceFutures.getDevices().get(0).getVersion();
+        String message = AndroidBundle.message("instant.run.quickfix.missing.platform", SdkVersionInfo.getVersionWithCodename(version));
         int result = Messages.showYesNoDialog(project,
-                                              AndroidBundle.message("instant.run.quickfix.missing.platform", version),
+                                              message,
                                               "Instant Run",
                                               "Install and Continue", // yes button
                                               "Proceed without Instant Run", // no button
