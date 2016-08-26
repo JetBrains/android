@@ -107,11 +107,19 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
-    overviewPanel.remove(myRadioSegment);
-    overviewPanel.remove(myCaptureSegment);
+    if (myRadioSegment != null) {
+      overviewPanel.remove(myRadioSegment);
+      myRadioSegment = null;
+    }
 
-    detailPanel.remove(myDetailedView);
+    if (myCaptureSegment != null) {
+      overviewPanel.remove(myCaptureSegment);
+      myChoreographer.unregister(myCaptureSegment);
+      myCaptureSegment = null;
+    }
 
-    myChoreographer.unregister(myCaptureSegment);
+    if (myDetailedView != null) {
+      detailPanel.remove(myDetailedView);
+    }
   }
 }
