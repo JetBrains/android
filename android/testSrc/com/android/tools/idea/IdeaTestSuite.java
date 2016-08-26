@@ -16,6 +16,7 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -28,5 +29,8 @@ public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
     System.setProperty("idea.home", System.getProperty("java.io.tmpdir"));
+    if (System.getenv("TEST_SRCDIR") != null) {
+      VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
+    }
   }
 }
