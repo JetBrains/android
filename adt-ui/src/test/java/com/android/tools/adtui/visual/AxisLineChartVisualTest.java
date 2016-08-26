@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
@@ -26,6 +25,7 @@ import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,42 +47,29 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private long mStartTimeUs;
 
-  @NonNull
   private Range mXGlobalRange;
 
-  @NonNull
   private LineChart mLineChart;
 
-  @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  @NonNull
   private List<RangedContinuousSeries> mRangedData;
 
-  @NonNull
   private List<LongDataSeries> mData;
 
-  @NonNull
   private AxisComponent mMemoryAxis1;
 
-  @NonNull
   private AxisComponent mMemoryAxis2;
 
-  @NonNull
   private AxisComponent mTimeAxis;
 
-  @NonNull
   private GridComponent mGrid;
 
-  @NonNull
   private SelectionComponent mSelection;
 
-  @NonNull
   private RangeScrollbar mScrollbar;
 
-  @NonNull
   private LegendComponent mLegendComponent;
-
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -165,7 +152,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     panel.setLayout(new BorderLayout());
 
     JLayeredPane mockTimelinePane = createMockTimeline();

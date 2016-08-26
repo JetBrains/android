@@ -16,18 +16,20 @@
 
 package com.android.tools.adtui.visual.flamegraph;
 
-import com.android.annotations.NonNull;
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.Range;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
-import com.android.tools.adtui.chart.hchart.MethodUsage;
-import com.android.tools.adtui.chart.hchart.MethodUsageHRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.visual.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,10 +64,9 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
   private final static int AXIS_SIZE = 20;
 
-  @NonNull
+  @NotNull
   private LineChart mLineChart;
 
-  @NonNull
   private JScrollBar mScrollBar;
 
   public FlameGraphVisualTest() {
@@ -99,7 +100,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel mainPanel) {
+  protected void populateUi(@NotNull JPanel mainPanel) {
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
     JBPanel controlPanel = new JBPanel();

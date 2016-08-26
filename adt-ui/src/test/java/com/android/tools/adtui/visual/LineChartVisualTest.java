@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
@@ -41,25 +40,18 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class LineChartVisualTest extends VisualTest {
 
-  @NonNull
   private LineChart mLineChart;
 
-  @NonNull
   private List<RangedContinuousSeries> mRangedData;
 
-  @NonNull
   private List<DefaultDataSeries<Long>> mData;
 
-  @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  @NotNull
   private RangedSeries<DurationData> mEventSeries;
 
-  @NotNull
   private DefaultDataSeries<DurationData> mEventData;
 
-  @NonNull
   private EventConfig mEventConfig;
 
   @Override
@@ -107,7 +99,7 @@ public class LineChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     JPanel controls = VisualTest.createControlledPane(panel, mLineChart);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
 

@@ -16,13 +16,13 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,22 +54,18 @@ public class StateChartVisualTest extends VisualTest {
 
   private static final int AXIS_SIZE = 100;
 
-  @NonNull
   private Range mXRange;
 
-  @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  @NonNull
   private StateChart<MockFruitState> mNetworkStatusChart;
 
-  @NonNull
   private StateChart<MockStrengthState> mRadioStateChart;
 
-  @NonNull
+  @NotNull
   private List<DefaultDataSeries<MockFruitState>> mNetworkDataEntries = new ArrayList<>();
 
-  @NonNull
+  @NotNull
   private List<DefaultDataSeries<MockStrengthState>> mRadioDataEntries = new ArrayList<>();
 
   private static EnumMap<MockFruitState, Color> getFruitStateColor() {
@@ -118,7 +114,7 @@ public class StateChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     panel.setLayout(new BorderLayout());
 
     JLayeredPane timelinePane = createMockTimeline();

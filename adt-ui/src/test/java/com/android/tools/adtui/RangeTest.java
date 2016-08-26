@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -226,7 +226,7 @@ public class RangeTest {
     assertThat(range.getMax()).isWithin(THRESHOLD).of(90f);
   }
 
-  private static void triggerUpdate(@NonNull Range range) {
+  private static void triggerUpdate(@NotNull Range range) {
     range.animate(1);
     range.postAnimate();
   }

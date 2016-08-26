@@ -16,10 +16,10 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,10 +34,10 @@ public class VisualTestsDialog extends JDialog {
 
   private List<Choreographer> mChoreographers = new LinkedList<>();
 
-  @NonNull
+  @NotNull
   protected List<VisualTest> mTests = new LinkedList<>();
 
-  @NonNull
+  @NotNull
   private final JTabbedPane mTabs;
 
   /**

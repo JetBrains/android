@@ -16,8 +16,11 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.EventData;
+import com.android.tools.adtui.TimelineComponent;
+import com.android.tools.adtui.TimelineData;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -96,7 +99,7 @@ public class TimelineVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     final AtomicInteger streamSize = new AtomicInteger(2);
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);
