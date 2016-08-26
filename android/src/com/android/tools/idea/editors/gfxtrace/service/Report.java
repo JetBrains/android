@@ -18,46 +18,71 @@
 package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
-import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.*;
+import com.google.common.collect.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
 import java.util.Map;
 
 public final class Report implements BinaryObject {
-  private Map<Long, List<Integer>> myAtomReportItemIdMap;
 
   @Nullable("there's no report item associated to a given atom id")
-  public List<Integer> getForAtom(long atomId) {
-    return myAtomReportItemIdMap.get(atomId);
+  public Range<Integer> getForAtom(long atomId) {
+    final ReportItem key = new ReportItem();
+    key.setAtom(atomId);
+    int index = Arrays.binarySearch(myItems, key, (lhs, rhs) -> Long.compare(lhs.getAtom(), rhs.getAtom()));
+    if (index < 0 || index >= myItems.length) {
+      return null;
+    }
+    int start = index;
+    while (start >= 0 && myItems[start].getAtom() == atomId) {
+      start--;
+    }
+    int end = index;
+    while (end < myItems.length && myItems[end].getAtom() == atomId) {
+      end++;
+    }
+    return Range.closed(start + 1, end - 1);
   }
 
-  @NotNull
-  public List<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
-    List<Integer> list = new ArrayList<>();
-    for (long i = firstAtomId; i <= lastAtomId; ++i) {
-      List<Integer> value = myAtomReportItemIdMap.get(i);
-      if (value != null) {
-        list.addAll(value);
-      }
+  @Nullable("there's no report items associated to a given atom range")
+  public Range<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
+    final ReportItem key = new ReportItem();
+    key.setAtom(firstAtomId);
+    int index = Arrays.binarySearch(myItems, key, (lhs, rhs) -> (int)(lhs.getAtom() - rhs.getAtom()));
+    if (index < 0 || index >= myItems.length) {
+      return null;
     }
-    return list;
+    int start = index;
+    while (start >= 0 && myItems[start].getAtom() == firstAtomId) {
+      start--;
+    }
+    int end = index;
+    while (end < myItems.length && myItems[end].getAtom() <= lastAtomId) {
+      end++;
+    }
+    return Range.closed(start + 1, end - 1);
   }
 
-  public void buildMap() {
-    myAtomReportItemIdMap = new HashMap<>();
-    for (int i = 0; i < myItems.length; ++i) {
-      ReportItem item = myItems[i];
-      List<Integer> items = myAtomReportItemIdMap.get(item.getAtom());
-      if (items == null) {
-        items = new ArrayList<>();
-        myAtomReportItemIdMap.put(item.getAtom(), items);
-      }
-      items.add(i);
-    }
+  public String constructMessage(int reportItemIndex) {
+    return constructMessage(myItems[reportItemIndex]);
+  }
+
+  // TODO: Check if we have to recycle a map
+  public String constructMessage(@NotNull final ReportItem reportItem) {
+    MsgRef ref = reportItem.getMessage();
+    Map<String, BinaryObject> argMap = Arg.constructMap(myMsgArguments, ref.getArguments());
+    return StringTable.getMessage(myMsgIdentifiers[ref.getIdentifier()], argMap);
+  }
+
+  // Groups are children for now, structure may change...
+  public int getChildCount() {
+    return myGroups.length;
   }
 
   //<<<Start:Java.ClassBody:1>>>
