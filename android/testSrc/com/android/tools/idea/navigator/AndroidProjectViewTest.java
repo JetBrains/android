@@ -20,9 +20,6 @@ import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -45,9 +42,6 @@ import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.List;
 
 // TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
@@ -248,7 +242,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testFailedImport() throws Exception {
-    loadProject("projects/navigator/invalid", false, new GradleSyncListener.Adapter() {
+    loadProject("projects/navigator/invalid", new GradleSyncListener.Adapter() {
       @Override
       public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
         // If the sync fails, then IDE creates an empty top level module. Mimic the same behavior for this test.
@@ -264,7 +258,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
           }
         });
       }
-    });
+    }, false);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);

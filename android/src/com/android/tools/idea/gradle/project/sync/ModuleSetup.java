@@ -60,6 +60,7 @@ class ModuleSetup {
 
     AndroidProject androidProject = models.findModel(AndroidProject.class);
     if (androidProject == null) {
+      // Remove any AndroidFacet set in a previous sync operation.
       removeAllFacetsOfType(AndroidFacet.ID, myModelsProvider.getModifiableFacetModel(module));
     }
     else {
