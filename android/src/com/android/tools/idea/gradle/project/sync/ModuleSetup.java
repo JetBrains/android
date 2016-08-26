@@ -20,6 +20,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
 import com.intellij.facet.ModifiableFacetModel;
@@ -29,6 +30,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
 
@@ -66,13 +68,11 @@ class ModuleSetup {
     else {
       AndroidGradleModel androidModel = createAndroidModel(module, androidProject);
       if (androidModel == null) {
-        // Android module without variants. Treat as a Java module.
+        // Android module without variants. Treat as a non-buildable Java module.
+        setUpJavaModule(module, models, indicator, true /* Android project without variants */);
       }
       else {
-        for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
-          indicator.setText2(String.format("Module ''%1$s': %2$s", module.getName(), step.getDescription()));
-          step.setUpModule(module, androidModel, myModelsProvider, models, indicator);
-        }
+        setUpAndroidModule(module, models, indicator, androidModel);
       }
     }
   }
@@ -106,5 +106,34 @@ class ModuleSetup {
   private static File getModulePath(@NotNull Module module) {
     File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
     return moduleFilePath.getParentFile();
+  }
+
+  private void setUpJavaModule(@NotNull Module module,
+                               @NotNull SyncAction.ModuleModels models,
+                               @NotNull ProgressIndicator indicator,
+                               boolean androidProjectWithoutVariants) {
+    //noinspection deprecation
+    ModuleExtendedModel javaModel = models.findModel(ModuleExtendedModel.class);
+    JavaProject javaProject = JavaProject.create(models.getModule(), javaModel, androidProjectWithoutVariants);
+    for (JavaModuleSetupStep step : JavaModuleSetupStep.getExtensions()) {
+      displayStepDescription(step.getDescription(), module, indicator);
+      step.setUpModule(module, javaProject, myModelsProvider, models, indicator);
+    }
+  }
+
+  private void setUpAndroidModule(@NotNull Module module,
+                                  @NotNull SyncAction.ModuleModels models,
+                                  @NotNull ProgressIndicator indicator,
+                                  AndroidGradleModel androidModel) {
+    for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
+      displayStepDescription(step.getDescription(), module, indicator);
+      step.setUpModule(module, androidModel, myModelsProvider, models, indicator);
+    }
+  }
+
+  private static void displayStepDescription(@NotNull String stepDescription,
+                                             @NotNull Module module,
+                                             @NotNull ProgressIndicator indicator) {
+    indicator.setText2(String.format("Module ''%1$s': %2$s", module.getName(), stepDescription));
   }
 }
