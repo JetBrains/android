@@ -16,10 +16,10 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
+import org.jetbrains.annotations.NotNull;
 
 import javax.accessibility.Accessible;
 import javax.swing.*;
@@ -51,7 +51,7 @@ public class SunburstVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     JPanel controls = VisualTest.createControlledPane(panel, mSunburst);
     final JLabel info = new JLabel("<No information yet>");
     panel.add(info, BorderLayout.SOUTH);
