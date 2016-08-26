@@ -34,11 +34,13 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
@@ -48,7 +50,10 @@ public class NlIdPropertyItem extends NlPropertyItem {
   private static final int REFACTOR_NO = 1;
   private static final int REFACTOR_YES = 2;
 
+  // TODO move this static field to a PropertiesComponent setting (need a UI to reset)
   private static int ourRefactoringChoice = REFACTOR_ASK;
+
+  private Supplier<DialogBuilder> myDialogSupplier;
 
   protected NlIdPropertyItem(@NotNull List<NlComponent> components,
                              @NotNull XmlAttributeDescriptor descriptor,
@@ -110,7 +115,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
           if (usages.length > 0) {
             int choice = ourRefactoringChoice;
             if (choice == REFACTOR_ASK) {
-              DialogBuilder builder = new DialogBuilder(project);
+              DialogBuilder builder = createDialogBuilder(project);
               builder.setTitle("Update Usages?");
               JPanel panel = new JPanel(new BorderLayout()); // UGH!
               JLabel label = new JLabel("<html>" +
@@ -159,4 +164,19 @@ public class NlIdPropertyItem extends NlPropertyItem {
 
     super.setValue(value != null ? NEW_ID_PREFIX + value : null);
   }
+
+  @TestOnly
+  void setDialogSupplier(@NotNull Supplier<DialogBuilder> dialogSupplier) {
+    myDialogSupplier = dialogSupplier;
+  }
+
+  @TestOnly
+  static void clearRefactoringChoice() {
+    ourRefactoringChoice = REFACTOR_ASK;
+  }
+
+  private DialogBuilder createDialogBuilder(@NotNull Project project) {
+    return myDialogSupplier != null ? myDialogSupplier.get() : new DialogBuilder(project);
+  }
+
 }

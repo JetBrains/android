@@ -78,10 +78,10 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   @NotNull
   @Override
-  public NlProperty getChildProperty(@NotNull String itemName) {
+  public NlFlagPropertyItemValue getChildProperty(@NotNull String itemName) {
     for (PTableItem child : getChildren()) {
       if (child.getName().equals(itemName)) {
-        return (NlProperty)child;
+        return (NlFlagPropertyItemValue)child;
       }
     }
     throw new IllegalArgumentException(itemName);
@@ -89,7 +89,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   @NotNull
   @Override
-  public NlPropertyItem getDesignTimeProperty() {
+  public NlFlagPropertyItem getDesignTimeProperty() {
     if (SdkConstants.TOOLS_URI.equals(getNamespace())) {
       return this;
     }
