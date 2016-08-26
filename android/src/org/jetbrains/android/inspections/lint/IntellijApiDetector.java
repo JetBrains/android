@@ -139,7 +139,7 @@ public class IntellijApiDetector extends ApiDetector {
   }
 
   private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
-    private final Context myContext;
+    private final JavaContext myContext;
     private boolean mySeenSuppress;
     private boolean mySeenTargetApi;
     private final PsiClass myClass;
@@ -148,12 +148,12 @@ public class IntellijApiDetector extends ApiDetector {
     private boolean myCheckOverride;
     private String myFrameworkParent;
 
-    public ApiCheckVisitor(Context context, PsiClass clz, PsiFile file) {
+    public ApiCheckVisitor(JavaContext context, PsiClass clz, PsiFile file) {
       myContext = context;
       myClass = clz;
       myFile = file;
 
-      myCheckAccess = context.isEnabled(UNSUPPORTED) || context.isEnabled(INLINED);
+      myCheckAccess = context.isEnabled(UNSUPPORTED) || context.isEnabled(INLINED) || context.isEnabled(OBSOLETE_SDK);
       myCheckOverride = context.isEnabled(OVERRIDE)
                              && context.getMainProject().getBuildSdk() >= 1;
       int depth = 0;
@@ -365,6 +365,10 @@ public class IntellijApiDetector extends ApiDetector {
           String name = field.getName();
           if (name == null) {
             return;
+          }
+
+          if (SDK_INT.equals(name) && "android/os/Build$VERSION".equals(owner)) {
+            checkObsoleteSdkVersion(myContext, expression);
           }
 
           int api = mApiDatabase.getFieldVersion(owner, name);
