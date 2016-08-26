@@ -17,5 +17,5 @@
 package com.android.tools.idea.run;
 
 public enum TargetSelectionMode {
-  SHOW_DIALOG, EMULATOR, USB_DEVICE
+  SHOW_DIALOG, EMULATOR, USB_DEVICE, FIREBASE_DEVICE_MATRIX, FIREBASE_DEVICE_DEBUGGING
 }
