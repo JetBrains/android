@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.AttributeSnapshot;
@@ -184,6 +185,11 @@ public class DependencyGraph {
     }
 
     return dependents;
+  }
+
+  @VisibleForTesting
+  static void clearCacheAfterTests() {
+    ourCache.clear();
   }
 
   private void findBackwards(ViewData view, Set<ViewData> visiting, List<ViewData> reachable, boolean vertical, ViewData start) {
