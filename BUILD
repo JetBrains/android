@@ -156,6 +156,7 @@ iml_module(
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:studio.common[module]",
+        "//tools:idea.gradle-tooling-extension-impl[module]",
     ],
     exports = [
         "//tools/idea/.idea/libraries:asm",
