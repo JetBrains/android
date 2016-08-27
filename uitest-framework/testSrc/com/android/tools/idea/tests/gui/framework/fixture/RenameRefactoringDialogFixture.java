@@ -80,16 +80,13 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
       return this;
     }
 
+    @NotNull
     public String getHtml() {
       final JTextComponent component = robot().finder().find(target(), JTextComponentMatcher.any());
-      return GuiActionRunner.execute(new GuiQuery<String>() {
-        @Override
-        protected String executeInEDT() throws Throwable {
-          return component.getText();
-        }
-      });
+      return GuiQuery.getNonNull(component::getText);
     }
 
+    @NotNull
     public String getText() {
       String html = getHtml();
       String text = TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();

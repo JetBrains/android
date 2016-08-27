@@ -682,9 +682,8 @@ public class GradleSyncTest {
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
     // prevent unnecessary file indexing, which decreases performance.)
-    File[] excludeFolderPaths = execute(new GuiQuery<File[]>() {
-      @Override
-      protected File[] executeInEDT() throws Throwable {
+    File[] excludeFolderPaths = GuiQuery.getNonNull(
+      () -> {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
@@ -705,8 +704,7 @@ public class GradleSyncTest {
         finally {
           rootModel.dispose();
         }
-      }
-    });
+      });
 
     assertThat(excludeFolderPaths).isNotEmpty();
 
@@ -731,15 +729,7 @@ public class GradleSyncTest {
     boolean versionChanged = false;
 
     Project project = ideFrame.getProject();
-    GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
-      @Override
-      @Nullable
-      protected GradleBuildModel executeInEDT() throws Throwable {
-        return GradleBuildModel.parseBuildFile(appBuildFile, project);
-      }
-    });
-
-    assertNotNull(buildModel);
+    GradleBuildModel buildModel = GuiQuery.getNonNull(() -> GradleBuildModel.parseBuildFile(appBuildFile, project));
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
       if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {

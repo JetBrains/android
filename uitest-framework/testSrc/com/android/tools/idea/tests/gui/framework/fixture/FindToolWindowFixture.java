@@ -22,7 +22,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.usageView.UsageViewManager;
 import com.intellij.usages.impl.GroupNode;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,18 +41,17 @@ public class FindToolWindowFixture {
       assertNotNull(myContent);
     }
 
+    @NotNull
     public ImmutableList<String> getUsageGroupNames() {
-      return GuiActionRunner.execute(new GuiQuery<ImmutableList<String>>() {
-        @Override
-        protected ImmutableList<String> executeInEDT() {
+      return GuiQuery.getNonNull(
+        () -> {
           ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
           GroupNode rootNode = (GroupNode)getContentsTree().getModel().getRoot();
           for (GroupNode subGroup : rootNode.getSubGroups()) {
             listBuilder.add(subGroup.getGroup().getText(null));
           }
           return listBuilder.build();
-        }
-      });
+        });
     }
 
     @NotNull

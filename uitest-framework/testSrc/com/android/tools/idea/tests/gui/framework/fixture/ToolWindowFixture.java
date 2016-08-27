@@ -112,13 +112,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected boolean isActive() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        return myToolWindow.isActive();
-      }
-    });
+    return GuiQuery.getNonNull(myToolWindow::isActive);
   }
 
   public void activate() {

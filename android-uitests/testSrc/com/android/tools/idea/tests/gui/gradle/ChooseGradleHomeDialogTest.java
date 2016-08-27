@@ -33,8 +33,6 @@ import java.io.File;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.truth.TruthJUnit.assume;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
@@ -70,13 +68,7 @@ public class ChooseGradleHomeDialogTest {
 
   @NotNull
   private ChooseGradleHomeDialogFixture launchChooseGradleHomeDialog() {
-    final ChooseGradleHomeDialog dialog = execute(new GuiQuery<ChooseGradleHomeDialog>() {
-      @Override
-      protected ChooseGradleHomeDialog executeInEDT() throws Throwable {
-        return new ChooseGradleHomeDialog(GRADLE_MINIMUM_VERSION);
-      }
-    });
-    assertNotNull(dialog);
+    ChooseGradleHomeDialog dialog = GuiQuery.getNonNull(() -> new ChooseGradleHomeDialog(GRADLE_MINIMUM_VERSION));
 
     ApplicationManager.getApplication().invokeLater(
       () -> {

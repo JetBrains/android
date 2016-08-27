@@ -28,13 +28,11 @@ import com.intellij.openapi.fileEditor.impl.EditorWithProviderComposite;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -44,13 +42,12 @@ public class HprofEditorFixture extends EditorFixture {
   @NotNull private HprofEditor myHprofEditor;
   @NotNull private ActionToolbarFixture myToolbarFixture;
 
+  @NotNull
   public static HprofEditorFixture findByFileName(@NotNull Robot robot,
                                                   @NotNull final IdeFrameFixture frame,
                                                   @NotNull final String hprofFileName) {
-    HprofEditor editor = GuiActionRunner.execute(new GuiQuery<HprofEditor>() {
-      @Nullable
-      @Override
-      protected HprofEditor executeInEDT() throws Throwable {
+    HprofEditor hprofEditor = GuiQuery.getNonNull(
+      () -> {
         FileEditor[] openEditors = null;
         FileEditorManagerImpl fileEditorManager = (FileEditorManagerImpl)FileEditorManager.getInstance(frame.getProject());
         for (EditorsSplitters splitters : fileEditorManager.getAllSplitters()) {
@@ -82,11 +79,8 @@ public class HprofEditorFixture extends EditorFixture {
         }
         assertNotNull(targetEditor);
         return targetEditor;
-      }
-    });
-
-    assertNotNull(editor);
-    return new HprofEditorFixture(robot, frame, editor);
+      });
+    return new HprofEditorFixture(robot, frame, hprofEditor);
   }
 
   private HprofEditorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull HprofEditor targetEditor) {

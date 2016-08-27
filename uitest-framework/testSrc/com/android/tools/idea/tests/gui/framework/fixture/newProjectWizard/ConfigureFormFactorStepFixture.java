@@ -27,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<ConfigureFormFactorStepFixture> {
   protected ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(ConfigureFormFactorStepFixture.class, robot, target);
@@ -49,10 +47,8 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
     buttonDriver.select(checkBox);
 
     final JComboBox comboBox = robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class);
-    //noinspection ConstantConditions
-    int itemIndex = execute(new GuiQuery<Integer>() {
-      @Override
-      protected Integer executeInEDT() throws Throwable {
+    int itemIndex = GuiQuery.getNonNull(
+      () -> {
         BasicJComboBoxCellReader cellReader = new BasicJComboBoxCellReader();
         int itemCount = comboBox.getItemCount();
         for (int i = 0; i < itemCount; i++) {
@@ -62,8 +58,7 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
           }
         }
         return -1;
-      }
-    });
+      });
     if (itemIndex < 0) {
       throw new LocationUnavailableException("Unable to find SDK " + api + " in " + formFactor + " drop-down");
     }

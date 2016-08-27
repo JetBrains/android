@@ -23,12 +23,9 @@ import com.intellij.codeInspection.ui.InspectionTreeNode;
 import com.intellij.openapi.wm.ToolWindowId;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 /**
  * Fixture for the Inspections window in the IDE
@@ -48,19 +45,17 @@ public class InspectionsFixture extends ToolWindowFixture {
     myTree = tree;
   }
 
+  @NotNull
   public String getResults() {
     activate();
     waitUntilIsVisible();
 
-    return execute(new GuiQuery<String>() {
-      @Override
-      @Nullable
-      protected String executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         StringBuilder sb = new StringBuilder();
         InspectionsFixture.describe(myTree.getRoot(), sb, 0);
         return sb.toString();
-      }
-    });
+      });
   }
 
   private static void describe(@NotNull InspectionTreeNode node, @NotNull StringBuilder sb, int depth) {

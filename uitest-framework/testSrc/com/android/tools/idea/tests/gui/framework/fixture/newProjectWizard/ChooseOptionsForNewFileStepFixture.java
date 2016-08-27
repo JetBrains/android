@@ -21,8 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixture<ChooseOptionsForNewFileStepFixture> {
   protected ChooseOptionsForNewFileStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(ChooseOptionsForNewFileStepFixture.class, robot, target);
@@ -38,12 +36,6 @@ public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixtur
   @NotNull
   public String getLayoutName() {
     final JTextField textField = robot().finder().findByLabel("Layout Name:", JTextField.class, true);
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        return textField.getText();
-      }
-    });
+    return GuiQuery.getNonNull(textField::getText);
   }
 }
