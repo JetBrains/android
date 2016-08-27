@@ -20,8 +20,7 @@ import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -36,7 +35,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -329,7 +327,8 @@ final class ManifestInfo {
       }
       lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
 
-      long lastGradleSyncTimestamp = GradleSyncState.getInstance(myFacet.getModule().getProject()).getLastGradleSyncTimestamp();
+      Project project = myFacet.getModule().getProject();
+      long lastGradleSyncTimestamp = GradleSyncState.getInstance(project).getSummary().getSyncTimestamp();
       lastModifiedMap.put("gradle-sync", lastGradleSyncTimestamp);
 
       List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;

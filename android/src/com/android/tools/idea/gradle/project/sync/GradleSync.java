@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.Lists;

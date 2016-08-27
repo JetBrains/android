@@ -19,7 +19,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.intellij.openapi.Disposable;

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.messages.reporter;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.issues.SyncIssuesMessageReporter;
@@ -47,8 +48,6 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ER
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.getSkipSyncIssueReporting;
-import static com.android.tools.idea.gradle.util.Projects.setHasSyncErrors;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
@@ -71,16 +70,16 @@ public class SyncMessages {
     return ServiceManager.getService(project, SyncMessages.class);
   }
 
-  public int getErrorCount() {
-    return myNotificationManager.getMessageCount(null, NOTIFICATION_SOURCE, NotificationCategory.ERROR, GRADLE_SYSTEM_ID);
-  }
-
   public SyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
     myProject = project;
     myNotificationManager = manager;
     myMessageReporter = new SyncMessageReporter(project, manager);
     myUnresolvedDependencyMessageReporter = new UnresolvedDependencyMessageReporter(myMessageReporter);
     mySyncIssuesMessageReporter = new SyncIssuesMessageReporter(myMessageReporter);
+  }
+
+  public int getErrorCount() {
+    return myNotificationManager.getMessageCount(null, NOTIFICATION_SOURCE, NotificationCategory.ERROR, GRADLE_SYSTEM_ID);
   }
 
   public int getMessageCount(@NotNull String groupName) {
@@ -98,7 +97,7 @@ public class SyncMessages {
       report(message);
     }
     if (!messages.isEmpty()) {
-      setHasSyncErrors(myProject, true);
+      GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
     }
   }
 
@@ -107,14 +106,15 @@ public class SyncMessages {
   }
 
   public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    if (unresolvedDependencies.isEmpty() || getSkipSyncIssueReporting(module.getProject())) {
+    if (unresolvedDependencies.isEmpty()) {
       return;
     }
     VirtualFile buildFile = getGradleBuildFile(module);
     for (String dependency : unresolvedDependencies) {
       myUnresolvedDependencyMessageReporter.report(dependency, module, buildFile);
     }
-    setHasSyncErrors(myProject, true);
+
+    GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
   }
 
   public void reportDependencySetupErrors() {
