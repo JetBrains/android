@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnActionEvent;

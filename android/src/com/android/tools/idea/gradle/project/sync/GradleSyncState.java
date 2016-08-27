@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.sync;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
@@ -29,6 +31,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -56,6 +59,8 @@ import java.util.List;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -79,10 +84,10 @@ public class GradleSyncState {
   );
 
   private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
-  private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
+  @NotNull private final GradleSyncSummary mySummary;
 
   private final Object myLock = new Object();
 
@@ -112,8 +117,14 @@ public class GradleSyncState {
   }
 
   public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
+    this(project, messageBus, new GradleSyncSummary(project));
+  }
+
+  @VisibleForTesting
+  GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus, @NotNull GradleSyncSummary summary) {
     myProject = project;
     myMessageBus = messageBus;
+    mySummary = summary;
   }
 
   public boolean areSyncNotificationsEnabled() {
@@ -126,14 +137,13 @@ public class GradleSyncState {
     LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
 
     cleanUpProjectPreferences();
-    setLastGradleSyncTimestamp(lastSyncTimestamp);
+    mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
     enableNotifications();
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-      .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED));
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SKIPPED);
+    UsageTracker.getInstance().log(event);
   }
 
   /**
@@ -159,15 +169,17 @@ public class GradleSyncState {
     if (notifyUser) {
       notifyUser();
     }
+
+    mySummary.reset();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject));
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                     .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED));
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_STARTED);
+    UsageTracker.getInstance().log(event);
+
     return true;
   }
 
-  public void syncFailed(@NotNull final String message) {
+  public void syncFailed(@NotNull String message) {
     LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
 
     String logMsg = "Gradle sync failed";
@@ -179,9 +191,8 @@ public class GradleSyncState {
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                     .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE));
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_FAILURE);
+    UsageTracker.getInstance().log(event);
   }
 
   public void syncEnded() {
@@ -198,15 +209,14 @@ public class GradleSyncState {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
     GradleVersion gradleVersion = getGradleVersion(myProject);
-    String gradleVersionString = "";
-    if (gradleVersion != null) {
-      gradleVersionString = gradleVersion.toString();
-    }
+    String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-        .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
-        .setGradleVersion(gradleVersionString));
+    // @formatter:off
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC)
+                                                                      .setKind(GRADLE_SYNC_ENDED)
+                                                                      .setGradleVersion(gradleVersionString);
+    // @formatter:on
+    UsageTracker.getInstance().log(event);
   }
 
   private void addInfoToEventLog(@NotNull String message) {
@@ -221,7 +231,7 @@ public class GradleSyncState {
     synchronized (myLock) {
       mySyncInProgress = false;
     }
-    setLastGradleSyncTimestamp(System.currentTimeMillis());
+    mySummary.setSyncTimestamp(System.currentTimeMillis());
     enableNotifications();
     notifyUser();
   }
@@ -256,22 +266,13 @@ public class GradleSyncState {
   }
 
   public boolean lastSyncFailed() {
-    return!isSyncInProgress() && isBuildWithGradle(myProject) && requiredAndroidModelMissing(myProject);
+    return !isSyncInProgress() && isBuildWithGradle(myProject) && requiredAndroidModelMissing(myProject);
   }
 
   public boolean isSyncInProgress() {
     synchronized (myLock) {
       return mySyncInProgress;
     }
-  }
-
-  private void setLastGradleSyncTimestamp(long timestamp) {
-    myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, timestamp);
-  }
-
-  public long getLastGradleSyncTimestamp() {
-    Long timestamp = myProject.getUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY);
-    return timestamp != null ? timestamp.longValue() : -1L;
   }
 
   /**
@@ -283,7 +284,7 @@ public class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    long lastSync = getLastGradleSyncTimestamp();
+    long lastSync = mySummary.getSyncTimestamp();
     if (lastSync < 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
       return ThreeState.UNSURE;
@@ -354,8 +355,8 @@ public class GradleSyncState {
       return;
     }
     try {
-      ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
-        Extensions.getArea(myProject).getExtensionPoint(PROJECT_CONFIGURABLE);
+      ExtensionsArea area = Extensions.getArea(myProject);
+      ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
 
       cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
     }
@@ -391,5 +392,10 @@ public class GradleSyncState {
         configurableEP.children = children.toArray(new ConfigurableEP[children.size()]);
       }
     }
+  }
+
+  @NotNull
+  public GradleSyncSummary getSummary() {
+    return mySummary;
   }
 }

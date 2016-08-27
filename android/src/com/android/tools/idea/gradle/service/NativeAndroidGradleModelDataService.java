@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service;
 
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.cpp.ContentRootModuleCustomizer;

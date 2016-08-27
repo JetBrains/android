@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;

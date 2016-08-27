@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;

@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;

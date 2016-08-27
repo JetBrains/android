@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.service;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
+import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ModifiableFacetModel;
@@ -40,7 +42,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.Projects.setGradleVersionUsed;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -89,8 +90,9 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
             }
             else {
               String gradleVersion = gradleModel.getGradleVersion();
-              if (isNotEmpty(gradleVersion)) {
-                setGradleVersionUsed(project, gradleVersion);
+              GradleSyncSummary syncReport = GradleSyncState.getInstance(project).getSummary();
+              if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
+                syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
               }
               customizeModule(module, gradleModel, modelsProvider);
             }

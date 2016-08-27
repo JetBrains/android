@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -64,8 +64,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
@@ -84,13 +84,9 @@ import static java.lang.Boolean.TRUE;
 public final class Projects {
   private static final Logger LOG = Logger.getInstance(Projects.class);
 
-  private static final Key<String> GRADLE_VERSION = Key.create("project.gradle.version");
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
-  private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
-  private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
-  private static final Key<Boolean> SKIP_SYNC_ISSUE_REPORTING = Key.create("project.sync.skip.sync.issue.reporting");
   private static final Key<Map<String, GradleVersion>> PLUGIN_VERSIONS_BY_MODULE = Key.create("project.plugin.versions.by.module");
 
   private Projects() {
@@ -101,15 +97,6 @@ public final class Projects {
     String basePath = project.getBasePath();
     assert basePath != null;
     return new File(toCanonicalPath(basePath));
-  }
-
-  public static void setGradleVersionUsed(@NotNull Project project, @Nullable String gradleVersion) {
-    project.putUserData(GRADLE_VERSION, gradleVersion);
-  }
-
-  @Nullable
-  public static String getGradleVersionUsed(@NotNull Project project) {
-    return project.getUserData(GRADLE_VERSION);
   }
 
   public static void removeAllModuleCompiledArtifacts(@NotNull Project project) {
@@ -227,30 +214,6 @@ public final class Projects {
         ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
       }
     }));
-  }
-
-  public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
-    project.putUserData(HAS_SYNC_ERRORS, hasSyncErrors);
-  }
-
-  public static void setHasWrongJdk(@NotNull Project project, boolean hasWrongJdk) {
-    project.putUserData(HAS_WRONG_JDK, hasWrongJdk);
-  }
-
-  public static boolean hasErrors(@NotNull Project project) {
-    if (hasSyncErrors(project) || hasWrongJdk(project)) {
-      return true;
-    }
-    SyncMessages messages = SyncMessages.getInstance(project);
-    return messages.getErrorCount() > 0;
-  }
-
-  private static boolean hasSyncErrors(@NotNull Project project) {
-    return getBoolean(project, HAS_SYNC_ERRORS);
-  }
-
-  private static boolean hasWrongJdk(@NotNull Project project) {
-    return getBoolean(project, HAS_WRONG_JDK);
   }
 
   /**
@@ -542,14 +505,6 @@ public final class Projects {
 
   public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
     return getBoolean(project, SYNC_REQUESTED_DURING_BUILD);
-  }
-
-  public static void setSkipSyncIssueReporting(@NotNull Project project, @Nullable Boolean value) {
-    project.putUserData(SKIP_SYNC_ISSUE_REPORTING, value);
-  }
-
-  public static boolean getSkipSyncIssueReporting(@NotNull Project project) {
-    return getBoolean(project, SKIP_SYNC_ISSUE_REPORTING);
   }
 
   private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {

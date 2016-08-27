@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.invoker;
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.messages.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -67,7 +67,7 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
 
-    assertTrue(Projects.hasErrors(getProject()));
+    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
   }
 
   public void testReportWarning() throws Exception {
@@ -109,6 +109,6 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2, never()).report(mySyncIssue, appModule, buildFile);
 
-    assertTrue(Projects.hasErrors(getProject()));
+    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
   }
 }

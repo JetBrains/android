@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -46,7 +47,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 
 final class ProjectJdkChecks {
@@ -102,8 +102,7 @@ final class ProjectJdkChecks {
 
         msg.add(quickFixes);
         SyncMessages.getInstance(project).report(msg);
-
-        setHasWrongJdk(project, true);
+        GradleSyncState.getInstance(project).getSummary().setWrongJdkFound(true);
         return false;
       }
     }
