@@ -34,8 +34,7 @@ import javax.swing.*;
 import java.awt.Component;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.fest.swing.edt.GuiActionRunner.execute;
+import static com.google.common.base.Preconditions.checkState;
 
 public class ThemeEditorTableFixture extends JTableFixture {
   private ThemeEditorTableFixture(Robot robot, ThemeEditorTable target) {
@@ -49,59 +48,40 @@ public class ThemeEditorTableFixture extends JTableFixture {
     return new ThemeEditorTableFixture(robot, robot.finder().findByType(ThemeEditorTable.class));
   }
 
-  @Nullable
+  @NotNull
   public String attributeNameAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        if (!(renderer instanceof ResourceComponent)) {
-          return null;
-        }
-
-        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getLabelText();
-      }
+    return GuiQuery.getNonNull(() -> {
+      Component renderer = rendererComponentAt(cell);
+      checkState(renderer instanceof ResourceComponent, "not a %s: %s", ResourceComponent.class.getSimpleName(), renderer);
+      return new ResourceComponentFixture(robot(), (ResourceComponent)renderer).getLabelText();
     });
   }
 
   public boolean hasWarningIconAt(@NotNull final TableCell cell) {
-    //noinspection ConstantConditions: this will never return null
-    return execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        if (!(renderer instanceof ResourceComponent)) {
-          return false;
-        }
-
-        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.hasWarningIcon();
-      }
+    return GuiQuery.getNonNull(() -> {
+      Component renderer = rendererComponentAt(cell);
+      return (renderer instanceof ResourceComponent)
+             && new ResourceComponentFixture(robot(), (ResourceComponent)renderer).hasWarningIcon();
     });
   }
 
-  @Nullable
+  @NotNull
   public List<String> getComboBoxContentsAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<List<String>>() {
-      @Override
-      protected List<String> executeInEDT() throws Throwable {
-        Component renderer = checkNotNull(rendererComponentAt(cell));
-        JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
-        return ImmutableList.copyOf(comboBox.contents());
-      }
+    return GuiQuery.getNonNull(() -> {
+      Component renderer = rendererComponentAt(cell);
+      checkState(renderer instanceof JComponent, "not a %s: %s", JComponent.class.getSimpleName(), renderer);
+      JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
+      return ImmutableList.copyOf(comboBox.contents());
     });
   }
 
-  @Nullable
+  @NotNull
   public String getComboBoxSelectionAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        Component renderer = checkNotNull(rendererComponentAt(cell));
-        JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
-        return comboBox.selectedItem();
-      }
+    return GuiQuery.getNonNull(() -> {
+      Component renderer = rendererComponentAt(cell);
+      checkState(renderer instanceof JComponent, "not a %s: %s", JComponent.class.getSimpleName(), renderer);
+      JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
+      return comboBox.selectedItem();
     });
   }
 

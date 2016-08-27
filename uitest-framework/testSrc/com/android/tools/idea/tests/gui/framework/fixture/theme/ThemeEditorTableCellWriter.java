@@ -18,9 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.AbstractJTableCellWriter;
 import org.fest.swing.driver.JTableLocation;
-import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,12 +39,10 @@ public class ThemeEditorTableCellWriter extends AbstractJTableCellWriter {
   @Override
   public void startCellEditing(@NotNull final JTable table, final int row, final int column) {
     final JTableLocation location = location();
-    execute(new GuiQuery<Void>() {
-      @Nullable
+    execute(new GuiTask() {
       @Override
-      protected Void executeInEDT() throws Throwable {
+      protected void executeInEDT() throws Throwable {
         scrollToCell(table, row, column, location);
-        return null;
       }
     });
     Rectangle cellBounds = location.cellBounds(table, row, column);

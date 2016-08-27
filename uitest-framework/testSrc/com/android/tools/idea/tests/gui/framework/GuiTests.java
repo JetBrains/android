@@ -412,11 +412,10 @@ public final class GuiTests {
     // Instead, it uses a JList (technically a JBList), which is placed somewhere
     // under the root pane.
 
-    Container root = getRootContainer(component);
+    Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
 
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    assertNotNull(root);
     JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
@@ -451,20 +450,6 @@ public final class GuiTests {
       fail("Could not find any menu items in popup");
     }
     fail("Did not find menu item '" + labelMatcher + "' among " + on(", ").join(items));
-  }
-
-  /**
-   * Returns the root container containing the given component
-   */
-  @Nullable
-  public static Container getRootContainer(@NotNull Component component) {
-    return execute(new GuiQuery<Container>() {
-      @Override
-      @Nullable
-      protected Container executeInEDT() throws Throwable {
-        return (Container)SwingUtilities.getRoot(component);
-      }
-    });
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {

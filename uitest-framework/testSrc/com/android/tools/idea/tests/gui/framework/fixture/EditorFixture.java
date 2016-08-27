@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -60,7 +59,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
@@ -189,26 +187,17 @@ public class EditorFixture {
   /**
    * Requests focus in the editor, waits and returns editor component
    */
-  @Nullable
+  @NotNull
   private JComponent getFocusedEditor() {
-    Editor editor = execute(new GuiQuery<Editor>() {
-      @Override
-      @Nullable
-      protected Editor executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        return manager.getSelectedTextEditor(); // Must be called from the EDT
-      }
+    Editor editor = GuiQuery.getNonNull(() -> {
+      Editor selectedTextEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
+      checkState(selectedTextEditor != null, "no currently selected text editor");
+      return selectedTextEditor;
     });
 
-    if (editor != null) {
-      JComponent contentComponent = editor.getContentComponent();
-      new ComponentDriver(robot).focusAndWaitForFocusGain(contentComponent);
-      assertSame(contentComponent, FocusManager.getCurrentManager().getFocusOwner());
-      return contentComponent;
-    } else {
-      fail("Expected to find editor to focus, but there is no current editor");
-      return null;
-    }
+    JComponent contentComponent = editor.getContentComponent();
+    new ComponentDriver(robot).focusAndWaitForFocusGain(contentComponent);
+    return contentComponent;
   }
 
   /**
@@ -530,24 +519,14 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    Boolean visible = execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        NlPreviewManager manager = NlPreviewManager.getInstance(myFrame.getProject());
-        NlPreviewForm toolWindowForm = manager.getPreviewForm();
-        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
-      }
-    });
-    if (visible == null || !visible) {
+    boolean visible = GuiQuery.getNonNull(
+      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+    if (!visible) {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
     Wait.minutes(2).expecting("Preview window to be visible")
-      .until(() -> {
-        NlPreviewManager manager = NlPreviewManager.getInstance(myFrame.getProject());
-        NlPreviewForm toolWindowForm = manager.getPreviewForm();
-        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
-      });
+      .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
     return new NlPreviewFixture(myFrame.getProject(), myFrame, myFrame.robot());
   }
@@ -618,14 +597,9 @@ public class EditorFixture {
       selectEditorTab(Tab.EDITOR);
     }
 
-    Boolean visible = GuiActionRunner.execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
-        return window.isActive();
-      }
-    });
-    if (visible == null || !visible) {
+    boolean visible = GuiQuery.getNonNull(
+      () -> ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview").isActive());
+    if (!visible) {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
