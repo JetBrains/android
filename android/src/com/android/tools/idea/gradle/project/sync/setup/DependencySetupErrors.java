@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -30,7 +31,7 @@ import static java.util.Collections.sort;
 /**
  * Dependencies that were not correctly set up after a Gradle sync.
  */
-public class SyncDependencySetupErrors {
+public class DependencySetupErrors {
   @NotNull private final Map<String, MissingModule> myMissingModules = new HashMap<>();
   @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new HashMap<>();
 
@@ -40,13 +41,8 @@ public class SyncDependencySetupErrors {
   @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = new HashSet<>();
 
   @NotNull
-  public static SyncDependencySetupErrors getInstance(@NotNull Module module) {
-    return getInstance(module.getProject());
-  }
-
-  @NotNull
-  public static SyncDependencySetupErrors getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, SyncDependencySetupErrors.class);
+  public static DependencySetupErrors getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, DependencySetupErrors.class);
   }
 
   public void clear() {
@@ -144,9 +140,9 @@ public class SyncDependencySetupErrors {
 
   public static class MissingModule {
     @NotNull public final String dependencyPath;
-    @NotNull public final List<String> dependentNames = Lists.newArrayList();
-
     @Nullable public final String backupLibraryName;
+
+    @NotNull private final List<String> myDependentNames = Lists.newArrayList();
 
     MissingModule(@NotNull String dependencyPath, @Nullable String backupLibraryName) {
       this.dependencyPath = dependencyPath;
@@ -154,13 +150,18 @@ public class SyncDependencySetupErrors {
     }
 
     void addDependent(@NotNull String dependentName) {
-      dependentNames.add(dependentName);
+      myDependentNames.add(dependentName);
     }
 
     void sortDependentNames() {
-      if (!dependentNames.isEmpty()) {
-        sort(dependentNames);
+      if (!myDependentNames.isEmpty()) {
+        sort(myDependentNames);
       }
+    }
+
+    @NotNull
+    public List<String> getDependentNames() {
+      return ImmutableList.copyOf(myDependentNames);
     }
   }
 
