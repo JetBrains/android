@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -45,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeModelListener;
-import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -54,7 +52,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -304,150 +301,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   }
 
-  /**
-   * Renderer used for Nodes to allow them compose another component on the right.
-   * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer}.
-   */
-  public static class NodeCellRenderer extends ColoredTreeCellRenderer {
-
-    private final RightCellRenderer myRightComponent = new RightCellRenderer();
-    private int myRightComponentOffset;
-    private boolean myRightComponentShow;
-
-    public NodeCellRenderer() {
-      super();
-      setSupportFontFallback(true);
-      getIpad().right = 0;
-      myRightComponent.getIpad().left = 0;
-    }
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      myRightComponentShow = false;
-      if (value instanceof Renderable) {
-        final Renderable renderable = (Renderable)value;
-        if (!(renderable instanceof ReportNode)) {
-          // Append main content to `this`
-          renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-          if (renderable instanceof Group) {
-            final Rectangle treeVisibleRect = tree.getVisibleRect();
-            // Check if our row is valid
-            final TreePath treePath = tree.getPathForRow(row);
-            int rowOffset = treePath != null ? tree.getPathBounds(treePath).x : 0;
-            if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
-              myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-              myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
-              myRightComponent.append(" " + renderable.getChildCount(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES,
-                                      Render.NO_TAG);
-              myRightComponentShow = true;
-              myRightComponentOffset =
-                treeVisibleRect.x + treeVisibleRect.width - myRightComponent.getPreferredSize().width - rowOffset;
-            }
-          }
-        }
-      }
-      else {
-        // Tree is not built yet.
-        return;
-      }
-      // Don't expand if there's a link to show
-      putClientProperty(ExpandableItemsHandler.RENDERER_DISABLED, myRightComponentShow);
-    }
-
-    @Override
-    protected void doPaint(Graphics2D g) {
-      if (myRightComponentShow) {
-        Graphics2D textGraphics = (Graphics2D)g.create(0, 0, myRightComponentOffset, g.getClipBounds().height);
-        try {
-          super.doPaint(textGraphics);
-        }
-        finally {
-          textGraphics.dispose();
-        }
-        g.translate(myRightComponentOffset, 0);
-        myRightComponent.setHeight(getHeight());
-        myRightComponent.invokeDoPaint(g);
-        g.translate(-myRightComponentOffset, 0);
-      }
-      else {
-        super.doPaint(g);
-      }
-    }
-
-    @NotNull
-    @Override
-    public Dimension getPreferredSize() {
-      Dimension size = super.getPreferredSize();
-      if (myRightComponentShow) {
-        size.width += myRightComponent.getPreferredSize().width;
-      }
-      return size;
-    }
-
-    @Override
-    public int findFragmentAt(int x) {
-      if (myRightComponentShow && x > myRightComponentOffset) {
-        return myRightComponent.findFragmentAt(x - myRightComponentOffset);
-      }
-      return super.findFragmentAt(x);
-    }
-
-    @Nullable
-    @Override
-    public Object getFragmentTagAt(int x) {
-      if (myRightComponentShow) {
-        return myRightComponent.getFragmentTagAt(x - myRightComponentOffset);
-      }
-      return super.getFragmentTagAt(x);
-    }
-
-    @Nullable
-    public Object getFragmentTag(int index, int x) {
-      if (myRightComponentShow && x > myRightComponentOffset) {
-        return myRightComponent.getFragmentTag(index);
-      }
-      // Synchronized call
-      return super.getFragmentTag(index);
-    }
-  }
-
-  private static class RightCellRenderer extends ColoredTreeCellRenderer {
-    private int myHeight;
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-    }
-
-    public void invokeDoPaint(Graphics2D g) {
-      super.doPaint(g);
-    }
-
-    /**
-     * Allow customization of height. See
-     * {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer.MyColoredTreeCellRenderer}.
-     */
-    public void setHeight(int height) {
-      myHeight = height;
-    }
-
-    @Override
-    public int getHeight() {
-      return myHeight;
-    }
-  }
-
   private static class ReportTreeModel implements TreeModel {
 
     static ReportTreeModel createEmpty() {
@@ -667,7 +520,46 @@ public class ReportController extends TreeController implements ReportStream.Lis
   @NotNull
   @Override
   protected TreeCellRenderer createRenderer() {
-    return new NodeCellRenderer();
+    return new CompositeCellRenderer() {
+      @Override
+      public void customizeCellRenderer(@NotNull JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        myRightComponentShow = false;
+        if (value instanceof Renderable) {
+          final Renderable renderable = (Renderable)value;
+          if (!(renderable instanceof ReportNode)) {
+            // Append main content to `this`
+            renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            if (renderable instanceof Group) {
+              final Rectangle treeVisibleRect = tree.getVisibleRect();
+              // Check if our row is valid
+              final TreePath treePath = tree.getPathForRow(row);
+              int rowOffset = treePath != null ? tree.getPathBounds(treePath).x : 0;
+              if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
+                myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+                myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
+                myRightComponent.append(" " + renderable.getChildCount(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES,
+                                        Render.NO_TAG);
+                myRightComponentShow = true;
+                myRightComponentOffset =
+                  treeVisibleRect.x + treeVisibleRect.width - myRightComponent.getPreferredSize().width - rowOffset;
+              }
+            }
+          }
+        }
+        else {
+          // Tree is not built yet.
+          return;
+        }
+        // Don't expand if there's a link to show
+        putClientProperty(ExpandableItemsHandler.RENDERER_DISABLED, myRightComponentShow);
+      }
+    };
   }
 
   @NotNull
@@ -759,12 +651,12 @@ public class ReportController extends TreeController implements ReportStream.Lis
     Renderable renderable = (Renderable)lastPathComponent;
     Rectangle bounds = myTree.getPathBounds(treePath);
     assert bounds != null; // can't be null, as our path is valid
-    NodeCellRenderer renderer = (NodeCellRenderer)myTree.getCellRenderer();
+    CompositeCellRenderer renderer = (CompositeCellRenderer)myTree.getCellRenderer();
     if (renderer == null) {
       return Render.NO_TAG;
     }
     renderer.getTreeCellRendererComponent(myTree, lastPathComponent, myTree.isPathSelected(treePath), myTree.isExpanded(treePath),
                                           renderable.isLeaf(), myTree.getRowForPath(treePath), myTree.hasFocus());
-    return Render.getReportNodeFieldIndex(renderer, mouseX - bounds.x);
+    return Render.getFieldIndex(renderer, mouseX - bounds.x);
   }
 }

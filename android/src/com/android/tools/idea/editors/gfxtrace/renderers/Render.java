@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.ReportController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
+import com.android.tools.idea.editors.gfxtrace.controllers.TreeController;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
@@ -194,12 +195,12 @@ public final class Render {
   }
 
   public static void render(@NotNull AtomController.Node node,
-                            @NotNull SimpleColoredComponent component,
+                            @NotNull TreeController.CompositeCellRenderer component,
                             @NotNull SimpleTextAttributes attributes) {
     render(node.index, component, attributes, NO_TAG);
     if (node.atom != null) {
       component.append(": ", attributes);
-      render(node.atom, component, node.hoveredParameter);
+      render(node.atom, component.getRightComponent(), node.hoveredParameter);
     }
   }
 
@@ -211,14 +212,15 @@ public final class Render {
   }
 
   public static void render(@NotNull AtomController.Group group,
-                            @NotNull final SimpleColoredComponent component,
+                            @NotNull final TreeController.CompositeCellRenderer component,
                             @NotNull SimpleTextAttributes attributes) {
     render(group.group.getRange().getStart(), component, attributes, NO_TAG);
     component.append(": ", attributes);
-    component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    SimpleColoredComponent rightComponent = component.getRightComponent();
+    rightComponent.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     long count = group.group.getRange().getCount();
     String range = "  (" + count + " Command" + (count != 1 ? "s" : "") + ")";
-    component.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    rightComponent.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
   public static void render(@NotNull Atom atom,
@@ -669,15 +671,11 @@ public final class Render {
    * See {@link #render(DynamicAtom, SimpleColoredComponent, SimpleTextAttributes, int)}
    */
   public static int getNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
-    return getFieldIndex(tree, node, x, expanded, 2);
-  }
-
-  /**
-   * NodeCellRenderer has to be handled in a specific way.
-   */
-  public static int getReportNodeFieldIndex(@NotNull ReportController.NodeCellRenderer renderer, int x) {
-    for (int index = renderer.findFragmentAt(x); index >= 0; index--) {
-      Object tag = renderer.getFragmentTag(index, x);
+    ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
+    // Setup the renderer to have the Node we have selected as its value
+    renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
+    for (int index = renderer.findFragmentAt(x); index >= 2; index--) {
+      Object tag = renderer.getFragmentTag(index);
       if (tag != null && tag instanceof Integer) {
         return (Integer)tag;
       }
@@ -685,12 +683,12 @@ public final class Render {
     return NO_TAG;
   }
 
-  private static int getFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded, int minIndex) {
-    ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
-    // Setup the renderer to have the Node we have selected as its value
-    renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
-    for (int index = renderer.findFragmentAt(x); index >= minIndex; index--) {
-      Object tag = renderer.getFragmentTag(index);
+  /**
+   * CompositeCellRenderer has to be handled in a specific way.
+   */
+  public static int getFieldIndex(@NotNull ReportController.CompositeCellRenderer renderer, int x) {
+    for (int index = renderer.findFragmentAt(x); index >= 0; index--) {
+      Object tag = renderer.getFragmentTag(index, x);
       if (tag != null && tag instanceof Integer) {
         return (Integer)tag;
       }
