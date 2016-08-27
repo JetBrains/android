@@ -27,8 +27,8 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors;
-import com.android.tools.idea.gradle.project.sync.setup.SyncDependencySetupErrors.MissingModule;
+import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -331,12 +331,12 @@ public class ProjectSyncMessages {
   }
 
   public void reportDependencySetupErrors() {
-    SyncDependencySetupErrors setupErrors = SyncDependencySetupErrors.getInstance(myProject);
+    DependencySetupErrors setupErrors = DependencySetupErrors.getInstance(myProject);
     reportModulesNotFoundErrors(setupErrors);
     setupErrors.clear();
   }
 
-  private void reportModulesNotFoundErrors(@NotNull SyncDependencySetupErrors setupErrors) {
+  private void reportModulesNotFoundErrors(@NotNull DependencySetupErrors setupErrors) {
     reportModulesNotFoundIssues(MISSING_DEPENDENCIES_BETWEEN_MODULES, setupErrors.getMissingModules());
 
     for (String dependent : setupErrors.getMissingNames()) {
@@ -349,7 +349,7 @@ public class ProjectSyncMessages {
       add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
     }
 
-    for (SyncDependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
+    for (DependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
       String msg = String.format("Ignoring dependency of module '%1$s' on module '%2$s'. %3$s",
                                  dependency.dependent, dependency.dependency.getName(), dependency.detail);
       VirtualFile buildFile = getBuildFile(dependency.dependency);
@@ -370,7 +370,7 @@ public class ProjectSyncMessages {
         StringBuilder text = new StringBuilder();
         text.append(String.format("Unable to find module with Gradle path '%1$s' (needed by module", missingModule.dependencyPath));
 
-        addDependentsToText(text, missingModule.dependentNames);
+        addDependentsToText(text, missingModule.getDependentNames());
         text.append(".)");
         messageLines.add(text.toString());
 
