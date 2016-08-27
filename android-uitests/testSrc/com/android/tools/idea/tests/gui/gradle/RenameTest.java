@@ -37,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -54,13 +53,7 @@ public class RenameTest {
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
       for (final VirtualFile sourceRoot : sourceRoots) {
-        PsiDirectory directory = execute(new GuiQuery<PsiDirectory>() {
-          @Override
-          protected PsiDirectory executeInEDT() throws Throwable {
-            return PsiManager.getInstance(project).findDirectory(sourceRoot);
-          }
-        });
-        assertNotNull(directory);
+        PsiDirectory directory = GuiQuery.getNonNull(() -> PsiManager.getInstance(project).findDirectory(sourceRoot));
         for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
             final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());

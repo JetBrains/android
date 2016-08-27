@@ -58,7 +58,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
 import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.swing.data.TableCell.row;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -165,15 +164,9 @@ public class ModulesToImportDialogTest {
     return new JTableFixture(guiTest.robot(), guiTest.robot().finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
   }
 
+  @NotNull
   public DialogAndWrapper<ModulesToImportDialog> launchDialog() {
-    final ModulesToImportDialog dialog = execute(new GuiQuery<ModulesToImportDialog>() {
-      @Override
-      protected ModulesToImportDialog executeInEDT() throws Throwable {
-        return new ModulesToImportDialog(myModules, null);
-      }
-    });
-
-    assertNotNull(dialog);
+    ModulesToImportDialog dialog = GuiQuery.getNonNull(() -> new ModulesToImportDialog(myModules, null));
 
     ApplicationManager.getApplication().invokeLater(
       () -> {

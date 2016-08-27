@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
 public class AndroidToolWindowFixture extends ToolWindowFixture {
@@ -123,23 +122,18 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      Wait.minutes(2).expecting("the process list to show the package name").until(
-        () -> execute(
-          new GuiQuery<Boolean>() {
-            @Override
-            protected Boolean executeInEDT() throws Throwable {
-              ComboBoxModel model = target().getModel();
-              int size = model.getSize();
-              for (int i = 0; i < size; ++i) {
-                Client client = (Client)model.getElementAt(i);
-                String clientDescription = client.getClientData().getClientDescription();
-                if (packageName.equals(clientDescription)) {
-                  return true;
-                }
-              }
-              return false;
-            }
-          }));
+      Wait.minutes(2).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
+        ComboBoxModel model = target().getModel();
+        int size = model.getSize();
+        for (int i = 0; i < size; ++i) {
+          Client client = (Client)model.getElementAt(i);
+          String clientDescription = client.getClientData().getClientDescription();
+          if (packageName.equals(clientDescription)) {
+            return true;
+          }
+        }
+        return false;
+      }));
       return this;
     }
 
@@ -148,9 +142,8 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     public ProcessListFixture selectItem(@Nullable final String packageName) {
       clearSelection();
       assertNotNull(packageName);
-      Integer index = execute(new GuiQuery<Integer>() {
-        @Override
-        protected Integer executeInEDT() throws Throwable {
+      Integer index = GuiQuery.getNonNull(
+        () -> {
           for (int i = 0; i < target().getModel().getSize(); ++i) {
             Client client = (Client)target().getModel().getElementAt(i);
             if (packageName.equals(client.getClientData().getClientDescription())) {
@@ -158,9 +151,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
             }
           }
           return -1;
-        }
-      });
-      assertNotNull(index);
+        });
       assertThat(index).isAtLeast(0);
       selectItem(index);
       return this;

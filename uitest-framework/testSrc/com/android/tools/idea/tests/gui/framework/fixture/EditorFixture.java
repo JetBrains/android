@@ -67,7 +67,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -133,16 +132,13 @@ public class EditorFixture {
    * @throws IllegalStateException if there is no currently selected text editor
    */
   public int getCurrentLineNumber() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Integer>() {
-      @Override
-      protected Integer executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
         int offset = editor.getCaretModel().getPrimaryCaret().getOffset();
         return editor.getDocument().getLineNumber(offset) + 1;  // Editor uses 0-based line numbers.
-      }
-    });
+      });
   }
 
   /**
@@ -152,16 +148,13 @@ public class EditorFixture {
    */
   @NotNull
   public String getCurrentLine() {
-    // noinspection ConstantConditions
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
         Caret primaryCaret = editor.getCaretModel().getPrimaryCaret();
         return editor.getDocument().getText(new TextRange(primaryCaret.getVisualLineStart(), primaryCaret.getVisualLineEnd()));
-      }
-    });
+      });
   }
 
   /**
@@ -171,16 +164,12 @@ public class EditorFixture {
    */
   @NotNull
   public String getCurrentFileContents() {
-    // noinspection ConstantConditions
-    return execute(new GuiQuery<String>() {
-      @Override
-      @Nullable
-      protected String executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
         return editor.getDocument().getImmutableCharSequence().toString();
-      }
-    });
+      });
   }
 
   /**
@@ -238,15 +227,15 @@ public class EditorFixture {
    * @throws IllegalStateException if there is no currently selected text editor or no match is found
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
+  @NotNull
   public EditorFixture select(String regex) {
     Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
     checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
     matcher.find();
     int start = matcher.start(1);
     int end = matcher.end(1);
-    SelectTarget target = execute(new GuiQuery<SelectTarget>() {
-      @Override
-      protected SelectTarget executeInEDT() throws Throwable {
+    SelectTarget selectTarget = GuiQuery.getNonNull(
+      () -> {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
         LogicalPosition startPosition = editor.offsetToLogicalPosition(start);
@@ -259,10 +248,9 @@ public class EditorFixture {
         target.startPoint = editor.logicalPositionToXY(startPosition);
         target.endPoint = editor.logicalPositionToXY(endPosition);
         return target;
-      }
-    });
-    robot.pressMouse(target.component, target.startPoint);
-    robot.moveMouse(target.component, target.endPoint);
+      });
+    robot.pressMouse(selectTarget.component, selectTarget.startPoint);
+    robot.moveMouse(selectTarget.component, selectTarget.endPoint);
     robot.releaseMouseButtons();
     return this;
   }
@@ -353,15 +341,8 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    //noinspection ConstantConditions
     Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(
-      () -> execute(
-        new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return file.equals(getCurrentFile());
-          }
-        }));
+      () -> GuiQuery.getNonNull(() -> file.equals(getCurrentFile())));
 
     myFrame.requestFocusIfLost();
     robot.waitForIdle();
@@ -520,17 +501,14 @@ public class EditorFixture {
       selectEditorTab(Tab.DESIGN);
     }
 
-    return execute(new GuiQuery<NlEditorFixture>() {
-      @Override
-      @Nullable
-      protected NlEditorFixture executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), myFrame, (NlEditor)selected);
-      }
-    });
+      });
   }
 
   /**
@@ -585,10 +563,8 @@ public class EditorFixture {
       return null;
     }
 
-    return execute(new GuiQuery<TranslationsEditorFixture>() {
-      @Override
-      @Nullable
-      protected TranslationsEditorFixture executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         FileEditor[] editors = manager.getSelectedEditors();
         if (editors.length == 0) {
@@ -600,8 +576,7 @@ public class EditorFixture {
         }
 
         return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
-      }
-    });
+      });
   }
 
   /**
@@ -615,18 +590,14 @@ public class EditorFixture {
 
   @NotNull
   public MergedManifestFixture getMergedManifestEditor() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<MergedManifestFixture>() {
-      @Override
-      @Nullable
-      protected MergedManifestFixture executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         Component manifestPanel = editors[0].getComponent().getComponent(0);
         checkState(manifestPanel instanceof ManifestPanel, "not a %s: %s", ManifestPanel.class.getSimpleName(), manifestPanel);
         return new MergedManifestFixture(robot, (ManifestPanel)manifestPanel);
-      }
-    });
+      });
   }
 
   /**
@@ -658,15 +629,10 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
-    Wait.minutes(2).expecting("Theme Preview window to be visible").until(
-      () -> GuiActionRunner.execute(
-        new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
-            return window != null && window.isVisible();
-          }
-        }));
+    Wait.minutes(2).expecting("Theme Preview window to be visible").until(() -> GuiQuery.getNonNull(() -> {
+      ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
+      return window != null && window.isVisible();
+    }));
 
     // Wait for it to be fully opened
     robot.waitForIdle();
