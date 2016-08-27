@@ -43,7 +43,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
@@ -126,48 +125,35 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     /* Returns {@code true} if the tree root has a child {@link Module} with {@code name}, {@code false} otherwise. */
-    @NotNull
     public boolean hasModuleRootNode(@NotNull String name) {
       final AbstractTreeStructure treeStructure = getTreeStructure();
-      ProjectViewNode node = GuiActionRunner.execute(new GuiQuery<ProjectViewNode>() {
-        @Nullable
-        @Override
-        protected ProjectViewNode executeInEDT() throws Throwable {
+      return GuiQuery.getNonNull(
+        () -> {
           Object[] childElements = treeStructure.getChildElements(treeStructure.getRootElement());
           for (Object child : childElements) {
             ProjectViewNode childNode = (ProjectViewNode)child;
             Object value = childNode.getValue();
             if (value instanceof Module && ((Module)value).getName().equals(name)) {
-              return childNode;
+              return true;
             }
           }
-          return null;
-        }
-      });
-      return (node != null);
+          return false;
+        });
     }
 
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<>();
-      Wait.minutes(2).expecting("AbstractTreeStructure to be built")
-        .until(() -> {
-          AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
-            @Override
-            protected AbstractTreeStructure executeInEDT() throws Throwable {
-              try {
-                return myPane.getTreeBuilder().getTreeStructure();
-              }
-              catch (NullPointerException e) {
-                // expected;
-              }
-              return null;
-            }
-          });
-          treeStructureRef.set(treeStructure);
-          return treeStructure != null;
-        });
-
+      Wait.minutes(2).expecting("AbstractTreeStructure to be built").until(() -> GuiQuery.getNonNull(() -> {
+        try {
+          treeStructureRef.set(myPane.getTreeBuilder().getTreeStructure());
+          return true;
+        }
+        catch (NullPointerException e) {
+          // expected;
+        }
+        return false;
+      }));
       return treeStructureRef.get();
     }
 
@@ -175,32 +161,22 @@ public class ProjectViewFixture extends ToolWindowFixture {
     public NodeFixture findExternalLibrariesNode() {
       final AbstractTreeStructure treeStructure = getTreeStructure();
 
-      ExternalLibrariesNode node = GuiActionRunner.execute(new GuiQuery<ExternalLibrariesNode>() {
-        @Nullable
-        @Override
-        protected ExternalLibrariesNode executeInEDT() throws Throwable {
-          Object[] childElements = treeStructure.getChildElements(treeStructure.getRootElement());
-          for (Object child : childElements) {
-            if (child instanceof ExternalLibrariesNode) {
-              return (ExternalLibrariesNode)child;
-            }
+      ExternalLibrariesNode node = GuiQuery.getNonNull(() -> {
+        for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
+          if (child instanceof ExternalLibrariesNode) {
+            return (ExternalLibrariesNode)child;
           }
-          return null;
         }
+        throw new IllegalStateException("Unable to find 'External Libraries' node");
       });
-      if (node != null) {
-        return new NodeFixture(node, treeStructure);
-      }
-      throw new AssertionError("Unable to find 'External Libraries' node");
+      return new NodeFixture(node, treeStructure);
     }
 
     public void selectByPath(@NotNull final String... paths) {
       final AbstractTreeStructure treeStructure = getTreeStructure();
 
-      final PsiDirectoryNode node = GuiActionRunner.execute(new GuiQuery<PsiDirectoryNode>() {
-        @Nullable
-        @Override
-        protected PsiDirectoryNode executeInEDT() throws Throwable {
+      PsiDirectoryNode node = GuiQuery.getNonNull(
+        () -> {
           Object root = treeStructure.getRootElement();
           final List<Object> treePath = Lists.newArrayList(root);
 
@@ -231,23 +207,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
           myPane.expand(treePath.toArray(), true);
           myPane.select(root, ((PsiDirectoryNode)root).getVirtualFile(), true);
           return (PsiDirectoryNode)root;
-        }
-      });
+        });
 
-      assertNotNull(node);
-
-      Wait.minutes(2).expecting("node to be selected").until(
-        () -> node.equals(GuiActionRunner.execute(
-          new GuiQuery<Object>() {
-            @Override
-            protected Object executeInEDT() throws Throwable {
-              DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
-              if (selectedNode != null) {
-                return selectedNode.getUserObject();
-              }
-              return null;
-            }
-          })));
+      Wait.minutes(2).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
+        DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
+        return (selectedNode != null) && node.equals(selectedNode.getUserObject());
+      }));
     }
   }
 
