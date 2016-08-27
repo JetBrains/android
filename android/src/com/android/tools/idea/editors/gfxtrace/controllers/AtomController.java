@@ -154,8 +154,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
      * @param x Relative x in terms of tree cell component
      * @param y Relative y in terms of tree cell component
      */
-    public boolean isInsideReportIcon(ReportStream reportStream, final int x, final int y) {
-      return reportStream.hasReportItems(index) && x < REPORT_ICON_WIDTH && y < REPORT_ICON_HEIGHT;
+    public boolean isInsideReportIcon(ReportStream reportStream, @NotNull CompositeCellRenderer renderer, final int x, final int y) {
+      return reportStream.hasReportItems(index) &&
+             x - renderer.getRightComponentOffset() < REPORT_ICON_WIDTH &&
+             y < REPORT_ICON_HEIGHT;
     }
 
     @NotNull
@@ -198,7 +200,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
     @Override
     public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
-      Render.render(this, component, attributes);
+      Render.render(this, (CompositeCellRenderer)component, attributes);
     }
 
     public Memory getChild(int childIndex) {
@@ -316,7 +318,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
     @Override
     public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
-      Render.render(this, component, attributes);
+      Render.render(this, (CompositeCellRenderer)component, attributes);
     }
 
     public int getChildCount(Context context, AtomList atoms) {
@@ -643,7 +645,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
             int x = mouseX - bounds.x, y = mouseY - bounds.y;
             if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
               Object obj = path.getLastPathComponent();
-              updateHovering((Renderable)obj, bounds, x, y);
+              updateHovering((Renderable)obj, path, bounds, x, y);
               return;
             }
           }
@@ -651,7 +653,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         clearHovering();
       }
 
-      private void updateHovering(@NotNull Renderable node, @NotNull Rectangle bounds, int x, int y) {
+      private void updateHovering(@NotNull Renderable node, @NotNull TreePath treePath, @NotNull Rectangle bounds, int x, int y) {
         hoverHand(myTree, myEditor.getAtomStream().getPath(), null);
 
         // Check if hovering the preview icon.
@@ -662,15 +664,17 @@ public class AtomController extends TreeController implements AtomStream.Listene
         else {
           setHoveringGroup(null, 0, 0);
 
+          CompositeCellRenderer renderer = (CompositeCellRenderer)myTree.getCellRenderer();
+          renderer.setup(myTree, treePath);
           // Check if hovering an atom parameter.
           if (node instanceof Node) {
             Node atomNode = (Node)node;
-            int index = Render.getNodeFieldIndex(myTree, node, x, false);
+            int index = Render.getFieldIndex(renderer, x);
             if (index >= 0) {
               setHoveringNode(atomNode, index);
             }
-            else if (atomNode.isInsideReportIcon(myEditor.getReportStream(), x, y)) {
-              setHoveringNode(atomNode, myEditor.getReportStream().getReportItemPath(atomNode.index), bounds);
+            else if (atomNode.isInsideReportIcon(myEditor.getReportStream(), renderer, x, y)) {
+              setHoveringNode(atomNode, myEditor.getReportStream().getReportItemPath(atomNode.index), renderer, bounds);
             }
             else {
               setHoveringNode(null, 0);
@@ -715,14 +719,15 @@ public class AtomController extends TreeController implements AtomStream.Listene
       /**
        * Sets hovering when of x and y inside report icon
        */
-      private void setHoveringNode(@Nullable Node node, @NotNull ReportItemPath followPath, @NotNull Rectangle bounds) {
+      private void setHoveringNode(@Nullable Node node, @NotNull ReportItemPath followPath,
+                                   @NotNull final CompositeCellRenderer renderer, @NotNull Rectangle bounds) {
         final int x = Node.getBalloonX(bounds.x);
         final int y = Node.getBalloonY(bounds.y);
         // Check if we've met this node
         if (node != lastHoverNode) {
           onNewHoverNode(node, true);
           if (node != null) {
-            lastScheduledFuture = scheduler.schedule(() -> hover(node, x, y),
+            lastScheduledFuture = scheduler.schedule(() -> hover(node, x + renderer.getRightComponentOffset(), y),
                                                      PREVIEW_HOVER_DELAY_MS, TimeUnit.MILLISECONDS);
           }
         }
@@ -836,8 +841,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
             TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
             if (treePath != null) {
               Rectangle bounds = myTree.getPathBounds(treePath);
+              assert bounds != null;
+              CompositeCellRenderer renderer = (CompositeCellRenderer)myTree.getCellRenderer();
+              assert renderer != null;
+              renderer.setup(myTree, treePath);
               if (node.isInsideReportIcon(myEditor.getReportStream(),
-                                          event.getX() - bounds.x, event.getY() - bounds.y)) {
+                                          renderer,
+                                          event.getX() - bounds.x,
+                                          event.getY() - bounds.y)) {
                 path = myEditor.getReportStream().getReportItemPath(node.index);
               }
             }
@@ -863,37 +874,32 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @NotNull
   @Override
   protected TreeCellRenderer createRenderer() {
-    return new ColoredTreeCellRenderer() {
+    return new CompositeCellRenderer() {
       @Override
-      public void customizeCellRenderer(
-          @NotNull final JTree tree, Object node, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-        if (node instanceof Renderable) {
-          Renderable renderable = (Renderable)node;
+      public void customizeCellRenderer(@NotNull final JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        myRightComponentShow = false;
+        myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+        if (value instanceof Renderable) {
+          Renderable renderable = (Renderable)value;
           renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
         }
         LoadableIcon loadableIcon = customizeFramePreviewRendering(
-          tree, node, myRenderDevice.getPath(), myEditor.getAtomStream().getPath());
-        Icon reportIcon = customizeReportInfoRendering(node);
-        if (loadableIcon != null || reportIcon != null) {
-          setupRowIcon(loadableIcon, reportIcon);
-        }
-      }
-
-      /**
-       * Deals with RowIcon initialization and sets it in the renderer
-       */
-      private void setupRowIcon(LoadableIcon loadableIcon, Icon reportIcon) {
-        int count = ((loadableIcon == null) ? 0 : 1) + ((reportIcon == null) ? 0 : 1);
-        RowIcon rowIcon = new RowIcon(count);
-
-        int position = 0;
+          tree, value, myRenderDevice.getPath(), myEditor.getAtomStream().getPath());
+        Icon reportIcon = customizeReportInfoRendering(value);
         if (loadableIcon != null) {
-          rowIcon.setIcon(loadableIcon, position++);
+          setIcon(loadableIcon);
         }
         if (reportIcon != null) {
-          rowIcon.setIcon(reportIcon, position);
+          myRightComponent.setIcon(reportIcon);
         }
-        setIcon(rowIcon);
+        myRightComponentOffset = getPreferredSize().width;
+        myRightComponentShow = true;
       }
 
       /**
