@@ -61,7 +61,6 @@ public class TranslationsEditorTest {
 
     // Now obtain the fixture for the displayed translations editor
     TranslationsEditorFixture txEditor = editor.getTranslationsEditor();
-    assertNotNull(txEditor);
 
     assertThat(txEditor.locales()).containsExactly(
       "English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)").inOrder();

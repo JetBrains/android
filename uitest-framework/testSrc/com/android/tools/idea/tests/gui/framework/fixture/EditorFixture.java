@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
-import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -535,25 +534,14 @@ public class EditorFixture {
    * Returns a fixture around the {@link com.android.tools.idea.editors.strings.StringResourceEditor} <b>if</b> the currently
    * displayed editor is a translations editor.
    */
-  @Nullable
+  @NotNull
   public TranslationsEditorFixture getTranslationsEditor() {
-    VirtualFile currentFile = getCurrentFile();
-    if (!(currentFile instanceof StringsVirtualFile)) {
-      return null;
-    }
-
     return GuiQuery.getNonNull(
       () -> {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
-        }
+        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+        checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
-        if (!(selected instanceof StringResourceEditor)) {
-          return null;
-        }
-
+        checkState(selected instanceof StringResourceEditor, "not a %s: %s", StringResourceEditor.class.getSimpleName(), selected);
         return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
       });
   }
