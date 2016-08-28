@@ -15,29 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.Lists;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Key;
@@ -49,19 +42,15 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
-import org.jetbrains.plugins.gradle.settings.GradleRunnerConfigurable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind.*;
-import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -76,17 +65,12 @@ public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
-  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
-    "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
-    "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",
-    "org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable", "org.jetbrains.idea.maven.utils.MavenSettings",
-    "com.intellij.compiler.options.CompilerConfigurable"
-  );
-
-  private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
+  @VisibleForTesting
+  static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
   @NotNull private final Project myProject;
   @NotNull private final MessageBus myMessageBus;
+  @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
 
   private final Object myLock = new Object();
@@ -117,13 +101,17 @@ public class GradleSyncState {
   }
 
   public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
-    this(project, messageBus, new GradleSyncSummary(project));
+    this(project, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
-  GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus, @NotNull GradleSyncSummary summary) {
+  GradleSyncState(@NotNull Project project,
+                  @NotNull MessageBus messageBus,
+                  @NotNull StateChangeNotification changeNotification,
+                  @NotNull GradleSyncSummary summary) {
     myProject = project;
     myMessageBus = messageBus;
+    myChangeNotification = changeNotification;
     mySummary = summary;
   }
 
@@ -131,19 +119,6 @@ public class GradleSyncState {
     synchronized (myLock) {
       return mySyncNotificationsEnabled;
     }
-  }
-
-  public void syncSkipped(long lastSyncTimestamp) {
-    LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
-
-    cleanUpProjectPreferences();
-    mySummary.setSyncTimestamp(lastSyncTimestamp);
-    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
-
-    enableNotifications();
-
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SKIPPED);
-    UsageTracker.getInstance().log(event);
   }
 
   /**
@@ -165,9 +140,8 @@ public class GradleSyncState {
 
     addInfoToEventLog("Gradle sync started");
 
-    cleanUpProjectPreferences();
     if (notifyUser) {
-      notifyUser();
+      notifyStateChanged();
     }
 
     mySummary.reset();
@@ -177,6 +151,18 @@ public class GradleSyncState {
     UsageTracker.getInstance().log(event);
 
     return true;
+  }
+
+  public void syncSkipped(long lastSyncTimestamp) {
+    LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
+
+    mySummary.setSyncTimestamp(lastSyncTimestamp);
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
+
+    enableNotifications();
+
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SKIPPED);
+    UsageTracker.getInstance().log(event);
   }
 
   public void syncFailed(@NotNull String message) {
@@ -233,7 +219,7 @@ public class GradleSyncState {
     }
     mySummary.setSyncTimestamp(System.currentTimeMillis());
     enableNotifications();
-    notifyUser();
+    notifyStateChanged();
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
@@ -246,23 +232,8 @@ public class GradleSyncState {
     }
   }
 
-  public void notifyUser() {
-    invokeLaterIfProjectAlive(myProject, () -> {
-      EditorNotifications notifications = EditorNotifications.getInstance(myProject);
-      VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
-      for (VirtualFile file : files) {
-        try {
-          notifications.updateNotifications(file);
-        }
-        catch (Throwable e) {
-          String filePath = toSystemDependentName(file.getPath());
-          String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
-          LOG.info(msg, e);
-        }
-      }
-
-      BuildVariantView.getInstance(myProject).updateContents();
-    });
+  public void notifyStateChanged() {
+    myChangeNotification.notifyStateChanged();
   }
 
   public boolean lastSyncFailed() {
@@ -350,52 +321,36 @@ public class GradleSyncState {
     return false;
   }
 
-  private void cleanUpProjectPreferences() {
-    if (!AndroidStudioInitializer.isAndroidStudio()) {
-      return;
-    }
-    try {
-      ExtensionsArea area = Extensions.getArea(myProject);
-      ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
-
-      cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
-    }
-    catch (Throwable e) {
-      String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
-      LOG.info(msg, e);
-    }
-
-    try {
-      cleanUpGradleRunnerPreference(myProject);
-    }
-    catch (Throwable e) {
-      String msg = String.format("Failed to clean up Gradle Runner preferences for project '%1$s'",
-                                 myProject.getName());
-      LOG.info(msg, e);
-    }
-  }
-
-  private static void cleanUpGradleRunnerPreference(@NotNull Project project) {
-    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
-      Extensions.getArea(project).getExtensionPoint(PROJECT_CONFIGURABLE);
-
-    // https://code.google.com/p/android/issues/detail?id=213178
-    // Disable the Gradle -> Runner settings.
-    for (ConfigurableEP<Configurable> configurableEP : projectConfigurable.getExtensions()) {
-      if (GradleConfigurable.class.getName().equals(configurableEP.instanceClass)) {
-        List<ConfigurableEP> children = new ArrayList<>();
-        for (ConfigurableEP child : configurableEP.children) {
-          if (!GradleRunnerConfigurable.class.getName().equals(child.instanceClass)) {
-            children.add(child);
-          }
-        }
-        configurableEP.children = children.toArray(new ConfigurableEP[children.size()]);
-      }
-    }
-  }
-
   @NotNull
   public GradleSyncSummary getSummary() {
     return mySummary;
+  }
+
+  @VisibleForTesting
+  static class StateChangeNotification {
+    @NotNull private final Project myProject;
+
+    StateChangeNotification(@NotNull Project project) {
+      myProject = project;
+    }
+
+    void notifyStateChanged() {
+      invokeLaterIfProjectAlive(myProject, () -> {
+        EditorNotifications notifications = EditorNotifications.getInstance(myProject);
+        VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
+        for (VirtualFile file : files) {
+          try {
+            notifications.updateNotifications(file);
+          }
+          catch (Throwable e) {
+            String filePath = toSystemDependentName(file.getPath());
+            String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
+            LOG.info(msg, e);
+          }
+        }
+
+        BuildVariantView.getInstance(myProject).updateContents();
+      });
+    }
   }
 }
