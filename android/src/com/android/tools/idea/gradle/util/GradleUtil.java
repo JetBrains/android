@@ -42,7 +42,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -50,8 +49,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
@@ -584,22 +581,6 @@ public final class GradleUtil {
     }
     else {
       return false;
-    }
-  }
-
-  public static void cleanUpPreferences(@NotNull ExtensionPoint<ConfigurableEP<Configurable>> preferences,
-                                        @NotNull List<String> bundlesToRemove) {
-    List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
-
-    ConfigurableEP<Configurable>[] extensions = preferences.getExtensions();
-    for (ConfigurableEP<Configurable> extension : extensions) {
-      if (bundlesToRemove.contains(extension.instanceClass)) {
-        nonStudioExtensions.add(extension);
-      }
-    }
-
-    for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
-      preferences.unregisterExtension(toRemove);
     }
   }
 

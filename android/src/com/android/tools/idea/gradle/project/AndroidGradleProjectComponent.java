@@ -107,7 +107,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
       // button and editor notifications.
-      syncState.notifyUser();
+      syncState.notifyStateChanged();
     }
     if (isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !isApkProject(myProject)) {
       trackLegacyIdeaAndroidProject();
