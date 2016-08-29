@@ -33,8 +33,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -63,8 +62,8 @@ public class GradleRenameModuleTest {
     renameModuleDialog.enterTextAndClickOk("app2");
     renameModuleDialog.waitUntilNotShowing();
 
-    assertNotNull(guiTest.ideFrame().findModule("app2"));
-    assertNull("Module 'app' should not exist", guiTest.ideFrame().findModule("app"));
+    assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
+    assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }
 
   @Test
@@ -83,7 +82,7 @@ public class GradleRenameModuleTest {
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
     guiTest.waitForBackgroundTasks();
-    assertNotNull(guiTest.ideFrame().findModule("newLibrary"));
+    assertThat(guiTest.ideFrame().hasModule("newLibrary")).named("newLibrary module exists").isTrue();
 
     // app module has two references to library module
     GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");

@@ -19,6 +19,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,8 +51,8 @@ public class Modules {
     return module;
   }
 
-  @Nullable
-  public Module findModule(@NotNull String name) {
-    return ModuleManager.getInstance(myProject).findModuleByName(name);
+  public boolean hasModule(@NotNull String name) {
+    return ApplicationManager.getApplication().runReadAction(
+      (Computable<Boolean>)() -> ModuleManager.getInstance(myProject).findModuleByName(name) != null);
   }
 }
