@@ -303,6 +303,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "SettingsActivity", true);
   }
 
+  public void testNewProjectWithTvActivity() throws Exception {
+    checkCreateTemplate("activities", "AndroidTvActivity", true);
+  }
+
   // Non-activities
 
   public void testNewBroadcastReceiver() throws Exception {
@@ -449,7 +453,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertNotNull(activity);
     activityState.setTemplateLocation(activity);
 
-    checkApiTarget(8, 18, target, state, "Test15", null, overrides);
+    checkApiTarget(9, 18, target, state, "Test15", null, overrides);
   }
 
   public void testTemplateFormatting() throws Exception {
