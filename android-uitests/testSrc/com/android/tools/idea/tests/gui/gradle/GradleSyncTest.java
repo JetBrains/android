@@ -1402,6 +1402,7 @@ public class GradleSyncTest {
     }
   }
 
+  @Ignore
   @Test
   public void withInvalidJdk() throws IOException {
     guiTest.importSimpleApplication();

@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.testing;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +40,12 @@ public class Modules {
 
   @NotNull
   public Module getModule(@NotNull String name) {
-    Module module = ModuleManager.getInstance(myProject).findModuleByName(name);
+    Ref<Module> moduleRef = new Ref<>();
+    ApplicationManager.getApplication().runReadAction(() -> {
+      Module module = ModuleManager.getInstance(myProject).findModuleByName(name);
+      moduleRef.set(module);
+    });
+    Module module = moduleRef.get();
     assertNotNull("Unable to find module with name '" + name + "'", module);
     return module;
   }
