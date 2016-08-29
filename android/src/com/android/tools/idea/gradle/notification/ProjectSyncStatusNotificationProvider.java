@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -32,9 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.GradleSyncState.PROJECT_EXTERNAL_BUILD_FILES_CHANGED;
+import static com.android.tools.idea.gradle.project.sync.GradleSyncState.PROJECT_EXTERNAL_BUILD_FILES_CHANGED;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.hasErrors;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
@@ -80,7 +79,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (hasErrors(myProject)) {
+    if (GradleSyncState.getInstance(myProject).getSummary().hasErrors()) {
       return NotificationPanel.Type.ERRORS;
     }
 

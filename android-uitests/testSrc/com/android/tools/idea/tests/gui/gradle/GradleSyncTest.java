@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;

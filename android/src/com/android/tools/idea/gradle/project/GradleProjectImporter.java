@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.*;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
@@ -24,6 +27,7 @@ import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -298,7 +302,6 @@ public class GradleProjectImporter {
       FileDocumentManager.getInstance().saveAllDocuments();
       myGradleSetup.setUpGradle(project);
       resetProject(project);
-      setGradleVersionUsed(project, null);
       doImport(project, progressExecutionMode, options, false /* existing project */, listener);
     }
     else {
@@ -480,9 +483,6 @@ public class GradleProjectImporter {
 
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
-
-    setHasSyncErrors(project, false);
-    setHasWrongJdk(project, false);
 
     if (forceSyncWithCachedModel() || options.useCachedProjectData) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));

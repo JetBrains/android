@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.PathUtil;
@@ -29,7 +29,7 @@ public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
 
     Project project = myAndroidFacet.getModule().getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    long previousSyncTime = syncState.getLastGradleSyncTimestamp();
+    long previousSyncTime = syncState.getSummary().getSyncTimestamp();
 
     GradleProjectSyncData data = GradleProjectSyncData.createFrom(project);
     verifyGradleProjectSyncData(data, previousSyncTime);
@@ -47,7 +47,7 @@ public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
     verifyGradleProjectSyncData(newData, previousSyncTime);
   }
 
-  private void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
+  private static void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
     assertNotNull(data);
 
     Map<String, byte[]> checksums = data.getFileChecksums();
