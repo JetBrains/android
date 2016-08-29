@@ -142,10 +142,10 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  public static class AndroidLintFirebaseAnalyticsInvalidEventNameInspection extends AndroidLintInspectionBase {
-    public AndroidLintFirebaseAnalyticsInvalidEventNameInspection() {
-      super(AndroidBundle.message("android.lint.inspections.firebase.analytics.invalid.event.name"),
-            FirebaseAnalyticsDetector.INVALID_EVENT_NAME);
+  public static class AndroidLintFirebaseAnalyticsInvalidNameInspection extends AndroidLintInspectionBase {
+    public AndroidLintFirebaseAnalyticsInvalidNameInspection() {
+      super(AndroidBundle.message("android.lint.inspections.firebase.analytics.invalid.name"),
+            FirebaseAnalyticsDetector.INVALID_NAME);
     }
   }
 
