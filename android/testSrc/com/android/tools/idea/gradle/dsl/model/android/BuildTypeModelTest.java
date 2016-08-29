@@ -919,6 +919,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertTrue(android.hasValidPsiElement());
 
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1012,6 +1013,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertTrue(android.hasValidPsiElement());
     buildType = getXyzBuildType(buildModel);
     assertTrue(buildType.hasValidPsiElement());
@@ -1048,6 +1050,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
     assertEmpty(android.buildTypes());
   }
@@ -1485,6 +1488,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
     assertEmpty(android.buildTypes());
   }
@@ -1580,7 +1584,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
-    Collection<BuildTypeModel> buildTypeModels = buildModel.android().buildTypes();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    Collection<BuildTypeModel> buildTypeModels = android.buildTypes();
     assertSize(1, buildTypeModels);
 
     BuildTypeModel buildType = getOnlyElement(buildTypeModels);

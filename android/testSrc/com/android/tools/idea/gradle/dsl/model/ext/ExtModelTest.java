@@ -121,6 +121,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(21, extModel.getProperty("COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
 
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
@@ -149,6 +150,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertNull(subModuleExtModel.getProperty("SDK_VERSION", Integer.class).value()); // SDK_VERSION is not defined in the sub module.
 
     AndroidModel androidModel = subModuleBuildModel.android();
+    assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
   }
 
@@ -170,6 +172,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(23, extModel.getProperty("SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
 
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
@@ -189,6 +192,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "23", androidModel.compileSdkVersion());
 
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
@@ -208,6 +212,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
   }
@@ -227,7 +232,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertNotNull(testStringsList);
     assertEquals(ImmutableList.of("test1", "test2"), testStringsList.getValues(String.class));
 
-    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
   }
 
@@ -243,7 +250,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = buildModel.ext();
     assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
 
-    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
   }
 
@@ -260,6 +269,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
 
     AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
                  defaultConfig.testInstrumentationRunnerArguments());
@@ -304,7 +314,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ExtModel extModel = buildModel.ext();
     assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
 
-    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
                  defaultConfig.testInstrumentationRunnerArguments());
   }
