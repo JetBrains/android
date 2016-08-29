@@ -86,7 +86,7 @@ public class UnresolvedDependencyMessageReporter extends BaseSyncIssueMessageRep
 
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
     if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !canGetConstraintLayoutFromSdkManager(module)) {
-      quickFixes.add(new FixAndroidGradlePluginVersionHyperlink(false));
+      quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
     }
     else if (constraintPackage != null) {
       quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));

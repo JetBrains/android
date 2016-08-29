@@ -109,7 +109,6 @@ import java.util.logging.Logger;
   com.android.tools.idea.gradle.util.FacetsTest.class,
   com.android.tools.idea.gradle.util.GradleWrapperTest.class,
   com.android.tools.idea.gradle.util.ProjectsTest.class,
-  com.android.tools.idea.gradle.util.UpdateGradlePluginVersionTest.class,
   com.android.tools.idea.gradle.variant.conflict.ConflictSetTest.class,
   com.android.tools.idea.gradle.variant.view.BuildVariantViewTest.class,
   com.android.tools.idea.javadoc.AndroidJavaDocRendererTest.class,

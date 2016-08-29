@@ -830,6 +830,7 @@
                       secondary="false"
                       icon="AndroidIcons.CapturesToolWindow"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.AndroidModelView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.InternalAndroidModelView"/>

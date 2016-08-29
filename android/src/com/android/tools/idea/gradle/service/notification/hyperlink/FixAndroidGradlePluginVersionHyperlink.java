@@ -16,52 +16,42 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleExperimentalPluginVersionAndNotifyFailure;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradlePluginVersionAndNotifyFailure;
 
 public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlink {
-  @NotNull private final String myModelVersion;
-  @Nullable private final String myGradleVersion;
-  private final boolean myExperimental;
+  @NotNull private final GradleVersion myPluginVersion;
+  @Nullable private final GradleVersion myGradleVersion;
 
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}. This constructor updates the Gradle model to the version in
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
    *
-   * @param experimental indicates whether this is the experimental Android Gradle plugin.
    */
-  public FixAndroidGradlePluginVersionHyperlink(boolean experimental) {
-    this(GRADLE_PLUGIN_RECOMMENDED_VERSION, GRADLE_LATEST_VERSION, experimental);
+  public FixAndroidGradlePluginVersionHyperlink() {
+    this(GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION), GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}.
-   *
-   * @param modelVersion  the version to update the Android Gradle plugin to.
+   *  @param pluginVersion  the version to update the Android Gradle plugin to.
    * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
-   * @param experimental  indicates whether this is the experimental Android Gradle plugin.
    */
-  public FixAndroidGradlePluginVersionHyperlink(@NotNull String modelVersion,
-                                                @Nullable String gradleVersion,
-                                                boolean experimental) {
+  public FixAndroidGradlePluginVersionHyperlink(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
     super("fixGradleElements", "Fix plugin version and sync project");
-    myModelVersion = modelVersion;
+    myPluginVersion = pluginVersion;
     myGradleVersion = gradleVersion;
-    myExperimental = experimental;
   }
 
   @Override
   public void execute(@NotNull Project project) {
-    if (myExperimental) {
-      updateGradleExperimentalPluginVersionAndNotifyFailure(project, myModelVersion, myGradleVersion, false);
-      return;
-    }
-    updateGradlePluginVersionAndNotifyFailure(project, myModelVersion, myGradleVersion, false);
+    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+    updater.updatePluginVersionAndSync(myPluginVersion, myGradleVersion, false);
   }
 }

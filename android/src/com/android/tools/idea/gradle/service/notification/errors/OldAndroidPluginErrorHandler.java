@@ -38,7 +38,7 @@ public class OldAndroidPluginErrorHandler extends AbstractSyncErrorHandler {
     String firstLine = message.get(0);
     if (firstLine.startsWith("Plugin is too old, please update to a more recent version")) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink(false));
+      hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
       String filePath = notification.getFilePath();
       if (isNotEmpty(filePath)) {
         Integer line = notification.getLine();
