@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -58,6 +59,7 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 
 public class GradleSync {
   @NotNull private final Project myProject;
+  @NotNull private final PreSyncProjectCleanUp myProjectCleanUp;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
@@ -66,17 +68,20 @@ public class GradleSync {
     return ServiceManager.getService(project, GradleSync.class);
   }
 
-  public GradleSync(@NotNull Project project) {
-    this(project, new ProjectSetup.Factory());
+  public GradleSync(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp) {
+    this(project, projectCleanUp, new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  GradleSync(@NotNull Project project, @NotNull ProjectSetup.Factory projectSetupFactory) {
+  GradleSync(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp, @NotNull ProjectSetup.Factory projectSetupFactory) {
     myProject = project;
     myProjectSetupFactory = projectSetupFactory;
+    myProjectCleanUp = projectCleanUp;
   }
 
   public void sync(@NotNull ProgressExecutionMode mode, @Nullable GradleSyncListener syncListener) {
+    myProjectCleanUp.execute();
+
     String title = String.format("Syncing project '%1$s' with Gradle", myProject.getName());
     Task task;
     switch (mode) {

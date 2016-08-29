@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -607,6 +608,7 @@ public class GradleProjectImporter {
           GradleSync.getInstance(project).sync(executionMode, listener);
         }
         else {
+          PreSyncProjectCleanUp.getInstance(project).execute();
           refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                          executionMode, true /* always report import errors */);
         }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
@@ -35,11 +36,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link GradleSyncTest}.
+ * Tests for {@link GradleSync}.
  */
 public class GradleSyncTest extends AndroidGradleTestCase {
   private ProjectSetupStub myProjectSetup;
+  private PreSyncProjectCleanUp myProjectCleanUp;
   private GradleSetup myGradleSetup;
+
   private GradleSync myGradleSync;
 
   @Override
@@ -48,10 +51,12 @@ public class GradleSyncTest extends AndroidGradleTestCase {
     myProjectSetup = new ProjectSetupStub();
     myGradleSetup = new GradleSetup();
 
+    myProjectCleanUp = mock(PreSyncProjectCleanUp.class);
+
     ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
     when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSync = new GradleSync(getProject(), projectSetupFactory);
+    myGradleSync = new GradleSync(getProject(), myProjectCleanUp, projectSetupFactory);
   }
 
   public void testDummy() {
