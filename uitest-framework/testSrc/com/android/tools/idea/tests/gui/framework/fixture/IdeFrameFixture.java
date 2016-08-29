@@ -221,9 +221,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return myModules.getModule(name);
   }
 
-  @Nullable
-  public Module findModule(@NotNull String name) {
-    return myModules.findModule(name);
+  public boolean hasModule(@NotNull String name) {
+    return myModules.hasModule(name);
   }
 
   @NotNull
