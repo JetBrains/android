@@ -26,7 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -183,7 +184,7 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (hasErrors(myProject) || GradleSyncState.getInstance(myProject).lastSyncFailed()) {
+    if (GradleSyncState.getInstance(myProject).getSummary().hasErrors() || GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
@@ -241,7 +242,7 @@ public class PostProjectSetupTasksExecutor {
           message.add(quickFixes);
           SyncMessages.getInstance(myProject).report(message);
 
-          setHasSyncErrors(myProject, true);
+          GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
           addSdkLinkIfNecessary();
           checkSdkToolsVersion(myProject);
           updateGradleSyncState();

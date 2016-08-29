@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -207,7 +207,7 @@ public class GradleProjectSyncData implements Serializable {
       }
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    data.myLastGradleSyncTimestamp = syncState.getLastGradleSyncTimestamp();
+    data.myLastGradleSyncTimestamp = syncState.getSummary().getSyncTimestamp();
     return data;
   }
 

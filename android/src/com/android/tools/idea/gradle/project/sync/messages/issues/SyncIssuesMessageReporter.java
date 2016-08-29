@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.messages.issues;
 
 import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
@@ -30,8 +31,6 @@ import java.util.Collection;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.getSkipSyncIssueReporting;
-import static com.android.tools.idea.gradle.util.Projects.setHasSyncErrors;
 
 public class SyncIssuesMessageReporter {
   @NotNull private final IntObjectLinkedMap<MapEntry<BaseSyncIssueMessageReporter>> myStrategies = new IntObjectLinkedMap<>(3);
@@ -53,7 +52,7 @@ public class SyncIssuesMessageReporter {
 
   public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
     Project project = module.getProject();
-    if (syncIssues.isEmpty() || getSkipSyncIssueReporting(project)) {
+    if (syncIssues.isEmpty()) {
       return;
     }
 
@@ -68,7 +67,7 @@ public class SyncIssuesMessageReporter {
     }
 
     if (hasSyncErrors) {
-      setHasSyncErrors(project, true);
+      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 
