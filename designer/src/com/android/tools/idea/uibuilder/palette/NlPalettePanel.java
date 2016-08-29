@@ -521,6 +521,10 @@ public class NlPalettePanel extends JPanel
     });
     ApplicationManager.getApplication().getMessageBus().connect(myDisposable).subscribe(ProjectEx.ProjectSaved.TOPIC, project -> {
       Module module = getModule();
+      if (project == null || project.isDisposed() || myDesignSurface == null || !myDesignSurface.getLayoutType().isSupportedByDesigner()) {
+        // Do not check for new dependencies if this project is being closed...
+        return;
+      }
       if (module != null && module.getProject().equals(project)) {
         if (checkForNewMissingDependencies()) {
           repaint();
