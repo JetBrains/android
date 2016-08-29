@@ -68,7 +68,7 @@ public class LombokPsiParser extends JavaParser {
 
   public LombokPsiParser(LintClient client, Project project) {
     myClient = client;
-    myJavaEvaluator = new MyJavaEvaluator(project);
+    myJavaEvaluator = new LintPsiJavaEvaluator(project);
   }
 
   @Override
@@ -532,10 +532,10 @@ public class LombokPsiParser extends JavaParser {
     return false;
   }
 
-  static class MyJavaEvaluator extends JavaEvaluator {
+  public static class LintPsiJavaEvaluator extends JavaEvaluator {
     private final Project myProject;
 
-    public MyJavaEvaluator(Project project) {
+    public LintPsiJavaEvaluator(Project project) {
       myProject = project;
     }
 
@@ -591,6 +591,32 @@ public class LombokPsiParser extends JavaParser {
     public File getFile(@NonNull PsiFile file) {
       VirtualFile virtualFile = file.getVirtualFile();
       return virtualFile != null ? VfsUtilCore.virtualToIoFile(virtualFile) : null;
+    }
+
+    @Nullable
+    @Override
+    public String findJarPath(@NonNull PsiElement element) {
+      PsiFile containingFile = element.getContainingFile();
+      if (containingFile instanceof PsiCompiledFile) {
+        ///This code is roughly similar to the following:
+        //      VirtualFile jarVirtualFile = PsiUtil.getJarFile(containingFile);
+        //      if (jarVirtualFile != null) {
+        //        return jarVirtualFile.getPath();
+        //      }
+        // However, the above methods will do some extra string manipulation and
+        // VirtualFile lookup which we don't actually need (we're just after the
+        // raw URL suffix)
+        VirtualFile file = containingFile.getVirtualFile();
+        if (file != null && file.getFileSystem().getProtocol().equals("jar")) {
+          String path = file.getPath();
+          final int separatorIndex = path.indexOf("!/");
+          if (separatorIndex >= 0) {
+            return path.substring(0, separatorIndex);
+          }
+        }
+      }
+
+      return null;
     }
   }
 
