@@ -49,7 +49,10 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
@@ -90,7 +93,10 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
@@ -145,7 +151,10 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
@@ -196,7 +205,10 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
