@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -126,9 +127,13 @@ public class GuiTestRule implements TestRule {
           } catch (Throwable e) {
             errors.add(e);
           } finally {
-            tearDown(errors);
+            try {
+              errors.addAll(tearDown());  // shouldn't throw, but called inside a try-finally for defense in depth
+            } finally {
+              //noinspection ThrowFromFinallyBlock; assertEmpty is intended to throw here
+              MultipleFailureException.assertEmpty(errors);
+            }
           }
-          MultipleFailureException.assertEmpty(errors);
         }
       };
     }
@@ -153,14 +158,17 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void tearDown(@NotNull List<Throwable> errors) {
+  private static ImmutableList<Throwable> thrownFromRunning(Runnable r) {
     try {
-      waitForBackgroundTasks();
+      r.run();
+      return ImmutableList.of();
     }
     catch (Throwable e) {
-      errors.add(e);
+      return ImmutableList.of(e);
     }
-    errors.addAll(checkForModalDialogs());
+  }
+
+  private void tearDownProject() {
     if (myProjectPath != null) {
       if (ideFrame().target().isShowing()) {
         ideFrame().closeProject();
@@ -168,12 +176,19 @@ public class GuiTestRule implements TestRule {
       FileUtilRt.delete(myProjectPath);
       GuiTests.refreshFiles();
     }
+  }
+
+  private ImmutableList<Throwable> tearDown() {
+    ImmutableList.Builder<Throwable> errors = ImmutableList.builder();
+    errors.addAll(thrownFromRunning(this::waitForBackgroundTasks));
+    errors.addAll(checkForModalDialogs());
+    errors.addAll(thrownFromRunning(this::tearDownProject));
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myGlobalFocusListener);
     }
     errors.addAll(GuiTests.fatalErrorsFromIde());
-
     fixMemLeaks();
+    return errors.build();
   }
 
   private List<AssertionError> checkForModalDialogs() {
