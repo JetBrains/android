@@ -308,7 +308,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     text += " this can lead to layouts not rendering correctly.";
 
     SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text);
-    message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(false),
+    message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(),
                               new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
 
     SyncMessages.getInstance(project).report(message);

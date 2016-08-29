@@ -23,12 +23,9 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
@@ -52,7 +49,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -76,10 +72,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -119,10 +112,6 @@ public final class GradleUtil {
 
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
-
-  @NonNls private static final String ANDROID_PLUGIN_GROUP_ID = "com.android.tools.build";
-  @NonNls private static final String ANDROID_PLUGIN_ARTIFACT_ID = "gradle";
-  @NonNls private static final String ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID = "gradle-experimental";
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
@@ -174,9 +163,9 @@ public final class GradleUtil {
     return false;
   }
 
-  public static boolean createGradleWrapper(@NotNull Project project,
-                                            @NotNull String gradleVersion,
-                                            @NotNull GradleProjectSettings gradleSettings) throws IOException {
+  private static boolean createGradleWrapper(@NotNull Project project,
+                                             @NotNull String gradleVersion,
+                                             @NotNull GradleProjectSettings gradleSettings) throws IOException {
     File projectDirPath = getBaseDirPath(project);
 
     // attempt to delete the whole gradle wrapper folder.
@@ -1039,207 +1028,6 @@ public final class GradleUtil {
       return findFileByIoFile(sourceJar, true);
     }
     return null;
-  }
-
-  /**
-   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
-   * the version update failed.
-   *
-   * @param project                 the given project.
-   * @param pluginVersion           the Android Gradle plugin version to update to.
-   * @param gradleVersion           the Gradle version to update to.
-   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
-   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
-   */
-  public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                  @NotNull String pluginVersion,
-                                                                  @Nullable String gradleVersion,
-                                                                  boolean invalidateSyncOnFailure) {
-    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, false, invalidateSyncOnFailure);
-  }
-
-  /**
-   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
-   * the version update failed.
-   *
-   * @param project                 the given project.
-   * @param pluginVersion           the Android Gradle plugin version to update to.
-   * @param gradleVersion           the Gradle version to update to.
-   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
-   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
-   */
-  public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                  @NotNull GradleVersion pluginVersion,
-                                                                  @Nullable String gradleVersion,
-                                                                  boolean invalidateSyncOnFailure) {
-    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, false, invalidateSyncOnFailure);
-  }
-
-  /**
-   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
-   * the user if the version update failed.
-   *
-   * @param project                 the given project.
-   * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
-   * @param gradleVersion           the Gradle version to update to.
-   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
-   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
-   */
-  public static boolean updateGradleExperimentalPluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                              @NotNull String pluginVersion,
-                                                                              @Nullable String gradleVersion,
-                                                                              boolean invalidateSyncOnFailure) {
-    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
-  }
-
-  /**
-   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
-   * the user if the version update failed.
-   *
-   * @param project                 the given project.
-   * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
-   * @param gradleVersion           the Gradle version to update to.
-   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
-   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
-   */
-  public static boolean updateGradleExperimentalPluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                              @NotNull GradleVersion pluginVersion,
-                                                                              @Nullable String gradleVersion,
-                                                                              boolean invalidateSyncOnFailure) {
-    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
-  }
-
-  private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                   @NotNull String pluginVersion,
-                                                                   @Nullable String gradleVersion,
-                                                                   boolean usingExperimentalPlugin,
-                                                                   boolean invalidateSyncOnFailure) {
-    return updateGradlePluginVersionAndNotifyFailure(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin,
-                                                     invalidateSyncOnFailure);
-  }
-
-  private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
-                                                                   @NotNull GradleVersion pluginVersion,
-                                                                   @Nullable String gradleVersion,
-                                                                   boolean usingExperimentalPlugin,
-                                                                   boolean invalidateSyncOnFailure) {
-    if (updateGradlePluginVersion(project, pluginVersion, gradleVersion, usingExperimentalPlugin)) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
-      return true;
-    }
-
-    if (invalidateSyncOnFailure) {
-      invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
-    }
-
-    String msg = "Failed to update the version of the Android Gradle " + (usingExperimentalPlugin ? "Experimental " : "") + "plugin.\n\n" +
-                 "Please click 'OK' to perform a textual search and then update the build files manually.";
-    Messages.showErrorDialog(project, msg, UNHANDLED_SYNC_ISSUE_TYPE);
-    if (usingExperimentalPlugin) {
-      searchInBuildFiles(GRADLE_EXPERIMENTAL_PLUGIN_NAME, project);
-    }
-    else {
-      searchInBuildFiles(GRADLE_PLUGIN_NAME, project);
-    }
-
-    return false;
-  }
-
-  public static void invalidateLastSync(@NotNull Project project, @NotNull String error) {
-    GradleSyncState.getInstance(project).syncFailed(error);
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        facet.setAndroidModel(null);
-      }
-    }
-  }
-
-  /**
-   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project.
-   *
-   * @param project       the given project.
-   * @param pluginVersion the Android Gradle plugin version to update to.
-   * @param gradleVersion the Gradle version to update to.
-   * @return {@code true} if the update of the plugin version succeeded.
-   */
-  public static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                  @NotNull String pluginVersion,
-                                                  @Nullable String gradleVersion) {
-    return updateGradlePluginVersion(project, pluginVersion, gradleVersion, false);
-  }
-
-  public static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                  @NotNull String pluginVersion,
-                                                  @Nullable String gradleVersion,
-                                                  boolean usingExperimentalPlugin) {
-    return updateGradlePluginVersion(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin);
-  }
-
-  private static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                   @NotNull GradleVersion pluginVersion,
-                                                   @Nullable String gradleVersion,
-                                                   boolean usingExperimentalPlugin) {
-    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
-    Ref<Boolean> alreadyInCorrectVersion = new Ref<>(false);
-
-    BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
-      DependenciesModel dependencies = buildModel.buildscript().dependencies();
-      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-        if (isAndroidPlugin(dependency, usingExperimentalPlugin)) {
-          String versionValue = dependency.version().value();
-          if (versionValue != null && pluginVersion.compareTo(versionValue) == 0) {
-            alreadyInCorrectVersion.set(true);
-          }
-          else {
-            dependency.setVersion(pluginVersion.toString());
-            modelsToUpdate.add(buildModel);
-          }
-          break;
-        }
-      }
-      return true;
-    });
-
-    boolean updateModels = !modelsToUpdate.isEmpty();
-    if (updateModels) {
-      runWriteCommandAction(project, () -> {
-        for (GradleBuildModel buildModel : modelsToUpdate) {
-          buildModel.applyChanges();
-        }
-      });
-    }
-    else if (alreadyInCorrectVersion.get()) {
-      // No version was updated because the correct version is already applied.
-      return true;
-    }
-
-    if (updateModels && isNotEmpty(gradleVersion)) {
-      String basePath = project.getBasePath();
-      if (basePath != null) {
-        File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(new File(basePath));
-        GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFilePath);
-        try {
-          String current = gradleWrapper.getGradleVersion();
-          GradleVersion parsedCurrent = null;
-          if (current != null) {
-            parsedCurrent = GradleVersion.tryParse(current);
-          }
-          if (parsedCurrent != null && !isSupportedGradleVersion(parsedCurrent)) {
-            gradleWrapper.updateDistributionUrl(gradleVersion);
-          }
-        }
-        catch (IOException e) {
-          LOG.warn("Failed to update Gradle version in wrapper", e);
-        }
-      }
-    }
-    return updateModels;
-  }
-
-  private static boolean isAndroidPlugin(@NotNull ArtifactDependencyModel dependency, boolean checkForExperimentalPlugin) {
-    String pluginArtifactId = checkForExperimentalPlugin ? ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID : ANDROID_PLUGIN_ARTIFACT_ID;
-    return ANDROID_PLUGIN_GROUP_ID.equals(dependency.group().value()) && pluginArtifactId.equals(dependency.name().value());
   }
 
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {

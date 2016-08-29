@@ -41,6 +41,7 @@ import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -165,6 +166,15 @@ public class GradleSyncState {
     UsageTracker.getInstance().log(event);
   }
 
+  public void invalidateLastSync(@NotNull String error) {
+    syncFailed(error);
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.setAndroidModel(null);
+      }
+    }
+  }
   public void syncFailed(@NotNull String message) {
     LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
 
