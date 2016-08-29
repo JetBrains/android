@@ -16,11 +16,13 @@
 package com.android.tools.idea.tests.gui.editors;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -45,6 +47,7 @@ public class ApkViewerTest {
    *   1. Ensure APK entries appear for classes.dex, AndroidManifest.xml
    * </pre>
    */
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void launchApkViewer() throws Exception {
     List<String> apkEntries = guiTest.importSimpleApplication()

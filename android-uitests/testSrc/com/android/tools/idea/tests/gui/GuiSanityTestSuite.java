@@ -17,12 +17,15 @@ package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.apiintegration.DeveloperServicesTest;
 import com.android.tools.idea.tests.gui.avdmanager.AvdListDialogTest;
+import com.android.tools.idea.tests.gui.editors.ApkViewerTest;
 import com.android.tools.idea.tests.gui.emulator.LaunchAndroidApplicationTest;
+import com.android.tools.idea.tests.gui.gradle.GradleBuildTest;
 import com.android.tools.idea.tests.gui.gradle.flavors.CreateNewFlavorsTest;
 import com.android.tools.idea.tests.gui.gradle.flavors.FlavorsExecutionTest;
 import com.android.tools.idea.tests.gui.gradle.BuildTypesTest;
 import com.android.tools.idea.tests.gui.gradle.GradleSyncTest;
 import com.android.tools.idea.tests.gui.gradle.NewModuleTest;
+import com.android.tools.idea.tests.gui.instantrun.InstantRunTest;
 import com.android.tools.idea.tests.gui.layout.LayoutInspectorTest;
 import com.android.tools.idea.tests.gui.layout.NewProjectTest;
 import com.android.tools.idea.tests.gui.layout.NlEditorTest;
@@ -34,12 +37,15 @@ import org.junit.runners.Suite;
 @RunWith(Categories.class)
 @Categories.IncludeCategory(GuiSanityTestSuite.class)
 @Suite.SuiteClasses({
+  ApkViewerTest.class,
   AvdListDialogTest.class,
   BuildTypesTest.class,
   CreateNewFlavorsTest.class,
   DeveloperServicesTest.class,
   FlavorsExecutionTest.class,
+  GradleBuildTest.class,
   GradleSyncTest.class,
+  InstantRunTest.class,
   LaunchAndroidApplicationTest.class,
   LayoutInspectorTest.class,
   NewActivityTest.class,
