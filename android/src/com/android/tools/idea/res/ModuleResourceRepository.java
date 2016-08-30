@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -35,10 +36,22 @@ import java.util.*;
  */
 public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
+  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = new ResourceFolderManager.ResourceFolderListener() {
+    @Override
+    public void resourceFoldersChanged(@NotNull AndroidFacet facet,
+      @NotNull List<VirtualFile> folders,
+      @NotNull Collection<VirtualFile> added,
+      @NotNull Collection<VirtualFile> removed) {
+      updateRoots();
+    }
+  };
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
     super(facet.getModule().getName(), delegates);
     myFacet = facet;
+
+    // Subscribe to update the roots when the resource folders change
+    myFacet.getResourceFolderManager().addListener(myResourceFolderListener);
   }
 
   /**
@@ -105,19 +118,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     // We create a ModuleResourceRepository even if resources.isEmpty(), because we may
     // dynamically add children to it later (in updateRoots)
     final ModuleResourceRepository repository = new ModuleResourceRepository(facet, resources);
-
-    // If the model is not yet ready, we may get an incomplete set of resource
-    // directories, so in that case update the repository when the model is available.
-
-    folderManager.addListener(new ResourceFolderManager.ResourceFolderListener() {
-      @Override
-      public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                         @NotNull List<VirtualFile> folders,
-                                         @NotNull Collection<VirtualFile> added,
-                                         @NotNull Collection<VirtualFile> removed) {
-        repository.updateRoots();
-      }
-    });
+    Disposer.register(repository, dynamicResources);
 
     return repository;
   }
@@ -178,6 +179,13 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     }
 
     setChildren(resources);
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+
+    myFacet.getResourceFolderManager().removeListener(myResourceFolderListener);
   }
 
   /**

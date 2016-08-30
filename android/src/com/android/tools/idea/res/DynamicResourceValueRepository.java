@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +51,18 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     super("Gradle Dynamic");
     myFacet = facet;
     assert facet.requiresAndroidModel();
-    facet.addListener(this);
+    Disposer.register(this, facet.addListener(this));
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+
+    Project project = myFacet.getModule().getProject();
+    if (!project.isDisposed()) {
+      BuildVariantView.getInstance(project).removeListener(this);
+    }
   }
 
   @NotNull
