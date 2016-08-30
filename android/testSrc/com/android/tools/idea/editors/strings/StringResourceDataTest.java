@@ -24,6 +24,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.base.Function;
 import com.google.common.collect.*;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -58,6 +59,7 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     Map<String, ClassField> values = Collections.singletonMap("dynamic_key1", field);
     LocalResourceRepository otherDelegate = DynamicResourceValueRepository.createForTest(myFacet, values);
+    Disposer.register(myFacet, otherDelegate);
     Collection<LocalResourceRepository> otherDelegates = Collections.singletonList(otherDelegate);
 
     data = StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories, otherDelegates));
