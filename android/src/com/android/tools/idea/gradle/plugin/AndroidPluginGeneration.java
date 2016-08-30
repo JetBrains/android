@@ -105,6 +105,16 @@ public enum AndroidPluginGeneration {
   @NotNull
   protected abstract String getArtifactId();
 
+  @Nullable
+  public static AndroidPluginGeneration find(@NotNull String artifactId, @Nullable String groupId) {
+    for (AndroidPluginGeneration generation : values()) {
+      if (generation.isAndroidPlugin(artifactId, groupId)) {
+        return generation;
+      }
+    }
+    return null;
+  }
+
   @NotNull
   public static String getGroupId() {
     return "com.android.tools.build";

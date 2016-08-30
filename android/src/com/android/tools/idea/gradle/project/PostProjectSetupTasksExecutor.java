@@ -26,7 +26,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
@@ -34,8 +33,10 @@ import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -222,13 +223,11 @@ public class PostProjectSetupTasksExecutor {
           NotificationHyperlink updateVersionQuickFix;
           if (updateGradleOnly) {
             // Same plugin versions, just update Gradle.
-            updateVersionQuickFix =
-              FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, gradleVersionToUpdateTo.toString());
+            String version = gradleVersionToUpdateTo.toString();
+            updateVersionQuickFix = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, version);
           }
           else {
-            updateVersionQuickFix =
-              new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo.toString(), gradleVersionToUpdateTo.toString(),
-                                                         pluginInfo.isExperimental());
+            updateVersionQuickFix = new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo, gradleVersionToUpdateTo);
           }
 
           List<NotificationHyperlink> quickFixes = new ArrayList<>();
@@ -290,7 +289,11 @@ public class PostProjectSetupTasksExecutor {
       if (obsoletePluginVersion != null) {
         boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, obsoletePluginVersion).showAndGet();
         if (upgrade) {
-          if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
+          AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
+          GradleVersion pluginVersion = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
+          GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+          UpdateResult result = updater.updatePluginVersionAndSync(pluginVersion, latestGradleVersion, false);
+          if (result.versionUpdateSuccessful()) {
             // plugin version updated and a project sync was requested. No need to continue.
             return;
           }
@@ -391,16 +394,17 @@ public class PostProjectSetupTasksExecutor {
         new GradleVersionRecommendedUpdateDialog(myProject, recommendedGradleVersion, newPluginVersion);
       if (dialog.showAndGet()) {
         try {
-          boolean result;
+          boolean requestSync;
           if (newPluginVersion != null) {
-            result = updateGradlePluginVersion(myProject, newPluginVersion.toString(), recommendedGradleVersion.toString(),
-                                               pluginInfo.isExperimental());
+            AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
+            UpdateResult result = updater.updatePluginVersion(newPluginVersion, recommendedGradleVersion);
+            requestSync = result.isPluginVersionUpdated() || result.isGradleVersionUpdated();
           }
           else {
-            result = updateGradleVersion(myProject, recommendedGradleVersion);
+            requestSync = updateGradleVersion(myProject, recommendedGradleVersion);
           }
 
-          if (result) {
+          if (requestSync) {
             GradleProjectImporter.getInstance().requestProjectSync(myProject, false, true /* generate sources */, true /* clean */, null);
             return true;
           }
@@ -457,12 +461,8 @@ public class PostProjectSetupTasksExecutor {
       AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
       GradleVersion recommended = GradleVersion.parse(pluginGeneration.getRecommendedVersion());
       if (update) {
-        if (experimentalPlugin) {
-          updateGradleExperimentalPluginVersionAndNotifyFailure(myProject, recommended, GRADLE_LATEST_VERSION, true);
-        }
-        else {
-          updateGradlePluginVersionAndNotifyFailure(myProject, recommended, GRADLE_LATEST_VERSION, true);
-        }
+        AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(myProject);
+        versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), true);
         return true;
       }
       else {
@@ -479,7 +479,7 @@ public class PostProjectSetupTasksExecutor {
         msg.add(quickFix);
 
         SyncMessages.getInstance(myProject).report(msg);
-        invalidateLastSync(myProject, "Failed");
+        GradleSyncState.getInstance(myProject).invalidateLastSync("Failed");
         return true;
       }
     }
