@@ -60,7 +60,7 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
       if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
         NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
         NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
-        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink(false);
+        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink();
 
         String newMsg = firstLine + "\nPossible causes:<ul>";
         if (!gradleModelIsRecent(project)) {

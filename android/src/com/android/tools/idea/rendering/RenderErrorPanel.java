@@ -21,6 +21,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
@@ -668,8 +669,7 @@ public class RenderErrorPanel extends JPanel {
               @Override
               public void run() {
                 FixAndroidGradlePluginVersionHyperlink
-                  quickFix = new FixAndroidGradlePluginVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
-                                                                        null, false);
+                  quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION), null);
                 quickFix.executeIfClicked(module.getProject(),
                                           new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, quickFix.getUrl()));
               }
