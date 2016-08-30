@@ -22,30 +22,30 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.IntObjectLinkedMap;
-import com.intellij.util.containers.IntObjectLinkedMap.MapEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class SyncIssuesMessageReporter {
-  @NotNull private final IntObjectLinkedMap<MapEntry<BaseSyncIssueMessageReporter>> myStrategies = new IntObjectLinkedMap<>(3);
+  @NotNull private final Map<Integer, BaseSyncIssueMessageReporter> myStrategies = new HashMap<>(3);
   @NotNull private final BaseSyncIssueMessageReporter myDefaultMessageFactory;
 
   public SyncIssuesMessageReporter(@NotNull SyncMessageReporter messageReporter) {
-    this(messageReporter, new UnhandledIssueMessageReporter(messageReporter), new ExternalNativeBuildMessageReporter(messageReporter),
+    this(messageReporter, new UnresolvedDependencyMessageReporter(messageReporter), new ExternalNativeBuildMessageReporter(messageReporter),
          new UnsupportedGradleMessageReporter(messageReporter));
   }
 
   @VisibleForTesting
   SyncIssuesMessageReporter(@NotNull SyncMessageReporter messageReporter, @NotNull BaseSyncIssueMessageReporter... strategies) {
     for (BaseSyncIssueMessageReporter strategy : strategies) {
-      MapEntry<BaseSyncIssueMessageReporter> entry = new MapEntry<>(strategy.getSupportedIssueType(), strategy);
-      myStrategies.putEntry(entry);
+      int issueType = strategy.getSupportedIssueType();
+      myStrategies.put(issueType, strategy);
     }
     myDefaultMessageFactory = new UnhandledIssueMessageReporter(messageReporter);
   }
@@ -73,9 +73,22 @@ public class SyncIssuesMessageReporter {
 
   private void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
     int type = syncIssue.getType();
-    MapEntry<BaseSyncIssueMessageReporter> entry = myStrategies.getEntry(type);
-
-    BaseSyncIssueMessageReporter strategy = entry != null ? entry.value : myDefaultMessageFactory;
+    BaseSyncIssueMessageReporter strategy = myStrategies.get(type);
+    if (strategy == null) {
+      strategy = myDefaultMessageFactory;
+    }
     strategy.report(syncIssue, module, buildFile);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Map<Integer, BaseSyncIssueMessageReporter> getStrategies() {
+    return myStrategies;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  BaseSyncIssueMessageReporter getDefaultMessageFactory() {
+    return myDefaultMessageFactory;
   }
 }
