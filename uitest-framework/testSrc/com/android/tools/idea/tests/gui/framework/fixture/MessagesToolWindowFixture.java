@@ -48,6 +48,7 @@ import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
+import static org.junit.Assert.assertNotNull;
 
 public class MessagesToolWindowFixture extends ToolWindowFixture {
   MessagesToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
@@ -92,7 +93,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     protected abstract MessageFixture createFixture(@NotNull ErrorTreeElement element);
 
     @NotNull
-    private ErrorTreeElement doFindMessage(@NotNull final ErrorTreeElementKind kind, @NotNull final MessageMatcher matcher) {
+    private ErrorTreeElement doFindMessage(@NotNull ErrorTreeElementKind kind, @NotNull MessageMatcher matcher) {
       ErrorTreeElement found = execute(new GuiQuery<ErrorTreeElement>() {
         @Override
         @Nullable
@@ -105,7 +106,8 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       });
 
-      return checkNotNull(found, String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()));
+      assertNotNull(String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()), found);
+      return found;
     }
 
     @Nullable
@@ -132,7 +134,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     protected abstract boolean matches(@NotNull String[] text);
 
     @NotNull
-    public static MessageMatcher firstLineStartingWith(@NotNull final String prefix) {
+    public static MessageMatcher firstLineStartingWith(@NotNull String prefix) {
       return new MessageMatcher() {
         @Override
         public boolean matches(@NotNull String[] text) {
@@ -201,7 +203,8 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
           }
         }
       }
-      return checkNotNull(url, "Failed to find URL for hyperlink " + quote(hyperlinkText));
+      assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
+      return url;
     }
 
     @NotNull
@@ -266,7 +269,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // HyperlinkEvent, simulating a click on the actual hyperlink.
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
 
-      final JEditorPane editorComponent = checkNotNull(execute(new GuiQuery<JEditorPane>() {
+      JEditorPane editorComponent = checkNotNull(execute(new GuiQuery<JEditorPane>() {
         @Override
         protected JEditorPane executeInEDT() throws Throwable {
           EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
@@ -321,7 +324,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         execute(new GuiTask() {
           @Override
           protected void executeInEDT() {
-            ((Runnable)HyperlinkFixture.this::doClick).run();
+            HyperlinkFixture.this.doClick();
           }
         });
       }

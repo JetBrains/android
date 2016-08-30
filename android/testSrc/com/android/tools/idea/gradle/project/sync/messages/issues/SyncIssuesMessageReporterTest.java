@@ -24,8 +24,11 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.Map;
+
 import static com.android.builder.model.SyncIssue.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -110,5 +113,27 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2, never()).report(mySyncIssue, appModule, buildFile);
 
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
+  }
+
+  public void testStrategiesSetInConstructor() {
+    SyncIssuesMessageReporter reporter = new SyncIssuesMessageReporter(myReporterStub);
+
+    BaseSyncIssueMessageReporter strategy = reporter.getDefaultMessageFactory();
+    assertThat(strategy).isInstanceOf(UnhandledIssueMessageReporter.class);
+    assertSame(myReporterStub, strategy.getReporter());
+
+    Map<Integer, BaseSyncIssueMessageReporter> strategies = reporter.getStrategies();
+
+    strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
+    assertThat(strategy).isInstanceOf(UnresolvedDependencyMessageReporter.class);
+    assertSame(myReporterStub, strategy.getReporter());
+
+    strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION);
+    assertThat(strategy).isInstanceOf(ExternalNativeBuildMessageReporter.class);
+    assertSame(myReporterStub, strategy.getReporter());
+
+    strategy = strategies.get(TYPE_GRADLE_TOO_OLD);
+    assertThat(strategy).isInstanceOf(UnsupportedGradleMessageReporter.class);
+    assertSame(myReporterStub, strategy.getReporter());
   }
 }
