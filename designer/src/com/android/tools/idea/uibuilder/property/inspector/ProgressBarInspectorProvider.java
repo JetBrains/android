@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -158,10 +159,20 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myIndeterminateEditor.setProperty(myIndeterminate);
     }
 
-    @Nullable
     @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      return null;
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return ImmutableList.of(
+        myStyleEditor,
+        myDrawableEditor,
+        myIndeterminateDrawableEditor,
+        myTintEditor,
+        myIndeterminateTintEditor,
+        myMaxEditor,
+        myProgressEditor,
+        myVisibilityEditor,
+        myDesignVisibilityEditor,
+        myIndeterminateEditor);
     }
 
     private NlEditingListener createIndeterminateListener() {
