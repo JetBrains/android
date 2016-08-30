@@ -1627,6 +1627,33 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testRestrictTo() {
+    doCheck("\n" +
+            "package p1.p2;\n" +
+            "\n" +
+            "import android.support.annotation.RestrictTo;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public static class Class1 {\n" +
+            "        @RestrictTo(RestrictTo.Scope.SUBCLASSES)\n" +
+            "        public void onSomething() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class SubClass extends Class1 {\n" +
+            "        public void test1() {\n" +
+            "            onSomething(); // OK: Call from subclass\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class NotSubClass {\n" +
+            "        public void test2(Class1 cls) {\n" +
+            "            cls./*Class1.onSomething can only be called from subclasses*/onSomething/**/(); // ERROR: Not from subclass\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -1801,6 +1828,19 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                        "public @interface CheckResult {\n" +
                        "}\n";
     classes.add(header + checkResult);
+
+    @Language("JAVA")
+    String restrictTo = "@Retention(CLASS)\n" +
+                        "@Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})\n" +
+                        "public @interface RestrictTo {\n" +
+                        "    Scope[] value();\n" +
+                        "    enum Scope {\n" +
+                        "        GROUP_ID,\n" +
+                        "        TESTS,\n" +
+                        "        SUBCLASSES\n" +
+                        "    }\n" +
+                        "}\n";
+    classes.add(header + restrictTo);
 
 
     return ArrayUtil.toStringArray(classes);
