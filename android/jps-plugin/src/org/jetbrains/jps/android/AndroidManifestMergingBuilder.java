@@ -8,9 +8,7 @@ import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.android.utils.NullLogger;
-import com.android.utils.Pair;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
@@ -145,14 +143,9 @@ public class AndroidManifestMergingBuilder
       testingManager.getCommandExecutor().log(messageBuilder.toString());
     }
 
-
-    ImmutableList.Builder<Pair<String, File>> libraryFiles = ImmutableList.builder();
-    for (File f : libManifests) {
-      libraryFiles.add(Pair.of(f.getName(), f));
-    }
-
     final ManifestMerger2.Invoker manifestMergerInvoker =
-      ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(libraryFiles.build());
+      ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(
+        (File[])libManifests.stream().toArray());
 
     MergingReport mergingReport;
     try {
