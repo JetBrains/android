@@ -16,13 +16,13 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,19 +47,14 @@ public class AccordionVisualTest extends VisualTest {
 
   private long mStartTimeUs;
 
-  @NonNull
   private AccordionLayout mAccordionX;
 
-  @NonNull
   private AccordionLayout mAccordionY;
 
-  @NonNull
   private JBPanel mPanelX;
 
-  @NonNull
   private JBPanel mPanelY;
 
-  @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
   private ArrayList<RangedContinuousSeries> mRangedData;
@@ -117,7 +112,7 @@ public class AccordionVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     panel.setLayout(new GridLayout(0, 1));
 
     Thread mUpdateDataThread = new Thread() {
@@ -210,7 +205,7 @@ public class AccordionVisualTest extends VisualTest {
                      new Dimension(300, Integer.MAX_VALUE)));
   }
 
-  @NonNull
+  @NotNull
   private LineChart generateChart(AccordionLayout layout, AccordionLayout.Orientation direction,
                                   int minSize, int preferredSize, int maxSize) {
     LineChart chart = new LineChart(mRangedData);
