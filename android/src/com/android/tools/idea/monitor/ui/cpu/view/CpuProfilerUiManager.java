@@ -152,13 +152,29 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   @Override
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
-    myChoreographer.unregister(myThreadSegment);
+
+    if (myThreadSegment != null) {
+      myChoreographer.unregister(myThreadSegment);
+      overviewPanel.remove(myThreadSegment);
+      myThreadSegment = null;
+    }
+
+    if (myProfileButton != null) {
+      toolbar.remove(myProfileButton);
+      myProfileButton = null;
+    }
+
+    if (myFlameChartRange != null) {
+      myChoreographer.unregister(myFlameChartRange);
+      myFlameChartRange = null;
+    }
+
+    if (myTabbedPane != null) {
+      detailPanel.remove(myTabbedPane);
+    }
+
     myChoreographer.unregister(myFlameChart);
-    myChoreographer.unregister(myFlameChartRange);
     myChoreographer.unregister(myExecutionChart);
-    overviewPanel.remove(myThreadSegment);
-    detailPanel.remove(myTabbedPane);
-    toolbar.remove(myProfileButton);
   }
 
   @Override
