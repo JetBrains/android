@@ -18,12 +18,12 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import org.apache.commons.io.FileUtils;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
@@ -267,11 +267,14 @@ public class IdeaTestSuite {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
     }
 
-    Logger logger = Logger.getLogger(IdeaTestSuite.class.getName());
+    // Links templates files under idea home directory for AndroidTestCase initialization.
+    Path templates = TestUtils.getWorkspaceFile("tools/base/templates").toPath();
+    Path templatesLink = Paths.get(tmpDir, "android/tools-base/templates");
     try {
-      FileUtils.copyDirectory(TestUtils.getWorkspaceFile("tools/base/templates"), new File(tmpDir, "android/tools-base/templates"));
+      Files.createDirectories(templatesLink.getParent());
+      Files.createSymbolicLink(templatesLink, templates);
     } catch (IOException e) {
-      logger.warning(e.getMessage());
+      throw new RuntimeException(e);
     }
   }
 }
