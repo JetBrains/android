@@ -141,7 +141,7 @@ public class DataBindingUtil {
   @Nullable
   private static String getViewClassName(XmlTag tag, AndroidFacet facet) {
     final String elementName = getViewName(tag);
-    if (elementName.indexOf('.') == -1) {
+    if (elementName != null && elementName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(elementName)) {
         return SdkConstants.VIEW_PKG_PREFIX + elementName;
       } else if (SdkConstants.WEB_VIEW.equals(elementName)) {
@@ -188,6 +188,7 @@ public class DataBindingUtil {
     return info.getQualifiedName();
   }
 
+  @Nullable // when passed <view/>
   private static String getViewName(XmlTag tag) {
     String viewName = tag.getName();
     if (SdkConstants.VIEW_TAG.equals(viewName)) {
