@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,7 +105,7 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:1000x150}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,150:1000x850}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
 
 
     surface().screen(createModel()).get("@id/myText")
@@ -114,7 +114,6 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .release()
       .primary()
       .parent().expectXml("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                          "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                           "    android:layout_width=\"match_parent\"\n" +
                           "    android:layout_height=\"match_parent\">\n" +
                           "\n" +
@@ -124,6 +123,7 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                           "        android:layout_height=\"100dp\"\n" +
                           "        android:layout_x=\"150dp\"\n" +
                           "        android:layout_y=\"400dp\" />\n" +
+                          "\n" +
                           "</AbsoluteLayout>");
   }
 
@@ -140,19 +140,21 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                                              component(TEXT_VIEW).withBounds(0, 850, 1000, 150).id("@id/myText").width("1000px")
                                                .height("150px")));
     @Language("XML") String xml = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                  "              xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                                   "  android:layout_width=\"match_parent\"\n" +
                                   "  android:layout_height=\"match_parent\"\n" +
                                   "  android:orientation=\"vertical\">\n" +
+                                  "\n" +
                                   "  <AbsoluteLayout\n" +
                                   "    android:id=\"myAbsLayout\"\n" +
                                   "    android:layout_width=\"match_parent\"\n" +
                                   "    android:layout_height=\"0dp\"\n" +
                                   "    android:layout_weight=\"1\"/>\n" +
+                                  "\n" +
                                   "  <TextView\n" +
                                   "    android:id=\"@id/myText\"\n" +
                                   "    android:layout_width=\"1000px\"\n" +
                                   "    android:layout_height=\"150px\"/>\n" +
+                                  "\n" +
                                   "</LinearLayout>\n";
     assertEquals(xml, builder.toXml());
 
@@ -161,7 +163,7 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,0:1000x850}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,850:1000x150}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
 
     surface().screen(model)
       .get("@id/myText")
@@ -170,10 +172,10 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .release()
       .primary().parent().parent()
       .expectXml("<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "              xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "  android:layout_width=\"match_parent\"\n" +
                  "  android:layout_height=\"match_parent\"\n" +
                  "  android:orientation=\"vertical\">\n" +
+                 "\n" +
                  "  <AbsoluteLayout\n" +
                  "    android:id=\"myAbsLayout\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
@@ -187,6 +189,7 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                  "          android:layout_x=\"50dp\"\n" +
                  "          android:layout_y=\"550dp\" />\n" +
                  "  </AbsoluteLayout>\n" +
+                 "\n" +
                  "</LinearLayout>");
   }
 
@@ -210,11 +213,10 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<AbsoluteLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
 
     format(model.getFile());
     assertEquals("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
@@ -224,6 +226,7 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_height=\"100dp\"\n" +
                  "        android:layout_x=\"100dp\"\n" +
                  "        android:layout_y=\"100dp\" />\n" +
+                 "\n" +
                  "</AbsoluteLayout>\n", model.getFile().getText());
     return model;
   }

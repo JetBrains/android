@@ -133,6 +133,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     return myFile;
   }
 
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }

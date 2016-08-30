@@ -179,6 +179,7 @@
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.adb.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.adb.TerminateAdbAction" />
+      <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction">
