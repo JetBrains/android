@@ -36,6 +36,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -216,7 +217,7 @@ public class ConstraintUtilities {
    * @param attributes the attributes we work on
    * @param anchorType the anchor type
    */
-  public static void resetAnchor(@NotNull AttributesTransaction attributes, @NotNull ConstraintAnchor.Type anchorType) {
+  public static void resetAnchor(@NotNull NlAttributesHolder attributes, @NotNull ConstraintAnchor.Type anchorType) {
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (anchorType) {
       case LEFT: {
@@ -272,7 +273,7 @@ public class ConstraintUtilities {
    * @param x          x position (in Dp)
    * @param y          y position (in Dp)
    */
-  public static void setEditorPosition(@Nullable ConstraintWidget widget, @NotNull AttributesTransaction attributes,
+  public static void setEditorPosition(@Nullable ConstraintWidget widget, @NotNull NlAttributesHolder attributes,
                                        @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String attributeX = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
     String attributeY = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
@@ -297,7 +298,7 @@ public class ConstraintUtilities {
    *
    * @param attributes
    */
-  public static void clearEditorPosition(@NotNull AttributesTransaction attributes) {
+  public static void clearEditorPosition(@NotNull NlAttributesHolder attributes) {
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
   }
@@ -389,7 +390,7 @@ public class ConstraintUtilities {
    * @param attributes the attributes we work on
    * @param anchor     the anchor we want to update from
    */
-  static void setConnection(@NotNull AttributesTransaction attributes, @NotNull ConstraintAnchor anchor) {
+  static void setConnection(@NotNull NlAttributesHolder attributes, @NotNull ConstraintAnchor anchor) {
     resetAnchor(attributes, anchor.getType());
 
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
@@ -498,11 +499,10 @@ public class ConstraintUtilities {
 
   /**
    * Update the attributes given a new dimension
-   *
-   * @param attributes the attributes we work on
+   *  @param attributes the attributes we work on
    * @param widget     the widget we use as a model
    */
-  public static void setDimension(@NotNull AttributesTransaction attributes, @NotNull ConstraintWidget widget) {
+  public static void setDimension(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
     String width;
     switch (widget.getHorizontalDimensionBehaviour()) {
       case ANY: {
@@ -539,11 +539,10 @@ public class ConstraintUtilities {
 
   /**
    * Update the attributes horizontal bias
-   *
-   * @param attributes the attributes we work on
+   *  @param attributes the attributes we work on
    * @param widget     the widget we use as a model
    */
-  static void setHorizontalBias(@NotNull AttributesTransaction attributes, @NotNull ConstraintWidget widget) {
+  static void setHorizontalBias(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
     float bias = widget.getHorizontalBiasPercent();
     if (bias != 0.5f) {
       attributes.setAttribute(SdkConstants.SHERPA_URI,
@@ -553,11 +552,10 @@ public class ConstraintUtilities {
 
   /**
    * Update the component horizontal bias
-   *
-   * @param component the component we work on
+   *  @param component the component we work on
    * @param widget    the widget we use as a model
    */
-  static void setVerticalBias(@NotNull AttributesTransaction component, @NotNull ConstraintWidget widget) {
+  static void setVerticalBias(@NotNull NlAttributesHolder component, @NotNull ConstraintWidget widget) {
     float bias = widget.getVerticalBiasPercent();
     if (bias != 0.5f) {
       component.setAttribute(SdkConstants.SHERPA_URI,
@@ -567,12 +565,11 @@ public class ConstraintUtilities {
 
   /**
    * Update the component with the values from a Guideline widget
-   *
-   * @param model     the component NlModel
+   *  @param model     the component NlModel
    * @param component the component we work on
    * @param guideline the widget we use as a model
    */
-  static void commitGuideline(NlModel model, @NotNull AttributesTransaction component, @NotNull Guideline guideline) {
+  static void commitGuideline(NlModel model, @NotNull NlAttributesHolder component, @NotNull Guideline guideline) {
     int behaviour = guideline.getRelativeBehaviour();
     WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
     component.setAttribute(SdkConstants.SHERPA_URI,
@@ -909,9 +906,9 @@ public class ConstraintUtilities {
    * @param widget          constraint widget
    * @param component       the model component
    */
-  static void updateWidget(@NotNull ConstraintModel constraintModel,
-                           @Nullable ConstraintWidget widget,
-                           @Nullable NlComponent component) {
+  static void updateWidgetFromComponent(@NotNull ConstraintModel constraintModel,
+                                        @Nullable ConstraintWidget widget,
+                                        @Nullable NlComponent component) {
     if (component == null || widget == null) {
       return;
     }
@@ -1279,15 +1276,69 @@ public class ConstraintUtilities {
     return "";
   }
 
+  /**
+   * Utility class to gather all attributes and their values in one go.
+   * This avoid clearing then resetting the attributes in AttributesTransaction,
+   * which would trigger unnecessary work and relayouts.
+   */
+  static class MemoryAttributesTransaction implements NlAttributesHolder {
+    HashMap<String, HashMap<String, String>> myAttributes = new HashMap<>();
+
+    @Override
+    public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+      HashMap<String, String> attributes = myAttributes.get(namespace);
+      if (attributes == null) {
+        attributes = new HashMap<>();
+        myAttributes.put(namespace, attributes);
+      }
+      attributes.put(attribute, value);
+    }
+
+    @Override
+    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
+      HashMap<String, String> attributes = myAttributes.get(namespace);
+      if (attributes == null) {
+        return null;
+      }
+      return attributes.get(attribute);
+    }
+
+    public void commit(@NotNull NlComponent component) {
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      for (String namespace : myAttributes.keySet()) {
+        HashMap<String, String> attributes = myAttributes.get(namespace);
+        for (String key : attributes.keySet()) {
+          transaction.setAttribute(namespace, key, attributes.get(key));
+        }
+      }
+    }
+  }
+
+  /**
+   * Utility function committing the given ConstraintModel to NlComponent,
+   * either directly an AttributesTransaction to commit to disk, or via
+   * a MemoryAttributesTransaction (which internally use AttributesTransaction
+   * to commit, but only via reflection)
+   *
+   * @param model  the given ConstraintModel
+   * @param commit commit to disk or not
+   */
   private static void saveXmlWidgets(@NotNull ConstraintModel model, boolean commit) {
     Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
     for (ConstraintWidget widget : widgets) {
-      if (commit) {
-        assert ApplicationManager.getApplication().isWriteAccessAllowed();
-        commitElement(model, widget);
-      }
-      else {
-        updateElement(model, widget);
+      NlComponent component = getValidComponent(model, widget);
+      if (component != null) {
+        if (commit) {
+          assert ApplicationManager.getApplication().isWriteAccessAllowed();
+          AttributesTransaction transaction = component.startAttributeTransaction();
+          updateComponentFromWidget(model, widget, transaction);
+          transaction.commit();
+        }
+        else {
+          MemoryAttributesTransaction transaction = new MemoryAttributesTransaction();
+          updateComponentFromWidget(model, widget, transaction);
+          transaction.commit(component);
+        }
       }
     }
   }
@@ -1326,7 +1377,36 @@ public class ConstraintUtilities {
     nlModel.getComponents().forEach(component -> component.startAttributeTransaction().rollback());
   }
 
-  static AttributesTransaction updateElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
+  /**
+   * Returns a component paired to the given widget, but only if it is a valid
+   * component for us to work on.
+   *
+   * @param model the model we are working on
+   * @param widget the constraint widget paired with the component
+   * @return
+   */
+  static @Nullable NlComponent getValidComponent(@NotNull ConstraintModel model,
+                                       @NotNull ConstraintWidget widget) {
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    NlComponent component = (NlComponent)companion.getWidgetModel();
+    boolean isDroppedWidget = (model.getDragDropWidget() == widget);
+    boolean isInsideConstraintLayout = isWidgetInsideConstraintLayout(widget);
+    if (!isDroppedWidget && (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout)) {
+      return null;
+    }
+    return component;
+  }
+
+  /**
+   * Update the component attributes from its corresponding ConstraintWidget
+   *
+   * @param model  the model we are working on
+   * @param widget the widget to update from
+   * @return an AttributesTransaction
+   */
+  static @Nullable NlAttributesHolder updateComponentFromWidget(@NotNull ConstraintModel model,
+                                                         @NotNull ConstraintWidget widget,
+                                                         @NotNull NlAttributesHolder transaction) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
     boolean isDroppedWidget = (model.getDragDropWidget() == widget);
@@ -1335,24 +1415,23 @@ public class ConstraintUtilities {
       return null;
     }
 
-    AttributesTransaction attributes = component.startAttributeTransaction();
     if (isInsideConstraintLayout || isDroppedWidget) {
-      setEditorPosition(widget, attributes, widget.getX(), widget.getY());
+      setEditorPosition(widget, transaction, widget.getX(), widget.getY());
     }
     else {
-      clearEditorPosition(attributes);
+      clearEditorPosition(transaction);
     }
 
-    setDimension(attributes, widget);
+    setDimension(transaction, widget);
     for (ConstraintAnchor anchor : widget.getAnchors()) {
-      setConnection(attributes, anchor);
+      setConnection(transaction, anchor);
     }
-    setHorizontalBias(attributes, widget);
-    setVerticalBias(attributes, widget);
+    setHorizontalBias(transaction, widget);
+    setVerticalBias(transaction, widget);
     if (widget instanceof Guideline) {
-      commitGuideline(component.getModel(), attributes, (Guideline)widget);
+      commitGuideline(component.getModel(), transaction, (Guideline)widget);
     }
-    return attributes;
+    return transaction;
   }
 
   /**
@@ -1365,20 +1444,6 @@ public class ConstraintUtilities {
       return false;
     }
     return parent instanceof ConstraintWidgetContainer;
-  }
-
-  /**
-   * Utility function to commit to the NlModel the current state of the given widget
-   *
-   * @param model  the constraintmodel we are working with
-   * @param widget the widget we want to save to the nl model
-   */
-  static void commitElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
-    AttributesTransaction transaction = updateElement(model, widget);
-
-    if (transaction != null) {
-      transaction.commit();
-    }
   }
 
   /**

@@ -214,7 +214,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public void modelRendered(@NotNull NlModel model) {
   }
 
-  public void updateXml() {
+  public void updateMemoryXML() {
     ConstraintUtilities.saveModelToXML(myNlModel, false);
   }
 
@@ -412,7 +412,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * Schedule an XML save
    */
   public void requestSaveToXML() {
-    updateXml(); // Send changes to the XML without committing them
+    updateMemoryXML(); // Send changes to the XML without committing them
     mySaveXmlTimer.reset();
   }
 
@@ -692,7 +692,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     companion.setWidgetTag(component);
     widget.setCompanionWidget(companion);
     widget.setDebugName(component.getId());
-    ConstraintUtilities.updateWidget(this, widget, component);
+    ConstraintUtilities.updateWidgetFromComponent(this, widget, component);
   }
 
   /**
@@ -753,7 +753,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
       }
     }
-    ConstraintUtilities.updateWidget(this, widget, component);
+    ConstraintUtilities.updateWidgetFromComponent(this, widget, component);
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child, deepUpdate);
     }
