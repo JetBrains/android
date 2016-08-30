@@ -27,6 +27,7 @@ import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
@@ -125,6 +126,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myProperty.getValue()),
+                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
       @Override
@@ -139,7 +143,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       @Override
       public void focusLost(FocusEvent event) {
         stopEditing(getText());
-        // Remove the selection after we looses focus for feedback on which editor is the active editor
+        // Remove the selection after we lose focus for feedback on which editor is the active editor
         myTextFieldWithAutoCompletion.removeSelection();
       }
     });
@@ -326,7 +330,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     // Update the selected value for immediate feedback from resource editor.
     myTextFieldWithAutoCompletion.setText((String)newValue);
     // Select all the text to give visual confirmation that the value has been applied.
-    if (myTextFieldWithAutoCompletion.hasFocus()) {
+    if (hasFocus()) {
       myTextFieldWithAutoCompletion.selectAll();
     }
 
@@ -335,6 +339,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myLastReadValue = null;
       super.stopEditing(newValue);
     }
+  }
+
+  private boolean hasFocus() {
+    if (myTextFieldWithAutoCompletion.hasFocus()) {
+      return true;
+    }
+    Editor editor = myTextFieldWithAutoCompletion.getEditor();
+    return editor != null && editor.getContentComponent().hasFocus();
   }
 
   private static class TextEditor extends TextFieldWithAutoCompletion<String> {
