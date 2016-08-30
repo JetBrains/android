@@ -480,6 +480,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
       for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
         manager.stopMonitoring();
+        manager.resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
       }
       myProfilerManagers.clear();
 
@@ -492,6 +493,10 @@ public class AndroidMonitorToolWindow implements Disposable {
       mySelectedClient = null;
       myProfilersInitialized = false;
       myExpandedProfiler = null;
+    }
+    // Hides the reset button
+    if (myCollapseSegmentsButton != null) {
+      myCollapseSegmentsButton.setVisible(false);
     }
   }
 }
