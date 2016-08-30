@@ -25,6 +25,8 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -57,12 +59,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
@@ -102,6 +102,7 @@ public class NlPalettePanel extends JPanel
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final int ICON_SPACER = 4;
 
+  private final Project myProject;
   private final JTree myPaletteTree;
   private final IconPreviewFactory myIconFactory;
   private final NlPaletteModel myModel;
@@ -118,6 +119,7 @@ public class NlPalettePanel extends JPanel
   private Configuration myConfiguration;
 
   public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+    myProject = project;
     myPaletteTree = new PaletteTree();
     myPaletteTree.setName("Palette Tree");
     myIconFactory = IconPreviewFactory.get();
@@ -197,19 +199,20 @@ public class NlPalettePanel extends JPanel
       updateConfiguration();
       initItems();
       checkForNewMissingDependencies();
+      repaint();
     }
     if (prevModule != newModule) {
       if (prevModule != null) {
         AndroidFacet facet = AndroidFacet.getInstance(prevModule);
         if (facet != null) {
-          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(prevModule.getProject());
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
           manager.removeListener(this, facet, null, null);
         }
       }
       if (newModule != null) {
         AndroidFacet facet = AndroidFacet.getInstance(newModule);
         if (facet != null) {
-          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(newModule.getProject());
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
           manager.addListener(this, facet, null, null);
         }
         myIconFactory.dropCache();
@@ -244,12 +247,12 @@ public class NlPalettePanel extends JPanel
     }
     else {
       ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
-      background = ResourceHelper.resolveColor(resolver, windowBackground, configuration.getModule().getProject());
+      background = ResourceHelper.resolveColor(resolver, windowBackground, myProject);
       if (background == null) {
         background = UIUtil.getTreeBackground();
       }
       ResourceValue textForeground = resolver.findItemInTheme("colorForeground", true);
-      foreground = ResourceHelper.resolveColor(resolver, textForeground, configuration.getModule().getProject());
+      foreground = ResourceHelper.resolveColor(resolver, textForeground, myProject);
       if (foreground == null) {
         foreground = UIUtil.getTreeForeground();
       }
@@ -406,7 +409,7 @@ public class NlPalettePanel extends JPanel
     if (myDesignSurface == null || myPaletteTree.getRowCount() > 0) {
       return;
     }
-    DumbService.getInstance(myDesignSurface.getProject()).smartInvokeLater(() -> {
+    DumbService.getInstance(myProject).smartInvokeLater(() -> {
       if (myDesignSurface == null) {
         return;
       }
@@ -524,26 +527,26 @@ public class NlPalettePanel extends JPanel
           assert coordinate != null;
           Module module = getModule();
           assert module != null;
-          GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+          GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
           manager.ensureLibraryIsIncluded(module, toGradleCoordinates(Collections.singletonList(coordinate)), null);
         }
       }
     });
-    ApplicationManager.getApplication().getMessageBus().connect(myDisposable).subscribe(ProjectEx.ProjectSaved.TOPIC, project -> {
-      Module module = getModule();
-      if (module != null && module.getProject().equals(project)) {
+    GradleSyncState.subscribe(myProject, new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
         if (checkForNewMissingDependencies()) {
           repaint();
         }
       }
-    });
+    }, myDisposable);
   }
 
   private boolean checkForNewMissingDependencies() {
     Module module = getModule();
     List<String> missing = Collections.emptyList();
     if (module != null) {
-      GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+      GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
       missing = fromGradleCoordinates(
         manager.findMissingDependencies(module, myModel.getPalette(myDesignSurface.getLayoutType()).getGradleCoordinates()));
       if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
@@ -588,7 +591,8 @@ public class NlPalettePanel extends JPanel
 
   @Nullable
   private Module getModule() {
-    Configuration configuration = myDesignSurface != null ? myDesignSurface.getConfiguration() : null;
+    Configuration configuration =
+      myDesignSurface != null && myDesignSurface.getLayoutType().isSupportedByDesigner() ? myDesignSurface.getConfiguration() : null;
     return configuration != null ? configuration.getModule() : null;
   }
 
