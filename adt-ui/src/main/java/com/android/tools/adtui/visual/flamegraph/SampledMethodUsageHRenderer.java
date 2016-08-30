@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.visual.flamegraph;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -35,7 +35,7 @@ public class SampledMethodUsageHRenderer implements HRenderer<SampledMethodUsage
   private final int mBlueDelta;
   Font mFont;
   // To limit the number of object allocation we reuse the same Rectangle.
-  @NonNull
+  @NotNull
   private RoundRectangle2D.Float mRect;
 
   public SampledMethodUsageHRenderer() {

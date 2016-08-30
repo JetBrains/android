@@ -16,9 +16,9 @@
 
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -38,7 +38,7 @@ public class MethodHRenderer implements HRenderer<Method> {
   // To limit the number of object allocation we reuse the same Rectangle.
   // RoundRectangle kills performance (from 60fps to 6fps) when many nodes are displayed
   // TODO: Either switch to straight angles or find an other way to implement round corners
-  @NonNull
+  @NotNull
   private Rectangle2D.Float mRect;
 
   private static final Pattern dotPattern = Pattern.compile("\\.");
