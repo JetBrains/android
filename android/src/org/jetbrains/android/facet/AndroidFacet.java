@@ -43,6 +43,7 @@ import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -828,6 +829,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     synchronized (APP_RESOURCES_LOCK) {
       if (myAppResources == null && createIfNecessary) {
         myAppResources = AppResourceRepository.create(this);
+        Disposer.register(this, myAppResources);
       }
       return myAppResources;
     }
@@ -839,6 +841,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources == null && createIfNecessary) {
         myProjectResources = ProjectResourceRepository.create(this);
+        Disposer.register(this, myProjectResources);
       }
       return myProjectResources;
     }
@@ -850,15 +853,27 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources == null && createIfNecessary) {
         myModuleResources = ModuleResourceRepository.create(this);
+        Disposer.register(this, myModuleResources);
       }
       return myModuleResources;
     }
   }
 
   public void refreshResources() {
-    myModuleResources = null;
-    myProjectResources = null;
-    myAppResources = null;
+    synchronized (MODULE_RESOURCES_LOCK) {
+      Disposer.dispose(myModuleResources);
+      myModuleResources = null;
+    }
+
+    synchronized (PROJECT_RESOURCES_LOCK) {
+      Disposer.dispose(myProjectResources);
+      myProjectResources = null;
+    }
+
+    synchronized (APP_RESOURCES_LOCK) {
+      Disposer.dispose(myAppResources);
+      myAppResources = null;
+    }
     myConfigurationManager.getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
@@ -889,9 +904,16 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myDataBindingEnabled = dataBindingEnabled;
   }
 
-  public void addListener(@NotNull GradleSyncListener listener) {
+  /**
+   * Adds a new {@link GradleSyncListener}. If you need to remove the listener, the  returned {@link Disposable}
+   * can be used to remove it by using the {@link Disposer}.
+   *
+   * @return A {@link Disposable} that can be used to remove the listener if needed.
+   */
+  @NotNull
+  public Disposable addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
-    GradleSyncState.subscribe(module.getProject(), listener, module);
+    return GradleSyncState.subscribe(module.getProject(), listener, module);
   }
 
   @NotNull
