@@ -21,6 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -250,7 +251,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       LocalResourceRepository resources = myChildren.get(i);
       resources.removeParent(this);
-      resources.dispose();
+      Disposer.dispose(resources);
     }
   }
 
