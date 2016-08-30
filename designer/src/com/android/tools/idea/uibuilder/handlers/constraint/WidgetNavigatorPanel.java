@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -42,6 +44,7 @@ import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 import static com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode.BOTH;
@@ -512,7 +515,7 @@ public class WidgetNavigatorPanel extends JPanel
           computeScale(currentScreenView, myDesignSurfaceSize, contentSize);
           gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
           gc.setColor(BACKGROUND_COLOR);
-          drawContainers(gc, blueprintView);
+          drawContainers(gc, currentScreenView, blueprintView);
 
           if (myIsZoomed) {
             drawDesignSurface(gc, currentScreenView);
@@ -583,10 +586,11 @@ public class WidgetNavigatorPanel extends JPanel
     }
 
     /**
-     * @param gc            the {@link Graphics2D} to draw on
-     * @param blueprintView the blueprint {@link ScreenView} if it is availableView
+     * @param gc                the {@link Graphics2D} to draw on
+     * @param currentScreenView
+     * @param blueprintView     the blueprint {@link ScreenView} if it is availableView
      */
-    private void drawContainers(Graphics2D gc, @Nullable ScreenView blueprintView) {
+    private void drawContainers(Graphics2D gc, @NotNull ScreenView currentScreenView, @Nullable ScreenView blueprintView) {
 
       // Draw the first screen view
       assert myDesignSurface != null;
@@ -602,6 +606,17 @@ public class WidgetNavigatorPanel extends JPanel
         (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
         (int)Math.round(myDeviceSize.getHeight() * myDeviceScale)
       );
+
+      if (!myDesignSurface.getScreenMode().equals(DesignSurface.ScreenMode.BLUEPRINT_ONLY)) {
+        RenderResult renderResult = currentScreenView.getModel().getRenderResult();
+        if (renderResult != null && renderResult.getImage() != null) {
+          BufferedImage image = renderResult.getImage().getOriginalImage();
+          gc.drawImage(image, myCenterOffset,
+                       0,
+                       (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
+                       (int)Math.round(myDeviceSize.getHeight() * myDeviceScale), null);
+        }
+      }
 
       // Draw the second screenView
       if (myDesignSurface.getScreenMode() == BOTH
