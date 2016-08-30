@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -334,7 +334,6 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
       .primary()
       .parent()
       .expectXml("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
@@ -366,6 +365,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_toRightOf=\"@id/checkbox\"\n" +
                  "        android:layout_marginLeft=\"80dp\"\n" +
                  "        android:layout_marginTop=\"80dp\" />\n" +
+                 "\n" +
                  "</RelativeLayout>");
   }
 
@@ -430,11 +430,10 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
                  "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[400,400:100x100}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
 
     format(model.getFile());
     assertEquals("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
@@ -466,6 +465,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_toRightOf=\"@id/checkbox\"\n" +
                  "        android:layout_marginLeft=\"80dp\"\n" +
                  "        android:layout_marginTop=\"80dp\" />\n" +
+                 "\n" +
                  "</RelativeLayout>\n", model.getFile().getText());
     return model;
   }

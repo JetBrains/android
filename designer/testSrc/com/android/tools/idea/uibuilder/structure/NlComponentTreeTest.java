@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -230,7 +230,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
     return model;
   }
 
@@ -264,7 +264,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "            NlComponent{tag=<android.support.v7.widget.Toolbar>, bounds=[0,0:1000x18}\n" +
                  "    NlComponent{tag=<android.support.v4.widget.NestedScrollView>, bounds=[0,192:1000x808}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,192:1000x808}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getComponents()));
     return model;
   }
 }
