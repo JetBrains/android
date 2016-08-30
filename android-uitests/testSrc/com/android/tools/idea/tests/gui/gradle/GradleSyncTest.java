@@ -1313,7 +1313,7 @@ public class GradleSyncTest {
 
   @Test
   public void syncDuringOfflineMode() throws IOException {
-    String hyperlinkText = "Disable offline mode and Sync";
+    String hyperlinkText = "Disable offline mode and sync project";
 
     guiTest.importSimpleApplication();
 
