@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
+import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -89,7 +90,12 @@ final class ManifestInfo {
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
-    manifestMergerInvoker.addLibraryManifests((File[])libManifests.stream().map(VfsUtilCore::virtualToIoFile).toArray());
+
+    List<Pair<String, File>> libraryManifests = new ArrayList<>();
+    for (VirtualFile file : libManifests) {
+      libraryManifests.add(Pair.of(file.getName(), VfsUtilCore.virtualToIoFile(file)));
+    }
+    manifestMergerInvoker.addBundleManifests(libraryManifests);
 
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
