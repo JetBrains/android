@@ -73,7 +73,7 @@ public class InstantRunBuildAnalyzer {
 
     BuildSelection buildSelection = myContext.getBuildSelection();
     assert buildSelection != null : "Build must have completed before results are analyzed";
-    return buildSelection.mode == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
+    return buildSelection.getBuildMode() == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
   }
 
   /**
@@ -152,11 +152,11 @@ public class InstantRunBuildAnalyzer {
         String msg = "Expected to only find apks, but got : " + artifact.type + "\n";
         BuildSelection buildSelection = context.getBuildSelection();
         assert buildSelection != null : "Build must have completed before apks are obtained";
-        if (buildSelection.mode == BuildMode.HOT) {
+        if (buildSelection.getBuildMode() == BuildMode.HOT) {
           msg += "Could not use hot-swap artifacts when there is no existing session.";
         }
         else {
-          msg += "Unexpected artifacts for build mode: " + buildSelection.mode;
+          msg += "Unexpected artifacts for build mode: " + buildSelection.getBuildMode();
         }
         InstantRunManager.LOG.error(msg);
         throw new ExecutionException(msg);

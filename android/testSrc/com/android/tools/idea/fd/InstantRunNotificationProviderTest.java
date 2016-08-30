@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNull;
 public class InstantRunNotificationProviderTest {
   @Test
   public void firstDeployHasNoNotifications() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.FULL, BuildCause.FIRST_INSTALLATION_TO_DEVICE);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.FIRST_INSTALLATION_TO_DEVICE, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
     assertNull("No notifications should be shown the first time an APK is installed on the device during a session",
                provider.getNotificationText());
@@ -32,35 +32,35 @@ public class InstantRunNotificationProviderTest {
 
   @Test
   public void cleanBuildOnUserRequest() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.CLEAN, BuildCause.USER_REQUESTED_CLEAN_BUILD);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_CLEAN_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
     assertEquals(AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"), provider.getNotificationText());
   }
 
   @Test
   public void appNotRunningAndHaveChanges() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.COLD, BuildCause.APP_NOT_RUNNING);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap"), provider.getNotificationText());
   }
 
   @Test
   public void appNotRunningAndHaveNoChanges() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.COLD, BuildCause.APP_NOT_RUNNING);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.NO_CHANGES, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap.nochanges"), provider.getNotificationText());
   }
 
   @Test
   public void warmSwapNotification() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.HOT, BuildCause.INCREMENTAL_BUILD);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.WARMSWAP, "");
     assertEquals(AndroidBundle.message("instant.run.notification.warmswap"), provider.getNotificationText());
   }
 
   @Test
   public void hotswapNotification() {
-    BuildSelection buildSelection = new BuildSelection(BuildMode.HOT, BuildCause.INCREMENTAL_BUILD);
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.HOTSWAP, "");
     assertEquals(AndroidBundle.message("instant.run.notification.hotswap", ""), provider.getNotificationText());
   }
