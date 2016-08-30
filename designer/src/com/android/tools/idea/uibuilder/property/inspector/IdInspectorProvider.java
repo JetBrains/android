@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -136,19 +135,10 @@ public class IdInspectorProvider implements InspectorProvider {
       }
     }
 
-    @Nullable
     @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      switch (propertyName) {
-        case ATTR_ID:
-          return myIdEditor;
-        case ATTR_LAYOUT_WIDTH:
-          return myWidthEditor;
-        case ATTR_LAYOUT_HEIGHT:
-          return myHeightEditor;
-        default:
-          return null;
-      }
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return ImmutableList.of(myIdEditor, myWidthEditor, myHeightEditor);
     }
 
     private static void setToolTip(@NotNull NlComponentEditor editor, @NotNull NlProperty property) {

@@ -27,6 +27,7 @@ import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -47,7 +48,6 @@ import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel implements KeyEventDispatcher {
-  private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
   private static final int HORIZONTAL_SPACING = 6;
 
   private final JComponent myAllPropertiesLink;
@@ -61,6 +61,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
   private boolean myActivateEditorAfterLoad;
+  private String myPropertyNameForActivation;
 
   public InspectorPanel(@NotNull Project project, @NotNull JComponent allPropertiesLink) {
     super(new BorderLayout());
@@ -175,7 +176,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       revalidate();
       repaint();
       if (myActivateEditorAfterLoad) {
-        activatePreferredEditor();
+        activatePreferredEditor(myPropertyNameForActivation);
       }
     });
   }
@@ -206,22 +207,28 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     return inspectors;
   }
 
-  public boolean activatePreferredEditor(boolean activateAfterLoading) {
+  public boolean activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {
     if (activateAfterLoading) {
       myActivateEditorAfterLoad = true;
+      myPropertyNameForActivation = propertyName;
     }
     else {
-      activatePreferredEditor();
+      activatePreferredEditor(propertyName);
     }
     return true;
   }
 
-  private void activatePreferredEditor() {
+  private void activatePreferredEditor(@NotNull String propertyName) {
     myActivateEditorAfterLoad = false;
-    for (String preferredPropertyName : PREFERRED_PROPERTY_NAMES) {
-      for (InspectorComponent component : myInspectors) {
-        NlComponentEditor editor = component.getEditorForProperty(preferredPropertyName);
-        if (editor != null) {
+    myPropertyNameForActivation = null;
+    boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
+    propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);
+    for (InspectorComponent component : myInspectors) {
+      for (NlComponentEditor editor : component.getEditors()) {
+        NlProperty property = editor.getProperty();
+        if (property != null &&
+            propertyName.equals(property.getName()) &&
+            !(designPropertyRequired && !TOOLS_URI.equals(property.getNamespace()))) {
           editor.requestFocus();
           return;
         }
