@@ -115,16 +115,16 @@ import java.nio.file.Paths;
 public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
-    String tmpDir = System.getProperty("java.io.tmpdir");
-    System.setProperty("idea.home", tmpDir);
+    String ideaHome = getIdeaHome();
+    System.setProperty("idea.home", ideaHome);
     if (System.getenv("TEST_SRCDIR") != null) {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
     }
 
-    symbolicLinkInWorkspace("tools/adt/idea/android/annotations", Paths.get(tmpDir, "android/android/annotations"));
-    symbolicLinkInWorkspace("tools/idea/java/jdkAnnotations", Paths.get(tmpDir, "java/jdkAnnotations"));
-    symbolicLinkInWorkspace("tools/base/templates", Paths.get(tmpDir, "android/tools-base/templates"));
-    symbolicLinkInWorkspace("tools/adt/idea/android/device-art-resources", Paths.get(tmpDir, "android/android/device-art-resources"));
+    symbolicLinkInWorkspace("tools/adt/idea/android/annotations", Paths.get(ideaHome, "android/android/annotations"));
+    symbolicLinkInWorkspace("tools/idea/java/jdkAnnotations", Paths.get(ideaHome, "java/jdkAnnotations"));
+    symbolicLinkInWorkspace("tools/base/templates", Paths.get(ideaHome, "android/tools-base/templates"));
+    symbolicLinkInWorkspace("tools/adt/idea/android/device-art-resources", Paths.get(ideaHome, "android/android/device-art-resources"));
   }
 
   private static void symbolicLinkInWorkspace(String target, Path linkName) {
@@ -135,5 +135,15 @@ public class IdeaTestSuite {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static String getIdeaHome() {
+    Path idea = Paths.get(System.getProperty("java.io.tmpdir"), "tools/idea");
+    try {
+      Files.createDirectories(idea);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return idea.toString();
   }
 }
