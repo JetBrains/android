@@ -141,16 +141,24 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
     myCombo.addPopupMenuListener(new PopupMenuHandler());
     myCombo.addActionListener(this::comboValuePicked);
-    myCombo.registerKeyboardAction(event -> enter(),
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myCombo.registerKeyboardAction(event -> cancel(),
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myCombo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
+    JTextField editor = (JTextField)myCombo.getEditor().getEditorComponent();
+    editor.registerKeyboardAction(event -> enter(),
+                                  KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                  JComponent.WHEN_FOCUSED);
+    editor.registerKeyboardAction(event -> cancel(),
+                                  KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                                  JComponent.WHEN_FOCUSED);
+    editor.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        myCombo.getEditor().selectAll();
+        editor.selectAll();
+      }
+
+      @Override
+      public void focusLost(FocusEvent event) {
+        stopEditing(getText());
+        // Remove the selection after we lose focus for feedback on which editor is the active editor
+        editor.select(0, 0);
       }
     });
     //noinspection unchecked
@@ -338,19 +346,41 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       String newValue = getText();
       selectItem(ValueWithDisplayString.create(newValue, myProperty));
       stopEditing(newValue);
+      if (hasFocus()) {
+        myCombo.getEditor().selectAll();
+      }
     }
     myCombo.hidePopup();
   }
 
   private void cancel() {
     myValueChanged = false;
+    String text = myProperty.getValue();
+    if (text == null) {
+      text = ValueWithDisplayString.UNSET.toString();
+    }
+    myCombo.getEditor().setItem(text);
     selectItem(ValueWithDisplayString.create(myProperty.getValue(), myProperty));
     stopEditing(myProperty.getValue());
+    if (hasFocus()) {
+      myCombo.getEditor().selectAll();
+    }
     myCombo.hidePopup();
   }
 
+  private boolean hasFocus() {
+    if (myCombo.hasFocus()) {
+      return true;
+    }
+    return myCombo.getEditor().getEditorComponent().hasFocus();
+  }
+
+  @Nullable
   private String getText() {
     String text = myCombo.getEditor().getItem().toString();
+    if (StringUtil.isEmpty(text) || text.equals(ValueWithDisplayString.UNSET.toString())) {
+      return null;
+    }
     return Quantity.addUnit(myProperty, text);
   }
 
