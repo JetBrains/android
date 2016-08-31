@@ -163,10 +163,12 @@ iml_module(
         "//tools/adt/idea:android-common",
     ],
     test_data = glob([
+        "android/annotations/**",
         "android/testData/**/*",
         "designer/testData/**/*",
     ]) + [
         "//tools/base/templates",
+        "//tools:idea/java/jdkAnnotations",
     ],
     test_timeout = "long",
     test_class = "com.android.tools.idea.IdeaTestSuite",

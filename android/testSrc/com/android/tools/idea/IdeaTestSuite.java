@@ -110,8 +110,6 @@ import java.nio.file.Paths;
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidLibraryProjectTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
-  org.jetbrains.android.inspections.ResourceTypeInspectionTest.class,
-  org.jetbrains.android.intentions.AndroidAddStringResourceActionTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
   org.jetbrains.android.sdk.AndroidSdkDataTest.class,
   org.jetbrains.android.sdk.AndroidSdkUtilsTest.class,
@@ -125,12 +123,16 @@ public class IdeaTestSuite {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
     }
 
-    // Links templates files under idea home directory for AndroidTestCase initialization.
-    Path templates = TestUtils.getWorkspaceFile("tools/base/templates").toPath();
-    Path templatesLink = Paths.get(tmpDir, "android/tools-base/templates");
+    symbolicLinkInWorkspace("tools/adt/idea/android/annotations", Paths.get(tmpDir, "android/android/annotations"));
+    symbolicLinkInWorkspace("tools/idea/java/jdkAnnotations", Paths.get(tmpDir, "java/jdkAnnotations"));
+    symbolicLinkInWorkspace("tools/base/templates", Paths.get(tmpDir, "android/tools-base/templates"));
+  }
+
+  private static void symbolicLinkInWorkspace(String target, Path linkName) {
+    Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
     try {
-      Files.createDirectories(templatesLink.getParent());
-      Files.createSymbolicLink(templatesLink, templates);
+      Files.createDirectories(linkName.getParent());
+      Files.createSymbolicLink(linkName, targetPath);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
