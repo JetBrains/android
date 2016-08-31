@@ -16,12 +16,13 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.HelpAction;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.execution.ui.layout.impl.RunnerContentUi;
 import com.intellij.execution.ui.layout.impl.ViewImpl;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
@@ -60,9 +61,18 @@ public class MainController extends Controller {
     experimentalBanner.setVisible(false);
     myEditor.addConnectionListener((server) -> experimentalBanner.setVisible(!server.getFeatures().isStable()));
 
+    DefaultActionGroup globalGroup = new DefaultActionGroup();
+    globalGroup.add(new HelpAction());
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, globalGroup, true);
+    toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+
+    JBPanel contextAndActions = new JBPanel(new BorderLayout());
+    contextAndActions.add(ContextController.createUI(editor), BorderLayout.CENTER);
+    contextAndActions.add(toolbar.getComponent(), BorderLayout.EAST);
+
     JBPanel top = new JBPanel(new GridLayout(2, 1));
     top.add(experimentalBanner);
-    top.add(ContextController.createUI(editor));
+    top.add(contextAndActions);
     myPanel.add(top, BorderLayout.NORTH);
 
     // ThreeComponentsSplitter instead of JBSplitter as it lets us set an exact size for the first component.
