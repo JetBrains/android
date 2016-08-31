@@ -52,6 +52,9 @@ public class TraceDataStore {
 
   public AppTrace getLastThreadsActivity(@NotNull String projectName) {
     ArrayList<AppTrace> projectTraces = traces.get(projectName);
+    if (projectTraces == null || projectTraces.isEmpty()) {
+      return null;
+    }
     return projectTraces.get(projectTraces.size() - 1);
   }
 }
