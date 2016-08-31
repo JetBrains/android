@@ -43,7 +43,7 @@ public class ViewNodeTest {
   private static byte[] getViewNodeFlatString() {
     String text =
       "myroot@191 cat:foo=4,4394 cat2:foo2=5,hello mID=3,god \n" +
-      "  node1@3232 cat:foo=8,\uD83D\uDE00 happy cow:child=4,calf mID=9,not-a-god \n" +
+      "  node1@3232 cat:foo=8,[] happy cow:child=4,calf mID=9,not-a-god \n" +
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
