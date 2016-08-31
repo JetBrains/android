@@ -162,18 +162,34 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Override
   public Class<?> loadClass(String name) throws ClassNotFoundException {
-    // Give priority to loading class from this Class Loader. This will avoid leaking classes from the plugin
-    // into the project.
-    Class<?> loadedClass = findLoadedClass(name);
-    if (loadedClass != null) {
-      return loadedClass;
-    }
+    // We overload loadClass() to load a class defined in a project
+    // rather than a version of it that may already be present in Studio.
+    // This is an issue if Studio shares a library or classes with some android code
+    // we are trying to preview; the class loaded would be the one already used by
+    // Studio rather than the one packaged with the library.
+    // If they end up being different (say the lib is more recent than the Studio version),
+    // it will likely result in broken preview as functions would be different / not present.
+    // The only known case of this at this point is ConstraintLayout (a solver library
+    // is used both by the android implementation and by Android Studio).
 
-    try {
-      return load(name);
-    } catch(ClassNotFoundException ignore) {
+    // FIXME: While testing this approach, we found an issue on some Windows machine where
+    // class loading would be broken. Thus, we limit the fix to the impacted solver classes
+    // for now, until we can investigate the problem more in depth on Windows.
+    boolean loadFromProject = name.startsWith("android.support.constraint.solver");
+    if (loadFromProject) {
+      try {
+        // Give priority to loading class from this Class Loader. This will avoid leaking classes from the plugin
+        // into the project.
+        Class<?> loadedClass = findLoadedClass(name);
+        if (loadedClass != null) {
+          return loadedClass;
+        }
+        return load(name);
+      }
+      catch (Exception ignore) {
+        // Catch-all, defer to the parent implementation
+      }
     }
-
     return super.loadClass(name);
   }
 
