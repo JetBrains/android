@@ -98,6 +98,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     private final String myComponentName;
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
+    private final int mySrcPropertyIndex;
 
     public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
@@ -105,7 +106,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
-      useSrcCompatIfExist(properties);
+      mySrcPropertyIndex = myPropertyNames.indexOf(ATTR_SRC);
       myEditors = new ArrayList<>(myPropertyNames.size());
       createEditors(properties, propertiesManager);
     }
@@ -131,6 +132,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
                                  @NotNull Map<String, NlProperty> properties,
                                  @NotNull NlPropertiesManager propertiesManager) {
       // TODO: Update the properties in the editors instead of recreating the editors
+      useSrcCompatIfExist(properties);
       myEditors.clear();
       createEditors(properties, propertiesManager);
     }
@@ -177,12 +179,10 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     }
 
     private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {
-      if (properties.containsKey(ATTR_SRC_COMPAT)) {
-        int index = myPropertyNames.indexOf(ATTR_SRC);
-        if (index >= 0) {
-          myPropertyNames.set(index, ATTR_SRC_COMPAT);
-        }
+      if (mySrcPropertyIndex < 0) {
+        return;
       }
+      myPropertyNames.set(mySrcPropertyIndex, properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC);
     }
   }
 
