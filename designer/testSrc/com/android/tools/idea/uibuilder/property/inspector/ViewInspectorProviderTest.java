@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.*;
+import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Table;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.stubbing.Answer;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 import javax.swing.*;
 import java.util.*;
@@ -38,32 +34,13 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ViewInspectorProviderTest extends LayoutTestCase {
-  private static final String UNKNOWN_TAG = "UnknownTagName";
-
-  private NlComponent myTextBox;
-  private NlComponent myProgressBar;
-  private NlComponent myCheckBox1;
-  private NlComponent myCheckBox2;
-  private NlComponent mySwitch;
-  private NlComponent myUnknown;
-  private NlComponent myLayout;
+public class ViewInspectorProviderTest extends InspectorProviderTestCase {
   private ViewInspectorProvider myProvider;
-  private NlPropertiesManager myPropertiesManager;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    NlModel model = createModel();
-    myTextBox = model.findLeafAt(100, 100, false);
-    myProgressBar = model.findLeafAt(100, 200, false);
-    myCheckBox1 = model.findLeafAt(100, 300, false);
-    myCheckBox2 = model.findLeafAt(100, 400, false);
-    mySwitch = model.findLeafAt(100, 500, false);
-    myUnknown = model.findLeafAt(100, 600, false);
-    myLayout = myTextBox.getParent();
     myProvider = ViewInspectorProvider.getInstance(getProject());
-    myPropertiesManager = new NlPropertiesManager(getProject(), null);
   }
 
   public void testIsApplicable() {
@@ -97,7 +74,7 @@ public class ViewInspectorProviderTest extends LayoutTestCase {
     Set<String> inspectorProperties = new HashSet<>(new SwitchHandler().getInspectorProperties());
 
     InspectorPanel panel = mock(InspectorPanel.class);
-    when(panel.addComponent(anyString(), anyString(), any())).thenAnswer((Answer<JLabel>)invocation -> new JLabel());
+    when(panel.addComponent(anyString(), anyString(), any())).thenAnswer(invocation -> new JLabel());
     inspector.attachToInspector(panel);
 
     verify(panel).addTitle(SWITCH);
@@ -120,70 +97,34 @@ public class ViewInspectorProviderTest extends LayoutTestCase {
     assertThat(inspectorProperties).isEmpty();
   }
 
-  private NlModel createModel() {
-    ModelBuilder builder = model("absolute.xml",
-                                 component(ABSOLUTE_LAYOUT)
-                                   .withBounds(0, 0, 1000, 1000)
-                                   .matchParentWidth()
-                                   .matchParentHeight()
-                                   .children(
-                                     component(TEXT_VIEW)
-                                       .withBounds(100, 100, 100, 100)
-                                       .id("@id/textView")
-                                       .width("wrap_content")
-                                       .height("wrap_content")
-                                       .text("SomeText"),
-                                     component(PROGRESS_BAR)
-                                       .withBounds(100, 200, 100, 100)
-                                       .id("@id/progress")
-                                       .width("wrap_content")
-                                       .height("wrap_content"),
-                                     component(CHECK_BOX)
-                                       .withBounds(100, 300, 100, 100)
-                                       .id("@id/checkBox1")
-                                       .width("wrap_content")
-                                       .height("wrap_content")
-                                       .text("Enable Wifi"),
-                                     component(CHECK_BOX)
-                                       .withBounds(100, 400, 100, 100)
-                                       .id("@id/checkBox1")
-                                       .width("wrap_content")
-                                       .height("wrap_content")
-                                       .text("Enable Roaming"),
-                                     component(SWITCH)
-                                       .withBounds(100, 500, 100, 100)
-                                       .id("@id/switch")
-                                       .width("wrap_content")
-                                       .height("wrap_content")
-                                       .text("Enable Roaming"),
-                                     component(UNKNOWN_TAG)
-                                       .withBounds(100, 600, 100, 100)
-                                       .id("@id/unknown")
-                                       .width("wrap_content")
-                                       .height("wrap_content")
-                                   ));
-    return builder.build();
-  }
+  public void testUpdateProperties() {
+    List<NlComponent> components = ImmutableList.of(myImageView);
+    Map<String, NlProperty> properties = getPropertyMap(components);
+    assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
+    InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    inspector.updateProperties(components, properties, myPropertiesManager);
 
-  @NotNull
-  private static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
-    NlProperties propertiesProvider = NlProperties.getInstance();
-    Table<String, String, NlPropertyItem> properties = propertiesProvider.getProperties(components);
-    Map<String, NlProperty> propertiesByName = new HashMap<>();
-    for (NlProperty property : properties.row(ANDROID_URI).values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    for (NlProperty property : properties.row(AUTO_URI).values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    for (NlProperty property : properties.row("").values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    // Add access to known design properties
-    NlDesignProperties designProperties = new NlDesignProperties();
-    for (NlProperty property : designProperties.getKnownProperties(components)) {
-      propertiesByName.putIfAbsent(property.getName(), property);
-    }
-    return propertiesByName;
+    NlComponentEditor srcEditor = inspector.getEditors().get(0);
+    assertThat(srcEditor.getProperty()).isNotNull();
+    assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
+
+    // Simulate the addition of appcompat library:
+    AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT);
+    properties.put(ATTR_SRC_COMPAT, new NlPropertyItem(components, ANDROID_URI, srcCompatDefinition));
+
+    // Check that an update will replace the ATTR_SRC with ATTR_SRC_COMPAT
+    inspector.updateProperties(components, properties, myPropertiesManager);
+    srcEditor = inspector.getEditors().get(0);
+    assertThat(srcEditor.getProperty()).isNotNull();
+    assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC_COMPAT);
+
+    // Simulate the removal of appcompat library:
+    properties.remove(ATTR_SRC_COMPAT);
+
+    // Check that an update will replace the ATTR_SRC with ATTR_SRC_COMPAT
+    inspector.updateProperties(components, properties, myPropertiesManager);
+    srcEditor = inspector.getEditors().get(0);
+    assertThat(srcEditor.getProperty()).isNotNull();
+    assertThat(srcEditor.getProperty().getName()).isEqualTo(ATTR_SRC);
   }
 }
