@@ -2344,6 +2344,19 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.unlocalized.sms"), NonInternationalizedSmsDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintWifiManagerLeakInspection extends AndroidLintInspectionBase {
+    public AndroidLintWifiManagerLeakInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wifi.manager.leak"), ServiceCastDetector.WIFI_MANAGER);
+    }
+  }
+
+  public static class AndroidLintWifiManagerPotentialLeakInspection extends AndroidLintInspectionBase {
+    public AndroidLintWifiManagerPotentialLeakInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wifi.manager.potential.leak"), ServiceCastDetector.WIFI_MANAGER_UNCERTAIN);
+    }
+  }
+
   public static class AndroidLintWorldReadableFilesInspection extends AndroidLintInspectionBase {
     public AndroidLintWorldReadableFilesInspection() {
       super(AndroidBundle.message("android.lint.inspections.world.readable.files"), SecurityDetector.WORLD_READABLE);
