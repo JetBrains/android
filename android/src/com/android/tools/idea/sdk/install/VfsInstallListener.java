@@ -66,9 +66,6 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
       for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
         AndroidSdkUtils.refreshLibrariesIn(sdk);
       }
-      for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      }
     });
   }
 }
