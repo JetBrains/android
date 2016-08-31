@@ -521,6 +521,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         checkApiLevel(methodCall, method, holder, annotation);
       } else if (RESTRICT_TO_ANNOTATION.equals(qualifiedName)) {
         checkRestrictionAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
+      } else if (VISIBLE_FOR_TESTING_ANNOTATION.equals(qualifiedName)) {
+        checkVisibleForTestAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
       }
     }
 
@@ -537,6 +539,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           checkApiLevel(methodCall, method, holder, annotation);
         } else if (RESTRICT_TO_ANNOTATION.equals(qualifiedName)) {
           checkRestrictionAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
+        } else if (VISIBLE_FOR_TESTING_ANNOTATION.equals(qualifiedName)) {
+          checkVisibleForTestAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
         } else if (!qualifiedName.startsWith(DEFAULT_PACKAGE)) {
           // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
           PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
@@ -563,6 +567,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
         if (RESTRICT_TO_ANNOTATION.equals(qualifiedName)) {
           checkRestrictionAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
+        } else if (VISIBLE_FOR_TESTING_ANNOTATION.equals(qualifiedName)) {
+          checkVisibleForTestAnnotation(methodCall, holder, method, annotation, methodAnnotations, classAnnotations, evaluator);
         }
       }
     }
@@ -778,6 +784,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                  @NonNull JavaEvaluator evaluator) {
     LintInspectionBridge bridge = new MyLintInspectionBridge(methodCall, holder, evaluator);
     checkRestrictTo(bridge, methodCall, method, annotation, allMethodAnnotations, allClassAnnotations);
+  }
+
+  private static void checkVisibleForTestAnnotation(@NotNull PsiCall methodCall,
+                                                    @NotNull ProblemsHolder holder,
+                                                    @NotNull PsiMethod method,
+                                                    @NotNull PsiAnnotation annotation,
+                                                    @NotNull PsiAnnotation[] allMethodAnnotations,
+                                                    @NonNull PsiAnnotation[] allClassAnnotations,
+                                                    @NonNull JavaEvaluator evaluator) {
+    LintInspectionBridge bridge = new MyLintInspectionBridge(methodCall, holder, evaluator);
+    checkVisibleForTesting(bridge, methodCall, method, annotation, allMethodAnnotations, allClassAnnotations);
   }
 
   private static void checkThreadAnnotation(@NotNull PsiCall methodCall,
@@ -2860,6 +2877,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return UNSUPPORTED;
     } else if (message.contains(" can only be called from ")) {
       return RESTRICTED;
+    } else if (message.contains(" should only be accessed from tests")) {
+      return TEST_VISIBILITY;
     }
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {

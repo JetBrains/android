@@ -618,6 +618,19 @@ public class LombokPsiParser extends JavaParser {
 
       return null;
     }
+
+    @Nullable
+    @Override
+    public PsiPackage getPackage(@NonNull PsiElement node) {
+      PsiFile containingFile = node.getContainingFile();
+      if (containingFile != null) {
+        PsiDirectory dir = containingFile.getParent();
+        if (dir != null) {
+          return JavaDirectoryService.getInstance().getPackage(dir);
+        }
+      }
+      return null;
+    }
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */
