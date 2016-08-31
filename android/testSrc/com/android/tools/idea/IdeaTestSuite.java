@@ -112,10 +112,12 @@ import java.nio.file.Paths;
   org.jetbrains.android.sdk.AndroidSdkUtilsTest.class,
 })
 public class IdeaTestSuite {
+
+  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+
   // Initialize Idea specific environment
   static {
-    String ideaHome = getIdeaHome();
-    System.setProperty("idea.home", ideaHome);
+    setIdeaHome();
     if (System.getenv("TEST_SRCDIR") != null) {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
     }
@@ -128,7 +130,7 @@ public class IdeaTestSuite {
 
   private static void symbolicLinkInTmpDir(String target) {
     Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
-    Path linkName = Paths.get(System.getProperty("java.io.tmpdir"), target);
+    Path linkName = Paths.get(TMP_DIR, target);
     try {
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
@@ -137,13 +139,13 @@ public class IdeaTestSuite {
     }
   }
 
-  private static String getIdeaHome() {
-    Path idea = Paths.get(System.getProperty("java.io.tmpdir"), "tools/idea");
+  private static void setIdeaHome() {
+    Path idea = Paths.get(TMP_DIR, "tools/idea");
     try {
       Files.createDirectories(idea);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return idea.toString();
+    System.setProperty("idea.home", idea.toString());
   }
 }
