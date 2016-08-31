@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -90,7 +91,7 @@ public class HtmlLinkManager {
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   private static final String URL_REFRESH_RENDER = "refreshRender";
   private static final String URL_INSTALL_ARTIFACT = "installArtifact:";
-  static final String URL_ACTION_CLOSE = "action:close";
+  private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -193,6 +194,12 @@ public class HtmlLinkManager {
       }
     } else if (url.startsWith(URL_REFRESH_RENDER)) {
       handleRefreshRenderUrl(result);
+    } else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
+      // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
+      // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
+      // of clicking that link that has something to do with the cache being cleared.
+      handleRefreshRenderUrl(result);
+      RenderErrorPanel.showNotification("Cache cleared");
     }
     else {
       assert false : "Unexpected URL: " + url;
@@ -875,6 +882,8 @@ public class HtmlLinkManager {
   public String createRefreshRenderUrl() {
     return URL_REFRESH_RENDER;
   }
+
+  public String createClearCacheUrl() { return URL_CLEAR_CACHE_AND_NOTIFY; }
 
   private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
     if (result != null) {

@@ -83,7 +83,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.npw.TemplateWizardModuleBuilderTest.class,
   com.android.tools.idea.rendering.LayoutPullParserFactoryTest.class,
   com.android.tools.idea.rendering.MenuPreviewRendererTest.class,
-  com.android.tools.idea.rendering.RenderErrorPanelTest.class,
+  com.android.tools.idea.rendering.RenderErrorModelFactoryTest.class,
   com.android.tools.idea.run.AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.run.GradleApkProviderTest.class,
   com.android.tools.idea.run.GradleApplicationIdProviderTest.class,
