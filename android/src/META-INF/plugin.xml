@@ -1059,6 +1059,7 @@
     <extensionPoint name="mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.npw.NewModuleDynamicPathFactory"/>
+    <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
     <extensionPoint qualifiedName="com.android.gradle.sync.androidModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep"/>
@@ -1115,6 +1116,8 @@
     <captureType implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
+    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>
+    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android">

@@ -47,6 +47,7 @@ import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -293,6 +294,14 @@ public class TemplateManager {
     return templates;
   }
 
+  /**
+   * Returns the list of currently available templates, for the specified FormFactor
+   */
+  @NotNull
+  public List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor) {
+    return getTemplateList(formFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+  }
+
   @NotNull
   public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
     List<File> templates = Lists.newArrayList();
@@ -471,14 +480,14 @@ public class TemplateManager {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             assert facet != null && facet.getAndroidModel() != null;
 
-            List<TemplateHandle> templateList =
-              getTemplateList(FormFactor.MOBILE, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE);
             List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
             assert (sourceSets.size() > 0);
 
             // TODO: Missing logic to select the default template
             RenderTemplateModel renderModel =
-              new RenderTemplateModel(facet.getModule().getProject(), templateList.get(0), sourceSets.get(0), "Add an Activity to Mobile");
+              new RenderTemplateModel(facet.getModule().getProject(), templateList.get(0), sourceSets.get(0),
+                                      AndroidBundle.message("android.wizard.activity.add"));
 
             ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(renderModel, facet, templateList, targetDirectory);
             ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();

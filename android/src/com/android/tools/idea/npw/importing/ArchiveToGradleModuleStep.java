@@ -27,7 +27,7 @@ import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
-import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
@@ -51,7 +51,7 @@ import java.util.Set;
 /**
  * Step for selecting archive to import and specifying Gradle subproject name.
  */
-public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGradleModuleModel> {
+public final class ArchiveToGradleModuleStep extends SkippableWizardStep<ArchiveToGradleModuleModel> {
   private static final Set<String> SUPPORTED_EXTENSIONS = ImmutableSet.of("jar", "aar");
 
   private final ListenerManager myListeners = new ListenerManager();
