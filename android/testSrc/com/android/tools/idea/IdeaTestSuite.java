@@ -85,7 +85,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.MenuPreviewRendererTest.class,
   com.android.tools.idea.rendering.RenderErrorPanelTest.class,
   com.android.tools.idea.run.AndroidTestConfigurationProducerTest.class,
-  com.android.tools.idea.run.editor.DeepLinkChooserDialogTest.class,
   com.android.tools.idea.run.GradleApkProviderTest.class,
   com.android.tools.idea.run.GradleApplicationIdProviderTest.class,
   com.android.tools.idea.run.LaunchUtilsTest.class,
