@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -35,7 +34,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
@@ -68,10 +69,6 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
-  interface LogcatRunner {
-    void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver);
-  }
-
   public interface LogLineListener {
     void receiveLogLine(@NotNull LogCatMessage line);
   }
@@ -79,23 +76,21 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private final Object myLock = new Object();
 
   @GuardedBy("myLock")
+  private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<>();
+
+  @GuardedBy("myLock")
   private final Map<IDevice, LogcatBuffer> myLogBuffers = new HashMap<>();
 
   @GuardedBy("myLock")
   private final Map<IDevice, AndroidLogcatReceiver> myLogReceivers = new HashMap<>();
 
-  @GuardedBy("myLock")
-  private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<>();
-
   /**
-   * A logcat connection does not cancel immediately, so we use a countdown latch to inform us when
-   * a channel actually is done closing. A latch should be set to 1 (active) or 0 (closed) at any
-   * given time. See also {@link #stopReceiving(IDevice)}.
+   * This is a list of commands to execute per device. We use a newSingleThreadExecutor
+   * to model a single queue of tasks to run, but that is poorly reflected in the
+   * type of the variable.
    */
-  @VisibleForTesting
-  final Map<IDevice, CountDownLatch> myDeviceLatches = new ConcurrentHashMap<>();
-
-  private final LogcatRunner myLogcatRunner;
+  @GuardedBy("myLock")
+  private final Map<IDevice, ExecutorService> myExecutors = new HashMap<>();
 
   @NotNull
   public static AndroidLogcatService getInstance() {
@@ -104,36 +99,35 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   private AndroidLogcatService() {
     AndroidDebugBridge.addDeviceChangeListener(this);
-    myLogcatRunner = new LogcatRunner() {
-      @Override
-      public void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver) {
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
-              myDeviceLatches.get(device).countDown();
-            }
-            catch (Exception e) {
-              getLog().info(String.format(
-                "Caught exception when capturing logcat output from the device %1$s. Receiving logcat output from this device will be " +
-                "stopped, and the listeners will be notified with this exception as the last message", device.getName()), e);
-              LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
-              receiver.notifyLine(dummyHeader, e.getMessage());
-            }
-            stopReceiving(device);
-          }
-        });
-      }
-    };
-  }
-
-  @VisibleForTesting
-  AndroidLogcatService(@NotNull LogcatRunner logcatRunner) {
-    myLogcatRunner = logcatRunner;
   }
 
   private void startReceiving(@NotNull final IDevice device) {
+    synchronized (myLock) {
+      if (myLogReceivers.containsKey(device)) {
+        return;
+      }
+      connect(device);
+      final AndroidLogcatReceiver receiver = createReceiver(device);
+      myLogReceivers.put(device, receiver);
+      myLogBuffers.put(device, new LogcatBuffer());
+      ExecutorService executor = myExecutors.get(device);
+      executor.submit((() -> {
+        try {
+          AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
+        }
+        catch (Exception e) {
+          getLog().info(String.format(
+            "Caught exception when capturing logcat output from the device %1$s. Receiving logcat output from this device will be " +
+            "stopped, and the listeners will be notified with this exception as the last message", device.getName()), e);
+          LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
+          receiver.notifyLine(dummyHeader, e.getMessage());
+        }
+      }));
+    }
+  }
+
+  @NotNull
+  private AndroidLogcatReceiver createReceiver(@NotNull final IDevice device) {
     final LogLineListener logLineListener = new LogLineListener() {
       @Override
       public void receiveLogLine(@NotNull LogCatMessage line) {
@@ -149,45 +143,33 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         }
       }
     };
-    final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logLineListener);
+    return new AndroidLogcatReceiver(device, logLineListener);
+  }
 
-    myDeviceLatches.put(device, new CountDownLatch(1));
+  private void connect(@NotNull IDevice device) {
     synchronized (myLock) {
-      myLogBuffers.put(device, new LogcatBuffer());
-      myLogReceivers.put(device, receiver);
+      if (!myExecutors.containsKey(device)) {
+        ThreadFactory factory = new ThreadFactoryBuilder()
+            .setNameFormat("logcat-" + device.getName()).build();
+        myExecutors.put(device, Executors.newSingleThreadExecutor(factory));
+      }
     }
-    myLogcatRunner.start(device, receiver);
+  }
+
+  private void disconnect(@NotNull IDevice device) {
+    synchronized (myLock) {
+      stopReceiving(device);
+      myExecutors.remove(device);
+    }
   }
 
   private void stopReceiving(@NotNull IDevice device) {
     synchronized (myLock) {
-      if (!isReceivingFrom(device)) {
-        return;
-      }
-
       if (myLogReceivers.containsKey(device)) {
         myLogReceivers.get(device).cancel();
+        myLogReceivers.remove(device);
+        myLogBuffers.remove(device);
       }
-      myLogReceivers.remove(device);
-      myLogBuffers.remove(device);
-    }
-    CountDownLatch latch = myDeviceLatches.get(device);
-    if (latch != null) {
-      try {
-        latch.await();
-      }
-      catch (InterruptedException ignored) {
-      }
-
-      // This must happen after the await call above, or else the countdown logic elsewhere in
-      // this class will throw an NPE if we remove this too soon.
-      myDeviceLatches.remove(device);
-    }
-  }
-
-  private boolean isReceivingFrom(@NotNull IDevice device) {
-    synchronized (myLock) {
-      return myLogBuffers.containsKey(device);
     }
   }
 
@@ -200,9 +182,12 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
     // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
     // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
-    stopReceiving(device);
-    AndroidLogcatUtils.clearLogcat(project, device);
-    startReceiving(device);
+    synchronized (myLock) {
+      ExecutorService executor = myExecutors.get(device);
+      stopReceiving(device);
+      executor.submit(() -> AndroidLogcatUtils.clearLogcat(project, device));
+      startReceiving(device);
+    }
   }
 
   /**
@@ -228,7 +213,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
       myListeners.get(device).add(listener);
 
-      if (device.isOnline() && !isReceivingFrom(device)) {
+      if (device.isOnline()) {
         startReceiving(device);
       }
     }
@@ -246,7 +231,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       if (myListeners.containsKey(device)) {
         myListeners.get(device).remove(listener);
 
-        if (myListeners.get(device).isEmpty() && isReceivingFrom(device)) {
+        if (myListeners.get(device).isEmpty()) {
           stopReceiving(device);
         }
       }
@@ -255,25 +240,24 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   @Override
   public void deviceConnected(@NotNull IDevice device) {
-    if (device.isOnline() && !isReceivingFrom(device)) {
+    if (device.isOnline()) {
+      // TODO Evaluate if we really need to start getting logs as soon as we connect, or whether a connect would suffice.
       startReceiving(device);
     }
   }
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    if (isReceivingFrom(device)) {
-      stopReceiving(device);
-    }
+    disconnect(device);
   }
 
   @Override
   public void deviceChanged(@NotNull IDevice device, int changeMask) {
-    if (!isReceivingFrom(device) && device.isOnline()) {
+    if (device.isOnline()) {
       startReceiving(device);
     }
-    else if (isReceivingFrom(device) && !device.isOnline()) {
-      stopReceiving(device);
+    else {
+      disconnect(device);
     }
   }
 
