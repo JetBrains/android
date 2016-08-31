@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -72,32 +72,13 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   }
 
   public boolean errorPanelContains(@NotNull String errorText) {
-    Document doc = myRenderErrorPanel.getEditorPane().getDocument();
+    Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
     try {
       return doc.getText(0, doc.getLength()).contains(errorText);
     }
     catch (BadLocationException e) {
       return false;
     }
-  }
-
-  public void performSuggestion(@NotNull String linkText) {
-    ScreenView screenView = target().getCurrentScreenView();
-    assertNotNull(screenView);
-    RenderResult lastResult = screenView.getResult();
-    assertNotNull("No render result available", lastResult);
-    RenderErrorPanel panel = new RenderErrorPanel();
-    String html = panel.showErrors(lastResult);
-    assertNotNull(html);
-    // Find the URL for the corresponding linkText
-    int index = html.indexOf(linkText);
-    int anchor = html.lastIndexOf("<A HREF=\"", index);
-    assertTrue("Could not find anchor before link text " + linkText + " in " + html, anchor != -1);
-    int begin = anchor + "<A HREF=\"".length();
-    int end = html.indexOf('"', begin);
-    assertTrue(end != -1);
-    String url = html.substring(begin, end);
-    panel.performClick(url);
   }
 
   /**
