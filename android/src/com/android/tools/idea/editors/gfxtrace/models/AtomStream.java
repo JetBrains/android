@@ -17,11 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.models;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
-import com.android.tools.idea.editors.gfxtrace.service.Context;
-import com.android.tools.idea.editors.gfxtrace.service.ContextID;
-import com.android.tools.idea.editors.gfxtrace.service.ContextList;
-import com.android.tools.idea.editors.gfxtrace.service.Hierarchy;
-import com.android.tools.idea.editors.gfxtrace.service.HierarchyList;
+import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
@@ -36,8 +32,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -244,6 +240,21 @@ public class AtomStream implements PathListener {
   public Atom getLastSelectedAtom() {
     AtomRangePath path = myAtomPath.getPath();
     return (path == null || myAtomList == null) ? null : myAtomList.get(path.getLast());
+  }
+
+  @Nullable("if not loaded or the selection doesn't contain a draw call")
+  public AtomPath getLastSelectedDrawCall() {
+    AtomRangePath selection = myAtomPath.getPath();
+    if (selection == null || myAtomList == null) {
+      return null;
+    }
+
+    for (long index = selection.getLast(); index >= selection.getFirst(); index--) {
+      if (mySelectedContext.contains(index) && myAtomList.get(index).isDrawCall()) {
+        return selection.getAtoms().index(index);
+      }
+    }
+    return null;
   }
 
   public void addListener(Listener listener) {
