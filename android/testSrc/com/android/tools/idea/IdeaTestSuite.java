@@ -101,7 +101,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.uibuilder.palette.IconPreviewFactoryTest.class,
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
-  com.android.tools.idea.welcome.install.AndroidVirtualDeviceTest.class,
   com.android.tools.idea.welcome.wizard.FirstRunWizardTest.class,
   com.android.tools.idea.wizard.template.TemplateWizardStateTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
@@ -121,14 +120,15 @@ public class IdeaTestSuite {
       VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
     }
 
-    symbolicLinkInWorkspace("tools/adt/idea/android/annotations", Paths.get(ideaHome, "android/android/annotations"));
-    symbolicLinkInWorkspace("tools/idea/java/jdkAnnotations", Paths.get(ideaHome, "java/jdkAnnotations"));
-    symbolicLinkInWorkspace("tools/base/templates", Paths.get(ideaHome, "android/tools-base/templates"));
-    symbolicLinkInWorkspace("tools/adt/idea/android/device-art-resources", Paths.get(ideaHome, "android/android/device-art-resources"));
+    symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
+    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
+    symbolicLinkInTmpDir("tools/base/templates");
+    symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
   }
 
-  private static void symbolicLinkInWorkspace(String target, Path linkName) {
+  private static void symbolicLinkInTmpDir(String target) {
     Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
+    Path linkName = Paths.get(System.getProperty("java.io.tmpdir"), target);
     try {
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
