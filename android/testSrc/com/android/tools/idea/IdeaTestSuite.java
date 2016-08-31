@@ -35,7 +35,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
   com.android.tools.idea.editors.AndroidGeneratedSourcesFilterTest.class,
-  com.android.tools.idea.editors.hierarchyview.model.ViewNodeTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
   com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
   com.android.tools.idea.editors.theme.ThemeEditorUtilsTest.class,
