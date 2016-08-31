@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -55,7 +54,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StringResourceViewPanel implements HyperlinkListener {
@@ -189,14 +187,9 @@ public class StringResourceViewPanel implements HyperlinkListener {
             assert primaryResourceDir != null;
 
             // Pick a value to add to this locale
-            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
             String key = "app_name";
 
-            if (!defaultValues.containsKey(key)) {
-              key = defaultValues.keySet().iterator().next();
-            }
-
-            String string = myData.resourceToString(key);
+            String string = myData.getStringResource(key).getDefaultValueAsString();
 
             StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), key, string, true);
             reloadData();
