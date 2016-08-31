@@ -117,7 +117,8 @@ public final class SystemImageDescription {
   }
 
   public String getName() {
-    return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
+    String versionString = SdkVersionInfo.getVersionString(getVersion().getFeatureLevel());
+    return String.format("Android %s", versionString == null ? "API " + getVersion().getApiString() : versionString);
   }
 
   public String getVendor() {
