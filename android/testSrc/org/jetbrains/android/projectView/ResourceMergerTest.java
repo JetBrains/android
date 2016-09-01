@@ -8,9 +8,6 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
 
-import static org.jetbrains.android.AndroidTestCase.getDefaultPlatformDir;
-import static org.jetbrains.android.AndroidTestCase.getDefaultTestSdkPath;
-
 /**
  * @author yole
  */
@@ -23,7 +20,7 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected Module createMainModule() throws IOException {
     Module result = super.createMainModule();
-    AndroidTestCase.addAndroidFacet(result, getDefaultTestSdkPath(), getDefaultPlatformDir());
+    AndroidTestCase.addAndroidFacet(result, AndroidTestCase.getRecentSdkPath(), AndroidTestCase.getRecentPlatformDir());
     return result;
   }
 
