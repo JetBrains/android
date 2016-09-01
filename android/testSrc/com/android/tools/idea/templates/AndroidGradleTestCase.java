@@ -70,8 +70,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,7 +98,6 @@ import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -252,6 +249,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
     super.ensureSdkManagerAvailable();
+  }
+
+  protected void loadSimpleApplication() throws InterruptedException, ConfigurationException, IOException {
+    loadProject("projects/simpleApplication");
   }
 
   protected void loadProject(@NotNull String relativePath) throws IOException, ConfigurationException, InterruptedException {

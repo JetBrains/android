@@ -52,7 +52,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
   }
 
   public void testFindWithStablePlugin() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(androidPluginInfo);
     assertEquals("app", androidPluginInfo.getModule().getName());
@@ -64,7 +64,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
   }
 
   public void testFindWithStablePluginReadingBuildFilesOnly() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
     assertNotNull(androidPluginInfo);
     assertEquals("app", androidPluginInfo.getModule().getName());

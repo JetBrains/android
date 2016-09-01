@@ -53,7 +53,7 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportError() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -74,7 +74,7 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportWarning() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -93,7 +93,7 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
 
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
