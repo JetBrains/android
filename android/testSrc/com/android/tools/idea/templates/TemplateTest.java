@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -40,6 +40,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -57,26 +58,27 @@ import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCAT
 import static com.android.tools.idea.sdk.IdeSdks.isJdk7Supported;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Test for template instantiation.
  * <p>
  * Remaining work on templates:
  * <ul>
- *   <li>Make the project templates work for API=1 (currently requires API 7); with API 1
- *       you get a build error because included libraries have targetSdkVersion higher than 1</li>
- *   <li>Fix type conversion, to make the service and fragment templates work</li>
- *   <li>Fix compilation errors in the remaining templates</li>
- *   <li>Should abstract out the state initialization code from the UI such that we
- *       can use the same code path from the test</li>
+ * <li>Make the project templates work for API=1 (currently requires API 7); with API 1
+ * you get a build error because included libraries have targetSdkVersion higher than 1</li>
+ * <li>Fix type conversion, to make the service and fragment templates work</li>
+ * <li>Fix compilation errors in the remaining templates</li>
+ * <li>Should abstract out the state initialization code from the UI such that we
+ * can use the same code path from the test</li>
  * </ul>
  *
  * Remaining work on template test:
  * <ul>
- *   <li>Fix clean model syncing, and hook up clean lint checks</li>
- *   <li>We should test more combinations of parameters</li>
- *   <li>We should test all combinations of build tools</li>
- *   <li>Test creating a project <b>without</b> a template</li>
+ * <li>Fix clean model syncing, and hook up clean lint checks</li>
+ * <li>We should test more combinations of parameters</li>
+ * <li>We should test all combinations of build tools</li>
+ * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
 public class TemplateTest extends AndroidGradleTestCase {
@@ -96,20 +98,28 @@ public class TemplateTest extends AndroidGradleTestCase {
     Boolean.parseBoolean(System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS")) ||
     Boolean.TRUE.toString().equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"));
 
-  /** Whether we should enforce that lint passes cleanly on the projects */
+  /**
+   * Whether we should enforce that lint passes cleanly on the projects
+   */
   private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
   private static final boolean ALLOW_WARNINGS = true; // TODO: Provide finer granularity
 
-  /** Manual sdk version selections **/
-  private static final int MANUAL_BUILD_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API", "-1"));
-  private static final int MANUAL_MIN_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API", "-1"));
-  private static final int MANUAL_TARGET_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API", "-1"));
+  /**
+   * Manual sdk version selections
+   **/
+  private static final int MANUAL_BUILD_API =
+    Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API", "-1"));
+  private static final int MANUAL_MIN_API =
+    Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API", "-1"));
+  private static final int MANUAL_TARGET_API =
+    Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API", "-1"));
 
   /**
    * The following templates are known to be broken! We need to work through these and fix them such that tests
    * on them can be re-enabled.
    */
   private static final Set<String> KNOWN_BROKEN = Sets.newHashSet();
+
   static {
 
   }
@@ -138,7 +148,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // We'll be creating projects manually except for the following tests
     String testName = getName();
     return testName.equals("testTemplateFormatting")
-      || testName.equals("testCreateGradleWrapper");
+           || testName.equals("testCreateGradleWrapper");
   }
 
   @Override
@@ -152,7 +162,8 @@ public class TemplateTest extends AndroidGradleTestCase {
         AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
         if (sdkData == null) {
           fail("Couldn't find SDK manager");
-        } else {
+        }
+        else {
           System.out.println("recentSDK required= " + requireRecentSdk());
           System.out.println("getTestSdkPath= " + getTestSdkPath());
           System.out.println("getPlatformDir=" + getPlatformDir());
@@ -163,7 +174,8 @@ public class TemplateTest extends AndroidGradleTestCase {
           File file = new File(location);
           if (!file.exists()) {
             System.out.println("SDK doesn't exist");
-          } else {
+          }
+          else {
             File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
             boolean exists = folder.exists();
             System.out.println("Template folder exists=" + exists + " for " + folder);
@@ -418,7 +430,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (isJdk7Supported(sdkData)) {
       IAndroidTarget[] targets = sdkData.getTargets();
       IAndroidTarget target = targets[targets.length - 1];
-      Map<String,Object> overrides = Maps.newHashMap();
+      Map<String, Object> overrides = Maps.newHashMap();
       overrides.put(ATTR_JAVA_VERSION, "1.7");
       NewProjectWizardState state = createNewProjectState(true, sdkData);
 
@@ -429,7 +441,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       activityState.setTemplateLocation(activity);
 
       checkApiTarget(19, 19, target, state, "Test17", null, overrides);
-    } else {
+    }
+    else {
       System.out.println("JDK 7 not supported by current SDK manager: not testing");
     }
   }
@@ -443,7 +456,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     IAndroidTarget[] targets = sdkData.getTargets();
     IAndroidTarget target = targets[targets.length - 1];
-    Map<String,Object> overrides = Maps.newHashMap();
+    Map<String, Object> overrides = Maps.newHashMap();
     overrides.put(ATTR_JAVA_VERSION, "1.5");
     NewProjectWizardState state = createNewProjectState(true, sdkData);
 
@@ -490,29 +503,39 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   // ---- Test support code below ----
 
-  /** Checks whether we've already checked the given template in a new project or existing project context */
+  /**
+   * Checks whether we've already checked the given template in a new project or existing project context
+   */
   private static boolean haveChecked(String category, String name, boolean createWithProject) {
     String key = getCheckKey(category, name, createWithProject);
     return ourTemplatesChecked.contains(key);
   }
 
-  /** Checks whether we've already checked the given template in a new project or existing project context */
+  /**
+   * Checks whether we've already checked the given template in a new project or existing project context
+   */
   private static boolean haveChecked(File templateFile, boolean createWithProject) {
     return haveChecked(templateFile.getParentFile().getName(), templateFile.getName(), createWithProject);
   }
 
-  /** Marks that we've already checked the given template in a new project or existing project context */
+  /**
+   * Marks that we've already checked the given template in a new project or existing project context
+   */
   private static void markChecked(String category, String name, boolean createWithProject) {
     String key = getCheckKey(category, name, createWithProject);
     ourTemplatesChecked.add(key);
   }
 
-  /** Marks that we've already checked the given template in a new project or existing project context */
+  /**
+   * Marks that we've already checked the given template in a new project or existing project context
+   */
   private static void markChecked(File templateFile, boolean createWithProject) {
     markChecked(templateFile.getParentFile().getName(), templateFile.getName(), createWithProject);
   }
 
-  /** Checks the given template in the given category, adding it to an existing project */
+  /**
+   * Checks the given template in the given category, adding it to an existing project
+   */
   private void checkCreateTemplate(String category, String name) throws Exception {
     checkCreateTemplate(category, name, false);
   }
@@ -524,8 +547,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   /**
    * Checks the given template in the given category
    *
-   * @param category the template category
-   * @param name the template name
+   * @param category          the template category
+   * @param name              the template name
    * @param createWithProject whether the template should be created as part of creating the project (which should
    *                          only be done for activities), or whether it should be added as as a separate template
    *                          into an existing project (which is created first, followed by the template)
@@ -697,7 +720,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertTrue("Didn't run any tests! Make sure you have the right platforms installed.", ranTest);
   }
 
-  /** Checks creating the given project and template for the given SDK versions */
+  /**
+   * Checks creating the given project and template for the given SDK versions
+   */
   private void checkApiTarget(
     int minSdk,
     int targetSdk,
@@ -705,7 +730,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     @NonNull NewProjectWizardState projectValues,
     @NonNull String projectNameBase,
     @Nullable TemplateWizardState templateValues,
-    @Nullable Map<String,Object> overrides) throws Exception {
+    @Nullable Map<String, Object> overrides) throws Exception {
     Boolean createActivity = (Boolean)projectValues.get(ATTR_CREATE_ACTIVITY);
     if (createActivity == null) {
       createActivity = true;
@@ -768,7 +793,8 @@ public class TemplateTest extends AndroidGradleTestCase {
             }
           }
         }
-      } else {
+      }
+      else {
         assert parameter.type == Parameter.Type.BOOLEAN;
         if (parameter.id.equals(ATTR_IS_LAUNCHER) && createActivity) {
           // Skipping this one: always true when launched from new project
@@ -816,7 +842,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (minApiString != null && !minApiString.isEmpty()) {
         try {
           optionMinSdk = Integer.parseInt(minApiString);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
           // Templates aren't allowed to contain codenames, should
           // always be an integer
           optionMinSdk = 1;
@@ -828,7 +855,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (minBuildApiString != null && !minBuildApiString.isEmpty()) {
         try {
           optionMinBuildApi = Integer.parseInt(minBuildApiString);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
           // Templates aren't allowed to contain codenames, should
           // always be an integer
           optionMinBuildApi = 1;
@@ -884,9 +912,9 @@ public class TemplateTest extends AndroidGradleTestCase {
               .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
             template.render(context);
             // Add in icons if necessary
-            if (templateValues.getTemplateMetadata() != null  && templateValues.getTemplateMetadata().getIconName() != null) {
+            if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
               File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
-                                       FileUtil.join("drawable"));
+                                             FileUtil.join("drawable"));
               drawableFolder.mkdirs();
               String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
                                                            templateValues.getParameters());
@@ -904,7 +932,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
 
-
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
@@ -913,7 +940,8 @@ public class TemplateTest extends AndroidGradleTestCase {
         assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
         // TODO: Check for other warnings / inspections, such as unused imports?
       }
-    } finally {
+    }
+    finally {
       if (fixture != null) {
         fixture.tearDown();
       }
@@ -929,12 +957,29 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
+  private static void createProject(@NotNull IdeaProjectTestFixture myFixture,
+                                    @NotNull NewProjectWizardState projectWizardState,
+                                    boolean syncModel) throws Exception {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
+      WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
+      FileDocumentManager.getInstance().saveAllDocuments();
+    });
+
+    // Sync model
+    if (syncModel) {
+      String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
+      File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+      assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
+      importProject(myFixture.getProject(), projectName, projectRoot, null);
+    }
+  }
+
   /**
    * Validates this template to make sure it's supported
    *
    * @param currentMinSdk the minimum SDK in the project, or -1 or 0 if unknown (e.g. codename)
-   * @param buildApi the build API, or -1 or 0 if unknown (e.g. codename)
-   *
+   * @param buildApi      the build API, or -1 or 0 if unknown (e.g. codename)
    * @return an error message, or null if there is no problem
    */
   @Nullable

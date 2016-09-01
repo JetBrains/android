@@ -17,6 +17,7 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
 
@@ -53,7 +54,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.SdkSyncTest.class,
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncStateIntegrationTest.class,
-  com.android.tools.idea.gradle.project.sync.GradleSyncTest.class,
+  GradleSyncInvokerTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.ExternalNativeBuildMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.SyncIssuesMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.UnhandledIssueMessageReporterTest.class,

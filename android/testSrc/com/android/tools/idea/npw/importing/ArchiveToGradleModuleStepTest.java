@@ -95,8 +95,7 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleImportTestCase {
 
     createArchiveInModuleWithinCurrentProject(false, String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY));
     validator.setData(archive, SOURCE_MODULE_NAME);
-    assertThat(validator.validate())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.taken.name", SOURCE_MODULE_NAME));
+    assertThat(validator.validate()).isEqualTo(AndroidBundle.message("android.wizard.module.import.library.taken.name", SOURCE_MODULE_NAME));
   }
 
   public void testInitialiseNameFromPath() {
