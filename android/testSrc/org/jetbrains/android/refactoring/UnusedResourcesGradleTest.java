@@ -15,13 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is

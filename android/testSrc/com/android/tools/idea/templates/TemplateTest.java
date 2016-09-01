@@ -22,6 +22,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
