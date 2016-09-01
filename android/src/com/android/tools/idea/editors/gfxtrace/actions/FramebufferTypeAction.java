@@ -16,10 +16,8 @@
 package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.FrameBufferController;
-import com.android.tools.idea.monitor.BaseMonitorView;
-import com.intellij.icons.AllIcons;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,11 +25,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class FramebufferTypeAction extends ToggleAction {
-  @NotNull private final FrameBufferController.BufferType myBufferType;
+  @NotNull private final FramebufferAttachment myBufferType;
   @NotNull private final FrameBufferController myFrameBufferController;
+  private boolean myIsVisible = true;
 
   public FramebufferTypeAction(@NotNull FrameBufferController controller,
-                               @NotNull FrameBufferController.BufferType bufferType,
+                               @NotNull FramebufferAttachment bufferType,
                                @Nullable final String text, @Nullable final String description, @Nullable final Icon icon) {
     super(text, description, icon);
     myFrameBufferController = controller;
@@ -40,11 +39,21 @@ public class FramebufferTypeAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myFrameBufferController.getBufferType().equals(myBufferType);
+    return myFrameBufferController.getFramebufferAttachment().equals(myBufferType);
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    myFrameBufferController.setBufferType(myBufferType);
+    myFrameBufferController.setFramebufferAttachment(myBufferType);
+  }
+
+  public void setVisible(boolean visible) {
+    myIsVisible = visible;
+  }
+
+  @Override
+  public void update(@NotNull final AnActionEvent e){
+    super.update(e);
+    e.getPresentation().setVisible(myIsVisible);
   }
 }
