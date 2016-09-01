@@ -27,7 +27,7 @@ import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link GradleSyncState}
+ * Tests for {@link GradleSyncState}.
  */
 public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
   private Modules myModules;

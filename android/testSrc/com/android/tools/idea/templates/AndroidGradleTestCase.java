@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.testing.Modules;
-import com.android.tools.idea.wizard.template.TemplateWizard;
-import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -47,9 +41,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.idea.IdeaTestApplication;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -78,6 +70,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,8 +89,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoIni
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
@@ -105,8 +97,10 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -154,7 +148,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ensureSdkManagerAvailable();
       setUpSdks();
 
-      myModules = new Modules(getProject());
+      Project project = getProject();
+      myModules = new Modules(project);
     }
     else {
       // This is necessary when we don't create a default project,
@@ -426,38 +421,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         changed = true;
       }
 
-      String repository = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-      if (repository != null) {
-        pattern = Pattern.compile("mavenCentral\\(\\)");
-        matcher = pattern.matcher(contents);
-        if (matcher.find()) {
-          contents = contents.substring(0, matcher.start()) + "maven { url '" + repository + "' };" +
-                     contents.substring(matcher.start()); // note: start; not end; we're prepending, not replacing!
-          changed = true;
-        }
-        pattern = Pattern.compile("jcenter\\(\\)");
-        matcher = pattern.matcher(contents);
-        if (matcher.find()) {
-          contents = contents.substring(0, matcher.start()) + "maven { url '" + repository + "' };" +
-                     contents.substring(matcher.start()); // note: start; not end; we're prepending, not replacing!
-          changed = true;
-        }
-      }
-
       if (changed) {
         write(contents, file, Charsets.UTF_8);
       }
     }
-  }
-
-  public void createProject(String activityName, boolean syncModel) throws Exception {
-    NewProjectWizardState projectWizardState = new NewProjectWizardState();
-
-    configureProjectState(projectWizardState);
-    TemplateWizardState activityWizardState = projectWizardState.getActivityTemplateState();
-    configureActivityState(activityWizardState, activityName);
-
-    createProject(projectWizardState, syncModel);
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
@@ -472,66 +439,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  protected void configureActivityState(TemplateWizardState activityWizardState, String activityName) {
-    TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates(Template.CATEGORY_ACTIVITIES);
-    File blankActivity = null;
-    for (File t : templates) {
-      if (t.getName().equals(activityName)) {
-        blankActivity = t;
-        break;
-      }
-    }
-    assertNotNull(blankActivity);
-    activityWizardState.setTemplateLocation(blankActivity);
-    Template.convertApisToInt(activityWizardState.getParameters());
-    assertNotNull(activityWizardState.getTemplate());
-  }
-
-  protected void configureProjectState(NewProjectWizardState projectWizardState) {
-    Project project = myFixture.getProject();
-    AndroidSdkData sdkData = tryToChooseAndroidSdk();
-    assert sdkData != null;
-
-    Template.convertApisToInt(projectWizardState.getParameters());
-    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
-    projectWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-    projectWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, "TestModule");
-    projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
-    projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
-    BuildToolInfo buildTool = sdkData.getLatestBuildTool(false);
-    assertNotNull(buildTool);
-    projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    IAndroidTarget[] targets = sdkData.getTargets();
-    AndroidVersion version = targets[targets.length - 1].getVersion();
-    projectWizardState.put(ATTR_BUILD_API, version.getApiLevel());
-    projectWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
-  }
-
-  public void createProject(NewProjectWizardState projectWizardState, boolean syncModel) throws Exception {
-    createProject(myFixture, projectWizardState, syncModel);
-  }
-
-  public static void createProject(IdeaProjectTestFixture myFixture,
-                                   NewProjectWizardState projectWizardState,
-                                   boolean syncModel) throws Exception {
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
-      WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
-      FileDocumentManager.getInstance().saveAllDocuments();
-    });
-
-    // Sync model
-    if (syncModel) {
-      String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
-      File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-      assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(myFixture.getProject(), projectName, projectRoot, null);
-    }
-  }
-
-  public void assertBuildsCleanly(Project project, boolean allowWarnings, String... extraArgs) throws Exception {
+  public void assertBuildsCleanly(@NotNull Project project, boolean allowWarnings, @NotNull String... extraArgs) throws Exception {
     File base = virtualToIoFile(project.getBaseDir());
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
@@ -572,7 +480,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertEquals(expectedExitCode, exitCode);
   }
 
-  public void assertLintsCleanly(Project project, Severity maxSeverity, Set<Issue> ignored) throws Exception {
+  public void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) throws Exception {
     BuiltinIssueRegistry registry = new IntellijLintIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
     IntellijLintClient client = IntellijLintClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
@@ -592,7 +500,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           List<ProblemData> problems = entry.getValue();
           for (ProblemData problem : problems) {
             Issue issue = problem.getIssue();
-            if (ignored != null && ignored.contains(issue)) {
+            if (ignored.contains(issue)) {
               continue;
             }
             if (issue.getDefaultSeverity().compareTo(maxSeverity) < 0) {
@@ -605,13 +513,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  protected static void importProject(@NotNull Project project, @NotNull String projectName, @NotNull File projectRoot,
+  protected static void importProject(@NotNull Project project,
+                                      @NotNull String projectName,
+                                      @NotNull File projectRoot,
                                       @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException, InterruptedException {
 
     Ref<Throwable> throwableRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
-    GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
+    GradleSyncListener syncListener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         latch.countDown();
@@ -626,7 +536,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     };
 
-    GradleSyncState.subscribe(project, postSetupListener);
+    GradleSyncState.subscribe(project, syncListener);
 
     runWriteCommandAction(project, () -> {
       try {
@@ -675,5 +585,57 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     return "";
+  }
+
+  protected void requestSyncAndWait() throws Exception {
+    SyncListener syncListener = requestSync();
+
+    String unexpectedError = syncListener.errorMessage;
+    if (unexpectedError != null) {
+      fail(unexpectedError);
+    }
+    assertTrue(syncListener.success);
+  }
+
+  protected void requestSyncAndExpectFailure() throws Exception {
+    SyncListener syncListener = requestSync();
+
+    String unexpectedError = syncListener.errorMessage;
+    assertNotNull(unexpectedError);
+  }
+
+  @NotNull
+  private SyncListener requestSync() throws Exception {
+    SyncListener syncListener = new SyncListener();
+    GradleProjectImporter.getInstance().requestProjectSync(getProject(), false /* generate sources */, syncListener);
+    syncListener.await();
+    return syncListener;
+  }
+
+  private static class SyncListener extends GradleSyncListener.Adapter {
+    @NotNull private final CountDownLatch myLatch;
+
+    boolean success;
+    String errorMessage;
+
+    SyncListener() {
+      myLatch = new CountDownLatch(1);
+    }
+
+    @Override
+    public void syncSucceeded(@NotNull Project project) {
+      success = true;
+      myLatch.countDown();
+    }
+
+    @Override
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      this.errorMessage = errorMessage;
+      myLatch.countDown();
+    }
+
+    void await() throws InterruptedException {
+      myLatch.await(5, MINUTES);
+    }
   }
 }

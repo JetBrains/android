@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSetup;
-import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -605,7 +605,7 @@ public class GradleProjectImporter {
       try {
         String externalProjectPath = getBaseDirPath(project).getPath();
         if (GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC) {
-          GradleSync.getInstance(project).sync(executionMode, listener);
+          GradleSyncInvoker.getInstance(project).sync(executionMode, listener);
         }
         else {
           PreSyncProjectCleanUp.getInstance(project).execute();
