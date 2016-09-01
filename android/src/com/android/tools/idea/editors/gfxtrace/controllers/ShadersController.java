@@ -20,11 +20,17 @@ import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
-import com.android.tools.idea.editors.gfxtrace.service.*;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceBundle;
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.*;
+import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Program;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Shader;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Uniform;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.idea.editors.gfxtrace.widgets.*;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -35,21 +41,28 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
+import com.intellij.openapi.editor.impl.EditorImpl;
+import com.intellij.openapi.fileTypes.SyntaxHighlighter;
+import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.border.IdeaTitledBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tabs.TabInfo;
-import com.intellij.util.containers.*;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
+import com.jetbrains.cidr.lang.OCLanguage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +71,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -297,7 +309,7 @@ public class ShadersController extends Controller implements ResourceCollection.
 
   @NotNull private final ShaderCellController myProgramsList;
   @NotNull private final ShaderCellController myShadersList;
-  @NotNull private final SourcePanel mySourcePanel = new SourcePanel();
+  @NotNull private final SourcePanel mySourcePanel;
   @NotNull private final JTextArea myUniformValuePanel = new JTextArea();
 
   public ShadersController(@NotNull GfxTraceEditor editor) {
@@ -378,6 +390,9 @@ public class ShadersController extends Controller implements ResourceCollection.
         return uniformsRenderer;
       }
     };
+
+    // Define it here so listener below can use it safely.
+    mySourcePanel = new SourcePanel(myEditor.getProject());
 
     // Set listeners for selection actions.
     myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
@@ -646,15 +661,29 @@ public class ShadersController extends Controller implements ResourceCollection.
     update(false);
   }
 
-  // A LoadablePanel class that populates the JTextArea with shader source code when it has been fetched.
+  // A LoadablePanel class that populates the Editor component with shader source code when it has been fetched.
   private static class SourcePanel extends LoadablePanel {
-    private final JTextArea myCodeArea = new JTextArea();
+
+    private static Editor createEditor(@NotNull EditorFactory factory, @NotNull Document document,
+                                       @NotNull Project project) {
+      // Create viewer for read-only component. TODO: Implement editing as it's done with atom fields.
+      final EditorImpl e = (EditorImpl)factory.createViewer(document);
+      // Use existing C/C++ syntax highlighting. TODO: Implement custom highlighter for GLSL.
+      final SyntaxHighlighter h = SyntaxHighlighterFactory.getSyntaxHighlighter(
+        OCLanguage.getInstance(), project, null);
+      e.setHighlighter(new LexerEditorHighlighter(h, e.getColorsScheme()));
+      return e;
+    }
+
+    private final Document myDocument;
 
     private ShaderData myData;
 
-    public SourcePanel() {
+    public SourcePanel(@NotNull Project project) {
       super(new BorderLayout());
-      getContentLayer().add(new JBScrollPane(myCodeArea), BorderLayout.CENTER);
+      final EditorFactory factory = EditorFactory.getInstance();
+      myDocument = factory.createDocument("");
+      getContentLayer().add(createEditor(factory, myDocument, project).getComponent(), BorderLayout.CENTER);
     }
 
     public void setData(ShaderData data) {
@@ -664,13 +693,14 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     public void update() {
       if (myData == null) {
-        myCodeArea.setText(null);
+        ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(""));
       }
       else if (!myData.isLoaded() || myData.source == null) {
+        ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(""));
         startLoading();
       }
       else {
-        myCodeArea.setText(myData.source);
+        ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(myData.source));
         stopLoading();
       }
     }
