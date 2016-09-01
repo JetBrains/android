@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 
@@ -43,7 +44,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
   public void testTransitiveDependenciesFromJavaModule() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
@@ -55,7 +56,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
   public void testTransitiveDependenciesFromAndroidModule() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
@@ -81,7 +82,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
   public void testTransitiveAndroidModuleDependency() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
@@ -92,7 +93,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testJavaLibraryModuleDependencies() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
     verifyDependenciesAreResolved(appModule);
@@ -104,7 +105,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   }
 
   public void testDependencySetUpInJavaModule() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module libModule = myModules.getModule("lib");
     assertThat(getLibraries(libModule, COMPILE)).doesNotContain("lib.lib");
@@ -113,7 +114,7 @@ public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   // See: https://code.google.com/p/android/issues/detail?id=213627
   // Disabled. It fails on CI. It passes when running locally.
   public void /*test*/JarsInLibsFolder() throws Throwable {
-    loadProject("projects/transitiveDependencies");
+    loadProject(TRANSITIVE_DEPENDENCIES);
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");

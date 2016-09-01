@@ -17,13 +17,15 @@ package org.jetbrains.android.refactoring;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
+
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is
  * tested in {@link UnusedResourcesTest}.
  */
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
   public void test() throws Exception {
-    loadProject("projects/unusedResources");
+    loadProject(UNUSED_RESOURCES);
 
     UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
 

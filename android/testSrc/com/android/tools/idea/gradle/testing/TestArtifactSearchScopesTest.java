@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -36,6 +36,8 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -123,9 +125,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
-    runWriteCommandAction(getProject(), () -> {
-      GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
-    });
+    runWriteCommandAction(getProject(), () -> GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null));
 
     latch.await();
 
@@ -138,7 +138,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
-    loadProject("projects/sharedTestFolder", false);
+    loadProject(SHARED_TEST_FOLDER, false);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
 
@@ -161,7 +161,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   @NotNull
   private TestArtifactSearchScopes loadMultiProjectAndTestScopes() throws Exception {
-    loadProject("projects/sync/multiproject", false);
+    loadProject(SYNC_MULTIPROJECT, false);
     Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
     assertNotNull(module1);
 

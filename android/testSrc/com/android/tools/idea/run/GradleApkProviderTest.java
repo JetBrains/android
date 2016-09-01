@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.mockito.Mockito.mock;
@@ -79,7 +80,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApksForTestOnlyModule() throws Exception {
-    loadProject("projects/testOnlyModule", "test");
+    loadProject(TEST_ONLY_MODULE, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));

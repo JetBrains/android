@@ -31,6 +31,8 @@ import java.util.List;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.testing.TestProjectPaths.EXPERIMENTAL_PLUGIN;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.mockito.Mockito.mock;
 
@@ -47,7 +49,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdatePluginVersion() throws Throwable {
-    loadProject("projects/sync/multiproject", false);
+    loadProject(SYNC_MULTIPROJECT, false);
     setAndroidPluginVersion("1.0.0");
 
     UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
@@ -58,7 +60,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdateExperimentalPluginVersion() throws Throwable {
-    loadProject("projects/experimentalPlugin", false);
+    loadProject(EXPERIMENTAL_PLUGIN, false);
     setAndroidPluginVersion("1.0.0");
 
     UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
@@ -69,7 +71,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdatePluginVersionWhenPluginHasAlreadyUpdatedVersion() throws Throwable {
-    loadProject("projects/sync/multiproject", false);
+    loadProject(SYNC_MULTIPROJECT, false);
 
     setAndroidPluginVersion("20.0.0");
 

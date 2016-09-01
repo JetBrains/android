@@ -30,12 +30,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
-    loadProject("projects/sync/multiproject", true);
+    loadProject(SYNC_MULTIPROJECT, true);
     AndroidGeneratedSourcesFilter filter = new AndroidGeneratedSourcesFilter();
 
     VirtualFile file = findFile("module1/build/generated/source/buildConfig/debug/com/example/test/multiproject/module1/BuildConfig.java");
