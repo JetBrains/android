@@ -51,7 +51,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws Exception {
-    loadProject("projects/simpleApplication");
+    loadSimpleApplication();
     deleteGradleWrapper();
     requestSyncAndWait();
     File wrapperDirPath = getGradleWrapperDirPath();

@@ -36,7 +36,7 @@ public class CommandLineArgsTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("projects/projectWithAppandLib");
+    loadSimpleApplication();
     myArgs = new CommandLineArgs(getProject());
   }
 
