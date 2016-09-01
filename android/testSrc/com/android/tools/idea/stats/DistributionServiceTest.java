@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats;
 
+import com.android.testutils.TestResources;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
@@ -53,9 +54,8 @@ public class DistributionServiceTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDistributionFileUrl = getClass().getResource(DISTRIBUTION_FILE_NAME);
-
-    myDistributionFile = new File(myDistributionFileUrl.toURI());
+    myDistributionFile = TestResources.getFile(getClass(), DISTRIBUTION_FILE_NAME);
+    myDistributionFileUrl = myDistributionFile.toURI().toURL();
     myDescription = new DownloadableFileDescriptionImpl(myDistributionFileUrl.toString(), DISTRIBUTION_FILE_NAME, "json");
 
     File[] files = CACHE_PATH.listFiles();
@@ -201,14 +201,14 @@ public class DistributionServiceTest extends AndroidTestCase {
    */
   public void testFallbackToPrevious() throws Exception {
     File newFile = new File(CACHE_PATH, "distributions_2.json");
-    FileUtil.copy(new File(getClass().getResource("testPreviousDistributions.json").toURI()), newFile);
+    FileUtil.copy(TestResources.getFile(getClass(), "testPreviousDistributions.json"), newFile);
 
     if (!newFile.setLastModified(20000)) {
       fail();
     }
 
     File oldFile = new File(CACHE_PATH, "distributions.json");
-    FileUtil.copy(new File(getClass().getResource("testPreviousDistributions2.json").toURI()), oldFile);
+    FileUtil.copy(TestResources.getFile(getClass(), "testPreviousDistributions2.json"), oldFile);
 
     if (!oldFile.setLastModified(10000)) {
       fail();
