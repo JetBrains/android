@@ -51,7 +51,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportWithBuildFile() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
     String expectedText = "Hello World!";
@@ -76,7 +76,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   }
 
   public void testReportWithoutBuildFile() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
     String expectedText = "Hello World!";

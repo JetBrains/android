@@ -70,7 +70,7 @@ public class ExternalNativeBuildMessageReporterTest extends AndroidGradleTestCas
   }
 
   public void testReportWithWarning() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
     String nativeToolOutput = "Failed to compile something";
@@ -109,7 +109,7 @@ public class ExternalNativeBuildMessageReporterTest extends AndroidGradleTestCas
   }
 
   public void testReportWithError() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
     String nativeToolOutput = "Failed to compile something";
