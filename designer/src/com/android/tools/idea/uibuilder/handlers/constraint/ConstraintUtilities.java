@@ -852,7 +852,7 @@ public class ConstraintUtilities {
           }
         }
         if (constraintA == constraintB && constraintA == ConstraintAnchor.Type.BASELINE) {
-          widgetSrc.getAnchor(constraintA).connect(widget.getAnchor(constraintB), 0,
+          widgetSrc.getAnchor(constraintA).connect(widget.getAnchor(constraintB), 0, -1,
                                                    ConstraintAnchor.Strength.STRONG, connectionCreator, true);
         }
         else {
