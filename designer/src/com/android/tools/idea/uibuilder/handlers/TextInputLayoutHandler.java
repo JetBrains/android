@@ -21,6 +21,8 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.*;
+
 /**
  * Handler for the {@code <TextInputLayout>} layout
  */
@@ -34,8 +36,13 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
       case COMPONENT_CREATION:
         return new XmlBuilder()
           .startTag(tagName)
-          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
-          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+            .startTag(EDIT_TEXT)
+            .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+            .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+            .androidAttribute(ATTR_HINT, "hint")
+            .endTag(EDIT_TEXT)
           .endTag(tagName)
           .toString();
       default:
