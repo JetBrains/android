@@ -87,7 +87,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.run.GradleApkProviderTest.class,
   com.android.tools.idea.run.GradleApplicationIdProviderTest.class,
   com.android.tools.idea.run.LaunchUtilsTest.class,
-  com.android.tools.idea.stats.DistributionServiceTest.class,
   com.android.tools.idea.templates.CreateGradleWrapperTest.class,
   com.android.tools.idea.templates.GradleFilePsiMergerTest.class,
   com.android.tools.idea.templates.GradleFileSimpleMergerTest.class,
