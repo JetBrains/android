@@ -44,10 +44,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   public static String getDesignerPluginHome() {
-    if (System.getenv("TEST_SRCDIR") != null) {
-      // If we run inside Bazel the location is well defined.
-      return "tools/adt/idea/designer";
-    }
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
     String adtPath = PathManager.getHomePath() + "/../adt/idea/designer";
