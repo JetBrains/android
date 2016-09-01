@@ -23,9 +23,11 @@ import com.intellij.util.PathUtil;
 import java.io.*;
 import java.util.Map;
 
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+
 public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project project = myAndroidFacet.getModule().getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);

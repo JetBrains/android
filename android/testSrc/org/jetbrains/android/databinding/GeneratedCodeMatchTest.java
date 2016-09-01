@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -74,7 +75,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   public void testGeneratedCodeMatch() throws Exception {
     File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
     createGradlePropertiesFile(projectFolder);
-    loadProject("projects/projectWithDataBinding");
+    loadProject(PROJECT_WITH_DATA_BINDING);
     assertBuildsCleanly(getProject(), true);
 
     GradleSyncState syncState = GradleSyncState.getInstance(myFixture.getProject());
@@ -115,7 +116,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
   }
 
-  private boolean shouldVerify(ClassReader classReader, ClassReader viewDataBindingClass) {
+  private static boolean shouldVerify(ClassReader classReader, ClassReader viewDataBindingClass) {
     return viewDataBindingClass.getClassName().equals(classReader.getSuperName())
            || DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName());
   }

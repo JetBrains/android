@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
@@ -49,7 +50,7 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
   }
 
   public void testResource() throws Exception {
-    loadProject("projects/dependentModules");
+    loadProject(DEPENDENT_MODULES);
 
     checkJavadoc("/app/src/main/res/values/colors.xml",
                  "<html><body><table>" +

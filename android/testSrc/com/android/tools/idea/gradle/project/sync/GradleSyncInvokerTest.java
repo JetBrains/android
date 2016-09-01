@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,7 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   }
 
   public void /*test*/FailedSync() throws Exception {
-    prepareProjectForImport("projects/transitiveDependencies");
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     createLocalPropertiesFile(new File("blah")); // Trigger a sync fail.
     myGradleSetup.setUpGradle(getProject());
 
@@ -88,7 +89,7 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   // Ignoring this test. There are too many CLs queued that depend on this one. Once those CLs are submitted, I'll go back and fix this
   // test.
   public void /*test*/SuccessfulSync() throws Exception {
-    prepareProjectForImport("projects/transitiveDependencies");
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     createLocalPropertiesFile();
     myGradleSetup.setUpGradle(getProject());
 
