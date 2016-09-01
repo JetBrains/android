@@ -52,7 +52,7 @@ public class UnsupportedGradleMessageReporterTest extends AndroidGradleTestCase 
   }
 
   public void testReport() throws Exception {
-    loadProject("projects/transitiveDependencies");
+    loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 
     String expectedText = "Hello World!";
