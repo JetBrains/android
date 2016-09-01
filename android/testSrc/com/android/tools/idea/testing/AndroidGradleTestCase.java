@@ -86,6 +86,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoIni
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
@@ -251,7 +252,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadSimpleApplication() throws InterruptedException, ConfigurationException, IOException {
-    loadProject("projects/simpleApplication");
+    loadProject(SIMPLE_APPLICATION);
   }
 
   protected void loadProject(@NotNull String relativePath) throws IOException, ConfigurationException, InterruptedException {
