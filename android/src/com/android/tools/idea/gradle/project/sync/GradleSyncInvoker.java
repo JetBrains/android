@@ -57,23 +57,23 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
-public class GradleSync {
+public class GradleSyncInvoker {
   @NotNull private final Project myProject;
   @NotNull private final PreSyncProjectCleanUp myProjectCleanUp;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   @NotNull
-  public static GradleSync getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleSync.class);
+  public static GradleSyncInvoker getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GradleSyncInvoker.class);
   }
 
-  public GradleSync(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp) {
+  public GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp) {
     this(project, projectCleanUp, new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  GradleSync(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp, @NotNull ProjectSetup.Factory projectSetupFactory) {
+  GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp, @NotNull ProjectSetup.Factory projectSetupFactory) {
     myProject = project;
     myProjectSetupFactory = projectSetupFactory;
     myProjectCleanUp = projectCleanUp;
@@ -242,7 +242,7 @@ public class GradleSync {
 
   @NotNull
   private static Logger getLog() {
-    return Logger.getInstance(GradleSync.class);
+    return Logger.getInstance(GradleSyncInvoker.class);
   }
 
   @Nullable

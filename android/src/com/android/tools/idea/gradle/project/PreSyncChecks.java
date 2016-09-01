@@ -126,10 +126,8 @@ final class PreSyncChecks {
       // completion (see BuildClasspathModuleGradleDataService, line 119).
       gradleSettings.setDistributionType(DEFAULT_WRAPPED);
     }
-    else if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      if (gradleWrapper == null && gradleSettings != null) {
-        createWrapperIfNecessary(project, gradleSettings, distributionType);
-      }
+    else if (gradleWrapper == null && gradleSettings != null) {
+      createWrapperIfNecessary(project, gradleSettings, distributionType);
     }
 
     return PreSyncCheckResult.success();
@@ -191,6 +189,9 @@ final class PreSyncChecks {
     boolean chooseLocalGradleHome = false;
 
     if (distributionType == null) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        return true;
+      }
       String msg = createUseWrapperQuestion("Gradle settings for this project are not configured yet.");
       int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
       createWrapper = answer == OK;

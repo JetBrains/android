@@ -454,13 +454,6 @@ public class GradleSyncTest {
   }
 
   @Test
-  // See https://code.google.com/p/android/issues/detail?id=66880
-  public void automaticCreationOfMissingWrapper() throws IOException {
-    guiTest.importSimpleApplication();
-    guiTest.ideFrame().deleteGradleWrapper().requestProjectSync().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
-  }
-
-  @Test
   @Ignore("http://b.android.com/203384")
   // See https://code.google.com/p/android/issues/detail?id=72294
   public void withEmptyGradleSettingsFileInMultiModuleProject() throws IOException {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -108,6 +108,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (errorDetails != null) {
       LOG.warn(errorDetails);
     }
-    GradleSync.getInstance(myProject).handleSyncFailure(errorMessage, mySyncListener);
+    GradleSyncInvoker.getInstance(myProject).handleSyncFailure(errorMessage, mySyncListener);
   }
 }

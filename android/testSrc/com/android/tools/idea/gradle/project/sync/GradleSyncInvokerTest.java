@@ -36,14 +36,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link GradleSync}.
+ * Tests for {@link GradleSyncInvoker}.
  */
-public class GradleSyncTest extends AndroidGradleTestCase {
+public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   private ProjectSetupStub myProjectSetup;
   private PreSyncProjectCleanUp myProjectCleanUp;
   private GradleSetup myGradleSetup;
 
-  private GradleSync myGradleSync;
+  private GradleSyncInvoker myGradleSyncInvoker;
 
   @Override
   public void setUp() throws Exception {
@@ -56,7 +56,7 @@ public class GradleSyncTest extends AndroidGradleTestCase {
     ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
     when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSync = new GradleSync(getProject(), myProjectCleanUp, projectSetupFactory);
+    myGradleSyncInvoker = new GradleSyncInvoker(getProject(), myProjectCleanUp, projectSetupFactory);
   }
 
   public void testDummy() {
@@ -69,7 +69,7 @@ public class GradleSyncTest extends AndroidGradleTestCase {
     myGradleSetup.setUpGradle(getProject());
 
     SyncListener listener = new SyncListener();
-    myGradleSync.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
+    myGradleSyncInvoker.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
     listener.await();
 
     assertFalse(listener.success);
@@ -93,7 +93,7 @@ public class GradleSyncTest extends AndroidGradleTestCase {
     myGradleSetup.setUpGradle(getProject());
 
     SyncListener listener = new SyncListener();
-    myGradleSync.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
+    myGradleSyncInvoker.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
     listener.await();
 
     String unexpectedError = listener.errorMessage;
