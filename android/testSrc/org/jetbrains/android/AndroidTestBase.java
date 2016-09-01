@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.PathManager;
@@ -51,8 +52,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalD
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
-  /** Environment variable or system property containing the full path to an SDK install */
-  public static final String SDK_PATH_PROPERTY = "ANDROID_HOME";
 
   /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
   private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
@@ -112,7 +111,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (override != null) {
         return override;
       }
-      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
+      fail("This unit test requires " + SdkConstants.ANDROID_HOME_ENV + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
     }
 
     return getDefaultTestSdkPath();
@@ -120,13 +119,13 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Nullable
   public static String getRecentSdkPath() {
-    String override = System.getProperty(SDK_PATH_PROPERTY);
+    String override = System.getProperty(SdkConstants.ANDROID_HOME_ENV);
     if (override != null) {
       assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
       assertTrue(override, new File(override).exists());
       return override;
     }
-    override = System.getenv(SDK_PATH_PROPERTY);
+    override = System.getenv(SdkConstants.ANDROID_HOME_ENV);
     if (override != null) {
       assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
       return override;
@@ -141,7 +140,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (override != null) {
         return override;
       }
-      fail("This unit test requires " + SDK_PATH_PROPERTY + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
+      fail("This unit test requires " + SdkConstants.ANDROID_HOME_ENV + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
     }
     return getDefaultPlatformDir();
   }
