@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
@@ -26,6 +25,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.AndroidTestCaseHelper;
 import com.google.common.collect.*;
 import junit.framework.TestCase;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -128,7 +128,7 @@ public class RepositoryUrlManagerTest extends TestCase {
                                                               library.getArtifactId(),
                                                               null,
                                                               false,
-                                                              new File(System.getenv(SdkConstants.ANDROID_HOME_ENV)),
+                                                              AndroidTestCaseHelper.getAndroidSdkPath(),
                                                               FileOpUtils.create()));
     }
   }
