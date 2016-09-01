@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunnerAndConfigurationSettings;

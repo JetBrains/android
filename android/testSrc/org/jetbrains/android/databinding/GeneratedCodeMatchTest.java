@@ -17,7 +17,7 @@ package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
