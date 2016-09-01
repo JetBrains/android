@@ -21,12 +21,13 @@ import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
 
   public void testRemoveAndroidTestClasspath() throws Exception {
-    loadProject("projects/sync/multiproject", false);
+    loadProject(SYNC_MULTIPROJECT, false);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
     Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");

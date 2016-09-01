@@ -24,6 +24,7 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static org.mockito.Mockito.*;
 
 /**
@@ -48,7 +49,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testInvalidateLastSync() throws Exception {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Module appModule = myModules.getAppModule();
     AndroidFacet appAndroidFacet = AndroidFacet.getInstance(appModule);

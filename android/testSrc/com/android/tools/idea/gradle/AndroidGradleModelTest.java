@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.*;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 
 /**
  * Tests for {@link AndroidGradleModel}.
@@ -60,7 +61,7 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
   }
 
   public void testReadWriteObject() throws Exception {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     AndroidGradleModel androidModel = AndroidGradleModel.get(myAndroidFacet);
 
