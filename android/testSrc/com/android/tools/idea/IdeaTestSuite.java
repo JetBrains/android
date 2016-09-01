@@ -95,8 +95,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
   com.android.tools.idea.templates.TypedVariableTest.class,
   com.android.tools.idea.templates.UniqueParameterTest.class,
-  com.android.tools.idea.uibuilder.mockup.MockupFileHelperTest.class,
-  com.android.tools.idea.uibuilder.mockup.MockupTest.class,
   com.android.tools.idea.uibuilder.palette.IconPreviewFactoryTest.class,
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
@@ -125,6 +123,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
+    symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
   }
 
   private static void symbolicLinkInTmpDir(String target) {
