@@ -16,7 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
