@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.ide.common.xml.XmlFormatPreferences;
-import com.android.ide.common.xml.XmlFormatStyle;
-import com.android.ide.common.xml.XmlPrettyPrinter;
-import com.android.manifmerger.ManifestMerger2;
-import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.*;
+import com.android.manifmerger.XmlDocument;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.StdLogger;
@@ -37,6 +34,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.util.SystemProperties;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
@@ -100,12 +98,12 @@ public class RecipeMergeUtils {
     boolean ok;
     String fileName = targetFile.getName();
     String contents;
-    if (fileName.equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
+    if (fileName.equals(FN_ANDROID_MANIFEST_XML)) {
       Document currentDocument = XmlUtils.parseDocumentSilently(targetXml, true);
       assert currentDocument != null : targetXml + " failed to parse";
       Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
       assert fragment != null : sourceXml + " failed to parse";
-      contents = mergeManifest(targetFile, targetXml, sourceXml);
+      contents = mergeManifest(context.getModuleRoot(), targetFile, targetXml, sourceXml);
       ok = contents != null;
     }
     else {
@@ -247,14 +245,17 @@ public class RecipeMergeUtils {
    * Merges the given manifest fragment into the given manifest file
    */
   @Nullable
-  private static String mergeManifest(@NotNull final File targetManifest, @NotNull final String targetXml, @NotNull final String mergeText) {
+  private static String mergeManifest(@NotNull File moduleRoot, @NotNull final File targetManifest,
+                                      @NotNull final String targetXml, @NotNull final String mergeText) {
     try {
+      boolean isMasterManifest = FileUtil.filesEqual(moduleRoot, targetManifest.getParentFile());
       //noinspection SpellCheckingInspection
       final File tempFile2 = new File(targetManifest.getParentFile(), "nevercreated.xml");
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
       MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
         .addLibraryManifest(tempFile2)
+        .asType(isMasterManifest ? XmlDocument.Type.MAIN : XmlDocument.Type.OVERLAY)
         .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
           @Override
           protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
