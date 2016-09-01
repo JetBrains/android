@@ -56,4 +56,9 @@ public class StudioLoggerProgressIndicator extends ProgressIndicatorAdapter {
   public void logInfo(@NonNull String s) {
     myLogger.info(s);
   }
+
+  @Override
+  public void logVerbose(@NonNull String s) {
+    myLogger.debug(s);
+  }
 }
