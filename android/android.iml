@@ -182,5 +182,7 @@
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
+    <orderEntry type="module" module-name="cidr-lang" />
   </component>
 </module>
