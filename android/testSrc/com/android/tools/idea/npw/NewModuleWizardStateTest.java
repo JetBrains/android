@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;

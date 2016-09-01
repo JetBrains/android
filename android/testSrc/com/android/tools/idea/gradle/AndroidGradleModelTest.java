@@ -18,7 +18,7 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.*;
 

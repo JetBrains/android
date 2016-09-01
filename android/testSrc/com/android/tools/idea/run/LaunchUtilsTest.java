@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public class LaunchUtilsTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
