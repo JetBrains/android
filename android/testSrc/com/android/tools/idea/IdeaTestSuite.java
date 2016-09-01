@@ -104,6 +104,7 @@ import java.nio.file.Paths;
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidLibraryProjectTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
+  org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
   org.jetbrains.android.sdk.AndroidSdkDataTest.class,
   org.jetbrains.android.sdk.AndroidSdkUtilsTest.class,
