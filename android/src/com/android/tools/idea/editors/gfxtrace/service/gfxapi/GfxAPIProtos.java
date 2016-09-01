@@ -356,32 +356,56 @@ public final class GfxAPIProtos {
   public enum FramebufferAttachment
       implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
-     * <code>Color = 0;</code>
+     * <code>Depth = 0;</code>
      */
-    Color(0, 0),
+    Depth(0, 0),
     /**
-     * <code>Depth = 1;</code>
+     * <code>Stencil = 1;</code>
      */
-    Depth(1, 1),
+    Stencil(1, 1),
     /**
-     * <code>Stencil = 2;</code>
+     * <code>Color0 = 2;</code>
      */
-    Stencil(2, 2),
+    Color0(2, 2),
+    /**
+     * <code>Color1 = 3;</code>
+     */
+    Color1(3, 3),
+    /**
+     * <code>Color2 = 4;</code>
+     */
+    Color2(4, 4),
+    /**
+     * <code>Color3 = 5;</code>
+     */
+    Color3(5, 5),
     UNRECOGNIZED(-1, -1),
     ;
 
     /**
-     * <code>Color = 0;</code>
+     * <code>Depth = 0;</code>
      */
-    public static final int Color_VALUE = 0;
+    public static final int Depth_VALUE = 0;
     /**
-     * <code>Depth = 1;</code>
+     * <code>Stencil = 1;</code>
      */
-    public static final int Depth_VALUE = 1;
+    public static final int Stencil_VALUE = 1;
     /**
-     * <code>Stencil = 2;</code>
+     * <code>Color0 = 2;</code>
      */
-    public static final int Stencil_VALUE = 2;
+    public static final int Color0_VALUE = 2;
+    /**
+     * <code>Color1 = 3;</code>
+     */
+    public static final int Color1_VALUE = 3;
+    /**
+     * <code>Color2 = 4;</code>
+     */
+    public static final int Color2_VALUE = 4;
+    /**
+     * <code>Color3 = 5;</code>
+     */
+    public static final int Color3_VALUE = 5;
 
 
     public final int getNumber() {
@@ -394,9 +418,12 @@ public final class GfxAPIProtos {
 
     public static FramebufferAttachment valueOf(int value) {
       switch (value) {
-        case 0: return Color;
-        case 1: return Depth;
-        case 2: return Stencil;
+        case 0: return Depth;
+        case 1: return Stencil;
+        case 2: return Color0;
+        case 3: return Color1;
+        case 4: return Color2;
+        case 5: return Color3;
         default: return null;
       }
     }
@@ -913,19 +940,20 @@ public final class GfxAPIProtos {
       "\021\n\rTriangleStrip\020\005\022\017\n\013TriangleFan\020\006*n\n\014R" +
       "esourceType\022\013\n\007Unknown\020\000\022\r\n\tTexture1D\020\001\022" +
       "\r\n\tTexture2D\020\002\022\r\n\tTexture3D\020\003\022\013\n\007Cubemap" +
-      "\020\004\022\n\n\006Shader\020\005\022\013\n\007Program\020\006*:\n\025Framebuff" +
-      "erAttachment\022\t\n\005Color\020\000\022\t\n\005Depth\020\001\022\013\n\007St" +
-      "encil\020\002*f\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geo" +
-      "metry\020\001\022\017\n\013TessControl\020\002\022\022\n\016TessEvaluati",
-      "on\020\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005*\254\001\n\rUnif" +
-      "ormFormat\022\n\n\006Scalar\020\000\022\010\n\004Vec2\020\001\022\010\n\004Vec3\020" +
-      "\002\022\010\n\004Vec4\020\003\022\010\n\004Mat2\020\004\022\010\n\004Mat3\020\005\022\010\n\004Mat4\020" +
-      "\006\022\n\n\006Mat2x3\020\007\022\n\n\006Mat2x4\020\010\022\n\n\006Mat3x2\020\t\022\n\n" +
-      "\006Mat3x4\020\n\022\n\n\006Mat4x2\020\013\022\n\n\006Mat4x3\020\014\022\013\n\007Sam" +
-      "pler\020\r*E\n\013UniformType\022\t\n\005Int32\020\000\022\n\n\006Uint" +
-      "32\020\001\022\010\n\004Bool\020\002\022\t\n\005Float\020\003\022\n\n\006Double\020\004BF\n" +
-      "6com.android.tools.idea.editors.gfxtrace" +
-      ".service.gfxapiB\014GfxAPIProtosb\006proto3"
+      "\020\004\022\n\n\006Shader\020\005\022\013\n\007Program\020\006*_\n\025Framebuff" +
+      "erAttachment\022\t\n\005Depth\020\000\022\013\n\007Stencil\020\001\022\n\n\006" +
+      "Color0\020\002\022\n\n\006Color1\020\003\022\n\n\006Color2\020\004\022\n\n\006Colo" +
+      "r3\020\005*f\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geomet",
+      "ry\020\001\022\017\n\013TessControl\020\002\022\022\n\016TessEvaluation\020" +
+      "\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005*\254\001\n\rUniform" +
+      "Format\022\n\n\006Scalar\020\000\022\010\n\004Vec2\020\001\022\010\n\004Vec3\020\002\022\010" +
+      "\n\004Vec4\020\003\022\010\n\004Mat2\020\004\022\010\n\004Mat3\020\005\022\010\n\004Mat4\020\006\022\n" +
+      "\n\006Mat2x3\020\007\022\n\n\006Mat2x4\020\010\022\n\n\006Mat3x2\020\t\022\n\n\006Ma" +
+      "t3x4\020\n\022\n\n\006Mat4x2\020\013\022\n\n\006Mat4x3\020\014\022\013\n\007Sample" +
+      "r\020\r*E\n\013UniformType\022\t\n\005Int32\020\000\022\n\n\006Uint32\020" +
+      "\001\022\010\n\004Bool\020\002\022\t\n\005Float\020\003\022\n\n\006Double\020\004BF\n6co" +
+      "m.android.tools.idea.editors.gfxtrace.se" +
+      "rvice.gfxapiB\014GfxAPIProtosb\006proto3"
     };
     com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

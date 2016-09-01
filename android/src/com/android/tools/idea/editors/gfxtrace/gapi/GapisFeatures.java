@@ -28,6 +28,7 @@ public class GapisFeatures {
   private static final String FEATURE_MESHES = "meshes";
   private static final String FEATURE_RESOURCE_BUNDLES = "resource-bundles";
   private static final String FEATURE_REPORT = "report";
+  private static final String FEATURE_FRAMEBUFFER_ATTACHMENT = "framebuffer-attachment";
 
   private final Set<String> myFeatures = new HashSet<String>();
 
@@ -85,9 +86,14 @@ public class GapisFeatures {
   }
 
   /**
-   * @return whether GAPIS supports the report
+   * @return whether GAPIS supports the report paths.
    */
   public boolean hasReport() {
     return myFeatures.contains(FEATURE_REPORT);
   }
+
+  /**
+   * @return whether GAPIS supports the getFramebufferAttachment RPC method.
+   */
+  public boolean hasFramebufferAttachment() { return myFeatures.contains(FEATURE_FRAMEBUFFER_ATTACHMENT); }
 }

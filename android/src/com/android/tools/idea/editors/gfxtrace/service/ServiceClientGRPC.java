@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -76,6 +77,11 @@ public final class ServiceClientGRPC extends ServiceClient {
   @Override
   public ListenableFuture<String[]> getFeatures() {
     return new GetFeaturesInvoker().invoke();
+  }
+
+  @Override
+  public ListenableFuture<ImageInfoPath> getFramebufferAttachment(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings) {
+    return new GetFramebufferAttachmentInvoker(device, after, attachment, settings).invoke();
   }
 
   @Override
@@ -285,6 +291,38 @@ public final class ServiceClientGRPC extends ServiceClient {
     public ListenableFuture<String[]> apply(ServiceProtos.Response input) throws Exception {
       try {
         ResultGetFeatures result = (ResultGetFeatures)fromResponse(input);
+        return Futures.immediateFuture(result.getValue());
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class GetFramebufferAttachmentInvoker implements Invoker<ImageInfoPath> {
+    private final CallGetFramebufferAttachment myCall;
+    private final Exception myStack = new StackException();
+
+    private GetFramebufferAttachmentInvoker(DevicePath device, AtomPath after, FramebufferAttachment attachment, RenderSettings settings) {
+      myCall = new CallGetFramebufferAttachment();
+      myCall.setDevice(device);
+      myCall.setAfter(after);
+      myCall.setAttachment(attachment);
+      myCall.setSettings(settings);
+    }
+
+    @Override
+    public ListenableFuture<ImageInfoPath> invoke() {
+      try {
+        return Futures.transform(myClient.getFramebufferAttachment(asRequest(myCall)), this);
+      } catch (IOException e) {
+        return Futures.immediateFailedFuture(e);
+      }
+    }
+
+    @Override
+    public ListenableFuture<ImageInfoPath> apply(ServiceProtos.Response input) throws Exception {
+      try {
+        ResultGetFramebufferAttachment result = (ResultGetFramebufferAttachment)fromResponse(input);
         return Futures.immediateFuture(result.getValue());
       } catch (Exception e) {
         e.initCause(myStack);

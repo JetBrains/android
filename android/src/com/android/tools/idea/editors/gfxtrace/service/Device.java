@@ -35,6 +35,7 @@ public final class Device implements BinaryObject {
   private String myRenderer;
   private String myVendor;
   private String myVersion;
+  private short myGLUniformBufferAlignment;
 
   // Constructs a default-initialized {@link Device}.
   public Device() {}
@@ -130,6 +131,15 @@ public final class Device implements BinaryObject {
     return this;
   }
 
+  public short getGLUniformBufferAlignment() {
+    return myGLUniformBufferAlignment;
+  }
+
+  public Device setGLUniformBufferAlignment(short v) {
+    myGLUniformBufferAlignment = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -148,6 +158,7 @@ public final class Device implements BinaryObject {
       new Field("Renderer", new Primitive("string", Method.String)),
       new Field("Vendor", new Primitive("string", Method.String)),
       new Field("Version", new Primitive("string", Method.String)),
+      new Field("GLUniformBufferAlignment", new Primitive("uint16", Method.Uint16)),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -176,6 +187,7 @@ public final class Device implements BinaryObject {
       e.string(o.myRenderer);
       e.string(o.myVendor);
       e.string(o.myVersion);
+      e.uint16(o.myGLUniformBufferAlignment);
     }
 
     @Override
@@ -191,6 +203,7 @@ public final class Device implements BinaryObject {
       o.myRenderer = d.string();
       o.myVendor = d.string();
       o.myVersion = d.string();
+      o.myGLUniformBufferAlignment = d.uint16();
     }
     //<<<End:Java.KlassBody:2>>>
   }
