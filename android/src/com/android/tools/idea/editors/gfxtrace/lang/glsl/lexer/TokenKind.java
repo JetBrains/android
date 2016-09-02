@@ -37,6 +37,7 @@ public enum TokenKind {
   SEMI(";"),
   STRING("string"),
   TRUE("true"),
+  COMPONENTS("vector or scalar components"),
   // Used for all tokens which should be ignored by the highlighter.
   WHITESPACE("whitespace");
 
