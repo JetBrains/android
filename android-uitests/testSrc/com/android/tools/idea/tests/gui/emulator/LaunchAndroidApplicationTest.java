@@ -70,7 +70,7 @@ public class LaunchAndroidApplicationTest {
     getEmulatorConnection().deleteAvd(AVD_NAME);
   }
 
-  @Ignore("http://b/30477830")
+  @Ignore("http://b/30795134")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
@@ -91,7 +91,7 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
-  @Ignore("http://b/30477830")
+  @Ignore("http://b/30795134")
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
@@ -136,7 +136,7 @@ public class LaunchAndroidApplicationTest {
    *   </pre>
    * <p>
    */
-  @Ignore("http://b/30477830")
+  @Ignore("http://b/30795134")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
