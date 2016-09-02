@@ -21,15 +21,12 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.server.BuildManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -133,7 +130,6 @@ public class AndroidPrecompileTask implements CompileTask {
   }
 
   private static void createGenModulesAndSourceRoots(final Project project) {
-    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
@@ -150,7 +146,7 @@ public class AndroidPrecompileTask implements CompileTask {
         public void run() {
           AndroidCompileUtil.createGenModulesAndSourceRoots(project, facets);
         }
-      }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
+      });
     }
   }
 

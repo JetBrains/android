@@ -30,7 +30,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -72,7 +71,6 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.Boolean.TRUE;
 
 /**
@@ -125,7 +123,7 @@ public final class Projects {
   }
 
   public static void populate(@NotNull final Project project, @NotNull final Collection<DataNode<ModuleData>> modules) {
-    invokeAndWaitIfNeeded(new Runnable() {
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -201,7 +199,7 @@ public final class Projects {
           }
         });
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {

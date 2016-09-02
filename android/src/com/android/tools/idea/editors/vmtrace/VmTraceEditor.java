@@ -22,7 +22,6 @@ import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -67,7 +66,7 @@ public class VmTraceEditor implements FileEditor {
               Messages.showErrorDialog(project, "Unexpected error while parsing trace file: " +
                                                 Throwables.getRootCause(throwable).getMessage(), getName());
             }
-          }, ModalityState.defaultModalityState());
+          });
           return;
         }
 

@@ -24,7 +24,6 @@ import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -115,7 +114,7 @@ public class DumpSysAction {
 
         new ShellTask(myProject, completionLatch, receiver).queue();
       }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   private static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
