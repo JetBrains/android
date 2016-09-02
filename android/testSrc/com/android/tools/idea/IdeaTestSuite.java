@@ -50,7 +50,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.GradleProjectImporterTest.class,
   com.android.tools.idea.gradle.project.GradleProjectSyncDataTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
-  com.android.tools.idea.gradle.project.SdkSyncTest.class,
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncInvokerTest.class,
@@ -86,8 +85,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.run.GradleApkProviderTest.class,
   com.android.tools.idea.run.GradleApplicationIdProviderTest.class,
   com.android.tools.idea.run.LaunchUtilsTest.class,
-  com.android.tools.idea.sdk.IdeSdksTest.class,
-  com.android.tools.idea.sdk.VersionCheckTest.class,
   com.android.tools.idea.stats.DistributionServiceTest.class,
   com.android.tools.idea.templates.CreateGradleWrapperTest.class,
   com.android.tools.idea.templates.GradleFilePsiMergerTest.class,
@@ -99,7 +96,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.uibuilder.palette.IconPreviewFactoryTest.class,
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
-  com.android.tools.idea.welcome.wizard.FirstRunWizardTest.class,
   com.android.tools.idea.wizard.template.TemplateWizardStateTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
@@ -108,7 +104,6 @@ import java.nio.file.Paths;
   org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
   org.jetbrains.android.sdk.AndroidSdkDataTest.class,
-  org.jetbrains.android.sdk.AndroidSdkUtilsTest.class,
 })
 public class IdeaTestSuite {
 
@@ -125,6 +120,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
+    symbolicLinkInTmpDir("prebuilts/studio/sdk/linux/platforms/android-24");
   }
 
   private static void symbolicLinkInTmpDir(String target) {

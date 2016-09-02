@@ -168,6 +168,7 @@ iml_module(
         "android/testData/**/*",
         "designer/testData/**/*",
     ]) + [
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
     ],

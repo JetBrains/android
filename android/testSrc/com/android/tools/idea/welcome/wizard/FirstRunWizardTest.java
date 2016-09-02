@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
@@ -88,7 +88,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   public void testStepsVisibility() {
     File wrongPath = new File("/$@@  \"\'should/not/exist");
-    File androidHome = AndroidTestCaseHelper.getAndroidSdkPath();
+    File androidHome = TestUtils.getSdk();
 
     assertPagesVisible(null, true, false);
 

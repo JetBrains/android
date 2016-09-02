@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -49,7 +50,7 @@ public class IdeSdksTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    myAndroidSdkPath = TestUtils.getSdk();
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       FacetManager facetManager = FacetManager.getInstance(myModule);
