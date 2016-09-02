@@ -19,12 +19,9 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -225,7 +222,7 @@ public class ApkInstaller {
           Messages.showOkCancelDialog(myProject, reason, AndroidBundle.message("deployment.failed.title"), Messages.getQuestionIcon());
         ok.set(result == Messages.OK);
       }
-    }, ModalityState.defaultModalityState());
+    });
 
     return ok.get();
   }

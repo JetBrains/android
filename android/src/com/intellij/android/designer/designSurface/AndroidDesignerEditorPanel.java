@@ -54,7 +54,6 @@ import com.intellij.designer.palette.PaletteToolWindowManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -100,8 +99,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_ALL;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
-import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 import static com.intellij.designer.designSurface.ZoomType.FIT;
+import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
 import static org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 
 /**
@@ -562,7 +561,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             }
           };
           if (ApplicationManager.getApplication().isUnitTestMode()) {
-            ApplicationManager.getApplication().invokeAndWait(uiRunnable, ModalityState.defaultModalityState());
+            ApplicationManager.getApplication().invokeAndWait(uiRunnable);
           } else {
             ApplicationManager.getApplication().invokeLater(uiRunnable);
           }
