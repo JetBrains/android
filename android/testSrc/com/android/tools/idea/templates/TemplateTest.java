@@ -24,13 +24,21 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
+import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.LintRequest;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
@@ -39,6 +47,10 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
+import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
+import org.jetbrains.android.inspections.lint.IntellijLintRequest;
+import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +59,7 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
@@ -1000,5 +1009,38 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
 
     return null;
+  }
+
+  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) throws Exception {
+    BuiltinIssueRegistry registry = new IntellijLintIssueRegistry();
+    Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
+    IntellijLintClient client = IntellijLintClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
+    LintDriver driver = new LintDriver(registry, client);
+    List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
+    LintRequest request = new IntellijLintRequest(client, project, null, modules, false);
+    EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
+    scope.remove(Scope.CLASS_FILE);
+    scope.remove(Scope.ALL_CLASS_FILES);
+    scope.remove(Scope.JAVA_LIBRARIES);
+    request.setScope(scope);
+    driver.analyze(request);
+    if (!map.isEmpty()) {
+      for (Map<File, List<ProblemData>> fileListMap : map.values()) {
+        for (Map.Entry<File, List<ProblemData>> entry : fileListMap.entrySet()) {
+          File file = entry.getKey();
+          List<ProblemData> problems = entry.getValue();
+          for (ProblemData problem : problems) {
+            Issue issue = problem.getIssue();
+            if (ignored.contains(issue)) {
+              continue;
+            }
+            if (issue.getDefaultSeverity().compareTo(maxSeverity) < 0) {
+              fail("Found lint issue " + issue.getId() + " with severity " + issue.getDefaultSeverity() + " in " + file + " at " +
+                   problem.getTextRange() + ": " + problem.getMessage());
+            }
+          }
+        }
+      }
+    }
   }
 }
