@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.GuiTestSuite;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -87,7 +87,7 @@ public class LayoutInspectorTest {
    */
   @Ignore("http://b/30795134")
   @Test
-  @Category(GuiTestSuite.class)
+  @Category(GuiSanityTestSuite.class)
   public void launchLayoutInspector() throws Exception {
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
     guiTest.ideFrame()
