@@ -101,7 +101,7 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @Ignore("http://b/30477830, http://b/30795134")
+  @Ignore("http://b/30795134")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void runBuildFlavors() throws Exception {
