@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Stack;
 
 // Abstraction layer so GUI can process trace originating from ART or SimplePerf seamlessly.
 public abstract class AppTrace {
@@ -36,9 +37,13 @@ public abstract class AppTrace {
   // Called before rendition.
   abstract public SparseArray<HNode<Method>> getThreadsGraph();
 
-  private SparseArray<HNode<MethodUsage>> myTopDownStats = null;
+  private SparseArray<HNode<MethodUsage>> myTopDownStats;
 
-  private SparseArray<JComponent> myTopdownTrees = null;
+  private SparseArray<HNode<MethodUsage>> myBottomUpStats;
+
+  private SparseArray<JComponent> myTopdownTrees;
+
+  private SparseArray<JComponent> myBottomUpTrees;
 
   public SparseArray<HNode<MethodUsage>> getTopdownStats() {
     if (myTopDownStats == null) {
@@ -46,6 +51,88 @@ public abstract class AppTrace {
     }
     return myTopDownStats;
   }
+
+  public SparseArray<HNode<MethodUsage>> getBottomupStats() {
+    if (myBottomUpStats == null) {
+      generateBottomUpGraphs();
+    }
+    return myBottomUpStats;
+  }
+
+  // BottomUp Graphs are reversed flamegraphs (a.k.a TopDownGraphs). This method generates all bottom up graphs
+  // for all known top down graphs
+  private void generateBottomUpGraphs() {
+    myBottomUpStats = new SparseArray<>();
+    SparseArray<HNode<MethodUsage>> topDownGraphs = getTopdownStats();
+    for (int i = 0; i < topDownGraphs.size(); i++) {
+      int threadPid = topDownGraphs.keyAt(i);
+      HNode<MethodUsage> topDownGraph = topDownGraphs.get(threadPid);
+      HNode<MethodUsage> bottomUpGraph = generateBottomUpGraph(topDownGraph);
+      myBottomUpStats.put(threadPid, bottomUpGraph);
+    }
+  }
+
+  // Reverse a topdown graph into a bottom up graph.
+  private HNode<MethodUsage> generateBottomUpGraph(HNode<MethodUsage> topDownGraph) {
+    HNode<MethodUsage> bottomUpGraph = new HNode<>();
+    MethodUsage fakeMethodUsageRoot = new MethodUsage();
+    fakeMethodUsageRoot.setNamespace("");
+    fakeMethodUsageRoot.setName("");
+    fakeMethodUsageRoot.setExclusivePercentage(1);
+    bottomUpGraph.setData(fakeMethodUsageRoot);
+
+    Stack<HNode<MethodUsage>> stack = new Stack<>();
+    // Intentionaly removing the first child since it is just here to hold top level childs.
+    topDownGraph = topDownGraph.getFirstChild();
+    reverseTopDownGraph(topDownGraph, bottomUpGraph, stack);
+    return bottomUpGraph;
+  }
+
+  private void reverseTopDownGraph(HNode<MethodUsage> topDownNode, HNode<MethodUsage> bottomUpGraph, Stack<HNode<MethodUsage>> stack) {
+    stack.push(topDownNode);
+    if (topDownNode.getData().getExclusivePercentage() > 0) {
+      // Add node and all its ancestor to bottomup graph
+      HNode<MethodUsage> tailNode = null;
+      HNode<MethodUsage> headNode = null;
+      for (int i = stack.size() - 1; i >= 0; i--) {
+        HNode<MethodUsage> stackedNode = stack.get(i);
+        HNode newNode = new HNode<>();
+        if (headNode == null) {
+          headNode = newNode;
+        }
+        // Copy stackedNode into new Node.
+        newNode.setStart(stackedNode.getStart());
+        newNode.setEnd(stackedNode.getEnd());
+        newNode.setDepth(stack.size() - i);
+        newNode.setData(stackedNode.getData());
+        if (tailNode != null) {
+          tailNode.addHNode(newNode);
+        }
+        tailNode = newNode;
+      }
+
+      // Try to see if this method call was already present in the bottomup. If this is the case we can merge it into the bottomup graph.
+      boolean mergedInGraph = false;
+      for(HNode<MethodUsage> child : bottomUpGraph.getChildren()) {
+        if (child.getData().getName().equals(headNode.getData().getName()) &&
+            child.getData().getNameSpace().equals(headNode.getData().getNameSpace())) {
+          if (headNode.getChildren().size() > 0) {
+            child.addHNode(headNode.getFirstChild());
+          }
+          mergedInGraph = true;
+          break;
+        }
+      }
+      if (!mergedInGraph) {
+        bottomUpGraph.addHNode(headNode);
+      }
+    }
+    for (HNode n : topDownNode.getChildren()) {
+      reverseTopDownGraph(n, bottomUpGraph, stack);
+    }
+    stack.pop();
+  }
+
 
   // TopDown graph are flamegraphs: The execution stacks merged together (on a per-thread basis).
   // TopDown graphs are used in flamegraphs but also in top-down and bottom-up statistics display.
@@ -187,7 +274,7 @@ public abstract class AppTrace {
                                                        int row,
                                                        boolean hasFocus) {
                        AppStatTreeNode node = (AppStatTreeNode)value;
-                       append(node.getMethodNamespace() + "." + node.getMethodName());
+                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), "."));
                      }
                    }))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -224,21 +311,95 @@ public abstract class AppTrace {
     return topdownColumnTree;
   }
 
-  private void convertGraphToTree(HNode<MethodUsage> graph, AppStatTreeNode top) {
-    MethodUsage mTop = graph.getData();
+  //
+  private String generateNameForColumn(String namespace, String method, String separator) {
+    if (method == null) {
+      method = "";
+    }
 
-    top.setPercentageInclusive(mTop.getInclusivePercentage());
-    top.setPercentageExclusive(mTop.getExclusivePercentage());
+    if (namespace == null) {
+      namespace = "";
+    }
+    if (namespace.isEmpty() || method.isEmpty()) {
+      separator = "";
+    }
+    return namespace + separator + method;
+  }
 
-    top.setRuntimeExclusive(mTop.getExclusiveDuration());
-    top.setRuntimeInclusive(mTop.getInclusiveDuration());
+  // Lazy initialized BottomUp JTrees for bottomup statistic display.
+  public SparseArray<JComponent> getBottomUpTrees() {
+    if (myBottomUpTrees != null) {
+      return myBottomUpTrees;
+    }
 
-    top.setMethodName(mTop.getName());
-    top.setMethodNamespace(mTop.getNameSpace());
+    myBottomUpTrees = new SparseArray<JComponent>();
+    SparseArray<HNode<MethodUsage>> threadStats = getBottomupStats();
+    for (int i = 0; i < threadStats.size(); i++) {
+      int threadPid = threadStats.keyAt(i);
+      JComponent tree = generateBottomUpTree(threadStats.get(threadStats.keyAt(i)));
+      myBottomUpTrees.put(threadPid, tree);
+    }
+    return myBottomUpTrees;
+  }
+
+  private JComponent generateBottomUpTree(HNode<MethodUsage> graph) {
+    AppStatTreeNode top = new AppStatTreeNode();
+    convertGraphToTree(graph, top);
+
+    JTree tree = new JTree(top);
+    JComponent bottomUpColumnTree = new ColumnTreeBuilder(tree)
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Method")
+                   .setRenderer(new ColoredTreeCellRenderer() {
+                     @Override
+                     public void customizeCellRenderer(@NotNull JTree tree,
+                                                       Object value,
+                                                       boolean selected,
+                                                       boolean expanded,
+                                                       boolean leaf,
+                                                       int row,
+                                                       boolean hasFocus) {
+                       AppStatTreeNode node = (AppStatTreeNode)value;
+                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), "."));
+                     }
+                   }))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Exclusive stats")
+                   .setRenderer(new ColoredTreeCellRenderer() {
+                     @Override
+                     public void customizeCellRenderer(@NotNull JTree tree,
+                                                       Object value,
+                                                       boolean selected,
+                                                       boolean expanded,
+                                                       boolean leaf,
+                                                       int row,
+                                                       boolean hasFocus) {
+                       AppStatTreeNode node = (AppStatTreeNode)value;
+                       append(String.format("%2.1f%%", node.getPercentageExclusive() * 100));
+                     }
+                   }))
+      .build();
+    return bottomUpColumnTree;
+  }
+
+
+  private void convertGraphToTree(HNode<MethodUsage> graph, AppStatTreeNode treeNode) {
+    MethodUsage top = graph.getData();
+
+    if (top != null) {
+      treeNode.setPercentageInclusive(top.getInclusivePercentage());
+      treeNode.setPercentageExclusive(top.getExclusivePercentage());
+
+      treeNode.setRuntimeExclusive(top.getExclusiveDuration());
+      treeNode.setRuntimeInclusive(top.getInclusiveDuration());
+
+      treeNode.setMethodName(top.getName());
+      treeNode.setMethodNamespace(top.getNameSpace());
+    }
 
     for (HNode<MethodUsage> n : graph.getChildren()) {
       AppStatTreeNode newNode = new AppStatTreeNode();
-      top.add(newNode);
+      treeNode.add(newNode);
       convertGraphToTree(n, newNode);
     }
   }
