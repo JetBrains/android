@@ -25,17 +25,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.lint.checks.BuiltinIssueRegistry;
-import com.android.tools.lint.client.api.LintDriver;
-import com.android.tools.lint.client.api.LintRequest;
-import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.Scope;
-import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import com.intellij.analysis.AnalysisScope;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
@@ -61,10 +53,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
-import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
-import org.jetbrains.android.inspections.lint.IntellijLintRequest;
-import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +60,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
@@ -479,39 +468,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
     assertEquals(expectedExitCode, exitCode);
-  }
-
-  public void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) throws Exception {
-    BuiltinIssueRegistry registry = new IntellijLintIssueRegistry();
-    Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
-    IntellijLintClient client = IntellijLintClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
-    LintDriver driver = new LintDriver(registry, client);
-    List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-    LintRequest request = new IntellijLintRequest(client, project, null, modules, false);
-    EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
-    scope.remove(Scope.CLASS_FILE);
-    scope.remove(Scope.ALL_CLASS_FILES);
-    scope.remove(Scope.JAVA_LIBRARIES);
-    request.setScope(scope);
-    driver.analyze(request);
-    if (!map.isEmpty()) {
-      for (Map<File, List<ProblemData>> fileListMap : map.values()) {
-        for (Map.Entry<File, List<ProblemData>> entry : fileListMap.entrySet()) {
-          File file = entry.getKey();
-          List<ProblemData> problems = entry.getValue();
-          for (ProblemData problem : problems) {
-            Issue issue = problem.getIssue();
-            if (ignored.contains(issue)) {
-              continue;
-            }
-            if (issue.getDefaultSeverity().compareTo(maxSeverity) < 0) {
-              fail("Found lint issue " + issue.getId() + " with severity " + issue.getDefaultSeverity() + " in " + file + " at " +
-                   problem.getTextRange() + ": " + problem.getMessage());
-            }
-          }
-        }
-      }
-    }
   }
 
   protected static void importProject(@NotNull Project project,
