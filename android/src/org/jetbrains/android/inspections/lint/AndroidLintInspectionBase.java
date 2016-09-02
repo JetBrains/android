@@ -35,6 +35,9 @@ import static com.intellij.xml.CommonXmlStrings.HTML_END;
 import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
+  /** Prefix used by the comment suppress mechanism in Studio/IntelliJ */
+  public static final String LINT_INSPECTION_PREFIX = "AndroidLint";
+
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AndroidLintInspectionBase");
 
   private static final Object ISSUE_MAP_LOCK = new Object();
@@ -254,7 +257,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
           final String shortName = e.getShortName();
 
-          if (shortName.startsWith("AndroidLint")) {
+          if (shortName.startsWith(LINT_INSPECTION_PREFIX)) {
             final InspectionProfileEntry entry = e.getTool();
             if (entry instanceof AndroidLintInspectionBase) {
               final Issue s = ((AndroidLintInspectionBase)entry).getIssue();

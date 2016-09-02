@@ -175,7 +175,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @NotNull
   static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
-    final List<Issue> result = new ArrayList<Issue>();
+    final List<Issue> result = new ArrayList<>();
     final IssueRegistry fullRegistry = new IntellijLintIssueRegistry();
 
     for (Issue issue : fullRegistry.getIssues()) {
