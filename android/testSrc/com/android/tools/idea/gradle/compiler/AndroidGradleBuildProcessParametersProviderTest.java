@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -38,9 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.classextension.EasyMock.*;
@@ -55,14 +54,10 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File jdkHome = getJdkPath();
-    myJdk = Jdks.createJdk(jdkHome.getPath());
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-     @Override
-     public void execute() {
-       applyJdkToProject(myProject, myJdk);
-     }
-    });
+
+    ApplicationManager.getApplication().runWriteAction(IdeSdks::setUseEmbeddedJdk);
+
+    myJdk = Jdks.createJdk(IdeSdks.getJdkPath().getPath());
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
@@ -111,7 +106,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
       String javaHomeDirPath = myJdk.getHomePath();
       assertNotNull(javaHomeDirPath);
       javaHomeDirPath = toSystemDependentName(javaHomeDirPath);
-      assertEquals(javaHomeDirPath, jvmArgs.get("-Dcom.android.studio.gradlgit e.java.home.path"));
+      assertEquals(javaHomeDirPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
     }
   }
 
