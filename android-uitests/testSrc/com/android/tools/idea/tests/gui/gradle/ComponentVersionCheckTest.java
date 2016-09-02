@@ -35,7 +35,6 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -109,7 +108,7 @@ public class ComponentVersionCheckTest {
       .waitForGradleProjectSyncToFinish()
       .getMessagesToolWindow()
       .getGradleSyncContent()
-      .findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' "))
+      .findMessage(ERROR, firstLineStartingWith("'buildToolsVersion' "))
       .getText();
     assertThat(text).named("custom failure message").contains("The project will not build.");
     assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
