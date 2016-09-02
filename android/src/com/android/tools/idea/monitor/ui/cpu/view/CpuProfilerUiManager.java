@@ -67,6 +67,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private JPanel myTopdownJpanel;
 
+  private JPanel myBottomupJPanel;
+
   private CPUTraceController myCPUTraceControlsUI;
 
   private Range myFlameChartRange;
@@ -115,6 +117,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     setSegmentState(overviewPanel, myThreadSegment, AccordionLayout.AccordionState.MAXIMIZE);
     myTabbedPane = new JBTabbedPane();
     myTopdownJpanel = new JPanel(new BorderLayout());
+    myBottomupJPanel = new JPanel(new BorderLayout());
     createTracingButton(toolbar);
   }
 
@@ -136,8 +139,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myFlameChart.setPreferredSize(DEFAULT_DIMENSION);
     myChoreographer.register(myFlameChart);
     myTabbedPane.add("Flame Chart", myFlameChart);
-
     myTabbedPane.add("Top-down stats", myTopdownJpanel);
+    myTabbedPane.add("Bottom-up stats", myBottomupJPanel);
     detailPanel.add(myTabbedPane);
 
     myFlameChartRange = new Range();
@@ -171,6 +174,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   }
 
   private void resetDetailedComponents() {
+    myBottomupJPanel.removeAll();
     myTopdownJpanel.removeAll();
     myExecutionChart.setHTree(null);
     myFlameChart.setHTree(null);
@@ -207,8 +211,12 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     }
 
     // Setup topdown panel
-    SparseArray<JComponent> trees = trace.getTopDownTrees();
-    myTopdownJpanel.add(trees.get(threadId), BorderLayout.CENTER);
+    SparseArray<JComponent> topDownTrees = trace.getTopDownTrees();
+    myTopdownJpanel.add(topDownTrees.get(threadId), BorderLayout.CENTER);
+
+    // Setup bottomup panel
+    SparseArray<JComponent> bottomUpTrees = trace.getBottomUpTrees();
+    myBottomupJPanel.add(bottomUpTrees.get(threadId), BorderLayout.CENTER);
 
     // Setup execution panel
     HNode<Method> executionTree = availableThreads.get(threadId);
