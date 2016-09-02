@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,8 +89,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == FormFactor.GLASS) {
-        // Disabled for now
+      if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
+        // Only show Glass if you've already installed the SDK
         continue;
       }
       NewFormFactorModulePath path = new NewFormFactorModulePath(formFactor, templateFile, disposable);
