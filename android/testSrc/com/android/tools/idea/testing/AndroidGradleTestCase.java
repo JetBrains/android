@@ -69,7 +69,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
-import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
@@ -151,11 +150,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
     File androidSdkPath = getAndroidSdkPath();
-    File jdkPath = getJdkPath();
 
     runWriteCommandAction(getProject(), () -> {
-      IdeSdks.setJdkPath(jdkPath);
-      LOG.info("Set JDK to " + jdkPath);
+      IdeSdks.setUseEmbeddedJdk();
+      LOG.info("Set JDK to " + IdeSdks.getJdkPath());
 
       IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
