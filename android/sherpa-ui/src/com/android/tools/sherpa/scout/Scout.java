@@ -102,8 +102,11 @@ public class Scout {
         base.setX(0);
         base.setY(0);
         for (ConstraintWidget constraintWidget : base.getChildren()) {
-            if (constraintWidget instanceof WidgetContainer) {
-                inferConstraints((WidgetContainer) constraintWidget);
+            if (constraintWidget instanceof ConstraintWidgetContainer) {
+                ConstraintWidgetContainer container = (ConstraintWidgetContainer)constraintWidget;
+                if (!container.getChildren().isEmpty()) {
+                    inferConstraints(container);
+                }
             }
         }
 
