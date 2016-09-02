@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
@@ -34,7 +35,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /**
  * @author Eugene.Kudelevsky
@@ -53,6 +59,14 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   public void performPreRunActivities(@NotNull List<Tools> globalTools, @NotNull List<Tools> localTools, @NotNull final GlobalInspectionContext context) {
     final Project project = context.getProject();
 
+    // Running a single inspection that's not lint? If so don't run lint
+    if (localTools.isEmpty() && globalTools.size() == 1) {
+      Tools tool = globalTools.get(0);
+      if (!tool.getShortName().startsWith(LINT_INSPECTION_PREFIX)) {
+        return;
+      }
+    }
+
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return;
     }
@@ -62,7 +76,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return;
     }
 
-    final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<Issue, Map<File, List<ProblemData>>>();
+    final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<>();
     final AnalysisScope scope = context.getRefManager().getScope();
     if (scope == null) {
       return;
@@ -124,7 +138,14 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
                   }
                   VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
                   if (virtualFile != null) {
-                    finalFiles.add(virtualFile);
+                    if (virtualFile instanceof StringsVirtualFile) {
+                      StringsVirtualFile f = (StringsVirtualFile)virtualFile;
+                      if (!modules.contains(f.getFacet().getModule())) {
+                        modules.add(f.getFacet().getModule());
+                      }
+                    } else {
+                      finalFiles.add(virtualFile);
+                    }
                   }
                 }
               }
