@@ -97,6 +97,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
+  @Ignore("http://b.android.com/221581")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void hotSwap() throws Exception {
