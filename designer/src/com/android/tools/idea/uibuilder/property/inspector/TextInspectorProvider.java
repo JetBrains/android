@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.project.Project;
@@ -234,15 +235,17 @@ public class TextInspectorProvider implements InspectorProvider {
         @Override
         public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
           // TODO: Create a write transaction here to include all these changes in one undo event
-          myStyle.setValue(value);
-          myFontFamily.setValue(null);
-          myFontSize.setValue(null);
-          mySpacing.setValue(null);
-          myTextStyle.setValue(null);
-          myTextAllCaps.setValue(null);
-          myAlignment.setValue(null);
-          myColor.setValue(null);
-          refresh();
+          if (!Objects.equal(value, myStyle.getValue())) {
+            myStyle.setValue(value);
+            myFontFamily.setValue(null);
+            myFontSize.setValue(null);
+            mySpacing.setValue(null);
+            myTextStyle.setValue(null);
+            myTextAllCaps.setValue(null);
+            myAlignment.setValue(null);
+            myColor.setValue(null);
+            refresh();
+          }
         }
 
         @Override
