@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
-import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.testutils.TestUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -40,7 +40,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = AndroidTestCaseHelper.getAndroidSdkPath().getPath();
+    mySdkPath = TestUtils.getSdk().getPath();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -60,12 +60,12 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-22");
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(TestUtils.getLatestAndroidPlatform());
     assertNull(sdk);
   }
 
   public void testFindSuitableAndroidSdkWithPathOfExistingModernSdk() {
-    String targetHashString = "android-22";
+    String targetHashString = TestUtils.getLatestAndroidPlatform();
     Sdk jdk = getTestProjectJdk();
     assertNotNull(jdk);
     createAndroidSdk(mySdkPath, targetHashString, jdk);
@@ -76,7 +76,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-22");
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
     System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();

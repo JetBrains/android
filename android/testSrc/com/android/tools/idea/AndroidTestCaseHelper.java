@@ -40,6 +40,8 @@ public class AndroidTestCaseHelper {
     return JDK_HOME;
   }
 
+  /** @deprecated Use {@link com.android.testutils.TestUtils#getSdk} instead. */
+  @Deprecated
   @NotNull
   public static File getAndroidSdkPath() {
     String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(SdkConstants.ANDROID_HOME_ENV);

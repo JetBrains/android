@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -37,7 +38,7 @@ public class SdkSyncTest extends IdeaTestCase {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myLocalProperties = new LocalProperties(myProject);
-    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    myAndroidSdkPath = TestUtils.getSdk();
 
     assertNull(IdeSdks.getAndroidSdkPath());
   }
