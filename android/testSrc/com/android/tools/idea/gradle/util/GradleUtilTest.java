@@ -25,7 +25,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -33,7 +32,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -176,22 +174,6 @@ public class GradleUtilTest {
     File jarFile = new File("ant-1.9.3.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
-  }
-
-  @Test
-  public void addInitScriptCommandLineOption() throws IOException {
-    List<String> cmdOptions = Lists.newArrayList();
-
-    String contents = "The contents of the init script file";
-    File initScriptPath = GradleUtil.addInitScriptCommandLineOption("name", contents, cmdOptions);
-    assertNotNull(initScriptPath);
-
-    assertEquals(2, cmdOptions.size());
-    assertEquals("--init-script", cmdOptions.get(0));
-    assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
-
-    String initScript = loadFile(initScriptPath);
-    assertEquals(contents, initScript);
   }
 
   @Test
