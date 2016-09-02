@@ -71,6 +71,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
@@ -212,6 +214,10 @@ public final class GradleUtil {
     return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
+  public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
+    return modelVersion.compareIgnoringQualifiers("2.3.0") >= 0;
+  }
+
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     String existingJvmArgs = settings.getGradleVmOptions();
@@ -275,9 +281,13 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getModuleIcon(@NotNull Module module) {
-    AndroidProject androidProject = getAndroidProject(module);
-    if (androidProject != null) {
-      return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel != null) {
+      int projectType = androidModel.getProjectType();
+      if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
+        return AndroidIcons.AppModule;
+      }
+      return AndroidIcons.LibraryModule;
     }
     return requiresAndroidModel(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
   }
@@ -703,14 +713,16 @@ public final class GradleUtil {
     Set<String> foundInLibraries = Sets.newHashSet();
     Set<String> foundInApps = Sets.newHashSet();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject != null) {
+
+      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      if (androidModel != null) {
+        AndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidProject.isLibrary()) {
-          foundInLibraries.add(modelVersion);
+        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+          foundInApps.add(modelVersion);
         }
         else {
-          foundInApps.add(modelVersion);
+          foundInLibraries.add(modelVersion);
         }
       }
     }

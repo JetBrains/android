@@ -41,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
@@ -84,8 +86,7 @@ public class ProjectStructureUsageTracker {
     for (Module module : modules) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
-        if (androidProject.isLibrary()) {
+        if (androidModel.getProjectType() == PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
           libCount++;
           continue;
@@ -123,14 +124,14 @@ public class ProjectStructureUsageTracker {
         AndroidGradleModel androidModel = AndroidGradleModel.get(module);
         if (androidModel != null) {
           gradleAndroidModules.add(GradleAndroidModule.newBuilder()
-                                     .setAppId(appId)
-                                     .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
-                                     .setSigningConfigCount(androidModel.getAndroidProject().getSigningConfigs().size())
-                                     .setIsLibrary(androidModel.isLibrary())
-                                     .setBuildTypeCount(androidModel.getBuildTypeNames().size())
-                                     .setFlavorCount(androidModel.getProductFlavorNames().size())
-                                     .setFlavorDimension(getFlavorDimensions(androidModel).size())
-                                     .build());
+                                  .setAppId(appId)
+                                  .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
+                                  .setSigningConfigCount(androidModel.getAndroidProject().getSigningConfigs().size())
+                                  .setIsLibrary(androidModel.getProjectType() == PROJECT_TYPE_LIBRARY)
+                                  .setBuildTypeCount(androidModel.getBuildTypeNames().size())
+                                  .setFlavorCount(androidModel.getProductFlavorNames().size())
+                                  .setFlavorDimension(getFlavorDimensions(androidModel).size())
+                                  .build());
         }
 
         boolean shouldReportNative = false;
@@ -311,8 +312,7 @@ public class ProjectStructureUsageTracker {
     for (Module module : moduleManager.getModules()) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
-        if (!androidProject.isLibrary()) {
+        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
           return androidModel.getApplicationId();
         }
       }

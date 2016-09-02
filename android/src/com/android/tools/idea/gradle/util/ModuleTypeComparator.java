@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -29,19 +29,19 @@ public class ModuleTypeComparator implements Comparator<Module> {
 
   @Override
   public int compare(Module m1, Module m2) {
-    AndroidProject p1 = GradleUtil.getAndroidProject(m1);
-    AndroidProject p2 = GradleUtil.getAndroidProject(m2);
-    return compareModules(m1, m2, p1, p2);
+    AndroidGradleModel gm1 = AndroidGradleModel.get(m1);
+    AndroidGradleModel gm2 = AndroidGradleModel.get(m2);
+    return compareModules(m1, m2, gm1, gm2);
   }
 
   @VisibleForTesting
-  static int compareModules(@NotNull Module m1, @NotNull Module m2, @Nullable AndroidProject p1, @Nullable AndroidProject p2) {
-    if ((p1 == null && p2 == null) || (p1 != null && p2 != null && p1.isLibrary() == p2.isLibrary())) {
+  static int compareModules(@NotNull Module m1, @NotNull Module m2, @Nullable AndroidGradleModel gm1, @Nullable AndroidGradleModel gm2) {
+    if ((gm1 == null && gm2 == null) || (gm1 != null && gm2 != null && gm1.getProjectType() == gm2.getProjectType())) {
       return Collator.getInstance().compare(m1.getName(), m2.getName());
     }
-    if (p1 != null) {
-      if (p2 != null) {
-        return !p1.isLibrary() ? -1 : 1;
+    if (gm1 != null) {
+      if (gm2 != null) {
+        return gm1.getProjectType() - gm2.getProjectType();
       }
       return -1;
     }

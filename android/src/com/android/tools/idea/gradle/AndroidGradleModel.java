@@ -677,8 +677,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return LanguageLevel.parse(sourceCompatibility);
   }
 
-  public boolean isLibrary() {
-    return getAndroidProject().isLibrary();
+  public int getProjectType() {
+    try {
+      return getAndroidProject().getProjectType();
+    }
+    catch (UnsupportedMethodException e){
+      return getAndroidProject().isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
+    }
   }
 
   /**
