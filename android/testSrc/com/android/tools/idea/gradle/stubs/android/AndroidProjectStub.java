@@ -46,7 +46,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
-  private boolean myLibrary;
+  private int myProjectType = PROJECT_TYPE_APP;
 
   public AndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
@@ -85,18 +85,18 @@ public class AndroidProjectStub implements AndroidProject {
     return myName;
   }
 
-  public void setIsLibrary(boolean isLibrary) {
-    myLibrary = isLibrary;
-  }
-
   @Override
   public boolean isLibrary() {
-    return myLibrary;
+    return myProjectType == PROJECT_TYPE_LIBRARY;
+  }
+
+  public void setProjectType(int projectType) {
+    myProjectType = projectType;
   }
 
   @Override
   public int getProjectType() {
-    throw new UnsupportedOperationException();
+    return myProjectType;
   }
 
   @Override

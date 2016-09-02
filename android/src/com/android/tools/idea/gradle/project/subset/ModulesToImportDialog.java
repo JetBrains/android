@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
@@ -666,7 +667,7 @@ public class ModulesToImportDialog extends DialogWrapper {
         DataNode<AndroidGradleModel> child = getFirstItem(children);
         if (child != null) {
           AndroidGradleModel androidModel = child.getData();
-          return androidModel.getAndroidProject().isLibrary() ? LibraryModule : AppModule;
+          return androidModel.getProjectType() == PROJECT_TYPE_APP ? AppModule : LibraryModule;
         }
       }
       return PpJdk;

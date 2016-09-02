@@ -32,6 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
@@ -75,8 +76,10 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
     JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    facetState.LIBRARY_PROJECT = androidProject.isLibrary();
+    int projectType = androidModel.getProjectType();
+
+    facetState.LIBRARY_PROJECT = projectType == PROJECT_TYPE_LIBRARY;
+    facetState.PROJECT_TYPE = projectType;
 
     SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
 
