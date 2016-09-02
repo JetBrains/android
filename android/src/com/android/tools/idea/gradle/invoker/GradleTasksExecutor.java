@@ -72,6 +72,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.content.*;
 import com.intellij.util.Consumer;
 import com.intellij.util.Function;
@@ -109,6 +110,7 @@ import static com.google.common.io.Closeables.close;
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
+import static com.intellij.openapi.application.ModalityState.defaultModalityState;
 import static com.intellij.openapi.ui.MessageType.*;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -466,7 +468,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
           selectSdkDialog.setModal(true);
           if (selectSdkDialog.showAndGet()) {
             final String jdkHome = selectSdkDialog.getJdkHome();
-            invokeLaterIfNeeded(new Runnable() {
+            GuiUtils.invokeLaterIfNeeded(new Runnable() {
               @Override
               public void run() {
                 ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -476,7 +478,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
                   }
                 });
               }
-            });
+            }, defaultModalityState());
           }
         }
       }

@@ -35,6 +35,7 @@ import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -43,6 +44,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -206,7 +208,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       sdkManager.loadSynchronously(0, repoProgress, null, null);
       myState.remove(INSTALL_REQUESTS_KEY);
 
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
+      GuiUtils.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
           myProgressBar.setValue(100);
@@ -224,7 +226,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
           }
           sdkManager.markInvalid();
         }
-      });
+      }, ModalityState.defaultModalityState());
     }
   }
 

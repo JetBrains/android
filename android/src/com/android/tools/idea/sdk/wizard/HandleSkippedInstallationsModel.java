@@ -19,8 +19,9 @@ import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,11 +63,11 @@ public final class HandleSkippedInstallationsModel extends WizardModel {
       return;
     }
 
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
+    GuiUtils.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         SdkQuickfixUtils.startSdkManagerAndExit(myProject, mySdkRoot);
       }
-    });
+    }, ModalityState.defaultModalityState());
   }
 }

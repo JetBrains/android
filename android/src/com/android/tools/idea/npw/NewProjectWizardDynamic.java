@@ -38,10 +38,8 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -262,12 +260,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         VfsUtil.createDirectoryIfMissing(location);
       }
     }.execute();
-    myProject = UIUtil.invokeAndWaitIfNeeded(new Computable<Project>() {
-      @Override
-      public Project compute() {
-        return ProjectManager.getInstance().createProject(name, location);
-      }
-    });
+    ApplicationManager.getApplication().invokeAndWait(() -> myProject = ProjectManager.getInstance().createProject(name, location));
     super.doFinish();
   }
 

@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -34,6 +35,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -274,7 +276,7 @@ public final class ProjectSubset {
       String moduleName = getNameOf(module);
       resultsByModuleName.put(moduleName, result);
     }
-    invokeLaterIfNeeded(new Runnable() {
+    GuiUtils.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         ModulesToImportDialog dialog = new ModulesToImportDialog(modulesToDisplayInDialog, myProject);
@@ -304,7 +306,7 @@ public final class ProjectSubset {
           }
         }
       }
-    });
+    }, ModalityState.defaultModalityState());
   }
 
   public void findAndIncludeModules(@NotNull final Collection<String> moduleGradlePaths) {

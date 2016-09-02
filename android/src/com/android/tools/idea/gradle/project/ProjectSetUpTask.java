@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -27,7 +28,7 @@ import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefres
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +96,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      UIUtil.invokeLaterIfNeeded(runnable);
+      GuiUtils.invokeLaterIfNeeded(runnable, ModalityState.defaultModalityState());
     }
   }
 
