@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.lang.glsl.lexer;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
@@ -44,6 +45,23 @@ public class GlslLexerBase {
   private static final Set<String> PREPROCESSOR_KEYWORDS = new HashSet<>(Arrays.asList(
     "define", "undef", "if", "ifdef", "ifndef", "else", "elif", "endif", "error", "pragma", "extension", "version", "line"
   ));
+
+  // Map of syntactic sugar accessors.
+  private static final ImmutableMap<Character, Integer> COMPONENTS_MAP =
+    ImmutableMap.<Character, Integer>builder()
+      .put('x', 0b001)
+      .put('y', 0b001)
+      .put('z', 0b001)
+      .put('w', 0b001)
+      .put('r', 0b010)
+      .put('g', 0b010)
+      .put('b', 0b010)
+      .put('a', 0b010)
+      .put('s', 0b100)
+      .put('t', 0b100)
+      .put('p', 0b100)
+      .put('q', 0b100)
+      .build();
 
   // Input buffer and position
   private final char[] buffer;
@@ -419,6 +437,39 @@ public class GlslLexerBase {
     return true;
   }
 
+  private String scanVecScalarComponents() {
+    int oldPos = pos;
+    int groupMatch = 0b111;
+    while (pos < buffer.length) {
+      char c = buffer[pos];
+      if (Character.isJavaIdentifierPart(c)) {
+        groupMatch &= COMPONENTS_MAP.getOrDefault(c, 0);
+        if (groupMatch == 0) {
+          return null;
+        }
+        pos++;
+      }
+      else {
+        if (groupMatch != 7) {
+          break;
+        }
+        return null;
+      }
+    }
+    return bufferSlice(oldPos, pos);
+  }
+
+  private boolean addComponentsToken() {
+    final int oldPos = pos;
+    final String components = scanVecScalarComponents();
+    if (components != null) {
+      addToken(TokenKind.COMPONENTS, oldPos, pos, components);
+      return true;
+    }
+    pos = oldPos;
+    return false;
+  }
+
   /**
    * Tokenizes a two-char operator.
    *
@@ -516,6 +567,8 @@ public class GlslLexerBase {
         case '.': {
           if (!addFloat()) {
             addToken(TokenKind.DOT, pos - 1, pos);
+            // Try to add a component token.
+            addComponentsToken();
           }
           break;
         }
