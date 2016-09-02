@@ -152,10 +152,20 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public String getValue() {
+    return getValue(false);
+  }
+
+  @Override
+  public boolean isValueUnset() {
+    return getValue(true) == null;
+  }
+
+  @Nullable
+  private String getValue(boolean raw) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     String prev = null;
     for (NlComponent component : myComponents) {
-      String value = getValue(component);
+      String value = getComponentValue(component, raw);
       if (value == null) {
         return null;
       }
@@ -169,8 +179,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return prev;
   }
 
-  private String getValue(@NotNull NlComponent component) {
+  private String getComponentValue(@NotNull NlComponent component, boolean raw) {
     String value = component.getAttribute(myNamespace, myName);
+    if (raw) {
+      return value;
+    }
     return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
   }
 

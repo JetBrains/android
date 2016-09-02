@@ -48,6 +48,11 @@ public interface NlProperty {
   String getValue();
 
   /**
+   * Returns true if the property is not set in XML.
+   */
+  boolean isValueUnset();
+
+  /**
    * Get the resolved value of the property as a string.
    * This is a shortcut for resolveValue(getValue())
    */
