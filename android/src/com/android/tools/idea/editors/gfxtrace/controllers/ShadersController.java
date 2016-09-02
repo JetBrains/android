@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.lang.glsl.highlighting.GlslSyntaxHighlighter;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
@@ -668,9 +669,7 @@ public class ShadersController extends Controller implements ResourceCollection.
                                        @NotNull Project project) {
       // Create viewer for read-only component. TODO: Implement editing as it's done with atom fields.
       final EditorImpl e = (EditorImpl)factory.createViewer(document);
-      // Use existing C/C++ syntax highlighting. TODO: Implement custom highlighter for GLSL.
-      final SyntaxHighlighter h = SyntaxHighlighterFactory.getSyntaxHighlighter(
-        OCLanguage.getInstance(), project, null);
+      final SyntaxHighlighter h = new GlslSyntaxHighlighter();
       e.setHighlighter(new LexerEditorHighlighter(h, e.getColorsScheme()));
       return e;
     }
