@@ -363,7 +363,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Nullable
   private String getText() {
     String text = myCombo.getEditor().getItem().toString();
-    if (StringUtil.isEmpty(text) || text.equals(ValueWithDisplayString.UNSET.toString())) {
+    if (StringUtil.isEmpty(StringUtil.trim(text)) || text.equals(ValueWithDisplayString.UNSET.toString())) {
+      return null;
+    }
+    text = addPropertyValuePrefix(text);
+    if (text == null) {
       return null;
     }
     return Quantity.addUnit(myProperty, text);
@@ -381,6 +385,66 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (value != null && ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand))) {
       stopEditing(value.getValue());
     }
+  }
+
+  /**
+   * Retrieve a valid value based on the text value entered by the user.
+   * This code should match the reverse operation handled by {@link #setModel}.
+   * @param value raw value typed into the editor component or computed as a user friendly value in {@link #setModel}
+   * @return a corresponding value that is valid as the attribute value in XML
+   */
+  @Nullable
+  private String addPropertyValuePrefix(@NotNull String value) {
+    if (myProperty == null) {
+      return value;
+    }
+
+    // This only applies to Style and TextAppearance:
+    switch (myProperty.getName()) {
+      case ATTR_STYLE:
+      case ATTR_TEXT_APPEARANCE:
+        break;
+      default:
+        if (myProperty.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          break;
+        }
+        return value;
+    }
+
+    if (value.startsWith(STYLE_RESOURCE_PREFIX) || value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      return value;
+    }
+
+    value = getValueFromModel(value);
+    if (value == null || value.startsWith(STYLE_RESOURCE_PREFIX) || value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      return value;
+    }
+
+    return STYLE_RESOURCE_PREFIX + value;
+  }
+
+  @Nullable
+  private String getValueFromModel(@NotNull String value) {
+    String valueToLookup = value;
+    if (valueToLookup.startsWith("TextAppearance.")) {
+      valueToLookup = value.substring("TextAppearance.".length());
+    }
+    ValueWithDisplayString selected = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
+    if (selected != null && valueToLookup.equals(selected.toString())) {
+      value = selected.getValue();
+      // Do not add the attribute if this is the default value:
+      if (myProperty.isValueUnset() && myProperty.isDefaultValue(value)) {
+        return null;
+      }
+      return value;
+    }
+    for (int index=0; index < myCombo.getModel().getSize(); index++) {
+      ValueWithDisplayString item = myCombo.getModel().getElementAt(index);
+      if (item != null && valueToLookup.equals(item.toString())) {
+        return item.getValue();
+      }
+    }
+    return value;
   }
 
   private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {
