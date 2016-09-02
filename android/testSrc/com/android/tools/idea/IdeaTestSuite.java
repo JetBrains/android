@@ -117,9 +117,8 @@ public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
     setIdeaHome();
-    if (System.getenv("TEST_SRCDIR") != null) {
-      VfsRootAccess.allowRootAccess(System.getenv("TEST_SRCDIR"));
-    }
+    // Bazel tests are sandboxed so we disable VfsRoot checks.
+    VfsRootAccess.allowRootAccess("/");
 
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
     symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
