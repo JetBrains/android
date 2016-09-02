@@ -33,13 +33,6 @@ import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
 
-  private static final File JDK_HOME = new File(System.getProperty("java.home"));
-
-  @NotNull
-  public static File getJdkPath() {
-    return JDK_HOME;
-  }
-
   /** @deprecated Use {@link com.android.testutils.TestUtils#getSdk} instead. */
   @Deprecated
   @NotNull

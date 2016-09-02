@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -153,21 +152,19 @@ public final class GuiTests {
 
   public static void setUpSdks() {
     File androidSdkPath = getAndroidSdkPath();
-    File jdkPath = AndroidTestCaseHelper.getJdkPath();
 
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
-        File currentJdkPath = IdeSdks.getJdkPath();
-        if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
+        if (!filesEqual(androidSdkPath, currentAndroidSdkPath)) {
           ApplicationManager.getApplication().runWriteAction(
             () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               IdeSdks.setAndroidSdkPath(androidSdkPath, null);
 
-              System.out.println(String.format("Setting JDK: '%1$s'", jdkPath.getPath()));
-              IdeSdks.setJdkPath(jdkPath);
+              IdeSdks.setUseEmbeddedJdk();
+              System.out.println(String.format("Setting JDK: '%1$s'", IdeSdks.getJdkPath()));
 
               System.out.println();
             });
