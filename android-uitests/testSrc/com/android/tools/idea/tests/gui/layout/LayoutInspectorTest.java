@@ -85,7 +85,7 @@ public class LayoutInspectorTest {
    *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
    * </pre>
    */
-  @Ignore("Ignoring until Emulator bug is fixed. b/30477830")
+  @Ignore("http://b/30795134")
   @Test
   @Category(GuiTestSuite.class)
   public void launchLayoutInspector() throws Exception {
