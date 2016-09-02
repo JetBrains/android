@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -82,7 +83,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
@@ -445,13 +445,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
+
     // TODO: Add in --no-daemon, anything to suppress total time?
     List<String> args = Lists.newArrayList();
     args.add(gradlew.getPath());
     args.add("assembleDebug");
     Collections.addAll(args, extraArgs);
-    addLocalMavenRepoInitScriptCommandLineOption(args);
+    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
+
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
