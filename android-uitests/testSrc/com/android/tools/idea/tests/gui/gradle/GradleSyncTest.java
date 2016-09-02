@@ -920,7 +920,6 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=165576
-  @Ignore("Bug in Gradle 3.0")
   @Test
   public void javaModelSerialization() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
@@ -957,7 +956,6 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=169778
-  @Ignore("Bug in Gradle 3.0")
   @Test
   public void javaToAndroidModuleDependencies() throws IOException {
     guiTest.importMultiModule();
@@ -995,7 +993,6 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
-  @Ignore("Bug in Gradle 3.0")
   @Test
   public void withUserDefinedLibraryAttachments() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
