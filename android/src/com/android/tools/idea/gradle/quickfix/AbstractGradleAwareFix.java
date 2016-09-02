@@ -21,6 +21,7 @@ import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
@@ -28,8 +29,6 @@ import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 abstract class AbstractGradleAwareFix implements IntentionAction, LocalQuickFix, HighPriorityAction {
   @Override
@@ -64,7 +63,7 @@ abstract class AbstractGradleAwareFix implements IntentionAction, LocalQuickFix,
   protected static void runWriteCommandActionAndSync(@NotNull final Project project,
                                                      @NotNull final Runnable action,
                                                      @Nullable final GradleSyncListener syncListener) {
-    invokeAndWaitIfNeeded(new Runnable() {
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         WriteCommandAction.runWriteCommandAction(project, action);

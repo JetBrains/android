@@ -95,7 +95,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
@@ -245,7 +244,7 @@ public class GradleProjectImporter {
       return;
     }
     Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, false, listener);
-    invokeAndWaitIfNeeded(syncRequest);
+    ApplicationManager.getApplication().invokeAndWait(syncRequest);
   }
 
   @NotNull
