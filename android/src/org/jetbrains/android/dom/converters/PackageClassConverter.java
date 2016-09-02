@@ -87,7 +87,10 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     String manifestPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
     if (manifestPackage == null && myUseManifestBasePackage) {
-      manifestPackage = MergedManifest.get(context.getModule()).getPackage();
+      Module module = context.getModule();
+      if (module != null) {
+        manifestPackage = MergedManifest.get(module).getPackage();
+      }
     }
     return manifestPackage;
   }
@@ -291,7 +294,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     private final String myBasePackage;
     private final boolean myStartsWithPoint;
     private final boolean myIsPackage;
-    private final Module myModule;
+    @Nullable private final Module myModule;
     private final String[] myExtendsClasses;
     private final boolean myCompleteOnlyModuleClasses;
     private final boolean myIncludeTests;
@@ -302,7 +305,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
                        boolean startsWithPoint,
                        int start,
                        boolean isPackage,
-                       Module module,
+                       @Nullable Module module,
                        String[] extendsClasses,
                        boolean completeOnlyModuleClasses,
                        boolean includeTests) {
@@ -450,7 +453,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     @NotNull
     @Override
     public LocalQuickFix[] getQuickFixes() {
-      if (myIsPackage) {
+      if (myIsPackage || myModule == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
 
