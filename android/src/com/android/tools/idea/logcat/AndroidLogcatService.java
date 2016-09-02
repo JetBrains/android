@@ -184,9 +184,12 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
     synchronized (myLock) {
       ExecutorService executor = myExecutors.get(device);
-      stopReceiving(device);
-      executor.submit(() -> AndroidLogcatUtils.clearLogcat(project, device));
-      startReceiving(device);
+      // If someone keeps a reference to a device that is disconnected, executor will be null.
+      if (executor != null) {
+        stopReceiving(device);
+        executor.submit(() -> AndroidLogcatUtils.clearLogcat(project, device));
+        startReceiving(device);
+      }
     }
   }
 
