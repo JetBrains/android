@@ -383,11 +383,10 @@ public class TemplateUtils {
   }
 
   /**
-   * Reads the given file as text.
+   * Returns the contents of {@code file}, or {@code null} if an {@link IOException} occurs.
+   * If an {@link IOException} occurs and {@code warnIfNotExists} is {@code true}, logs a warning.
    *
-   * @param file            the file to read. Must be an absolute reference.
-   * @param warnIfNotExists if true, logs a warning if the file does not exist.
-   * @return the contents of the file as text
+   * @throws AssertionError if {@code file} is not absolute
    */
   @Nullable
   public static String readTextFromDisk(@NotNull File file, boolean warnIfNotExists) {
@@ -404,10 +403,10 @@ public class TemplateUtils {
   }
 
   /**
-   * Reads the given file as text.
+   * Returns the contents of {@code file}, or {@code null} if an {@link IOException} occurs.
+   * If an {@link IOException} occurs, logs a warning.
    *
-   * @param file The file to read. Must be an absolute reference.
-   * @return the contents of the file as text
+   * @throws AssertionError if {@code file} is not absolute
    */
   @Nullable
   public static String readTextFromDisk(@NotNull File file) {
