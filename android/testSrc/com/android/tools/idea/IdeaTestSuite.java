@@ -93,7 +93,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.templates.GradleFileSimpleMergerTest.class,
   com.android.tools.idea.templates.ParameterTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  com.android.tools.idea.templates.TypedVariableTest.class,
   com.android.tools.idea.templates.UniqueParameterTest.class,
   com.android.tools.idea.uibuilder.palette.IconPreviewFactoryTest.class,
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
