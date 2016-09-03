@@ -74,9 +74,7 @@ import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -99,7 +97,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
-import static com.intellij.util.containers.ContainerUtil.addAll;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
@@ -738,63 +735,6 @@ public final class GradleUtil {
     }
 
     return found != null ? GradleVersion.tryParse(found) : null;
-  }
-
-  public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
-    if (isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
-      List<File> repoPaths = findAndroidStudioLocalMavenRepoPaths();
-      addLocalMavenRepoInitScriptCommandLineOption(args, repoPaths);
-    }
-  }
-
-  public static void addProfilerClassPathInitScriptCommandLineOption(@NotNull List<String> args) {
-    String contents = "allprojects {\n" +
-                      "  buildscript {\n" +
-                      "    dependencies {\n" +
-                      "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
-                      "    }\n" +
-                      "  }\n" +
-                      "}\n";
-
-    addInitScriptCommandLineOption("asPerfClassPath", contents, args);
-  }
-
-  private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull List<File> repoPaths) {
-    if (repoPaths.isEmpty()) {
-      return;
-    }
-
-    String paths = "";
-    for (File file : repoPaths) {
-      String path = escapeGroovyStringLiteral(file.getPath());
-      paths += "      maven { url '" + path + "'}\n";
-    }
-    String contents = "allprojects {\n" +
-                      "  buildscript {\n" +
-                      "    repositories {\n" + paths +
-                      "    }\n" +
-                      "  }\n" +
-                      "  repositories {\n" + paths +
-                      "  }\n" +
-                      "}\n";
-    addInitScriptCommandLineOption("asLocalRepo", contents, args);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  static File addInitScriptCommandLineOption(@NotNull String name, @NotNull String contents, @NotNull List<String> args) {
-    try {
-      File file = createTempFile(name, DOT_GRADLE);
-      file.deleteOnExit();
-      writeToFile(file, contents);
-      addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
-
-      return file;
-    }
-    catch (IOException e) {
-      LOG.warn("Failed to set up 'local repo' Gradle init script", e);
-    }
-    return null;
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
