@@ -59,14 +59,13 @@ public class MockupViewPanel extends JPanel {
   @Nullable private BufferedImage myImage;
   private boolean myDisplayOnlyCroppedRegion = true;
   private boolean mySelectionMode = true;
-  PanZoomManager myPanZoomManager;
+  private PanZoomManager myPanZoomManager;
   private Mockup.MockupModelListener myMockupListener;
 
   private List<SelectionListener> mySelectionListeners = new ArrayList<>();
   AffineTransform myImageTransform = new AffineTransform();
   Point2D.Float myImageOffset = new Point2D.Float();
   private boolean myHqRendering = true;
-
 
   /**
    * Listener to notify the tools when a selection ended
@@ -105,7 +104,7 @@ public class MockupViewPanel extends JPanel {
     setBackground(BACKGROUND);
     setOpaque(true);
     Mockup mockup = mockupEditor.getMockup();
-    if(mockup != null) {
+    if (mockup != null) {
       setMockup(mockup);
       updateDisplayedImage(mockup);
     }
@@ -118,8 +117,8 @@ public class MockupViewPanel extends JPanel {
     addComponentListener(new MyComponentListener());
     addKeyListener(new MyKeyListener());
     myDisplayedImage = myImage;
-    setPreferredSize(new Dimension(200,200));
-    setMinimumSize(new Dimension(100,100));
+    setPreferredSize(new Dimension(200, 200));
+    setMinimumSize(new Dimension(100, 100));
     myPanZoomManager = new PanZoomManager();
     resetState();
     setFocusable(true);
@@ -127,9 +126,13 @@ public class MockupViewPanel extends JPanel {
   }
 
   private void update(Mockup mockup) {
-    resetState();
-    setMockup(mockup);
-    repaint();
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if (myMockup != mockup) {
+        resetState();
+      }
+      setMockup(mockup);
+      repaint();
+    });
   }
 
   /**
@@ -278,8 +281,8 @@ public class MockupViewPanel extends JPanel {
    * Set the selection of the {@link SelectionLayer} to match the mockup crop
    */
   public void setSelectionToMockupCrop() {
-    if(myMockup == null) {
-      mySelectionLayer.setSelection(0,0,0,0);
+    if (myMockup == null) {
+      mySelectionLayer.setSelection(0, 0, 0, 0);
       return;
     }
     mySelectionLayer.setSelection(myMockup.getRealCropping());
@@ -372,6 +375,7 @@ public class MockupViewPanel extends JPanel {
       final Point origin = new Point(e.getPoint());
       myImageTransform.transform(e.getPoint(), e.getPoint());
       if (mySelectionMode) {
+        removeAll();
         toSelectionLayer(e);
         notifySelectionStarted(e.getX(), e.getY());
         repaint();
@@ -410,7 +414,7 @@ public class MockupViewPanel extends JPanel {
           mySelectionLayer.mouseDragged(e);
         }
         if (myPanZoomManager.isPanning()) {
-          //If the user continue to drag but has release the pan key,
+          // If the user continue to drag but has release the pan key,
           // we simulate the mouse release
           myPanZoomManager.mouseReleased(e);
         }
@@ -421,7 +425,9 @@ public class MockupViewPanel extends JPanel {
     public void mouseReleased(MouseEvent e) {
       myPanZoomManager.mouseReleased(e);
       mySelectionLayer.mouseReleased(e);
-      notifySelectionEnded();
+      if (!isPanAction(e)) {
+        notifySelectionEnded();
+      }
     }
 
     @Override
@@ -459,6 +465,7 @@ public class MockupViewPanel extends JPanel {
   private class MyLayoutManager implements LayoutManager {
 
     public static final int H_GAP = 10;
+    public static final int V_GAP = 10;
 
     @Override
     public void addLayoutComponent(String name, Component comp) {
@@ -480,32 +487,54 @@ public class MockupViewPanel extends JPanel {
 
     @Override
     public void layoutContainer(Container parent) {
-      if (parent.getComponentCount() == 0) {
+
+      Rectangle selection = mySelectionLayer.getSelection();
+      if (selection.isEmpty()) {
         return;
       }
-      final Component component = parent.getComponent(0);
-      final Rectangle selection = mySelectionLayer.getSelection();
 
-      if (!selection.isEmpty()) {
-        final int selectionWidth = (int)round(selection.width * myImageTransform.getScaleX());
+      int componentCount = parent.getComponentCount();
+      int totalWidth = componentCount * H_GAP;
 
-        float[] selectionOrigin = new float[]{selection.x, selection.y};
-        myImageTransform.transform(selectionOrigin, 0, selectionOrigin, 0, 1);
-
-        final int selectionX = round(selectionOrigin[0]);
-        final int selectionY = round(selectionOrigin[1]);
-
-        final Dimension preferredSize = component.getPreferredSize();
-        int x = selectionX + selectionWidth + H_GAP;
-        final int width = preferredSize.width;
-        final int height = preferredSize.height;
-        if (x + width > getWidth()) {
-          x = selectionX + selectionWidth - H_GAP - width;
+      // Find total size of all components
+      for (int i = 0; i < componentCount; i++) {
+        Component component = parent.getComponent(i);
+        Dimension preferredSize = component.getPreferredSize();
+        if (preferredSize.width <= 0 || preferredSize.height <= 0) {
+          preferredSize.setSize(component.getSize());
         }
-        component.setBounds(x, selectionY, width, height);
+        totalWidth += preferredSize.width;
       }
-      else {
-        component.setVisible(false);
+
+      final int selectionWidth = (int)round(selection.width * myImageTransform.getScaleX());
+      float[] selectionOrigin = new float[]{selection.x, selection.y};
+      myImageTransform.transform(selectionOrigin, 0, selectionOrigin, 0, 1);
+
+      int selectionX = round(selectionOrigin[0]);
+      int selectionY = round(selectionOrigin[1]);
+
+      // Find fist x offset
+      int x = selectionX + selectionWidth + H_GAP;
+      if (x + totalWidth > getWidth()) {
+        if (totalWidth < 0.9 * selectionWidth) {
+          x = min(getWidth(), selectionX + selectionWidth) - H_GAP - totalWidth;
+        }
+        else {
+          x = selectionX - totalWidth - H_GAP;
+        }
+      }
+      if (x < 0) x = 0;
+
+      for (int i = 0; i < componentCount; i++) {
+        Component component = parent.getComponent(i);
+        Dimension preferredSize = component.getPreferredSize();
+        int y = selectionY;
+        if (y + preferredSize.height > getHeight()) {
+          y -= y + preferredSize.height - getHeight();
+        }
+        y = max(y, V_GAP);
+        component.setBounds(x, y, preferredSize.width, preferredSize.height);
+        x += H_GAP + preferredSize.width;
       }
     }
   }
@@ -513,7 +542,7 @@ public class MockupViewPanel extends JPanel {
   /**
    * Handle the zoom and pan interaction on the image
    */
-  class PanZoomManager {
+  private class PanZoomManager {
     private final static int ANIMATION_DURATION = 200;
     private final static int ZOOM_DELAY = 20;
     private float myTargetZoom;
@@ -545,7 +574,6 @@ public class MockupViewPanel extends JPanel {
         zoomExact(zoom, myMouseDown);
       });
       myZoomTimer.setRepeats(true);
-      //myZoomTimer.setCoalesce(true);
       myZoomTimer.setInitialDelay(0);
     }
 
