@@ -6,7 +6,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -102,7 +101,7 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   }
 
   public void testJavaFileNavigationToSystemResource1() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+    doJavaFileNavigationTest(82, true, XmlAttributeValue.class);
   }
 
   public void testJavaFileNavigationToSystemResource2() throws Exception {
