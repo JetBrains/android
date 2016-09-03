@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -30,7 +31,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 
 import java.io.File;
@@ -90,11 +91,10 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
                          "/home/user/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar",
                          "/idea/production/java-runtime", "/idea/production/junit_rt");
 
-    myMockableAndroidJar = myRoot + "/build/intermediates/mockable-android-17.jar";
+    myMockableAndroidJar = myRoot + "/build/intermediates/mockable-" + TestUtils.getLatestAndroidPlatform() + ".jar";
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myModule);
     assertNotNull(androidPlatform);
-    assertEquals(17, androidPlatform.getApiLevel()); // Sanity check.
-    myRealAndroidJar = FileUtil.toCanonicalPath(getTestSdkPath() + "/platforms/android-1.5/android.jar");
+    myRealAndroidJar = TestUtils.getPlatformFile("android.jar").toString();
     myResourcesDirs = ImmutableList.of(myRoot + "/build/intermediates/javaResources/debug",
                                        myRoot + "/build/intermediates/javaResources/test/debug");
 

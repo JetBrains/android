@@ -29,7 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -190,15 +190,9 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     return sb.toString();
   }
 
-  @Override
-  protected boolean requireRecentSdk() {
-    // Need valid layoutlib install
-    return true;
-  }
-
   @Nullable
   private IAndroidTarget getTestTarget(@NotNull ConfigurationManager configurationManager) {
-    String platformDir = getPlatformDir();
+    String platformDir = TestUtils.getLatestAndroidPlatform();
     for (IAndroidTarget target : configurationManager.getTargets()) {
       if (!ConfigurationManager.isLayoutLibTarget(target)) {
         continue;
@@ -256,7 +250,8 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     assertSize(2, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
+      ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
@@ -276,7 +271,8 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     assertSize(2, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
+      ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
@@ -297,11 +293,13 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     assertSize(1, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
+      ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
-      "<BR/>", issues.get(0));
+      "<BR/>",
+      issues.get(0));
   }
 
   public void testBrokenLayoutLib() {

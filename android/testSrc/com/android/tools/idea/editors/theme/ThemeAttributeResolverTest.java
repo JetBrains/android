@@ -28,7 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
@@ -97,7 +97,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary")) {
+      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
         for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
@@ -130,7 +130,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary")) {
+      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
         for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
