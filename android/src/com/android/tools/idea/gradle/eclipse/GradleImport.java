@@ -27,7 +27,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.util.PropertiesUtil;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
 import com.android.utils.SdkUtils;
@@ -193,7 +193,7 @@ public class GradleImport {
     File localProperties = new File(projectDir, FN_LOCAL_PROPERTIES);
     if (localProperties.exists()) {
       try {
-        Properties properties = PropertiesUtil.getProperties(localProperties);
+        Properties properties = PropertiesFiles.getProperties(localProperties);
         if (properties != null) {
           String sdk = properties.getProperty(property);
           if (sdk != null) {
@@ -628,7 +628,7 @@ public class GradleImport {
       File settings = getEncodingSettingsFile();
       if (settings.exists()) {
         try {
-          Properties properties = PropertiesUtil.getProperties(settings);
+          Properties properties = PropertiesFiles.getProperties(settings);
           if (properties != null) {
             String encodingName = properties.getProperty("encoding");
             if (encodingName != null) {
@@ -657,7 +657,7 @@ public class GradleImport {
     if (myWorkspaceLocation != null) {
       if (settings.exists()) {
         try {
-          Properties properties = PropertiesUtil.getProperties(settings);
+          Properties properties = PropertiesFiles.getProperties(settings);
           if (properties != null) {
             String path = properties.getProperty(property);
             if (path == null) {
@@ -956,7 +956,7 @@ public class GradleImport {
                         "# as it contains information specific to your local configuration.\n" +
                         "\n" +
                         "# Location of the SDK. This is only used by Gradle.\n";
-      PropertiesUtil.savePropertiesToFile(properties, path, comments);
+      PropertiesFiles.savePropertiesToFile(properties, path, comments);
     }
   }
 
@@ -1366,7 +1366,7 @@ public class GradleImport {
       return null;
     }
 
-    return PropertiesUtil.getProperties(settings);
+    return PropertiesFiles.getProperties(settings);
   }
 
   private File getRuntimeSettingsDir() {
@@ -1406,7 +1406,7 @@ public class GradleImport {
       return null;
     }
 
-    return PropertiesUtil.getProperties(settings);
+    return PropertiesFiles.getProperties(settings);
   }
 
   private File getWorkspaceLocation() {

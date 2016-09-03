@@ -520,9 +520,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-            IdeSdks.setJdkPath(new File(jdkHome));
-          }));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.setJdkPath(new File(jdkHome))));
         }
       }
     };

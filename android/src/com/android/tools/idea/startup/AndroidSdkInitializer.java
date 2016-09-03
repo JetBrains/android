@@ -38,7 +38,7 @@ import java.io.*;
 import java.util.List;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
