@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AndroidModuleSetupStep {
-  public static final ExtensionPointName<AndroidModuleSetupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.androidModuleSetupStep");
+public abstract class JavaModuleSetupStep {
+  public static final ExtensionPointName<JavaModuleSetupStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.javaModuleConfigurationStep");
 
   @NotNull
-  public static AndroidModuleSetupStep[] getExtensions() {
+  public static JavaModuleSetupStep[] getExtensions() {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
   public abstract void setUpModule(@NotNull Module module,
-                                   @NotNull AndroidGradleModel androidModel,
+                                   @NotNull JavaProject javaProject,
                                    @NotNull IdeModifiableModelsProvider ideModelsProvider,
                                    @NotNull SyncAction.ModuleModels gradleModels,
                                    @NotNull ProgressIndicator indicator);

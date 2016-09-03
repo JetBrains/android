@@ -13,51 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.android;
+package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.JavaArtifact;
-import com.android.builder.model.Variant;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.CompilerSettings;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.roots.ModifiableRootModel;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 
-public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
-  private final CompilerSettings myCompilerSettings = new CompilerSettings();
-
+public class RunConfigurationModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   public void setUpModule(@NotNull Module module,
                           @NotNull AndroidGradleModel androidModel,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull SyncAction.ModuleModels gradleModels,
                           @NotNull ProgressIndicator indicator) {
-    GradleVersion modelVersion = androidModel.getModelVersion();
-    if (modelVersion == null) {
-      // We are dealing with old model that does not have the 'class' folder.
-      return;
+    AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
+    if (facet != null && !facet.isLibraryProject()) {
+      createRunConfigurations(facet);
     }
-
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
-
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
-    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
-
-    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
-    myCompilerSettings.setOutputPaths(rootModel, mainClassesFolder, testClassesFolder);
   }
 
   @Override
   @NotNull
   public String getDescription() {
-    return "Compiler output setup";
+    return "'Run Configuration' setup";
   }
 }

@@ -13,35 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.android;
+package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
-
-public class RunConfigurationModuleSetupStep extends AndroidModuleSetupStep {
+public class ContentRootModuleSetupStep extends JavaModuleSetupStep {
   @Override
   public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
+                          @NotNull JavaProject javaProject,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull SyncAction.ModuleModels gradleModels,
                           @NotNull ProgressIndicator indicator) {
-    AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
-    if (facet != null && !facet.isLibraryProject()) {
-      createRunConfigurations(facet);
-    }
+    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
+    JavaContentEntries contentEntries = JavaContentEntries.findOrCreateContentEntries(rootModel, javaProject);
+    contentEntries.setUpContentEntries(module);
   }
 
   @Override
   @NotNull
   public String getDescription() {
-    return "'Run Configuration' setup";
+    return "Source folder(s) setup";
   }
 }
