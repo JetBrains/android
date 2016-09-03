@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindo
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
+import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -304,11 +305,14 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
         commandLineArgs.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
         commandLineArgs.addAll(myContext.getCommandLineArgs());
-        addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
+
+        GradleInitScripts initScripts = GradleInitScripts.getInstance();
+        initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArgs);
+
         attemptToUseEmbeddedGradle(project);
 
         if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
-          addProfilerClassPathInitScriptCommandLineOption(commandLineArgs);
+          initScripts.addProfilerClasspathInitScriptCommandLineArgTo(commandLineArgs);
           commandLineArgs.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
         }
 
