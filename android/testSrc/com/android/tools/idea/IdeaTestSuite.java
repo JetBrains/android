@@ -47,6 +47,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.invoker.GradleInvokerTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
+  com.android.tools.idea.gradle.project.common.GradleInitScriptsTest.class,
   com.android.tools.idea.gradle.project.GradleProjectImporterTest.class,
   com.android.tools.idea.gradle.project.GradleProjectSyncDataTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
