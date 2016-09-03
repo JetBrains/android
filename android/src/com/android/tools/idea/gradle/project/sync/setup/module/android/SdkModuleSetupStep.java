@@ -52,7 +52,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull SyncAction.ModuleModels gradleModels,
                           @NotNull ProgressIndicator indicator) {
-    File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
+    File androidSdkHomePath = IdeSdks.getInstance().getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       assert !isAndroidStudio();
@@ -90,7 +90,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     Logger log = getLog();
     log.warn("Path to Android SDK not set");
 
-    List<Sdk> sdks = IdeSdks.getEligibleAndroidSdks();
+    List<Sdk> sdks = IdeSdks.getInstance().getEligibleAndroidSdks();
     log.warn("# of eligible SDKs: " + sdks.size());
     for (Sdk sdk : sdks) {
       log.info("sdk: " + sdk.toString());

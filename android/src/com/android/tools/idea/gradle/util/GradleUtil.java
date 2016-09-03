@@ -442,7 +442,7 @@ public final class GradleUtil {
         File gradlePath = findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
         executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
-        File jdkPath = IdeSdks.getJdkPath();
+        File jdkPath = IdeSdks.getInstance().getJdkPath();
         if (jdkPath != null) {
           executionSettings.setJavaHome(jdkPath.getPath());
         }

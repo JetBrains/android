@@ -30,7 +30,7 @@ import java.util.List;
 
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
-class GradleRunnerCleanupTask extends ProjectCleanUpTask {
+class GradleRunnerCleanupTask extends AndroidStudioCleanUpTask {
   GradleRunnerCleanupTask(@NotNull Project project) {
     super(project);
   }

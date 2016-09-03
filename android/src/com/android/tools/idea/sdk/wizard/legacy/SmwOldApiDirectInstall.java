@@ -41,7 +41,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -67,7 +66,6 @@ import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_
  * @deprecated Replaced by {@link InstallSelectedPackagesStep}
  */
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
-  private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;
   private JTextArea mySdkManagerOutput;
   private JBLabel myLabelProgress1;
@@ -113,7 +111,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       return;
     }
 
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
     if (androidSdkPath != null && androidSdkPath.exists() && !androidSdkPath.canWrite()) {
       myErrorLabel.setText(String.format("SDK folder is read-only: '%1$s'", androidSdkPath.getPath()));
       myErrorLabel.setIcon(AllIcons.General.BalloonError);

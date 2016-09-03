@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.application.PathManager;
@@ -41,7 +42,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
-import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
@@ -104,7 +104,7 @@ public class GradleProjectSyncData implements Serializable {
 
   private static boolean needsAndroidSdkSync(@NotNull final Project project) {
     if (isAndroidStudio()) {
-      final File ideSdkPath = getAndroidSdkPath();
+      final File ideSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
       if (ideSdkPath != null) {
         try {
           LocalProperties localProperties = new LocalProperties(project);

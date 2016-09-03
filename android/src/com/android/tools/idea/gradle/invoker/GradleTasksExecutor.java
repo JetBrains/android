@@ -337,7 +337,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         BuildLauncher launcher = connection.newBuild();
         prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
-        File javaHome = IdeSdks.getJdkPath();
+        File javaHome = IdeSdks.getInstance().getJdkPath();
         if (javaHome != null) {
           launcher.setJavaHome(javaHome);
         }
@@ -514,13 +514,14 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       // hyperlink to set the JDK home.
       // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
       if (isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
-        File androidHome = IdeSdks.getAndroidSdkPath();
+        IdeSdks ideSdks = IdeSdks.getInstance();
+        File androidHome = ideSdks.getAndroidSdkPath();
         String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
         SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.setJdkPath(new File(jdkHome))));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(new File(jdkHome))));
         }
       }
     };

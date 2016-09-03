@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
@@ -32,6 +32,9 @@ import java.io.File;
 public class SdkSyncTest extends IdeaTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
+  private IdeSdks myIdeSdks;
+
+  private SdkSync mySdkSync;
 
   @Override
   protected void setUp() throws Exception {
@@ -39,29 +42,30 @@ public class SdkSyncTest extends IdeaTestCase {
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myLocalProperties = new LocalProperties(myProject);
     myAndroidSdkPath = TestUtils.getSdk();
-
-    assertNull(IdeSdks.getAndroidSdkPath());
+    myIdeSdks = IdeSdks.getInstance();
+    mySdkSync = new SdkSync(myIdeSdks);
+    assertNull(myIdeSdks.getAndroidSdkPath());
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
     });
 
-    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
     });
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
 
-    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
@@ -70,27 +74,27 @@ public class SdkSyncTest extends IdeaTestCase {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
 
-    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertDefaultSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserSelectsValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask(myIdeSdks) {
       @Nullable
       @Override
       File selectValidSdkPath() {
         return myAndroidSdkPath;
       }
     };
-    SdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
 
     assertProjectSdkSet();
     assertDefaultSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
-    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask(myIdeSdks) {
       @Nullable
       @Override
       File selectValidSdkPath() {
@@ -98,19 +102,19 @@ public class SdkSyncTest extends IdeaTestCase {
       }
     };
     try {
-      SdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+      mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
       fail("Expecting ExternalSystemException");
     } catch (ExternalSystemException e) {
       // expected
     }
 
-    assertNull(IdeSdks.getAndroidSdkPath());
+    assertNull(myIdeSdks.getAndroidSdkPath());
     myLocalProperties = new LocalProperties(myProject);
     assertNull(myLocalProperties.getAndroidSdkPath());
   }
 
   private void assertDefaultSdkSet() {
-    File actual = IdeSdks.getAndroidSdkPath();
+    File actual = myIdeSdks.getAndroidSdkPath();
     assertNotNull(actual);
     assertEquals(myAndroidSdkPath.getPath(), actual.getPath());
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +27,11 @@ public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
 
   @Nullable
   public static SelectJdkFromFileSystemHyperlink create(@NotNull Project project) {
-    ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-    if (service instanceof AndroidProjectSettingsService) {
-      return new SelectJdkFromFileSystemHyperlink((AndroidProjectSettingsService)service);
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+      if (service instanceof AndroidProjectSettingsService) {
+        return new SelectJdkFromFileSystemHyperlink((AndroidProjectSettingsService)service);
+      }
     }
     return null;
   }

@@ -201,7 +201,7 @@ public class SelectNdkDialog extends DialogWrapper {
       List<String> requested = ImmutableList.of(SdkConstants.FD_NDK);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested, false);
       if (dialog != null && dialog.showAndGet()) {
-        File ndk = IdeSdks.getAndroidNdkPath();
+        File ndk = IdeSdks.getInstance().getAndroidNdkPath();
         if (ndk != null) {
           myNdkPath = ndk.getPath();
         }
