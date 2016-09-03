@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup;
+package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.CompilerModuleExtension;

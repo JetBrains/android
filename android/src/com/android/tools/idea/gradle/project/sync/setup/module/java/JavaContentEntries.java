@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.java;
+package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
-import com.android.tools.idea.gradle.project.sync.setup.ContentEntries;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntries;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
