@@ -174,7 +174,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private static boolean isExistingSdk(@Nullable String path) {
     if (!StringUtil.isEmptyOrSpaces(path)) {
       File file = new File(path);
-      return file.isDirectory() && IdeSdks.isValidAndroidSdkPath(file);
+      return file.isDirectory() && IdeSdks.getInstance().isValidAndroidSdkPath(file);
     }
     else {
       return false;

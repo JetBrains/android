@@ -48,7 +48,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
 
   public void doAction(@NotNull Project project) {
     if (AndroidStudioInitializer.isAndroidStudio()) {
-      File androidHome = IdeSdks.getAndroidSdkPath();
+      File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
       if (androidHome != null) {
         doRunTool(project, androidHome.getPath());
         return;

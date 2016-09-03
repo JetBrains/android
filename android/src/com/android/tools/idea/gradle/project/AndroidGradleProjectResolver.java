@@ -296,7 +296,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (!isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();
         if (localProperties.getAndroidSdkPath() == null) {
-          File androidHomePath = IdeSdks.getAndroidSdkPath();
+          File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
           // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
           if (androidHomePath != null) {
             args.add(KeyValue.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));

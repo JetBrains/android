@@ -20,6 +20,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -65,7 +66,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.sdk.IdeSdks.isJdk7Supported;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -437,7 +437,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    if (isJdk7Supported(sdkData)) {
+    if (IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       IAndroidTarget[] targets = sdkData.getTargets();
       IAndroidTarget target = targets[targets.length - 1];
       Map<String, Object> overrides = Maps.newHashMap();

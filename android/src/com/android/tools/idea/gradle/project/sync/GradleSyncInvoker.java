@@ -21,6 +21,8 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,9 +49,11 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
@@ -60,6 +64,7 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 public class GradleSyncInvoker {
   @NotNull private final Project myProject;
   @NotNull private final PreSyncProjectCleanUp myProjectCleanUp;
+  @NotNull private final PreSyncChecks myPreSyncChecks;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
@@ -68,18 +73,29 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(project, GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp) {
-    this(project, projectCleanUp, new ProjectSetup.Factory());
+  public GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncChecks preSyncChecks, @NotNull PreSyncProjectCleanUp projectCleanUp) {
+    this(project, preSyncChecks, projectCleanUp, new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncProjectCleanUp projectCleanUp, @NotNull ProjectSetup.Factory projectSetupFactory) {
+  GradleSyncInvoker(@NotNull Project project,
+                    @NotNull PreSyncChecks preSyncChecks,
+                    @NotNull PreSyncProjectCleanUp projectCleanUp,
+                    @NotNull ProjectSetup.Factory projectSetupFactory) {
     myProject = project;
+    myPreSyncChecks = preSyncChecks;
     myProjectSetupFactory = projectSetupFactory;
     myProjectCleanUp = projectCleanUp;
   }
 
   public void sync(@NotNull ProgressExecutionMode mode, @Nullable GradleSyncListener syncListener) {
+    PreSyncCheckResult canSync = myPreSyncChecks.canSync(myProject);
+    if (!canSync.isSuccess()) {
+      String cause = nullToEmpty(canSync.getFailureCause());
+      handlePreSyncCheckFailure(cause, syncListener);
+      return;
+    }
+
     myProjectCleanUp.execute();
 
     String title = String.format("Syncing project '%1$s' with Gradle", myProject.getName());
@@ -107,10 +123,23 @@ public class GradleSyncInvoker {
     invokeAndWaitIfNeeded((Runnable)task::queue);
   }
 
+  private void handlePreSyncCheckFailure(@NotNull String failureCause, @Nullable GradleSyncListener syncListener) {
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+    if (syncState.syncStarted(true)) {
+      createTopLevelProjectAndOpen(myProject);
+      syncState.syncFailed(failureCause);
+      if (syncListener != null) {
+        syncListener.syncFailed(myProject, failureCause);
+      }
+    }
+  }
+
   private void sync(@NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
     Callback callback = sync();
+    // @formatter:off
     callback.doWhenDone(() -> onSyncFinished(callback, indicator, syncListener))
             .doWhenRejected(() -> onSyncFailed(callback, syncListener));
+    // @formatter:on
   }
 
   @NotNull

@@ -563,7 +563,7 @@ public class PostProjectSetupTasksExecutor {
         continue;
       }
 
-      Sdk jdk = IdeSdks.getJdk();
+      Sdk jdk = IdeSdks.getInstance().getJdk();
       model.setSdk(jdk);
     }
 
@@ -720,7 +720,7 @@ public class PostProjectSetupTasksExecutor {
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
 
-    File androidHome = IdeSdks.getAndroidSdkPath();
+    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       String message = "Version " + VersionCheck.MIN_TOOLS_REV + " or later is required.";

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages.reporter;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
@@ -74,6 +75,17 @@ public class SyncMessages {
     myProject = project;
     myNotificationManager = manager;
     myMessageReporter = new SyncMessageReporter(project, manager);
+    myUnresolvedDependencyMessageReporter = new UnresolvedDependencyMessageReporter(myMessageReporter);
+    mySyncIssuesMessageReporter = new SyncIssuesMessageReporter(myMessageReporter);
+  }
+
+  @VisibleForTesting
+  public SyncMessages(@NotNull Project project,
+                      @NotNull ExternalSystemNotificationManager manager,
+                      @NotNull SyncMessageReporter messageReporter) {
+    myProject = project;
+    myNotificationManager = manager;
+    myMessageReporter = messageReporter;
     myUnresolvedDependencyMessageReporter = new UnresolvedDependencyMessageReporter(myMessageReporter);
     mySyncIssuesMessageReporter = new SyncIssuesMessageReporter(myMessageReporter);
   }

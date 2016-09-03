@@ -158,7 +158,7 @@ public class GradleSyncTest {
 
   @Before
   public void restoreAndroidRepository() throws IOException {
-    File androidExtrasPath = new File(IdeSdks.getAndroidSdkPath(), join("extras", "android"));
+    File androidExtrasPath = new File(IdeSdks.getInstance().getAndroidSdkPath(), join("extras", "android"));
     myAndroidRepoPath = new File(androidExtrasPath, "m2repository");
     myAndroidRepoTempPath = new File(androidExtrasPath, "m2repository.temp");
 
@@ -1130,7 +1130,8 @@ public class GradleSyncTest {
 
     getGuiTestSuiteState().setSkipSdkMerge(true);
 
-    File originalSdkPath = IdeSdks.getAndroidSdkPath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File originalSdkPath = ideSdks.getAndroidSdkPath();
     assertNotNull(originalSdkPath);
 
     guiTest.importSimpleApplication();
@@ -1148,7 +1149,7 @@ public class GradleSyncTest {
 
     ideFrame.waitForGradleProjectSyncToFinish();
 
-    assertThat(IdeSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
+    assertThat(ideSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
 
     // Set the project's SDK to be the original one. Now we will choose the IDE's SDK.
     localProperties = new LocalProperties(ideFrame.getProject());
@@ -1281,7 +1282,7 @@ public class GradleSyncTest {
 
   @Test
   public void withModuleLanguageLevelEqualTo8() throws IOException {
-    Sdk jdk = IdeSdks.getJdk();
+    Sdk jdk = IdeSdks.getInstance().getJdk();
     if (jdk == null) {
       skipTest("JDK is null");
     }
@@ -1405,9 +1406,7 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          IdeSdks.setJdkPath(tempJdkDirectory);
-        });
+        ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(tempJdkDirectory));
       }
     });
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -1512,9 +1511,7 @@ public class GradleSyncTest {
       @Override
       protected void executeInEDT() throws Throwable {
         runWriteCommandAction(
-          project, () -> {
-            buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23");
-          });
+          project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23"));
       }
     });
 

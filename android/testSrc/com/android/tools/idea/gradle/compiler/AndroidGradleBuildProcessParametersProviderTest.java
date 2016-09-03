@@ -55,9 +55,12 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   public void setUp() throws Exception {
     super.setUp();
 
-    ApplicationManager.getApplication().runWriteAction(IdeSdks::setUseEmbeddedJdk);
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    ApplicationManager.getApplication().runWriteAction(ideSdks::setUseEmbeddedJdk);
 
-    myJdk = Jdks.createJdk(IdeSdks.getJdkPath().getPath());
+    File jdkPath = ideSdks.getJdkPath();
+    assert jdkPath != null;
+    myJdk = Jdks.createJdk(jdkPath.getPath());
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
@@ -69,7 +72,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
         String jdkHome = myJdk.getHomePath();
         assertNotNull(jdkHome);
         File jdkHomePath = new File(toSystemDependentName(jdkHome));
-        IdeSdks.setJdkPath(jdkHomePath);
+        IdeSdks.getInstance().setJdkPath(jdkHomePath);
       }
     });
 

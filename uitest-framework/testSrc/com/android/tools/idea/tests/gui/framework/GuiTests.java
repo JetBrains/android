@@ -156,15 +156,16 @@ public final class GuiTests {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
+        IdeSdks ideSdks = IdeSdks.getInstance();
+        File currentAndroidSdkPath = ideSdks.getAndroidSdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath)) {
           ApplicationManager.getApplication().runWriteAction(
             () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
-              IdeSdks.setAndroidSdkPath(androidSdkPath, null);
+              ideSdks.setAndroidSdkPath(androidSdkPath, null);
 
-              IdeSdks.setUseEmbeddedJdk();
-              System.out.println(String.format("Setting JDK: '%1$s'", IdeSdks.getJdkPath()));
+              ideSdks.setUseEmbeddedJdk();
+              System.out.println(String.format("Setting JDK: '%1$s'", ideSdks.getJdkPath()));
 
               System.out.println();
             });
@@ -179,9 +180,7 @@ public final class GuiTests {
       @Override
       protected void executeInEDT() throws Throwable {
         ApplicationManager.getApplication().runWriteAction(
-          () -> {
-            LocalFileSystem.getInstance().refresh(false /* synchronous */);
-          });
+          () -> LocalFileSystem.getInstance().refresh(false /* synchronous */));
       }
     });
   }

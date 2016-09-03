@@ -46,6 +46,8 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 public class IdeSdksTest extends IdeaTestCase {
   private File myAndroidSdkPath;
 
+  private IdeSdks myIdeSdks;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -67,27 +69,29 @@ public class IdeSdksTest extends IdeaTestCase {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertNotNull(facet);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
+
+    myIdeSdks = new IdeSdks();
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
-    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
   }
 
   public void testGetAndroidSdkPath() {
     // Create default SDKs first.
-    IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    File androidHome = IdeSdks.getAndroidSdkPath();
+    File androidHome = myIdeSdks.getAndroidSdkPath();
     assertNotNull(androidHome);
     assertEquals(myAndroidSdkPath.getPath(), androidHome.getPath());
   }
 
   public void testGetEligibleAndroidSdks() {
     // Create default SDKs first.
-    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    List<Sdk> eligibleSdks = IdeSdks.getEligibleAndroidSdks();
+    List<Sdk> eligibleSdks = myIdeSdks.getEligibleAndroidSdks();
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
@@ -97,7 +101,7 @@ public class IdeSdksTest extends IdeaTestCase {
     localProperties.save();
 
     List<Sdk> sdks =
-      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
+      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
@@ -134,12 +138,10 @@ public class IdeSdksTest extends IdeaTestCase {
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.setUseEmbeddedJdk();
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
     // The path of the JDK should be the same as the embedded one.
-    File jdkPath = IdeSdks.getJdkPath();
+    File jdkPath = myIdeSdks.getJdkPath();
     assertNotNull(jdkPath);
 
     File embeddedJdkPath = getEmbeddedJdkPath();
