@@ -74,8 +74,8 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
         values.add(result);
       }
     }
-    myDependencyModificationCountOnCompute = calculateModificationCountFrom(newDependencies);
-    myDependencies = newDependencies;
+    myDependencies = Collections.unmodifiableList(newDependencies);
+    myDependencyModificationCountOnCompute = calculateModificationCountFrom(myDependencies);
     return Result.create(merge(values), this);
   }
 
