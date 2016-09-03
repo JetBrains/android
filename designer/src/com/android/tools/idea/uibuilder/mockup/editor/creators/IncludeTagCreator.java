@@ -123,8 +123,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
         NlComponent component = model.getComponents().get(0);
         final AttributesTransaction transaction = component.startAttributeTransaction();
         addShowInAttribute(transaction);
-        addSizeAttributes(transaction, getTransformedBounds());
-        addMockupAttributes(transaction, getBounds());
+        addSizeAttributes(transaction, getAndroidBounds());
+        addMockupAttributes(transaction, getSelectionBounds());
         WriteCommandAction.runWriteCommandAction(model.getProject(), (Computable)transaction::commit);
       }
     };
