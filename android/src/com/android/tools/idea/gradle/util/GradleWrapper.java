@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -179,7 +179,7 @@ public final class GradleWrapper {
 
   @NotNull
   public Properties getProperties() throws IOException {
-    return PropertiesUtil.getProperties(myPropertiesFilePath);
+    return PropertiesFiles.getProperties(myPropertiesFilePath);
   }
 
   @Nullable

@@ -6,7 +6,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.util.PropertiesUtil;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
@@ -1347,10 +1347,10 @@ public class GradleImportTest extends AndroidTestCase {
                    .replace(NL, "\n"));
 
     assertEquals(sdkLocation.getPath(),
-                 PropertiesUtil.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
+                 PropertiesFiles.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
                    getProperty("sdk.dir"));
     assertEquals(ndkLocation.getPath(),
-                 PropertiesUtil.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
+                 PropertiesFiles.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
                    getProperty("ndk.dir"));
 
     deleteDir(root);
