@@ -204,6 +204,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
+  @Ignore("failed consistently from http://go/aj/builders/studio-uitests_master-dev/builds/1271")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void changeManifest() throws Exception {
