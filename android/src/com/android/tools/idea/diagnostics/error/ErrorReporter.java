@@ -18,12 +18,10 @@ package com.android.tools.idea.diagnostics.error;
 
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.ITNReporter;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -36,7 +34,6 @@ import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -78,17 +75,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    Throwable t = event.getThrowable();
-    if (t != null) {
-      final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
-      if (pluginId != null) {
-        final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
-        if (ideaPluginDescriptor != null && (!ideaPluginDescriptor.isBundled() || ideaPluginDescriptor.allowBundledUpdate())) {
-          bean.setPluginName(ideaPluginDescriptor.getName());
-          bean.setPluginVersion(ideaPluginDescriptor.getVersion());
-        }
-      }
-    }
+    ITNReporter.setPluginInfo(event, bean);
 
     Object data = event.getData();
 
@@ -132,7 +119,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
                           UpdateSettings.getInstance());
 
       feedbackTask =
-        new AnonymousFeedbackTask(project, FEEDBACK_TASK_TITLE, true, t, pair2map(kv), bean.getMessage(), bean.getDescription(),
+        new AnonymousFeedbackTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), bean.getMessage(), bean.getDescription(),
                                   ApplicationInfo.getInstance().getFullVersion(), successCallback, errorCallback);
     }
     if (project == null) {
