@@ -16,6 +16,7 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
@@ -109,6 +110,7 @@ import java.nio.file.Paths;
 public class IdeaTestSuite {
 
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+  private static final String HOST_DIR = OsType.getHostOs().getFolderName();
 
   // Initialize Idea specific environment
   static {
@@ -121,7 +123,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
-    symbolicLinkInTmpDir("prebuilts/studio/sdk/linux/platforms/android-24");
+    symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/android-24");
   }
 
   private static void symbolicLinkInTmpDir(String target) {
