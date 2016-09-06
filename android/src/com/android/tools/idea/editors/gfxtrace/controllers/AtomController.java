@@ -76,16 +76,17 @@ import java.lang.ref.SoftReference;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.List;
 import java.util.Map;
+import java.util.RandomAccess;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Contract;
@@ -324,7 +325,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
       return myChildCount;
     }
 
-    public Object getChild(int childIndex, Context context, AtomList atoms) {
+    public Renderable getChild(int childIndex, Context context, AtomList atoms) {
       setupChildLookups(context, atoms);
 
       Reference<Renderable> ref = mySoftChildren.get(childIndex);
@@ -1040,7 +1041,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
 
     @Override
-    public Object getChild(Object element, int index) {
+    public Renderable getChild(Object element, int index) {
       if (element instanceof Group) {
         Group group = (Group)element;
         return group.getChild(index, myContext, myAtoms);
@@ -1118,7 +1119,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     private TreePath getTreePathTo(Renderable node, TreePath path, Range range) {
       assert !isLeaf(node);
 
-      int found = searchChildren(this, node, child -> {
+      int found = Collections.binarySearch(new ChildList(node), null, (child, ignored) -> {
         if (child instanceof Group) {
           Range childRange = ((Group)child).group.getRange();
           if (childRange.contains(range.getLast())) return 0;
@@ -1152,26 +1153,22 @@ public class AtomController extends TreeController implements AtomStream.Listene
       return null;
     }
 
-    /**
-     * @see java.util.Collections#binarySearch(List, Object, Comparator)
-     */
-    private static <T> int searchChildren(TreeModel treeModel, T node, ToIntFunction<T> comparator) {
-      int low = 0;
-      int high = treeModel.getChildCount(node)-1;
+    class ChildList extends AbstractList<Renderable> implements RandomAccess {
+      private Renderable myNode;
 
-      while (low <= high) {
-        int mid = (low + high) >>> 1;
-        T midVal = (T)treeModel.getChild(node, mid);
-        int cmp = comparator.applyAsInt(midVal);
-
-        if (cmp < 0)
-          low = mid + 1;
-        else if (cmp > 0)
-          high = mid - 1;
-        else
-          return mid; // key found
+      ChildList (Renderable node) {
+        myNode = node;
       }
-      return -(low + 1);  // key not found
+
+      @Override
+      public Renderable get(int index) {
+        return getChild(myNode, index);
+      }
+
+      @Override
+      public int size() {
+        return getChildCount(myNode);
+      }
     }
 
     @Override
