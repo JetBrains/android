@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
+import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
@@ -123,7 +125,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       configureGradleProject();
     }
     else if (canImportAsGradleProject(myProject.getBaseDir())) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
 

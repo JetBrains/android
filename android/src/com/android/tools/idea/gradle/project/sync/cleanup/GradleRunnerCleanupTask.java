@@ -31,13 +31,9 @@ import java.util.List;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
 class GradleRunnerCleanupTask extends AndroidStudioCleanUpTask {
-  GradleRunnerCleanupTask(@NotNull Project project) {
-    super(project);
-  }
-
   @Override
-  void doExecute() {
-    ExtensionsArea area = Extensions.getArea(getProject());
+  void doCleanUp(@NotNull Project project) {
+    ExtensionsArea area = Extensions.getArea(project);
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
 
     // https://code.google.com/p/android/issues/detail?id=213178

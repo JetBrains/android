@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.TextSearch;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 public class AndroidPluginVersionUpdaterTest {
   private Project myProject;
   private GradleSyncState mySyncState;
-  private GradleProjectImporter myProjectImporter;
+  private GradleSyncInvoker mySyncInvoker;
   private TextSearch myTextSearch;
 
   private AndroidPluginVersionUpdater myVersionUpdater;
@@ -42,10 +42,10 @@ public class AndroidPluginVersionUpdaterTest {
   public void setUp() {
     myProject = mock(Project.class);
     mySyncState = mock(GradleSyncState.class);
-    myProjectImporter = mock(GradleProjectImporter.class);
+    mySyncInvoker = mock(GradleSyncInvoker.class);
     myTextSearch = mock(TextSearch.class);
 
-    myVersionUpdater = new AndroidPluginVersionUpdater(myProject, mySyncState, myProjectImporter, myTextSearch);
+    myVersionUpdater = new AndroidPluginVersionUpdater(myProject, mySyncState, mySyncInvoker, myTextSearch);
   }
 
   @Test
@@ -111,7 +111,8 @@ public class AndroidPluginVersionUpdaterTest {
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode) {
-    verify(myProjectImporter, verificationMode).requestProjectSync(myProject, false, true /* generate sources */, true /* clean */, null);
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setCleanProject(true);
+    verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, settings, null);
   }
 
   private void verifyTextSearch(@NotNull VerificationMode verificationMode) {

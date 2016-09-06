@@ -19,8 +19,9 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,7 +39,6 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.libraries.ui.impl.RootDetectionUtil;
-import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.DefaultLibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryNameAndLevelPanel;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -215,7 +215,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
       finally {
         token.finish();
       }
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+
       super.doOKAction();
     }
 

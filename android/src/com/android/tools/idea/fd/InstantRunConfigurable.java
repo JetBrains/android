@@ -23,8 +23,8 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -238,7 +238,8 @@ public class InstantRunConfigurable
       }
 
       // Request a sync
-      GradleProjectImporter.getInstance().syncProjectSynchronously(project, true, listener);
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setRunInBackground(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
       return true;
     }
     else {

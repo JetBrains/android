@@ -46,13 +46,8 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
 
-  GradleDistributionCleanUpTask(@NotNull Project project) {
-    super(project);
-  }
-
   @Override
-  void execute() {
-    Project project = getProject();
+  void cleanUp(@NotNull Project project) {
     GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
 
@@ -64,13 +59,13 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
       gradleSettings.setDistributionType(DEFAULT_WRAPPED);
     }
     else if (gradleWrapper == null && gradleSettings != null) {
-      createWrapperIfNecessary(gradleSettings, distributionType);
+      createWrapperIfNecessary(project, gradleSettings, distributionType);
     }
   }
 
-  private boolean createWrapperIfNecessary(@NotNull GradleProjectSettings gradleSettings, @Nullable DistributionType distributionType) {
-    Project project = getProject();
-
+  private boolean createWrapperIfNecessary(@NotNull Project project,
+                                           @NotNull GradleProjectSettings gradleSettings,
+                                           @Nullable DistributionType distributionType) {
     boolean createWrapper = false;
     boolean chooseLocalGradleHome = false;
 

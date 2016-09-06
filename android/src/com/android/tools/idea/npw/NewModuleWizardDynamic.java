@@ -18,7 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
@@ -163,14 +163,11 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       return;
     }
 
-    GradleProjectImporter.getInstance().requestProjectSync(project, new PostStartupGradleSyncListener(new Runnable() {
-      @Override
-      public void run() {
-        Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-        assert filesToOpen != null;
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, new PostStartupGradleSyncListener(() -> {
+      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+      assert filesToOpen != null;
 
-        TemplateUtils.openEditors(project, filesToOpen, true);
-      }
+      TemplateUtils.openEditors(project, filesToOpen, true);
     }));
   }
 

@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -214,12 +214,12 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
               @Override
               public void undo() throws UnexpectedUndoException {
-                GradleProjectImporter.getInstance().requestProjectSync(project, null);
+                requestSync(project);
               }
 
               @Override
               public void redo() throws UnexpectedUndoException {
-                GradleProjectImporter.getInstance().requestProjectSync(project, null);
+                requestSync(project);
               }
             });
             result.setResult(true);
@@ -227,11 +227,15 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         };
 
       if (action.execute().getResultObject()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        requestSync(project);
         return true;
       }
       return false;
     }
+  }
+
+  private static void requestSync(@NotNull Project project) {
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName)  {

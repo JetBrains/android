@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ public class InstallArtifactHyperlink extends NotificationHyperlink {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
       }
     }
   }
