@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +57,7 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
     runWriteCommandAction(project, buildModel::applyChanges);
 
     if (requestSync) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
     }
   }
 }

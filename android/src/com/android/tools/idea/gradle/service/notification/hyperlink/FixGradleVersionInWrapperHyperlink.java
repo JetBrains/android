@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
@@ -83,7 +83,11 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
     if (settings != null) {
       settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     }
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    requestSync(project);
+  }
+
+  private static void requestSync(@NotNull Project project) {
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 
   @VisibleForTesting

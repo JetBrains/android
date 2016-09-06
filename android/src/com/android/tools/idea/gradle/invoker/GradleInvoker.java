@@ -350,11 +350,6 @@ public class GradleInvoker {
     invokeAndWaitIfNeeded((Runnable)() -> FileDocumentManager.getInstance().saveAllDocuments());
   }
 
-  public void clearConsoleAndBuildMessages() {
-    GradleConsoleView.getInstance(myProject).clear();
-    GradleTasksExecutor.clearMessageView(myProject);
-  }
-
   private static void findAndAddGradleBuildTasks(@NotNull Module module,
                                                  @NotNull BuildMode buildMode,
                                                  @NotNull List<String> tasks,

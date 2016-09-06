@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -47,7 +47,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final GradleProjectImporter myProjectImporter;
+  @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final TextSearch myTextSearch;
 
   @NotNull
@@ -56,17 +56,17 @@ public class AndroidPluginVersionUpdater {
   }
 
   public AndroidPluginVersionUpdater(@NotNull Project project, @NotNull GradleSyncState syncState) {
-    this(project, syncState, GradleProjectImporter.getInstance(), new TextSearch(project));
+    this(project, syncState, GradleSyncInvoker.getInstance(), new TextSearch(project));
   }
 
   @VisibleForTesting
   AndroidPluginVersionUpdater(@NotNull Project project,
                               @NotNull GradleSyncState syncState,
-                              @NotNull GradleProjectImporter projectImporter,
+                              @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull TextSearch textSearch) {
     myProject = project;
     mySyncState = syncState;
-    myProjectImporter = projectImporter;
+    mySyncInvoker = syncInvoker;
     myTextSearch = textSearch;
   }
 
@@ -105,7 +105,8 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
-      myProjectImporter.requestProjectSync(myProject, false, true /* generate sources */, true /* clean */, null);
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setCleanProject(true);
+      mySyncInvoker.requestProjectSync(myProject, settings, null);
     }
   }
 

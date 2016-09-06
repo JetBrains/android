@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -28,6 +28,6 @@ public class DisableOfflineModeHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(false);
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 }

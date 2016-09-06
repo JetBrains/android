@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -43,11 +43,15 @@ public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
       if (settings != null) {
         settings.setDistributionType(DEFAULT_WRAPPED);
       }
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      requestSync(project);
     }
     catch (IOException e) {
       // Unlikely to happen.
       Messages.showErrorDialog(project, "Failed to create Gradle wrapper: " + e.getMessage(), "Quick Fix");
     }
+  }
+
+  private static void requestSync(@NotNull Project project) {
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 }

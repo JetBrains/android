@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
@@ -166,7 +167,8 @@ public class PostProjectSetupTasksExecutor {
       // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
       // version of such interfaces.
       myUsingCachedProjectData = false;
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+
       reset();
       return;
     }
@@ -405,7 +407,8 @@ public class PostProjectSetupTasksExecutor {
           }
 
           if (requestSync) {
-            GradleProjectImporter.getInstance().requestProjectSync(myProject, false, true /* generate sources */, true /* clean */, null);
+            GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setCleanProject(true);
+            GradleSyncInvoker.getInstance().requestProjectSync(myProject, settings, null);
             return true;
           }
           else {
@@ -986,7 +989,7 @@ public class PostProjectSetupTasksExecutor {
       requested.add(FD_TOOLS);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
       }
     }
   }

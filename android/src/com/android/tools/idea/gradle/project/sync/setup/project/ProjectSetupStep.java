@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.cleanup;
+package com.android.tools.idea.gradle.project.sync.setup.project;
 
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-abstract class ProjectCleanUpTask {
-  abstract void cleanUp(@NotNull Project project);
+public abstract class ProjectSetupStep {
 }

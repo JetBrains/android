@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.ModuleImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -53,7 +53,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     });
   }
 

@@ -23,7 +23,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -98,7 +98,7 @@ public class MissingCMakeErrorHandler extends AbstractSyncErrorHandler {
       protected void execute(@NotNull Project project) {
         ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackagePath));
         if (dialog != null && dialog.showAndGet()) {
-          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+          GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
         }
       }
     };
