@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup;
 
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.android;
+package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.*;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.DependencySetupErrors;
-import com.android.tools.idea.gradle.project.sync.setup.Dependencies;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.Dependencies;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
