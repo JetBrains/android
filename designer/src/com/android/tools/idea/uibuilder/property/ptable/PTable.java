@@ -90,6 +90,15 @@ public class PTable extends JBTable {
     myEditorProvider = editorProvider;
   }
 
+  // Bug: 221565
+  // Without this line it is impossible to get focus to a combo box editor.
+  // The code in JBTable will move the focus to the JPanel that includes
+  // the combo box, the resource button, and the design button.
+  @Override
+  public boolean surrendersFocusOnKeyStroke() {
+    return false;
+  }
+
   @Override
   public TableCellRenderer getCellRenderer(int row, int column) {
     if (column == 0) {
