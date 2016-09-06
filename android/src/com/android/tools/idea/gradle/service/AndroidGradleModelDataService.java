@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.service;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
@@ -230,7 +230,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
           if (homePath != null) {
             applyJdkToProject(project, jdk);
             homePath = toSystemDependentName(homePath);
-            IdeSdks.setJdkPath(new File(homePath));
+            IdeSdks.getInstance().setJdkPath(new File(homePath));
             PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
           }
         }

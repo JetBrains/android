@@ -371,7 +371,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       assert input != null;
 
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
-        IdeSdks.setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
+        IdeSdks.getInstance().setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });
 

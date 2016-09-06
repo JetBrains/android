@@ -67,7 +67,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     else if (!persistentData.isSdkUpToDate()) {
       return FirstRunWizardMode.NEW_INSTALL;
     }
-    else if (IdeSdks.getEligibleAndroidSdks().isEmpty()) {
+    else if (IdeSdks.getInstance().getEligibleAndroidSdks().isEmpty()) {
       return FirstRunWizardMode.MISSING_SDK;
     }
     else {
@@ -102,12 +102,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
         connection.disconnect();
         result = ConnectionState.OK;
       }
-      catch (IOException e) {
-        result = promptToRetryFailedConnection();
-      }
-      catch (RuntimeException e) {
-        // "Proxy Vole" is a network layer used by Intellij.
-        // This layer will throw a RuntimeException instead of an IOException on certain proxy misconfigurations.
+      catch (IOException | RuntimeException e) {
         result = promptToRetryFailedConnection();
       }
       catch (Throwable e) {
@@ -132,12 +127,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   private static ConnectionState promptToRetryFailedConnection() {
     final AtomicReference<ConnectionState> atomicBoolean = Atomics.newReference();
     Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        atomicBoolean.set(promptUserForProxy());
-      }
-    }, application.getAnyModalityState());
+    application.invokeAndWait(() -> atomicBoolean.set(promptUserForProxy()), application.getAnyModalityState());
     return atomicBoolean.get();
   }
 

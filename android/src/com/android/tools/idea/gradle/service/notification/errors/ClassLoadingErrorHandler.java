@@ -55,7 +55,7 @@ public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
         isJdk7 = true;
       }
       else if (classNotFound) {
-        Sdk jdk = IdeSdks.getJdk();
+        Sdk jdk = IdeSdks.getInstance().getJdk();
         if (jdk != null) {
           String jdkHomePath = jdk.getHomePath();
           if (jdkHomePath != null) {

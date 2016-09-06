@@ -29,7 +29,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 
-class ProjectPreferencesCleanUpTask extends ProjectCleanUpTask {
+class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
     "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
     "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",

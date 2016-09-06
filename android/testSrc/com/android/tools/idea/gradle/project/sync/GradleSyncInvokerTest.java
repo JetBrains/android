@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -57,7 +58,7 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
     ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
     when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSyncInvoker = new GradleSyncInvoker(getProject(), myProjectCleanUp, projectSetupFactory);
+    myGradleSyncInvoker = new GradleSyncInvoker(getProject(), new PreSyncChecks(), myProjectCleanUp, projectSetupFactory);
   }
 
   public void testDummy() {
@@ -116,7 +117,7 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   }
 
   private void createLocalPropertiesFile() throws IOException {
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
     assert androidSdkPath != null;
     createLocalPropertiesFile(androidSdkPath);
   }

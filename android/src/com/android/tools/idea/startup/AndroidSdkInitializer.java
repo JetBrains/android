@@ -69,12 +69,13 @@ public class AndroidSdkInitializer implements Runnable {
       return;
     }
 
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File androidSdkPath = ideSdks.getAndroidSdkPath();
     if (androidSdkPath == null) {
       try {
         // Setup JDK and Android SDK if necessary
         setUpSdks();
-        androidSdkPath = IdeSdks.getAndroidSdkPath();
+        androidSdkPath = ideSdks.getAndroidSdkPath();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
@@ -97,7 +98,7 @@ public class AndroidSdkInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
     }
 
@@ -132,7 +133,7 @@ public class AndroidSdkInitializer implements Runnable {
           }
 
           // Fill out any missing build APIs for this new SDK.
-          IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
+          IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);
         }
       }
     });

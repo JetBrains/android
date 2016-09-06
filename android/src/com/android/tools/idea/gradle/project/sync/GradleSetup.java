@@ -42,7 +42,7 @@ public class GradleSetup {
 
     // Workaround to make integration (non-UI) tests pass.
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      Sdk jdk = IdeSdks.getJdk();
+      Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
         settings.setGradleJvm(jdk.getName());
       }

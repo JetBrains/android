@@ -115,7 +115,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       jvmArgs.add(createJvmArg(GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
 
-    File javaHome = IdeSdks.getJdkPath();
+    File javaHome = IdeSdks.getInstance().getJdkPath();
     if (javaHome != null) {
       jvmArgs.add(createJvmArg(GRADLE_JAVA_HOME_DIR_PATH, javaHome.getPath()));
     }

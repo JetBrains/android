@@ -331,7 +331,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
       }
     }
 
-    return IdeSdks.getAndroidSdkPath();
+    return IdeSdks.getInstance().getAndroidSdkPath();
   }
 
   @Nullable

@@ -71,12 +71,13 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
     if (androidModel == null) {
       return;
     }
-    File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File androidSdkHomePath = ideSdks.getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       LOG.warn("Path to Android SDK not set");
 
-      List<Sdk> sdks = IdeSdks.getEligibleAndroidSdks();
+      List<Sdk> sdks = ideSdks.getEligibleAndroidSdks();
       LOG.warn("# of eligible SDKs: " + sdks.size());
       for (Sdk sdk : sdks) {
         LOG.info("sdk: " + sdk.toString());

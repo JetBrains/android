@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -57,19 +58,21 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
-public final class IdeSdks {
+public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
 
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
 
-  private IdeSdks() {
+  @NotNull
+  public static IdeSdks getInstance() {
+    return ServiceManager.getService(IdeSdks.class);
   }
 
   /**
    * @return what the IDE is using as the home path for the Android SDK for new projects.
    */
   @Nullable
-  public static File getAndroidSdkPath() {
+  public File getAndroidSdkPath() {
     // We assume that every time new android sdk path is applied, all existing ide android sdks are removed and replaced by newly
     // created ide android sdks for the platforms downloaded for the new android sdk. So, we bring the first ide android sdk configured
     // at the moment and deduce android sdk path from it.
@@ -101,19 +104,19 @@ public final class IdeSdks {
   }
 
   @Nullable
-  public static File getAndroidNdkPath() {
+  public File getAndroidNdkPath() {
     AndroidSdkHandler sdkHandler = tryToChooseSdkHandler();
     LocalPackage ndk = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
     return ndk == null ? null : ndk.getLocation();
   }
 
   @Nullable
-  public static File getJdkPath() {
+  public File getJdkPath() {
     return doGetJdkPath(true);
   }
 
   @Nullable
-  private static File doGetJdkPath(boolean createJdkIfNeeded) {
+  private File doGetJdkPath(boolean createJdkIfNeeded) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (androidSdks.isEmpty() && createJdkIfNeeded) {
       // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
@@ -147,7 +150,7 @@ public final class IdeSdks {
    * target installed in the SDK; which of those this method returns is not defined.
    */
   @Nullable
-  private static Sdk getFirstAndroidSdk() {
+  private Sdk getFirstAndroidSdk() {
     List<Sdk> allAndroidSdks = getEligibleAndroidSdks();
     if (!allAndroidSdks.isEmpty()) {
       return allAndroidSdks.get(0);
@@ -158,7 +161,7 @@ public final class IdeSdks {
   /**
    * Must run inside a WriteAction
    */
-  public static void setJdkPath(@NotNull File path) {
+  public void setJdkPath(@NotNull File path) {
     if (checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
       File canonicalPath = resolvePath(path);
@@ -203,7 +206,7 @@ public final class IdeSdks {
   }
 
   @NotNull
-  public static List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
+  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
     return setAndroidSdkPath(path, null, currentProject);
   }
 
@@ -231,7 +234,7 @@ public final class IdeSdks {
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
   @NotNull
-  public static List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
+  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
     if (isValidAndroidSdkPath(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
@@ -304,12 +307,12 @@ public final class IdeSdks {
   /**
    * @return {@code true} if the given Android SDK path points to a valid Android SDK.
    */
-  public static boolean isValidAndroidSdkPath(@NotNull File path) {
+  public boolean isValidAndroidSdkPath(@NotNull File path) {
     return validateAndroidSdk(path, false).success;
   }
 
   @NotNull
-  public static List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
+  public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
     RunAndroidSdkManagerAction.updateInWelcomePage(null);
     return sdks;
@@ -320,7 +323,7 @@ public final class IdeSdks {
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  private static List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath, @Nullable Sdk javaSdk) {
+  private List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath, @Nullable Sdk javaSdk) {
     AndroidSdkData sdkData = getSdkData(androidSdkPath);
     if (sdkData == null) {
       return Collections.emptyList();
@@ -346,7 +349,7 @@ public final class IdeSdks {
   /**
    * @return {@code true} if an IntelliJ SDK with the default naming convention already exists for the given Android build target.
    */
-  private static boolean doesIdeAndroidSdkExist(@NotNull IAndroidTarget target) {
+  private boolean doesIdeAndroidSdkExist(@NotNull IAndroidTarget target) {
     for (Sdk sdk : getEligibleAndroidSdks()) {
       IAndroidTarget platformTarget = getTarget(sdk);
       AndroidVersion version = target.getVersion();
@@ -381,7 +384,7 @@ public final class IdeSdks {
    * Indicates whether the IDE is using its embedded JDK. This JDK is used to invoke Gradle.
    * @return {@code true} if the IDE is using the embedded JDK; {@code false} otherwise.
    */
-  public static boolean isUsingEmbeddedJdk() {
+  public boolean isUsingEmbeddedJdk() {
     File jdkPath = doGetJdkPath(false);
     return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
   }
@@ -389,7 +392,7 @@ public final class IdeSdks {
   /**
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
-  public static void setUseEmbeddedJdk() {
+  public void setUseEmbeddedJdk() {
     if (isAndroidStudio()) {
       setJdkPath(getEmbeddedJdkPath());
     }
@@ -399,12 +402,12 @@ public final class IdeSdks {
    * @return the JDK with the default naming convention, creating one if it is not set up.
    */
   @Nullable
-  public static Sdk getJdk() {
+  public Sdk getJdk() {
     return getJdk(JDK_1_8);
   }
 
   @Nullable
-  private static Sdk getJdk(@Nullable JavaSdkVersion preferredVersion) {
+  private Sdk getJdk(@Nullable JavaSdkVersion preferredVersion) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
@@ -490,7 +493,7 @@ public final class IdeSdks {
    * platform.
    */
   @NotNull
-  public static List<Sdk> getEligibleAndroidSdks() {
+  public List<Sdk> getEligibleAndroidSdks() {
     List<Sdk> sdks = Lists.newArrayList();
     for (Sdk sdk : getAllAndroidSdks()) {
       if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatform.getInstance(sdk) != null) {
@@ -520,7 +523,7 @@ public final class IdeSdks {
     void afterSdkPathChange(@NotNull File sdkPath, @NotNull Project project);
   }
 
-  public static boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
+  public boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
     if (sdkData != null) {
       ProgressIndicator progress = new StudioLoggerProgressIndicator(Jdks.class);
       LocalPackage info = sdkData.getSdkHandler().getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);

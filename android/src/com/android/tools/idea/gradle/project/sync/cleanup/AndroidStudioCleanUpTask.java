@@ -15,20 +15,29 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class ProjectCleanUpTask {
-  @NotNull private final Project myProject;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
-  ProjectCleanUpTask(@NotNull Project project) {
-    myProject = project;
+abstract class AndroidStudioCleanUpTask extends ProjectCleanUpTask {
+  AndroidStudioCleanUpTask(@NotNull Project project) {
+    super(project);
   }
 
-  abstract void execute();
-
-  @NotNull
-  Project getProject() {
-    return myProject;
+  @Override
+  void execute() {
+    if (!isAndroidStudio()) {
+      return;
+    }
+    try {
+      doExecute();
+    }
+    catch (Throwable e) {
+      Logger.getInstance(getClass()).info("Failed to execute " + getClass().getSimpleName(), e);
+    }
   }
+
+  abstract void doExecute();
 }

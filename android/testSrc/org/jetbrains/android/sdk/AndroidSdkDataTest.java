@@ -51,12 +51,10 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     assertNotNull(defaultSdkData);
     assertFalse(defaultSdkData.equals(sdkData));
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        IdeSdks.setAndroidSdkPath(sdkDir, null);
-        ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeSdks.getEligibleAndroidSdks().get(0));
-      }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      ideSdks.setAndroidSdkPath(sdkDir, null);
+      ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
   }
 

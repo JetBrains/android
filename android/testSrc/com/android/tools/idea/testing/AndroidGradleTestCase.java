@@ -151,15 +151,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // Gradle import will fail if the global one isn't set.
     File androidSdkPath = getAndroidSdkPath();
 
+    IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(getProject(), () -> {
-      IdeSdks.setUseEmbeddedJdk();
-      LOG.info("Set JDK to " + IdeSdks.getJdkPath());
+      ideSdks.setUseEmbeddedJdk();
+      LOG.info("Set JDK to " + ideSdks.getJdkPath());
 
-      IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
+      ideSdks.setAndroidSdkPath(androidSdkPath, getProject());
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
 
-    Sdk currentJdk = IdeSdks.getJdk();
+    Sdk currentJdk = ideSdks.getJdk();
     assertNotNull(currentJdk);
     assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), isApplicableJdk(currentJdk, JDK_1_8));
   }

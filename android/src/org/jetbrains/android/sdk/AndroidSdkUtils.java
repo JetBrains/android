@@ -806,7 +806,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData tryToChooseAndroidSdk() {
     if (ourSdkData == null) {
       if (isAndroidStudio()) {
-        File path = IdeSdks.getAndroidSdkPath();
+        File path = IdeSdks.getInstance().getAndroidSdkPath();
         if (path != null) {
           ourSdkData = getSdkData(path.getPath());
           if (ourSdkData != null) {

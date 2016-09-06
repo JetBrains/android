@@ -67,7 +67,7 @@ final class ProjectJdkChecks {
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
-      Sdk jdk = IdeSdks.getJdk();
+      Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 

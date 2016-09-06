@@ -269,7 +269,7 @@ public class GradleInvoker {
         throw new RuntimeException(e);
       }
       if (localProperties.getAndroidSdkPath() == null) {
-        File androidHomePath = IdeSdks.getAndroidSdkPath();
+        File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
         // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
         if (androidHomePath != null) {
           jvmArguments.add(AndroidGradleSettings.createAndroidHomeJvmArg(androidHomePath.getPath()));
