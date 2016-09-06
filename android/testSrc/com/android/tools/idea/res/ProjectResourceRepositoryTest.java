@@ -54,6 +54,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
 
@@ -253,13 +255,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
                                             @NotNull List<MyAdditionalModuleData> modules) {
     final String testName = getTestName(true);
     if (testName.equals("parents")) { // for unit test testDependencies
-      addModuleWithAndroidFacet(projectBuilder, modules, "plib1", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "plib2", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
     } else if (testName.equals("dependencies")) { // for unit test testDependencies
-      addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "lib1", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "lib2", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "app", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib1", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib2", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "app", PROJECT_TYPE_APP);
     }
   }
 

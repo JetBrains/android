@@ -39,7 +39,7 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer<AndroidGradle
     if (androidModel != null) {
       AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
 
-      if (facet != null && !facet.isLibraryProject()) {
+      if (facet != null && facet.isAppProject()) {
         createRunConfigurations(facet);
       }
     }
