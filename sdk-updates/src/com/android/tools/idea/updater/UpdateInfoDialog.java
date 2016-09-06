@@ -135,7 +135,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       HtmlBuilder packageHtmlBuilder = new HtmlBuilder();
       packageHtmlBuilder.openHtmlBody();
 
-      for (RemotePackage p : versionedPackages.get(noVersion)) {
+      for (RemotePackage p : versionedPackages.getOrDefault(noVersion, Collections.emptySet())) {
         packageHtmlBuilder.addNbsps(4).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
       }
       for (AndroidVersion version : versionedPackages.keySet()) {
