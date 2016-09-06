@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.monitor.tool;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.datastore.TraceDataStore;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
@@ -133,11 +130,13 @@ public class TraceRequestHandler {
                                                                dst[0] = createLocalFile(localFileName);
                                                                IDevice selectedDevice = myDeviceContext.getSelectedDevice();
                                                                selectedDevice.pullFile(myRemotePath, dst[0].getAbsolutePath());
-                                                               //TODO: Delete this file from the device.
+                                                               selectedDevice.executeShellCommand("rm " + myRemotePath, NullOutputReceiver.getReceiver());
                                                              }
-                                                             catch (AdbCommandRejectedException | TimeoutException | SyncException e) {
+                                                             catch (AdbCommandRejectedException | TimeoutException | SyncException |
+                                                               ShellCommandUnresponsiveException e) {
                                                                e.printStackTrace();
                                                              }
+                                                             myRemotePath = null;
                                                              return null;
                                                            }
                                                          }
