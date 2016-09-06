@@ -309,32 +309,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
    * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer}.
    */
   public static class NodeCellRenderer extends ColoredTreeCellRenderer {
-    private static Method myGetRowXMethod = null;
-
-    /**
-     * Workaround to get access to protected method from BasicTreeUI.
-     * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer#getRowX(BasicTreeUI, int, int)}.
-     */
-    private static int getRowX(BasicTreeUI ui, int row, int depth) {
-      if (myGetRowXMethod == null) {
-        try {
-          myGetRowXMethod = BasicTreeUI.class.getDeclaredMethod("getRowX", int.class, int.class);
-          myGetRowXMethod.setAccessible(true);
-        }
-        catch (NoSuchMethodException e) {
-          LOG.error(e);
-        }
-      }
-      if (myGetRowXMethod != null) {
-        try {
-          return (Integer)myGetRowXMethod.invoke(ui, row, depth);
-        }
-        catch (Exception e) {
-          LOG.error(e);
-        }
-      }
-      return 0;
-    }
 
     private final RightCellRenderer myRightComponent = new RightCellRenderer();
     private int myRightComponentOffset;
@@ -365,9 +339,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
             final Rectangle treeVisibleRect = tree.getVisibleRect();
             // Check if our row is valid
             final TreePath treePath = tree.getPathForRow(row);
-            // Use the hack instead of tree.getRowBounds(), since latter causes stack overflow sometimes
-            // TODO: Do we need to hack? SO was spotted out only when switched to TreeBuilder...
-            int rowOffset = treePath != null ? getRowX((BasicTreeUI)tree.getUI(), row, treePath.getPathCount() - 1) : 0;
+            int rowOffset = treePath != null ? tree.getPathBounds(treePath).x : 0;
             if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
               myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
               myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
