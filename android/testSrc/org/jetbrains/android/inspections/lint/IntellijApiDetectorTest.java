@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -25,7 +26,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.sdk.IdeSdks.isJdk7Supported;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider.AndroidLintNewApiInspection;
 
 public class IntellijApiDetectorTest extends AndroidTestCase {
@@ -169,7 +169,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
 
   public void testReflectiveOperationException() throws Exception {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null || !isJdk7Supported(sdkData)) {
+    if (sdkData == null || !IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       System.out.println("Skipping IntellijApiDetectorTest#testReflectiveOperationException: Test JDK must be JDK 7 or higher");
       return;
     }
@@ -185,7 +185,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
 
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null || !isJdk7Supported(sdkData)) {
+    if (sdkData == null || !IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       System.out.println("Skipping IntellijApiDetectorTest#testTryWithResources: Test JDK must be JDK 7 or higher");
       return;
     }

@@ -46,21 +46,11 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public abstract class NewProjectImportGradleSyncListener extends GradleSyncListener.Adapter {
   @Override
   public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        createTopLevelProjectAndOpen(project);
-      }
-    });
+    ApplicationManager.getApplication().invokeLater(() -> createTopLevelProjectAndOpen(project));
   }
 
   public static void createTopLevelProjectAndOpen(@NotNull final Project project) {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        createTopLevelModule(project);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> createTopLevelModule(project));
 
     // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
     open(project);
@@ -89,7 +79,7 @@ public abstract class NewProjectImportGradleSyncListener extends GradleSyncListe
         // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
         // users will update build.gradle files to fix Gradle sync.)
         // See: https://code.google.com/p/android/issues/detail?id=194621
-        Sdk jdk = IdeSdks.getJdk();
+        Sdk jdk = IdeSdks.getInstance().getJdk();
         if (jdk != null) {
           model.setSdk(jdk);
         }

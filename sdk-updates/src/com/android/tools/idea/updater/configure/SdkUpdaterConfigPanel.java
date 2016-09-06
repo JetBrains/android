@@ -157,17 +157,8 @@ public class SdkUpdaterConfigPanel {
   /**
    * {@link RepoLoadedCallback} that runs when we've finished reloading our local packages.
    */
-  private final RepoLoadedCallback myLocalUpdater = new RepoLoadedCallback() {
-    @Override
-    public void doRun(@NotNull final RepositoryPackages packages) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          loadPackages(packages);
-        }
-      }, ModalityState.any());
-    }
-  };
+  private final RepoLoadedCallback myLocalUpdater = packages -> ApplicationManager.getApplication().invokeLater(
+    () -> loadPackages(packages), ModalityState.any());
 
   /**
    * {@link RepoLoadedCallback} that runs when we've completely finished reloading our packages.
@@ -175,13 +166,10 @@ public class SdkUpdaterConfigPanel {
   private final RepoLoadedCallback myRemoteUpdater = new RepoLoadedCallback() {
     @Override
     public void doRun(@NotNull final RepositoryPackages packages) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          loadPackages(packages);
-          myPlatformComponentsPanel.finishLoading();
-          myToolComponentsPanel.finishLoading();
-        }
+      ApplicationManager.getApplication().invokeLater(() -> {
+        loadPackages(packages);
+        myPlatformComponentsPanel.finishLoading();
+        myToolComponentsPanel.finishLoading();
       }, ModalityState.any());
     }
   };
@@ -212,7 +200,7 @@ public class SdkUpdaterConfigPanel {
     myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        File path = IdeSdks.getAndroidSdkPath();
+        File path = IdeSdks.getInstance().getAndroidSdkPath();
         assert path != null;
 
         RunAndroidSdkManagerAction.runSpecificSdkManager(null, path);
@@ -258,7 +246,7 @@ public class SdkUpdaterConfigPanel {
 
           @Override
           public void performFinishingActions() {
-            File sdkLocation = IdeSdks.getAndroidSdkPath();
+            File sdkLocation = IdeSdks.getInstance().getAndroidSdkPath();
 
             if (sdkLocation == null) {
               return;
@@ -277,13 +265,10 @@ public class SdkUpdaterConfigPanel {
             setAndroidSdkLocationText(sdkLocation.getAbsolutePath());
           }
 
-          private void setAndroidSdkLocationText(final String text) {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                mySdkLocation.setText(text);
-                refresh();
-              }
+          private void setAndroidSdkLocationText(String text) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+              mySdkLocation.setText(text);
+              refresh();
             });
           }
 
@@ -326,12 +311,9 @@ public class SdkUpdaterConfigPanel {
   }
 
   private static void setAndroidSdkLocation(final File sdkLocation) {
-    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), new Runnable() {
-      @Override
-      public void run() {
-        // TODO Do we have to pass the default project here too instead of null?
-        IdeSdks.setAndroidSdkPath(sdkLocation, null);
-      }
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
+      // TODO Do we have to pass the default project here too instead of null?
+      IdeSdks.getInstance().setAndroidSdkPath(sdkLocation, null);
     });
   }
 
@@ -536,7 +518,7 @@ public class SdkUpdaterConfigPanel {
    */
   public void reset() {
     refresh();
-    File path = IdeSdks.getAndroidSdkPath();
+    File path = IdeSdks.getInstance().getAndroidSdkPath();
     if (path != null) {
       mySdkLocation.setText(path.getPath());
     }
@@ -556,12 +538,7 @@ public class SdkUpdaterConfigPanel {
    * Create our UI components that need custom creation.
    */
   private void createUIComponents() {
-    myUpdateSitesPanel = new UpdateSitesPanel(new Runnable() {
-      @Override
-      public void run() {
-        refresh();
-      }
-    });
+    myUpdateSitesPanel = new UpdateSitesPanel(() -> refresh());
   }
 
   /**

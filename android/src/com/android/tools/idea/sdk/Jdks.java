@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static com.android.tools.idea.sdk.IdeSdks.isUsingEmbeddedJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -63,7 +62,7 @@ public class Jdks {
     if (langLevel == null) {
       langLevel = DEFAULT_LANG_LEVEL;
     }
-    if (isAndroidStudio() && !isUsingEmbeddedJdk()) {
+    if (isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
       Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
       assert jdk != null && isApplicableJdk(jdk, langLevel);
       return jdk;
@@ -93,7 +92,6 @@ public class Jdks {
     }
     JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
     if (version != null) {
-      //noinspection TestOnlyProblems
       return hasMatchingLangLevel(version, langLevel);
     }
     return false;

@@ -57,7 +57,7 @@ public class GradleBuildTest {
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 
-    File actualJdkPath = IdeSdks.getJdkPath();
+    File actualJdkPath = IdeSdks.getInstance().getJdkPath();
     assertNotNull(actualJdkPath);
     assertEquals(jdkPath.getPath(), actualJdkPath.getPath());
   }

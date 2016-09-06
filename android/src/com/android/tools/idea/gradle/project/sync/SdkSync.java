@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -22,6 +22,7 @@ import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -37,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -47,34 +47,42 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
-public final class SdkSync {
+public class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
 
-  private SdkSync() {
+  @NotNull private final IdeSdks myIdeSdks;
+
+  @NotNull
+  public static SdkSync getInstance() {
+    return ServiceManager.getService(SdkSync.class);
   }
 
-  public static void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
-    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), null);
+  public SdkSync(@NotNull IdeSdks ideSdks) {
+    myIdeSdks = ideSdks;
+  }
+
+  public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(myIdeSdks), null);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
-  public static void syncIdeAndProjectAndroidSdks(@NotNull Project project) throws IOException {
+  public void syncIdeAndProjectAndroidSdks(@NotNull Project project) throws IOException {
     LocalProperties localProperties = new LocalProperties(project);
-    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(myIdeSdks), project);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
   @VisibleForTesting
-  static void syncIdeAndProjectAndroidSdk(@NotNull final LocalProperties localProperties,
-                                          @NotNull FindValidSdkPathTask findSdkPathTask,
-                                          @Nullable final Project project) {
+  void syncIdeAndProjectAndroidSdk(@NotNull LocalProperties localProperties,
+                                   @NotNull FindValidSdkPathTask findSdkPathTask,
+                                   @Nullable Project project) {
     if (localProperties.hasAndroidDirProperty()) {
       // if android.dir is specified, we don't sync SDKs. User is working with SDK sources.
       return;
     }
 
-    final File ideAndroidSdkPath = IdeSdks.getAndroidSdkPath();
-    final File projectAndroidSdkPath = localProperties.getAndroidSdkPath();
+    File ideAndroidSdkPath = myIdeSdks.getAndroidSdkPath();
+    File projectAndroidSdkPath = localProperties.getAndroidSdkPath();
 
     if (ideAndroidSdkPath != null) {
       if (projectAndroidSdkPath == null) {
@@ -82,7 +90,7 @@ public final class SdkSync {
         setProjectSdk(localProperties, ideAndroidSdkPath);
         return;
       }
-      final ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
+      ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
         invokeAndWaitIfNeeded(new Runnable() {
@@ -104,7 +112,7 @@ public final class SdkSync {
       }
     }
     else {
-      if (projectAndroidSdkPath == null || !isValidAndroidSdkPath(projectAndroidSdkPath)) {
+      if (projectAndroidSdkPath == null || !myIdeSdks.isValidAndroidSdkPath(projectAndroidSdkPath)) {
         // We don't have any SDK (IDE or project.)
         File selectedPath = findSdkPathTask.selectValidSdkPath();
         if (selectedPath == null) {
@@ -120,18 +128,18 @@ public final class SdkSync {
     }
 
     if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath)) {
-      final String msg = String.format("The project and Android Studio point to different Android SDKs.\n\n" +
-                                       "Android Studio's default SDK is in:\n" +
-                                       "%1$s\n\n" +
-                                       "The project's SDK (specified in local.properties) is in:\n" +
-                                       "%2$s\n\n" +
-                                       "To keep results consistent between IDE and command line builds, only one path can be used. " +
-                                       "Do you want to:\n\n" +
-                                       "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
-                                       "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
-                                       "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
-                                       "necessary Android platforms or build tools.",
-                                       ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
+      String msg = String.format("The project and Android Studio point to different Android SDKs.\n\n" +
+                                 "Android Studio's default SDK is in:\n" +
+                                 "%1$s\n\n" +
+                                 "The project's SDK (specified in local.properties) is in:\n" +
+                                 "%2$s\n\n" +
+                                 "To keep results consistent between IDE and command line builds, only one path can be used. " +
+                                 "Do you want to:\n\n" +
+                                 "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
+                                 "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
+                                 "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
+                                 "necessary Android platforms or build tools.",
+                                 ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
@@ -139,9 +147,9 @@ public final class SdkSync {
           // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
           // showing a message, to ensure that the message shows in the IDE instance containing the project.
           int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
-                                                                             .noText("Use Project's SDK")
-                                                                             .project(project)
-                                                                             .show();
+            .noText("Use Project's SDK")
+            .project(project)
+            .show();
           if (result == Messages.YES) {
             // Use Android Studio's SDK
             setProjectSdk(localProperties, ideAndroidSdkPath);
@@ -158,9 +166,9 @@ public final class SdkSync {
     }
   }
 
-  private static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
+  private void syncIdeAndProjectAndroidNdk(@NotNull LocalProperties localProperties) {
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
-    File ideAndroidNdkPath = IdeSdks.getAndroidNdkPath();
+    File ideAndroidNdkPath = myIdeSdks.getAndroidNdkPath();
 
     if (projectAndroidNdkPath != null) {
       if (!validateAndroidNdk(projectAndroidNdkPath, false).success) {
@@ -193,7 +201,7 @@ public final class SdkSync {
     }
   }
 
-  private static void setIdeSdk(@NotNull LocalProperties localProperties, @NotNull final File projectAndroidSdkPath) {
+  private void setIdeSdk(@NotNull LocalProperties localProperties, @NotNull File projectAndroidSdkPath) {
     // There is one case where DefaultSdks.setAndroidSdkPath will not update local.properties in the project. The conditions for this to
     // happen are:
     // 1. This is a fresh install of Android Studio and user does not set Android SDK
@@ -201,17 +209,9 @@ public final class SdkSync {
     // Just to be on the safe side, we update local.properties.
     setProjectSdk(localProperties, projectAndroidSdkPath);
 
-    invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            IdeSdks.setAndroidSdkPath(projectAndroidSdkPath, null);
-          }
-        });
-      }
-    });
+    invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      myIdeSdks.setAndroidSdkPath(projectAndroidSdkPath, null);
+    }));
   }
 
   private static void setProjectSdk(@NotNull LocalProperties localProperties, @NotNull File androidSdkPath) {
@@ -228,7 +228,7 @@ public final class SdkSync {
     }
   }
 
-  private static void mergeIfNeeded(@NotNull final File sourceSdk, @NotNull final File destSdk) {
+  private static void mergeIfNeeded(@NotNull File sourceSdk, @NotNull File destSdk) {
     if (SdkMerger.hasMergeableContent(sourceSdk, destSdk)) {
       String msg = String.format("The Android SDK at\n\n%1$s\n\nhas packages not in your project's SDK at\n\n%2$s\n\n" +
                                  "Would you like to copy into the project SDK?", sourceSdk.getPath(), destSdk.getPath());
@@ -246,9 +246,15 @@ public final class SdkSync {
 
   @VisibleForTesting
   static class FindValidSdkPathTask {
+    @NotNull private final IdeSdks myIdeSdks;
+
+    FindValidSdkPathTask(@NotNull IdeSdks ideSdks) {
+      myIdeSdks = ideSdks;
+    }
+
     @Nullable
     File selectValidSdkPath() {
-      final Ref<File> pathRef = new Ref<File>();
+      Ref<File> pathRef = new Ref<>();
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
@@ -258,8 +264,8 @@ public final class SdkSync {
       return pathRef.get();
     }
 
-    private static void findValidSdkPath(@NotNull Ref<File> pathRef) {
-      Sdk jdk = IdeSdks.getJdk();
+    private void findValidSdkPath(@NotNull Ref<File> pathRef) {
+      Sdk jdk = myIdeSdks.getJdk();
       String jdkPath = jdk != null ? jdk.getHomePath() : null;
       SelectSdkDialog dialog = new SelectSdkDialog(jdkPath, null);
       dialog.setModal(true);
@@ -270,8 +276,8 @@ public final class SdkSync {
         }
         return;
       }
-      final File path = new File(dialog.getAndroidHome());
-      if (!isValidAndroidSdkPath(path)) {
+      File path = new File(dialog.getAndroidHome());
+      if (!myIdeSdks.isValidAndroidSdkPath(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
         if (Messages.showYesNoDialog(String.format(format, path.getPath()), ERROR_DIALOG_TITLE, null) == Messages.YES) {
           findValidSdkPath(pathRef);

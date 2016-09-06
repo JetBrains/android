@@ -208,7 +208,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
     // This is required for Android plugin in IDEA
     if (!AndroidStudioInitializer.isAndroidStudio()) {
-      final Sdk jdk = IdeSdks.getJdk();
+      final Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override

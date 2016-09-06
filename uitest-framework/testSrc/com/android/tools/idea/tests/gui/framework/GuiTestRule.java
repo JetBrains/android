@@ -319,7 +319,7 @@ public class GuiTestRule implements TestRule {
 
   protected void updateLocalProperties(File projectPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectPath);
-    localProperties.setAndroidSdkPath(checkNotNull(IdeSdks.getAndroidSdkPath()));
+    localProperties.setAndroidSdkPath(checkNotNull(IdeSdks.getInstance().getAndroidSdkPath()));
     localProperties.save();
   }
 

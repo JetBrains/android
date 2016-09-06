@@ -28,7 +28,10 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -78,7 +81,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLibrariesAndStoreAttachments;
 import static com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
-import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -153,7 +155,7 @@ public class GradleProjectImporter {
     try {
       LocalProperties localProperties = new LocalProperties(projectDirPath);
       if (isAndroidStudio()) {
-        syncIdeAndProjectAndroidSdks(localProperties);
+        SdkSync.getInstance().syncIdeAndProjectAndroidSdks(localProperties);
       }
     }
     catch (IOException e) {
@@ -461,19 +463,21 @@ public class GradleProjectImporter {
       clearStoredGradleJvmArgs(project);
     }
 
-    PreSyncChecks.PreSyncCheckResult preSyncCheckResult = PreSyncChecks.canSync(project);
-    if (!preSyncCheckResult.isSuccess()) {
-      // User should have already warned that something is not right and sync cannot continue.
-      GradleSyncState syncState = GradleSyncState.getInstance(project);
-      if (syncState.syncStarted(true)) {
-        createTopLevelProjectAndOpen(project);
-        String cause = nullToEmpty(preSyncCheckResult.getFailureCause());
-        syncState.syncFailed(cause);
-        if (listener != null) {
-          listener.syncFailed(project, cause);
+    if (!GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC) {
+      PreSyncCheckResult result = PreSyncChecks.getInstance().canSync(project);
+      if (!result.isSuccess()) {
+        // User should have already warned that something is not right and sync cannot continue.
+        GradleSyncState syncState = GradleSyncState.getInstance(project);
+        if (syncState.syncStarted(true)) {
+          createTopLevelProjectAndOpen(project);
+          String cause = nullToEmpty(result.getFailureCause());
+          syncState.syncFailed(cause);
+          if (listener != null) {
+            listener.syncFailed(project, cause);
+          }
         }
+        return;
       }
-      return;
     }
 
     if (isAndroidStudio() && isDirectGradleInvocationEnabled(project)) {

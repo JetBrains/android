@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.cleanup;
+package com.android.tools.idea.gradle.project.sync.precheck;
 
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class ProjectCleanUpTask {
-  @NotNull private final Project myProject;
-
-  ProjectCleanUpTask(@NotNull Project project) {
-    myProject = project;
-  }
-
-  abstract void execute();
-
+abstract class SyncCheck {
   @NotNull
-  Project getProject() {
-    return myProject;
-  }
+  abstract PreSyncCheckResult canSync(@NotNull Project project);
 }

@@ -21,7 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -66,6 +66,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
@@ -140,15 +141,12 @@ public class GradleSpecificInitializer implements Runnable {
       app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
         @Override
         public void appStarting(Project project) {
-          app.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
-                                             ApplicationNamesInfo.getInstance().getProductName());
-              Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
-              notification.setImportant(true);
-              Notifications.Bus.notify(notification);
-            }
+          app.invokeLater(() -> {
+            String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+                                           ApplicationNamesInfo.getInstance().getProductName());
+            Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+            notification.setImportant(true);
+            Notifications.Bus.notify(notification);
           });
         }
       });
@@ -204,8 +202,8 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void replaceProjectPopupActions() {
-    Deque<Pair<DefaultActionGroup, AnAction>> stack = new ArrayDeque<Pair<DefaultActionGroup, AnAction>>();
-    stack.add(Pair.of((DefaultActionGroup)null, ActionManager.getInstance().getAction("ProjectViewPopupMenu")));
+    Deque<Pair<DefaultActionGroup, AnAction>> stack = new ArrayDeque<>();
+    stack.add(Pair.of(null, ActionManager.getInstance().getAction("ProjectViewPopupMenu")));
     while (!stack.isEmpty()) {
       Pair<DefaultActionGroup, AnAction> entry = stack.pop();
       DefaultActionGroup parent = entry.getFirst();
@@ -252,13 +250,10 @@ public class GradleSpecificInitializer implements Runnable {
     app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appStarting(Project project) {
-        app.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
-            notification.setImportant(true);
-            Notifications.Bus.notify(notification);
-          }
+        app.invokeLater(() -> {
+          Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+          notification.setImportant(true);
+          Notifications.Bus.notify(notification);
         });
       }
     });
@@ -276,12 +271,13 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    File androidHome = IdeSdks.getAndroidSdkPath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File androidHome = ideSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
-      WizardUtils.ValidationResult sdkValidationResult =
-        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
-      if (sdkValidationResult.isError()) {
+      String androidHomePath = androidHome.getAbsolutePath();
+      ValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+      if (result.isError()) {
         notifyInvalidSdk();
       }
 
@@ -299,45 +295,42 @@ public class GradleSpecificInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      ideSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
     }
 
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        File androidSdkPath = getAndroidSdkPath();
-        if (androidSdkPath == null) {
-          return;
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      File androidSdkPath = getAndroidSdkPath();
+      if (androidSdkPath == null) {
+        return;
+      }
 
-        FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
-        // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
-        boolean promptSdkSelection = wizardMode == null;
+      FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+      // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+      boolean promptSdkSelection = wizardMode == null;
 
-        Sdk sdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
-        if (sdk != null) {
-          // Rename the SDK to fit our default naming convention.
-          if (sdk.getName().startsWith(SDK_NAME_PREFIX)) {
-            SdkModificator sdkModificator = sdk.getSdkModificator();
-            sdkModificator.setName(SDK_NAME_PREFIX + sdk.getName().substring(SDK_NAME_PREFIX.length()));
-            sdkModificator.commitChanges();
+      Sdk sdk1 = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
+      if (sdk1 != null) {
+        // Rename the SDK to fit our default naming convention.
+        if (sdk1.getName().startsWith(SDK_NAME_PREFIX)) {
+          SdkModificator sdkModificator = sdk1.getSdkModificator();
+          sdkModificator.setName(SDK_NAME_PREFIX + sdk1.getName().substring(SDK_NAME_PREFIX.length()));
+          sdkModificator.commitChanges();
 
-            // Rename the JDK that goes along with this SDK.
-            AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
-            if (additionalData != null) {
-              Sdk jdk = additionalData.getJavaSdk();
-              if (jdk != null) {
-                sdkModificator = jdk.getSdkModificator();
-                sdkModificator.setName(DEFAULT_JDK_NAME);
-                sdkModificator.commitChanges();
-              }
+          // Rename the JDK that goes along with this SDK.
+          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk1);
+          if (additionalData != null) {
+            Sdk jdk = additionalData.getJavaSdk();
+            if (jdk != null) {
+              sdkModificator = jdk.getSdkModificator();
+              sdkModificator.setName(DEFAULT_JDK_NAME);
+              sdkModificator.commitChanges();
             }
-
-            // Fill out any missing build APIs for this new SDK.
-            IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
           }
+
+          // Fill out any missing build APIs for this new SDK.
+          ideSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
         }
       }
     });
