@@ -16,7 +16,10 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.forms.ShaderEditorPanel;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.lang.glsl.highlighting.GlslSyntaxHighlighter;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
@@ -49,6 +52,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
 import com.intellij.openapi.editor.impl.EditorImpl;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
@@ -190,9 +195,11 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     public final ResourceInfo resource;
     public final ResourcePath path;
-    public String source;
+    @NotNull public String source = "";
     public Map<GfxAPIProtos.ShaderType, ResourceID> shaderResources = Collections.emptyMap();
     public Uniform[] uniforms;
+
+    private Shader shader;
 
     public ShaderData(ResourceInfo resource, ResourcePath path) {
       this.resource = resource;
@@ -207,6 +214,19 @@ public class ShadersController extends Controller implements ResourceCollection.
     @Override
     public Path getPath() {
       return path;
+    }
+
+    public ResourceInfo getResourceInfo() {
+      return resource;
+    }
+
+    public Shader getShader() {
+      return shader;
+    }
+
+    public void setShader(Shader shader) {
+      this.shader = shader;
+      this.source = Strings.nullToEmpty(shader.getSource());
     }
   }
 
@@ -397,6 +417,40 @@ public class ShadersController extends Controller implements ResourceCollection.
     // Release editor on disposal.
     Disposer.register(this, mySourcePanel);
 
+    final ShaderEditorPanel shaderEditorPanel = new ShaderEditorPanel();
+
+    final JButton pushButton = shaderEditorPanel.getPushChangesButton();
+    pushButton.addActionListener(event -> {
+      final ShaderData data = mySourcePanel.getUpdatedShaderData();
+      if (data == null) {
+        return;
+      }
+      Rpc.listen(myEditor.getClient().set(data.getPath(), data.getShader()), new UiCallback<Path, ResourcePath>(myEditor, LOG) {
+        @Override
+        protected ResourcePath onRpcThread(Rpc.Result<Path> result)
+          throws RpcException, ExecutionException, Channel.NotConnectedException {
+          return (ResourcePath)result.get();
+        }
+
+        @Override
+        protected void onUiThread(ResourcePath result) {
+          // Activate atom path
+          myEditor.activatePath(result.getParent(), this);
+          update(false);
+        }
+      });
+    });
+
+    pushButton.setEnabled(false);
+    mySourcePanel.setPushButton(pushButton);
+    myEditor.addConnectionListener(connection -> {
+      if (!myEditor.getFeatures().hasShaderSourceSet()) {
+        shaderEditorPanel.getPanel().remove(pushButton);
+      }
+    });
+
+    mySourcePanel.addTopPanel(shaderEditorPanel.getPanel());
+
     // Set listeners for selection actions.
     myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
       myShadersList.getList().selectItem(-1, false);
@@ -484,7 +538,7 @@ public class ShadersController extends Controller implements ResourceCollection.
         }
       }
       else if (result instanceof Shader) {
-        cell.source = Strings.nullToEmpty(((Shader)result).getSource());
+        cell.setShader((Shader)result);
       }
 
       myProgramsList.getList().repaint();
@@ -676,17 +730,17 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     private static Editor createEditor(@NotNull EditorFactory factory, @NotNull Document document,
                                        @NotNull Project project) {
-      // Create viewer for read-only component. TODO: Implement editing as it's done with atom fields.
-      final EditorImpl e = (EditorImpl)factory.createViewer(document);
+      final EditorImpl e = (EditorImpl)factory.createEditor(document, project);
       final SyntaxHighlighter h = new GlslSyntaxHighlighter();
       e.setHighlighter(new LexerEditorHighlighter(h, e.getColorsScheme()));
       return e;
     }
 
-    private final Document myDocument;
+    @NotNull private final Document myDocument;
+    @NotNull private final Editor myEditor;
 
-    private Editor myEditor;
     private ShaderData myData;
+    private JButton myPushButton;
 
     public SourcePanel(@NotNull Project project) {
       super(new BorderLayout());
@@ -694,11 +748,28 @@ public class ShadersController extends Controller implements ResourceCollection.
       myDocument = factory.createDocument("");
       myEditor = createEditor(factory, myDocument, project);
       getContentLayer().add(myEditor.getComponent(), BorderLayout.CENTER);
+
+      myDocument.addDocumentListener(new DocumentListener() {
+        @Override
+        public void beforeDocumentChange(DocumentEvent event) {
+        }
+
+        @Override
+        public void documentChanged(DocumentEvent event) {
+          if (myPushButton != null && myData != null) {
+            myPushButton.setEnabled(!myData.source.equals(myDocument.getText()));
+          }
+        }
+      });
     }
 
     public void setData(ShaderData data) {
       myData = data;
       update();
+    }
+
+    public void setPushButton(JButton pushButton) {
+      myPushButton = pushButton;
     }
 
     public void update() {
@@ -720,6 +791,19 @@ public class ShadersController extends Controller implements ResourceCollection.
       if (myEditor != null) {
         EditorFactory.getInstance().releaseEditor(myEditor);
       }
+    }
+
+    public ShaderData getUpdatedShaderData() {
+      if (myData != null) {
+        final Shader shader = myData.getShader();
+        shader.setSource(myDocument.getText());
+        myData.setShader(shader);
+      }
+      return myData;
+    }
+
+    public void addTopPanel(@NotNull final JPanel panel) {
+      getContentLayer().add(panel, BorderLayout.NORTH);
     }
   }
 }
