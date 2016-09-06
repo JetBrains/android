@@ -57,7 +57,7 @@ public class LaunchUtils {
     }
 
     Boolean isDebuggable = AndroidModuleInfo.get(facet).isDebuggable();
-    if (isDebuggable != null && isDebuggable) {
+    if (isDebuggable == null || isDebuggable) {
       return true;
     }
 
