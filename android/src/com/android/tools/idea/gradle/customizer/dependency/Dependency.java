@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,7 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
@@ -184,7 +186,11 @@ public abstract class Dependency {
 
     String gradleProjectPath = library.getProject();
     if (isNotEmpty(gradleProjectPath)) {
-      dependencies.add(createModuleDependencyFromAndroidLibrary(library, scope, gradleProjectPath));
+      ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
+      // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
+      // project.) If we cannot set the module dependency, we set a library dependency instead.
+      dependency.setBackupDependency(createLibraryDependencyFromAndroidLibrary(library, scope));
+      dependencies.add(dependency);
     }
     else {
       dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
@@ -207,41 +213,12 @@ public abstract class Dependency {
     }
 
     String gradleProjectPath = atom.getProject();
-    if (isNotEmpty(gradleProjectPath)) {
-      dependencies.add(createModuleDependencyFromAndroidBundle(atom, scope, gradleProjectPath));
-    }
-    else {
-      dependencies.add(createLibraryDependencyFromAndroidBundle(atom, scope));
+    if (isEmpty(gradleProjectPath)) {
+      Logger.getInstance(Dependency.class).error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
     }
 
+    dependencies.add(new ModuleDependency(gradleProjectPath, scope));
     addAtomTransitiveDependencies(atom, dependencies, scope, unique, supportsDependencyGraph);
-  }
-
-  @NotNull
-  private static ModuleDependency createModuleDependencyFromAndroidLibrary(@NotNull AndroidLibrary library,
-                                                                           @NotNull DependencyScope scope,
-                                                                           String gradleProjectPath) {
-    // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
-    // project.) If we cannot set the module dependency, we set a library dependency instead.
-    LibraryDependency backup = createLibraryDependencyFromAndroidLibrary(library, scope);
-    return createModuleDependency(scope, backup, gradleProjectPath);
-  }
-
-  @NotNull
-  private static ModuleDependency createModuleDependencyFromAndroidBundle(@NotNull AndroidBundle bundle,
-                                                                          @NotNull DependencyScope scope,
-                                                                          String gradleProjectPath) {
-    LibraryDependency backup = createLibraryDependencyFromAndroidBundle(bundle, scope);
-    return createModuleDependency(scope, backup, gradleProjectPath);
-  }
-
-  @NotNull
-  private static ModuleDependency createModuleDependency(@NotNull DependencyScope scope,
-                                                         @NotNull LibraryDependency backup,
-                                                         String gradleProjectPath) {
-    ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
-    dependency.setBackupDependency(backup);
-    return dependency;
   }
 
   private static void addBundleTransitiveDependencies(@NotNull AndroidBundle bundle,
@@ -269,27 +246,20 @@ public abstract class Dependency {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidBundle(@NotNull AndroidBundle bundle, @NotNull DependencyScope scope) {
-    LibraryDependency dependency = new LibraryDependency(getBundleName(bundle), scope);
-    dependency.addPath(BINARY, bundle.getJarFile());
-    dependency.addPath(BINARY, bundle.getResFolder());
-
-    VirtualFile sourceJar = findSourceJarForLibrary(bundle.getBundle());
-    if (sourceJar != null) {
-      File sourceJarFile = virtualToIoFile(sourceJar);
-      dependency.addPath(SOURCE, sourceJarFile);
-    }
-
-    return dependency;
-  }
-
-  @NotNull
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull AndroidLibrary library,
                                                                              @NotNull DependencyScope scope) {
-    LibraryDependency dependency = createLibraryDependencyFromAndroidBundle(library, scope);
+    LibraryDependency dependency = new LibraryDependency(getBundleName(library), scope);
+    dependency.addPath(BINARY, library.getJarFile());
+    dependency.addPath(BINARY, library.getResFolder());
 
     for (File localJar : library.getLocalJars()) {
       dependency.addPath(BINARY, localJar);
+    }
+
+    VirtualFile sourceJar = findSourceJarForLibrary(library.getBundle());
+    if (sourceJar != null) {
+      File sourceJarFile = virtualToIoFile(sourceJar);
+      dependency.addPath(SOURCE, sourceJarFile);
     }
 
     return dependency;
