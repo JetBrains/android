@@ -51,7 +51,6 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNH
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.io.Closeables.close;
 import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -156,23 +155,13 @@ public class VersionCompatibilityService {
   }
 
   private void loadLocalMetadata() {
-    InputStream inputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      inputStream = getClass().getResourceAsStream(METADATA_FILE_NAME);
+    try (InputStream inputStream = getClass().getResourceAsStream(METADATA_FILE_NAME)) {
       Element root = load(inputStream);
       myMetadata = loadMetadata(root);
     }
     catch (Throwable e) {
       // Impossible to happen.
       LOG.info("Failed to load/parse local metadata file.", e);
-    }
-    finally {
-      try {
-        close(inputStream, true);
-      }
-      catch (IOException ignored) {
-      }
     }
   }
 

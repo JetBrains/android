@@ -22,11 +22,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.util.Properties;
 
-import static com.google.common.io.Closeables.close;
 import static com.intellij.openapi.util.io.FileUtilRt.createParentDirs;
 
-public final class PropertiesUtil {
-  private PropertiesUtil() {
+public final class PropertiesFiles {
+  private PropertiesFiles() {
   }
 
   @NotNull
@@ -38,13 +37,8 @@ public final class PropertiesUtil {
       return new Properties();
     }
     Properties properties = new Properties();
-    Reader reader = null;
-    try {
-      reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8);
+    try (Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8)) {
       properties.load(reader);
-    }
-    finally {
-      close(reader, true);
     }
     return properties;
   }
@@ -52,19 +46,13 @@ public final class PropertiesUtil {
   public static void savePropertiesToFile(@NotNull Properties properties, @NotNull File filePath, @Nullable String comments)
     throws IOException {
     createParentDirs(filePath);
-    FileOutputStream out = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      out = new FileOutputStream(filePath);
+    try (FileOutputStream out = new FileOutputStream(filePath)) {
       // Note that we don't write the properties files in UTF-8; this will *not* write the
       // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
       // \\u escaping syntax for other characters. This will work with older versions of the Gradle
       // plugin which does not read the .properties file with UTF-8 encoding. In the future when
       // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
       properties.store(out, comments);
-    }
-    finally {
-      close(out, true);
     }
   }
 }
