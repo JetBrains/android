@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 public class MultipleModulesTest extends AndroidTestCase {
 
   // Additional module names
@@ -38,8 +40,8 @@ public class MultipleModulesTest extends AndroidTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, USEDLIBRARY, true, true);
-    addModuleWithAndroidFacet(projectBuilder, modules, UNUSEDLIBRARY, true, false);
+    addModuleWithAndroidFacet(projectBuilder, modules, USEDLIBRARY, PROJECT_TYPE_LIBRARY, true);
+    addModuleWithAndroidFacet(projectBuilder, modules, UNUSEDLIBRARY, PROJECT_TYPE_LIBRARY, false);
   }
 
   public void testThemeResolver() {

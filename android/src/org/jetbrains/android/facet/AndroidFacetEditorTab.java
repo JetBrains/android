@@ -66,6 +66,9 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * @author yole
  */
@@ -348,7 +351,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @Override
   public boolean isModified() {
     //if (myAddAndroidLibrary.isSelected() != myConfiguration.ADD_ANDROID_LIBRARY) return true;
-    if (myIsLibraryProjectCheckbox.isSelected() != myConfiguration.getState().LIBRARY_PROJECT) return true;
+    if (myIsLibraryProjectCheckbox.isSelected() != (myConfiguration.getState().PROJECT_TYPE == PROJECT_TYPE_LIBRARY)) return true;
 
     if (checkRelativePath(myConfiguration.getState().GEN_FOLDER_RELATIVE_PATH_APT, myRGenPathField.getText())) {
       return true;
@@ -546,7 +549,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.getState().CUSTOM_DEBUG_KEYSTORE_PATH = getSelectedCustomKeystorePath();
 
-    myConfiguration.getState().LIBRARY_PROJECT = myIsLibraryProjectCheckbox.isSelected();
+    myConfiguration.getState().PROJECT_TYPE = myIsLibraryProjectCheckbox.isSelected() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
 
     myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = myRunProcessResourcesRadio.isSelected();
 
@@ -632,7 +635,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
   @Override
   public void reset() {
-    myIsLibraryProjectCheckbox.setSelected(myConfiguration.getState().LIBRARY_PROJECT);
+    myIsLibraryProjectCheckbox.setSelected(myConfiguration.getState().PROJECT_TYPE == PROJECT_TYPE_LIBRARY);
     resetOptions(myConfiguration);
   }
 

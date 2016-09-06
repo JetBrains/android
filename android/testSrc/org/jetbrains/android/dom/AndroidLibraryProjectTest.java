@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static org.jetbrains.android.AndroidTestCase.getDefaultPlatformDir;
 import static org.jetbrains.android.AndroidTestCase.getDefaultTestSdkPath;
 
@@ -89,7 +90,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
 
     myAppFacet = AndroidTestCase.addAndroidFacet(myAppModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
     myLibFacet = AndroidTestCase.addAndroidFacet(myLibModule, getDefaultTestSdkPath(), getDefaultPlatformDir());
-    myLibFacet.setLibraryProject(true);
+    myLibFacet.setProjectType(PROJECT_TYPE_LIBRARY);
 
     ModuleRootModificationUtil.addDependency(myAppModule, myLibModule);
     ModuleRootModificationUtil.addDependency(myLibModule, myLibGenModule);
@@ -239,13 +240,13 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
   }
 
   public void testFileResourceFindUsagesFromJava1() throws Throwable {
-    boolean temp = myLibFacet.isLibraryProject();
+    int temp = myLibFacet.getProjectType();
     try {
-      myLibFacet.setLibraryProject(true);
+      myLibFacet.setProjectType(PROJECT_TYPE_LIBRARY);
       doFindUsagesTest("java", "app/src/p1/p2/lib/");
     }
     finally {
-      myLibFacet.setLibraryProject(temp);
+      myLibFacet.setProjectType(temp);
     }
   }
 

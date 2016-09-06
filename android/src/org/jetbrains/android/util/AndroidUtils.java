@@ -112,6 +112,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 /**
@@ -150,6 +151,7 @@ public class AndroidUtils {
 
   // Properties
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
+  @NonNls public static final String ANDROID_PROJECT_TYPE_PROPERTY = "project.type";
   @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
   @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
@@ -504,7 +506,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        facet.getProperties().LIBRARY_PROJECT = true;
+        facet.setProjectType(PROJECT_TYPE_LIBRARY);
       }
       model.addFacet(facet);
     }
@@ -586,7 +588,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (!facet.isLibraryProject()) {
+      if (facet.isAppProject()) {
         result.add(facet);
       }
     }
@@ -607,7 +609,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.isLibraryProject()) {
+            if (depFacet != null && depFacet.canBeDependency()) {
               depFacets.add(depFacet);
             }
           }

@@ -52,6 +52,8 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -474,7 +476,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     rebuildAll();
     checkBuildLog(executor, "expected_log");
@@ -596,7 +598,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     rebuildAll();
     checkBuildLog(executor, "expected_log");
@@ -674,7 +676,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     makeAll().assertSuccessful();
     checkBuildLog(executor, "expected_log");
@@ -922,7 +924,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     appModule.getDependenciesList().addModuleDependency(libModule);
 
@@ -976,12 +978,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     final JpsAndroidModuleExtension libExtension1 = AndroidJpsUtil.getExtension(libModule1);
     assert libExtension1 != null;
     final JpsAndroidModuleProperties libProps1 = ((JpsAndroidModuleExtensionImpl)libExtension1).getProperties();
-    libProps1.LIBRARY_PROJECT = true;
+    libProps1.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     appModule.getDependenciesList().addModuleDependency(libModule);
     libModule.getDependenciesList().addModuleDependency(libModule1);
@@ -1016,7 +1018,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension2 = AndroidJpsUtil.getExtension(libModule2);
     assert libExtension2 != null;
     final JpsAndroidModuleProperties libProps2 = ((JpsAndroidModuleExtensionImpl)libExtension2).getProperties();
-    libProps2.LIBRARY_PROJECT = true;
+    libProps2.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
     libModule1.getDependenciesList().addModuleDependency(libModule2);
 
     makeAll().assertSuccessful();
@@ -1051,7 +1053,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
     appModule.getDependenciesList().addModuleDependency(libModule);
 
     rebuildAll();
@@ -1175,12 +1177,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
-    libProps.LIBRARY_PROJECT = true;
+    libProps.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     final JpsAndroidModuleExtension libExtension1 = AndroidJpsUtil.getExtension(libModule1);
     assert libExtension1 != null;
     final JpsAndroidModuleProperties libProps1 = ((JpsAndroidModuleExtensionImpl)libExtension1).getProperties();
-    libProps1.LIBRARY_PROJECT = true;
+    libProps1.PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
     appModule.getDependenciesList().addModuleDependency(libModule);
     libModule.getDependenciesList().addModuleDependency(libModule1);
