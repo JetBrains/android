@@ -32,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * @author coyote
  */
@@ -375,7 +377,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testCustomAttributeNameCompletion5() throws Throwable {
-    myFacet.getProperties().LIBRARY_PROJECT = true;
+    myFacet.setProjectType(PROJECT_TYPE_LIBRARY);
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("can5.xml", "can5_after.xml");
   }

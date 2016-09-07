@@ -33,6 +33,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
@@ -85,7 +86,7 @@ public class ConflictSetTest extends IdeaTestCase {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
-      AndroidFacet facet = createFacet(facetManager, false);
+      AndroidFacet facet = createFacet(facetManager, PROJECT_TYPE_APP);
       facet.setAndroidModel(myApp);
       facetModel.addFacet(facet);
     }
@@ -98,7 +99,7 @@ public class ConflictSetTest extends IdeaTestCase {
     FacetManager facetManager = FacetManager.getInstance(myLibModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
-      AndroidFacet androidFacet = createFacet(facetManager, true);
+      AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
       androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
@@ -112,11 +113,11 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   @NotNull
-  private static AndroidFacet createFacet(@NotNull FacetManager facetManager, boolean library) {
+  private static AndroidFacet createFacet(@NotNull FacetManager facetManager, int projectType) {
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
-    facetState.LIBRARY_PROJECT = library;
+    facetState.PROJECT_TYPE = projectType;
     return facet;
   }
 

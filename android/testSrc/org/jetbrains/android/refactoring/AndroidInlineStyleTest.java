@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -424,7 +426,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
                                             @NotNull List<MyAdditionalModuleData> modules) {
     final String testName = getTestName(true);
     if (testName.equals("14") || testName.equals("15") || testName.equals("16") || testName.equals("35")) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "lib", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY);
     }
   }
 }

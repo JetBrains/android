@@ -2,7 +2,6 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.checks.CommentDetector;
-import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -14,13 +13,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -38,6 +34,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 
 public class AndroidLintTest extends AndroidTestCase {
@@ -55,10 +53,10 @@ public class AndroidLintTest extends AndroidTestCase {
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     if ("testImlFileOutsideContentRoot".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "module2", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module2", PROJECT_TYPE_LIBRARY);
     } else if ("testAppCompatMethod".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", false);
+      addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", PROJECT_TYPE_APP);
     }
   }
 

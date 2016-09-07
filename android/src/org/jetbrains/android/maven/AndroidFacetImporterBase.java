@@ -76,6 +76,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
@@ -138,7 +139,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging) ||
         AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging)) {
-      facet.setLibraryProject(true);
+      facet.setProjectType(PROJECT_TYPE_LIBRARY);
     }
     facet.getConfiguration().setIncludeAssetsFromLibraries(true);
 
@@ -199,7 +200,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       rootModel.addExcludedFolder(aidlPath);
     }
 
-    if (facet.getProperties().LIBRARY_PROJECT) {
+    if (facet.isLibraryProject()) {
       removeAttachedJarDependency(modelsProvider, mavenTree, mavenProject);
     }
   }

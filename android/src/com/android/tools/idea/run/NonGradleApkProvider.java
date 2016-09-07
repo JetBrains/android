@@ -115,7 +115,7 @@ public class NonGradleApkProvider implements ApkProvider {
           AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
           if (depFacet != null &&
               !module2PackageName.containsKey(depFacet) &&
-              !depFacet.isLibraryProject()) {
+              depFacet.isAppProject()) {
             String packageName = ApkProviderUtil.computePackageName(depFacet);
             module2PackageName.put(depFacet, packageName);
             fillRuntimeAndTestDependencies(depModule, module2PackageName);

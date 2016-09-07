@@ -772,7 +772,7 @@ public class AndroidCompileUtil {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || !facet.isLibraryProject()) {
+    if (facet == null || facet.isAppProject()) {
       return true;
     }
 
@@ -872,7 +872,7 @@ public class AndroidCompileUtil {
   // support for lib<->lib and app<->lib circular dependencies
   // see IDEA-79737 for details
   public static boolean isLibraryWithBadCircularDependency(@NotNull AndroidFacet facet) {
-    if (!facet.isLibraryProject()) {
+    if (!facet.canBeDependency()) {
       return false;
     }
 
@@ -894,7 +894,7 @@ public class AndroidCompileUtil {
       if (depDependencies.contains(facet) &&
           dependencies.contains(depFacet) &&
           (depFacet.getModule().getName().compareTo(facet.getModule().getName()) < 0 ||
-           !depFacet.isLibraryProject())) {
+           !depFacet.canBeDependency())) {
         return true;
       }
     }
