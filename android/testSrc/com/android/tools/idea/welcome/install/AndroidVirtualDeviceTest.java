@@ -79,7 +79,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
     builder.put("tag.id", "google_apis");
-    builder.put("vm.heapSize", "64");
+    builder.put("vm.heapSize", "256"); // Matches CDD Minimum Application Memory
     return builder.build();
   }
 
