@@ -922,8 +922,10 @@ public class ConstraintUtilities {
     WidgetsScene scene = constraintModel.getScene();
     Insets padding = component.getPadding(true);
     if (widget instanceof ConstraintWidgetContainer) {
-      widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
-                          constraintModel.pxToDp(component.h - padding.height()));
+      ((ConstraintWidgetContainer)widget).setPadding(constraintModel.pxToDp(padding.left),
+                                                     constraintModel.pxToDp(padding.top),
+                                                     constraintModel.pxToDp(padding.right),
+                                                     constraintModel.pxToDp(padding.bottom));
     }
     else {
       widget.setDimension(constraintModel.pxToDp(component.w),
