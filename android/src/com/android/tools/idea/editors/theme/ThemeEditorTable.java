@@ -69,6 +69,17 @@ public class ThemeEditorTable extends CellSpanTable {
     }
   }
 
+  @Override
+  public int convertRowIndexToModel(int viewRowIndex) {
+    // Workaround for http://b.android.com/221881
+    // The CellSpanTableUI will incorrectly calculate the row sometimes (and set it to -1) if there is a
+    // clipping rect set.
+    if (viewRowIndex < 0) {
+      viewRowIndex = 0;
+    }
+    return super.convertRowIndexToModel(viewRowIndex);
+  }
+
   public void setGoToListener(@NotNull ThemeEditorComponent.GoToListener goToListener) {
     myGoToListener = goToListener;
   }
