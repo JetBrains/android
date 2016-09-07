@@ -99,12 +99,9 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     Element menuIcon = document.createElement(IMAGE_BUTTON);
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, "40dp");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
-    menuIcon.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, attrPrefix + "selectableItemBackground");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_RIGHT);
-    menuIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
-    menuIcon.setAttributeNS(ANDROID_URI, ATTR_SRC, "@drawable/abc_ic_menu_moreoverflow_mtrl_alpha");
+    menuIcon.setAttribute("style", "?attr/actionOverflowButtonStyle");
     menuIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
-    menuIcon.setAttributeNS(ANDROID_URI, "tint", attrPrefix + "actionMenuTextColor");
     toolbarComponent.appendChild(menuIcon);
 
     return toolbarComponent;
