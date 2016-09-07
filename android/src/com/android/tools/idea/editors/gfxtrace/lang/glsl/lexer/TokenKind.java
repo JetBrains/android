@@ -17,27 +17,25 @@ package com.android.tools.idea.editors.gfxtrace.lang.glsl.lexer;
 
 public enum TokenKind {
   BINARY_OP("binary operator"),
-  KEYWORD("keyword"),
-  NUMERIC("numeric"),
+  COMPONENTS("vector or scalar components"),
   COMMA(","),
   COMMENT("comment"),
   DOT("."),
-  FALSE("false"),
   IDENTIFIER("identifier"),
   ILLEGAL("illegal character"),
+  KEYWORD("keyword"),
   LBRACE("{"),
   LBRACKET("["),
   LPAREN("("),
+  NUMERIC("numeric"),
   NEWLINE("newline"),
   PREPROCESSOR("preprocessor directive"),
-  SPECIAL("special"),
   RBRACE("}"),
   RBRACKET("]"),
   RPAREN(")"),
   SEMI(";"),
+  SPECIAL("special"),
   STRING("string"),
-  TRUE("true"),
-  COMPONENTS("vector or scalar components"),
   // Used for all tokens which should be ignored by the highlighter.
   WHITESPACE("whitespace");
 
