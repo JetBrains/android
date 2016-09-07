@@ -56,7 +56,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     super.setUp();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
-    ApplicationManager.getApplication().runWriteAction(ideSdks::setUseEmbeddedJdk);
+    if (isAndroidStudio()) {
+      ApplicationManager.getApplication().runWriteAction(ideSdks::setUseEmbeddedJdk);
+    }
 
     File jdkPath = ideSdks.getJdkPath();
     assert jdkPath != null;
