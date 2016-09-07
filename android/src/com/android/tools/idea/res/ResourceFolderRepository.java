@@ -146,9 +146,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
     try {
       ResourcePreprocessor preprocessor = new NoOpResourcePreprocessor();
-      MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
-        blobRoot, null, null, preprocessor, FileUtil.createTempDirectory("resource", "tmp", true));
-      myInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
+      File tempDirectory = FileUtil.createTempDirectory("resource", "tmp", false);
+      try {
+        MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
+          blobRoot, null, null, preprocessor, tempDirectory);
+        myInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
+      } finally {
+        FileUtil.delete(tempDirectory);
+      }
     }
     catch (MergingException|IOException e) {
       LOG.error("Failed to saveStateToFile", e);
