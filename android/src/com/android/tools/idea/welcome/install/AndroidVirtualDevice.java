@@ -67,7 +67,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
   private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google Inc.");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
-  private static final Storage DEFAULT_HEAP_SIZE = new Storage(64, Storage.Unit.MiB);
+  private static final Storage DEFAULT_HEAP_SIZE = new Storage(256, Storage.Unit.MiB);
 
   private static final Set<String> ENABLED_HARDWARE = ImmutableSet
     .of(HW_ACCELEROMETER, HW_AUDIO_INPUT, HW_BATTERY, HW_GPS, HW_KEYBOARD, HW_ORIENTATION_SENSOR, HW_PROXIMITY_SENSOR, HW_SDCARD,
