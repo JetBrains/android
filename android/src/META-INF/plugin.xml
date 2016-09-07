@@ -1237,7 +1237,7 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.inspector.ViewInspectorProvider</implementation-class>
+      <implementation-class>com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders</implementation-class>
       <skipForDefaultProject/>
     </component>
   </project-components>

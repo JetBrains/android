@@ -88,6 +88,11 @@ public class TextInspectorProvider implements InspectorProvider {
     return myComponent;
   }
 
+  @Override
+  public void resetCache() {
+    myComponent = null;
+  }
+
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
