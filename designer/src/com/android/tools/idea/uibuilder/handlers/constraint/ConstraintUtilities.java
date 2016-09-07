@@ -655,29 +655,7 @@ public class ConstraintUtilities {
   static void setDimensionRatio(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String dimensionRatioString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
-    float dimensionRatio = 0f;
-    if (dimensionRatioString == null || dimensionRatioString.length() == 0) {
-      widget.setDimensionRatio(dimensionRatio);
-      return;
-    }
-
-    int colonIndex = dimensionRatioString.indexOf(':');
-    if (colonIndex >= 0 && colonIndex < dimensionRatioString.length() - 1) {
-      String nominator = dimensionRatioString.substring(0, colonIndex);
-      String denominator = dimensionRatioString.substring(colonIndex + 1);
-      if (nominator.length() > 0 && denominator.length() > 0) {
-        try {
-          float nominatorValue = Float.parseFloat(nominator);
-          float denominatorValue = Float.parseFloat(denominator);
-          if (denominatorValue > 0) {
-            dimensionRatio = nominatorValue / denominatorValue;
-          }
-        }
-        catch (NumberFormatException e) {
-        }
-      }
-    }
-    widget.setDimensionRatio(dimensionRatio);
+    widget.setDimensionRatio(dimensionRatioString);
   }
 
   /**
