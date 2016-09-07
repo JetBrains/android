@@ -192,6 +192,7 @@ public class GradleSyncTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/221883")
   // See https://code.google.com/p/android/issues/detail?id=183368
   public void withTestOnlyInterModuleDependencies() throws IOException {
     guiTest.importMultiModule();
@@ -935,6 +936,7 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=167378
+  @Ignore("http://b.android.com/221883")
   @Test
   public void interJavaModuleDependencies() throws IOException {
     guiTest.importMultiModule();
