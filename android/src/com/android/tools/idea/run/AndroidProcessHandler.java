@@ -59,7 +59,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
   @NotNull private final List<String> myDevices;
   @NotNull private final Set<Client> myClients;
-  @NotNull private final Map<IDevice, AndroidLogcatService.LogLineListener> myLogListeners;
+  @NotNull private final Map<IDevice, AndroidLogcatService.LogcatListener> myLogListeners;
 
   private long myDeviceAdded;
   private boolean myNoKill;
@@ -105,7 +105,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
                         ProcessOutputTypes.STDOUT);
 
-    AndroidLogcatService.LogLineListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
+    AndroidLogcatService.LogcatListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
       @Override

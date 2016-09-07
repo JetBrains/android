@@ -19,7 +19,7 @@ import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 
-abstract class FormattedLogLineReceiver implements AndroidLogcatService.LogLineListener {
+abstract class FormattedLogcatReceiver implements AndroidLogcatService.LogcatListener {
   private LogCatHeader myActiveHeader;
 
   @Override
