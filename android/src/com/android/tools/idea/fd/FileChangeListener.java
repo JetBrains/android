@@ -162,7 +162,7 @@ public class FileChangeListener implements BulkFileListener {
 
       // Make sure the editing is in an Android app module
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.isLibraryProject()) {
+      if (facet != null && facet.isAppProject()) {
         FileType fileType = file.getFileType();
         if (fileType == StdFileTypes.JAVA) {
           recordSimpleJavaEdit();

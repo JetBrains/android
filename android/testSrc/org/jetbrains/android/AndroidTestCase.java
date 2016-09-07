@@ -51,7 +51,6 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,7 +129,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
       final AndroidFacet facet = addAndroidFacet(additionalModule, sdkPath, getPlatformDir());
-      facet.setLibraryProject(data.myLibrary);
+      facet.setProjectType(data.myProjectType);
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -199,22 +198,22 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected void addModuleWithAndroidFacet(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                            @NotNull List<MyAdditionalModuleData> modules,
                                            @NotNull String dirName,
-                                           boolean library) {
+                                           int projectType) {
     // By default, created module is declared as a main module's dependency
-    addModuleWithAndroidFacet(projectBuilder, modules, dirName, library, true);
+    addModuleWithAndroidFacet(projectBuilder, modules, dirName, projectType, true);
   }
 
   protected void addModuleWithAndroidFacet(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                            @NotNull List<MyAdditionalModuleData> modules,
                                            @NotNull String dirName,
-                                           boolean library,
+                                           int projectType,
                                            boolean isMainModuleDependency) {
     final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
     final String moduleDirPath = myFixture.getTempDirPath() + getContentRootPath(dirName);
     //noinspection ResultOfMethodCallIgnored
     new File(moduleDirPath).mkdirs();
     tuneModule(moduleFixtureBuilder, moduleDirPath);
-    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, library, isMainModuleDependency));
+    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, projectType, isMainModuleDependency));
   }
 
   protected static String getContentRootPath(@NotNull String moduleName) {
@@ -347,16 +346,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected static class MyAdditionalModuleData {
     final JavaModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
-    final boolean myLibrary;
+    final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(@NotNull JavaModuleFixtureBuilder moduleFixtureBuilder,
                                    @NotNull String dirName,
-                                   boolean library,
+                                   int projectType,
                                    boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
-      myLibrary = library;
+      myProjectType = projectType;
       myIsMainModuleDependency = isMainModuleDependency;
     }
   }

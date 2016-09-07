@@ -114,7 +114,7 @@ public class AttributeProcessingUtil {
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (facet.getProperties().LIBRARY_PROJECT || facet.requiresAndroidModel()) {
+      if (!facet.isAppProject() || facet.requiresAndroidModel()) {
         return AUTO_URI;
       }
       Manifest manifest = facet.getManifest();

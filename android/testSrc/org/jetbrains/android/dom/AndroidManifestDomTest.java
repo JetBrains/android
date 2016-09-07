@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 public class AndroidManifestDomTest extends AndroidDomTestCase {
   public AndroidManifestDomTest() {
     super(false, "dom/manifest");
@@ -332,7 +334,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
                                             @NotNull List<MyAdditionalModuleData> modules) {
     if ("testInstrumentationRunner1".equals(getName()) ||
         "testInstrumentationRunner2".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_APP);
     }
   }
 

@@ -88,6 +88,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
@@ -219,14 +220,27 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     DataBindingUtil.onIdeaProjectSet(this);
   }
 
+  public boolean isAppProject() {
+    int projectType = getProjectType();
+    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
+  }
+
+  public boolean canBeDependency() {
+    int projectType = getProjectType();
+    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_ATOM;
+  }
+
   public boolean isLibraryProject() {
-    return getProperties().LIBRARY_PROJECT;
+    return getProjectType() == PROJECT_TYPE_LIBRARY;
   }
 
-  public void setLibraryProject(boolean library) {
-    getProperties().LIBRARY_PROJECT = library;
+  public int getProjectType() {
+    return getProperties().PROJECT_TYPE;
   }
 
+  public void setProjectType(int type) {
+    getProperties().PROJECT_TYPE = type;
+  }
   /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.
