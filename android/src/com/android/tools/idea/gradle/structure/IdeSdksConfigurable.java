@@ -249,15 +249,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       // to take effect during the sync.
       saveAndroidNdkPath();
 
-      boolean useEmbeddedJdk = useEmbeddedJdk();
       IdeSdks ideSdks = IdeSdks.getInstance();
-      if (useEmbeddedJdk) {
-        ideSdks.setUseEmbeddedJdk();
-      }
-      else {
-        ideSdks.setJdkPath(getUserSelectedJdkLocation());
-      }
-
+      ideSdks.setJdkPath(useEmbeddedJdk() ? getEmbeddedJdkPath() : getUserSelectedJdkLocation());
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
