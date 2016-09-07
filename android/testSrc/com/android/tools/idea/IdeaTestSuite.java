@@ -48,7 +48,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.invoker.GradleInvokerTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
-  com.android.tools.idea.gradle.project.common.GradleInitScriptsTest.class,
   com.android.tools.idea.gradle.project.GradleProjectSyncDataTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
@@ -114,6 +113,8 @@ public class IdeaTestSuite {
   // Initialize Idea specific environment
   static {
     setIdeaHome();
+    // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
+    createTmpDir("prebuilts/tools/common/offline-m2");
     // Bazel tests are sandboxed so we disable VfsRoot checks.
     VfsRootAccess.allowRootAccess("/");
 
@@ -138,12 +139,16 @@ public class IdeaTestSuite {
   }
 
   private static void setIdeaHome() {
-    Path idea = Paths.get(TMP_DIR, "tools/idea");
+    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
+  }
+
+  private static Path createTmpDir(String p) {
+    Path path = Paths.get(TMP_DIR, p);
     try {
-      Files.createDirectories(idea);
+      Files.createDirectories(path);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    System.setProperty("idea.home", idea.toString());
+    return path;
   }
 }
