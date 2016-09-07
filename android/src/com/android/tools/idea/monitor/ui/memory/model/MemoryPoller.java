@@ -19,6 +19,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.logcat.AndroidLogcatService;
@@ -55,7 +56,7 @@ public class MemoryPoller extends Poller {
 
   @Nullable private volatile CountDownLatch myLogcatHeapDumpFinishedLatch = null;
 
-  @NotNull private final AndroidLogcatService.LogLineListener myLogLineListener;
+  @NotNull private final AndroidLogcatService.LogcatListener myLogcatListener;
 
   private long myStartTimestampNs;
 
@@ -72,16 +73,19 @@ public class MemoryPoller extends Poller {
     myHasPendingHeapDumpSample = false;
     myDevice = myService.getDevice();
 
-    myLogLineListener = line -> {
-      CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
-      if (myIsListeningForLogcat && line.getMessage().contains("hprof: heap dump completed") && line.getPid() == appId) {
-        assert capturedLatch != null;
-        myIsListeningForLogcat = false;
-        capturedLatch.countDown();
+    myLogcatListener = new AndroidLogcatService.LogcatListener() {
+      @Override
+      public void onLogLineReceived(@NotNull LogCatMessage line) {
+        CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
+        if (myIsListeningForLogcat && line.getMessage().contains("hprof: heap dump completed") && line.getPid() == appId) {
+          assert capturedLatch != null;
+          myIsListeningForLogcat = false;
+          capturedLatch.countDown();
+        }
       }
     };
 
-    AndroidLogcatService.getInstance().addListener(myDevice, myLogLineListener);
+    AndroidLogcatService.getInstance().addListener(myDevice, myLogcatListener);
   }
 
   @Override
@@ -94,7 +98,7 @@ public class MemoryPoller extends Poller {
 
     super.stop();
 
-    AndroidLogcatService.getInstance().removeListener(myDevice, myLogLineListener);
+    AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatListener);
   }
 
   public Map<SeriesDataType, DataAdapter> createAdapters() {
