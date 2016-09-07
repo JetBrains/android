@@ -24,12 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
-import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
-import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
-import com.android.tools.idea.editors.gfxtrace.service.atom.Observations;
-import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
+import com.android.tools.idea.editors.gfxtrace.service.atom.*;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
@@ -41,6 +36,8 @@ import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.utils.SparseArray;
 import com.google.common.base.Objects;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -62,11 +59,15 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.JBUI;
-import javax.swing.event.TreeModelListener;
-import javax.swing.tree.TreeModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
@@ -88,10 +89,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.stream.Collectors;
 
 public class AtomController extends TreeController implements AtomStream.Listener, ReportStream.Listener {
 
@@ -723,7 +721,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (node != lastHoverNode) {
           onNewHoverNode(node, true);
           if (node != null) {
-            lastScheduledFuture = scheduler.schedule(() -> hover(node, followPath, x, y),
+            lastScheduledFuture = scheduler.schedule(() -> hover(node, x, y),
                                                      PREVIEW_HOVER_DELAY_MS, TimeUnit.MILLISECONDS);
           }
         }
@@ -797,18 +795,24 @@ public class AtomController extends TreeController implements AtomStream.Listene
         });
       }
 
-      private void hover(final Node node, ReportItemPath reportItemPath, final int x, final int y) {
+      private void hover(final Node node, final int x, final int y) {
         ApplicationManager.getApplication().invokeLater(() -> {
           if (node == lastHoverNode) {
             if (lastShownBalloon != null) {
               lastShownBalloon.hide();
             }
-            SimpleColoredComponent component = new SimpleColoredComponent();
+            JTextArea component = new JTextArea();
             component.setOpaque(false);
 
             Report report = myEditor.getReportStream().getReport();
-            ReportItem reportItem = report.getItems()[(int)reportItemPath.getIndex()];
-            component.append(reportItem.getMessage().toString());
+            if (report == null) {
+              return;
+            }
+            com.google.common.collect.Range<Integer> itemIndices = report.getForAtom(node.index);
+            if (itemIndices != null) {
+              component.append(ContiguousSet.create(itemIndices, DiscreteDomain.integers()).stream()
+                                 .map(report::constructMessage).collect(Collectors.joining("\n")));
+            }
             lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(component)
               .setAnimationCycle(Node.REPORT_BALLOON_ANIMATION_CYCLES).createBalloon();
             lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.below);
@@ -911,7 +915,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         ReportStream reportStream = myEditor.getReportStream();
         // Check whether there's report to show
         if (reportStream.getReport() != null) {
-          List<Integer> reportItemIndices = null;
+          com.google.common.collect.Range<Integer> reportItemIndices = null;
           if (userObject instanceof Node) {
             Node atomNode = (Node)userObject;
             reportItemIndices = reportStream.getReport().getForAtom(atomNode.index);
