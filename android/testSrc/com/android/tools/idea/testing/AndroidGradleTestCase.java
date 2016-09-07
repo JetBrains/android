@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -154,8 +155,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(getProject(), () -> {
-      ideSdks.setUseEmbeddedJdk();
-      LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      if (AndroidStudioInitializer.isAndroidStudio()) {
+        ideSdks.setUseEmbeddedJdk();
+        LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      }
 
       ideSdks.setAndroidSdkPath(androidSdkPath, getProject());
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);

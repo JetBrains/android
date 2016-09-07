@@ -51,6 +51,7 @@ import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.Jdks.createEmbeddedJdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.google.common.base.Preconditions.checkState;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
@@ -393,9 +394,8 @@ public class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public void setUseEmbeddedJdk() {
-    if (isAndroidStudio()) {
-      setJdkPath(getEmbeddedJdkPath());
-    }
+    checkState(isAndroidStudio(), "This method is for use in Android Studio only.");
+    setJdkPath(getEmbeddedJdkPath());
   }
 
   /**
