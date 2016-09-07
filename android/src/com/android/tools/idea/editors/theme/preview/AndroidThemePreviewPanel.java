@@ -78,7 +78,7 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
                                             "android.support.design.widget.FloatingActionButton")
-                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
+                      .set("src", "?attr/homeAsUpIndicator")
                       .set("layout_width", "56dp")
                       .set("layout_height", "56dp"),
                     "android.support.v7.widget.Toolbar",
