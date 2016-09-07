@@ -121,6 +121,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
+    symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/android-24");
   }

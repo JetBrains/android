@@ -86,10 +86,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   public static String getAndroidPluginHome() {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    if (System.getenv("TEST_WORKSPACE") != null) {
-      // If we run inside Bazel the location is well defined.
-      return "tools/adt/idea/android";
-    }
     String adtPath = PathManager.getHomePath() + "/../adt/idea/android";
     if (new File(adtPath).exists()) {
       return adtPath;
