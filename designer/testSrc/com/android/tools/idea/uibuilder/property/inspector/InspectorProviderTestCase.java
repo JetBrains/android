@@ -23,10 +23,7 @@ import com.android.tools.idea.uibuilder.property.*;
 import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -123,6 +120,9 @@ public abstract class InspectorProviderTestCase extends LayoutTestCase {
 
   @NotNull
   protected static Map<String, NlProperty> getPropertyMap(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      return Collections.emptyMap();
+    }
     NlProperties propertiesProvider = NlProperties.getInstance();
     Table<String, String, NlPropertyItem> properties = propertiesProvider.getProperties(components);
     Map<String, NlProperty> propertiesByName = new HashMap<>();

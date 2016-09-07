@@ -40,7 +40,7 @@ public class ViewInspectorProviderTest extends InspectorProviderTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myProvider = ViewInspectorProvider.getInstance(getProject());
+    myProvider = new ViewInspectorProvider(getProject());
   }
 
   public void testIsApplicable() {

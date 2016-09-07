@@ -54,6 +54,11 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     return myComponent;
   }
 
+  @Override
+  public void resetCache() {
+    myComponent = null;
+  }
+
   /**
    * ProgressBar inspector component. Has a dual view depending on the value of determinate.
    */

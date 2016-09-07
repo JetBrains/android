@@ -72,6 +72,11 @@ public class IdInspectorProvider implements InspectorProvider {
     return myComponent;
   }
 
+  @Override
+  public void resetCache() {
+    myComponent = null;
+  }
+
   static class IdInspectorComponent implements InspectorComponent {
     private final NlReferenceEditor myIdEditor;
     private final NlEnumEditor myWidthEditor;
