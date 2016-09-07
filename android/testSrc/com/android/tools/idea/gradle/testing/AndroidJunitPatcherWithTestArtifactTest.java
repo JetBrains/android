@@ -26,7 +26,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
 
-  public void testRemoveAndroidTestClasspath() throws Exception {
+  // See http://b.android.com/221883.
+  public void ignore_testRemoveAndroidTestClasspath() throws Exception {
     loadProject(SYNC_MULTIPROJECT, false);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 

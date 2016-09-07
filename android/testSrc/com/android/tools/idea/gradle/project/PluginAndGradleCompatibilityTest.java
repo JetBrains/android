@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -27,6 +28,7 @@ import static org.junit.Assert.*;
 /**
  * Tests for {@link PostProjectSetupTasksExecutor#checkCompatibility(GradleVersion, GradleVersion, boolean)}.
  */
+@Ignore("http://b.android.com/221883")
 public class PluginAndGradleCompatibilityTest {
   private GradleVersion mySecureGradleVersion;
   private GradleVersion myOldGradleVersion;
