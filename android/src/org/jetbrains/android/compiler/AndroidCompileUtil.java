@@ -619,7 +619,6 @@ public class AndroidCompileUtil {
     if (facet.requiresAndroidModel() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
-    final Module module = facet.getModule();
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
     final Ref<Boolean> modelChangedFlag = Ref.create(false);
 

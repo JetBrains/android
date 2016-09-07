@@ -177,7 +177,7 @@ class IntellijLintProject extends Project {
 
     // Prefer Android app modules
     for (AndroidFacet facet : facets) {
-      if (!facet.isLibraryProject()) {
+      if (facet.isAppProject()) {
         return facet.getModule();
       }
     }

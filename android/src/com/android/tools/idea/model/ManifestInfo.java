@@ -82,7 +82,7 @@ final class ManifestInfo {
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
-    ManifestMerger2.MergeType mergeType = facet.isLibraryProject() ? ManifestMerger2.MergeType.LIBRARY : ManifestMerger2.MergeType.APPLICATION;
+    ManifestMerger2.MergeType mergeType = facet.isAppProject() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getAndroidModel();
     AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
@@ -335,7 +335,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
 
       List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (!myFacet.isLibraryProject()) {
+      if (myFacet.isAppProject()) {
         libraryManifests = getLibManifests(myFacet);
         trackChanges(lastModifiedMap, libraryManifests);
       }
