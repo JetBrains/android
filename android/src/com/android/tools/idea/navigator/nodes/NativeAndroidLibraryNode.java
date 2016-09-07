@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
 public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> implements DirectoryGroupNode {
@@ -49,6 +50,8 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
   @NotNull private final Collection<String> mySourceFileExtensions;
+
+  @Nullable private VirtualFile libraryDirectory;
 
   public NativeAndroidLibraryNode(@NotNull Project project,
                                   @NotNull String nativeLibraryName,
@@ -252,8 +255,18 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
     if (sourceDirectoryNodes.size() == 1) {
       AbstractTreeNode node = Iterables.getOnlyElement(sourceDirectoryNodes);
       assert node instanceof NativeAndroidSourceDirectoryNode;
-      return ((NativeAndroidSourceDirectoryNode)node).getChildren();
+      NativeAndroidSourceDirectoryNode sourceDirectoryNode = (NativeAndroidSourceDirectoryNode)node;
+      sourceDirectoryNode.setShowDirectoryPath(false);
+      libraryDirectory = sourceDirectoryNode.getVirtualFile();
+      return sourceDirectoryNode.getChildren();
     }
+
+    for (AbstractTreeNode sourceDirectoryNode : sourceDirectoryNodes) {
+      if (sourceDirectoryNode instanceof NativeAndroidSourceDirectoryNode) {
+        ((NativeAndroidSourceDirectoryNode)sourceDirectoryNode).setShowDirectoryPath(true);
+      }
+    }
+    libraryDirectory = null;
     return sourceDirectoryNodes;
   }
 
@@ -261,7 +274,10 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
   protected void update(PresentationData presentation) {
     presentation.addText(myNativeLibraryName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     if (!myNativeLibraryType.isEmpty()) {
-      presentation.addText(" (" + myNativeLibraryType + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      presentation.addText(" (" +
+                           myNativeLibraryType +
+                           (libraryDirectory != null ? ", " + getLocationRelativeToUserHome(libraryDirectory.getPresentableUrl()) : "") +
+                           ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
     presentation.setIcon(AllIcons.Nodes.NativeLibrariesFolder);
   }
