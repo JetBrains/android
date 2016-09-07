@@ -30,15 +30,20 @@ public class GlslLexerBase {
 
   /**
    * Keywords for GLSL.
-   * @see <a href="https://www.khronos.org/registry/gles/specs/3.0/GLSL_ES_Specification_3.00.3.pdf">documentation</a>
+   * @see <a href="https://www.khronos.org/registry/gles/specs/3.2/GLSL_ES_Specification_3.20.pdf">documentation</a>
    */
   private static final Set<String> KEYWORDS = new HashSet<>(Arrays.asList(
-    "const", "uniform", "layout", "centroid", "flat", "smooth", "break", "continue", "do", "for", "while", "switch", "case", "default",
+    "const", "uniform", "buffer", "shared", "coherent", "volatile", "restrict", "readonly", "writeonly", "atomic_uint", "layout",
+    "centroid", "flat", "smooth", "patch", "sample", "precise", "break", "continue", "do", "for", "while", "switch", "case", "default",
     "if", "else", "in", "out", "inout", "float", "int", "void", "bool", "true", "false", "invariant", "discard", "return", "mat2", "mat3",
     "mat4", "mat2x2", "mat2x3", "mat2x4", "mat3x2", "mat3x3", "mat3x4", "mat4x2", "mat4x3", "mat4x4", "vec2", "vec3", "vec4", "ivec2",
     "ivec3", "ivec4", "bvec2", "bvec3", "bvec4", "uint", "uvec2", "uvec3", "uvec4", "lowp", "mediump", "highp", "precision", "sampler2D",
     "sampler3D", "samplerCube", "sampler2DShadow", "samplerCubeShadow", "sampler2DArray", "sampler2DArrayShadow", "isampler2D",
-    "isampler3D", "isamplerCube", "isampler2DArray", "usampler2D", "usampler3D", "usamplerCube", "usampler2DArray", "struct"
+    "isampler3D", "isamplerCube", "isampler2DArray", "usampler2D", "usampler3D", "usamplerCube", "usampler2DArray", "sampler2DMS",
+    "isampler2DMS", "usampler2DMS", "samplerBuffer", "isamplerBuffer", "usamplerBuffer", "imageBuffer", "iimageBuffer", "uimageBuffer",
+    "imageCubeArray", "iimageCubeArray", "uimageCubeArray", "samplerCubeArray", "isamplerCubeArray", "usamplerCubeArray",
+    "samplerCubeArrayShadow", "sampler2DMSArray", "isampler2DMSArray", "usampler2DMSArray", "image2DArray", "iimage2DArray",
+    "uimage2DArray", "image2D", "iimage2D", "uimage2D", "image3D", "iimage3D", "uimage3D", "imageCube", "iimageCube", "uimageCube", "struct"
   ));
 
   // Keywords for preprocessor commands.
@@ -148,162 +153,9 @@ public class GlslLexerBase {
     addToken(TokenKind.WHITESPACE, oldPos, pos, bufferSlice(oldPos, pos));
   }
 
-  /**
-   * Scans a string literal delimited by 'quot', containing escape sequences.
-   *
-   * <p>ON ENTRY: 'pos' is 1 + the index of the first delimiter
-   * ON EXIT: 'pos' is 1 + the index of the last delimiter.
-   */
-  private void escapedStringLiteral(boolean isRaw) {
-    int oldPos = isRaw ? pos - 2 : pos - 1;
-
-    // more expensive second choice that expands escaped into a buffer
-    StringBuilder literal = new StringBuilder();
-    while (pos < buffer.length) {
-      char c = buffer[pos];
-      pos++;
-      switch (c) {
-        case '\n':
-          addToken(TokenKind.STRING, oldPos, pos - 1, literal.toString());
-          newline();
-          return;
-        case '\\':
-          if (pos == buffer.length) {
-            addToken(TokenKind.STRING, oldPos, pos - 1, literal.toString());
-            return;
-          }
-          if (isRaw) {
-            // Insert \ and the following character.
-            literal.append('\\');
-            literal.append(buffer[pos]);
-            pos++;
-            break;
-          }
-          c = buffer[pos];
-          pos++;
-          switch (c) {
-            case '\n':
-              // ignore end of line character
-              break;
-            case 'n':
-              literal.append('\n');
-              break;
-            case 'r':
-              literal.append('\r');
-              break;
-            case 't':
-              literal.append('\t');
-              break;
-            case '\\':
-              literal.append('\\');
-              break;
-            case '\'':
-              literal.append('\'');
-              break;
-            case '"':
-              literal.append('"');
-              break;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7': { // octal escape
-              int octal = c - '0';
-              if (pos < buffer.length) {
-                c = buffer[pos];
-                if (c >= '0' && c <= '7') {
-                  pos++;
-                  octal = (octal << 3) | (c - '0');
-                  if (pos < buffer.length) {
-                    c = buffer[pos];
-                    if (c >= '0' && c <= '7') {
-                      pos++;
-                      octal = (octal << 3) | (c - '0');
-                    }
-                  }
-                }
-              }
-              literal.append((char)(octal & 0xff));
-              break;
-            }
-            case 'a':
-            case 'b':
-            case 'f':
-            case 'N':
-            case 'u':
-            case 'U':
-            case 'v':
-            case 'x':
-              break;
-            default:
-              // unknown char escape => "\literal"
-              literal.append('\\');
-              literal.append(c);
-              break;
-          }
-          break;
-        case '\'':
-        case '"':
-          // Matching close-delimiter, all done.
-          addToken(TokenKind.STRING, oldPos, pos, literal.toString());
-          return;
-        default:
-          literal.append(c);
-          break;
-      }
-    }
-    addToken(TokenKind.STRING, oldPos, pos, literal.toString());
-  }
-
-  /**
-   * Scans a string literal delimited by 'quot'.
-   *
-   * ON ENTRY: 'pos' is 1 + the index of the first delimiter
-   * ON EXIT: 'pos' is 1 + the index of the last delimiter.
-   *
-   * @param isRaw if true, do not escape the string.
-   */
-  private void addStringLiteral(char quot, boolean isRaw) {
-    int oldPos = isRaw ? pos - 2 : pos - 1;
-    int start = pos;
-
-    // first quick optimistic scan for a simple non-escaped string
-    while (pos < buffer.length) {
-      char c = buffer[pos++];
-      switch (c) {
-        case '\n':
-          addToken(TokenKind.STRING, oldPos, pos - 1, bufferSlice(start, pos - 1));
-          newline();
-          return;
-        case '\\':
-          if (isRaw) {
-            // skip the next character
-            pos++;
-            break;
-          }
-          // oops, hit an escape, need to start over & build a new string buffer
-          pos = oldPos + 1;
-          escapedStringLiteral(false);
-          return;
-        case '\'':
-        case '"':
-          if (c == quot) {
-            // close-quote, all done.
-            addToken(TokenKind.STRING, oldPos, pos, bufferSlice(start, pos - 1));
-            return;
-          }
-      }
-    }
-
-    addToken(TokenKind.STRING, oldPos, pos, bufferSlice(start, pos));
-  }
-
   private String scanIdentifier() {
     int oldPos = pos - 1;
-    if (Character.isJavaIdentifierStart(buffer[pos])) {
+    if (pos < buffer.length && Character.isJavaIdentifierStart(buffer[pos])) {
       pos++;
       while (pos < buffer.length && Character.isJavaIdentifierPart(buffer[pos])) {
         pos++;
@@ -583,31 +435,14 @@ public class GlslLexerBase {
           addWhitespace();
           break;
         }
-        // TODO: WRONG!!!!!
-        case '\\': {
-          // Backslash character is valid only at the end of a line (or in a string)
-          if (pos + 1 < buffer.length && buffer[pos] == '\n') {
-            // continue reading the next line
-            pos++;
-          }
-          else {
-            addToken(TokenKind.ILLEGAL, pos - 1, pos, Character.toString(c));
-          }
-          break;
-        }
         case '\n': {
           newline();
           break;
         }
         case '#': {
-          if (!Character.isJavaIdentifierPart(buffer[pos]) || !addPreprocessorToken()) {
+          if (pos >= buffer.length || !Character.isJavaIdentifierPart(buffer[pos]) || !addPreprocessorToken()) {
             addToken(TokenKind.SPECIAL, pos - 1, pos, "#");
           }
-          break;
-        }
-        case '\'':
-        case '\"': {
-          addStringLiteral(c, false);
           break;
         }
         default: {
