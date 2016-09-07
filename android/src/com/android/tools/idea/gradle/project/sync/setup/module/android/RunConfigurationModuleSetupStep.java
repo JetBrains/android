@@ -34,7 +34,7 @@ public class RunConfigurationModuleSetupStep extends AndroidModuleSetupStep {
                           @NotNull SyncAction.ModuleModels gradleModels,
                           @NotNull ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
-    if (facet != null && !facet.isLibraryProject()) {
+    if (facet != null && facet.isAppProject()) {
       createRunConfigurations(facet);
     }
   }
