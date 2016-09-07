@@ -18,7 +18,7 @@ package com.android.tools.idea.diagnostics.error;
 
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.ITNReporter;
+import com.intellij.diagnostic.ITNReporterKt;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
@@ -54,6 +54,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
 
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
 
+  @NotNull
   @Override
   public String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
@@ -75,7 +76,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    ITNReporter.setPluginInfo(event, bean);
+    ITNReporterKt.setPluginInfo(event, bean);
 
     Object data = event.getData();
 
