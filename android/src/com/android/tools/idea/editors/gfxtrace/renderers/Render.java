@@ -167,29 +167,29 @@ public final class Render {
     }
   }
 
+  public static void render(@NotNull ReportController.Group group,
+                            @NotNull SimpleColoredComponent component) {
+    render(group.getName(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    render(" " + group.getChildCount(), component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+  }
+
   public static void render(@NotNull ReportController.Node node,
                             @NotNull SimpleColoredComponent component) {
-    if (node.isLeaf()) {
-      render(node.getMessage(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-    }
-    else {
-      render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
-      render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-      switch (node.getSeverity()) {
-        case Emergency:
-        case Alert:
-        case Critical:
-        case Error:
-        case Warning:
-          render(node.getSeverity().name(), component, SimpleTextAttributes.ERROR_ATTRIBUTES, NO_TAG);
-          break;
-        case Notice:
-        case Info:
-        case Debug:
-          render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-          break;
-      }
-      render(" - " + node.getMessagePreview(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
+    render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    switch (node.getSeverity()) {
+      case Emergency:
+      case Alert:
+      case Critical:
+      case Error:
+      case Warning:
+        render(node.getSeverity().name(), component, SimpleTextAttributes.ERROR_ATTRIBUTES, NO_TAG);
+        break;
+      case Notice:
+      case Info:
+      case Debug:
+        render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+        break;
     }
   }
 

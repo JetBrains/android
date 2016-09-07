@@ -25,13 +25,15 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class ReportStream implements PathListener {
@@ -65,9 +67,7 @@ public class ReportStream implements PathListener {
         protected ResultOrError<Report, String> onRpcThread(Rpc.Result<Object> result)
           throws RpcException, ExecutionException, Channel.NotConnectedException {
           try {
-            Report report = (Report)result.get();
-            report.buildMap();
-            return success(report);
+            return success((Report)result.get());
           }
           catch (ErrDataUnavailable e) {
             return error(e.getMessage());
@@ -94,14 +94,17 @@ public class ReportStream implements PathListener {
   /**
    * Computes the most critical severity level among multiple reports
    */
-  public LogProtos.Severity maxSeverity(List<Integer> reportItemIndices) {
+  public LogProtos.Severity maxSeverity(Range<Integer> reportItemIndices) {
     LogProtos.Severity maxSeverity = LogProtos.Severity.Debug;
     if (myReport != null) {
-      for (int i = 0; i < reportItemIndices.size() && maxSeverity != LogProtos.Severity.Emergency; ++i) {
-        ReportItem item = myReport.getItems()[reportItemIndices.get(i)];
+      for (int index : ContiguousSet.create(reportItemIndices, DiscreteDomain.integers())) {
+        ReportItem item = myReport.getItems()[index];
         LogProtos.Severity itemSeverity = item.getSeverity();
         if (maxSeverity.compareTo(itemSeverity) > 0) {
           maxSeverity = itemSeverity;
+        }
+        if (maxSeverity != LogProtos.Severity.Emergency) {
+          break;
         }
       }
     }
@@ -119,10 +122,10 @@ public class ReportStream implements PathListener {
   /**
    * As for now builds single path for the first item for given atom / group
    */
-  private ReportItemPath buildReportItemPath(@Nullable List<Integer> reportItemIndices) {
+  private ReportItemPath buildReportItemPath(@Nullable Range<Integer> reportItemIndices) {
     if (reportItemIndices != null && !reportItemIndices.isEmpty()) {
       ReportItemPath path = new ReportItemPath();
-      path.setIndex(reportItemIndices.get(0));
+      path.setIndex(reportItemIndices.lowerEndpoint());
       path.setReport(myReportPath.getPath());
       return path;
     }
@@ -133,7 +136,7 @@ public class ReportStream implements PathListener {
     if (myReport == null) {
       return false;
     }
-    List<Integer> reportItemIndices = myReport.getForAtom(atomId);
+    Range<Integer> reportItemIndices = myReport.getForAtom(atomId);
     return reportItemIndices != null && !reportItemIndices.isEmpty();
   }
 

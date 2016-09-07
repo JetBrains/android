@@ -20,43 +20,43 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
-import com.android.tools.idea.editors.gfxtrace.service.ReportItem;
+import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
+import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.utils.SparseArray;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.speedSearch.ElementFilter;
-import com.intellij.ui.treeStructure.Tree;
-import com.intellij.ui.treeStructure.filtered.FilteringTreeBuilder;
-import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeModelListener;
 import javax.swing.plaf.basic.BasicTreeUI;
-import javax.swing.tree.*;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO: Check if there's a need of TreeController (probably some kind of ListController will satisfy this entity).
 public class ReportController extends TreeController implements ReportStream.Listener {
@@ -65,86 +65,136 @@ public class ReportController extends TreeController implements ReportStream.Lis
   }
 
   private static final @NotNull Logger LOG = Logger.getInstance(ReportController.class);
+  private static final Map<String, BinaryObject> myMsgMap = new HashMap<>();
 
-  // Wrapper needed for FilteringTreeStructure since it has final filter.
-  public static class ElementFilterWrapper implements ElementFilter<Renderable> {
-    private ElementFilter<Renderable> myFilter;
+  public abstract static class Renderable {
 
-    public void setFilter(ElementFilter<Renderable> filter) {
-      myFilter = filter;
+    protected static final int CACHE_SIZE = 100;
+
+    protected SparseArray<Reference<Renderable>> mySoftChildren;
+    protected Context myContext;
+    protected boolean myViewInvalid;
+    @NotNull protected final Report myReport;
+
+    public final int myChildIndex;
+
+    public Renderable(@NotNull Report report, int childIndex) {
+      myReport = report;
+      myChildIndex = childIndex;
     }
 
-    @Override
-    public boolean shouldBeShowing(Renderable value) {
-      return myFilter.shouldBeShowing(value);
-    }
-  }
-
-  public abstract static class Renderable extends NodeDescriptor {
-
-    @NotNull protected final List<Renderable> myChildren;
-
-    public Renderable(@Nullable Renderable parent) {
-      super(null, parent);
-      myChildren = new ArrayList<>();
+    public void setContext(Context context) {
+      if (context != myContext) {
+        myContext = context;
+        myViewInvalid = true;
+      }
     }
 
-    public void addChild(ReportController.Renderable child) {
-      myChildren.add(child);
-    }
+    public Renderable getChild(int childIndex) {
+      setupLazy();
 
-    @Override
-    public boolean update() {
-      return false;
-    }
+      Reference<Renderable> ref = mySoftChildren.get(childIndex);
+      Renderable child;
+      if (ref != null) {
+        child = ref.get();
+        if (child != null) {
+          return child;
+        }
+      }
 
-    @Override
-    public Renderable getElement() {
-      return this;
-    }
-
-    @Nullable
-    @Override
-    public Renderable getParentDescriptor() {
-      return (Renderable)super.getParentDescriptor();
+      // TODO: React to context selection
+      child = createChild(childIndex);
+      child.setContext(myContext);
+      mySoftChildren.put(childIndex, new SoftReference<>(child));
+      return child;
     }
 
     public abstract void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
+
+    public abstract TreePath pathTo(ReportItem item, TreePath root);
+
+    public abstract boolean isLeaf();
+
+    public abstract int getChildCount();
+
+    protected abstract void setupLazy();
+
+    protected abstract Renderable createChild(int childIndex);
   }
 
-  // Node to be used as a representation for report item and its message.
-  public static class Node extends Renderable {
-    private static final int PREVIEW_LENGTH = 80;
+  public static class ReportNode extends Renderable {
 
-    public final int index;
-
-    private final @Nullable("instance represents ReportItem message") ReportItem myReportItem;
-    private final @Nullable("instance represents ReportItem") String myMessage;
-
-    private @Nullable("not made server request yet") Path followPath;
-    // True by default and is false when GAPIS doesn't support ReportItemPath
-    private boolean followable = true;
-
-    public static Node createInstance(@NotNull Renderable parent,
-                                      @NotNull ReportItem item,
-                                      int index) {
-      Node node = new Node(parent, item, index);
-      node.addChild(new Node(node, item.getMessage().toString()));
-      return node;
+    public ReportNode(@NotNull Report report) {
+      super(report, 0);
     }
 
-    private Node(@NotNull Renderable parent, @NotNull ReportItem item, int index) {
-      super(parent);
-      this.myReportItem = item;
-      this.myMessage = null;
-      this.index = index;
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     }
 
-    private Node(@NotNull Renderable parent, @NotNull String message) {
-      super(parent);
-      this.myReportItem = null;
-      this.myMessage = message;
-      this.index = -1;
+    @Override
+    public TreePath pathTo(ReportItem item, TreePath root) {
+      for (int i = 0; i < getChildCount(); ++i) {
+        if (myReport.getGroups()[i].containsItemForAtom(item.getAtom(), myReport)) {
+          Group child = (Group)getChild(i);
+          return child.pathTo(item, root.pathByAddingChild(child));
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isLeaf() {
+      return myReport.getChildCount() == 0;
+    }
+
+    @Override
+    public int getChildCount() {
+      return myReport.getChildCount();
+    }
+
+    @Override
+    protected void setupLazy() {
+      if (myViewInvalid) {
+        mySoftChildren = new SparseArray<>(Math.min(myReport.getChildCount(), CACHE_SIZE));
+        myViewInvalid = false;
+      }
+    }
+
+    @Override
+    protected Renderable createChild(int childIndex) {
+      return Group.createInstance(myReport, myReport.getGroups()[childIndex], childIndex);
+    }
+  }
+
+  public static class Group extends Renderable {
+
+    public static Group createInstance(@NotNull Report report,
+                                       @NotNull ReportGroup reportGroup,
+                                       int childIndex) {
+      Group group = new Group(report, reportGroup, childIndex);
+      group.constructName(report);
+      return group;
+    }
+
+    @NotNull private final ReportGroup myReportGroup;
+    @Nullable private String myName;
+
+    public Group(@NotNull Report report, @NotNull ReportGroup group, int childIndex) {
+      super(report, childIndex);
+      myReportGroup = group;
+    }
+
+    public void constructName(@NotNull Report report) {
+      MsgRef ref = myReportGroup.getName();
+      myMsgMap.clear();
+      Arg.constructMap(report.getMsgArguments(), ref.getArguments(), myMsgMap);
+      myName = StringTable.getMessage(report.getMsgIdentifiers()[ref.getIdentifier()], myMsgMap);
+    }
+
+    @Nullable
+    public String getName() {
+      return myName;
     }
 
     @Override
@@ -152,21 +202,62 @@ public class ReportController extends TreeController implements ReportStream.Lis
       Render.render(this, component);
     }
 
-    public boolean containsReportItem() {
-      return myReportItem != null;
+    @Override
+    public TreePath pathTo(ReportItem item, TreePath root) {
+      final int foundIndex = myReportGroup.findItem(myReport, item);
+      return foundIndex == -1 ? null : root.pathByAddingChild(getChild(foundIndex));
+    }
+
+    @Override
+    public boolean isLeaf() {
+      return false;
+    }
+
+    @Override
+    public int getChildCount() {
+      return myReportGroup.getItemCount();
+    }
+
+    @Override
+    protected void setupLazy() {
+      if (myViewInvalid) {
+        mySoftChildren = new SparseArray<>(Math.min(myReportGroup.getItemCount(), CACHE_SIZE));
+        myViewInvalid = false;
+      }
+    }
+
+    @Override
+    protected Renderable createChild(int childIndex) {
+      int itemIndex = myReportGroup.getItems()[childIndex];
+      return new Node(myReport, myReport.getItems()[itemIndex], childIndex, itemIndex);
+    }
+  }
+
+  // Node to be used as a representation for report item and its message.
+  public static class Node extends Renderable {
+    public final int index;
+    @NotNull private final ReportItem myReportItem;
+    @Nullable("not made server request yet") private Path followPath;
+
+    public Node(@NotNull Report report, @NotNull ReportItem item, int childIndex, int index) {
+      super(report, childIndex);
+      this.myReportItem = item;
+      this.index = index;
+    }
+
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      Render.render(this, component);
+    }
+
+    @Override
+    public TreePath pathTo(ReportItem item, TreePath root) {
+      throw new UnsupportedOperationException();
     }
 
     public boolean isAtLeast(LogProtos.Severity severity) {
       // LogProtos.Severity enum increases from Emergency to Debug
       return severity.compareTo(getSeverity()) >= 0;
-    }
-
-    public boolean isParentAtLeast(LogProtos.Severity severity) {
-      if (!(getParentDescriptor() instanceof Node)) {
-        return false;
-      }
-      Node node = (Node)getParentDescriptor();
-      return node.containsReportItem() && node.isAtLeast(severity);
     }
 
     public LogProtos.Severity getSeverity() {
@@ -175,18 +266,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     public long getAtomId() {
       return myReportItem.getAtom();
-    }
-
-    public String getMessage() {
-      return (myMessage == null) ? myReportItem.getMessage().toString() : myMessage;
-    }
-
-    public String getMessagePreview() {
-      int len = getMessage().length();
-      if (len < PREVIEW_LENGTH) {
-        return getMessage();
-      }
-      return getMessage().substring(0, PREVIEW_LENGTH) + "…";
     }
 
     @Nullable("if we have not made a server request yet")
@@ -198,17 +277,31 @@ public class ReportController extends TreeController implements ReportStream.Lis
       this.followPath = followPath;
     }
 
-    public boolean isFollowable() {
-      return followable;
-    }
-
-    public void setFollowable(boolean followable) {
-      this.followable = followable;
-    }
-
+    @Override
     public boolean isLeaf() {
-      return myChildren.size() == 0;
+      return true;
     }
+
+    @Override
+    public Renderable getChild(int index) {
+      return null;
+    }
+
+    @Override
+    public int getChildCount() {
+      return 0;
+    }
+
+    @Override
+    protected void setupLazy() {
+
+    }
+
+    @Override
+    protected Renderable createChild(int childIndex) {
+      return null;
+    }
+
   }
 
   /**
@@ -263,29 +356,28 @@ public class ReportController extends TreeController implements ReportStream.Lis
                                       int row,
                                       boolean hasFocus) {
       myRightComponentShow = false;
-      myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-      if (value instanceof DefaultMutableTreeNode) {
-        final Renderable renderable = ReportTreeBuilder.getRenderable(value);
-        if (renderable != null) {
+      if (value instanceof Renderable) {
+        final Renderable renderable = (Renderable)value;
+        if (!(renderable instanceof ReportNode)) {
           // Append main content to `this`
           renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-          if (renderable instanceof Node && ((Node)renderable).isLeaf()) {
+          if (renderable instanceof Group) {
             final Rectangle treeVisibleRect = tree.getVisibleRect();
             // Check if our row is valid
             final TreePath treePath = tree.getPathForRow(row);
             // Use the hack instead of tree.getRowBounds(), since latter causes stack overflow sometimes
+            // TODO: Do we need to hack? SO was spotted out only when switched to TreeBuilder...
             int rowOffset = treePath != null ? getRowX((BasicTreeUI)tree.getUI(), row, treePath.getPathCount() - 1) : 0;
             if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
+              myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
               myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
+              myRightComponent.append(" " + renderable.getChildCount(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES,
+                                      Render.NO_TAG);
               myRightComponentShow = true;
               myRightComponentOffset =
                 treeVisibleRect.x + treeVisibleRect.width - myRightComponent.getPreferredSize().width - rowOffset;
             }
           }
-        }
-        // May be "loading..."
-        else if (((DefaultMutableTreeNode)value).getUserObject() instanceof String) {
-          append(String.valueOf(((DefaultMutableTreeNode)value).getUserObject()));
         }
       }
       else {
@@ -383,80 +475,73 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
   }
 
-  private static class ReportTreeStructure extends AbstractTreeStructure {
-    @NotNull final Renderable myRoot;
+  private static class ReportTreeModel implements TreeModel {
 
-    public ReportTreeStructure(@NotNull Renderable root) {
+    static ReportTreeModel createEmpty() {
+      return new ReportTreeModel(new Object());
+    }
+
+    @NotNull private final Object myRoot;
+
+    public ReportTreeModel(@NotNull Object root) {
       myRoot = root;
-    }
-
-    @Override
-    public Object getRootElement() {
-      return myRoot;
-    }
-
-    @Override
-    public Object[] getChildElements(Object element) {
-      return ((Renderable)element).myChildren.toArray();
-    }
-
-    @Nullable
-    @Override
-    public Object getParentElement(Object element) {
-      return ((NodeDescriptor)element).getParentDescriptor();
     }
 
     @NotNull
     @Override
-    public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
-      return (NodeDescriptor)element;
+    public Object getRoot() {
+      return myRoot;
     }
 
     @Override
-    public void commit() {
+    public Object getChild(Object element, int index) {
+      if (element instanceof Renderable) {
+        return ((Renderable)element).getChild(index);
+      }
+      return null;
     }
 
     @Override
-    public boolean hasSomethingToCommit() {
+    public int getChildCount(Object element) {
+      if (element instanceof Renderable) {
+        return ((Renderable)element).getChildCount();
+      }
+      return 0;
+    }
+
+    @Override
+    public boolean isLeaf(Object element) {
+      if (element instanceof Renderable) {
+        return ((Renderable)element).isLeaf();
+      }
       return false;
     }
-  }
 
-  // Extends FilteringTreeBuilder in order to remove auto expand behaviour
-  private static class ReportTreeBuilder extends FilteringTreeBuilder {
-    /**
-     * Tries to get underlying Renderable from a tree node assuming it's an
-     * instance of DefaultMutableTreeNode and getting delegate from FilteringNode.
-     */
-    @Nullable("unexpected tree structure")
-    public static Renderable getRenderable(@NotNull Object treeNode) {
-      if (!(treeNode instanceof DefaultMutableTreeNode)) {
-        return null;
-      }
-      final Object userObject = ((DefaultMutableTreeNode)treeNode).getUserObject();
-      if (!(userObject instanceof FilteringTreeStructure.FilteringNode)) {
-        return null;
-      }
-      Object delegate = ((FilteringTreeStructure.FilteringNode)userObject).getDelegate();
-      return delegate instanceof Renderable ? (Renderable)delegate : null;
-    }
-
-    public ReportTreeBuilder(Tree tree,
-                             ElementFilter filter,
-                             AbstractTreeStructure structure,
-                             @Nullable Comparator<NodeDescriptor> comparator) {
-      super(tree, filter, structure, comparator);
+    @Override
+    public void valueForPathChanged(TreePath treePath, Object o) {
+      throw new UnsupportedOperationException(getClass().getName() + " does not support editing");
     }
 
     @Override
-    public boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
-      return false;
+    public int getIndexOfChild(Object parent, Object child) {
+      if (child instanceof Renderable) {
+        return ((Renderable)child).myChildIndex;
+      }
+      return 0;
+    }
+
+    @Override
+    public void addTreeModelListener(TreeModelListener treeModelListener) {
+      // No changes - no events.
+    }
+
+    @Override
+    public void removeTreeModelListener(TreeModelListener treeModelListener) {
+      // No changes - no events.
     }
   }
 
   private final JComboBox mySeverityLevelCombo;
-  @Nullable private ReportTreeBuilder myTreeBuilder;
-  @NotNull private final ElementFilterWrapper myFilter;
 
   private ReportController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
@@ -490,10 +575,11 @@ public class ReportController extends TreeController implements ReportStream.Lis
         if (treePath == null) {
           return;
         }
-        final Renderable renderable = ReportTreeBuilder.getRenderable(treePath.getLastPathComponent());
-        if (renderable == null) {
+        final Object obj = treePath.getLastPathComponent();
+        if (!(obj instanceof Renderable)) {
           return;
         }
+        final Renderable renderable = (Renderable)obj;
         PathStore<Path> followPath = new PathStore<>();
         switch (getComponentTag(treePath, event.getX())) {
           case Render.REPORT_ITEM_ATOM_ID_TAG:
@@ -501,7 +587,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
             // Put stub data to path store in order to show hand hovering.
-            followPath.update(getReportItemPath((Node)renderable.getParentDescriptor()));
+            followPath.update(new ReportPath());
             break;
           default:
         }
@@ -519,10 +605,11 @@ public class ReportController extends TreeController implements ReportStream.Lis
         if (treePath == null) {
           return;
         }
-        final Renderable renderable = ReportTreeBuilder.getRenderable(treePath.getLastPathComponent());
-        if (renderable == null) {
+        final Object obj = treePath.getLastPathComponent();
+        if (!(obj instanceof Renderable)) {
           return;
         }
+        final Renderable renderable = (Renderable)obj;
         switch (getComponentTag(treePath, event.getX())) {
           case Render.REPORT_ITEM_ATOM_ID_TAG:
             // Here and further we assume that renderable is instance of Node
@@ -530,7 +617,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
             onReportItemNodeClick((Node)renderable);
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
-            onLeafNodeClick((Node)renderable);
+            onGroupClick((Group)renderable);
             break;
           default:
         }
@@ -577,19 +664,19 @@ public class ReportController extends TreeController implements ReportStream.Lis
         }
       }
 
-      private void onLeafNodeClick(@NotNull Node node) {
+      /**
+       * Currently handles only message expansion.
+       */
+      private void onGroupClick(@NotNull Group group) {
         ViewTextAction.MyDialog dialog = new ViewTextAction.MyDialog(myEditor.getProject());
-        Node parent = (Node)node.getParentDescriptor();
-        dialog.setTitle(String.format("Message for %d: %s", parent.getAtomId(), parent.getSeverity()));
-        dialog.setText(node.getMessage());
+        dialog.setTitle("Message");
+        dialog.setText(group.getName());
         dialog.show();
       }
     };
 
     myTree.addMouseListener(mouseAdapter);
     myTree.addMouseMotionListener(mouseAdapter);
-    myFilter = new ElementFilterWrapper();
-    myFilter.setFilter(input -> true);
   }
 
   private @NotNull Path getReportItemPath(@NotNull Node node) {
@@ -613,7 +700,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   @NotNull
   @Override
   protected TreeModel createEmptyModel() {
-    return new DefaultTreeModel(new DefaultMutableTreeNode());
+    return ReportTreeModel.createEmpty();
   }
 
   @NotNull
@@ -624,7 +711,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
     if (object instanceof ReportController.Node) {
       Node node = (ReportController.Node)object;
       node.render(component, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      return new String[]{node.getAtomId() + ":", node.getMessage()};
+      return new String[]{node.getSeverity().toString() + node.getAtomId()};
     }
     return new String[]{object.toString()};
   }
@@ -654,26 +741,14 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   @Override
   public void onReportItemSelected(ReportItem reportItem) {
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    updateSelection(root, new TreePath(root), reportItem.getAtom());
+    Renderable root = (Renderable)myTree.getModel().getRoot();
+    updateSelection(root, new TreePath(root), reportItem);
   }
 
-  private void updateSelection(DefaultMutableTreeNode root, TreePath path, long atomId) {
-    // TODO: If server provides report items sorted by atom id, replace linear for binary search.
-    // TODO: UPD: It does. Do replace.
-    for (Enumeration it = root.children(); it.hasMoreElements(); ) {
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode)it.nextElement();
-      Object object = child.getUserObject();
-      if (object instanceof FilteringTreeStructure.FilteringNode) {
-        Object delegate = ((FilteringTreeStructure.FilteringNode)object).getDelegate();
-        if (delegate instanceof Node) {
-          Node node = (Node)delegate;
-          if (!node.isLeaf() && node.getAtomId() == atomId) {
-            updateSelection(path.pathByAddingChild(child));
-            return;
-          }
-        }
-      }
+  private void updateSelection(Renderable root, TreePath path, final ReportItem reportItem) {
+    TreePath treePath = root.pathTo(reportItem, path);
+    if (treePath != null) {
+      updateSelection(treePath);
     }
   }
 
@@ -690,47 +765,25 @@ public class ReportController extends TreeController implements ReportStream.Lis
   }
 
   private void buildTree(ReportStream reportStream) {
-    final Renderable root = new Renderable(null) {
-      @Override
-      public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
-      }
-    };
-    int index = 0;
-    for (ReportItem item : reportStream.getReport().getItems()) {
-      root.addChild(Node.createInstance(root, item, index++));
+    final Report report = reportStream.getReport();
+    if (report == null) {
+      return;
     }
-    myTreeBuilder = new ReportTreeBuilder(myTree, myFilter, new ReportTreeStructure(root), null);
-    Disposer.register(myEditor, myTreeBuilder);
-    final ActionCallback updateCallback = myTreeBuilder.queueUpdate();
-    // Filter could have been changed before tree was built.
-    updateCallback.doWhenDone(() -> myTreeBuilder.refilter());
+    final Renderable root = new ReportNode(report);
+    root.setContext(Context.ALL);
+    setModel(new ReportTreeModel(root));
   }
 
   private void applySeverityFilter(@NotNull final LogProtos.Severity severity) {
-    myFilter.setFilter(input -> {
-      if (!(input instanceof Node)) {
-        return true;
-      }
-      Node node = (Node)input;
-      // ReportItem has proper severity level
-      return ((node.containsReportItem() && node.isAtLeast(severity)) ||
-              // Parent ReportItem has proper severity level
-              (!node.containsReportItem() && node.isParentAtLeast(severity)));
-    });
-    if (myTreeBuilder != null) {
-      myTreeBuilder.refilter();
-    }
+    // TODO: Implement filtering in model.
   }
 
   private int getComponentTag(@NotNull TreePath treePath, int mouseX) {
     Object lastPathComponent = treePath.getLastPathComponent();
-    if (!(lastPathComponent instanceof DefaultMutableTreeNode)) {
+    if (!(lastPathComponent instanceof Renderable)) {
       return Render.NO_TAG;
     }
-    Renderable renderable = ReportTreeBuilder.getRenderable(lastPathComponent);
-    if (renderable == null || !(renderable instanceof Node)) {
-      return Render.NO_TAG;
-    }
+    Renderable renderable = (Renderable)lastPathComponent;
     Rectangle bounds = myTree.getPathBounds(treePath);
     assert bounds != null; // can't be null, as our path is valid
     NodeCellRenderer renderer = (NodeCellRenderer)myTree.getCellRenderer();
@@ -738,7 +791,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
       return Render.NO_TAG;
     }
     renderer.getTreeCellRendererComponent(myTree, lastPathComponent, myTree.isPathSelected(treePath), myTree.isExpanded(treePath),
-                                          ((Node)renderable).isLeaf(), myTree.getRowForPath(treePath), myTree.hasFocus());
+                                          renderable.isLeaf(), myTree.getRowForPath(treePath), myTree.hasFocus());
     return Render.getReportNodeFieldIndex(renderer, mouseX - bounds.x);
   }
 }

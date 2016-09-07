@@ -28,8 +28,9 @@ import java.io.IOException;
 public final class ReportItem implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private Severity mySeverity;
-  private Msg myMessage;
+  private MsgRef myMessage;
   private long myAtom;
+  private MsgRef[] myTags;
 
   // Constructs a default-initialized {@link ReportItem}.
   public ReportItem() {}
@@ -44,11 +45,11 @@ public final class ReportItem implements BinaryObject {
     return this;
   }
 
-  public Msg getMessage() {
+  public MsgRef getMessage() {
     return myMessage;
   }
 
-  public ReportItem setMessage(Msg v) {
+  public ReportItem setMessage(MsgRef v) {
     myMessage = v;
     return this;
   }
@@ -62,6 +63,15 @@ public final class ReportItem implements BinaryObject {
     return this;
   }
 
+  public MsgRef[] getTags() {
+    return myTags;
+  }
+
+  public ReportItem setTags(MsgRef[] v) {
+    myTags = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -71,8 +81,9 @@ public final class ReportItem implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Severity", new Primitive("log.Severity", Method.Int32)),
-      new Field("Message", new Pointer(new Struct(Msg.Klass.INSTANCE.entity()))),
+      new Field("Message", new Pointer(new Struct(MsgRef.Klass.INSTANCE.entity()))),
       new Field("Atom", new Primitive("uint64", Method.Uint64)),
+      new Field("Tags", new Slice("", new Struct(MsgRef.Klass.INSTANCE.entity()))),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -94,14 +105,23 @@ public final class ReportItem implements BinaryObject {
       e.int32(o.mySeverity.getNumber());
       e.object(o.myMessage);
       e.uint64(o.myAtom);
+      e.uint32(o.myTags.length);
+      for (int i = 0; i < o.myTags.length; i++) {
+        e.value(o.myTags[i]);
+      }
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ReportItem o = (ReportItem)obj;
       o.mySeverity = Severity.valueOf(d.int32());
-      o.myMessage = (Msg)d.object();
+      o.myMessage = (MsgRef)d.object();
       o.myAtom = d.uint64();
+      o.myTags = new MsgRef[d.uint32()];
+      for (int i = 0; i <o.myTags.length; i++) {
+        o.myTags[i] = new MsgRef();
+        d.value(o.myTags[i]);
+      }
     }
     //<<<End:Java.KlassBody:2>>>
   }
