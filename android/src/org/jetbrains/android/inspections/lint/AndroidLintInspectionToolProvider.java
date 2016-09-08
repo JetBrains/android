@@ -662,6 +662,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintDuplicateDividerInspection extends AndroidLintInspectionBase {
+    public AndroidLintDuplicateDividerInspection() {
+      super(AndroidBundle.message("android.lint.inspections.duplicate.divider"), ItemDecoratorDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintDuplicateIdsInspection extends AndroidLintInspectionBase {
     public AndroidLintDuplicateIdsInspection() {
       super(AndroidBundle.message("android.lint.inspections.duplicate.ids"), DuplicateIdDetector.WITHIN_LAYOUT);
