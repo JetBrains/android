@@ -15,11 +15,7 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
-public class MethodUsage {
-  private String mNamespace;
-  private String mName;
-  private String mFilename;
-
+public class MethodUsage extends Method {
   private long myExclusiveDuration;
   private double myExclusivePercentage;
 
@@ -30,36 +26,8 @@ public class MethodUsage {
     return myInclusivePercentage;
   }
 
-  public String getNameSpace() {
-    return this.mNamespace;
-  }
-
-  public String getName() {
-    return this.mName;
-  }
-
-  public String getFilename() {
-    return this.mFilename;
-  }
-
-  public void setNamespace(String namespace) {
-    this.mNamespace = namespace;
-  }
-
-  public void setName(String name) {
-    this.mName = name;
-  }
-
-  public void setFilename(String filename) {
-    this.mFilename = filename;
-  }
-
-  public void setExclusiveDuration(long exclusiveDuration) {
-    myExclusiveDuration = exclusiveDuration;
-  }
-
-  public void setExclusivePercentage(double exclusivePercentage) {
-    myExclusivePercentage = exclusivePercentage;
+  public void setInclusivePercentage(double inclusivePercentage) {
+    myInclusivePercentage = inclusivePercentage;
   }
 
   public void increaseInclusiveDuration(long duration) {
@@ -70,15 +38,19 @@ public class MethodUsage {
     return myInclusiveDuration;
   }
 
-  public void setInclusivePercentage(double inclusivePercentage) {
-    myInclusivePercentage = inclusivePercentage;
-  }
-
   public long getExclusiveDuration() {
     return myExclusiveDuration;
   }
 
+  public void setExclusiveDuration(long exclusiveDuration) {
+    myExclusiveDuration = exclusiveDuration;
+  }
+
   public double getExclusivePercentage() {
     return myExclusivePercentage;
+  }
+
+  public void setExclusivePercentage(double exclusivePercentage) {
+    myExclusivePercentage = exclusivePercentage;
   }
 }

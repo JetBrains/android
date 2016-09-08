@@ -90,11 +90,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private void createDetailedViewCharts() {
     myExecutionChart = new HTreeChart<>();
-    myExecutionChart.setHRenderer(new MethodHRenderer());
     myExecutionChart.setXRange(myTimeSelectionRange);
 
     myFlameChart = new HTreeChart<>(HTreeChart.Orientation.BOTTOM_UP);
-    myFlameChart.setHRenderer(new MethodUsageHRenderer());
   }
 
   @NotNull
@@ -221,6 +219,11 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     // Setup execution panel
     HNode<Method> executionTree = availableThreads.get(threadId);
     myExecutionChart.setHTree(executionTree);
+    if (AppTrace.Source.ART == trace.getSource()) {
+      myExecutionChart.setHRenderer(new NativeMethodHRenderer());
+    } else {
+      myExecutionChart.setHRenderer(new JavaMethodHRenderer());
+    }
 
     // Setup flame graph
     SparseArray<HNode<MethodUsage>> usageTrees = trace.getTopdownStats();
@@ -228,6 +231,11 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myFlameChart.setHTree(usageTree);
     myFlameChartRange.set(usageTree.getStart(), usageTree.getEnd());
     myFlameChart.setXRange(myFlameChartRange);
+    if (AppTrace.Source.ART == trace.getSource()) {
+      myFlameChart.setHRenderer(new NativeMethodUsageHRenderer());
+    } else {
+      myFlameChart.setHRenderer(new JavaMethodUsageHRenderer());
+    }
 
     // Setup selection (blue highlight)
     myTimeSelectionRange.set(executionTree.getStart(), executionTree.getEnd());
