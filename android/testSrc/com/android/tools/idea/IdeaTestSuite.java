@@ -42,7 +42,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.editors.theme.ThemeEditorUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
   com.android.tools.idea.gradle.AndroidGradleModelTest.class,
-  com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProviderTest.class,
   com.android.tools.idea.gradle.customizer.dependency.TransitiveDependencySetupTest.class,
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.InternalAndroidModelViewTest.class,
@@ -100,7 +99,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.wizard.template.TemplateWizardStateTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
-  org.jetbrains.android.dom.AndroidLibraryProjectTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
   org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
@@ -125,6 +123,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
+    symbolicLinkInTmpDir("prebuilts/studio/jdk");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/android-24");
   }
 
