@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -836,6 +837,19 @@ public final class AndroidSdkUtils {
 
   public static void setSdkData(@Nullable AndroidSdkData data) {
     ourSdkData = data;
+  }
+
+  public static boolean isGlassInstalled() {
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidSdkUtils.class);
+    AndroidSdkHandler handler = tryToChooseSdkHandler();
+    Collection<IAndroidTarget> targets = handler.getAndroidTargetManager(progress).getTargets(progress);
+    for (IAndroidTarget target : targets) {
+      if (!target.isPlatform() && target.getName().startsWith("Glass Development Kit")) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
