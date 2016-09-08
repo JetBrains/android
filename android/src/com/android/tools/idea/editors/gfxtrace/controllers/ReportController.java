@@ -584,11 +584,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
   @Override
   public void onReportLoadingStart(ReportStream reportStream) {
     myTree.getEmptyText().setText("");
+    mySeverityLevelCombo.setVisible(true);
     myLoadingPanel.startLoading();
   }
 
   @Override
   public void onReportLoadingFailure(ReportStream reportStream, String errorMessage) {
+    mySeverityLevelCombo.setVisible(false);
     // TODO: Display detailed empty view and/or error message
     myLoadingPanel.showLoadingError("Failed to load report");
   }
@@ -597,6 +599,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   public void onReportLoadingSuccess(ReportStream reportStream) {
     if (reportStream.isLoaded()) {
       myLoadingPanel.stopLoading();
+      myTree.getEmptyText().setText("Report is empty");
       buildTree(reportStream);
     }
     else {
@@ -636,7 +639,12 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
     final Renderable root = new ReportNode(report);
     root.setContext(Context.ALL);
-    setModel(new ReportTreeModel(root));
+    if (report.getChildCount() > 0) {
+      setModel(new ReportTreeModel(root));
+    }
+    else {
+      mySeverityLevelCombo.setVisible(false);
+    }
   }
 
   private void applySeverityFilter(@NotNull final LogProtos.Severity severity) {
