@@ -56,6 +56,8 @@ public final class Render {
   public static final int STATE_VALUE_TAG = 0;
   public static final int REPORT_ITEM_ATOM_ID_TAG = 0;
   public static final int REPORT_MESSAGE_VIEW_TAG = 100;
+  public static final int TAG_ITEM_TAG = 101;
+  private static final int TAG_STR_LENGTH = 40;
 
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
@@ -199,6 +201,30 @@ public final class Render {
         render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
         break;
     }
+    if (node.hasTags()) {
+      render(" ", component, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES, NO_TAG);
+      List<String> l = node.getTagStrings();
+      for (int i = 0; i < l.size() - 1; ++i) {
+        render(trimTagString(l.get(i)) + ", ", component, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, NO_TAG);
+      }
+      render(trimTagString(l.get(l.size() - 1)), component, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, NO_TAG);
+    }
+  }
+
+  private static String trimTagString(@NotNull final String str) {
+    String result = str;
+    if (result.charAt(result.length() - 1) == '.') {
+      result = result.substring(0, result.length() - 1);
+    }
+    if (result.length() > TAG_STR_LENGTH) {
+      result = result.substring(0, TAG_STR_LENGTH - 1) + "\u2026";
+    }
+    return result;
+  }
+
+  public static void render(@NotNull ReportController.Tag tag,
+                            @NotNull SimpleColoredComponent component) {
+    render(tag.getString(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, TAG_ITEM_TAG);
   }
 
   public static void render(@NotNull AtomController.Node node,
