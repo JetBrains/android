@@ -41,6 +41,7 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -392,6 +393,8 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     // Define it here so listener below can use it safely.
     mySourcePanel = new SourcePanel(myEditor.getProject());
+    // Release editor on disposal.
+    Disposer.register(this, mySourcePanel);
 
     // Set listeners for selection actions.
     myProgramsList.getList().addSelectionListener((CellWidget.SelectionListener<ShaderData>)item -> {
@@ -661,7 +664,7 @@ public class ShadersController extends Controller implements ResourceCollection.
   }
 
   // A LoadablePanel class that populates the Editor component with shader source code when it has been fetched.
-  private static class SourcePanel extends LoadablePanel {
+  private static class SourcePanel extends LoadablePanel implements Disposable {
 
     private static Editor createEditor(@NotNull EditorFactory factory, @NotNull Document document,
                                        @NotNull Project project) {
@@ -674,13 +677,15 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     private final Document myDocument;
 
+    private Editor myEditor;
     private ShaderData myData;
 
     public SourcePanel(@NotNull Project project) {
       super(new BorderLayout());
       final EditorFactory factory = EditorFactory.getInstance();
       myDocument = factory.createDocument("");
-      getContentLayer().add(createEditor(factory, myDocument, project).getComponent(), BorderLayout.CENTER);
+      myEditor = createEditor(factory, myDocument, project);
+      getContentLayer().add(myEditor.getComponent(), BorderLayout.CENTER);
     }
 
     public void setData(ShaderData data) {
@@ -699,6 +704,13 @@ public class ShadersController extends Controller implements ResourceCollection.
       else {
         ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(myData.source));
         stopLoading();
+      }
+    }
+
+    @Override
+    public void dispose() {
+      if (myEditor != null) {
+        EditorFactory.getInstance().releaseEditor(myEditor);
       }
     }
   }
