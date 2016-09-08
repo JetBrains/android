@@ -22,8 +22,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -33,7 +31,6 @@ import javax.swing.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.fest.util.Strings.quote;
@@ -44,66 +41,26 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
   @NotNull private final Project myProject;
 
   @NotNull
-  public static LibraryPropertiesDialogFixture showPropertiesDialog(@NotNull Robot robot,
-                                                                    @NotNull String libraryName,
-                                                                    @NotNull final Project project) {
-    Library found = null;
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    for (Library library : libraryTable.getLibraries()) {
-      if (library.getName() != null && library.getName().startsWith(libraryName)) {
-        found = library;
-      }
-    }
-    assertNotNull("Failed to find library with name '" + libraryName + "'", found);
-
-    final Library library = found;
-    final Ref<LibraryPropertiesDialog> wrapperRef = new Ref<>();
-
-    // Using invokeLater because the dialog is modal. Using GuiActionRunner will make the test block forever.
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(
-      () -> {
-        LibraryPropertiesDialog wrapper = new LibraryPropertiesDialog(project, library);
-        wrapperRef.set(wrapper);
-        wrapper.showAndGet();
-      });
-
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!"Library Properties".equals(dialog.getTitle())) {
-          return false;
-        }
-        DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-        return wrapper == wrapperRef.get();
-      }
-    });
-
-    return new LibraryPropertiesDialogFixture(robot, dialog, wrapperRef.get(), library, project);
+  protected static LibraryPropertiesDialogFixture find(@NotNull Robot robot, @NotNull String libraryName, @NotNull Project project) {
+    return new LibraryPropertiesDialogFixture(robot, find(robot, LibraryPropertiesDialog.class), libraryName, project);
   }
 
-  protected LibraryPropertiesDialogFixture(@NotNull Robot robot,
-                                           @NotNull JDialog target,
-                                           @NotNull LibraryPropertiesDialog wrapper,
-                                           @NotNull Library library,
-                                           @NotNull Project project) {
-    super(robot, target, wrapper);
-    myLibraryName = nullToEmpty(library.getName());
+  private LibraryPropertiesDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<LibraryPropertiesDialog> wrapper,
+                                           @NotNull String libraryName, @NotNull Project project) {
+    super(robot, wrapper);
+    myLibraryName = libraryName;
     myProject = project;
   }
 
   @NotNull
   public LibraryPropertiesDialogFixture addAttachment(@NotNull File path) {
-    final ActionButton addButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton addButton = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
-        String toolTipText = button.getToolTipText();
-        return button.isShowing() && isNotEmpty(toolTipText) && toolTipText.startsWith("Add");
+        return "Add".equals(button.getAction().getTemplatePresentation().getDescription());
       }
     });
-    robot().moveMouse(addButton);
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(addButton::click);
+    new ActionButtonFixture(robot(), addButton).click();
 
     VirtualFile attachment = findFileByIoFile(path, true);
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {

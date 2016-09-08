@@ -998,7 +998,7 @@ public class GradleSyncTest {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    LibraryPropertiesDialogFixture propertiesDialog = ideFrame.showPropertiesForLibrary("guava");
+    LibraryPropertiesDialogFixture propertiesDialog = ideFrame.showPropertiesForLibrary("guava-18.0");
     propertiesDialog.addAttachment(javadocJarPath).clickOk();
 
     guiTest.waitForBackgroundTasks();
