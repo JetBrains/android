@@ -31,6 +31,11 @@ import java.util.Stack;
 // Abstraction layer so GUI can process trace originating from ART or SimplePerf seamlessly.
 public abstract class AppTrace {
 
+  public enum Source {ART, SIMPLEPERF}
+
+  public abstract Source getSource();
+  public abstract String getSeparator();
+
   // Gives an opportunity to transform a raw trace into an HNode tree. Always called before |getThreadsGraph|.
   abstract public void parse() throws IOException;
 
@@ -274,7 +279,7 @@ public abstract class AppTrace {
                                                        int row,
                                                        boolean hasFocus) {
                        AppStatTreeNode node = (AppStatTreeNode)value;
-                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), "."));
+                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), getSeparator()));
                      }
                    }))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -360,7 +365,7 @@ public abstract class AppTrace {
                                                        int row,
                                                        boolean hasFocus) {
                        AppStatTreeNode node = (AppStatTreeNode)value;
-                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), "."));
+                       append(generateNameForColumn(node.getMethodNamespace(), node.getMethodName(), getSeparator()));
                      }
                    }))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
