@@ -940,6 +940,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMergeMarkerInspection extends AndroidLintInspectionBase {
+    public AndroidLintMergeMarkerInspection() {
+      super(AndroidBundle.message("android.lint.inspections.merge.marker"), com.android.tools.lint.checks.MergeMarkerDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintMergeRootFrameInspection extends AndroidLintInspectionBase {
     public AndroidLintMergeRootFrameInspection() {
       super(AndroidBundle.message("android.lint.inspections.merge.root.frame"), MergeRootFrameLayoutDetector.ISSUE);
