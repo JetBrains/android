@@ -34,6 +34,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,6 +115,10 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
         FormFactor formFactor = moduleTemplate.getFormFactor();
         if (formFactor != null) {
+          if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
+            // Hidden if not installed
+            continue;
+          }
           if (formFactor != FormFactor.CAR) {
             // Auto is not a standalone module (but rather a modification to a mobile module):
             deviceTemplates.add(moduleTemplate);
