@@ -286,7 +286,7 @@ public class GradleInvoker {
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        FileDocumentManager.getInstance().saveAllDocuments();
+        ApplicationManager.getApplication().runWriteAction(() -> { FileDocumentManager.getInstance().saveAllDocuments();});
       }
     });
   }
