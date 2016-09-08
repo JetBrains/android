@@ -100,7 +100,7 @@ public class PatchInstallingRestarter {
         File oldPackageXml = new File(patchDir, OLD_PACKAGE_XML_FN);
         if (patch.exists() && existingPackageXml.renameTo(oldPackageXml)) {
           // This will exit the app.
-          Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath());
+          Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
         }
         else {
           // The patch is already installed, or was cancelled.
