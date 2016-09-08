@@ -86,8 +86,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     AnimatedComponentSplitter surfaceMockupWrapper = new AnimatedComponentSplitter(false, true);
     surfaceMockupWrapper.setInnerComponent(contentPanel);
     surfaceMockupWrapper.setLastComponent(mockupEditor);
-    surfaceMockupWrapper.setDividerWidth(1);
-    surfaceMockupWrapper.setDividerMouseZoneSize(1);
     Disposer.register(editor, surfaceMockupWrapper);
 
     /**

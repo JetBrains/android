@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Display or hide the mockup layer
@@ -31,6 +32,8 @@ import javax.swing.*;
  * @see com.android.tools.idea.uibuilder.surface.MockupLayer
  */
 public class MockupToggleAction extends ToggleAction {
+  public static final Dimension CLOSED_DIMENSION = new Dimension(0, 0);
+  public static final Dimension OPEN_DIMENSION = new Dimension(200, 200);
   private final DesignSurface mySurface;
 
   private final static String TOGGLE_ACTION_TITLE = "Show/Hide Mockup";
@@ -43,8 +46,8 @@ public class MockupToggleAction extends ToggleAction {
   }
 
   private static Icon getDesignIcon(boolean active) {
-    return active ? AndroidIcons.NeleIcons.DesignPropertyEnabled
-                  : AndroidIcons.NeleIcons.DesignProperty;
+    return AndroidIcons.Mockup.Mockup;
+
   }
 
   @Override
@@ -59,8 +62,11 @@ public class MockupToggleAction extends ToggleAction {
     final MockupEditor mockupEditor = mySurface.getMockupEditor();
     if (mockupEditor != null) {
       if (mockupEditor.getParent() instanceof AnimatedComponentSplitter) {
-        ((AnimatedComponentSplitter)mockupEditor.getParent())
-          .showAnimateChild(mockupEditor, state);
+        mockupEditor.setMaximumSize(state ? OPEN_DIMENSION : CLOSED_DIMENSION);
+        AnimatedComponentSplitter animatedComponentSplitter = (AnimatedComponentSplitter)mockupEditor.getParent();
+        animatedComponentSplitter.showAnimateChild(mockupEditor, state);
+        animatedComponentSplitter.setDividerMouseZoneSize(state ? 1 : 0);
+        animatedComponentSplitter.setDividerWidth(state ? 1 : 0);
       }
       else {
         mockupEditor.setSize(mySurface.getWidth() / 3, mySurface.getHeight());
