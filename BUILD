@@ -158,6 +158,7 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools:idea.gradle-tooling-extension-impl[module]",
     ],
+    test_runtime_deps = ["//tools/adt/idea/adt-branding"],
     exports = [
         "//tools/idea/.idea/libraries:asm",
         "//tools/adt/idea:android-common",
@@ -168,6 +169,7 @@ iml_module(
         "android/testData/**/*",
         "designer/testData/**/*",
     ]) + [
+        "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
