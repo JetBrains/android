@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -42,7 +42,7 @@ public class InstallRepositoryHyperlink extends NotificationHyperlink {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
       }
     }
   }

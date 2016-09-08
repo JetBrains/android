@@ -19,12 +19,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
@@ -43,7 +43,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
@@ -56,7 +55,6 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
-import com.intellij.util.Consumer;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.containers.ContainerUtil;
@@ -87,9 +85,9 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       super.analyze(project, scope);
       return;
     }
-    int[] fileCount = new int[] {0};
+    int[] fileCount = new int[]{0};
     PsiDocumentManager.getInstance(project).commitAllDocuments();
-    final UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
+    UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
     if (usageInfos == null) return;
 
     Map<Module, PsiFile> modules = findModulesFromUsage(usageInfos);
@@ -99,12 +97,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      SwingUtilities.invokeLater(applyRunnable(project, new Computable<UsageInfo[]>() {
-        @Override
-        public UsageInfo[] compute() {
-          return usageInfos;
-        }
-      }));
+      SwingUtilities.invokeLater(applyRunnable(project, () -> usageInfos));
     }
     else {
       showUsageView(project, usageInfos, scope);
@@ -113,10 +106,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
     // We need 1 file from each module that requires changes (the file may be overwritten below):
-    final Map<Module, PsiFile> modules = new HashMap<Module, PsiFile>();
+    Map<Module, PsiFile> modules = new HashMap<>();
 
     for (UsageInfo info : infos) {
-      final PsiElement element = info.getElement();
+      PsiElement element = info.getElement();
       assert element != null;
       Module module = ModuleUtilCore.findModuleForPsiElement(element);
       PsiFile file = element.getContainingFile();
@@ -126,58 +119,54 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static UsageInfo[] findUsages(@NotNull final Project project,
-                                        @NotNull final AnalysisScope scope,
-                                        final int fileCount) {
-    final NullityInferrer inferrer = new NullityInferrer(false, project);
-    final PsiManager psiManager = PsiManager.getInstance(project);
-    final Runnable searchForUsages = new Runnable() {
-      @Override
-      public void run() {
-        scope.accept(new PsiElementVisitor() {
-          int myFileCount = 0;
+  private static UsageInfo[] findUsages(@NotNull Project project,
+                                        @NotNull AnalysisScope scope,
+                                        int fileCount) {
+    NullityInferrer inferrer = new NullityInferrer(false, project);
+    PsiManager psiManager = PsiManager.getInstance(project);
+    Runnable searchForUsages = () -> scope.accept(new PsiElementVisitor() {
+      int myFileCount = 0;
 
-          @Override
-          public void visitFile(final PsiFile file) {
-            myFileCount++;
-            final VirtualFile virtualFile = file.getVirtualFile();
-            final FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
-            final Document document = viewProvider == null ? null : viewProvider.getDocument();
-            if (document == null || virtualFile.getFileType().isBinary()) return; //do not inspect binary files
-            final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-            if (progressIndicator != null) {
-              progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
-              progressIndicator.setFraction(((double)myFileCount) / fileCount);
-            }
-            if (file instanceof PsiJavaFile) {
-              inferrer.collect(file);
-            }
-          }
-        });
+      @Override
+      public void visitFile(PsiFile file) {
+        myFileCount++;
+        VirtualFile virtualFile = file.getVirtualFile();
+        FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
+        Document document = viewProvider == null ? null : viewProvider.getDocument();
+        if (document == null || virtualFile.getFileType().isBinary()) return; //do not inspect binary files
+        ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+        if (progressIndicator != null) {
+          progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
+          progressIndicator.setFraction(((double)myFileCount) / fileCount);
+        }
+        if (file instanceof PsiJavaFile) {
+          inferrer.collect(file);
+        }
       }
-    };
+    });
     if (ApplicationManager.getApplication().isDispatchThread()) {
       if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(searchForUsages, INFER_NULLITY_ANNOTATIONS, true, project)) {
         return null;
       }
-    } else {
+    }
+    else {
       searchForUsages.run();
     }
 
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
+    List<UsageInfo> usages = new ArrayList<>();
     inferrer.collect(usages);
     return usages.toArray(new UsageInfo[usages.size()]);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
-  protected boolean checkModules(@NotNull final Project project,
-                                 @NotNull final AnalysisScope scope,
+  protected boolean checkModules(@NotNull Project project,
+                                 @NotNull AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
-    final Set<Module> modulesWithoutAnnotations = new HashSet<Module>();
-    final Set<Module> modulesWithLowVersion = new HashSet<Module>();
+    Set<Module> modulesWithoutAnnotations = new HashSet<>();
+    Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
       AndroidModuleInfo info = AndroidModuleInfo.get(module);
-      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() <  MIN_SDK_WITH_NULLABLE) {
+      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
       GradleBuildModel buildModel = GradleBuildModel.get(module);
@@ -223,17 +212,18 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
                                    SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
-      final LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
       try {
         new WriteCommandAction(project, ADD_DEPENDENCY) {
           @Override
-          protected void run(@NotNull final Result result) throws Throwable {
+          protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
             String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
+            GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, settings, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
                 restartAnalysis(project, scope);
@@ -250,125 +240,101 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static Runnable applyRunnable(final Project project, final Computable<UsageInfo[]> computable) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
-        try {
-          new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              final UsageInfo[] infos = computable.compute();
-              if (infos.length > 0) {
+  private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
+    return () -> {
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
+      try {
+        new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            UsageInfo[] infos = computable.compute();
+            if (infos.length > 0) {
 
-                final Set<PsiElement> elements = new LinkedHashSet<PsiElement>();
-                for (UsageInfo info : infos) {
-                  final PsiElement element = info.getElement();
-                  if (element != null) {
-                    ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-                  }
+              Set<PsiElement> elements = new LinkedHashSet<>();
+              for (UsageInfo info : infos) {
+                PsiElement element = info.getElement();
+                if (element != null) {
+                  ContainerUtil.addIfNotNull(elements, element.getContainingFile());
                 }
-                if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
-
-                final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-                progressTask.setMinIterationTime(200);
-                progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-                ProgressManager.getInstance().run(progressTask);
-              } else {
-                NullityInferrer.nothingFoundMessage(project);
               }
+              if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
+
+              SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
+              progressTask.setMinIterationTime(200);
+              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+              ProgressManager.getInstance().run(progressTask);
             }
-          }.execute();
-        }
-        finally {
-          action.finish();
-        }
+            else {
+              NullityInferrer.nothingFoundMessage(project);
+            }
+          }
+        }.execute();
+      }
+      finally {
+        action.finish();
       }
     };
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  protected void restartAnalysis(final Project project, final AnalysisScope scope) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        analyze(project, scope);
-      }
-    });
+  protected void restartAnalysis(Project project, AnalysisScope scope) {
+    ApplicationManager.getApplication().invokeLater(() -> analyze(project, scope));
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
-    final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
-    final Ref<Usage[]> convertUsagesRef = new Ref<Usage[]>();
-    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-            convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos));
-          }
-        });
-      }
-    }, "Preprocess Usages", true, project)) return;
+  private static void showUsageView(@NotNull Project project, UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
+    UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
+    Ref<Usage[]> convertUsagesRef = new Ref<>();
+    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> ApplicationManager.getApplication().runReadAction(
+      () -> convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos))), "Preprocess Usages", true, project)) {
+      return;
+    }
 
     if (convertUsagesRef.isNull()) return;
-    final Usage[] usages = convertUsagesRef.get();
+    Usage[] usages = convertUsagesRef.get();
 
-    final UsageViewPresentation presentation = new UsageViewPresentation();
+    UsageViewPresentation presentation = new UsageViewPresentation();
     presentation.setTabText("Infer Nullity Preview");
     presentation.setShowReadOnlyStatusAsRed(true);
     presentation.setShowCancelButton(true);
     presentation.setUsagesString(RefactoringBundle.message("usageView.usagesText"));
 
-    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
+    UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
 
-    final Runnable refactoringRunnable = applyRunnable(project, new Computable<UsageInfo[]>() {
-      @Override
-      public UsageInfo[] compute() {
-        final Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-        return infos.toArray(new UsageInfo[infos.size()]);
-      }
+    Runnable refactoringRunnable = applyRunnable(project, () -> {
+      Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
+      return infos.toArray(new UsageInfo[infos.size()]);
     });
 
-    String canNotMakeString = "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
+    String canNotMakeString =
+      "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
 
     usageView.addPerformOperationAction(refactoringRunnable, INFER_NULLITY_ANNOTATIONS, canNotMakeString, INFER_NULLITY_ANNOTATIONS, false);
   }
 
   // Intellij code from InferNullityAnnotationsAction.
   @NotNull
-  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project, @NotNull final AnalysisScope scope) {
-    return new Factory<UsageSearcher>() {
+  private static Factory<UsageSearcher> rerunFactory(@NotNull Project project, @NotNull AnalysisScope scope) {
+    return () -> new UsageInfoSearcherAdapter() {
       @Override
-      public UsageSearcher create() {
-        return new UsageInfoSearcherAdapter() {
-          @Override
-          protected UsageInfo[] findUsages() {
-            return AndroidInferNullityAnnotationAction.findUsages(project, scope, scope.getFileCount());
-          }
+      protected UsageInfo[] findUsages() {
+        return AndroidInferNullityAnnotationAction.findUsages(project, scope, scope.getFileCount());
+      }
 
-          @Override
-          public void generate(@NotNull Processor<Usage> processor) {
-            processUsages(processor, project);
-          }
-        };
+      @Override
+      public void generate(@NotNull Processor<Usage> processor) {
+        processUsages(processor, project);
       }
     };
   }
 
-  private static void addDependency(@NotNull final Module module, @Nullable final String libraryCoordinate) {
+  private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
     if (isNotEmpty(libraryCoordinate)) {
-      ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
-        @Override
-        public void consume(ModifiableRootModel model) {
-          GradleBuildModel buildModel = GradleBuildModel.get(module);
-          if (buildModel != null) {
-            buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
-            buildModel.applyChanges();
-          }
+      ModuleRootModificationUtil.updateModel(module, model -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        if (buildModel != null) {
+          buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+          buildModel.applyChanges();
         }
       });
     }

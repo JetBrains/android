@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
+import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
@@ -108,6 +113,21 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (errorDetails != null) {
       LOG.warn(errorDetails);
     }
-    GradleSyncInvoker.getInstance(myProject).handleSyncFailure(errorMessage, mySyncListener);
+    handleSyncFailure(errorMessage);
+  }
+
+  private void handleSyncFailure(@NotNull String errorMessage) {
+    String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
+    LOG.info(newMessage);
+
+    // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
+    // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
+    // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
+    GradleProjectSyncData.removeFrom(myProject);
+    GradleSyncState.getInstance(myProject).syncFailed(newMessage);
+
+    if (mySyncListener != null) {
+      mySyncListener.syncFailed(myProject, newMessage);
+    }
   }
 }

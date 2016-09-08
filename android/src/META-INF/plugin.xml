@@ -314,10 +314,12 @@
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
@@ -865,8 +867,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.DefaultGradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>

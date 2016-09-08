@@ -22,22 +22,18 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
 abstract class AndroidStudioCleanUpTask extends ProjectCleanUpTask {
-  AndroidStudioCleanUpTask(@NotNull Project project) {
-    super(project);
-  }
-
   @Override
-  void execute() {
+  void cleanUp(@NotNull Project project) {
     if (!isAndroidStudio()) {
       return;
     }
     try {
-      doExecute();
+      doCleanUp(project);
     }
     catch (Throwable e) {
       Logger.getInstance(getClass()).info("Failed to execute " + getClass().getSimpleName(), e);
     }
   }
 
-  abstract void doExecute();
+  abstract void doCleanUp(@NotNull Project project);
 }

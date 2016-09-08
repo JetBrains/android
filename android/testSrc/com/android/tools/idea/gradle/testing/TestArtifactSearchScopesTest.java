@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -126,7 +126,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
-    runWriteCommandAction(getProject(), () -> GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null));
+    runWriteCommandAction(getProject(), () -> {
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, null);
+    });
 
     latch.await();
 

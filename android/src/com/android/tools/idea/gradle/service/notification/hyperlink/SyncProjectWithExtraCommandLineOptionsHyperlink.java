@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +40,6 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends Notificatio
   protected void execute(@NotNull Project project) {
     // This is the only way that we can pass extra command line options to the Gradle sync process.
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, myExtraOptions);
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 }

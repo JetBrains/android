@@ -604,7 +604,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     });
   }
 
-  static void clearMessageView(@NotNull Project project) {
+  public static void clearMessageView(@NotNull Project project) {
     ApplicationManager.getApplication().invokeLater(() -> {
       if (!project.isDisposed()) {
         removeUnpinnedBuildMessages(project, null);

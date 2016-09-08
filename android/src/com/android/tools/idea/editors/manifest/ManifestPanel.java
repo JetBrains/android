@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
@@ -764,7 +764,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               }
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
-              GradleProjectImporter.getInstance().requestProjectSync(facet.getModule().getProject(), null);
+
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
             }
           }.execute();
         }
@@ -785,7 +786,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             assert flavor != null;
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
-            GradleProjectImporter.getInstance().requestProjectSync(facet.getModule().getProject(), null);
+
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
           }
         }.execute();
       }

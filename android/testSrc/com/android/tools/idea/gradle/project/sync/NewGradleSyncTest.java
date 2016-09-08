@@ -17,12 +17,9 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
-import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -38,27 +35,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link GradleSyncInvoker}.
+ * Tests for {@link NewGradleSync}.
  */
-public class GradleSyncInvokerTest extends AndroidGradleTestCase {
+public class NewGradleSyncTest extends AndroidGradleTestCase {
   private ProjectSetupStub myProjectSetup;
-  private PreSyncProjectCleanUp myProjectCleanUp;
-  private GradleSetup myGradleSetup;
 
-  private GradleSyncInvoker myGradleSyncInvoker;
+  private NewGradleSync myGradleSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myProjectSetup = new ProjectSetupStub();
-    myGradleSetup = new GradleSetup();
-
-    myProjectCleanUp = mock(PreSyncProjectCleanUp.class);
 
     ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
     when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSyncInvoker = new GradleSyncInvoker(getProject(), new PreSyncChecks(), myProjectCleanUp, projectSetupFactory);
+    myGradleSync = new NewGradleSync(projectSetupFactory);
   }
 
   public void testDummy() {
@@ -68,10 +60,12 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   public void /*test*/FailedSync() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     createLocalPropertiesFile(new File("blah")); // Trigger a sync fail.
-    myGradleSetup.setUpGradle(getProject());
 
     SyncListener listener = new SyncListener();
-    myGradleSyncInvoker.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
+
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
+    settings.setGenerateSourcesOnSuccess(false);
+    myGradleSync.sync(getProject(), settings, listener);
     listener.await();
 
     assertFalse(listener.success);
@@ -92,10 +86,13 @@ public class GradleSyncInvokerTest extends AndroidGradleTestCase {
   public void /*test*/SuccessfulSync() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     createLocalPropertiesFile();
-    myGradleSetup.setUpGradle(getProject());
 
     SyncListener listener = new SyncListener();
-    myGradleSyncInvoker.sync(ProgressExecutionMode.IN_BACKGROUND_ASYNC, listener);
+
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
+    settings.setGenerateSourcesOnSuccess(false);
+    myGradleSync.sync(getProject(), settings, listener);
+
     listener.await();
 
     String unexpectedError = listener.errorMessage;

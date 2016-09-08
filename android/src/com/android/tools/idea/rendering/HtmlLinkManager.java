@@ -18,8 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
@@ -262,7 +262,7 @@ public class HtmlLinkManager {
   public String createCommandLink(@NotNull WriteCommandAction command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<WriteCommandAction>(5);
+      myLinkCommands = new SparseArray<>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;
@@ -282,7 +282,7 @@ public class HtmlLinkManager {
   public String createRunnableLink(@NotNull Runnable runnable) {
     String url = URL_RUNNABLE + myNextLinkId;
     if (myLinkRunnables == null) {
-      myLinkRunnables = new SparseArray<Runnable>(5);
+      myLinkRunnables = new SparseArray<>(5);
     }
     myLinkRunnables.put(myNextLinkId, runnable);
     myNextLinkId++;
@@ -332,7 +332,7 @@ public class HtmlLinkManager {
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
     BuildVariantView.getInstance(project).projectImportStarted();
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 
   public String createEditClassPathUrl() {

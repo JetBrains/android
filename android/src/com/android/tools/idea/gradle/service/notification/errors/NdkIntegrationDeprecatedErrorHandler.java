@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -60,7 +60,8 @@ public class NdkIntegrationDeprecatedErrorHandler extends AbstractSyncErrorHandl
       GradleProperties gradleProperties;
       try {
         gradleProperties = new GradleProperties(project);
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         Messages.showErrorDialog(project, "Failed to read gradle.properties: " + e.getMessage(), "Quick Fix");
         return;
       }
@@ -69,12 +70,13 @@ public class NdkIntegrationDeprecatedErrorHandler extends AbstractSyncErrorHandl
 
       try {
         gradleProperties.save();
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         Messages.showErrorDialog(project, "Failed to update gradle.properties: " + e.getMessage(), "Quick Fix");
         return;
       }
 
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
     }
   }
 }
