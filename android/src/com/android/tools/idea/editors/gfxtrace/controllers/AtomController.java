@@ -74,15 +74,8 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.RandomAccess;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -820,7 +813,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
             com.google.common.collect.Range<Integer> itemIndices = report.getForAtom(node.index);
             if (itemIndices != null) {
               component.append(ContiguousSet.create(itemIndices, DiscreteDomain.integers()).stream()
-                                 .map(report::constructMessage).collect(Collectors.joining("\n")));
+                                 .map(report::getOrConstructMessage).collect(Collectors.joining("\n")));
             }
             lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(component)
               .setAnimationCycle(Node.REPORT_BALLOON_ANIMATION_CYCLES).createBalloon();

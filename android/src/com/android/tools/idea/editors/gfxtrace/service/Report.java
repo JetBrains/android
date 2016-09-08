@@ -27,9 +27,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class Report implements BinaryObject {
+
+  // Reusable static map for mapping between string table keys and values.
+  @NotNull private final static Map<String, BinaryObject> myArgMap = new HashMap<>();
+
+  // Cache of constructed messages.
+  @Nullable private Map<MsgRef, String> myConstructedMessages;
 
   @Nullable("there's no report item associated to a given atom id")
   public Range<Integer> getForAtom(long atomId) {
@@ -69,15 +76,24 @@ public final class Report implements BinaryObject {
     return Range.closed(start + 1, end - 1);
   }
 
-  public String constructMessage(int reportItemIndex) {
-    return constructMessage(myItems[reportItemIndex]);
+  @NotNull
+  public String getOrConstructMessage(int reportItemIndex) {
+    return getOrConstructMessage(myItems[reportItemIndex].getMessage());
   }
 
-  // TODO: Check if we have to recycle a map
-  public String constructMessage(@NotNull final ReportItem reportItem) {
-    MsgRef ref = reportItem.getMessage();
-    Map<String, BinaryObject> argMap = Arg.constructMap(myMsgArguments, ref.getArguments());
-    return StringTable.getMessage(myMsgIdentifiers[ref.getIdentifier()], argMap);
+  @NotNull
+  public String getOrConstructMessage(@NotNull final MsgRef ref) {
+    if (myConstructedMessages != null && myConstructedMessages.containsKey(ref)) {
+      return myConstructedMessages.get(ref);
+    }
+    myArgMap.clear();
+    Arg.constructMap(myMsgArguments, ref.getArguments(), myArgMap);
+    String message = StringTable.getMessage(myMsgIdentifiers[ref.getIdentifier()], myArgMap);
+    if (myConstructedMessages == null) {
+      myConstructedMessages = new HashMap<>();
+    }
+    myConstructedMessages.put(ref, message);
+    return message;
   }
 
   // Groups are children for now, structure may change...

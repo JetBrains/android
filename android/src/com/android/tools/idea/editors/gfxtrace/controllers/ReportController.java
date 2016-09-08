@@ -22,7 +22,6 @@ import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
-import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
@@ -57,6 +56,7 @@ import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ReportController extends TreeController implements ReportStream.Listener {
   public static JComponent createUI(@NotNull GfxTraceEditor editor) {
@@ -64,7 +64,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
   }
 
   private static final @NotNull Logger LOG = Logger.getInstance(ReportController.class);
-  private static final Map<String, BinaryObject> myMsgMap = new HashMap<>();
 
   public abstract static class Renderable {
 
@@ -202,7 +201,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     @Override
     protected Renderable createChild(int filteredIndex, int delegateIndex) {
-      return Group.createInstance(myReport, myReport.getGroups()[delegateIndex], filteredIndex);
+      return new Group(myReport, myReport.getGroups()[delegateIndex], filteredIndex);
     }
 
     @Override
@@ -223,27 +222,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   public static class Group extends Renderable {
 
-    public static Group createInstance(@NotNull Report report,
-                                       @NotNull ReportGroup reportGroup,
-                                       int childIndex) {
-      Group group = new Group(report, reportGroup, childIndex);
-      group.constructName(report);
-      return group;
-    }
-
     @NotNull private final ReportGroup myReportGroup;
     @Nullable private String myName;
 
     public Group(@NotNull Report report, @NotNull ReportGroup group, int childIndex) {
       super(report, childIndex);
       myReportGroup = group;
-    }
-
-    public void constructName(@NotNull Report report) {
-      MsgRef ref = myReportGroup.getName();
-      myMsgMap.clear();
-      Arg.constructMap(report.getMsgArguments(), ref.getArguments(), myMsgMap);
-      myName = StringTable.getMessage(report.getMsgIdentifiers()[ref.getIdentifier()], myMsgMap);
+      myName = report.getOrConstructMessage(myReportGroup.getName());
     }
 
     @Nullable
@@ -289,7 +274,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
     public final int index;
     @NotNull private final ReportItem myReportItem;
     @Nullable("not made server request yet") private Path followPath;
-    @Nullable private List<String> myTagStrings;
 
     public Node(@NotNull Report report, @NotNull ReportItem item, int childIndex, int index) {
       super(report, childIndex);
@@ -331,10 +315,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     @Override
     protected Renderable createChild(int filteredIndex, int delegateIndex) {
-      if (myTagStrings == null) {
-        initTagStrings();
-      }
-      return new Tag(myReport, myReportItem.getTags()[delegateIndex], myTagStrings.get(delegateIndex), filteredIndex);
+      return new Tag(myReport, myReportItem.getTags()[delegateIndex], filteredIndex);
     }
 
     @Override
@@ -357,31 +338,17 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
 
     public List<String> getTagStrings() {
-      if (myTagStrings == null) {
-        initTagStrings();
-      }
-      return myTagStrings;
-    }
-
-    private void initTagStrings() {
-      myTagStrings = new ArrayList<>();
-      for (MsgRef ref : myReportItem.getTags()) {
-        myMsgMap.clear();
-        Arg.constructMap(myReport.getMsgArguments(), ref.getArguments(), myMsgMap);
-        myTagStrings.add(StringTable.getMessage(myReport.getMsgIdentifiers()[ref.getIdentifier()], myMsgMap));
-      }
+      return Arrays.stream(myReportItem.getTags()).map(myReport::getOrConstructMessage).collect(Collectors.toList());
     }
   }
 
   public static class Tag extends Renderable {
 
     @NotNull private final MsgRef myRef;
-    @NotNull private final String myString;
 
-    public Tag(@NotNull Report report, @NotNull MsgRef ref, @NotNull String string, int childIndex) {
+    public Tag(@NotNull Report report, @NotNull MsgRef ref, int childIndex) {
       super(report, childIndex);
       myRef = ref;
-      myString = string;
     }
 
     @Override
@@ -416,7 +383,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     @NotNull
     public String getString() {
-      return myString;
+      return myReport.getOrConstructMessage(myRef);
     }
   }
 
