@@ -289,6 +289,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
     public final int index;
     @NotNull private final ReportItem myReportItem;
     @Nullable("not made server request yet") private Path followPath;
+    @Nullable private List<String> myTagStrings;
 
     public Node(@NotNull Report report, @NotNull ReportItem item, int childIndex, int index) {
       super(report, childIndex);
@@ -329,18 +330,73 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
 
     @Override
-    public Renderable getChild(int childIndex) {
-      return null;
-    }
-
-    @Override
     protected Renderable createChild(int filteredIndex, int delegateIndex) {
-      return null;
+      if (myTagStrings == null) {
+        initTagStrings();
+      }
+      return new Tag(myReport, myReportItem.getTags()[delegateIndex], myTagStrings.get(delegateIndex), filteredIndex);
     }
 
     @Override
     public BinaryObject getDelegate() {
       return myReportItem;
+    }
+
+    @Override
+    public int getDelegateChildCount() {
+      return myReportItem.getTags().length;
+    }
+
+    @Override
+    public BinaryObject getDelegateChild(int childIndex) {
+      return myReportItem.getTags()[childIndex];
+    }
+
+    public boolean hasTags() {
+      return myReportItem.getTags().length > 0;
+    }
+
+    public List<String> getTagStrings() {
+      if (myTagStrings == null) {
+        initTagStrings();
+      }
+      return myTagStrings;
+    }
+
+    private void initTagStrings() {
+      myTagStrings = new ArrayList<>();
+      for (MsgRef ref : myReportItem.getTags()) {
+        myMsgMap.clear();
+        Arg.constructMap(myReport.getMsgArguments(), ref.getArguments(), myMsgMap);
+        myTagStrings.add(StringTable.getMessage(myReport.getMsgIdentifiers()[ref.getIdentifier()], myMsgMap));
+      }
+    }
+  }
+
+  public static class Tag extends Renderable {
+
+    @NotNull private final MsgRef myRef;
+    @NotNull private final String myString;
+
+    public Tag(@NotNull Report report, @NotNull MsgRef ref, @NotNull String string, int childIndex) {
+      super(report, childIndex);
+      myRef = ref;
+      myString = string;
+    }
+
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      Render.render(this, component);
+    }
+
+    @Override
+    public TreePath pathTo(ReportItem item, TreePath root) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BinaryObject getDelegate() {
+      return myRef;
     }
 
     @Override
@@ -351,6 +407,16 @@ public class ReportController extends TreeController implements ReportStream.Lis
     @Override
     public BinaryObject getDelegateChild(int childIndex) {
       return null;
+    }
+
+    @Override
+    protected Renderable createChild(int filteredIndex, int delegateIndex) {
+      return null;
+    }
+
+    @NotNull
+    public String getString() {
+      return myString;
     }
   }
 
@@ -370,8 +436,8 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
       @Override
       public boolean test(BinaryObject binaryObject) {
-        if (binaryObject instanceof Report) {
-          // Report is always shown by default.
+        if (binaryObject instanceof Report || binaryObject instanceof MsgRef) {
+          // Report and Tags are always shown by default.
           return true;
         }
         if (binaryObject instanceof ReportGroup) {
