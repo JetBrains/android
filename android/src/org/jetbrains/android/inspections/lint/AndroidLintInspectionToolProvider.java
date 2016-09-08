@@ -16,7 +16,10 @@ import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
+import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.impl.quickfix.SimplifyBooleanExpressionFix;
+import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -47,6 +50,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
+import static com.android.tools.lint.checks.ObjectAnimatorDetector.KEEP_ANNOTATION;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import static com.android.xml.AndroidManifest.*;
@@ -273,6 +277,55 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[] { new ReplaceStringQuickFix("Replace with ifRoom", "(always)", "ifRoom") };
+    }
+  }
+
+  public static class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase {
+    public AndroidLintAnimatorKeepInspection() {
+      super(AndroidBundle.message("android.lint.inspections.animator.keep"), ObjectAnimatorDetector.MISSING_KEEP);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new AndroidLintQuickFix() {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class);
+            if (container == null) {
+              return;
+            }
+
+            if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
+              return;
+            }
+            final PsiModifierList modifierList = container.getModifierList();
+            if (modifierList != null) {
+              PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION);
+              if (annotation == null) {
+                Project project = startElement.getProject();
+                new AddAnnotationFix(KEEP_ANNOTATION, container).invoke(project, null, container.getContainingFile());
+              }
+            }
+          }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            return true;
+          }
+
+          @NotNull
+          @Override
+          public String getName() {
+            return "Annotate with @Keep";
+          }
+        }
+      };
     }
   }
 
@@ -995,6 +1048,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintNotSiblingInspection extends AndroidLintInspectionBase {
     public AndroidLintNotSiblingInspection() {
       super(AndroidBundle.message("android.lint.inspections.not.sibling"), WrongIdDetector.NOT_SIBLING);
+    }
+  }
+
+  public static class AndroidLintObjectAnimatorBindingInspection extends AndroidLintInspectionBase {
+    public AndroidLintObjectAnimatorBindingInspection() {
+      super(AndroidBundle.message("android.lint.inspections.object.animator.binding"), ObjectAnimatorDetector.BROKEN_PROPERTY);
     }
   }
 
