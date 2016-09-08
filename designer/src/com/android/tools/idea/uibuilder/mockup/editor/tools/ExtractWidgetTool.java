@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
@@ -46,6 +47,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   private static ImmutableList<CreatorAction> ourWidgetCreationActions = new ImmutableList.Builder<CreatorAction>()
     .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
     .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout))
+    .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", AndroidIcons.Views.ImageView))
     .build();
 
   public static final Logger LOGGER = Logger.getLogger(ExtractWidgetTool.class.getName());
@@ -116,6 +118,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
   /**
    * Create the Action toolbar containing the buttons created using ourWidgetCreationActions list
+   *
    * @return The toolbar JComponent to add to the layout
    */
   private JComponent createActionToolbar() {
@@ -129,7 +132,8 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
   /**
    * Activate only the selection layer in the mockup editor
-   * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
+   *
+   * @param mockupEditor The {@link MockupEditor} on which the {@link MockupEditor.Tool} behave
    */
   @Override
   public void enable(@NotNull MockupEditor mockupEditor) {
@@ -140,7 +144,8 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
 
   /**
    * Disable the selection on the mockupEditor and hide any displayed actions
-   * @param mockupEditor The {@link MockupEditor} on which the {@link Tool} behave
+   *
+   * @param mockupEditor The {@link MockupEditor} on which the {@link MockupEditor.Tool} behave
    */
   @Override
   public void disable(@NotNull MockupEditor mockupEditor) {
@@ -149,9 +154,9 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     hideTooltipActions();
   }
 
-
   /**
    * Create AnActions from ourWidgetCreationActions that use WidgetCreator to create the new widgets
+   *
    * @return a List of {@link AnAction}
    */
   private List<AnAction> createActionsButtons() {
@@ -172,7 +177,29 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
             LOGGER.warning("The DesignSurface does not have a current screen view");
             return;
           }
-          WidgetCreator.create(creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+          WidgetCreator creator = WidgetCreatorFactory.create(
+            creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+
+          if (creator.hasOptionsComponent()) {
+            setEnabled(false);
+            final JComponent optionsComponent = creator.getOptionsComponent(
+              type -> { // Done
+                setEnabled(true);
+                myMockupViewPanel.removeAll();
+                if(WidgetCreator.DoneCallback.FINISH == type) {
+                  creator.addToModel();
+                }
+              }
+            );
+            if (optionsComponent != null) {
+              optionsComponent.setEnabled(true);
+              myMockupViewPanel.add(optionsComponent);
+              myMockupViewPanel.doLayout();
+            }
+          }
+          else {
+            creator.addToModel();
+          }
         }
       });
     }
@@ -201,7 +228,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     }
   }
 
-  static class CreatorAction {
+  private static class CreatorAction {
     String myAndroidClassName;
     String myTitle;
     Icon myIcon;

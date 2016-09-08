@@ -31,10 +31,10 @@ import static com.android.SdkConstants.VIEW;
 /**
  * Create a simple {@value com.android.SdkConstants#VIEW} tag with the size, mockup, and tools position attributes
  */
-public class SimpleViewCreator extends BaseWidgetCreator {
+public class SimpleViewCreator extends WidgetCreator {
 
-  @MockupCoordinate private final Rectangle myBounds;
-  @AndroidCoordinate Rectangle myTransformedBounds = new Rectangle();
+  @MockupCoordinate private final Rectangle mySelectionBounds;
+  @AndroidCoordinate Rectangle myAndroidBounds = new Rectangle();
 
   /**
    * Create a simple {@value com.android.SdkConstants#VIEW} tag
@@ -48,16 +48,16 @@ public class SimpleViewCreator extends BaseWidgetCreator {
    */
   public SimpleViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView);
-    myBounds = selection;
+    mySelectionBounds = selection;
 
     Rectangle cropping = getMockup().getRealCropping();
     final NlComponent component = getMockup().getComponent();
     final float xScale = component.w / (float)cropping.width;
     final float yScale = component.h / (float)cropping.height;
-    myTransformedBounds.setBounds(Math.round(xScale * myBounds.x),
-                                  Math.round(yScale * myBounds.y),
-                                  Math.round(xScale * myBounds.width),
-                                  Math.round(yScale * myBounds.height));
+    myAndroidBounds.setBounds(Math.round(xScale * mySelectionBounds.x),
+                              Math.round(yScale * mySelectionBounds.y),
+                              Math.round(xScale * mySelectionBounds.width),
+                              Math.round(yScale * mySelectionBounds.height));
   }
 
   /**
@@ -74,22 +74,24 @@ public class SimpleViewCreator extends BaseWidgetCreator {
    */
   @Override
   protected void addAttributes(@NotNull AttributesTransaction transaction) {
-    addLayoutEditorPositionAttribute(transaction, myTransformedBounds);
-    addSizeAttributes(transaction, myTransformedBounds);
-    addMockupAttributes(transaction, myBounds);
+    addLayoutEditorPositionAttribute(transaction, myAndroidBounds);
+    addSizeAttributes(transaction, myAndroidBounds);
+    addMockupAttributes(transaction, mySelectionBounds);
   }
 
   /**
    * {@inheritDoc}
    */
-  public Rectangle getTransformedBounds() {
-    return myTransformedBounds;
+  @AndroidCoordinate
+  public Rectangle getAndroidBounds() {
+    return myAndroidBounds;
   }
 
   /**
    * {@inheritDoc}
    */
-  public Rectangle getBounds() {
-    return myBounds;
+  @MockupCoordinate
+  public Rectangle getSelectionBounds() {
+    return mySelectionBounds;
   }
 }

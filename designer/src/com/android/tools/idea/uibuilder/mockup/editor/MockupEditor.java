@@ -49,7 +49,7 @@ public class MockupEditor extends JPanel {
   public static final Logger LOG = Logger.getInstance(MockupEditor.class);
   private static final String TITLE = "Mockup Editor";
   private static final Dimension MINIMUM_SIZE = new Dimension(100, 100);
-  private final myModelListener myModelListener;
+  private final MyModelListener myModelListener;
 
   @Nullable private NlModel myModel;
   @Nullable private Mockup myMockup;
@@ -66,7 +66,7 @@ public class MockupEditor extends JPanel {
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
     myMockupListener = this::notifyListeners;
-    myModelListener = new myModelListener(this);
+    myModelListener = new MyModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
     myExtractWidgetTool = new ExtractWidgetTool(surface, this);
     setModel(model);
@@ -334,10 +334,10 @@ public class MockupEditor extends JPanel {
     void editorUpdated(@Nullable Mockup mockup);
   }
 
-  private static class myModelListener implements ModelListener {
+  private static class MyModelListener implements ModelListener {
     private final MockupEditor myMockupEditor;
 
-    public myModelListener(MockupEditor mockupEditor) {
+    public MyModelListener(MockupEditor mockupEditor) {
       myMockupEditor = mockupEditor;
     }
 
