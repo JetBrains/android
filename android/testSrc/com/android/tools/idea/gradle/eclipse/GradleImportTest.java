@@ -3948,17 +3948,14 @@ public class GradleImportTest extends AndroidTestCase {
     }
   }
 
-  /** Environment variable or system property containing the full path to an SDK install */
-  public static final String SDK_PATH_PROPERTY = "ANDROID_HOME";
-
   @Nullable
   protected static String getTestSdkPathLocal() {
-    String override = System.getProperty(SDK_PATH_PROPERTY);
+    String override = System.getProperty(ANDROID_HOME_ENV);
     if (override != null) {
       assertTrue(override, new File(override).exists());
       return override;
     }
-    override = System.getenv(SDK_PATH_PROPERTY);
+    override = System.getenv(ANDROID_HOME_ENV);
     if (override != null) {
       return override;
     }
