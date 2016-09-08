@@ -71,16 +71,22 @@ public class RenderService {
   public static final boolean NELE_ENABLED = true;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+  /** Number of ms that we will keep the render thread alive when idle */
+  private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
-  private static final ExecutorService ourRenderingExecutor = Executors.newSingleThreadExecutor((Runnable r) -> {
-    Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
-    renderingThread.setDaemon(true);
-    ourRenderingThread.set(renderingThread);
+  private static final ExecutorService ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
+                                                                                     RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
+                                                                                     new LinkedBlockingQueue<>(),
+                                                                                     (Runnable r) -> {
+                                                                                       Thread renderingThread =
+                                                                                         new Thread(null, r, "Layoutlib Render Thread");
+                                                                                       renderingThread.setDaemon(true);
+                                                                                       ourRenderingThread.set(renderingThread);
 
-    return renderingThread;
-  });
+                                                                                       return renderingThread;
+                                                                                     });
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
   static {
