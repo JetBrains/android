@@ -24,13 +24,13 @@ public class PreSyncProjectCleanUp {
   @NotNull private final ProjectCleanUpTask[] myCleanUpTasks;
 
   @NotNull
-  public static PreSyncProjectCleanUp getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, PreSyncProjectCleanUp.class);
+  public static PreSyncProjectCleanUp getInstance() {
+    return ServiceManager.getService(PreSyncProjectCleanUp.class);
   }
 
-  public PreSyncProjectCleanUp(@NotNull Project project) {
-    this(new ProjectPreferencesCleanUpTask(project), new GradleRunnerCleanupTask(project), new HttpProxySettingsCleanUpTask(project),
-         new GradleDistributionCleanUpTask(project));
+  public PreSyncProjectCleanUp() {
+    this(new ProjectPreferencesCleanUpTask(), new GradleRunnerCleanupTask(), new HttpProxySettingsCleanUpTask(),
+         new GradleDistributionCleanUpTask(), new GradleSettingsCleanUpTask(), new BuildOutputViewCleanUpTask());
   }
 
   @VisibleForTesting
@@ -38,9 +38,9 @@ public class PreSyncProjectCleanUp {
     myCleanUpTasks = cleanUpTasks;
   }
 
-  public void execute() {
+  public void cleanUp(@NotNull Project project) {
     for (ProjectCleanUpTask task : myCleanUpTasks) {
-      task.execute();
+      task.cleanUp(project);
     }
   }
 

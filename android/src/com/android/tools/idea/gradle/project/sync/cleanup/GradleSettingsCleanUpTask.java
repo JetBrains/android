@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableList;
@@ -26,8 +26,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 
-public class GradleSetup {
-  public void setUpGradle(@NotNull Project project) {
+class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
+  @Override
+  void cleanUp(@NotNull Project project) {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
       projectSettings = new GradleProjectSettings();
@@ -53,4 +54,6 @@ public class GradleSetup {
       settings.setExternalProjectPath(basePath);
     }
   }
+
+
 }

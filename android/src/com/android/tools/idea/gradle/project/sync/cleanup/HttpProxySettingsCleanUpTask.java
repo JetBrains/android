@@ -33,18 +33,12 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 
 // See https://code.google.com/p/android/issues/detail?id=169743
 class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
-  HttpProxySettingsCleanUpTask(@NotNull Project project) {
-    super(project);
-  }
-
   @Override
-  void doExecute() {
+  void doCleanUp(@NotNull Project project) {
     HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
     if (!ideHttpProxySettings.USE_HTTP_PROXY || isEmpty(ideHttpProxySettings.PROXY_HOST)) {
       return;
     }
-    Project project = getProject();
-
     GradleProperties properties;
     try {
       properties = new GradleProperties(project);

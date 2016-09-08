@@ -37,13 +37,9 @@ class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
     "com.intellij.compiler.options.CompilerConfigurable"
   );
 
-  ProjectPreferencesCleanUpTask(@NotNull Project project) {
-    super(project);
-  }
-
   @Override
-  void doExecute() {
-    ExtensionsArea area = Extensions.getArea(getProject());
+  void doCleanUp(@NotNull Project project) {
+    ExtensionsArea area = Extensions.getArea(project);
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
     cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
   }

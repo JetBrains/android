@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.importing;
 
-public abstract class ProjectSetupStep {
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+
+/**
+ * Hyperlink to the "Migrating to Gradle" document.
+ */
+public class OpenMigrationToGradleUrlHyperlink extends OpenUrlHyperlink {
+  public OpenMigrationToGradleUrlHyperlink() {
+    super("http://tools.android.com/tech-docs/new-build-system/intellij_to_gradle", "More Information about migrating to Gradle");
+  }
 }

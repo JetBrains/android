@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.ProjectStructureChangeListener;
@@ -71,7 +71,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
       projectStructure.showDialog();
       projectStructure.remove(changeListener);
       if (needsSync.get()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
       }
       return;
     }

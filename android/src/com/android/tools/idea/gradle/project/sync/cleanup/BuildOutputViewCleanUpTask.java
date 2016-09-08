@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
+import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Hyperlink to the "Migrating to Gradle" document.
- */
-class OpenMigrationToGradleUrlHyperlink extends OpenUrlHyperlink {
-  OpenMigrationToGradleUrlHyperlink() {
-    super("http://tools.android.com/tech-docs/new-build-system/intellij_to_gradle", "More Information about migrating to Gradle");
+class BuildOutputViewCleanUpTask extends ProjectCleanUpTask {
+  @Override
+  void cleanUp(@NotNull Project project) {
+    GradleConsoleView.getInstance(project).clear();
+    GradleTasksExecutor.clearMessageView(project);
   }
 }

@@ -19,9 +19,10 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -500,8 +501,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       try {
         // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
         // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, false /* do not generate sources */, listener,
-                                                          project, null);
+        GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
+        requestSettings.setProject(project).setGenerateSourcesOnSuccess(false);
+        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, requestSettings, listener);
       }
       catch (Throwable e) {
         throwableRef.set(e);
@@ -565,7 +567,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   private SyncListener requestSync() throws Exception {
     SyncListener syncListener = new SyncListener();
-    GradleProjectImporter.getInstance().requestProjectSync(getProject(), false /* generate sources */, syncListener);
+
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, syncListener);
+
     syncListener.await();
     return syncListener;
   }
