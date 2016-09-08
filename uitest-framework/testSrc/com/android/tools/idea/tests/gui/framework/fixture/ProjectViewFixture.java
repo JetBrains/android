@@ -16,11 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
@@ -37,13 +39,17 @@ import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JMenuItemFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
@@ -80,6 +86,15 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     return new PaneFixture(projectView.getCurrentProjectViewPane());
+  }
+
+  @NotNull
+  public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
+    selectProjectPane();
+    new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)))
+      .clickPath("External Libraries/" + libraryName, MouseButton.RIGHT_BUTTON);
+    new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot,  Matchers.byText(JMenuItem.class, "Library Properties..."))).click();
+    return LibraryPropertiesDialogFixture.find(myRobot, libraryName, myProject);
   }
 
   /**

@@ -91,7 +91,6 @@ import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -675,7 +674,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    return showPropertiesDialog(robot(), libraryName, getProject());
+    return getProjectView().showPropertiesForLibrary(libraryName);
   }
 
   @NotNull
