@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model;
+package com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 
-import static java.lang.annotation.ElementType.*;
-@Documented
-@Retention(RetentionPolicy.SOURCE)
-@Target({METHOD, PARAMETER, LOCAL_VARIABLE, FIELD})
-public @interface AndroidDpCoordinate {
+/**
+ * Implement this interface if the container of the widget created by a
+ * {@link com.android.tools.idea.uibuilder.mockup.editor.creators.BaseWidgetCreator}
+ * needs to add special attributes to its children
+ *
+ * @see com.android.tools.idea.uibuilder.mockup.editor.creators.BaseWidgetCreator#setViewGroupAttributesManager(ViewGroupAttributesManager)
+ */
+public interface ViewGroupAttributesManager {
+  void addLayoutAttributes(AttributesTransaction transaction);
 }
