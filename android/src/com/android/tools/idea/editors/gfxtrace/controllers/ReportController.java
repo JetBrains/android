@@ -381,7 +381,8 @@ public class ReportController extends TreeController implements ReportStream.Lis
         }
       }
       else {
-        assert false : value;
+        // Tree is not built yet.
+        return;
       }
       // Don't expand if there's a link to show
       putClientProperty(ExpandableItemsHandler.RENDERER_DISABLED, myRightComponentShow);
