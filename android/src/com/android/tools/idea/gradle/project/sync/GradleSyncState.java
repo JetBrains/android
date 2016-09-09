@@ -157,6 +157,7 @@ public class GradleSyncState {
   public void syncSkipped(long lastSyncTimestamp) {
     LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
 
+    stopSyncInProgress();
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
@@ -175,6 +176,7 @@ public class GradleSyncState {
       }
     }
   }
+
   public void syncFailed(@NotNull String message) {
     LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
 
@@ -224,12 +226,16 @@ public class GradleSyncState {
   }
 
   private void syncFinished() {
-    synchronized (myLock) {
-      mySyncInProgress = false;
-    }
+    stopSyncInProgress();
     mySummary.setSyncTimestamp(System.currentTimeMillis());
     enableNotifications();
     notifyStateChanged();
+  }
+
+  private void stopSyncInProgress() {
+    synchronized (myLock) {
+      mySyncInProgress = false;
+    }
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
