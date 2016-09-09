@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.SwitchHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidIcons;
@@ -34,7 +35,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ViewInspectorProviderTest extends InspectorProviderTestCase {
+public class ViewInspectorProviderTest extends PropertyTestCase {
   private ViewInspectorProvider myProvider;
 
   @Override
@@ -49,14 +50,14 @@ public class ViewInspectorProviderTest extends InspectorProviderTestCase {
     assertThat(myProvider.isApplicable(ImmutableList.of(myCheckBox1, myCheckBox2), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
     // TextBox and ProgressBar are handled by a different provider:
-    assertThat(myProvider.isApplicable(ImmutableList.of(myTextBox), Collections.emptyMap(), myPropertiesManager)).isFalse();
+    assertThat(myProvider.isApplicable(ImmutableList.of(myTextView), Collections.emptyMap(), myPropertiesManager)).isFalse();
     assertThat(myProvider.isApplicable(ImmutableList.of(myProgressBar), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
     // Component with no ViewHandler:
     assertThat(myProvider.isApplicable(ImmutableList.of(myUnknown), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
     // Component with ViewHandler but no inspector properties:
-    assertThat(myProvider.isApplicable(ImmutableList.of(myLayout), Collections.emptyMap(), myPropertiesManager)).isFalse();
+    assertThat(myProvider.isApplicable(ImmutableList.of(myConstraintLayout), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
     // Component with ViewHandler with inspector properties are applicable:
     assertThat(myProvider.isApplicable(ImmutableList.of(myCheckBox1), Collections.emptyMap(), myPropertiesManager)).isTrue();

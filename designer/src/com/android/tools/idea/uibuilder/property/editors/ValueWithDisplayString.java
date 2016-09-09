@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.SdkConstants;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Class to hold a value with a different display value.
@@ -36,7 +39,7 @@ public class ValueWithDisplayString {
   public static final ValueWithDisplayString UNSET = new ValueWithDisplayString("none", null);
   public static final ValueWithDisplayString[] EMPTY_ARRAY = new ValueWithDisplayString[0];
 
-  private static final Pattern TEXT_APPEARANCE_PATTERN = Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance.(.+)$");
+  private static final Pattern TEXT_APPEARANCE_PATTERN = Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance(\\.(.+))?$");
 
   private final String myDisplayString;
   private final String myValue;
@@ -65,11 +68,17 @@ public class ValueWithDisplayString {
     if (display == null) {
       return UNSET;
     }
-    if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE) || property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
+    if (property.getName().equals(ATTR_STYLE) ||
+        property.getName().equals(ATTR_TEXT_APPEARANCE) ||
+        property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
       ValueWithDisplayString attr = createStyleValue(display, value);
       if (attr != null) {
         return attr;
       }
+    }
+    if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+      display = StringUtil.trimStart(display, ID_PREFIX);
+      display = StringUtil.trimStart(display, NEW_ID_PREFIX);
     }
     return new ValueWithDisplayString(display, value);
   }
@@ -79,8 +88,13 @@ public class ValueWithDisplayString {
     String display = styleName;
     Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(styleName);
     if (matcher.matches()) {
-      display = matcher.group(4);
+      display = matcher.group(5);
+      if (display == null) {
+        display = TEXT_APPEARANCE_SUFFIX;
+      }
     }
+    display = StringUtil.trimStart(display, ANDROID_STYLE_RESOURCE_PREFIX);
+    display = StringUtil.trimStart(display, STYLE_RESOURCE_PREFIX);
     return new ValueWithDisplayString(display, value);
   }
 
