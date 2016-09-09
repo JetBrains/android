@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -40,8 +39,6 @@ import static com.android.SdkConstants.*;
  * contain items.
  */
 final class GroupDragHandler extends DragHandler {
-  private static final String SEARCH_ICON = "ic_search_black_24dp";
-
   private final NlComponent myGroup;
   private final List<NlComponent> myItems;
   private final ActionBar myActionBar;
@@ -63,23 +60,9 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    possiblyCopySearchIconToMainModuleSourceSet();
     updateOrderInCategoryAttributes();
     updateShowAsActionAttribute();
     insertComponents(getInsertIndex(), insertType);
-  }
-
-  private void possiblyCopySearchIconToMainModuleSourceSet() {
-    // TODO Handle more than one item
-    if (!(DRAWABLE_PREFIX + SEARCH_ICON).equals(myItems.get(0).getAndroidAttribute(ATTR_ICON))) {
-      return;
-    }
-
-    if (editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      return;
-    }
-
-    editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
   }
 
   private void updateOrderInCategoryAttributes() {
