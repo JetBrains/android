@@ -21,7 +21,7 @@ import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiFileAndLineNavigation;
+import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
 import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
@@ -498,7 +498,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   }
 
   @Nullable
-  private PsiFileAndLineNavigation[] getTargetFiles(Object node) {
+  private PsiClassNavigation[] getTargetFiles(Object node) {
     if (node == null) {
       return null;
     }
@@ -520,7 +520,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
         }
       }
       if (element != null) {
-        lineNumber = element.getLineNumber();
+        lineNumber = element.getLineNumber() - 1; // Line numbers are shown as 1-based, but are 0-based in the psi.
         className = element.getClassName();
         int ix = className.indexOf("$");
         if (ix >= 0) {
@@ -529,7 +529,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
     }
 
-    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, lineNumber);
+    return PsiClassNavigation.getNavigationForClass(myProject, className, lineNumber);
   }
 
   public static class NodeTableCellRenderer extends ColoredTableCellRenderer {
