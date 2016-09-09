@@ -37,7 +37,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,18 +97,18 @@ public class InstantRunBuilder implements BeforeRunBuilder {
                                                                                                                 InvocationTargetException {
     BuildSelection buildSelection = getBuildSelection();
     myInstantRunContext.setBuildSelection(buildSelection);
-    if (buildSelection.mode != BuildMode.HOT) {
-      LOG.info(buildSelection.mode + ": " + buildSelection.why);
+    if (buildSelection.getBuildMode() != BuildMode.HOT) {
+      LOG.info(buildSelection.why.toString());
     }
 
     List<String> args = new ArrayList<>(commandLineArguments);
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    args.addAll(getInstantRunArguments(buildSelection.mode, fileChanges));
+    args.addAll(getInstantRunArguments(buildSelection.getBuildMode(), fileChanges));
 
     List<String> tasks = new LinkedList<>();
-    if (buildSelection.mode == BuildMode.CLEAN) {
+    if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
       tasks.addAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
     }
     tasks.addAll(myTasksProvider.getFullBuildTasks());
@@ -118,31 +117,18 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
   @NotNull
   private BuildSelection getBuildSelection() {
-    BuildCause buildCause = needsCleanBuild(myDevice);
-    if (buildCause != null) {
-      return new BuildSelection(BuildMode.CLEAN, buildCause, hasMultiUser(myDevice));
-    }
-
-    buildCause = needsFullBuild(myDevice);
-    if (buildCause != null) {
-      return new BuildSelection(BuildMode.FULL, buildCause, hasMultiUser(myDevice));
-    }
-
-    buildCause = needsColdswapPatches(myDevice);
-    if (buildCause != null) {
-      return new BuildSelection(BuildMode.COLD, buildCause, hasMultiUser(myDevice));
-    }
-
-    return new BuildSelection(BuildMode.HOT, BuildCause.INCREMENTAL_BUILD);
+    BuildCause buildCause = computeBuildCause(myDevice);
+    // Don't call hasMultiUser when the buildCause is INCREMENTAL_BUILD.
+    boolean brokenForSecondaryUser =  buildCause != BuildCause.INCREMENTAL_BUILD && hasMultiUser(myDevice);
+    return new BuildSelection(buildCause, brokenForSecondaryUser);
   }
 
   private static boolean hasMultiUser(@Nullable IDevice device) {
     return MultiUserUtils.hasMultipleUsers(device, 200, TimeUnit.MILLISECONDS, false);
   }
 
-  @Nullable
-  @Contract("null -> !null")
-  private BuildCause needsCleanBuild(@Nullable IDevice device) {
+  @NotNull
+  private BuildCause computeBuildCause(@Nullable IDevice device) {
     if (device == null) { // i.e. emulator is still launching..
       return BuildCause.NO_DEVICE;
     }
@@ -159,19 +145,9 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
 
     if (!buildTimestampsMatch(device, defaultUserId)) {
-      if (myInstalledApkCache.getInstallState(device, myInstantRunContext.getApplicationId()) == null) {
-        return BuildCause.FIRST_INSTALLATION_TO_DEVICE;
-      }
-      else {
-        return BuildCause.MISMATCHING_TIMESTAMPS;
-      }
+      return BuildCause.MISMATCHING_TIMESTAMPS;
     }
 
-    return null;
-  }
-
-  @Nullable
-  private BuildCause needsFullBuild(@NotNull IDevice device) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
       return BuildCause.API_TOO_LOW_FOR_INSTANT_RUN;
@@ -202,11 +178,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       }
     }
 
-    return null;
-  }
-
-  @Nullable
-  private BuildCause needsColdswapPatches(@NotNull IDevice device) {
     if (!isAppRunning(device)) {
       return BuildCause.APP_NOT_RUNNING;
     }
@@ -228,7 +199,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.APP_USES_MULTIPLE_PROCESSES;
     }
 
-    return null;
+    return BuildCause.INCREMENTAL_BUILD;
   }
 
   private boolean isAppRunning(@NotNull IDevice device) {
