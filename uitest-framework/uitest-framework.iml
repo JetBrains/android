@@ -35,6 +35,5 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="adt-ui" scope="TEST" />
-    <orderEntry type="module" module-name="updater" scope="TEST" />
   </component>
 </module>
