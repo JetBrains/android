@@ -60,7 +60,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.sync.NewGradleSyncTest.class,
   com.android.tools.idea.gradle.project.sync.precheck.JdkCheckTest.class,
   com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecksTest.class,
-  com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandlerTest.class,
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
   com.android.tools.idea.gradle.testing.AndroidJunitPatcherWithTestArtifactTest.class,
   com.android.tools.idea.gradle.testing.TestArtifactCustomScopeTest.class,

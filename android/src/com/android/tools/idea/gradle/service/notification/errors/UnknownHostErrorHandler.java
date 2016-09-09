@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.service.notification.errors;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.ToggleOfflineModeHyperlink;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -32,8 +31,7 @@ import java.util.regex.Pattern;
 public class UnknownHostErrorHandler extends AbstractSyncErrorHandler {
   private static final Pattern UNKNOWN_HOST_PATTERN = Pattern.compile("Unknown host '(.*)'(.*)");
 
-  @VisibleForTesting
-  static final String GRADLE_PROXY_ACCESS_DOCS_URL =
+  private static final String GRADLE_PROXY_ACCESS_DOCS_URL =
     "https://docs.gradle.org/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
 
   @Override
