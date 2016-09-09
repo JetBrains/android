@@ -51,6 +51,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleColoredComponent;
@@ -787,6 +788,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
                         group.getPreview(myEditor, device, atoms))
                     .setAnimationCycle(100)
                     .createBalloon();
+                  Disposer.register(AtomController.this, lastShownBalloon);
                   lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
                 }
               }
