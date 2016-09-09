@@ -141,10 +141,6 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return myDesignSurfaceFixture.errorPanelContains(errorText);
   }
 
-  public void performSuggestion(@NotNull String linkText) {
-    myDesignSurfaceFixture.performSuggestion(linkText);
-  }
-
   @NotNull
   public NlComponentFixture findView(@NotNull String tag, int occurrence) {
     return myDesignSurfaceFixture.findView(tag, occurrence);

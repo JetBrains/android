@@ -82,7 +82,14 @@ public class LintNotificationAction extends AnAction {
     if (screenView != null) {
       LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
       if (lintModel != null && lintModel.getIssueCount() > 0) {
-        new LintNotificationPanel(screenView, lintModel).show(e);
+        LintNotificationPanel notificationPanel = new LintNotificationPanel(screenView, lintModel);
+        Object source = e.getInputEvent().getSource();
+        if (source instanceof JComponent) {
+          notificationPanel.showInBestPositionFor(e.getProject(), (JComponent)source);
+        }
+        else {
+          notificationPanel.showInBestPositionFor(e.getProject(), e.getDataContext());
+        }
       }
     }
   }

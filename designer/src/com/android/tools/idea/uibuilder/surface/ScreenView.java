@@ -226,6 +226,7 @@ public class ScreenView {
     }
   }
 
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }
