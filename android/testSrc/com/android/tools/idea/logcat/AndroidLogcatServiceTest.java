@@ -20,16 +20,15 @@ import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@Ignore
-// TODO Update these tests to the new logcat implementation
 public class AndroidLogcatServiceTest {
-  private static class LogLineReceiver implements AndroidLogcatService.LogLineListener {
+  private static class TestLogLineListener implements AndroidLogcatService.LogLineListener {
     private final String[] EXPECTED_LOGS = {
       "08-18 16:39:11.439: W/DummyFirst(1493): First Line1",
       "08-18 16:39:11.439: W/DummyFirst(1493): First Line2",
@@ -55,29 +54,31 @@ public class AndroidLogcatServiceTest {
     }
   }
 
-  private LogLineReceiver myLogLineListener;
+  private TestLogLineListener myLogLineListener;
   private IDevice mockDevice = mock(IDevice.class);
   private AndroidLogcatService myLogcatService;
+  private volatile CountDownLatch myExecuteShellCommandLatch;
 
   private String myBufferSize;
 
   @Before
   public void setUp() throws Exception {
-    //AndroidLogcatService.LogcatRunner logcatRunner = new AndroidLogcatService.LogcatRunner() {
-    //
-    //  @Override
-    //  public void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver) {
-    //    receiver.processNewLine("[ 08-18 16:39:11.439 1493:1595 W/DummyFirst     ]");
-    //    receiver.processNewLine("First Line1");
-    //    receiver.processNewLine("First Line2");
-    //    receiver.processNewLine("First Line3");
-    //    receiver.processNewLine("[ 09-20 16:39:11.439 1493:1595 W/DummySecond     ]");
-    //    receiver.processNewLine("Second Line1");
-    //    //myLogcatService.myDeviceLatches.get(device).countDown();
-    //  }
-    //};
-    //myLogcatService = new AndroidLogcatService(logcatRunner);
-    myLogLineListener =  new LogLineReceiver();
+    doAnswer(invocation -> {
+      AndroidLogcatReceiver receiver = (AndroidLogcatReceiver)invocation.getArguments()[1];
+      receiver.processNewLine("[ 08-18 16:39:11.439 1493:1595 W/DummyFirst     ]");
+      receiver.processNewLine("First Line1");
+      receiver.processNewLine("First Line2");
+      receiver.processNewLine("First Line3");
+      receiver.processNewLine("[ 09-20 16:39:11.439 1493:1595 W/DummySecond     ]");
+      receiver.processNewLine("Second Line1");
+      receiver.cancel();
+      myExecuteShellCommandLatch.countDown();
+      return null;
+    }).when(mockDevice).executeShellCommand(any(), any(), anyLong(), any());
+
+    myLogcatService = new AndroidLogcatService();
+    myLogLineListener =  new TestLogLineListener();
+    myExecuteShellCommandLatch = new CountDownLatch(1);
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
   }
@@ -98,9 +99,13 @@ public class AndroidLogcatServiceTest {
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
 
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
+
     verify(mockDevice, times(2)).isOnline();
     verify(mockDevice, times(2)).getClientName(1493);
+    verify(mockDevice, times(1)).getName();
+    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 
@@ -112,9 +117,14 @@ public class AndroidLogcatServiceTest {
   public void testDeviceConnectedBeforeListening() throws Exception {
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.addListener(mockDevice, myLogLineListener, true);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
+
     verify(mockDevice, times(1)).isOnline();
     verify(mockDevice, times(2)).getClientName(1493);
+    verify(mockDevice, times(1)).getName();
+    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 
@@ -123,66 +133,84 @@ public class AndroidLogcatServiceTest {
    * to make sure that it adds correctly old logs from buffer
    */
   @Test
-  public void testAddOldLogs() {
+  public void testAddOldLogs() throws Exception {
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
     myLogcatService.addListener(mockDevice, myLogLineListener, true);
 
+    myExecuteShellCommandLatch.await();
+
     myLogLineListener.assertAllReceived();
     verify(mockDevice, times(2)).isOnline();
     verify(mockDevice, times(2)).getClientName(1493);
+    verify(mockDevice, times(1)).getName();
+    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
-  public void testDeviceDisconnectedAndConnected() {
+  public void testDeviceDisconnectedAndConnected() throws Exception {
     when(mockDevice.isOnline()).thenReturn(false);
     myLogcatService.addListener(mockDevice, myLogLineListener);
 
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     when(mockDevice.isOnline()).thenReturn(false);
     myLogcatService.deviceDisconnected(mockDevice);
 
+    myExecuteShellCommandLatch = new CountDownLatch(1);
     myLogLineListener.reset();
+
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     verify(mockDevice, times(3)).isOnline();
     verify(mockDevice, times(4)).getClientName(1493);
+    verify(mockDevice, times(2)).getName();
+    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
-  public void testDeviceChanged() {
+  public void testDeviceChanged() throws Exception {
+
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
     myLogcatService.addListener(mockDevice, myLogLineListener, true);
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
+    myExecuteShellCommandLatch = new CountDownLatch(1);
     myLogLineListener.reset();
     when(mockDevice.isOnline()).thenReturn(false);
     myLogcatService.deviceChanged(mockDevice, 0);
-    myLogLineListener.assertNothingReceived();
-
-    myLogLineListener.reset();
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceChanged(mockDevice, 0);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     verify(mockDevice, times(4)).isOnline();
     verify(mockDevice, times(4)).getClientName(1493);
+    verify(mockDevice, times(2)).getName();
+    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
+
     verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
-  public void testRemoveListener() {
+  public void testRemoveListener() throws Exception {
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
     myLogcatService.addListener(mockDevice, myLogLineListener, true);
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     myLogcatService.removeListener(mockDevice, myLogLineListener);
@@ -190,13 +218,21 @@ public class AndroidLogcatServiceTest {
     myLogcatService.deviceDisconnected(mockDevice);
 
     // Try to reconnect and make sure that it received nothing
+    myExecuteShellCommandLatch = new CountDownLatch(1);
     myLogLineListener.reset();
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
+    TestLogLineListener otherListener = new TestLogLineListener();
+    myLogcatService.addListener(mockDevice, otherListener);
+
+    myExecuteShellCommandLatch.await();
+    otherListener.assertAllReceived();
     myLogLineListener.assertNothingReceived();
 
-    verify(mockDevice, times(3)).isOnline();
+    verify(mockDevice, times(4)).isOnline();
     verify(mockDevice, times(4)).getClientName(1493);
+    verify(mockDevice, times(2)).getName();
+    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 
@@ -205,19 +241,26 @@ public class AndroidLogcatServiceTest {
    * stop receiving logs from the device. Subsequently, if a listener will be interested in the device, it should receive all logs
    */
   @Test
-  public void testNoDeviceListener() {
+  public void testNoDeviceListener() throws Exception {
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
     myLogcatService.addListener(mockDevice, myLogLineListener, true);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     myLogcatService.removeListener(mockDevice, myLogLineListener);
+    myExecuteShellCommandLatch = new CountDownLatch(1);
     myLogLineListener.reset();
     myLogcatService.addListener(mockDevice, myLogLineListener, false);
+
+    myExecuteShellCommandLatch.await();
     myLogLineListener.assertAllReceived();
 
     verify(mockDevice, times(3)).isOnline();
     verify(mockDevice, times(4)).getClientName(1493);
+    verify(mockDevice, times(1)).getName();
+    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
     verifyNoMoreInteractions(mockDevice);
   }
 }

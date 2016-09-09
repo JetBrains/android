@@ -31,9 +31,9 @@ import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -97,7 +97,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     return ServiceManager.getService(AndroidLogcatService.class);
   }
 
-  private AndroidLogcatService() {
+  @TestOnly
+  AndroidLogcatService() {
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
