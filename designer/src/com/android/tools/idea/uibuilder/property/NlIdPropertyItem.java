@@ -80,9 +80,9 @@ public class NlIdPropertyItem extends NlPropertyItem {
     return id;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public String resolveValue(@NotNull String value) {
+  public String resolveValue(@Nullable String value) {
     return value;
   }
 

@@ -152,20 +152,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public String getValue() {
-    return getValue(false);
-  }
-
-  @Override
-  public boolean isValueUnset() {
-    return getValue(true) == null;
-  }
-
-  @Nullable
-  private String getValue(boolean raw) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     String prev = null;
     for (NlComponent component : myComponents) {
-      String value = getComponentValue(component, raw);
+      String value = component.getAttribute(myNamespace, myName);
       if (value == null) {
         return null;
       }
@@ -179,22 +169,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return prev;
   }
 
-  private String getComponentValue(@NotNull NlComponent component, boolean raw) {
-    String value = component.getAttribute(myNamespace, myName);
-    if (raw) {
-      return value;
-    }
-    return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
-  }
-
   @Override
   @Nullable
   public String getResolvedValue() {
-    String value = getValue();
-    if (value != null) {
-      value = resolveValue(value);
-    }
-    return value;
+    return resolveValue(getValue());
   }
 
   @Override
@@ -209,15 +187,15 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  @NotNull
-  public String resolveValue(@NotNull String value) {
+  @Nullable
+  public String resolveValue(@Nullable String value) {
     if (myDefaultValue != null && isDefaultValue(value)) {
       if (myDefaultValue.value == null) {
         myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
       }
       return myDefaultValue.value;
     }
-    return resolveValueUsingResolver(value);
+    return value != null ? resolveValueUsingResolver(value) : null;
   }
 
   public void delete() {
