@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -91,12 +92,6 @@ public class TutorialStep extends JPanel {
       // Add 10px spacing between elements.
       myContents.add(Box.createRigidArea(new Dimension(0, 10)));
     }
-    // NOTE: Due to some calculation issues with html rendered content, we're forcing the element to do a relayout.
-    // TODO: SwingUtilities.updateComponentTreeUI(this) reverted some overridden properties and is no longer in use even though it might
-    // generally have been the better choice.Investigate the root cause and determine the best path forward.
-    invalidate();
-    validate();
-    repaint();
   }
 
   /**
@@ -114,7 +109,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(7, 0, 10, 5);
+    c.insets = JBUI.insets(7, 0, 10, 5);
 
     add(label, c);
   }
@@ -130,7 +125,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 0, 0, 5);
+    c.insets = JBUI.insetsRight(5);
 
     add(myContents, c);
   }
@@ -168,7 +163,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 0;
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.CENTER;
-    c.insets = new Insets(5, 5, 5, 5);
+    c.insets = JBUI.insets(5);
 
     add(stepNumber, c);
   }
@@ -196,7 +191,7 @@ public class TutorialStep extends JPanel {
 
     @Override
     public Insets getBorderInsets(Component c) {
-      return new Insets(INSET, INSET, INSET, INSET);
+      return JBUI.insets(INSET);
     }
 
     @Override
