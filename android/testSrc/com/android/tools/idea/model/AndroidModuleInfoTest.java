@@ -32,6 +32,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
@@ -223,7 +224,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     try {
       loadProject("projects/moduleInfo/manifestError");
       fail();
-    } catch (Exception e) {
+    } catch (AssertionFailedError e) {
       assertThat(e.getMessage()).contains("Exception while parsing the supplied manifest file");
     }
   }

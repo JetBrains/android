@@ -228,70 +228,6 @@ public class GradleSyncTest {
     fail("No dependency for library3 found");
   }
 
-  @Test
-  public void withNonExistingInterModuleDependencies() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    Module appModule = ideFrame.getModule("app");
-
-    // Set a dependency on a module that does not exist.
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          ideFrame.getProject(), () -> {
-            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-            assertNotNull(buildModel);
-            buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
-            buildModel.applyChanges();
-          });
-      }
-    });
-
-    ideFrame.requestProjectSyncAndExpectFailure();
-
-    ContentFixture messages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    String expectedError = "Project with path ':fakeLibrary' could not be found";
-    MessageFixture msg = messages.findMessageContainingText(ERROR, expectedError);
-    msg.findHyperlink("Open File"); // Now it is possible to open the build.gradle where the missing dependency is declared.
-  }
-
-  @Test
-  public void withUserDefinedLibrarySources() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    Project project = ideFrame.getProject();
-
-    String libraryName = "guava-18.0";
-
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    Library library = libraryTable.getLibraryByName(libraryName);
-    assertNotNull(library);
-
-    String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
-
-    // add an extra source path.
-    Library.ModifiableModel libraryModel = library.getModifiableModel();
-    libraryModel.addRoot(url, SOURCES);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(libraryModel::commit);
-      }
-    });
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    libraryTable = ProjectLibraryTable.getInstance(project);
-    library = libraryTable.getLibraryByName(libraryName);
-    assertNotNull(library);
-
-    String[] urls = library.getUrls(SOURCES);
-    assertThat(urls).asList().contains(url);
-  }
-
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void missingAppCompat() throws IOException {
@@ -329,18 +265,6 @@ public class GradleSyncTest {
     ideFrame.waitForGradleProjectSyncToFinish();
 
     assertWithMessage("Android Support Repository must have been reinstalled").about(file()).that(myAndroidRepoPath).isDirectory();
-  }
-
-  @Test
-  public void syncShouldNotChangeDependenciesInBuildFiles() throws IOException {
-    guiTest.importMultiModule();
-    File appBuildFilePath = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertAbout(file()).that(appBuildFilePath).isFile();
-    long lastModified = appBuildFilePath.lastModified();
-
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
-    // See https://code.google.com/p/android/issues/detail?id=78628
-    assertEquals(lastModified, appBuildFilePath.lastModified());
   }
 
   @Test
