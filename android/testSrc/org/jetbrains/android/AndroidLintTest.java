@@ -397,12 +397,12 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testObsoleteDependency() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
-                  "Change to 18.0", "build.gradle", "gradle");
+                  "Change to 19.0", "build.gradle", "gradle");
   }
 
   public void testObsoleteLongDependency() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
-                  "Change to 18.0", "build.gradle", "gradle");
+                  "Change to 19.0", "build.gradle", "gradle");
   }
 
   public void testGradleDeprecation() throws Exception {
