@@ -183,9 +183,9 @@ public class WidgetDraw {
         // Now, let's draw the widget's frame
 
         boolean horizontalSpring =
-                widget.getHorizontalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.ANY;
+                widget.getHorizontalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
         boolean verticalSpring =
-                widget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.ANY;
+                widget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
         Graphics2D g2 = (Graphics2D) g.create();
         if (widget instanceof ConstraintWidgetContainer) {
             g2.setStroke(SnapDraw.sLongDashedStroke);
