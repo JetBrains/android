@@ -645,8 +645,8 @@ public class SingleWidgetView extends JPanel {
     public void build(int width, int height) {
       mRoot = new ConstraintWidgetContainer();
       mRoot.setCompanionWidget(WidgetCompanion.create(mRoot));
-      mRoot.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-      mRoot.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      mRoot.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+      mRoot.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
       mRoot.setOrigin(-1, -1);
       mRoot.setDebugName("       ");
       mRoot.setWidth(width + 1);

@@ -284,7 +284,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
                     float stretchRatio = (gap * 2) / (float) height;
                     if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
                         mConstraintWidget.setVerticalDimensionBehaviour(
-                                ConstraintWidget.DimensionBehaviour.ANY);
+                                ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
                     } else {
                         gap = 0;
                     }
@@ -293,7 +293,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
                     float stretchRatio = (gap * 2) / (float) width;
                     if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
                         mConstraintWidget.setHorizontalDimensionBehaviour(
-                                ConstraintWidget.DimensionBehaviour.ANY);
+                                ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
                     } else {
                         gap = 0;
                     }
@@ -563,13 +563,13 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     public boolean isCandidateResizable(int dimension) {
         if (dimension == 0) {
             return mConstraintWidget.getVerticalDimensionBehaviour() ==
-                    ConstraintWidget.DimensionBehaviour.ANY
+                    ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT
                     || ((mConstraintWidget.getVerticalDimensionBehaviour() ==
                     ConstraintWidget.DimensionBehaviour.FIXED)
                     && mConstraintWidget.getHeight() > mConstraintWidget.getMinHeight());
         } else {
             return (mConstraintWidget.getHorizontalDimensionBehaviour() ==
-                    ConstraintWidget.DimensionBehaviour.ANY)
+                    ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT)
                     || ((mConstraintWidget.getHorizontalDimensionBehaviour() ==
                     ConstraintWidget.DimensionBehaviour.FIXED)
                     && mConstraintWidget.getWidth() > mConstraintWidget.getMinWidth());
@@ -579,10 +579,10 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     public boolean isResizable(int horizontal) {
         if (horizontal == 0) {
             return mConstraintWidget.getVerticalDimensionBehaviour() ==
-                    ConstraintWidget.DimensionBehaviour.ANY;
+                    ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
         } else {
             return mConstraintWidget.getHorizontalDimensionBehaviour() ==
-                    ConstraintWidget.DimensionBehaviour.ANY;
+                    ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
 
         }
     }
