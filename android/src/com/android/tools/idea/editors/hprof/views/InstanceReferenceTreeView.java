@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiFileAndLineNavigation;
+import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.perflib.heap.*;
 import com.intellij.debugger.ui.impl.tree.TreeBuilder;
 import com.intellij.debugger.ui.impl.tree.TreeBuilderNode;
@@ -54,12 +54,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
   private static final SimpleTextAttributes SOFT_REFERENCE_TEXT_ATTRIBUTE =
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, XDebuggerUIConstants.VALUE_NAME_ATTRIBUTES.getFgColor());
-  private static final Comparator<Instance> DEPTH_COMPARATOR = new Comparator<Instance>() {
-    @Override
-    public int compare(Instance o1, Instance o2) {
-      return o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
-    }
-  };
+  private static final Comparator<Instance> DEPTH_COMPARATOR = (o1, o2) -> o1.getDistanceToGcRoot() - o2.getDistanceToGcRoot();
 
   @NotNull private Project myProject;
   @NotNull private Tree myTree;
@@ -371,18 +366,18 @@ public final class InstanceReferenceTreeView implements DataProvider {
       return;
     }
 
-    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getHardReverseReferences());
+    List<Instance> sortedReferences = new ArrayList<>(instance.getHardReverseReferences());
     Collections.sort(sortedReferences, DEPTH_COMPARATOR);
 
     List<Instance> sortedSoftReferences;
     if (instance.getSoftReverseReferences() != null) {
-      sortedSoftReferences = new ArrayList<Instance>(instance.getSoftReverseReferences());
+      sortedSoftReferences = new ArrayList<>(instance.getSoftReverseReferences());
       Collections.sort(sortedSoftReferences, DEPTH_COMPARATOR);
       sortedReferences.addAll(sortedSoftReferences); // Soft references should always appear after hard references.
     }
 
     for (Instance reference : sortedReferences) {
-      List<String> scratchList = new ArrayList<String>(3);
+      List<String> scratchList = new ArrayList<>(3);
       if (reference instanceof ClassInstance) {
         ClassInstance classInstance = (ClassInstance)reference;
         for (ClassInstance.FieldValue entry : classInstance.getValues()) {
@@ -433,7 +428,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
   }
 
   @Nullable
-  private PsiFileAndLineNavigation[] getTargetFiles() {
+  private PsiClassNavigation[] getTargetFiles() {
     Object node = myTree.getSelectionPath().getLastPathComponent();
 
     String className = null;
@@ -450,7 +445,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
       }
     }
 
-    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
+    return PsiClassNavigation.getNavigationForClass(myProject, className);
   }
 
   public void addGoToInstanceListener(@NotNull GoToInstanceListener listener) {
