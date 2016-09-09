@@ -479,21 +479,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     throws IOException, ConfigurationException, InterruptedException {
 
     Ref<Throwable> throwableRef = new Ref<>();
-    CountDownLatch latch = new CountDownLatch(1);
-    GradleSyncListener syncListener = new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        latch.countDown();
-      }
-
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        latch.countDown();
-        if (listener == null) {
-          fail(errorMessage);
-        }
-      }
-    };
+    SyncListener syncListener = new SyncListener(listener);
 
     GradleSyncState.subscribe(project, syncListener);
 
@@ -523,7 +509,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
 
-    latch.await();
+    syncListener.await();
+    syncListener.removeListener();
   }
 
   @NotNull
@@ -549,24 +536,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait() throws Exception {
     SyncListener syncListener = requestSync();
-
-    String unexpectedError = syncListener.errorMessage;
-    if (unexpectedError != null) {
-      fail(unexpectedError);
-    }
     assertTrue(syncListener.success);
-  }
-
-  protected void requestSyncAndExpectFailure() throws Exception {
-    SyncListener syncListener = requestSync();
-
-    String unexpectedError = syncListener.errorMessage;
-    assertNotNull(unexpectedError);
   }
 
   @NotNull
   private SyncListener requestSync() throws Exception {
-    SyncListener syncListener = new SyncListener();
+    SyncListener syncListener = new SyncListener(null);
 
     GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
     GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, syncListener);
@@ -578,10 +553,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static class SyncListener extends GradleSyncListener.Adapter {
     @NotNull private final CountDownLatch myLatch;
 
-    boolean success;
-    String errorMessage;
+    @Nullable private GradleSyncListener myListener;
 
-    SyncListener() {
+    boolean success;
+
+    SyncListener(@Nullable GradleSyncListener listener) {
+      myListener = listener;
       myLatch = new CountDownLatch(1);
     }
 
@@ -593,12 +570,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      this.errorMessage = errorMessage;
       myLatch.countDown();
+      if (myListener == null) {
+        fail(errorMessage);
+      }
     }
 
     void await() throws InterruptedException {
       myLatch.await(5, MINUTES);
+    }
+
+    void removeListener() {
+      myListener = null;
     }
   }
 }
