@@ -255,7 +255,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
         myRenderingQueue =
-          new MergingUpdateQueue("android.layout.rendering", 800, true, null, myProject, null, Alarm.ThreadToUse.OWN_THREAD);
+          new MergingUpdateQueue("android.layout.rendering", 800, true, null, myProject, null, Alarm.ThreadToUse.POOLED_THREAD);
       }
       return myRenderingQueue;
     }
