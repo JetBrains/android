@@ -23,6 +23,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -79,13 +80,13 @@ public class TutorialCard extends CardViewPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 0, 5, 0);
+    c.insets = JBUI.insetsBottom(5);
 
     contents.add(description, c);
     c.gridy++;
 
     // Add extra padding for tutorial steps.
-    c.insets = new Insets(0, 5, 5, 5);
+    c.insets = JBUI.insets(0, 5, 5, 5);
 
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
@@ -101,7 +102,7 @@ public class TutorialCard extends CardViewPanel {
     c.gridy++;
 
     // remove insets for footer.
-    c.insets = new Insets(0, 0, 0, 0);
+    c.insets = JBUI.emptyInsets();
     contents.add(new FooterNav(), c);
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
