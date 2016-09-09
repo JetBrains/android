@@ -60,7 +60,6 @@ public class InstantRunNotificationProvider {
 
   @Nullable
   public String getNotificationText() {
-    BuildMode buildMode = myBuildSelection.mode;
     BuildCause buildCause = myBuildSelection.why;
 
     if (ourCausesThatDontNeedNotifications.contains(buildCause)) {
@@ -90,7 +89,7 @@ public class InstantRunNotificationProvider {
       case SPLITAPK:
       case DEX: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
-        if (buildMode == BuildMode.HOT) {
+        if (buildCause.getBuildMode() == BuildMode.HOT) {
           // we requested a hot swap build, but we got cold swap artifacts
           if (!myVerifierStatus.isEmpty()) {
             sb.append(' ');
@@ -99,7 +98,7 @@ public class InstantRunNotificationProvider {
             sb.append('.');
           }
         }
-        else if (buildMode == BuildMode.COLD) {
+        else if (buildCause.getBuildMode() == BuildMode.COLD) {
           // we requested a cold swap build, so mention why we requested such a build
           sb.append(' ').append(buildCause).append('.');
         }
