@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -39,14 +39,12 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
-    if (facet == null) {
+    if (!(psiFile instanceof XmlFile) || AndroidFacet.getInstance(psiFile) == null) {
       return false;
     }
 
-    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
-    // legacy android projects as well. Only enable for those two cases for now.
-    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
+    FeatureEnableService featureEnableService = FeatureEnableService.getInstance(project);
+    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled()) {
       return false;
     }
 

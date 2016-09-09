@@ -1125,6 +1125,8 @@
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
     <extensionPoint qualifiedName="com.android.project.buildSystemService"
                     interface="com.android.tools.idea.project.BuildSystemService" />
+    <extensionPoint qualifiedName="com.android.project.featureEnableService"
+                    interface="com.android.tools.idea.project.FeatureEnableService" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
   </extensionPoints>
@@ -1213,6 +1215,7 @@
 
   <extensions defaultExtensionNs="com.android.project">
     <buildSystemService implementation="com.android.tools.idea.gradle.project.GradleBuildSystemService"/>
+    <featureEnableService implementation="com.android.tools.idea.gradle.project.GradleFeatureEnableService"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">
