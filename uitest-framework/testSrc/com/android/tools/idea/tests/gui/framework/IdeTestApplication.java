@@ -237,7 +237,7 @@ public class IdeTestApplication implements Disposable {
 
   private static void mainMain() {
     // Duplicates what Main#main does.
-    method("installPatch").in(Main.class).invoke();
+    method("installPatch").withParameterTypes(String.class).in(Main.class).invoke(com.intellij.updater.Runner.class.getCanonicalName());
   }
 
   @NotNull
