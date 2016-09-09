@@ -209,6 +209,9 @@ public class MockupViewPanel extends JPanel {
       g2d.setRenderingHints(HQ_RENDERING);
     }
     paintMockup(g2d);
+    if (mySelectionMode) {
+      mySelectionLayer.paint(g2d);
+    }
     g2d.dispose();
   }
 
@@ -246,9 +249,7 @@ public class MockupViewPanel extends JPanel {
   }
 
   private void painScaled(Graphics2D g2d) {
-    if (mySelectionMode) {
-      mySelectionLayer.paint(g2d);
-    }
+    // Paint scaled element here
   }
 
   /**
