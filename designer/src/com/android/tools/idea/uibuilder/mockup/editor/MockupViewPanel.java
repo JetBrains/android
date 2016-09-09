@@ -117,6 +117,8 @@ public class MockupViewPanel extends JPanel {
     addMouseWheelListener(mouseInteraction);
     addComponentListener(new MyComponentListener());
     addKeyListener(new MyKeyListener());
+    addContainerListener(createContainerListener());
+
     myDisplayedImage = myImage;
     setPreferredSize(new Dimension(200, 200));
     setMinimumSize(new Dimension(100, 100));
@@ -124,6 +126,42 @@ public class MockupViewPanel extends JPanel {
     resetState();
     setFocusable(true);
     requestFocusInWindow();
+  }
+
+  /**
+   * Adds a {@link MouseListener } and {@link MouseMotionListener} to any added child
+   * to prevent any mouse event to be passed the this panel when occurring on a children
+   */
+  @NotNull
+  private static ContainerAdapter createContainerListener() {
+    return new ContainerAdapter() {
+
+      private MouseAdapter myMouseAdapter = new MouseAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          e.consume();
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+          e.consume();
+        }
+      };
+
+      @Override
+      public void componentAdded(ContainerEvent e) {
+        Component component = e.getChild();
+        component.addMouseListener(myMouseAdapter);
+        component.addMouseMotionListener(myMouseAdapter);
+      }
+
+      @Override
+      public void componentRemoved(ContainerEvent e) {
+        Component component = e.getChild();
+        component.removeMouseListener(myMouseAdapter);
+        component.removeMouseMotionListener(myMouseAdapter);
+      }
+    };
   }
 
   private void update(Mockup mockup) {
@@ -449,6 +487,12 @@ public class MockupViewPanel extends JPanel {
       if (SwingUtilities.isLeftMouseButton(e)) {
         mySelectionLayer.mouseDragged(e);
       }
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      super.mouseExited(e);
+      setCursor(Cursor.getDefaultCursor());
     }
   }
 

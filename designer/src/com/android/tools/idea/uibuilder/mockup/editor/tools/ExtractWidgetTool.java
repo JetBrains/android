@@ -48,6 +48,8 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
     .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout))
     .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", AndroidIcons.Views.ImageView))
+    .add(new CreatorAction(FLOATING_ACTION_BUTTON, "Create new FloatingActionButton", AndroidIcons.Views.FloatingActionButton))
+    .add(new CreatorAction(TEXT_VIEW, "Create new TextView", AndroidIcons.Views.TextView))
     .build();
 
   public static final Logger LOGGER = Logger.getLogger(ExtractWidgetTool.class.getName());
@@ -186,7 +188,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
               type -> { // Done
                 setEnabled(true);
                 myMockupViewPanel.removeAll();
-                if(WidgetCreator.DoneCallback.FINISH == type) {
+                if (WidgetCreator.DoneCallback.FINISH == type) {
                   creator.addToModel();
                 }
               }

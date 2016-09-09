@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
@@ -23,7 +26,11 @@ import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes.ViewGroupAttributesManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,25 +47,34 @@ import static com.android.SdkConstants.*;
  * The subclasses should implement {@link #getAndroidViewTag()} and return the desired tag for the
  * newly created {@link NlComponent}.
  *
- * If a subclass needs to do other task just before the {@link NlComponent} is added to the {@link NlModel},
- * they can implement {@link #beforeAdd(NlComponent)}.
+ * If the component needs do any processing before adding the component, such as running the color extractor,
+ * It can implements {@link #getOptionsComponent(DoneCallback)} and {@link #hasOptionsComponent()}.
  *
- * This class also provide helper method to add attribute commons to all Views
+ * The pre-processing is done inside {@link #getOptionsComponent(DoneCallback)}, and once done the callback should
+ * be called with {@link DoneCallback#done(int)} and {@link DoneCallback#FINISH}. To cancel the component addition,
+ * the callback can also be called with {@link DoneCallback#CANCEL}.
+ *
+ * {@link #getOptionsComponent(DoneCallback)} does not need to return a component if not action is needed from the
+ * user to do the pre-processing.
+ *
+ * The {@link WidgetCreatorFactory} is useful to create a WidgetCreator using the View name.
+ *
+ * This class also provide helper methods to add attributes common to all Views
  */
 public abstract class WidgetCreator {
 
+  private static final String COLORS_XML = "colors.xml";
   private final NlModel myModel;
   private final ScreenView myScreenView;
   @NotNull private Mockup myMockup;
   @Nullable private NlComponent myComponent;
   @Nullable private ViewGroupAttributesManager myViewGroupAttributesManager;
-  private AttributesTransaction myTransaction;
-
 
   /**
    * Create a new  View
-   * @param mockup the mockup to extract the information from
-   * @param model the model to insert the new component into
+   *
+   * @param mockup     the mockup to extract the information from
+   * @param model      the model to insert the new component into
    * @param screenView The currentScreen view displayed in the {@link com.android.tools.idea.uibuilder.surface.DesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates
    */
@@ -69,7 +85,38 @@ public abstract class WidgetCreator {
   }
 
   /**
+   * Create a color resource with the provided name and color.
+   *
+   * IF the color name is empty, the method won't create the resource and won't throw any exception
+   *
+   * @param colorName The name for the color value
+   * @param color     The value for the resource
+   * @param model
+   */
+  protected static void createColorResource(@NotNull String colorName, @NotNull Color color, @NotNull NlModel model) {
+    if (colorName.isEmpty()) {
+      Logger.getInstance(FloatingActionButtonCreator.class).error("The color name can't be empty. Aborting color resource creation");
+      return;
+    }
+    VirtualFile primaryResourceDir = model.getFacet().getPrimaryResourceDir();
+    FolderConfiguration configForFolder = FolderConfiguration.getConfigForFolder(ResourceFolderType.VALUES.getName());
+    if (primaryResourceDir != null && configForFolder != null) {
+      AndroidResourceUtil.createValueResource(
+        model.getProject(),
+        primaryResourceDir,
+        colorName,
+        ResourceType.COLOR,
+        COLORS_XML,
+        Collections.singletonList(
+          configForFolder.getFolderName(ResourceFolderType.VALUES)),
+        String.format("#%06X", color.getRGB())
+      );
+    }
+  }
+
+  /**
    * Add a LayoutManager if the container of the new widget needs special attribute
+   *
    * @param viewGroupAttributesManager
    */
   public void setViewGroupAttributesManager(@Nullable ViewGroupAttributesManager viewGroupAttributesManager) {
@@ -78,6 +125,7 @@ public abstract class WidgetCreator {
 
   /**
    * Get the mockup used in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   *
    * @return the mockup used in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
   @NotNull
@@ -87,6 +135,7 @@ public abstract class WidgetCreator {
 
   /**
    * Get the current model associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   *
    * @return the current model associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor
    */
   protected final NlModel getModel() {
@@ -95,6 +144,7 @@ public abstract class WidgetCreator {
 
   /**
    * Get the screen view associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   *
    * @return the screen view associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
   @NotNull
@@ -104,34 +154,26 @@ public abstract class WidgetCreator {
 
   /**
    * This is where any modification to the new component should be added.
-   * The transaction will be committed in between the call to {@link #beforeAdd(NlComponent)} and
-   * the addition of the component to the model
+   * The transaction will be committed before the addition of the component to the model
+   *
    * @param transaction open transaction to edit attributes of the new component.
    */
   abstract protected void addAttributes(@NotNull AttributesTransaction transaction);
 
   /**
-   * This is where any action that needs to <b>read</b> the newComponent happens.
-   * Any modification to the attributes of the components should be done in {@link #addAttributes(AttributesTransaction)}
-   * @param newComponent The newly created component that will be added to the model
-   */
-  protected void beforeAdd(@NotNull NlComponent newComponent) {
-  }
-
-  /**
    * Add the new component to the model provided in the constructor
+   *
    * @return
    */
   public final NlComponent addToModel() {
     ensureNewComponentCreated();
     assert myComponent != null;
-    myTransaction = myComponent.startAttributeTransaction();
-    addAttributes(myTransaction);
+    AttributesTransaction transaction = myComponent.startAttributeTransaction();
+    addAttributes(transaction);
     if (myViewGroupAttributesManager != null) {
-      myViewGroupAttributesManager.addLayoutAttributes(myTransaction);
+      myViewGroupAttributesManager.addLayoutAttributes(transaction);
     }
-    beforeAdd(myComponent);
-    myTransaction.commit();
+    transaction.commit();
     myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW);
     return myComponent;
   }
@@ -149,8 +191,9 @@ public abstract class WidgetCreator {
    * Return a JComponent meant to retrieve information from the user. It is up
    * to the implementing method to save the information to add them later, if needed, in the attribute transaction
    * inside {@link #addAttributes(AttributesTransaction)}.
+   *
    * @param doneCallback The callback to notify the calling method that the user interaction
-   *                              with the component is done.
+   *                     with the component is done.
    * @return The component the calling method has to display
    * @see #hasOptionsComponent()
    */
@@ -223,6 +266,7 @@ public abstract class WidgetCreator {
 
   /**
    * Return the String representation of the Mockup's image path
+   *
    * @param mockup The mockup to get the image path from
    * @return empty string if the mockup has no associated image path or the image path of the mockup
    */
@@ -237,8 +281,9 @@ public abstract class WidgetCreator {
   /**
    * Helper method to convert pixel to Android dp using the current configuration
    * of the provided model
+   *
    * @param model model to find the device configuration
-   * @param px Android Coordinates in pixel
+   * @param px    Android Coordinates in pixel
    * @return Android Coordinates in dip
    */
   @AndroidDpCoordinate
@@ -249,15 +294,39 @@ public abstract class WidgetCreator {
 
   /**
    * Override to specify the tag of the new {@link NlComponent}
+   *
    * @return the Tag of the Android View as it will appears in the XML file
    */
   @NotNull
   public abstract String getAndroidViewTag();
 
+  /**
+   * Callback to notify the end if the pre-processing in {@link #getOptionsComponent(DoneCallback)}
+   */
   public interface DoneCallback {
-      int FINISH = 1;
-      int CANCEL = 0;
+    int FINISH = 1;
+    int CANCEL = 0;
 
-    void done( int DoneType);
+    /**
+     * Notify that the calling class is done with the pre-processing on the component attributes
+     *
+     * @param doneType {@link #FINISH} to notify that the widget can be added to the {@link NlModel}.
+     *                 {@link #CANCEL} to cancel the addition to the NlModel
+     */
+    void done(@MagicConstant(intValues = {FINISH, CANCEL}) int doneType);
+  }
+
+  /**
+   * Holder class for the color and the associated name
+   */
+  public static class ColorResourceHolder {
+
+    @Nullable public Color value;
+    @Nullable public String name;
+
+    public ColorResourceHolder(@Nullable Color value, @Nullable String name) {
+      this.value = value;
+      this.name = name;
+    }
   }
 }
