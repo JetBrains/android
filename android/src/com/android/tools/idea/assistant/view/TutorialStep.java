@@ -123,7 +123,6 @@ public class TutorialStep extends JPanel {
    * Configure and add the container holding the set of step elements.
    */
   private void initStepContentsContainer() {
-    myContents.setLayout(new BoxLayout(myContents, BoxLayout.Y_AXIS));
     myContents.setOpaque(false);
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 1;
