@@ -165,7 +165,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     myConfigListener = new LayoutConfigurationListener();
     initializeConfiguration();
 
-    mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, editor, null, Alarm.ThreadToUse.OWN_THREAD);
+    mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, editor, null, Alarm.ThreadToUse.POOLED_THREAD);
     myXmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
     assert myXmlFile != null : myFile;
     myPsiChangeListener = new ExternalPSIChangeListener(this, myXmlFile, 100, new Runnable() {

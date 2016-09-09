@@ -415,7 +415,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static class TraceLoadingDecorator extends LoadingDecorator {
     private JPanel iconPanel;
 
-    public TraceLoadingDecorator(JComponent content, Disposable parent, int startDelayMs) {
+    public TraceLoadingDecorator(JComponent content, @NotNull Disposable parent, int startDelayMs) {
       super(content, parent, startDelayMs);
     }
 
