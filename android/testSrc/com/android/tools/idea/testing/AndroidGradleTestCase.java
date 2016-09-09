@@ -479,7 +479,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     throws IOException, ConfigurationException, InterruptedException {
 
     Ref<Throwable> throwableRef = new Ref<>();
-    SyncListener syncListener = new SyncListener(listener);
+    SyncListener syncListener = new SyncListener();
 
     GradleSyncState.subscribe(project, syncListener);
 
@@ -510,7 +510,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     syncListener.await();
-    syncListener.removeListener();
+    if (syncListener.failureMessage != null && listener == null) {
+      fail(syncListener.failureMessage);
+    }
   }
 
   @NotNull
@@ -540,8 +542,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
+  protected String requestSyncAndExpectFailure() throws Exception {
+    SyncListener syncListener = requestSync();
+    assertFalse(syncListener.success);
+    String message = syncListener.failureMessage;
+    assertNotNull(message);
+    return message;
+  }
+
+  @NotNull
   private SyncListener requestSync() throws Exception {
-    SyncListener syncListener = new SyncListener(null);
+    SyncListener syncListener = new SyncListener();
 
     GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
     GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, syncListener);
@@ -553,12 +564,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static class SyncListener extends GradleSyncListener.Adapter {
     @NotNull private final CountDownLatch myLatch;
 
-    @Nullable private GradleSyncListener myListener;
-
     boolean success;
+    String failureMessage;
 
-    SyncListener(@Nullable GradleSyncListener listener) {
-      myListener = listener;
+    SyncListener() {
       myLatch = new CountDownLatch(1);
     }
 
@@ -570,18 +579,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      failureMessage = errorMessage;
       myLatch.countDown();
-      if (myListener == null) {
-        fail(errorMessage);
-      }
     }
 
     void await() throws InterruptedException {
       myLatch.await(5, MINUTES);
-    }
-
-    void removeListener() {
-      myListener = null;
     }
   }
 }

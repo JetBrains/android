@@ -60,7 +60,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   @Override
-  public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
+  public void onSuccess(@Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
 
     populateProject(projectInfo);
@@ -101,7 +101,11 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
   }
 
-  private void populateProject(@NotNull final DataNode<ProjectData> projectInfo) {
+  private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
+    if (!myProjectIsNew && ApplicationManager.getApplication().isUnitTestMode()) {
+      populate(myProject, projectInfo, mySelectModulesToImport, true);
+      return;
+    }
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySelectModulesToImport, true));
   }
 
