@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +35,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ProgressBarInspectorProviderTest extends InspectorProviderTestCase {
+public class ProgressBarInspectorProviderTest extends PropertyTestCase {
   private ProgressBarInspectorProvider myProvider;
 
   @Override
@@ -45,8 +46,8 @@ public class ProgressBarInspectorProviderTest extends InspectorProviderTestCase 
 
   public void testIsApplicable() {
     assertThat(isApplicable(myProvider, myProgressBar)).isTrue();
-    assertThat(isApplicable(myProvider, myLayout)).isFalse();
-    assertThat(isApplicable(myProvider, myTextBox)).isFalse();
+    assertThat(isApplicable(myProvider, myMerge)).isFalse();
+    assertThat(isApplicable(myProvider, myTextView)).isFalse();
     assertThat(isApplicable(myProvider, myCheckBox1)).isFalse();
   }
 

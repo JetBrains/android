@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
@@ -42,7 +43,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class TextInspectorProviderTest extends InspectorProviderTestCase {
+public class TextInspectorProviderTest extends PropertyTestCase {
   private TextInspectorProvider myProvider;
 
   @Override
@@ -52,16 +53,16 @@ public class TextInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testIsApplicable() {
-    assertThat(isApplicable(myProvider, myLayout)).isFalse();
-    assertThat(isApplicable(myProvider, myTextBox)).isTrue();
+    assertThat(isApplicable(myProvider, myMerge)).isFalse();
+    assertThat(isApplicable(myProvider, myTextView)).isTrue();
     assertThat(isApplicable(myProvider, myCheckBox1)).isTrue();
     assertThat(isApplicable(myProvider, myProgressBar)).isFalse();
-    assertThat(isApplicable(myProvider, myTextBox, myCheckBox1, mySwitch)).isTrue();
-    assertThat(isApplicable(myProvider, myTextBox, myCheckBox1, mySwitch, myLayout)).isFalse();
+    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch)).isTrue();
+    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch, myMerge)).isFalse();
   }
 
   public void testIsApplicableRequiresAllTextAttributesPresent() {
-    List<NlComponent> components = ImmutableList.of(myTextBox);
+    List<NlComponent> components = ImmutableList.of(myTextView);
     Map<String, NlProperty> properties = getPropertyMap(components);
 
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
@@ -73,7 +74,7 @@ public class TextInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testIsNotApplicableForPreferenceComponents() {
-    Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(myTextBox));
+    Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(myTextView));
 
     for (String tagName : PreferenceUtils.VALUES) {
       NlComponent component = mock(NlComponent.class);
@@ -83,7 +84,7 @@ public class TextInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testInspectorComponent() {
-    List<NlComponent> components = ImmutableList.of(myTextBox);
+    List<NlComponent> components = ImmutableList.of(myTextView);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     TextInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
@@ -121,7 +122,7 @@ public class TextInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testTextAppearanceResetsOtherStyles() {
-    List<NlComponent> components = ImmutableList.of(myTextBox);
+    List<NlComponent> components = ImmutableList.of(myTextView);
     Map<String, NlProperty> properties = getPropertyMap(components);
     properties.get(ATTR_FONT_FAMILY).setValue("serif");
     properties.get(ATTR_TYPEFACE).setValue("sans");

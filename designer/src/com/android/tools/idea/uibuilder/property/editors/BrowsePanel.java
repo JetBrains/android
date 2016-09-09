@@ -75,6 +75,20 @@ public class BrowsePanel extends JPanel {
     }
   }
 
+  public static class ContextDelegate implements Context {
+    private NlComponentEditor myEditor;
+
+    @Nullable
+    @Override
+    public NlProperty getProperty() {
+      return myEditor != null ? myEditor.getProperty() : null;
+    }
+
+    public void setEditor(@NotNull NlComponentEditor editor) {
+      myEditor = editor;
+    }
+  }
+
   public BrowsePanel(@NotNull Context context) {
     this(context, true);
   }

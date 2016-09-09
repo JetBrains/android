@@ -55,8 +55,6 @@ import java.util.Objects;
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
 
-  private final boolean myIncludeBrowseButton;
-
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
@@ -73,25 +71,28 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, false, true));
+    BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false));
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, false);
+    return new NlReferenceEditor(project, listener, null, true);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, true);
+    BrowsePanel.ContextDelegate delegate = new BrowsePanel.ContextDelegate();
+    BrowsePanel browsePanel = new BrowsePanel(delegate, false);
+    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true);
+    delegate.setEditor(editor);
+    return editor;
   }
 
   private NlReferenceEditor(@NotNull Project project,
                             @NotNull NlEditingListener listener,
-                            @Nullable BrowsePanel.Context context,
-                            boolean includeBorder,
-                            boolean includeBrowseButton) {
+                            @Nullable BrowsePanel browsePanel,
+                            boolean includeBorder) {
     super(listener);
-    myIncludeBrowseButton = includeBrowseButton;
     myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
 
     myIconLabel = new JBLabel();
@@ -115,9 +116,11 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (includeBorder) {
       myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
     }
-    myBrowsePanel = createBrowsePanel(context);
+    myBrowsePanel = browsePanel;
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
-    myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
+    if (browsePanel != null) {
+      myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
+    }
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
@@ -159,7 +162,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   @Override
   public void setEnabled(boolean enabled) {
     myTextFieldWithAutoCompletion.setEnabled(enabled);
-    myBrowsePanel.setVisible(enabled && myIncludeBrowseButton);
+    if (myBrowsePanel != null) {
+      myBrowsePanel.setVisible(enabled);
+    }
     if (!enabled) {
       myLastReadValue = "";
       myLastWriteValue = "";
@@ -177,7 +182,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (myProperty != property) {
       myProperty = property;
       myLastReadValue = null;
-      if (myIncludeBrowseButton) {
+      if (myBrowsePanel != null) {
         myBrowsePanel.setProperty(property);
       }
       myCompletionsUpdated = false;

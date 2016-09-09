@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
-import org.mockito.stubbing.Answer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,18 +33,11 @@ import static org.mockito.Mockito.*;
 public class NlIdPropertyItemTest extends PropertyTestCase {
   private NlIdPropertyItem myItem;
   private DialogBuilder myBuilder;
-  private NlComponent myTextView;
-  private NlComponent myButton1;
-  private NlComponent myButton2;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    NlModel model = createModel();
-    myTextView = findComponent(model, "text", 100);
-    myButton1 = findComponent(model, "button1", 200);
-    myButton2 = findComponent(model, "button2", 400);
-    clearSnapshots(model);
+    clearSnapshots();
     clearRefactoringChoice();
 
     DialogBuilder.CustomizableAction addAction = mock(DialogBuilder.CustomizableAction.class);
@@ -61,8 +52,8 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
-    assertThat(myButton1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label");
-    assertThat(myButton2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label");
   }
 
   public void testSetValueDoNotChangeReferences() {
@@ -70,8 +61,8 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
-    assertThat(myButton1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/text");
-    assertThat(myButton2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/text");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/textView");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView");
 
     // Change id again (verify no dialog shown since there are no references)
     verify(myBuilder, times(1)).show();
@@ -80,7 +71,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
-    doAnswer((Answer<Integer>)invocation -> {
+    doAnswer(invocation -> {
       ArgumentCaptor<JPanel> panel = ArgumentCaptor.forClass(JPanel.class);
       verify(myBuilder).setCenterPanel(panel.capture());
       for (Component component : panel.getValue().getComponents()) {
@@ -93,8 +84,8 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
 
     myItem.setValue("other");
     assertThat(myTextView.getId()).isEqualTo("other");
-    assertThat(myButton1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/other");
-    assertThat(myButton2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/other");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other");
 
     // Set id again, this time expect references to be changed without showing a dialog
     verify(myBuilder, times(1)).show();
@@ -102,12 +93,13 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     verify(myBuilder, times(1)).show();
 
     assertThat(myTextView.getId()).isEqualTo("last");
-    assertThat(myButton1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/last");
-    assertThat(myButton2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/last");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/last");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/last");
   }
 
+  @Override
   @NotNull
-  private NlModel createModel() {
+  protected NlModel createModel() {
     return model("relative.xml",
                  component(RELATIVE_LAYOUT)
                    .withBounds(0, 0, 1000, 1000)
@@ -116,27 +108,27 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
                    .children(
                      component(TEXT_VIEW)
                        .withBounds(100, 100, 100, 100)
-                       .id("@+id/text")
+                       .id("@+id/textView")
                        .width("100dp")
                        .height("100dp")
                        .withAttribute("android:layout_alignParentTop", "true")
                        .withAttribute("android:layout_alignParentLeft", "true")
                        .text("Text"),
-                     component(BUTTON)
+                     component(CHECK_BOX)
                        .withBounds(100, 200, 100, 100)
-                       .id("@+id/button1")
+                       .id("@id/checkBox1")
                        .width("100dp")
                        .height("100dp")
-                       .withAttribute("android:layout_below", "@id/text")
+                       .withAttribute("android:layout_below", "@id/textView")
                        .withAttribute("android:layout_toRightOf", "@id/button2")
                        .text("Button"),
-                     component(BUTTON)
+                     component(CHECK_BOX)
                        .withBounds(100, 400, 100, 100)
-                       .id("@+id/button2")
+                       .id("@id/checkBox2")
                        .width("100dp")
                        .height("100dp")
                        .withAttribute("android:layout_below", "@id/button1")
-                       .withAttribute("android:layout_toRightOf", "@id/text")
+                       .withAttribute("android:layout_toRightOf", "@id/textView")
                    )).build();
   }
 }

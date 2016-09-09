@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +28,15 @@ import java.awt.event.ActionEvent;
 public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private final JPanel myPanel;
   private final ThreeStateCheckBox myCheckbox;
+  private final BrowsePanel myBrowsePanel;
 
   private NlProperty myProperty;
   private Object myValue;
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlBooleanEditor(cellEditor, cellEditor));
+    BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
+    cellEditor.init(new NlBooleanEditor(cellEditor, browsePanel));
     return cellEditor;
   }
 
@@ -43,7 +44,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     return new NlBooleanEditor(listener, null);
   }
 
-  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel.Context context) {
+  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel browsePanel) {
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
@@ -51,8 +52,9 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
     myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
 
-    if (context != null) {
-      myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
+    myBrowsePanel = browsePanel;
+    if (browsePanel != null) {
+      myPanel.add(browsePanel, BorderLayout.LINE_END);
     }
   }
 
@@ -70,6 +72,9 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
     myCheckbox.setState(state == null ? ThreeStateCheckBox.State.NOT_SELECTED : state);
+    if (myBrowsePanel != null) {
+      myBrowsePanel.setProperty(property);
+    }
   }
 
   @NotNull
