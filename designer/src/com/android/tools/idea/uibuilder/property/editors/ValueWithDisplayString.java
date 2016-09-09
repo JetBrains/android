@@ -38,8 +38,9 @@ public class ValueWithDisplayString {
 
   private static final Pattern TEXT_APPEARANCE_PATTERN = Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance.(.+)$");
 
-  private final String myDisplay;
+  private final String myDisplayString;
   private final String myValue;
+  private boolean myUseValueForToString;
 
   public static ValueWithDisplayString[] create(@NotNull String[] values) {
     ValueWithDisplayString[] array = new ValueWithDisplayString[values.length];
@@ -60,12 +61,12 @@ public class ValueWithDisplayString {
   }
 
   public static ValueWithDisplayString create(@Nullable String value, @NotNull NlProperty property) {
-    if (value == null) {
+    String display = property.resolveValue(value);
+    if (display == null) {
       return UNSET;
     }
-    String display = property.resolveValue(value);
     if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE) || property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
-      ValueWithDisplayString attr = createStyleValue(display, "", value);
+      ValueWithDisplayString attr = createStyleValue(display, value);
       if (attr != null) {
         return attr;
       }
@@ -74,38 +75,29 @@ public class ValueWithDisplayString {
   }
 
   public static ValueWithDisplayString createStyleValue(@NotNull String styleName,
-                                                        @NotNull String defaultPrefix,
                                                         @Nullable String value) {
-    String prefix = "";
     String display = styleName;
-    String style = styleName;
     Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(styleName);
     if (matcher.matches()) {
-      prefix = matcher.group(1);
       display = matcher.group(4);
-      style = matcher.group(0);
-    }
-    if (value == null) {
-      if (StringUtil.isEmpty(prefix)) {
-        prefix = defaultPrefix;
-      }
-      else {
-        prefix = "";
-      }
-      value = prefix + style;
     }
     return new ValueWithDisplayString(display, value);
   }
 
-  public ValueWithDisplayString(@NotNull String display, @Nullable String value) {
-    myDisplay = display;
+  public ValueWithDisplayString(@Nullable String displayString, @Nullable String value) {
+    myDisplayString = StringUtil.notNullize(displayString);
     myValue = value;
   }
 
   @Override
   @NotNull
   public String toString() {
-    return myDisplay;
+    return myUseValueForToString ? StringUtil.notNullize(myValue) : myDisplayString;
+  }
+
+  @NotNull
+  public String getDisplayString() {
+    return myDisplayString;
   }
 
   @Nullable
@@ -113,9 +105,13 @@ public class ValueWithDisplayString {
     return myValue;
   }
 
+  public void setUseValueForToString(boolean useValueForToString) {
+    myUseValueForToString = useValueForToString;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(myValue, myDisplay);
+    return Objects.hash(myValue, myDisplayString);
   }
 
   @Override
@@ -124,7 +120,6 @@ public class ValueWithDisplayString {
       return false;
     }
     return Objects.equals(myValue, ((ValueWithDisplayString)other).myValue) &&
-           Objects.equals(myDisplay, ((ValueWithDisplayString)other).myDisplay);
+           Objects.equals(myDisplayString, ((ValueWithDisplayString)other).myDisplayString);
   }
 }
-

@@ -81,7 +81,7 @@ public class BrowsePanel extends JPanel {
 
   public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
     myContext = context;
-    myBrowseButton = createActionButton(createBrowseAction());
+    myBrowseButton = createActionButton(new BrowseAction(context));
     myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     add(myBrowseButton);
@@ -112,43 +112,28 @@ public class BrowsePanel extends JPanel {
                             ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
   }
 
-  private AnAction createBrowseAction() {
-    return new AnAction() {
-      @Override
-      public void update(AnActionEvent event) {
-        Presentation presentation = event.getPresentation();
-        NlProperty property = myContext.getProperty();
-        if (property != null && hasResourceChooser(property)) {
-          presentation.setIcon(AllIcons.General.Ellipsis);
-          presentation.setText("Click to pick a resource");
-          presentation.setVisible(true);
-          presentation.setEnabled(true);
-        }
-        else {
-          presentation.setIcon(null);
-          presentation.setText(null);
-          presentation.setVisible(false);
-          presentation.setEnabled(false);
-        }
-      }
+  private static class BrowseAction extends AnAction {
+    private final Context myContext;
 
-      @Override
-      public void actionPerformed(AnActionEvent event) {
-        displayResourcePicker();
-      }
-    };
-  }
-
-  private void displayResourcePicker() {
-    NlProperty property = myContext.getProperty();
-    if (property == null) {
-      return;
+    private BrowseAction(@NotNull Context context) {
+      myContext = context;
+      Presentation presentation = getTemplatePresentation();
+      presentation.setIcon(AllIcons.General.Ellipsis);
+      presentation.setText("Click to pick a resource");
     }
-    ChooseResourceDialog dialog = showResourceChooser(property);
-    myContext.cancelEditing();
 
-    if (dialog.showAndGet()) {
-      myContext.stopEditing(dialog.getResourceName());
+    @Override
+    public void actionPerformed(AnActionEvent event) {
+      NlProperty property = myContext.getProperty();
+      if (property == null) {
+        return;
+      }
+      ChooseResourceDialog dialog = showResourceChooser(property);
+      myContext.cancelEditing();
+
+      if (dialog.showAndGet()) {
+        myContext.stopEditing(dialog.getResourceName());
+      }
     }
   }
 

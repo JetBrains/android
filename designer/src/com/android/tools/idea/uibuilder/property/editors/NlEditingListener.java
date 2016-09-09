@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property.editors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * Listener interface on various editors.
  */
@@ -28,7 +30,7 @@ public interface NlEditingListener {
   NlEditingListener DEFAULT_LISTENER = new NlEditingListener() {
     @Override
     public void stopEditing(@NotNull NlComponentEditor source, @Nullable Object value) {
-      if (source.getProperty() != null) {
+      if (source.getProperty() != null && !Objects.equals(source.getProperty().getValue(), value)) {
         source.getProperty().setValue(value);
         source.refresh();
       }
