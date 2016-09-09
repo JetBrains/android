@@ -503,17 +503,8 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-    mySeverityLevelCombo = new ComboBox(new String[]{
-      LogProtos.Severity.Emergency.name(),
-      LogProtos.Severity.Alert.name(),
-      LogProtos.Severity.Critical.name(),
-      LogProtos.Severity.Error.name(),
-      LogProtos.Severity.Warning.name(),
-      LogProtos.Severity.Notice.name(),
-      LogProtos.Severity.Info.name(),
-      LogProtos.Severity.Debug.name()
-    });
-
+    mySeverityLevelCombo = new ComboBox(
+      Arrays.stream(LogProtos.Severity.values()).filter(s -> s != LogProtos.Severity.UNRECOGNIZED).map(LogProtos.Severity::name).toArray());
     mySeverityLevelCombo.setSelectedIndex(mySeverityLevelCombo.getItemCount() - 1);
     mySeverityLevelCombo.addActionListener(
       actionEvent -> {
@@ -738,6 +729,10 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   @Override
   public void onReportItemSelected(ReportItem reportItem) {
+    if (!reportItem.isAtLeast(LogProtos.Severity.valueOf(mySeverityLevelCombo.getSelectedIndex()))) {
+      ((ReportTreeModel)getModel()).setMinimumSeverity(reportItem.getSeverity());
+      mySeverityLevelCombo.setSelectedItem(reportItem.getSeverity().name());
+    }
     Renderable root = (Renderable)myTree.getModel().getRoot();
     updateSelection(root, new TreePath(root), reportItem);
   }
