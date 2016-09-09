@@ -39,7 +39,7 @@ public class DBSCANColorExtractor extends DoublesColorExtractor {
   /**
    * Maximum Euclidean distance between two myColor in the CIELAB space two gather them in the same cluster
    */
-  static final float DEFAULT_EPS = 1.3f;
+  public static final float DEFAULT_EPS = 1.3f;
   private float myEps;
   private int myMinClusterSize;
 
@@ -49,7 +49,7 @@ public class DBSCANColorExtractor extends DoublesColorExtractor {
     myMinClusterSize = getMinClusterSize(myImage);
   }
 
-  DBSCANColorExtractor(BufferedImage image, float eps, int minClusterSize) {
+  public DBSCANColorExtractor(BufferedImage image, float eps, int minClusterSize) {
     super(image);
     myEps = eps;
     myMinClusterSize = minClusterSize;
@@ -134,7 +134,7 @@ public class DBSCANColorExtractor extends DoublesColorExtractor {
    * @param image width or height of the image. Typically the bigger of both.
    * @return the minimum cluster size
    */
-  protected static int getMinClusterSize(BufferedImage image) {
+  public static int getMinClusterSize(BufferedImage image) {
     int imageSize = Math.max(image.getWidth(), image.getHeight());
     int minClusterSize;
     if (imageSize < 16) {

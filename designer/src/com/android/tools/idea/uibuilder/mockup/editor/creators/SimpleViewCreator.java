@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
+import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
+import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -25,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static com.android.SdkConstants.VIEW;
 
@@ -44,7 +47,7 @@ public class SimpleViewCreator extends WidgetCreator {
    * @param model      the model to insert the new component into
    * @param screenView The currentScreen view displayed in the {@link com.android.tools.idea.uibuilder.surface.DesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates.
-   * @param selection The selection made in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   * @param selection  The selection made in the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
   public SimpleViewCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView);
@@ -67,6 +70,26 @@ public class SimpleViewCreator extends WidgetCreator {
   @Override
   public String getAndroidViewTag() {
     return VIEW;
+  }
+
+  /**
+   * Find the color in the provided image and return them in the provided callback.
+   * The callback is called in a separate Thread
+   *
+   * @param image    The image to extract the color from
+   * @param callback The callback to get the result of the color extraction
+   */
+  protected void extractColor(@NotNull BufferedImage image, @NotNull ColorExtractor.ColorExtractorCallback callback) {
+    final Rectangle realCropping = getMockup().getRealCropping();
+    final Rectangle selectionBounds = getSelectionBounds();
+    final BufferedImage subimage = image.getSubimage(realCropping.x + selectionBounds.x,
+                                                     realCropping.y + selectionBounds.y,
+                                                     selectionBounds.width,
+                                                     selectionBounds.height);
+
+    ColorExtractor colorExtractor = new DBSCANColorExtractor(subimage, DBSCANColorExtractor.DEFAULT_EPS,
+                                                             DBSCANColorExtractor.getMinClusterSize(subimage));
+    colorExtractor.run(callback);
   }
 
   /**
