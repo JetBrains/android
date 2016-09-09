@@ -46,7 +46,7 @@ public class TutorialCard extends CardViewPanel {
   /**
    * Partial label used in the back button.
    */
-  String myMutorialsTitle;
+  String myTutorialsTitle;
 
   TutorialCard(@NotNull ActionListener listener,
                @NotNull TutorialData tutorial,
@@ -54,7 +54,7 @@ public class TutorialCard extends CardViewPanel {
                @NotNull String tutorialsTitle,
                @NotNull DeveloperServiceList services) {
     super(listener);
-    myMutorialsTitle = tutorialsTitle;
+    myTutorialsTitle = tutorialsTitle;
 
     // TODO: Add a short label to the xml and use that here instead.
     add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
@@ -125,12 +125,6 @@ public class TutorialCard extends CardViewPanel {
   @Override
   public void setVisible(boolean aFlag) {
     super.setVisible(aFlag);
-
-    // HACK ALERT: For an unknown reason, a subset of html components fail to report the correct sizing and run into an order of events
-    // issue with layouts (overlapping and clipping). Thus far the only thing that corrects the problem is resize. Force a resize to
-    // address this in the short term.
-    processEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
-
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
@@ -155,7 +149,7 @@ public class TutorialCard extends CardViewPanel {
    */
   private class HeaderNav extends JPanel {
 
-    public final String ROOT_TITLE = "<html><b>" + myMutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
+    public final String ROOT_TITLE = "<html><b>" + myTutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
 
     HeaderNav(String location, ActionListener listener) {
       super(new HorizontalLayout(5, SwingConstants.CENTER));
@@ -170,7 +164,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   private class FooterNav extends JPanel {
-    private final String BACK_LABEL = "Back to " + myMutorialsTitle;
+    private final String BACK_LABEL = "Back to " + myTutorialsTitle;
 
     FooterNav() {
       super(new FlowLayout(FlowLayout.LEADING));
