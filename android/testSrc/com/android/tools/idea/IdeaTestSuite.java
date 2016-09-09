@@ -18,7 +18,6 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.sync.NewGradleSyncTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
 
@@ -52,13 +51,13 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest.class,
-  NewGradleSyncTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncStateIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.ExternalNativeBuildMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.SyncIssuesMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.UnhandledIssueMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.UnresolvedDependencyMessageReporterTest.class,
   com.android.tools.idea.gradle.project.sync.messages.issues.UnsupportedGradleMessageReporterTest.class,
+  com.android.tools.idea.gradle.project.sync.NewGradleSyncTest.class,
   com.android.tools.idea.gradle.project.sync.precheck.JdkCheckTest.class,
   com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecksTest.class,
   com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandlerTest.class,
