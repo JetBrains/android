@@ -30,6 +30,17 @@
     </xml>
   </item>
 
+  <item tag="item" title="Switch Item">
+    <xml>
+      <![CDATA[
+        <item
+            android:id="@+id/app_bar_switch"
+            android:title=""
+            app:actionLayout="@layout/switch_item" />
+      ]]>
+    </xml>
+  </item>
+
   <item tag="menu" title="Menu"/>
   <item tag="group" title="Group"/>
 </palette>
