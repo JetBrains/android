@@ -505,7 +505,7 @@ public class ConstraintUtilities {
   public static void setDimension(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
     String width;
     switch (widget.getHorizontalDimensionBehaviour()) {
-      case ANY: {
+      case MATCH_CONSTRAINT: {
         width = "0dp";
       }
       break;
@@ -521,7 +521,7 @@ public class ConstraintUtilities {
                             width);
     String height;
     switch (widget.getVerticalDimensionBehaviour()) {
-      case ANY: {
+      case MATCH_CONSTRAINT: {
         height = "0dp";
       }
       break;
@@ -947,7 +947,7 @@ public class ConstraintUtilities {
     // FIXME: need to agree on the correct magic value for this rather than simply using zero.
     String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
       widget.setWrapWidth(widget.getWidth());
@@ -958,7 +958,7 @@ public class ConstraintUtilities {
       if (isWidgetInsideConstraintLayout(widget)) {
         if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
             && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         }
         else {
           widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -970,7 +970,7 @@ public class ConstraintUtilities {
     }
     String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
       widget.setWrapHeight(widget.getHeight());
@@ -981,7 +981,7 @@ public class ConstraintUtilities {
       if (isWidgetInsideConstraintLayout(widget)) {
         if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
              && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
-          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         }
         else {
           widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
