@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -67,7 +67,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.edt.GuiQuery;
@@ -96,7 +95,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
@@ -531,32 +529,6 @@ public class GradleSyncTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     ideFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
-
-    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
-  }
-
-  @Test
-  public void shouldCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    ideFrame.deleteGradleWrapper().useLocalGradleDistribution("").requestProjectSync();
-
-    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
-  }
-
-  @Test
-  public void shouldCreateWrapperWhenLocalDistributionPathDoesNotExist() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
-    ideFrame.deleteGradleWrapper().useLocalGradleDistribution(nonExistingDirPath).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     ideFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
