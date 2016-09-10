@@ -370,6 +370,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (text == null) {
       return null;
     }
+    text = addIdPrefix(text);
     return Quantity.addUnit(myProperty, text);
   }
 
@@ -421,6 +422,20 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
 
     return STYLE_RESOURCE_PREFIX + value;
+  }
+
+  @NotNull
+  private String addIdPrefix(@NotNull String value) {
+    if (myProperty == null) {
+      return value;
+    }
+    if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(myProperty.getName()) != ResourceType.ID) {
+      return value;
+    }
+    if (value.startsWith(NEW_ID_PREFIX) || value.startsWith(ID_PREFIX)) {
+      return value;
+    }
+    return NEW_ID_PREFIX + value;
   }
 
   @Nullable
@@ -508,7 +523,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private static ValueWithDisplayString[] createChoicesForId(@NotNull NlProperty property) {
     return IdAnalyzer.findIdsForProperty(property).stream()
-      .map(id -> new ValueWithDisplayString(id, ID_PREFIX + id))
+      .map(id -> new ValueWithDisplayString(id, NEW_ID_PREFIX + id))
       .toArray(ValueWithDisplayString[]::new);
   }
 
