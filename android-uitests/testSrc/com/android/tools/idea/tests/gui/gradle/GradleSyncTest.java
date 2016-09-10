@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -390,18 +389,6 @@ public class GradleSyncTest {
     ideFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test
-  // See https://code.google.com/p/android/issues/detail?id=76444
-  public void withEmptyGradleSettingsFileInSingleModuleProject() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("Basic");
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    createEmptyGradleSettingsFile(ideFrame.getProjectPath());
-
-    // Sync should be successful for single-module projects with an empty settings.gradle file.
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-  }
-
   private static void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
     File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
     delete(settingsFilePath);
@@ -615,36 +602,6 @@ public class GradleSyncTest {
     assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
   }
 
-  @Test
-  public void withUnresolvedDependencies() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    VirtualFile appBuildFile = ideFrame.findFileByRelativePath("app/build.gradle", true);
-
-    boolean versionChanged = false;
-
-    Project project = ideFrame.getProject();
-    GradleBuildModel buildModel = GuiQuery.getNonNull(() -> GradleBuildModel.parseBuildFile(appBuildFile, project));
-
-    for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
-      if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {
-        artifact.setVersion("100.0.0");
-        versionChanged = true;
-        break;
-      }
-    }
-
-    assertTrue(versionChanged);
-
-    runWriteCommandAction(project, buildModel::applyChanges);
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
-  }
-
   @Ignore("failed in http://go/aj/job/studio-ui-test/592")
   @Test
   public void withProjectWithoutWrapper() throws IOException {
@@ -725,43 +682,6 @@ public class GradleSyncTest {
     }
     assertNotNull(libraryDependency);
     assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
-    assertFalse(libraryDependency.isExported());
-  }
-
-  @Test
-  public void withLocalAarsAsModules() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("LocalAarsAsModules");
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    Module localAarModule = ideFrame.getModule("library-debug");
-
-    // When AAR files are exposed as artifacts, they don't have an AndroidProject model.
-    AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
-    assertNull(androidFacet);
-    assertNull(getAndroidProject(localAarModule));
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localAarModule);
-    LibraryOrderEntry libraryDependency = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-    assertNull(libraryDependency); // Should not expose the AAR as library, instead it should use the "exploded AAR".
-
-    Module appModule = ideFrame.getModule("app");
-    moduleRootManager = ModuleRootManager.getInstance(appModule);
-    // Verify that the module depends on the AAR that it contains (in "exploded-aar".)
-    libraryDependency = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-
-    assertNotNull(libraryDependency);
-    assertThat(libraryDependency.getLibraryName()).isEqualTo("library-debug-unspecified");
     assertFalse(libraryDependency.isExported());
   }
 

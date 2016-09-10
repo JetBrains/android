@@ -112,6 +112,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return true;
   }
 
+  @NotNull
+  protected File getProjectFolderPath() {
+    String projectFolderPath = getProject().getBasePath();
+    assertNotNull(projectFolderPath);
+    return new File(projectFolderPath);
+  }
+
   /**
    * Is the bundled (incomplete) SDK install adequate or do we need to find a valid install?
    */
