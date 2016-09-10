@@ -15,25 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.UUID;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -42,6 +48,7 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
  * Integration tests for 'Gradle Sync'.
@@ -66,21 +73,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     deleteGradleWrapper();
     requestSyncAndWait();
-    File wrapperDirPath = getGradleWrapperDirPath();
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
-  }
-
-  private void deleteGradleWrapper() {
-    File wrapperDirPath = getGradleWrapperDirPath();
-    delete(wrapperDirPath);
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
-  }
-
-  @NotNull
-  private File getGradleWrapperDirPath() {
-    String basePath = getProject().getBasePath();
-    assertNotNull(basePath);
-    return new File(basePath, FD_GRADLE);
+    verifyGradleWrapperExists();
   }
 
   public void testWithNonExistingInterModuleDependencies() throws Exception {
@@ -92,7 +85,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
-    String failure = requestSyncAndExpectFailure();
+    String failure = requestSyncAndGetExpectedFailure();
     assertThat(failure).startsWith("Project with path ':fakeLibrary' could not be found");
 
     // TODO verify that a message and "quick fix" has been displayed.
@@ -126,9 +119,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   public void testSyncShouldNotChangeDependenciesInBuildFiles() throws Exception {
     loadSimpleApplication();
 
-    String projectFolderPathText = getProject().getBasePath();
-    assertNotNull(projectFolderPathText);
-    File projectFolderPath = new File(projectFolderPathText);
+    String projectFolderPath = getProject().getBasePath();
+    assertNotNull(projectFolderPath);
 
     File appBuildFilePath = new File(projectFolderPath, join("app", FN_BUILD_GRADLE));
     assertAbout(file()).that(appBuildFilePath).isFile();
@@ -138,5 +130,72 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     // See https://code.google.com/p/android/issues/detail?id=78628
     assertEquals(lastModified, appBuildFilePath.lastModified());
+  }
+
+  public void testShouldCreateWrapperWhenLocalDistributionPathIsNotSet() throws Exception {
+    loadSimpleApplication();
+
+    setGradleLocalDistribution("");
+    deleteGradleWrapper();
+
+    TestMessagesDialog testDialog = new TestMessagesDialog(Messages.OK);
+    Messages.setTestDialog(testDialog);
+
+    requestSyncAndWait();
+
+    String message = testDialog.getDisplayedMessage();
+    assertThat(message).contains("The path of the local Gradle distribution to use is not set.");
+    verifyUserIsAskedToUseGradleWrapper(message);
+
+    verifyGradleWrapperExists();
+  }
+
+  public void testShouldCreateWrapperWhenLocalDistributionPathDoesNotExist() throws Exception {
+    loadSimpleApplication();
+
+    String nonExistingPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString()).getPath();
+    setGradleLocalDistribution(nonExistingPath);
+    deleteGradleWrapper();
+
+    TestMessagesDialog testDialog = new TestMessagesDialog(Messages.OK);
+    Messages.setTestDialog(testDialog);
+
+    requestSyncAndWait();
+
+    String message = testDialog.getDisplayedMessage();
+    assertThat(message).contains("'" + nonExistingPath + "'");
+    assertThat(message).contains("set as a local Gradle distribution, does not belong to an existing directory.");
+    verifyUserIsAskedToUseGradleWrapper(message);
+
+    verifyGradleWrapperExists();
+  }
+
+  private void setGradleLocalDistribution(@NotNull String gradleLocalDistributionPath) {
+    GradleProjectSettings settings = getGradleProjectSettings(getProject());
+    assertNotNull(settings);
+    settings.setDistributionType(LOCAL);
+    settings.setGradleHome(gradleLocalDistributionPath);
+  }
+
+  private void deleteGradleWrapper() {
+    File gradleWrapperFolderPath = getGradleWrapperFolderPath();
+    delete(gradleWrapperFolderPath);
+    assertAbout(file()).that(gradleWrapperFolderPath).named("Gradle wrapper").doesNotExist();
+  }
+
+  @NotNull
+  private File getGradleWrapperFolderPath() {
+    String basePath = getProject().getBasePath();
+    assertNotNull(basePath);
+    return new File(basePath, FD_GRADLE);
+  }
+
+  private void verifyGradleWrapperExists() {
+    File gradleWrapperFolderPath = getGradleWrapperFolderPath();
+    assertAbout(file()).that(gradleWrapperFolderPath).named("Gradle wrapper").isDirectory();
+  }
+
+  private static void verifyUserIsAskedToUseGradleWrapper(@Nullable String message) {
+    assertThat(message).contains("Would you like the project to use the Gradle wrapper?");
   }
 }
