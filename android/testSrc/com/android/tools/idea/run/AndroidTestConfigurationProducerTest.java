@@ -43,7 +43,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("gradle/SimpleApplication", false);
+    loadSimpleApplication();
   }
 
   public void testCanCreateConfigurationFromFromAndroidTestClass() throws Exception {

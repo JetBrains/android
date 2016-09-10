@@ -28,7 +28,7 @@ public class TestArtifactCustomScopeTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("gradle/SimpleApplication", false);
+    loadSimpleApplication();
   }
 
   public void testUnitTestFileColor() throws Exception {
