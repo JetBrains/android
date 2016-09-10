@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 
 public class GradleInvokerTest extends AndroidGradleTestCase {
@@ -47,7 +48,7 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject("gradle/SimpleApplication", false);
+    loadSimpleApplication();
     myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");
     assertNotNull(myModule);
 
@@ -178,7 +179,7 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
   }
 
   public void testNoTaskForAarModule() throws Exception {
-    loadProject("gradle/LocalAarsAsModules", false);
+    loadProject(LOCAL_AARS_AS_MODULES);
     myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("library-debug");
     assertNotNull(myModule);
     myInvoker = new GradleInvoker(getProject());
