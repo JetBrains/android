@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -104,7 +103,8 @@ import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModul
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -657,55 +657,6 @@ public class GradleSyncTest {
     // subsequent project syncs should respect module selection
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
     assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-  }
-
-  @Test
-  public void withLocalJarsAsModules() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("LocalJarsAsModules");
-    Module localJarModule = guiTest.ideFrame().getModule("localJarAsModule");
-
-    // Module should be a Java module, not buildable (since it doesn't have source code).
-    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(localJarModule);
-    assertNotNull(javaFacet);
-    assertFalse(javaFacet.getConfiguration().BUILDABLE);
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localJarModule);
-    OrderEntry[] orderEntries = moduleRootManager.getOrderEntries();
-
-    // Verify that the module depends on the jar that it contains.
-    LibraryOrderEntry libraryDependency = null;
-    for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-    assertNotNull(libraryDependency);
-    assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
-    assertFalse(libraryDependency.isExported());
-  }
-
-  @Test
-  public void withInterModuleDependencies() throws IOException {
-    guiTest.importMultiModule();
-
-    Module appModule = guiTest.ideFrame().getModule("app");
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(appModule);
-
-    // Verify that the module "app" depends on module "library"
-    ModuleOrderEntry found = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry dependency = (ModuleOrderEntry)orderEntry;
-        if (dependency.getModuleName().equals("library")) {
-          found = dependency;
-          break;
-        }
-      }
-    }
-
-    assertNotNull(found);
-    assertThat(found.getModuleName()).isEqualTo("library");
   }
 
   @Test
