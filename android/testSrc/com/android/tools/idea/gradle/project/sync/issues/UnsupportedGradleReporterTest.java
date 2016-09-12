@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
@@ -32,19 +32,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link UnsupportedGradleMessageReporter}.
+ * Tests for {@link UnsupportedGradleReporter}.
  */
-public class UnsupportedGradleMessageReporterTest extends AndroidGradleTestCase {
+public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessageReporterStub myReporterStub;
-  private UnsupportedGradleMessageReporter myReporter;
+  private SyncMessagesStub mySyncMessagesStub;
+  private UnsupportedGradleReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    myReporterStub = new SyncMessageReporterStub(getProject());
-    myReporter = new UnsupportedGradleMessageReporter(myReporterStub);
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    myReporter = new UnsupportedGradleReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -61,7 +61,7 @@ public class UnsupportedGradleMessageReporterTest extends AndroidGradleTestCase 
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals(SyncMessage.DEFAULT_GROUP, message.getGroup());

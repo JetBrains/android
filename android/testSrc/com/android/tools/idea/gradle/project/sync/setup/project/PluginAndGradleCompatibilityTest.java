@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.setup.project;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;

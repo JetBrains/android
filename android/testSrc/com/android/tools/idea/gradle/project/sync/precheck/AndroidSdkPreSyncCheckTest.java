@@ -27,18 +27,18 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link AndroidSdkCheck}.
+ * Tests for {@link AndroidSdkPreSyncCheck}.
  */
-public class AndroidSdkCheckTest {
+public class AndroidSdkPreSyncCheckTest {
   private Project myProject;
   private SdkSync mySdkSync;
-  private AndroidSdkCheck myCondition;
+  private AndroidSdkPreSyncCheck myCondition;
 
   @Before
   public void setUp() {
     myProject = mock(Project.class);
     mySdkSync = mock(SdkSync.class);
-    myCondition = new AndroidSdkCheck(mySdkSync);
+    myCondition = new AndroidSdkPreSyncCheck(mySdkSync);
   }
 
   @Test

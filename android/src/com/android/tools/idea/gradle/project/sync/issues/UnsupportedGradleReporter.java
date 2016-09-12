@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,11 +31,7 @@ import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
 
-class UnsupportedGradleMessageReporter extends BaseSyncIssueMessageReporter {
-  UnsupportedGradleMessageReporter(@NotNull SyncMessageReporter reporter) {
-    super(reporter);
-  }
-
+class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   @Override
   int getSupportedIssueType() {
     return TYPE_GRADLE_TOO_OLD;
@@ -52,6 +47,6 @@ class UnsupportedGradleMessageReporter extends BaseSyncIssueMessageReporter {
     List<NotificationHyperlink> quickFixes = getQuickFixHyperlinks(module.getProject(), gradleVersion);
     message.add(quickFixes);
 
-    getReporter().report(message);
+    getSyncMessages(module).report(message);
   }
 }

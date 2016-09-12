@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,11 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
 
-class UnhandledIssueMessageReporter extends BaseSyncIssueMessageReporter {
-  UnhandledIssueMessageReporter(@NotNull SyncMessageReporter reporter) {
-    super(reporter);
-  }
-
+class UnhandledIssuesReporter extends BaseSyncIssuesReporter {
   @Override
   int getSupportedIssueType() {
     //noinspection MagicConstant
@@ -55,6 +50,6 @@ class UnhandledIssueMessageReporter extends BaseSyncIssueMessageReporter {
       message = new SyncMessage(group, type, NonNavigatable.INSTANCE, text);
     }
 
-    getReporter().report(message);
+    getSyncMessages(module).report(message);
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
@@ -21,7 +21,7 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -45,24 +45,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link ExternalNativeBuildMessageReporter}.
+ * Tests for {@link ExternalNativeBuildIssuesReporter}.
  */
-public class ExternalNativeBuildMessageReporterTest extends AndroidGradleTestCase {
+public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessageReporterStub myReporterStub;
+  private SyncMessagesStub mySyncMessagesStub;
   private BuildOutputParser myOutputParser;
   private SyncErrorHandlerStub myErrorHandler;
-  private ExternalNativeBuildMessageReporter myReporter;
+  private ExternalNativeBuildIssuesReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    myReporterStub = new SyncMessageReporterStub(getProject());
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
     myOutputParser = mock(BuildOutputParser.class);
     myErrorHandler = new SyncErrorHandlerStub();
     AbstractSyncErrorHandler[] errorHandlers = {myErrorHandler};
-    myReporter = new ExternalNativeBuildMessageReporter(myReporterStub, myOutputParser, errorHandlers);
+    myReporter = new ExternalNativeBuildIssuesReporter(myOutputParser, errorHandlers);
   }
 
   public void testGetSupportedIssueType() {
@@ -90,7 +90,7 @@ public class ExternalNativeBuildMessageReporterTest extends AndroidGradleTestCas
 
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     String[] text = message.getText();
@@ -129,9 +129,9 @@ public class ExternalNativeBuildMessageReporterTest extends AndroidGradleTestCas
 
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    assertNull(myReporterStub.getReportedMessage());
+    assertNull(mySyncMessagesStub.getReportedMessage());
 
-    NotificationData notification = myReporterStub.getReportedNotification();
+    NotificationData notification = mySyncMessagesStub.getReportedNotification();
     assertNotNull(notification);
 
     assertTrue(myErrorHandler.isInvoked());

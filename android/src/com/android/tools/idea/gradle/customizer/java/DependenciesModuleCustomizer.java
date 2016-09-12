@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -51,8 +51,6 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   protected void setUpDependencies(@NotNull Module module,
                                    @NotNull IdeModifiableModelsProvider modelsProvider,
                                    @NotNull JavaProject javaProject) {
-
-    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     List<String> unresolved = Lists.newArrayList();
     for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
       updateDependency(module, modelsProvider, dependency);
@@ -67,8 +65,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
     }
 
-    SyncMessages messages = SyncMessages.getInstance(moduleModel.getProject());
-    messages.reportUnresolvedDependencies(unresolved, module);
+    UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
@@ -84,9 +81,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     facetProperties.BUILDABLE = javaProject.isBuildable();
   }
 
-  private void updateDependency(@NotNull Module module,
-                                @NotNull IdeModifiableModelsProvider modelsProvider,
-                                @NotNull JavaModuleDependency dependency) {
+  private static void updateDependency(@NotNull Module module,
+                                       @NotNull IdeModifiableModelsProvider modelsProvider,
+                                       @NotNull JavaModuleDependency dependency) {
     DependencySetupErrors setupErrors = DependencySetupErrors.getInstance(module.getProject());
 
     String moduleName = dependency.getModuleName();
@@ -111,9 +108,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     setupErrors.addMissingModule(moduleName, module.getName(), null);
   }
 
-  private void updateDependency(@NotNull Module module,
-                                @NotNull IdeModifiableModelsProvider modelsProvider,
-                                @NotNull JarLibraryDependency dependency) {
+  private static void updateDependency(@NotNull Module module,
+                                       @NotNull IdeModifiableModelsProvider modelsProvider,
+                                       @NotNull JarLibraryDependency dependency) {
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {

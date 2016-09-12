@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
@@ -24,7 +24,7 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,12 +45,12 @@ import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PRO
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
+class ExternalNativeBuildIssuesReporter extends BaseSyncIssuesReporter {
   @NotNull private final BuildOutputParser myBuildOutputParser;
   @NotNull private final AbstractSyncErrorHandler[] myErrorHandlers;
 
-  ExternalNativeBuildMessageReporter(@NotNull SyncMessageReporter reporter) {
-    this(reporter, createBuildOutputParser(), AbstractSyncErrorHandler.EP_NAME.getExtensions());
+  ExternalNativeBuildIssuesReporter() {
+    this(createBuildOutputParser(), AbstractSyncErrorHandler.EP_NAME.getExtensions());
   }
 
   @NotNull
@@ -59,10 +59,7 @@ class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
   }
 
   @VisibleForTesting
-  ExternalNativeBuildMessageReporter(@NotNull SyncMessageReporter reporter,
-                                     @NotNull BuildOutputParser buildOutputParser,
-                                     @NotNull AbstractSyncErrorHandler[] errorHandlers) {
-    super(reporter);
+  ExternalNativeBuildIssuesReporter(@NotNull BuildOutputParser buildOutputParser, @NotNull AbstractSyncErrorHandler[] errorHandlers) {
     myBuildOutputParser = buildOutputParser;
     myErrorHandlers = errorHandlers;
   }
@@ -78,7 +75,7 @@ class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
 
     String nativeToolOutput = syncIssue.getData();
     if (nativeToolOutput != null) {
-      SyncMessageReporter reporter = getReporter();
+      SyncMessages messages = getSyncMessages(module);
 
       // Parse the native build tool output with the list of existing parsers.
       List<Message> compilerMessages = myBuildOutputParser.parseGradleOutput(nativeToolOutput);
@@ -92,7 +89,7 @@ class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
         if (type == ERROR) {
           // TODO make error handlers work with SyncMessage, instead of NotificationData.
           NotificationCategory category = type.convertToCategory();
-          NotificationData notification = reporter.createNotification(group, text, category, position);
+          NotificationData notification = messages.createNotification(group, text, category, position);
 
           // Try to parse the error messages using the list of existing error handlers to find any potential quick-fixes.
           for (AbstractSyncErrorHandler handler : myErrorHandlers) {
@@ -100,7 +97,7 @@ class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
               break;
             }
           }
-          reporter.report(notification);
+          messages.report(notification);
           continue;
         }
 
@@ -111,7 +108,7 @@ class ExternalNativeBuildMessageReporter extends BaseSyncIssueMessageReporter {
         else {
           message = new SyncMessage(group, type, text);
         }
-        reporter.report(message);
+        messages.report(message);
       }
     }
   }

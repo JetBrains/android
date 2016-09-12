@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -24,8 +24,9 @@ import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -43,15 +44,15 @@ import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-class ModuleSetup {
+public class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
   @NotNull private final VariantSelector myVariantSelector = new VariantSelector();
 
-  ModuleSetup(@NotNull IdeModifiableModelsProvider modelsProvider) {
+  public ModuleSetup(@NotNull IdeModifiableModelsProvider modelsProvider) {
     myModelsProvider = modelsProvider;
   }
 
-  void setUpModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models, @NotNull ProgressIndicator indicator) {
+  public void setUpModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models, @NotNull ProgressIndicator indicator) {
     boolean isProjectRootFolder = false;
 
     File gradleSettingsFile = new File(getModulePath(module), FN_SETTINGS_GRADLE);

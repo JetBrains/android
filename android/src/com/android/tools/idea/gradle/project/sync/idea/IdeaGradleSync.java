@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.annotations.VisibleForTesting;

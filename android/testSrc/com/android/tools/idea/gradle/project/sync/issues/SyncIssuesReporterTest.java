@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -32,24 +32,24 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link SyncIssuesMessageReporter}.
+ * Tests for {@link SyncIssuesReporter}.
  */
-public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
+public class SyncIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessageReporterStub myReporterStub;
-  private BaseSyncIssueMessageReporter myStrategy1;
-  private BaseSyncIssueMessageReporter myStrategy2;
+  private SyncMessagesStub mySyncMessagesStub;
+  private BaseSyncIssuesReporter myStrategy1;
+  private BaseSyncIssuesReporter myStrategy2;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    myReporterStub = new SyncMessageReporterStub(getProject());
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
 
-    myStrategy1 = mock(BaseSyncIssueMessageReporter.class);
+    myStrategy1 = mock(BaseSyncIssuesReporter.class);
     when(myStrategy1.getSupportedIssueType()).thenReturn(TYPE_BUILD_TOOLS_TOO_LOW);
 
-    myStrategy2 = mock(BaseSyncIssueMessageReporter.class);
+    myStrategy2 = mock(BaseSyncIssuesReporter.class);
   }
 
   public void testReportError() throws Exception {
@@ -61,11 +61,11 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
 
-    SyncIssuesMessageReporter reporter = new SyncIssuesMessageReporter(myReporterStub, myStrategy1, myStrategy2);
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.reportSyncIssues(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
 
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
@@ -82,11 +82,11 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
 
-    SyncIssuesMessageReporter reporter = new SyncIssuesMessageReporter(myReporterStub, myStrategy1, myStrategy2);
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.reportSyncIssues(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
 
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
@@ -100,13 +100,13 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
-    SyncIssuesMessageReporter reporter = new SyncIssuesMessageReporter(myReporterStub, myStrategy1, myStrategy2);
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    reporter.reportSyncIssues(Lists.newArrayList(mySyncIssue), appModule);
+    reporter.report(Lists.newArrayList(mySyncIssue), appModule);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
@@ -115,25 +115,28 @@ public class SyncIssuesMessageReporterTest extends AndroidGradleTestCase {
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
   }
 
-  public void testStrategiesSetInConstructor() {
-    SyncIssuesMessageReporter reporter = new SyncIssuesMessageReporter(myReporterStub);
+  public void testStrategiesSetInConstructor() throws Exception {
+    loadSimpleApplication();
 
-    BaseSyncIssueMessageReporter strategy = reporter.getDefaultMessageFactory();
-    assertThat(strategy).isInstanceOf(UnhandledIssueMessageReporter.class);
-    assertSame(myReporterStub, strategy.getReporter());
+    SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
+    Module appModule = myModules.getAppModule();
 
-    Map<Integer, BaseSyncIssueMessageReporter> strategies = reporter.getStrategies();
+    BaseSyncIssuesReporter strategy = reporter.getDefaultMessageFactory();
+    assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
-    assertThat(strategy).isInstanceOf(UnresolvedDependencyMessageReporter.class);
-    assertSame(myReporterStub, strategy.getReporter());
+    assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION);
-    assertThat(strategy).isInstanceOf(ExternalNativeBuildMessageReporter.class);
-    assertSame(myReporterStub, strategy.getReporter());
+    assertThat(strategy).isInstanceOf(ExternalNativeBuildIssuesReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     strategy = strategies.get(TYPE_GRADLE_TOO_OLD);
-    assertThat(strategy).isInstanceOf(UnsupportedGradleMessageReporter.class);
-    assertSame(myReporterStub, strategy.getReporter());
+    assertThat(strategy).isInstanceOf(UnsupportedGradleReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 }

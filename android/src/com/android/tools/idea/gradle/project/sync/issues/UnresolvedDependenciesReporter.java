@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -22,11 +22,12 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -48,6 +49,7 @@ import java.util.List;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.*;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -55,9 +57,10 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseSdkHandler;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
 
-public class UnresolvedDependencyMessageReporter extends BaseSyncIssueMessageReporter {
-  public UnresolvedDependencyMessageReporter(@NotNull SyncMessageReporter reporter) {
-    super(reporter);
+public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
+  @NotNull
+  public static UnresolvedDependenciesReporter getInstance() {
+    return ServiceManager.getService(UnresolvedDependenciesReporter.class);
   }
 
   @Override
@@ -72,7 +75,19 @@ public class UnresolvedDependencyMessageReporter extends BaseSyncIssueMessageRep
     report(dependency, module, buildFile);
   }
 
-  public void report(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
+  public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
+    if (unresolvedDependencies.isEmpty()) {
+      return;
+    }
+    VirtualFile buildFile = getGradleBuildFile(module);
+    for (String dependency : unresolvedDependencies) {
+      report(dependency, module, buildFile);
+    }
+
+    GradleSyncState.getInstance(module.getProject()).getSummary().setSyncErrorsFound(true);
+  }
+
+  private void report(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
     String group = "Unresolved Android dependencies";
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
 
@@ -126,7 +141,7 @@ public class UnresolvedDependencyMessageReporter extends BaseSyncIssueMessageRep
     }
 
     message.add(quickFixes);
-    getReporter().report(message);
+    getSyncMessages(module).report(message);
   }
 
   @NotNull

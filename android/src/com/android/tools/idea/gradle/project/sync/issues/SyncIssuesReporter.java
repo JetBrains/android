@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,25 +32,29 @@ import java.util.Map;
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class SyncIssuesMessageReporter {
-  @NotNull private final Map<Integer, BaseSyncIssueMessageReporter> myStrategies = new HashMap<>(3);
-  @NotNull private final BaseSyncIssueMessageReporter myDefaultMessageFactory;
+public class SyncIssuesReporter {
+  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(3);
+  @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
-  public SyncIssuesMessageReporter(@NotNull SyncMessageReporter messageReporter) {
-    this(messageReporter, new UnresolvedDependencyMessageReporter(messageReporter), new ExternalNativeBuildMessageReporter(messageReporter),
-         new UnsupportedGradleMessageReporter(messageReporter));
+  @NotNull
+  public static SyncIssuesReporter getInstance() {
+    return ServiceManager.getService(SyncIssuesReporter.class);
+  }
+
+  public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
+    this(unresolvedDependenciesReporter, new ExternalNativeBuildIssuesReporter(), new UnsupportedGradleReporter());
   }
 
   @VisibleForTesting
-  SyncIssuesMessageReporter(@NotNull SyncMessageReporter messageReporter, @NotNull BaseSyncIssueMessageReporter... strategies) {
-    for (BaseSyncIssueMessageReporter strategy : strategies) {
+  SyncIssuesReporter(@NotNull BaseSyncIssuesReporter... strategies) {
+    for (BaseSyncIssuesReporter strategy : strategies) {
       int issueType = strategy.getSupportedIssueType();
       myStrategies.put(issueType, strategy);
     }
-    myDefaultMessageFactory = new UnhandledIssueMessageReporter(messageReporter);
+    myDefaultMessageFactory = new UnhandledIssuesReporter();
   }
 
-  public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
+  public void report(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
     Project project = module.getProject();
     if (syncIssues.isEmpty()) {
       return;
@@ -73,7 +77,7 @@ public class SyncIssuesMessageReporter {
 
   private void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
     int type = syncIssue.getType();
-    BaseSyncIssueMessageReporter strategy = myStrategies.get(type);
+    BaseSyncIssuesReporter strategy = myStrategies.get(type);
     if (strategy == null) {
       strategy = myDefaultMessageFactory;
     }
@@ -82,13 +86,13 @@ public class SyncIssuesMessageReporter {
 
   @VisibleForTesting
   @NotNull
-  Map<Integer, BaseSyncIssueMessageReporter> getStrategies() {
+  Map<Integer, BaseSyncIssuesReporter> getStrategies() {
     return myStrategies;
   }
 
   @VisibleForTesting
   @NotNull
-  BaseSyncIssueMessageReporter getDefaultMessageFactory() {
+  BaseSyncIssuesReporter getDefaultMessageFactory() {
     return myDefaultMessageFactory;
   }
 }

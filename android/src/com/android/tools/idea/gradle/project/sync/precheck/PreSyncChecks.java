@@ -34,7 +34,7 @@ public class PreSyncChecks {
   }
 
   public PreSyncChecks() {
-    this(new AndroidSdkCheck(), new JdkCheck());
+    this(new AndroidSdkPreSyncCheck(), new JdkPreSyncCheck());
   }
 
   @VisibleForTesting

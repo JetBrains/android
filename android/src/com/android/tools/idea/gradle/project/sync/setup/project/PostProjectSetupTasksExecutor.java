@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.setup.project;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -35,11 +35,12 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.project.*;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
@@ -101,8 +102,8 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
-import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
-import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
+import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectDiagnostics.findAndReportStructureIssues;
+import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
@@ -807,7 +808,7 @@ public class PostProjectSetupTasksExecutor {
 
         AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         assert androidModel != null;
-        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
+        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }

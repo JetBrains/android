@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.precheck;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
@@ -38,29 +37,18 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
 // See https://code.google.com/p/android/issues/detail?id=172714
-class JdkCheck extends AndroidStudioSyncCheck {
-  @NotNull private final IdeSdks myIdeSdks;
-
-  JdkCheck() {
-    this(IdeSdks.getInstance());
-  }
-
-  @VisibleForTesting
-  JdkCheck(@NotNull IdeSdks ideSdks) {
-    myIdeSdks = ideSdks;
-  }
-
+class JdkPreSyncCheck extends AndroidStudioSyncCheck {
   @Override
   @NotNull
   PreSyncCheckResult doCheckCanSync(@NotNull Project project) {
-    Sdk jdk = myIdeSdks.getJdk();
+    Sdk jdk = IdeSdks.getInstance().getJdk();
     if (!isValidJdk(jdk)) {
       String msg = "Please use JDK 8 or newer.";
       SyncMessage message = new SyncMessage("Project sync error", MessageType.ERROR, msg);
       List<NotificationHyperlink> quickFixes = getJdkQuickFixes(project);
       message.add(quickFixes);
 
-      getSyncMessages(project).report(message);
+      SyncMessages.getInstance(project).report(message);
       return failure(msg);
     }
 
@@ -75,9 +63,4 @@ class JdkCheck extends AndroidStudioSyncCheck {
     return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && isApplicableJdk(jdk, JDK_1_8);
   }
 
-  @VisibleForTesting
-  @NotNull
-  SyncMessages getSyncMessages(@NotNull Project project) {
-    return SyncMessages.getInstance(project);
-  }
 }
