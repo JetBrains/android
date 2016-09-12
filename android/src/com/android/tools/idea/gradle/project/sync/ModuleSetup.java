@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.JavaProject;
@@ -40,6 +41,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myModelsProvider;
@@ -88,6 +90,12 @@ class ModuleSetup {
       facetModel.addFacet(facet);
     }
     facet.setGradleModel(model);
+
+    String gradleVersion = model.getGradleVersion();
+    GradleSyncSummary syncReport = GradleSyncState.getInstance(module.getProject()).getSummary();
+    if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
+      syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
+    }
   }
 
   @Nullable
