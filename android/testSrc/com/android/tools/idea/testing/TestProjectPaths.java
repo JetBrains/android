@@ -17,6 +17,7 @@ public final class TestProjectPaths {
   public static final String SHARED_TEST_FOLDER = "projects/sharedTestFolder";
   public static final String SIGNAPK = "projects/signapk";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
   public static final String TEST_ARTIFACTS = "projects/testArtifacts";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
