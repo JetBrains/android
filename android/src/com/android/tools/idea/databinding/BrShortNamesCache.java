@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.util.CachedValue;
@@ -31,7 +31,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +50,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
       } else {
         Set<String> allFields = Sets.newHashSet();
         for (AndroidFacet facet : facets) {
-          DataBindingUtil.LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
+          LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
           Collections.addAll(allFields, brClass.getAllFieldNames());
         }
         result = ArrayUtil.toStringArray(allFields);

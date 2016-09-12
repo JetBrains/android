@@ -27,6 +27,8 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.LightBrClass;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
@@ -147,7 +149,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
   private RenderService myRenderService;
-  private DataBindingUtil.LightBrClass myLightBrClass;
+  private LightBrClass myLightBrClass;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -950,7 +952,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @param lightBrClass
    * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
    */
-  public void setLightBrClass(DataBindingUtil.LightBrClass lightBrClass) {
+  public void setLightBrClass(LightBrClass lightBrClass) {
     myLightBrClass = lightBrClass;
   }
 
@@ -960,7 +962,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return The BR class for this facet, if exists
    * @see DataBindingUtil#getOrCreateBrClassFor(AndroidFacet)
    */
-  public DataBindingUtil.LightBrClass getLightBrClass() {
+  public LightBrClass getLightBrClass() {
     return myLightBrClass;
   }
 
