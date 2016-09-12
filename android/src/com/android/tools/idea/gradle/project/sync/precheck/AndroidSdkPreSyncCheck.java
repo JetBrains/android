@@ -23,15 +23,15 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
 
-class AndroidSdkCheck extends AndroidStudioSyncCheck {
+class AndroidSdkPreSyncCheck extends AndroidStudioSyncCheck {
   @NotNull private final SdkSync mySdkSync;
 
-  AndroidSdkCheck() {
+  AndroidSdkPreSyncCheck() {
     this(SdkSync.getInstance());
   }
 
   @VisibleForTesting
-  AndroidSdkCheck(@NotNull SdkSync sdkSync) {
+  AndroidSdkPreSyncCheck(@NotNull SdkSync sdkSync) {
     mySdkSync = sdkSync;
   }
 

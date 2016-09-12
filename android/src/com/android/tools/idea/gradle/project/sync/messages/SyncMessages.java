@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.reporter;
+package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.issues.SyncIssuesMessageReporter;
-import com.android.tools.idea.gradle.project.sync.messages.issues.UnresolvedDependencyMessageReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.collect.Sets;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.HyperlinkEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +50,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
 /**
@@ -62,10 +63,6 @@ public class SyncMessages {
   @NotNull private final Project myProject;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
 
-  @NotNull private final SyncMessageReporter myMessageReporter;
-  @NotNull private final UnresolvedDependencyMessageReporter myUnresolvedDependencyMessageReporter;
-  @NotNull private final SyncIssuesMessageReporter mySyncIssuesMessageReporter;
-
   @NotNull
   public static SyncMessages getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, SyncMessages.class);
@@ -74,20 +71,6 @@ public class SyncMessages {
   public SyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
     myProject = project;
     myNotificationManager = manager;
-    myMessageReporter = new SyncMessageReporter(project, manager);
-    myUnresolvedDependencyMessageReporter = new UnresolvedDependencyMessageReporter(myMessageReporter);
-    mySyncIssuesMessageReporter = new SyncIssuesMessageReporter(myMessageReporter);
-  }
-
-  @VisibleForTesting
-  public SyncMessages(@NotNull Project project,
-                      @NotNull ExternalSystemNotificationManager manager,
-                      @NotNull SyncMessageReporter messageReporter) {
-    myProject = project;
-    myNotificationManager = manager;
-    myMessageReporter = messageReporter;
-    myUnresolvedDependencyMessageReporter = new UnresolvedDependencyMessageReporter(myMessageReporter);
-    mySyncIssuesMessageReporter = new SyncIssuesMessageReporter(myMessageReporter);
   }
 
   public int getErrorCount() {
@@ -111,22 +94,6 @@ public class SyncMessages {
     if (!messages.isEmpty()) {
       GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
     }
-  }
-
-  public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
-    mySyncIssuesMessageReporter.reportSyncIssues(syncIssues, module);
-  }
-
-  public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    if (unresolvedDependencies.isEmpty()) {
-      return;
-    }
-    VirtualFile buildFile = getGradleBuildFile(module);
-    for (String dependency : unresolvedDependencies) {
-      myUnresolvedDependencyMessageReporter.report(dependency, module, buildFile);
-    }
-
-    GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
   }
 
   public void reportDependencySetupErrors() {
@@ -221,7 +188,78 @@ public class SyncMessages {
   }
 
   public void report(@NotNull SyncMessage message) {
-    myMessageReporter.report(message);
+    String title = message.getGroup();
+    String text = join(message.getText(), "\n");
+    NotificationCategory category = message.getType().convertToCategory();
+    PositionInFile position = message.getPosition();
+
+    NotificationData notification = createNotification(title, text, category, position);
+
+    Navigatable navigatable = message.getNavigatable();
+    notification.setNavigatable(navigatable);
+
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    if (!quickFixes.isEmpty()) {
+      updateNotification(notification, text, quickFixes);
+    }
+
+    report(notification);
+  }
+
+  /**
+   * @deprecated remove once error handlers work with SyncMessage instead of NotificationData.
+   */
+  @Deprecated
+  @NotNull
+  public NotificationData createNotification(@NotNull String title,
+                                             @NotNull String text,
+                                             @NotNull NotificationCategory category,
+                                             @Nullable PositionInFile position) {
+    NotificationSource source = PROJECT_SYNC;
+    if (position != null) {
+      String filePath = virtualToIoFile(position.file).getPath();
+      return new NotificationData(title, text, category, source, filePath, position.line, position.column, false);
+    }
+    return new NotificationData(title, text, category, source);
+  }
+
+  private void updateNotification(@NotNull NotificationData notification,
+                                  @NotNull String text,
+                                  @NotNull List<NotificationHyperlink> quickFixes) {
+    String message = text;
+    int hyperlinkCount = quickFixes.size();
+    if (hyperlinkCount > 0) {
+      StringBuilder b = new StringBuilder();
+      for (int i = 0; i < hyperlinkCount; i++) {
+        b.append(quickFixes.get(i).toHtml());
+        if (i < hyperlinkCount - 1) {
+          b.append("<br>");
+        }
+      }
+      message += ('\n' + b.toString());
+    }
+    notification.setMessage(message);
+
+    addNotificationListener(notification, quickFixes);
+  }
+
+  private void addNotificationListener(@NotNull NotificationData notification, @NotNull List<NotificationHyperlink> quickFixes) {
+    for (NotificationHyperlink quickFix : quickFixes) {
+      notification.setListener(quickFix.getUrl(), new NotificationListener.Adapter() {
+        @Override
+        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
+          quickFix.executeIfClicked(myProject, e);
+        }
+      });
+    }
+  }
+
+  /**
+   * @deprecated remove once error handlers work with SyncMessage instead of NotificationData.
+   */
+  @Deprecated
+  public void report(@NotNull NotificationData notification) {
+    myNotificationManager.showNotification(GRADLE_SYSTEM_ID, notification);
   }
 
   /**

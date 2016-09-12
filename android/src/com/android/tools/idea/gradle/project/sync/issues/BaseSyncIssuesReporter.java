@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporter;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.MagicConstant;
@@ -28,16 +28,10 @@ import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 
-abstract class BaseSyncIssueMessageReporter {
-  @NotNull private final SyncMessageReporter myReporter;
-
-  BaseSyncIssueMessageReporter(@NotNull SyncMessageReporter reporter) {
-    myReporter = reporter;
-  }
-
+abstract class BaseSyncIssuesReporter {
   @NotNull
-  SyncMessageReporter getReporter() {
-    return myReporter;
+  SyncMessages getSyncMessages(@NotNull Module module) {
+    return SyncMessages.getInstance(module.getProject());
   }
 
   @MagicConstant(valuesFromClass = SyncIssue.class)

@@ -19,12 +19,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Modules;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -34,7 +31,6 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -50,7 +46,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests dependency configuration during Gradle Sync.
@@ -109,7 +104,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     runWriteCommandAction(project, buildModel::applyChanges);
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
 
-    SyncMessageReporterStub messageReporter = setSyncMessagesForTesting();
+    SyncMessagesStub messageReporter = SyncMessagesStub.replaceSyncMessagesService(project);
 
     requestSyncAndWait();
 
@@ -118,16 +113,6 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     String[] text = reportedMessage.getText();
     assertThat(text).isNotEmpty();
     assertEquals("Failed to resolve: com.android.support:appcompat-v7:100.0.0", text[0]);
-  }
-
-  @NotNull
-  private SyncMessageReporterStub setSyncMessagesForTesting() {
-    Project project = getProject();
-    SyncMessageReporterStub messageReporter = new SyncMessageReporterStub(project);
-    SyncMessages syncMessages = new SyncMessages(project, mock(ExternalSystemNotificationManager.class), messageReporter);
-    IdeComponents.replaceService(project, SyncMessages.class, syncMessages);
-    assertSame(syncMessages, SyncMessages.getInstance(project));
-    return messageReporter;
   }
 
   public void testWithLocalAarsAsModules() throws Exception {

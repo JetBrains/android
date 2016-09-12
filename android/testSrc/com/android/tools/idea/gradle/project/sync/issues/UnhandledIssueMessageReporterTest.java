@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -31,19 +31,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link UnhandledIssueMessageReporter}.
+ * Tests for {@link UnhandledIssuesReporter}.
  */
 public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessageReporterStub myReporterStub;
-  private UnhandledIssueMessageReporter myReporter;
+  private SyncMessagesStub mySyncMessagesStub;
+  private UnhandledIssuesReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    myReporterStub = new SyncMessageReporterStub(getProject());
-    myReporter = new UnhandledIssueMessageReporter(myReporterStub);
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    myReporter = new UnhandledIssuesReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -61,7 +61,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals(MessageType.ERROR, message.getType());
@@ -85,7 +85,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals(MessageType.ERROR, message.getType());

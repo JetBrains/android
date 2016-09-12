@@ -18,12 +18,16 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.customizer.dependency.*;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.customizer.dependency.Dependency;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
+import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
+import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.Dependencies;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -45,16 +49,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.DOC;
-import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -79,15 +79,14 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
 
     addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidProject);
 
-    SyncMessages messages = SyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
-      messages.reportSyncIssues(syncIssues, module);
+      SyncIssuesReporter.getInstance().report(syncIssues, module);
     }
     else {
       //noinspection deprecation
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
-      messages.reportUnresolvedDependencies(unresolvedDependencies, module);
+      UnresolvedDependenciesReporter.getInstance().report(unresolvedDependencies, module);
     }
   }
 

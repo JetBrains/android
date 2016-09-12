@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

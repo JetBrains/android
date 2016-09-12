@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.reporter;
+package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -23,13 +23,22 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
-public class SyncMessageReporterStub extends SyncMessageReporter {
+public class SyncMessagesStub extends SyncMessages {
   @Nullable private SyncMessage myMessage;
   @Nullable private NotificationData myNotification;
 
-  public SyncMessageReporterStub(@NotNull Project project) {
+  @NotNull
+  public static SyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
+    SyncMessagesStub syncMessages = new SyncMessagesStub(project);
+    IdeComponents.replaceService(project, SyncMessages.class, syncMessages);
+    assertSame(syncMessages, SyncMessages.getInstance(project));
+    return syncMessages;
+  }
+
+  private SyncMessagesStub(@NotNull Project project) {
     super(project, mock(ExternalSystemNotificationManager.class));
   }
 

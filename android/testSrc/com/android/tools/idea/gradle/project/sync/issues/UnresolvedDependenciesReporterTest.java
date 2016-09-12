@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages.issues;
+package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessageReporterStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallArtifactHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -40,19 +40,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link UnresolvedDependencyMessageReporter}.
+ * Tests for {@link UnresolvedDependenciesReporter}.
  */
-public class UnresolvedDependencyMessageReporterTest extends AndroidGradleTestCase {
+public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessageReporterStub myReporterStub;
-  private UnresolvedDependencyMessageReporter myReporter;
+  private SyncMessagesStub mySyncMessagesStub;
+  private UnresolvedDependenciesReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    myReporterStub = new SyncMessageReporterStub(getProject());
-    myReporter = new UnresolvedDependencyMessageReporter(myReporterStub);
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    myReporter = new UnresolvedDependenciesReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -68,7 +68,7 @@ public class UnresolvedDependencyMessageReporterTest extends AndroidGradleTestCa
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals("Unresolved dependencies", message.getGroup());
@@ -94,7 +94,7 @@ public class UnresolvedDependencyMessageReporterTest extends AndroidGradleTestCa
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals("Unresolved Android dependencies", message.getGroup());
@@ -121,7 +121,7 @@ public class UnresolvedDependencyMessageReporterTest extends AndroidGradleTestCa
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals("Unresolved Android dependencies", message.getGroup());
@@ -151,7 +151,7 @@ public class UnresolvedDependencyMessageReporterTest extends AndroidGradleTestCa
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = myReporterStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
 
     assertEquals("Unresolved Android dependencies", message.getGroup());

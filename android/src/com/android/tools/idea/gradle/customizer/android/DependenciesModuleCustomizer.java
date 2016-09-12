@@ -19,8 +19,12 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.dependency.*;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.customizer.dependency.Dependency;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
+import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
+import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Sets;
@@ -76,15 +80,14 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     addExtraSdkLibrariesAsDependencies(module, modelsProvider, androidProject);
 
-    SyncMessages messages = SyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
-      messages.reportSyncIssues(syncIssues, module);
+      SyncIssuesReporter.getInstance().report(syncIssues, module);
     }
     else {
       //noinspection deprecation
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
-      messages.reportUnresolvedDependencies(unresolvedDependencies, module);
+      UnresolvedDependenciesReporter.getInstance().report(unresolvedDependencies, module);
     }
   }
 

@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel.NativeVariant;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
