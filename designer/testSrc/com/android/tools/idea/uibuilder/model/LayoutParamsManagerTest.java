@@ -22,13 +22,11 @@ import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.junit.Test;
 
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.empty;
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,17 +65,16 @@ public class LayoutParamsManagerTest {
     Map<String, Object> defaults = LayoutParamsManager.getDefaultValuesFromClass(DefaultValues.class);
 
     // Private or static attributes shouldn't be returned
-    assertEquals(7, defaults.size()); // 4 attributes from our class + with and height from LayoutParams
-    assertTrue((Boolean)defaults.get("booleanAttributeTrueDefault"));
-    assertFalse((Boolean)defaults.get("booleanAttributeFalseDefault"));
-    assertTrue(-50 == (Integer)defaults.get("intAttribute"));
-    assertEquals("content", defaults.get("stringAttribute"));
-    assertEquals("other-string-attribute", defaults.get("otherStringAttribute"));
+    assertThat(defaults.size()).isEqualTo(7); // 4 attributes from our class + with and height from LayoutParams
+    assertThat((Boolean)defaults.get("booleanAttributeTrueDefault")).isTrue();
+    assertThat((Boolean)defaults.get("booleanAttributeFalseDefault")).isFalse();
+    assertThat(defaults.get("intAttribute")).isEqualTo(-50);
+    assertThat(defaults.get("stringAttribute")).isEqualTo("content");
+    assertThat(defaults.get("otherStringAttribute")).isEqualTo("other-string-attribute");
 
     DefaultValues layoutParams = new DefaultValues(0, 0);
-    assertEquals(true,
-                 LayoutParamsManager
-                   .getDefaultValue(layoutParams, new LayoutParamsManager.MappedField("booleanAttributeTrueDefault", null)));
+    assertThat(LayoutParamsManager.getDefaultValue(layoutParams, new LayoutParamsManager.MappedField("booleanAttributeTrueDefault", null)))
+      .isEqualTo(true);
     try {
       LayoutParamsManager.getDefaultValue(layoutParams, new LayoutParamsManager.MappedField("notExistent", null));
       fail("Expected NoSuchElementException");
@@ -90,14 +87,14 @@ public class LayoutParamsManagerTest {
   public void testMapField() {
     // Check default mappings
     LinearLayoutParams layoutParams = new LinearLayoutParams();
-    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type, equalTo(EnumSet.of(AttributeFormat.Dimension)));
-    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type, equalTo(EnumSet.of(AttributeFormat.Dimension)));
-    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type, equalTo(EnumSet.of(AttributeFormat.Flag)));
+    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.Dimension);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.Dimension);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.Flag);
     for (String m : new String[]{"marginTop", "marginStart", "marginBottom", "marginEnd", "marginEnd", "marginLeft", "marginRight"}) {
-      assertThat(LayoutParamsManager.mapField(layoutParams, m).type, equalTo(EnumSet.of(AttributeFormat.Dimension)));
+      assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.Dimension);
     }
 
-    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type, empty());
+    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).isEmpty();
 
     LayoutParamsManager.registerFieldMapper(LinearLayoutParams.class.getName(), (name) -> {
       if ("customRegisteredAttribute".equals(name)) {
@@ -110,9 +107,9 @@ public class LayoutParamsManagerTest {
 
       return null;
     });
-    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type, equalTo(EnumSet.of(AttributeFormat.Integer)));
+    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).containsExactly(AttributeFormat.Integer);
     // Check that the mapping was ignored
-    assertThat(LayoutParamsManager.mapField(layoutParams, "notExistingMapping").type, empty());
+    assertThat(LayoutParamsManager.mapField(layoutParams, "notExistingMapping").type).isEmpty();
   }
 
   @Test
@@ -124,30 +121,30 @@ public class LayoutParamsManagerTest {
     NlModel nlModelMock = mock(NlModel.class);
     when(nlModelMock.getConfiguration()).thenReturn(configurationMock);
 
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "123456", nlModelMock));
-    assertEquals(123456, layoutParams.intAttribute);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "123456", nlModelMock)).isTrue();
+    assertThat(layoutParams.intAttribute).isEqualTo(123456);
     // Incompatible types
-    assertFalse(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "true", nlModelMock));
-    assertEquals(123456, layoutParams.intAttribute);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "true", nlModelMock)).isFalse();
+    assertThat(layoutParams.intAttribute).isEqualTo(123456);
     // Restore default value
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", null, nlModelMock));
-    assertEquals(-50, layoutParams.intAttribute);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", null, nlModelMock)).isTrue();
+    assertThat(layoutParams.intAttribute).isEqualTo(-50);
 
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", "Hello world", nlModelMock));
-    assertEquals("Hello world", layoutParams.stringAttribute);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", "Hello world", nlModelMock)).isTrue();
+    assertThat(layoutParams.stringAttribute).isEqualTo("Hello world");
     // Restore default value
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", null, nlModelMock));
-    assertEquals("content", layoutParams.stringAttribute);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "stringAttribute", null, nlModelMock)).isTrue();
+    assertThat(layoutParams.stringAttribute).isEqualTo("content");
 
     // Check dimension conversions
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "width", "123dp", nlModelMock));
-    assertEquals(185, layoutParams.width);
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "width", "123px", nlModelMock));
-    assertEquals(123, layoutParams.width);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123dp", nlModelMock)).isTrue();
+    assertThat(layoutParams.width).isEqualTo(185);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", "123px", nlModelMock)).isTrue();
+    assertThat(layoutParams.width).isEqualTo(123);
     // Restore default value
-    assertTrue(LayoutParamsManager.setAttribute(layoutParams, "width", null, nlModelMock));
-    assertEquals(0, layoutParams.width);
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "width", null, nlModelMock)).isTrue();
+    assertThat(layoutParams.width).isEqualTo(0);
 
-    assertFalse(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock));
+    assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock)).isFalse();
   }
 }
