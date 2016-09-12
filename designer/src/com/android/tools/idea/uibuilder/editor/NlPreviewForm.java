@@ -139,6 +139,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private void setEditor(@Nullable TextEditor editor) {
     if (editor != myEditor) {
       myEditor = editor;
+      mySurface.setFileEditorDelegate(editor);
 
       if (myCaretModel != null) {
         myCaretModel.removeCaretListener(this);
