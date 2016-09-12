@@ -180,7 +180,7 @@ public class GraphicsLayoutRenderer {
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(device);
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
     List<ResourceValue> resourceLookupChain = new ArrayList<ResourceValue>();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    ResourceResolver resourceResolver =  ResourceResolver.copy(configuration.getResourceResolver());
     assert resourceResolver != null;
     // Create a resource resolver that will save the lookups on the passed List<>
     ResourceResolver recordingResourceResolver = resourceResolver.createRecorder(resourceLookupChain);
