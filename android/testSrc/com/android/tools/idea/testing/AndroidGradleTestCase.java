@@ -76,11 +76,14 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_T
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
@@ -117,6 +120,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     String projectFolderPath = getProject().getBasePath();
     assertNotNull(projectFolderPath);
     return new File(projectFolderPath);
+  }
+
+  @NotNull
+  protected File getBuildFilePath(@NotNull String moduleName) {
+    File buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE));
+    assertAbout(file()).that(buildFilePath).isFile();
+    return buildFilePath;
   }
 
   /**
