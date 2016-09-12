@@ -39,7 +39,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -80,7 +82,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The design surface in the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class DesignSurface extends JPanel implements Disposable {
+public class DesignSurface extends JPanel implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
 
@@ -160,6 +162,7 @@ public class DesignSurface extends JPanel implements Disposable {
   private boolean myCentered;
   private final NlActionManager myActionManager = new NlActionManager(this);
   private float mySavedErrorPanelProportion;
+  @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
 
   public DesignSurface(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
     super(new BorderLayout());
@@ -1030,6 +1033,16 @@ public class DesignSurface extends JPanel implements Disposable {
     myInteractionManager.cancelInteraction();
   }
 
+  /**
+   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
+   * of a {@link FileEditor} like in the case of {@link NlPreviewForm}.
+   * <p>
+   * The surface will only keep a {@link WeakReference} to the editor.
+   */
+  public void setFileEditorDelegate(@Nullable FileEditor fileEditor) {
+    myFileEditorDelegate = new WeakReference<>(fileEditor);
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -1301,7 +1314,7 @@ public class DesignSurface extends JPanel implements Disposable {
           for (NlComponent component : selection) {
             list.add(component.getTag());
           }
-          return list.toArray(new XmlTag[0]);
+          return list.toArray(XmlTag.EMPTY);
         }
       }
 
@@ -1605,4 +1618,18 @@ public class DesignSurface extends JPanel implements Disposable {
   public MockupEditor getMockupEditor() {
     return myMockupEditor;
   }
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+        return myFileEditorDelegate.get();
+    } else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return new DesignSurfaceActionHandler(this);
+    }
+    return null;
+  }
+
 }
