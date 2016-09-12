@@ -178,6 +178,8 @@ public class NewGradleSync implements GradleSync {
         if (syncListener != null) {
           syncListener.syncSucceeded(project);
         }
+
+        GradleSyncState.getInstance(project).syncEnded();
       }
       catch (Throwable e) {
         notifyAndLogSyncError(project, nullToUnknownErrorCause(getRootCauseMessage(e)), syncListener);
@@ -207,6 +209,8 @@ public class NewGradleSync implements GradleSync {
     if (syncListener != null) {
       syncListener.syncFailed(project, errorMessage);
     }
+
+    GradleSyncState.getInstance(project).syncFailed(errorMessage);
 
     if (error != null) {
       getLog().warn("Gradle sync failed", error);
