@@ -40,7 +40,7 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
   private String myName;
   private ResourceFolderType myFolderType;
   private Multimap<String, ResourceItem> myDuplicates;
-  private DataBindingInfo myDataBindingInfo;
+  private LayoutDataBindingInfo myDataBindingInfo;
 
   public PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
@@ -170,12 +170,12 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
     return Iterators.concat(mItems.values().iterator(), myDuplicates.values().iterator());
   }
 
-  public void setDataBindingInfo(DataBindingInfo dataBindingInfo) {
+  public void setDataBindingInfo(LayoutDataBindingInfo dataBindingInfo) {
     myDataBindingInfo = dataBindingInfo;
   }
 
   @Nullable
-  public DataBindingInfo getDataBindingInfo() {
+  public LayoutDataBindingInfo getDataBindingInfo() {
     return myDataBindingInfo;
   }
 }

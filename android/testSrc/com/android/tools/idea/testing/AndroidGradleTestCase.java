@@ -354,15 +354,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
-    updateGradleVersions(file, getLocalRepositories());
+    updateGradleVersions(file, getLocalRepositories(), GRADLE_PLUGIN_RECOMMENDED_VERSION, CURRENT_BUILD_TOOLS_VERSION);
   }
 
-  private static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories) throws IOException {
+  public static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories,
+                                          String gradlePluginVersion, String buildToolsVersion) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {
         for (File child : files) {
-          updateGradleVersions(child, localRepositories);
+          updateGradleVersions(child, localRepositories, gradlePluginVersion, buildToolsVersion);
         }
       }
     }
@@ -370,11 +371,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       String contentsOrig = Files.toString(file, Charsets.UTF_8);
       String contents = contentsOrig;
 
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", GRADLE_PLUGIN_RECOMMENDED_VERSION);
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", gradlePluginVersion);
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION);
 
-      contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", CURRENT_BUILD_TOOLS_VERSION);
+      contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", buildToolsVersion);
       contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
       contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
       contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
@@ -391,7 +392,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private static String getLocalRepository(@NotNull String dir) {
+  protected static String getLocalRepository(@NotNull String dir) {
     String uri = getWorkspaceFile(dir).toURI().toString();
     return "maven { url \"" + uri + "\" }\n";
   }
