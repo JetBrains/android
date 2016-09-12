@@ -52,6 +52,8 @@ import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static org.jetbrains.jps.builders.CompileScopeTestBuilder.make;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -69,7 +71,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void test1() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
@@ -91,7 +93,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void test2() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
@@ -115,7 +117,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     change(getProjectPath("src/com/example/simple/MyActivity.java"));
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     assertCompiled(JavaBuilder.BUILDER_NAME, "root/src/com/example/simple/MyActivity.java");
 
@@ -123,7 +125,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     change(getProjectPath("res/layout/main.xml"));
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
     assertCompiled(JavaBuilder.BUILDER_NAME);
 
@@ -135,7 +137,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "    <string name=\"app_name\">changed_string</string>\n" +
            "</resources>");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_10");
     checkMakeUpToDate(executor);
 
@@ -147,7 +149,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "</resources>");
     executor.setRClassContent("public static int change = 1;");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
     checkMakeUpToDate(executor);
@@ -156,7 +158,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                     new File(getProjectPath("res/drawable-hdpi/new_name.png")));
     executor.setRClassContent("public static int change = 2;");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
     checkMakeUpToDate(executor);
@@ -165,7 +167,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                          "new_file_png_content");
     executor.setRClassContent("public static int change = 3;");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_5");
     assertCompiled(JavaBuilder.BUILDER_NAME, "targets/java-production/module/android/generated_sources/aapt/com/example/simple/R.java");
 
@@ -173,7 +175,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     change(getProjectPath("libs/armeabi/mylib.so"), "mylib_content_changed");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_11");
     assertCompiled(JavaBuilder.BUILDER_NAME);
 
@@ -191,7 +193,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     change(getProjectPath("AndroidManifest.xml"));
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_6");
     assertCompiled(JavaBuilder.BUILDER_NAME);
 
@@ -202,7 +204,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                   "root/AndroidManifest.xml");
     executor.clear();
     executor.setPackage("com.example.simple1");
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_7");
     assertCompiled(JavaBuilder.BUILDER_NAME,
                    "targets/java-production/module/android/generated_sources/aapt/com/example/simple1/R.java",
@@ -212,7 +214,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     change(getProjectPath("assets/myasset.txt"));
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_8");
     assertCompiled(JavaBuilder.BUILDER_NAME);
 
@@ -221,7 +223,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     FileUtil.writeToFile(new File(getProjectPath("assets/new_asset.png")),
                          "new_asset_content");
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_9");
     assertCompiled(JavaBuilder.BUILDER_NAME);
     checkMakeUpToDate(executor);
@@ -247,12 +249,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       .file("mylib.so", "mylib_content_changed"));
 
     assertTrue(FileUtil.delete(new File(getProjectPath("libs/armeabi/mylib.so"))));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_12");
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("libs"))));
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log_13");
     checkMakeUpToDate(executor);
   }
@@ -271,7 +273,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     module.getDependenciesList().addLibraryDependency(lib1);
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
 
     assertOutput(module, TestFileSystemItem.fs()
@@ -303,7 +305,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     module.getDependenciesList().addLibraryDependency(lib2);
 
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
 
     checkBuildLog(executor, "expected_log_1");
 
@@ -323,7 +325,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     change(getProjectPath("resources/com/example/java_resource3.txt"));
 
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
 
     checkBuildLog(executor, "expected_log_2");
     assertOutput(module, TestFileSystemItem.fs()
@@ -339,7 +341,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("external_jar1.jar"))));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     assertOutput(module, TestFileSystemItem.fs()
       .file("java_resource1.txt")
@@ -355,7 +357,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("src/java_resource1.txt"))));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     assertOutput(module, TestFileSystemItem.fs()
       .file("com")
@@ -369,7 +371,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     module.removeSourceRoot(JpsPathUtil.pathToUrl(getProjectPath("resources")), JavaSourceRootType.SOURCE);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_5");
     checkMakeUpToDate(executor);
   }
@@ -412,12 +414,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                                                   "/project/java_module/src", "root/java_module/src");
     final JpsModule javaModule = addModule("java_module", copiedSourceRoot);
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     androidModule.getDependenciesList().addModuleDependency(javaModule);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
@@ -432,13 +434,13 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "        final String s = MyClass.getMessage();\n" +
            "    }\n" +
            "}\n");
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
     assertCompiled(JavaBuilder.BUILDER_NAME, "root/src/com/example/simple/MyActivity.java");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("java_module/src/com/example/simple/MyClass.java"));
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
     assertCompiled(JavaBuilder.BUILDER_NAME, "root/java_module/src/com/example/simple/MyClass.java");
     checkMakeUpToDate(executor);
@@ -448,7 +450,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     myBuildParams.put(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION,
                       systemProguardCfgPath + File.pathSeparator + getProjectPath("proguard-project.txt"));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_4");
     assertEquals(Collections.singleton("proguard_input_jar"), executor.getCheckedJars());
     checkMakeUpToDate(executor);
@@ -458,7 +460,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     assertNotNull(c);
     service.setDexCompilerConfiguration(myProject, c);
     c.setProguardVmOptions("-Xmx700M");
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_5");
     checkMakeUpToDate(executor);
   }
@@ -476,12 +478,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
     libProps.LIBRARY_PROJECT = true;
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     appModule.getDependenciesList().addModuleDependency(libModule);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
@@ -490,41 +492,41 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
     appProps.myIncludeAssetsFromLibraries = true;
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log_7");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("lib/assets/lib_asset.txt"));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("app/assets/app_asset.txt"));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("lib/res/values/strings.xml"));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_4");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("app/res/values/strings.xml"));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_5");
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("lib/assets"))));
 
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_6");
     checkMakeUpToDate(executor);
   }
@@ -544,12 +546,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       }
     };
     setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("res/drawable/ic_launcher1.png"))));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
   }
@@ -598,32 +600,32 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
     libProps.LIBRARY_PROJECT = true;
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
     checkMakeUpToDate(executor);
 
     appModule.getDependenciesList().addModuleDependency(libModule);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_1");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
 
     change(getProjectPath("lib/src/lib/MyLibClass.java"));
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
     assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("lib/src/lib/MyLibClass1.java"))));
     class1Deleted[0] = true;
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
     assertEquals(Collections.singleton("library_package_jar"), executor.getCheckedJars());
     checkMakeUpToDate(executor);
 
     assertTrue(FileUtil.delete(new File(getProjectPath("lib/src/lib/MyLibClass.java"))));
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
@@ -636,7 +638,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libLib.addRoot(new File(getProjectPath("lib/external_jar.jar")), JpsOrderRootType.COMPILED);
     libModule.getDependenciesList().addLibraryDependency(libLib);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
@@ -645,16 +647,16 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void test8() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.TRUE.toString());
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.FALSE.toString());
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
@@ -676,21 +678,21 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties libProps = ((JpsAndroidModuleExtensionImpl)libExtension).getProperties();
     libProps.LIBRARY_PROJECT = true;
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     assertEquals(1, executor.getCheckedJars().size());
     checkMakeUpToDate(executor);
 
     appModule1.getDependenciesList().addModuleDependency(libModule);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
 
     appModule2.getDependenciesList().addModuleDependency(libModule);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
@@ -699,7 +701,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     appLib.addRoot(getProjectPath("lib/external_jar.jar"), JpsOrderRootType.COMPILED);
     appModule1.getDependenciesList().addLibraryDependency(appLib);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
@@ -708,7 +710,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libLib.addRoot(new File(getProjectPath("lib/external_jar.jar")), JpsOrderRootType.COMPILED);
     appModule2.getDependenciesList().addLibraryDependency(libLib);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     assertTrue(executor.getCheckedJars().isEmpty());
     checkMakeUpToDate(executor);
@@ -719,19 +721,19 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
     props.RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     props.RES_OVERLAY_FOLDERS = Collections.emptyList();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
   }
 
   public void testChangeDexSettings() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     final JpsAndroidExtensionService service = JpsAndroidExtensionService.getInstance();
@@ -740,27 +742,27 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     service.setDexCompilerConfiguration(myProject, c);
 
     c.setVmOptions("-Xms64m");
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     c.setMaxHeapSize(512);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
     c.setOptimize(false);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
 
     c.setForceJumbo(true);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
 
     c.setCoreLibrary(true);
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_4");
     checkMakeUpToDate(executor);
   }
@@ -770,17 +772,17 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     props.USE_CUSTOM_APK_RESOURCE_FOLDER = true;
     props.CUSTOM_APK_RESOURCE_FOLDER = "/target/filtered-res";
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("target/filtered-res/values/strings.xml"));
-    makeAll();
+    buildAndroidProject();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
   }
@@ -788,7 +790,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void testCustomManifestPackage() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null, "8").getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     final JpsAndroidModuleExtensionImpl extension =
@@ -800,12 +802,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     props.USE_CUSTOM_MANIFEST_PACKAGE = true;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     props.CUSTOM_MANIFEST_PACKAGE = "dev1";
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
   }
@@ -813,7 +815,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
   public void testAdditionalParameters() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src"}, executor, null, "8").getFirst();
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     final JpsAndroidModuleExtensionImpl extension =
@@ -822,12 +824,12 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties props = extension.getProperties();
 
     props.ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "-0 xml";
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     props.ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS = "-0 txt";
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
   }
@@ -836,7 +838,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     final JpsModule module = setUpSimpleAndroidStructure(new String[]{"src", "gen"}, executor, null).getFirst();
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
@@ -845,7 +847,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "package com.example.simple;\n" +
            "public class R {}");
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     assertCompiled(JavaBuilder.BUILDER_NAME,
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
@@ -855,7 +857,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
     change(getProjectPath("gen/com/example/simple/MyGeneratedClass.java"));
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     assertCompiled(JavaBuilder.BUILDER_NAME,
                    "targets/java-production/module/android/copied_sources/com/example/simple/MyGeneratedClass.java");
@@ -866,7 +868,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "package com.example.simple;\n" +
            "public class MyGeneratedClass {}");
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     assertCompiled(JavaBuilder.BUILDER_NAME);
     checkMakeUpToDate(executor);
@@ -886,7 +888,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
            "    }\n" +
            "}\n");
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_5");
     assertCompiled(JavaBuilder.BUILDER_NAME,
                    "root/src/com/example/simple/MyActivity.java",
@@ -898,7 +900,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     profile.setEnabled(true);
     profile.setOutputRelativeToContentRoot(true);
     profile.setGeneratedSourcesDirectoryName("gen", false);
-    final BuildResult result = makeAll();
+    final BuildResult result = buildAndroidProject();
     result.assertFailed();
     final List<BuildMessage> warnMessages = result.getMessages(BuildMessage.Kind.WARNING);
     boolean containsForciblyExcludedRootWarn = false;
@@ -931,27 +933,27 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
 
     appProps.ENABLE_MANIFEST_MERGING = true;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     appProps.ENABLE_MANIFEST_MERGING = false;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
     appProps.ENABLE_MANIFEST_MERGING = true;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("app/AndroidManifest.xml"));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
 
     change(getProjectPath("lib/AndroidManifest.xml"));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     checkMakeUpToDate(executor);
   }
@@ -986,7 +988,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     appModule.getDependenciesList().addModuleDependency(libModule);
     libModule.getDependenciesList().addModuleDependency(libModule1);
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
 
     assertOutput(appModule, TestFileSystemItem.fs()
@@ -1004,7 +1006,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     JpsMavenExtensionService.getInstance().getOrCreateExtension(libModule);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
@@ -1019,7 +1021,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libProps2.LIBRARY_PROJECT = true;
     libModule1.getDependenciesList().addModuleDependency(libModule2);
 
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
   }
 
@@ -1054,18 +1056,18 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libProps.LIBRARY_PROJECT = true;
     appModule.getDependenciesList().addModuleDependency(libModule);
 
-    rebuildAll();
+    rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
     final JpsLibrary appAarLib = appModule.addModuleLibrary("app_arr", JpsJavaLibraryType.INSTANCE);
     appAarLib.addRoot(getProjectPath("myaar/classes.jar"), JpsOrderRootType.COMPILED);
     appModule.getDependenciesList().addLibraryDependency(appAarLib);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
     appAarLib.addRoot(getProjectPath("myaar/res"), JpsOrderRootType.COMPILED);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
@@ -1073,19 +1075,19 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     libAarLib.addRoot(getProjectPath("myaar/classes.jar"), JpsOrderRootType.COMPILED);
     libAarLib.addRoot(getProjectPath("myaar/res"), JpsOrderRootType.COMPILED);
     libModule.getDependenciesList().addLibraryDependency(libAarLib);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_2");
     checkMakeUpToDate(executor);
 
     final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
     final JpsAndroidModuleProperties appProps = ((JpsAndroidModuleExtensionImpl)appExtension).getProperties();
     appProps.myIncludeAssetsFromLibraries = true;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
     checkMakeUpToDate(executor);
 
     appAarLib.addRoot(getProjectPath("myaar/libs/myjar.jar"), JpsOrderRootType.COMPILED);
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
     checkMakeUpToDate(executor);
   }
@@ -1148,7 +1150,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     properties.myProGuardCfgFiles = Arrays.asList(
       "file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt",
       VfsUtilCore.pathToUrl(getProjectPath("proguard-project.txt")));
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
 
     checkMakeUpToDate(executor);
@@ -1204,7 +1206,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkBuildLog(executor, "expected_log");
 
     executor.clear();
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
 
     executor.clear();
@@ -1218,7 +1220,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       AndroidPackagingBuildTarget.MyTargetType.INSTANCE)).assertUpToDate();
 
     executor.clear();
-    rebuildAll();
+    rebuildAndroidProject();
     checkBuildLog(executor, "expected_log_2");
 
     final JpsAndroidModuleExtension appExtension = AndroidJpsUtil.getExtension(appModule);
@@ -1227,19 +1229,37 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     checkMakeUpToDate(executor);
     appProps.ENABLE_PRE_DEXING = false;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_3");
 
     checkMakeUpToDate(executor);
     appProps.ENABLE_PRE_DEXING = true;
-    makeAll().assertSuccessful();
+    buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_4");
   }
 
   private void checkMakeUpToDate(MyExecutor executor) {
     executor.clear();
-    makeAll().assertUpToDate();
+    buildAndroidProject().assertUpToDate();
     assertEquals("", executor.getLog());
+  }
+
+  private BuildResult buildAndroidProject() {
+    return doBuild(addAllAndroidTargets(make()));
+  }
+
+  private static CompileScopeTestBuilder addAllAndroidTargets(CompileScopeTestBuilder originalScope) {
+    return originalScope.allModules().allArtifacts().targetTypes(AndroidManifestMergingTarget.MyTargetType.INSTANCE,
+                                                                 AndroidDexBuildTarget.MyTargetType.INSTANCE,
+                                                                 AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
+                                                                 AndroidResourcePackagingBuildTarget.MyTargetType.INSTANCE,
+                                                                 AndroidPackagingBuildTarget.MyTargetType.INSTANCE,
+                                                                 AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+                                                                 AndroidPackagingBuildTarget.MyTargetType.INSTANCE);
+  }
+
+  private void rebuildAndroidProject() {
+    doBuild(addAllAndroidTargets(CompileScopeTestBuilder.rebuild())).assertSuccessful();
   }
 
   private String getProjectPath(String relativePath) {
