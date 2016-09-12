@@ -545,7 +545,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected String requestSyncAndExpectFailure() throws Exception {
+  protected String requestSyncAndGetExpectedFailure() throws Exception {
     SyncListener syncListener = requestSync();
     assertFalse(syncListener.success);
     String message = syncListener.failureMessage;
