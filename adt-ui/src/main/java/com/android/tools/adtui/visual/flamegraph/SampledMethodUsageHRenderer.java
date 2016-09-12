@@ -16,16 +16,13 @@
 package com.android.tools.adtui.visual.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.regex.Pattern;
 
-public class SampledMethodUsageHRenderer implements HRenderer<SampledMethodUsage> {
+public class SampledMethodUsageHRenderer extends HRenderer<SampledMethodUsage> {
 
   private static final Color END_COLOR = new JBColor(new Color(0xFF9F00), new Color(0xFF9F00));
   private static final Color START_COLOR = new JBColor(new Color(0xF0CB35), new Color(0xF0CB35));
@@ -33,54 +30,21 @@ public class SampledMethodUsageHRenderer implements HRenderer<SampledMethodUsage
   private final int mRedDelta;
   private final int mGreenDelta;
   private final int mBlueDelta;
-  Font mFont;
-  // To limit the number of object allocation we reuse the same Rectangle.
-  @NotNull
-  private RoundRectangle2D.Float mRect;
 
-  public SampledMethodUsageHRenderer() {
-    mRect = new RoundRectangle2D.Float();
-    mRect.archeight = 5;
-    mRect.arcwidth = 5;
+  public SampledMethodUsageHRenderer(){
+    super();
     mRedDelta = END_COLOR.getRed() - START_COLOR.getRed();
     mGreenDelta = END_COLOR.getGreen() - START_COLOR.getGreen();
     mBlueDelta = END_COLOR.getBlue() - START_COLOR.getBlue();
   }
 
   @Override
-  public void setFont(Font font) {
-    this.mFont = font;
+  protected Color getBordColor(SampledMethodUsage method) {
+    return Color.GRAY;
   }
 
   @Override
-  // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
-  public void render(Graphics2D g, SampledMethodUsage method, Rectangle2D drawingArea) {
-    mRect.x = (float)drawingArea.getX();
-    mRect.y = (float)drawingArea.getY();
-    mRect.width = (float)drawingArea.getWidth();
-    mRect.height = (float)drawingArea.getHeight();
-
-    Color color = getColor(method);
-    // Draw rectangle background
-    g.setPaint(color);
-    g.fill(mRect);
-
-    // Draw text
-    FontMetrics fontMetrics = g.getFontMetrics(mFont);
-    String text = generateFittingText(method, drawingArea, fontMetrics);
-    int textWidth = fontMetrics.stringWidth(text);
-    long middle = (long)drawingArea.getCenterX();
-    long textPositionX = middle - textWidth / 2;
-    int textPositionY = (int)(drawingArea.getY() + fontMetrics.getAscent());
-
-    Font prevFont = g.getFont();
-    g.setFont(mFont);
-    g.setPaint(AdtUiUtils.DEFAULT_FONT_COLOR);
-    g.drawString(text, textPositionX, textPositionY);
-    g.setFont(prevFont);
-  }
-
-  Color getColor(SampledMethodUsage method) {
+  protected Color getFillColor(SampledMethodUsage method) {
     return new Color(
       (int)(START_COLOR.getRed() + method.getPercentage() * mRedDelta),
       (int)(START_COLOR.getGreen() + method.getPercentage() * mGreenDelta),
@@ -90,8 +54,9 @@ public class SampledMethodUsageHRenderer implements HRenderer<SampledMethodUsage
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private String generateFittingText(SampledMethodUsage method, Rectangle2D rect,
-                                     FontMetrics fontMetrics) {
+  @Override
+  protected String generateFittingText(SampledMethodUsage method, Rectangle2D rect,
+                                       FontMetrics fontMetrics) {
 
     if (rect.getWidth() < fontMetrics.stringWidth("...")) {
       return "";

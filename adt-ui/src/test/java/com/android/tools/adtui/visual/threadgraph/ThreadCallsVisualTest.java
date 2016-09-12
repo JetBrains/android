@@ -18,7 +18,7 @@ package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.hchart.Method;
-import com.android.tools.adtui.chart.hchart.MethodHRenderer;
+import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
@@ -76,7 +76,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     this.mSelectionRange = new Range();
 
     this.mChart = new HTreeChart<Method>();
-    this.mChart.setHRenderer(new MethodHRenderer());
+    this.mChart.setHRenderer(new JavaMethodHRenderer());
     this.mChart.setXRange(mSelectionRange);
 
     mLineChart = new LineChart();

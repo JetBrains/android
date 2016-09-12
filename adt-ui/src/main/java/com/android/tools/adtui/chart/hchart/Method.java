@@ -35,35 +35,35 @@ public class Method {
     return this.mName;
   }
 
-  public String getSignature() {
-    return this.mSignature;
-  }
-
-  public String getFilename() {
-    return this.mFilename;
-  }
-
-  public int getLineNumber() {
-    return this.mLineNumber;
-  }
-
-  public void setNamespace(String namespace) {
-    this.mNamespace = namespace;
-  }
-
   public void setName(String name) {
     this.mName = name;
+  }
+
+  public String getSignature() {
+    return this.mSignature;
   }
 
   public void setSignature(String signature) {
     this.mSignature = signature;
   }
 
+  public String getFilename() {
+    return this.mFilename;
+  }
+
   public void setFilename(String filename) {
     this.mFilename = filename;
   }
 
+  public int getLineNumber() {
+    return this.mLineNumber;
+  }
+
   public void setLineNumber(int lineNumber) {
     this.mLineNumber = lineNumber;
+  }
+
+  public void setNamespace(String namespace) {
+    this.mNamespace = namespace;
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor.ui.cpu.model;
 
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.chart.hchart.Separators;
 import com.android.tools.perflib.vmtrace.*;
 import com.android.utils.SparseArray;
 
@@ -40,6 +41,16 @@ public class TraceArt extends AppTrace {
 
   public TraceArt(File traceFile) {
     myTraceFile = traceFile;
+  }
+
+  @Override
+  public Source getSource() {
+    return Source.ART;
+  }
+
+  @Override
+  public String getSeparator() {
+    return Separators.JAVA_CODE;
   }
 
   @Override
