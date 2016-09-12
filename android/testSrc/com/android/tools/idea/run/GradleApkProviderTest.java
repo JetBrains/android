@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.mock;
  */
 public class GradleApkProviderTest extends AndroidGradleTestCase {
   public void testGetApks() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(apks).hasSize(1);
@@ -47,7 +48,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApksForTest() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
