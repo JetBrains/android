@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
+import com.android.tools.idea.editors.gfxtrace.forms.ReportControls;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.*;
@@ -26,18 +27,18 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
-import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.widgets.TreeUtil;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.utils.SparseArray;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -390,15 +391,26 @@ public class ReportController extends TreeController implements ReportStream.Lis
   private class ReportTreeModel implements TreeModel {
 
     /**
+     * Finds first matching child in a group.
+     */
+    private boolean testGroup(@NotNull final ReportGroup group, @NotNull Predicate<BinaryObject> filter, @NotNull Report report) {
+      // We seek for the first item that satisfies filter condition in ReportGroup.
+      for (Integer index : group.getItems()) {
+        if (filter.test(report.getItems()[index])) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
      * Predicate with a state, needed to fire model's predicate change events conveniently.
      */
     private class SeverityFilter implements Predicate<BinaryObject> {
       @NotNull private final LogProtos.Severity myMinimumSeverity;
-      @NotNull private final Report myReport;
 
-      public SeverityFilter(@NotNull LogProtos.Severity minimumSeverity, @NotNull Report report) {
+      public SeverityFilter(@NotNull LogProtos.Severity minimumSeverity) {
         myMinimumSeverity = minimumSeverity;
-        myReport = report;
       }
 
       @Override
@@ -407,14 +419,8 @@ public class ReportController extends TreeController implements ReportStream.Lis
           // Report and Tags are always shown by default.
           return true;
         }
-        if (binaryObject instanceof ReportGroup) {
-          // We seek for the first item that satisfies filter condition in ReportGroup.
-          final ReportGroup group = (ReportGroup)binaryObject;
-          for (Integer index : group.getItems()) {
-            if (test(myReport.getItems()[index])) {
-              return true;
-            }
-          }
+        if (binaryObject instanceof ReportGroup && myReport != null) {
+          return testGroup((ReportGroup)binaryObject, this, myReport);
         }
         if (binaryObject instanceof ReportItem) {
           return ((ReportItem)binaryObject).isAtLeast(myMinimumSeverity);
@@ -423,8 +429,44 @@ public class ReportController extends TreeController implements ReportStream.Lis
       }
     }
 
+    /**
+     * Filters a ReportItem by intersecting its tags and myTags
+     */
+    private class TagFilter implements Predicate<BinaryObject> {
+      @NotNull private final ImmutableSet<MsgRef> myTags;
+
+      public TagFilter() {
+        myTags = ImmutableSet.of();
+      }
+
+      public TagFilter(final TagFilter prev, @NotNull final MsgRef ref) {
+        ImmutableSet.Builder<MsgRef> builder = ImmutableSet.builder();
+        if (prev != null) {
+          builder.addAll(prev.myTags);
+        }
+        myTags = builder.add(ref).build();
+      }
+
+      @Override
+      public boolean test(BinaryObject binaryObject) {
+        if (myTags.isEmpty() || binaryObject instanceof Report || binaryObject instanceof MsgRef) {
+          return true;
+        }
+        if (binaryObject instanceof ReportGroup && myReport != null) {
+          return testGroup((ReportGroup)binaryObject, this, myReport);
+        }
+        if (binaryObject instanceof ReportItem) {
+          return ImmutableSet.copyOf(((ReportItem)binaryObject).getTags()).containsAll(myTags);
+        }
+        return false;
+      }
+    }
+
     @NotNull private Object myRoot;
-    @Nullable private SeverityFilter myFilter;
+    @Nullable private Predicate<BinaryObject> myFilter;
+    @Nullable private SeverityFilter mySeverityFilter;
+    @Nullable private TagFilter myTagFilter;
+    private boolean myFilterAfterLoad;
 
     @NotNull private final List<TreeModelListener> myListenerList = new ArrayList<>();
     @Nullable private Report myReport;
@@ -491,12 +533,49 @@ public class ReportController extends TreeController implements ReportStream.Lis
       myListenerList.remove(treeModelListener);
     }
 
+    public boolean shallowTest(@NotNull BinaryObject obj) {
+      if (obj instanceof ReportItem) {
+        return myFilter == null || myFilter.test(obj);
+      }
+      return true;
+    }
+
+    public void clearFilter() {
+      mySeverityFilter = null;
+      myTagFilter = null;
+      buildFilter();
+      ((Renderable)getRoot()).resetFilter(myFilter);
+      ((ReportTreeModel)getModel()).reload();
+    }
+
     public void setMinimumSeverity(@NotNull final LogProtos.Severity minimumSeverity) {
       // Change it now so model will display new items according to a new filter.
       Object root = getRoot();
-      if (myReport != null && root instanceof Renderable) {
-        myFilter = new SeverityFilter(minimumSeverity, myReport);
-        ((Renderable)root).resetFilter(myFilter);
+      if (root instanceof Renderable) {
+        mySeverityFilter = new SeverityFilter(minimumSeverity);
+        buildFilter();
+        if (myReport == null) {
+          myFilterAfterLoad = true;
+        }
+        else {
+          ((Renderable)root).resetFilter(myFilter);
+          reload();
+        }
+      }
+    }
+
+    public void addTagToFilter(@NotNull MsgRef ref) {
+      myTagFilter = new TagFilter(myTagFilter, ref);
+      buildFilter();
+      ((Renderable)getRoot()).resetFilter(myFilter);
+      reload();
+    }
+
+    public void clearTagsFromFilter() {
+      if (myTagFilter != null) {
+        myTagFilter = new TagFilter();
+        buildFilter();
+        ((Renderable)getRoot()).resetFilter(myFilter);
         reload();
       }
     }
@@ -526,9 +605,19 @@ public class ReportController extends TreeController implements ReportStream.Lis
         }
       }
     }
+
+    private void buildFilter() {
+      myFilter = x -> true;
+      if (mySeverityFilter != null) {
+        myFilter = myFilter.and(mySeverityFilter);
+      }
+      if (myTagFilter != null) {
+        myFilter = myFilter.and(myTagFilter);
+      }
+    }
   }
 
-  private final JComboBox mySeverityLevelCombo;
+  @NotNull private final ReportControls myControls;
 
   private ReportController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
@@ -536,15 +625,25 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-    mySeverityLevelCombo = new ComboBox(
-      Arrays.stream(LogProtos.Severity.values()).filter(s -> s != LogProtos.Severity.UNRECOGNIZED).map(LogProtos.Severity::name).toArray());
-    mySeverityLevelCombo.setSelectedIndex(mySeverityLevelCombo.getItemCount() - 1);
-    mySeverityLevelCombo.addActionListener(
+    myControls = new ReportControls();
+    JComboBox severityCombo = myControls.getSeverityCombo();
+    Arrays.stream(LogProtos.Severity.values()).filter(s -> s != LogProtos.Severity.UNRECOGNIZED).map(LogProtos.Severity::name)
+      .forEach(severityCombo::addItem);
+    severityCombo.setSelectedIndex(severityCombo.getItemCount() - 1);
+    severityCombo.addActionListener(
       actionEvent -> {
-        LogProtos.Severity severity = LogProtos.Severity.valueOf((String)mySeverityLevelCombo.getSelectedItem());
+        LogProtos.Severity severity = LogProtos.Severity.valueOf((String)severityCombo.getSelectedItem());
         ((ReportTreeModel)getModel()).setMinimumSeverity(severity);
       });
-    myPanel.add(mySeverityLevelCombo, BorderLayout.NORTH);
+
+    JBList list = myControls.getTagList();
+    list.setEmptyText("No tags to filter by");
+    JButton clearButton = myControls.getClearTagsButton();
+    clearButton.addActionListener(event -> {
+      ((ReportTreeModel)myTree.getModel()).clearTagsFromFilter();
+      myControls.clearTags();
+    });
+    myPanel.add(myControls.getPanel(), BorderLayout.NORTH);
 
     MouseAdapter mouseAdapter = new MouseAdapter() {
       @Override
@@ -564,6 +663,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
             onReportItemNodeHover((Node)renderable, followPath);
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
+          case Render.TAG_ITEM_TAG:
             // Put stub data to path store in order to show hand hovering.
             followPath.update(new ReportPath());
             break;
@@ -596,6 +696,9 @@ public class ReportController extends TreeController implements ReportStream.Lis
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
             onGroupClick((Group)renderable);
+            break;
+          case Render.TAG_ITEM_TAG:
+            onTagClick((Tag)renderable);
             break;
           default:
         }
@@ -650,6 +753,11 @@ public class ReportController extends TreeController implements ReportStream.Lis
         dialog.setTitle("Message");
         dialog.setText(group.getName());
         dialog.show();
+      }
+
+      private void onTagClick(@NotNull Tag tag) {
+        ((ReportTreeModel)myTree.getModel()).addTagToFilter((MsgRef)tag.getDelegate());
+        myControls.addTag(tag.getString());
       }
     };
 
@@ -737,13 +845,13 @@ public class ReportController extends TreeController implements ReportStream.Lis
   @Override
   public void onReportLoadingStart(ReportStream reportStream) {
     myTree.getEmptyText().setText("");
-    mySeverityLevelCombo.setVisible(true);
+    myControls.setVisible(true);
     myLoadingPanel.startLoading();
   }
 
   @Override
   public void onReportLoadingFailure(ReportStream reportStream, String errorMessage) {
-    mySeverityLevelCombo.setVisible(false);
+    myControls.setVisible(false);
     // TODO: Display detailed empty view and/or error message
     myLoadingPanel.showLoadingError("Failed to load report");
   }
@@ -762,9 +870,10 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   @Override
   public void onReportItemSelected(ReportItem reportItem) {
-    if (!reportItem.isAtLeast(LogProtos.Severity.valueOf(mySeverityLevelCombo.getSelectedIndex()))) {
-      ((ReportTreeModel)getModel()).setMinimumSeverity(reportItem.getSeverity());
-      mySeverityLevelCombo.setSelectedItem(reportItem.getSeverity().name());
+    final ReportTreeModel model = (ReportTreeModel)getModel();
+    if (!model.shallowTest(reportItem)) {
+      model.clearFilter();
+      myControls.clearFilter();
     }
     Renderable root = (Renderable)myTree.getModel().getRoot();
     updateSelection(root, new TreePath(root), reportItem);
@@ -797,11 +906,9 @@ public class ReportController extends TreeController implements ReportStream.Lis
       return;
     }
     final Renderable root = new ReportNode(report);
-    if (report.getChildCount() > 0) {
-      setModel(new ReportTreeModel(root, report));
-    }
-    else {
-      mySeverityLevelCombo.setVisible(false);
+    setModel(new ReportTreeModel(root, report));
+    if (report.getChildCount() == 0) {
+      myControls.setVisible(false);
     }
   }
 
