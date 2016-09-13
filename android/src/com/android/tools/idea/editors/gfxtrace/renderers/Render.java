@@ -224,7 +224,7 @@ public final class Render {
 
   public static void render(@NotNull ReportController.Tag tag,
                             @NotNull SimpleColoredComponent component) {
-    render(tag.getString(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, TAG_ITEM_TAG);
+    render(tag.getString(), component, SimpleTextAttributes.LINK_ATTRIBUTES, TAG_ITEM_TAG);
   }
 
   public static void render(@NotNull AtomController.Node node,
