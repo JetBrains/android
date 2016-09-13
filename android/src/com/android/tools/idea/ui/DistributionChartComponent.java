@@ -40,17 +40,25 @@ public class DistributionChartComponent extends JPanel {
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
   private static final Color API_LEVEL_COLOR = new Color(0, 0, 0, 77);
 
-  private static final int INTER_SECTION_SPACING = 1;
+  private static final int INTER_SECTION_SPACING = JBUI.scale(1);
+  private static final int HEADER_TO_BODY_SPACING = JBUI.scale(4);
+
+  /* Strings appearing in the header of the distribution table */
+  private static final String STR_ANDROID_PLATFORM = "Android Platform".toUpperCase();
+  private static final String STR_VERSION = "Version".toUpperCase();
+  private static final String STR_API_LEVEL = "API Level".toUpperCase();
+  private static final String STR_CUMULATIVE = "Cumulative".toUpperCase();
+  private static final String STR_DISTRIBUTION = "Distribution".toUpperCase();
 
   private static final double MIN_PERCENTAGE_HEIGHT = 0.06;
   private static final double EXPANSION_ON_SELECTION = 1.063882064;
   private static final double RIGHT_GUTTER_PERCENTAGE = 0.209708738;
-  private static final int TOP_PADDING = 40;
-  private static final int NAME_OFFSET = 50;
+  private static final int TOP_PADDING = JBUI.scale(40);
+  private static final int NAME_OFFSET = JBUI.scale(50);
   private static final int MIN_API_FONT_SIZE = JBUI.scale(18);
   private static final int MAX_API_FONT_SIZE = JBUI.scale(45);
-  private static final int API_OFFSET = 120;
-  private static final int NUMBER_OFFSET = 10;
+  private static final int API_OFFSET = JBUI.scale(120);
+  private static final int NUMBER_OFFSET = JBUI.scale(10);
 
   private static Font MEDIUM_WEIGHT_FONT;
   private static Font REGULAR_WEIGHT_FONT;
@@ -191,7 +199,6 @@ public class DistributionChartComponent extends JPanel {
     }
 
     // Draw the proportioned rectangles
-    int startY = TOP_PADDING;
     int totalWidth = getBounds().width;
     int rightGutter = (int)Math.round(totalWidth * RIGHT_GUTTER_PERCENTAGE);
     int width = totalWidth - rightGutter;
@@ -208,14 +215,17 @@ public class DistributionChartComponent extends JPanel {
 
     // Draw the titles
     g.setFont(TITLE_FONT);
+    g.drawString(STR_ANDROID_PLATFORM,
+                 leftGutter + API_OFFSET - (titleMetrics.stringWidth(STR_ANDROID_PLATFORM) / 2),
+                 titleHeight);
+    g.drawString(STR_VERSION,
+                 leftGutter + API_OFFSET - (titleMetrics.stringWidth(STR_VERSION) / 2),
+                 titleHeight * 2);
+    g.drawString(STR_API_LEVEL, width - API_OFFSET, titleHeight);
 
-    g.drawString("Android Platform".toUpperCase(), leftGutter, titleHeight);
-    g.drawString("Version".toUpperCase(), leftGutter, titleHeight * 2);
-    g.drawString("API Level".toUpperCase(), width - API_OFFSET, titleHeight);
-    String accumulativeTitle = "Cumulative".toUpperCase();
-    String distributionTitle = "Distribution".toUpperCase();
-    g.drawString(accumulativeTitle, totalWidth - titleMetrics.stringWidth(accumulativeTitle), titleHeight);
-    g.drawString(distributionTitle, totalWidth - titleMetrics.stringWidth(distributionTitle), titleHeight * 2);
+    int lastColumnLeftOffset = totalWidth - Math.max(titleMetrics.stringWidth(STR_CUMULATIVE), titleMetrics.stringWidth(STR_DISTRIBUTION));
+    g.drawString(STR_CUMULATIVE, (lastColumnLeftOffset + totalWidth - titleMetrics.stringWidth(STR_CUMULATIVE)) / 2, titleHeight);
+    g.drawString(STR_DISTRIBUTION, (lastColumnLeftOffset + totalWidth - titleMetrics.stringWidth(STR_DISTRIBUTION)) / 2, titleHeight * 2);
 
     // We want a padding in between every element
     int heightToDistribute = getBounds().height - INTER_SECTION_SPACING * (distributions.size() - 1) - TOP_PADDING;
@@ -231,6 +241,7 @@ public class DistributionChartComponent extends JPanel {
     }
     heightToDistribute -= (int)Math.round(smallItemCount * MIN_PERCENTAGE_HEIGHT * heightToDistribute);
 
+    int startY = (2 * titleHeight) + HEADER_TO_BODY_SPACING;
     int i = 0;
     for (Distribution d : distributions) {
       // Draw the colored rectangle
