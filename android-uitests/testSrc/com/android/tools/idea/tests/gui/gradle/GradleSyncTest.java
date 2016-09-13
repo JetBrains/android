@@ -168,8 +168,8 @@ public class GradleSyncTest {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
     guiTest.importProject("ModuleDependencies");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(guiTest.robot());
-    projectSubsetDialog.selectModule("javalib1", false).clickOk();
+    ModulesToImportDialogFixture projectSubsetDialog = ModulesToImportDialogFixture.find(guiTest.robot());
+    projectSubsetDialog.setSelected("javalib1", false).clickOk();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -642,8 +642,8 @@ public class GradleSyncTest {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
     guiTest.importProject("Flavoredlib");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(guiTest.robot());
-    projectSubsetDialog.selectModule("lib", false).clickOk();
+    ModulesToImportDialogFixture projectSubsetDialog = ModulesToImportDialogFixture.find(guiTest.robot());
+    projectSubsetDialog.setSelected("lib", false).clickOk();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     ideFrame.waitForGradleProjectSyncToFinish();
