@@ -19,9 +19,12 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -58,6 +61,14 @@ public class AndroidSdkDataTest extends AndroidTestCase {
         ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeSdks.getEligibleAndroidSdks().get(0));
       }
     });
+  }
+
+  @Override
+  protected void collectAllowedRoots(List<String> roots) throws IOException {
+    String javaHome = SystemProperties.getJavaHome();
+    if (javaHome.endsWith("jre")) {
+      roots.add(new File(javaHome).getParent());
+    }
   }
 
   @Override

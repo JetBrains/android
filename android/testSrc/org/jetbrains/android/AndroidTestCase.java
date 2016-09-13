@@ -104,6 +104,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // the manifest on their own.
     createManifest();
 
+    if (isToAddSdk()) {
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), sdkPath);
+    }
     myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir(), isToAddSdk());
 
     LanguageLevel languageLevel = getLanguageLevel();
