@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -26,7 +25,9 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import junit.framework.TestCase;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.mockito.Mockito;
@@ -234,7 +235,7 @@ public class RepositoryUrlManagerTest extends TestCase {
   }
 
   public void testResolvedCoordinateLocalFirst() throws Exception {
-    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0", new Revision(1), null);
+    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp, mgr);
@@ -244,7 +245,7 @@ public class RepositoryUrlManagerTest extends TestCase {
   }
 
   public void testResolvedCoordinateRemoteSdk() throws Exception {
-    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0", new Revision(1), null);
+    RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(new File("/emptysdk"), myFileOp, mgr);
