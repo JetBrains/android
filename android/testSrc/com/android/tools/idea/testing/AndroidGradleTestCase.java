@@ -43,6 +43,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -189,6 +191,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
         try {
           Project project = myFixture.getProject();
