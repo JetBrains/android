@@ -68,7 +68,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -422,7 +423,7 @@ public class RenderTask implements IImageFactory {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
 
-    ResourceResolver resolver = getResourceResolver();
+    ResourceResolver resolver = ResourceResolver.copy(getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
@@ -454,7 +455,8 @@ public class RenderTask implements IImageFactory {
     Module module = myRenderService.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
+      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+                        myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
