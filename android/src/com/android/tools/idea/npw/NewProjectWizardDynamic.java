@@ -121,6 +121,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(TARGET_FILES_KEY, new HashSet<>());
     state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
     state.put(USE_PER_MODULE_REPOS_KEY, false);
+    state.put(ALSO_CREATE_IAPK_KEY, true);
 
     try {
       state.put(DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
