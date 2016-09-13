@@ -94,7 +94,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   private IconStep myAssetStudioStep;
   private final VirtualFile myTargetFolder;
   @Nullable private final File myTemplate;
-  private final Map<String, Object> myPredefinedParameterValues;
   private final Disposable myParentDisposable;
 
   /**
@@ -102,10 +101,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    */
   public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
                                 @Nullable File template,
-                                Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
-    myPredefinedParameterValues = predefinedParameterValues;
     myParentDisposable = parentDisposable;
     myIsNewModule = false;
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
@@ -343,7 +340,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
     myParameterStep =
-      new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues, myParentDisposable, KEY_PACKAGE_NAME,
+      new TemplateParameterStep2(getFormFactor(myTargetFolder), ImmutableMap.of(), myParentDisposable, KEY_PACKAGE_NAME,
                                  sourceProviders, CUSTOMIZE_ACTIVITY_TITLE);
     myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 
