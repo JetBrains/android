@@ -674,6 +674,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
             else {
               setHoveringNode(null, 0);
             }
+          } else {
+            setHoveringNode(null, 0);
           }
         }
       }
@@ -760,7 +762,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
             final Path freshFollowPath = node.getFollowPath(index);
             if (freshFollowPath != null && freshFollowPath != Path.EMPTY) {
               pathStore.update(freshFollowPath);
-              node.hoveredParameter = index;
+              if (node == lastHoverNode) {
+                node.hoveredParameter = index;
+              }
             }
           });
         }
