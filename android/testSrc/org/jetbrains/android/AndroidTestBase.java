@@ -231,6 +231,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), getTestSdkPath());
     Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
     AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {

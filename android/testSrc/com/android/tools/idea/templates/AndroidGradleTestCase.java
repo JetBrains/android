@@ -55,12 +55,14 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -147,6 +149,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture.setTestDataPath(getTestDataPath());
     }
 
+    String javaHome = SystemProperties.getJavaHome();
+    if (javaHome.endsWith("jre")) {
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), new File(javaHome).getParent());
+    }
     ensureSdkManagerAvailable();
 
     // We seem to have two different locations where the SDK needs to be specified.
