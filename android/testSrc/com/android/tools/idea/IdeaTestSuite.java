@@ -125,7 +125,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("prebuilts/studio/jdk");
-    symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/android-24");
+    symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
   }
 
   private static void symbolicLinkInTmpDir(String target) {
