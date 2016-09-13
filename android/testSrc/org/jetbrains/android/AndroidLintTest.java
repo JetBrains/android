@@ -861,6 +861,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "res/xml/network-config.xml", "xml");
   }
 
+  public void testMissingSuperCall() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=222249
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintMissingSuperCallInspection(),
+                "/src/p1/p2/SuperCallTest.java", "java");
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
