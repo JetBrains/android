@@ -52,6 +52,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.cleanup.GradleDistributionCleanUpTaskTest.class,
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
+  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncStateIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.issues.ExternalNativeBuildIssuesReporterTest.class,
