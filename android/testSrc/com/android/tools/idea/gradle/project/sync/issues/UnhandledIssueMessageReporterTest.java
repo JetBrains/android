@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
@@ -25,7 +24,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,12 +65,12 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
+    assertThat(message.getText()).hasLength(1);
 
-    assertEquals(MessageType.ERROR, message.getType());
-
-    String[] text = message.getText();
-    assertThat(text).hasLength(1);
-    assertEquals(expectedText, text[0]);
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasType(ERROR)
+                                            .hasMessageLine(expectedText, 0);
+    // @formatter:on
 
     PositionInFile position = message.getPosition();
     assertNotNull(position);
@@ -87,12 +89,12 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
+    assertThat(message.getText()).hasLength(1);
 
-    assertEquals(MessageType.ERROR, message.getType());
-
-    String[] text = message.getText();
-    assertThat(text).hasLength(1);
-    assertEquals(expectedText, text[0]);
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasType(ERROR)
+                                            .hasMessageLine(expectedText, 0);
+    // @formatter:on
 
     PositionInFile position = message.getPosition();
     assertNull(position);

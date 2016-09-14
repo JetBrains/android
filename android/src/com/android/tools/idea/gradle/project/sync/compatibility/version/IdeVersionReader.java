@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,45 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static java.util.Collections.emptyList;
 
-/**
- * Obtains the version of Gradle that a project is using.
- */
-class GradleVersionReader implements ComponentVersionReader {
+class IdeVersionReader implements ComponentVersionReader {
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return AndroidGradleFacet.getInstance(module) != null;
+    return true;
   }
 
-  @Override
   @Nullable
+  @Override
   public String getComponentVersion(@NotNull Module module) {
-    GradleVersion gradleVersion = getGradleVersion(module.getProject());
-    return gradleVersion != null ? gradleVersion.toString() : null;
+    // Strict version: 1.3.0.2
+    // Full version: 1.3 Preview 3
+    return ApplicationInfo.getInstance().getStrictVersion();
   }
 
-  @Override
   @Nullable
+  @Override
   public PositionInFile getVersionSource(@NotNull Module module) {
     return null;
   }
 
-  @Override
   @NotNull
+  @Override
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
@@ -63,9 +59,9 @@ class GradleVersionReader implements ComponentVersionReader {
     return true;
   }
 
-  @Override
   @NotNull
+  @Override
   public String getComponentName() {
-    return "Gradle";
+    return ApplicationInfo.getInstance().getVersionName();
   }
 }

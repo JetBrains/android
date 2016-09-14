@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
@@ -36,12 +36,12 @@ import static java.util.Collections.singletonList;
 /**
  * Obtains the version for a component from a build.gradle file, given the component name (e.g. "buildToolsVersion".)
  */
-class BuildFileComponentVersionReader implements ComponentVersionReader {
+public class BuildFileComponentVersionReader implements ComponentVersionReader {
   @NotNull private final String myComponentName;
 
   @Nullable private final BuildFileKey myKey;
 
-  BuildFileComponentVersionReader(@NotNull String keyPath) {
+  public BuildFileComponentVersionReader(@NotNull String keyPath) {
     List<String> segments = Splitter.on('/').splitToList(keyPath);
     myComponentName = segments.get(segments.size() - 1);
     myKey = BuildFileKey.findByPath(keyPath);
