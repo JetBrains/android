@@ -23,6 +23,8 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -82,15 +84,13 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   private void verifyCheckFailure(@NotNull PreSyncCheckResult result) {
     assertFalse(result.isSuccess());
 
-    String expectedMsg = "Please use JDK 8 or newer.";
-    assertEquals(expectedMsg, result.getFailureCause());
+    String expectedText = "Please use JDK 8 or newer.";
+    assertEquals(expectedText, result.getFailureCause());
 
     SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
+    assertThat(message.getText()).hasLength(1);
 
-    String[] actual = message.getText();
-    assertThat(actual).hasLength(1);
-
-    assertEquals(expectedMsg, actual[0]);
+    assertAbout(syncMessage()).that(message).hasMessageLine(expectedText, 0);
   }
 }

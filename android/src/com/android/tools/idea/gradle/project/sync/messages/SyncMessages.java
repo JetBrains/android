@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -83,17 +81,6 @@ public class SyncMessages {
 
   public boolean isEmpty() {
     return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, null, GRADLE_SYSTEM_ID) == 0;
-  }
-
-  public void reportComponentIncompatibilities() {
-    VersionCompatibilityService compatibilityService = VersionCompatibilityService.getInstance();
-    List<SyncMessage> messages = compatibilityService.checkComponentCompatibility(myProject);
-    for (SyncMessage message : messages) {
-      report(message);
-    }
-    if (!messages.isEmpty()) {
-      GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
-    }
   }
 
   public void reportDependencySetupErrors() {

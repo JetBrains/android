@@ -27,6 +27,8 @@ import com.intellij.openapi.module.Module;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -63,12 +65,12 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
+    assertThat(message.getText()).hasLength(1);
 
-    assertEquals(SyncMessage.DEFAULT_GROUP, message.getGroup());
-
-    String[] text = message.getText();
-    assertThat(text).hasLength(1);
-    assertEquals(expectedText, text[0]);
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issue")
+                                            .hasMessageLine(expectedText, 0);
+    // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
     assertThat(quickFixes).hasSize(2);
