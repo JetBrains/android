@@ -71,7 +71,8 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
     if (myIsAppCompat) {
       navIcon.setAttribute("style", "?attr/toolbarNavigationButtonStyle");
-    } else {
+    }
+    else {
       navIcon.setAttributeNS(ANDROID_URI, ATTR_BACKGROUND, "@android:color/transparent");
       navIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, "10dp");
     }
@@ -85,7 +86,8 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     title.setAttributeNS(ANDROID_URI, ATTR_TEXT, myIsAppCompat ? "v7 Toolbar" : "Toolbar");
     if (myIsAppCompat) {
       title.setAttributeNS(ANDROID_URI, "textAppearance", "@style/TextAppearance.Widget.AppCompat.Toolbar.Title");
-    } else {
+    }
+    else {
       title.setAttributeNS(ANDROID_URI, "textAppearance", "@android:style/TextAppearance.Material.Widget.Toolbar.Title");
     }
     title.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
@@ -100,7 +102,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_WIDTH, "40dp");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_HEIGHT, attrPrefix + "actionBarSize");
     menuIcon.setAttributeNS(ANDROID_URI, ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_RIGHT);
-    menuIcon.setAttribute("style", "?attr/actionOverflowButtonStyle");
+    menuIcon.setAttribute("style", attrPrefix + "actionOverflowButtonStyle");
     menuIcon.setAttributeNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP, group.name());
     toolbarComponent.appendChild(menuIcon);
 
