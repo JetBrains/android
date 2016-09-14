@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.wizard.WizardConstants.ALSO_CREATE_IAPK_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
@@ -96,6 +97,9 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     if (project != null) {
       state.put(WizardConstants.PROJECT_LOCATION_KEY, project.getBasePath());
     }
+
+    // Todo: check if we need an IAPK in the project
+    state.put(ALSO_CREATE_IAPK_KEY, false);
   }
 
   @NotNull

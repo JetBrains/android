@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
+import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.*;
-import com.android.tools.idea.templates.*;
+import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
+import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
@@ -35,22 +40,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 import static com.android.tools.idea.wizard.WizardConstants.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
+  private static final String WH_SDK_ENV_VAR = "WH_SDK";
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -119,8 +129,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(MANIFEST_DIR_KEY, "src/main");
     myState.put(TEST_DIR_KEY, "src/androidTest");
     myState.put(CREATE_ACTIVITY_KEY, false);
+    myState.put(IS_INSTANT_APP_KEY, false);
+
+    String whSdkLocation = System.getenv(WH_SDK_ENV_VAR);
+    myState.put(WH_SDK_KEY, whSdkLocation + "/tools/resources/shared-libs");
+    myState.put(WH_SDK_ENABLED_KEY, isNotEmpty(whSdkLocation));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
+    addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
     addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, null, myDisposable));
 
     Object packageName = myState.get(PACKAGE_NAME_KEY);
@@ -129,7 +145,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     Map<String, Object> presetsMap = ImmutableMap
       .of(PACKAGE_NAME_KEY.name, packageName, ATTR_IS_LAUNCHER, true, ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0], AddAndroidActivityPath.CUSTOMIZE_ACTIVITY_TITLE);
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0],
+                                                 AddAndroidActivityPath.CUSTOMIZE_ACTIVITY_TITLE);
     addStep(myParameterStep);
   }
 
@@ -139,7 +156,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     updatePackageDerivedValues();
   }
 
-  void updatePackageDerivedValues() {
+  public void updatePackageDerivedValues() {
     // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
     myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
 
@@ -155,7 +172,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @NotNull
   private String calculateSrcDir() {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
-    packageSegment = (packageSegment == null)?  "" : packageSegment.replace('.', File.separatorChar);
+    packageSegment = (packageSegment == null) ? "" : packageSegment.replace('.', File.separatorChar);
     return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
   }
 
@@ -271,6 +288,13 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     String moduleName = myState.get(myModuleNameKey);
     assert moduleName != null;
 
+    boolean isInstantApp = myState.getNotNull(IS_INSTANT_APP_KEY, false);
+
+    if (isInstantApp) {
+      myState.put(GRADLE_PLUGIN_VERSION_KEY, SdkConstants.GRADLE_PLUGIN_WH_VERSION);
+      myState.put(SPLIT_NAME_KEY, moduleName);
+    }
+
     File projectRoot = new File(projectLocation);
     File moduleRoot = new File(projectRoot, moduleName);
     try {
@@ -281,8 +305,56 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       return false;
     }
 
+    //TODO - this code is a little messy. Once atom workflow is finalised refactor to avoid template parameter copying and overriding
+    Map<String, Object> moduleTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+    if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
+      moduleTemplateState.put(ATTR_IS_LIBRARY_MODULE, true);
+      moduleTemplateState.put(ATTR_IS_BASE_ATOM, true);
+    }
+
+    if (!renderModule(dryRun, moduleTemplateState, projectRoot, moduleRoot)) {
+      return false;
+    }
+
+    Map<String, Object> activityTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+    if (isInstantApp) {
+      activityTemplateState.put(ATTR_APPLICATION_PACKAGE, myState.get(PACKAGE_NAME_KEY) + "." + moduleName);
+    }
+    if (!renderActivity(dryRun, activityTemplateState, projectRoot, moduleRoot)) {
+      return false;
+    }
+
+    if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
+      String iapkName = myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor);
+
+      Map<String, Object> iapkTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+      iapkTemplateState.put(ATTR_ATOM_NAME, moduleName);
+      iapkTemplateState.put(ATTR_MODULE_NAME, iapkName);
+      iapkTemplateState.put(ATTR_SPLIT_NAME, iapkName);
+
+      File iapkRoot = new File(projectRoot, iapkName);
+      try {
+        checkedCreateDirectoryIfMissing(iapkRoot);
+      }
+      catch (IOException e) {
+        LOG.error(e);
+        return false;
+      }
+      iapkTemplateState.put(ATTR_PROJECT_OUT, iapkRoot.getPath());
+      String relativeLocation = FileUtil.toSystemDependentName(myState.getNotNull(MANIFEST_DIR_KEY, ""));
+      iapkTemplateState.put(ATTR_MANIFEST_OUT, new File(iapkRoot, relativeLocation).getPath());
+
+      if (!renderModule(dryRun, iapkTemplateState, projectRoot, iapkRoot)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean renderModule(boolean dryRun, Map<String, Object> templateState, File projectRoot, File moduleRoot) {
     Template template = Template.createFromPath(myTemplateFile);
-    Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+
     // @formatter:off
     RenderingContext context = RenderingContext.Builder.newContext(template, myWizard.getProject())
       .withCommandName("New Module")
@@ -297,19 +369,20 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       .intoDependencies(myState.get(DEPENDENCIES_KEY))
       .build();
     // @formatter:on
-    if (!template.render(context)) {
-      return false;
-    }
+    return template.render(context);
+  }
 
+  private boolean renderActivity(boolean dryRun, Map<String, Object> templateState, File projectRoot, File moduleRoot) {
     TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
     if (templateEntry == null) {
       return true;
     }
+
     Template activityTemplate = templateEntry.getTemplate();
     for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
       templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
     }
-    // @formatter:off
+
     RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myWizard.getProject())
       .withCommandName("New Module")
       .withDryRun(dryRun)
@@ -322,12 +395,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
       .intoDependencies(myState.get(DEPENDENCIES_KEY))
       .build();
-    // @formatter:on
-    if (!activityTemplate.render(activityContext)) {
-      return false;
-    }
 
-    return true;
+    return activityTemplate.render(activityContext);
   }
 
   // TODO: Used to be protected, try to keep protected / private when code is converted over to the new system
