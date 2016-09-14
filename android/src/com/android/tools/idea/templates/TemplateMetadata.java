@@ -92,6 +92,14 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
+  public static final String ATTR_WH_SDK = "whSdkPath";
+  public static final String ATTR_APP_DOMAIN = "supportedDomain";
+  public static final String ATTR_ATOM_NAME = "atomName";
+  public static final String ATTR_ATOM_ROUTE = "atomRoute";
+  public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
+  public static final String ATTR_IS_BASE_ATOM = "isBaseAtom";
+  public static final String ATTR_SPLIT_NAME = "splitName";
+
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
 

@@ -48,6 +48,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
+  private JCheckBox myInstantAppCheckbox;
   private final @Nullable FormFactor myFormFactor;
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactor formFactor) {
@@ -78,6 +79,12 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
       myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
     }
+
+    if (template.getFormFactor() == FormFactor.MOBILE && myState.get(WH_SDK_ENABLED_KEY)) {
+      register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
+      myInstantAppCheckbox.setVisible(true);
+    }
+
     super.init();
   }
 
