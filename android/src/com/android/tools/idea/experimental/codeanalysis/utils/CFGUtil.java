@@ -85,7 +85,7 @@ public class CFGUtil {
     MethodGraphImpl lambdaGraph = new MethodGraphImpl(lambdaMethod);
     PsiLambdaExpression lambdaPsiRef = lambdaMethod.getLambdaRef();
     if (lambdaPsiRef == null) {
-      PsiCFGDebugUtil.LOG.warning("Method: " + lambdaPsiRef.getText() + "is not a lambda");
+      PsiCFGDebugUtil.LOG.warning("Method: " + lambdaMethod + " is not recognized as a lambda");
       return null;
     }
 
@@ -102,6 +102,10 @@ public class CFGUtil {
       builder = new CFGBuilder(
         scene, lambdaGraph, lambdaMethod.getDeclaringClass(), (PsiExpression)lambdaBody);
       builder.setLambdaFlag();
+    } else {
+      PsiCFGDebugUtil.LOG.warning("Method: " + lambdaPsiRef.getText() + " has unknown body of type " +
+                                  ((lambdaBody == null) ? "null" : lambdaBody.getClass().getName()));
+      return null;
     }
 
     builder.build();
