@@ -448,7 +448,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static String latestStablePluginWithSecurityFix(boolean experimentalPlugin) {
-    return experimentalPlugin ? "0.7.3" : "2.1.3";
+    return experimentalPlugin ? "0.8.0" : "2.2.0";
   }
 
   @NotNull
