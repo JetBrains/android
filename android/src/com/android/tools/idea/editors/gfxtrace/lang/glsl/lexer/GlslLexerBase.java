@@ -173,7 +173,17 @@ public class GlslLexerBase {
   private void addIdentifierOrKeyword() {
     int oldPos = pos - 1;
     String id = scanIdentifier();
-    addToken((KEYWORDS.contains(id)) ? TokenKind.KEYWORD : TokenKind.WHITESPACE, oldPos, pos, id);
+    TokenKind kind;
+    if (KEYWORDS.contains(id)) {
+      kind = TokenKind.KEYWORD;
+    }
+    else if (id.startsWith("gl_")) {
+      kind = TokenKind.GL_IDENTIFIER;
+    }
+    else {
+      kind = TokenKind.IDENTIFIER;
+    }
+    addToken(kind, oldPos, pos, id);
   }
 
   /**
