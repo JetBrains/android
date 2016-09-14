@@ -21,6 +21,7 @@ public enum TokenKind {
   COMMA(","),
   COMMENT("comment"),
   DOT("."),
+  GL_IDENTIFIER("gl_identifier"),
   IDENTIFIER("identifier"),
   ILLEGAL("illegal character"),
   KEYWORD("keyword"),
