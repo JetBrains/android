@@ -34,6 +34,7 @@ import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.WeakHashMap;
@@ -187,13 +188,12 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    SwingUtilities.invokeLater(() -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       ourLock.lock();
       if (DEBUG) {
         System.out.println("*** Model Changed " + model.getResourceVersion()
                            + " vs our " + myModificationCount);
       }
-
 
       int dpi = model.getConfiguration().getDensity().getDpiValue();
       setDpiValue(dpi);
@@ -207,7 +207,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         drawConstraintModel.repaint();
       }
       ourLock.unlock();
-    });
+    }, model.getModule().getDisposed());
   }
 
   @Override
