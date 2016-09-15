@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -112,8 +113,10 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * @author yole, coyote
@@ -245,6 +248,13 @@ public class AndroidUtils {
     return null;
   }
 
+  public static String getDefaultRunConfigurationUrl(@NotNull AndroidFacet facet) {
+    String defaultUrl = "<<ERROR - NO URL SET>>";
+    assert facet.getProjectType() == PROJECT_TYPE_INSTANTAPP;
+    String foundUrl = new InstantAppUrlFinder(MergedManifest.get(facet)).getDefaultUrl();
+    return isEmpty(foundUrl) ? defaultUrl : foundUrl;
+  }
+
   public static void addRunConfiguration(@NotNull final AndroidFacet facet, @Nullable final String activityClass, final boolean ask,
                                          @Nullable final TargetSelectionMode targetSelectionMode,
                                          @Nullable final String preferredAvdName) {
@@ -260,6 +270,9 @@ public class AndroidUtils {
 
       if (activityClass != null) {
         configuration.setLaunchActivity(activityClass);
+      }
+      else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+        configuration.setLaunchUrl(getDefaultRunConfigurationUrl(facet));
       }
       else if (LaunchUtils.isWatchFaceApp(facet)) {
         // In case of a watch face app, there is only a service and no default activity that can be launched

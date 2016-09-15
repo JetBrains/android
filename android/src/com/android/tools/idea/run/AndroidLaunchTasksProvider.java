@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
@@ -125,6 +127,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     // regular APK deploy flow
     if (!myLaunchOptions.isDeploy()) {
       return Collections.emptyList();
+    }
+
+    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      return ImmutableList.of(new DeployIapkTask(myApkProvider.getApks(device)));
     }
 
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
