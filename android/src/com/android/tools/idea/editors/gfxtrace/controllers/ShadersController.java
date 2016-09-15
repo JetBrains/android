@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.lang.glsl.highlighting.GlslSyntax
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceBundle;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
@@ -723,6 +724,10 @@ public class ShadersController extends Controller implements ResourceCollection.
   @Override
   public void onAtomsSelected(AtomRangePath path, Object source) {
     update(false);
+  }
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
   }
 
   // A LoadablePanel class that populates the Editor component with shader source code when it has been fetched.

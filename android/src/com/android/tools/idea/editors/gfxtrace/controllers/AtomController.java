@@ -1194,30 +1194,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
   }
 
-  private void selectContext(@NotNull ContextID id) {
-    AtomStream atoms = myEditor.getAtomStream();
-    Context context = atoms.getContexts().find(id, Context.ALL);
-    if (!context.equals(mySelectedContext)) {
-      mySelectedContext = context;
-
-      AtomTreeModel model = (AtomTreeModel)getModel();
-      if (model.getChildCount(model.getRoot()) == 0) {
-        // if onAtomLoadingComplete has not happened yet, we dont want to load anything.
-        return;
-      }
-
-      // we are switching context, we don't want to try and preserve the selected (it would cause loads of selection changing events)
-      myTree.setSelectionPath(null);
-      updateTree(atoms);
-    }
-  }
-
   @Override
   public void notifyPath(PathEvent event) {
-    ContextPath contextPath = event.findContextPath();
-    if (contextPath != null) {
-      selectContext(contextPath.getID());
-    }
     if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
       // Only the icons would need to be changed.
       myTree.repaint();
@@ -1272,6 +1250,21 @@ public class AtomController extends TreeController implements AtomStream.Listene
         updateSelection(treePath, false);
       }
     }
+  }
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
+    mySelectedContext = context;
+
+    AtomTreeModel model = (AtomTreeModel)getModel();
+    if (model.getChildCount(model.getRoot()) == 0) {
+      // if onAtomLoadingComplete has not happened yet, we dont want to load anything.
+      return;
+    }
+
+    // we are switching context, we don't want to try and preserve the selected (it would cause loads of selection changing events)
+    myTree.setSelectionPath(null);
+    updateTree(myEditor.getAtomStream());
   }
 
   /**

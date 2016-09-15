@@ -290,5 +290,9 @@ public class TexturesController extends ImagePanelController {
     public void onAtomsSelected(AtomRangePath path, Object source) {
       update(false);
     }
+
+    @Override
+    public void onContextChanged(@NotNull Context context) {
+    }
   }
 }
