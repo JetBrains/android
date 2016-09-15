@@ -21,9 +21,7 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.google.common.collect.Maps;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -35,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
-import java.util.Map;
 import java.util.Set;
 
 public class InstantRunNotificationTask implements LaunchTask {
@@ -111,8 +108,11 @@ public class InstantRunNotificationTask implements LaunchTask {
       }
     };
 
-    String message = "<html>" + AndroidBundle.message("instant.run.notification.ir.broken.for.secondary.user") + "</html";
-    InstantRunManager.NOTIFICATION_GROUP.createNotification("", message, NotificationType.INFORMATION, l).notify(project);
+    InstantRunManager.NOTIFICATION_GROUP.createNotification("",
+                                                            AndroidBundle.message("instant.run.notification.ir.broken.for.secondary.user"),
+                                                            NotificationType.INFORMATION,
+                                                            l)
+      .notify(project);
   }
 
   public static void showNotification(@NotNull Project project, @Nullable InstantRunContext context, @NotNull String notificationText) {
@@ -142,6 +142,9 @@ public class InstantRunNotificationTask implements LaunchTask {
         }
         else if ("learnmore".equals(description)) {
           BrowserUtil.browse("http://developer.android.com/r/studio-ui/instant-run.html", project);
+        }
+        else if ("updategradle".equals(description)) {
+          InstantRunConfigurable.updateProjectToInstantRunTools(project, null);
         }
       }
     };
