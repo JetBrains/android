@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
@@ -79,7 +80,8 @@ public class GradleApkProvider implements ApkProvider {
     List<ApkInfo> apkList = Lists.newArrayList();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
-    if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+    int projectType = androidModel.getProjectType();
+    if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
       File apk = getApk(selectedVariant, device);
       apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }

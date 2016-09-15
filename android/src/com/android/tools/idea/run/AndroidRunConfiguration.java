@@ -16,7 +16,6 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.apk.AndroidApkFacet;
-import com.android.tools.idea.apk.ApkProjects;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -61,6 +60,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
@@ -207,13 +208,21 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
+    String extraFlags = ACTIVITY_EXTRA_FLAGS;
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      // The following flag is temporary routing the URL directly to the supervisor until updates to play / chrome are rolled out.
+      extraFlags += " -n \"com.google.android.instantapps.supervisor/.UrlHandler\"";
+      // This will cause the instant app supervisor to wait for the debugger, not the actual instant app.
+      waitForDebugger = false;
+    }
+
     final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
       getAndroidDebuggerContext().getAndroidDebugger(),
       getAndroidDebuggerContext().getAndroidDebuggerState(),
       getProfilerState(),
       getProject(),
       waitForDebugger,
-      ACTIVITY_EXTRA_FLAGS);
+      extraFlags);
 
     try {
       return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
@@ -233,6 +242,14 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state instanceof SpecificActivityLaunch.State;
     ((SpecificActivityLaunch.State)state).ACTIVITY_CLASS = activityName;
+  }
+
+  public void setLaunchUrl(@NotNull String url) {
+    MODE = LAUNCH_DEEP_LINK;
+
+    final LaunchOptionState state = getLaunchOptionState(LAUNCH_DEEP_LINK);
+    assert state instanceof DeepLinkLaunch.State;
+    ((DeepLinkLaunch.State)state).DEEP_LINK = url;
   }
 
   public boolean isLaunchingActivity(@Nullable String activityName) {
