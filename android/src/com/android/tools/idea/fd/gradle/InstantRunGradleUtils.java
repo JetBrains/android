@@ -46,6 +46,9 @@ public class InstantRunGradleUtils {
     }
 
     if (!modelSupportsInstantRun(model)) {
+      if (model.getAndroidProject().getPluginGeneration() == AndroidProject.GENERATION_COMPONENT) {
+        return InstantRunGradleSupport.USES_EXPERIMENTAL_PLUGIN;
+      }
       return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
     }
 
