@@ -217,14 +217,30 @@ public class TreeGrid<T> extends Box {
 
   @Override
   public void requestFocus() {
-    JList<T> list = getSelectedList();
-    if (list == null) {
-      selectFirst();
-      list = getSelectedList();
+    JComponent component = getFocusRecipient();
+    if (component != null) {
+      component.requestFocus();
     }
-    if (list != null) {
-      list.requestFocus();
+  }
+
+  @Nullable
+  public JComponent getFocusRecipient() {
+    JList<T> firstVisible = null;
+    for (JList<T> list : myLists) {
+      if (list.isVisible()) {
+        //noinspection IfStatementWithIdenticalBranches
+        if (list.getSelectedIndex() != -1) {
+          return list;
+        }
+        else if (firstVisible == null && list.getModel().getSize() > 0) {
+          firstVisible = list;
+        }
+      }
     }
+    if (firstVisible != null) {
+      setSelectedElement(firstVisible.getModel().getElementAt(0));
+    }
+    return firstVisible;
   }
 
   @Nullable

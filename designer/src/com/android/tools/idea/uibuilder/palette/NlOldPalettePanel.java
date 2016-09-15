@@ -32,6 +32,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.uibuilder.editor.PaletteToolWindow;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
@@ -40,7 +41,6 @@ import com.android.tools.idea.uibuilder.structure.ToggleBoundsVisibility;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -75,6 +75,7 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -97,9 +98,9 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlOldPalettePanel extends JPanel
-  implements LightToolWindowContent, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
+  implements PaletteToolWindow, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
 
-  private static final Insets INSETS = new Insets(0, 6, 0, 6);
+  private static final Insets INSETS = JBUI.insets(0, 6);
   private static final int ICON_SPACER = 4;
 
   private final Project myProject;
@@ -157,16 +158,13 @@ public class NlOldPalettePanel extends JPanel
     return panel;
   }
 
-  @NotNull
-  public JComponent getFocusedComponent() {
-    return myPaletteTree;
-  }
-
-  public void activatePalette() {
+  @Override
+  public void requestFocusInPalette() {
     myPaletteTree.requestFocus();
   }
 
-  public void activateComponentTree() {
+  @Override
+  public void requestFocusInComponentTree() {
     myStructureTree.requestFocus();
   }
 
@@ -186,6 +184,28 @@ public class NlOldPalettePanel extends JPanel
     }
   }
 
+  private static class ToggleModeAction extends ToggleAction {
+    private final NlOldPalettePanel myPalette;
+    private final Mode myMode;
+
+    private ToggleModeAction(@NotNull NlOldPalettePanel palette, @NotNull Mode mode) {
+      super(mode.getMenuText());
+      myPalette = palette;
+      myMode = mode;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent event) {
+      return myMode == myPalette.getMode();
+    }
+
+    @Override
+    public void setSelected(AnActionEvent event, boolean unused) {
+      myPalette.setMode(myMode);
+    }
+  }
+
+  @Override
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
     myStructureTree.setDesignSurface(designSurface);
     Module prevModule = null;
@@ -254,7 +274,7 @@ public class NlOldPalettePanel extends JPanel
       background = UIUtil.getTreeBackground();
     }
     else {
-      ResourceValue windowBackground = resolver.findItemInTheme("colorBackground", true);
+      ResourceValue windowBackground = resolver.findItemInTheme("background", true);
       background = ResourceHelper.resolveColor(resolver, windowBackground, myProject);
       if (background == null) {
         background = UIUtil.getTreeBackground();
@@ -290,7 +310,18 @@ public class NlOldPalettePanel extends JPanel
     return null;
   }
 
+  @Override
+  public JComponent getDesignerComponent() {
+    return this;
+  }
+
+  @Override
+  public JComponent getFocusedComponent() {
+    return myPaletteTree;
+  }
+
   @NotNull
+  @Override
   public AnAction[] getActions() {
     return new AnAction[]{new OptionAction()};
   }
@@ -319,8 +350,8 @@ public class NlOldPalettePanel extends JPanel
 
   private void showOptionPopup(@NotNull Component component, int x, int y) {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new TogglePaletteModeAction(this, Mode.ICON_AND_TEXT));
-    group.add(new TogglePaletteModeAction(this, Mode.PREVIEW));
+    group.add(new ToggleModeAction(this, Mode.ICON_AND_TEXT));
+    group.add(new ToggleModeAction(this, Mode.PREVIEW));
 
     if (Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
       group.addSeparator();
@@ -724,7 +755,7 @@ public class NlOldPalettePanel extends JPanel
       BufferedImage image = null;
       if (myLastDragImage != null && myDesignSurface != null) {
         double scale = myDesignSurface.getScale();
-        image = ImageUtils.scale(myLastDragImage, scale, scale);
+        image = ImageUtils.scale(myLastDragImage, scale);
         myLastDragImage = null;
       }
       if (image == null) {
