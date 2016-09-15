@@ -19,7 +19,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.ast.CompilationUnit;
 import lombok.ast.TypeDeclaration;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import static com.android.tools.lint.client.api.JavaParser.*;
 

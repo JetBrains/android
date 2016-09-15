@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.testing.TestProjectPathsGenerator.TestProjectPathsInfo;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;

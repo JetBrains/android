@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 
 import java.io.File;
 

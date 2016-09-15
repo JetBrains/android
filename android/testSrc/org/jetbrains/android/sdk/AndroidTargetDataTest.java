@@ -19,7 +19,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.BufferedReader;
 import java.io.File;

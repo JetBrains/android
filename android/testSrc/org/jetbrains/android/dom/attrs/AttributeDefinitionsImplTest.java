@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 

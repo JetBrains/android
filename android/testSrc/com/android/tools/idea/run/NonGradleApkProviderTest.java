@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElementFactory;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.android.compiler.artifact.AndroidFinalPackageElement;
 import org.mockito.Mockito;

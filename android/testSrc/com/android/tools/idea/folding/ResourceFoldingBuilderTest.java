@@ -16,7 +16,7 @@
 package com.android.tools.idea.folding;
 
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 public class ResourceFoldingBuilderTest extends AndroidTestCase {
 

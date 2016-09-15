@@ -19,7 +19,7 @@ import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.PsiAnnotation;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import static org.mockito.Mockito.mock;

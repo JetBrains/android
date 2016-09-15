@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidModuleStepDynamic;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;

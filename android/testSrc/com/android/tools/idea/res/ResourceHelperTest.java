@@ -22,7 +22,7 @@ import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.awt.*;
 import java.util.EnumSet;

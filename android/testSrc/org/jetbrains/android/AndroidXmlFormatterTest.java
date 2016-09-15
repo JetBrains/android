@@ -8,13 +8,11 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.IOException;
 import java.util.Arrays;

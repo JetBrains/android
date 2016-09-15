@@ -21,6 +21,8 @@ import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
+import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
