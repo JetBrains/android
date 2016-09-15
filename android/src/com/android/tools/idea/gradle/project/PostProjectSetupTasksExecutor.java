@@ -325,31 +325,21 @@ public class PostProjectSetupTasksExecutor {
   // Pair: plugin version, gradle version. Both non-null if the pair is not null.
   static Pair<GradleVersion, GradleVersion> checkCompatibility(@NotNull GradleVersion gradleVersion,
                                                                @NotNull AndroidGradleModelVersions modelVersions) {
-    GradleVersion pluginVersionToUpdateTo = null;
-    GradleVersion gradleVersionToUpdateTo = null;
 
-    boolean isStable = isStableVersion(modelVersions);
-    String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, modelVersions.isExperimentalPlugin());
+    List<String> latestPluginVersionsWithSecurityFix = getLatestPluginVersionsWithSecurityFix(modelVersions.isExperimentalPlugin());
     GradleVersion pluginVersion = modelVersions.getCurrent();
 
-    if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) < 0 &&
-        pluginVersion.compareTo(latestPluginVersionWithSecurityFix) >= 0) {
-      // plugin 2.1.3+ and Gradle older than 2.14.1.
-      pluginVersionToUpdateTo = pluginVersion;
-      gradleVersionToUpdateTo = GRADLE_VERSION_WITH_SECURITY_FIX;
+    if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) >= 0) {
+      for (String pluginVersionWithSecurityFix : latestPluginVersionsWithSecurityFix) {
+        if (pluginVersion.compareTo(pluginVersionWithSecurityFix) >= 0) {
+          return null;
+        }
+      }
+      return Pair.create(modelVersions.getLatest(), GradleVersion.parse(GRADLE_LATEST_VERSION));
     }
-    else if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) >= 0 &&
-             pluginVersion.compareTo(latestPluginVersionWithSecurityFix) < 0) {
-      // plugin version older than 2.1.3 and Gradle 2.14.1+
-      pluginVersionToUpdateTo = GradleVersion.parse(latestPluginVersionWithSecurityFix);
-      gradleVersionToUpdateTo = gradleVersion;
+    else {
+      return null;
     }
-
-    if (pluginVersionToUpdateTo != null) {
-      return Pair.create(pluginVersionToUpdateTo, gradleVersionToUpdateTo); // Not compatible. These are the versions to update in the IDE.
-    }
-
-    return null; // Versions are compatible.
   }
 
   private void reset() {
@@ -365,17 +355,18 @@ public class PostProjectSetupTasksExecutor {
     }
 
     // Very unlikely that Gradle version is null.
+    // Gradle is older than 2.14.1
     if (recommendedGradleVersion.compareIgnoringQualifiers(gradleVersion) > 0) {
-      String latestPluginVersion = null;
       boolean updatePluginVersion = false;
 
       if (modelVersions != null) {
-        boolean stable = isStableVersion(modelVersions);
-        latestPluginVersion = getLatestPluginVersionWithSecurityFix(stable, modelVersions.isExperimentalPlugin());
-        updatePluginVersion = modelVersions.getCurrent().compareTo(latestPluginVersion) < 0;
+        List<String> latestPluginVersionsWithSecurityFix = getLatestPluginVersionsWithSecurityFix(modelVersions.isExperimentalPlugin());
+        GradleVersion currentModelVersion = modelVersions.getCurrent();
+        String previousStable = latestPluginVersionsWithSecurityFix.get(0);
+        updatePluginVersion = currentModelVersion.compareTo(previousStable) < 0;
       }
 
-      GradleVersion newPluginVersion = updatePluginVersion ? GradleVersion.parse(latestPluginVersion) : null;
+      GradleVersion newPluginVersion = updatePluginVersion ? GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION) : null;
       GradleVersionRecommendedUpdateDialog dialog =
         new GradleVersionRecommendedUpdateDialog(myProject, recommendedGradleVersion, newPluginVersion);
       if (dialog.showAndGet()) {
@@ -418,23 +409,12 @@ public class PostProjectSetupTasksExecutor {
     return false;
   }
 
-  private static boolean isStableVersion(@NotNull AndroidGradleModelVersions modelVersions) {
-    String latestPreviewVersion = modelVersions.isExperimentalPlugin() ? "0.8.0" : "2.2.0";
-    return modelVersions.getCurrent().compareIgnoringQualifiers(latestPreviewVersion) < 0;
-  }
-
   @NotNull
-  private static String getLatestPluginVersionWithSecurityFix(boolean isStable, boolean experimental) {
-    return isStable ? latestStablePluginWithSecurityFix(experimental) : latestPreviewPluginWithSecurityFix(experimental);
-  }
-
-  private static String latestStablePluginWithSecurityFix(boolean experimentalPlugin) {
-    return experimentalPlugin ? "0.8.0" : "2.2.0";
-  }
-
-  @NotNull
-  private static String latestPreviewPluginWithSecurityFix(boolean experimentalPlugin) {
-    return experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION : GRADLE_PLUGIN_RECOMMENDED_VERSION;
+  private static List<String> getLatestPluginVersionsWithSecurityFix(boolean experimental) {
+    if (experimental) {
+      return Lists.newArrayList("0.7.3", GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION);
+    }
+    return Lists.newArrayList("2.1.3", GRADLE_PLUGIN_RECOMMENDED_VERSION);
   }
 
   private boolean shouldForcePluginVersionUpgrade(@NotNull AndroidGradleModelVersions modelVersions) {
