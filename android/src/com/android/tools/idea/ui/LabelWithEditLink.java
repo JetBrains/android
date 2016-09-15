@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.ui;
 
-import com.android.tools.idea.ui.DocumentAccessor;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.TextAccessor;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.Document;
 import java.awt.*;
 
@@ -35,88 +31,77 @@ import java.awt.*;
 public class LabelWithEditLink extends JPanel implements DocumentAccessor  {
   private static final String EDIT_TEXT = "<html><a>Edit</a></html>";
   private static final String DONE_TEXT = "<html><a>Done</a></html>";
-  public static final String DISPLAY = "Display";
-  public static final String EDIT = "Edit";
-  private JBLabel myContentLabel = new JBLabel();
-  private HyperlinkLabel myEditLabel = new HyperlinkLabel();
-  private CardLayout myCardLayout = new CardLayout();
-  private JPanel myCardPanel = new JPanel(myCardLayout);
-  private JTextField myEditField = new JTextField();
 
-  private boolean myInEditMode = false;
+  private final HyperlinkLabel myLinkLabel = new HyperlinkLabel();
+  private final JTextField myTextField = new JTextField() {
+    @Override
+    public Border getBorder() {
+      // createEmptyBorder() always returns the same instance
+      return isEnabled() ? super.getBorder() : BorderFactory.createEmptyBorder();
+    }
+
+    @Override
+    public Color getBackground() {
+      return (isEnabled() || getParent() == null) ? super.getBackground() : getParent().getBackground();
+    }
+  };
 
   public LabelWithEditLink() {
-    setLayout(new BorderLayout());
-    myCardPanel.add(EDIT, myEditField);
-    myCardPanel.add(DISPLAY, myContentLabel);
-    myCardPanel.revalidate();
-    myCardPanel.repaint();
-    myCardLayout.show(myCardPanel, DISPLAY);
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-    add(myCardPanel, BorderLayout.CENTER);
-    add(myEditLabel, BorderLayout.EAST);
+    add(myTextField);
+    add(myLinkLabel);
 
-    myContentLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
-    myEditLabel.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
-          toggleEdit();
-        }
+    // Start with "edit" and disabled
+    myLinkLabel.setHtmlText(EDIT_TEXT);
+    myTextField.setEnabled(false);
+
+    myLinkLabel.addHyperlinkListener(e -> {
+      if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+        toggleEdit();
       }
     });
-    myContentLabel.setForeground(JBColor.gray);
+
     setFont(UIUtil.getLabelFont());
-    myEditLabel.setHtmlText(EDIT_TEXT);
   }
 
   private void toggleEdit() {
-    if (myInEditMode) {
-      myCardLayout.show(myCardPanel, DISPLAY);
-      myEditLabel.setHtmlText(EDIT_TEXT);
-      myContentLabel.setText(myEditField.getText());
-    } else {
-      myCardLayout.show(myCardPanel, EDIT);
-      myEditLabel.setHtmlText(DONE_TEXT);
-      myEditField.setText(myContentLabel.getText());
-      myEditField.requestFocusInWindow();
+    boolean isEnabled = myTextField.isEnabled();
+    myLinkLabel.setHtmlText(isEnabled ? EDIT_TEXT : DONE_TEXT);
+    myTextField.setEnabled(!isEnabled);
+
+    if (!isEnabled) {
+      myTextField.requestFocusInWindow();
     }
-    myInEditMode = !myInEditMode;
   }
 
+  @Override
   public void setText(@NotNull String text) {
-    myEditField.setText(text);
-    myContentLabel.setText(text);
+    myTextField.setText(text);
   }
 
+  @Override
   @NotNull
   public String getText() {
-    if (myEditField.getText() != null) {
-      return myEditField.getText();
-    }
-    if (myContentLabel.getText() != null) {
-      return myContentLabel.getText();
-    }
-    return "";
+    return myTextField.getText();
   }
 
   @Override
   public void setFont(Font font) {
-    if (font == null || myContentLabel == null) {
-      return;
-    }
     super.setFont(font);
-    myContentLabel.setFont(font);
-    float smallFontSize = font.getSize() - 1;
-    if (smallFontSize <= 0) {
-      smallFontSize = font.getSize();
+
+    if (font != null && myLinkLabel != null) {
+      myTextField.setFont(font);
+
+      float smallFontSize = font.getSize() - 1; // deriveFont() takes a float
+      Font smallerFont = (smallFontSize <= 0) ? font : font.deriveFont(smallFontSize);
+      myLinkLabel.setFont(smallerFont);
     }
-    Font smallerFont = font.deriveFont(smallFontSize);
-    myEditLabel.setFont(smallerFont);
   }
 
+  @Override
   @NotNull
   public Document getDocument() {
-    return myEditField.getDocument();
+    return myTextField.getDocument();
   }
 }
