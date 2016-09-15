@@ -158,7 +158,7 @@ public class DistributionChartComponent extends JPanel {
 
   @Override
   public Dimension getMinimumSize() {
-    return JBUI.size(300, 300);
+    return JBUI.size(450, 450);
   }
 
   @SuppressWarnings("StringToUpperCaseOrToLowerCaseWithoutLocale")
@@ -239,7 +239,10 @@ public class DistributionChartComponent extends JPanel {
         smallItemCount++;
       }
     }
-    heightToDistribute -= (int)Math.round(smallItemCount * MIN_PERCENTAGE_HEIGHT * heightToDistribute);
+
+    Font minApiLevelFont = REGULAR_WEIGHT_FONT.deriveFont(logistic(MIN_PERCENTAGE_HEIGHT, MIN_API_FONT_SIZE, MAX_API_FONT_SIZE));
+    int minBoxHeight = Math.max((int)Math.round(MIN_PERCENTAGE_HEIGHT * heightToDistribute), g.getFontMetrics(minApiLevelFont).getHeight());
+    heightToDistribute = Math.max(0, heightToDistribute - smallItemCount * minBoxHeight);
 
     int startY = (2 * titleHeight) + HEADER_TO_BODY_SPACING;
     int i = 0;
@@ -247,7 +250,7 @@ public class DistributionChartComponent extends JPanel {
       // Draw the colored rectangle
       g.setColor(RECT_COLORS[i % RECT_COLORS.length]);
       double effectivePercentage = Math.max(d.getDistributionPercentage(), MIN_PERCENTAGE_HEIGHT);
-      int calculatedHeight = (int)Math.round(effectivePercentage * heightToDistribute);
+      int calculatedHeight = Math.max(minBoxHeight, (int)Math.round(effectivePercentage * heightToDistribute));
       int bottom = startY + calculatedHeight;
 
       if (d.equals(mySelectedDistribution)) {
