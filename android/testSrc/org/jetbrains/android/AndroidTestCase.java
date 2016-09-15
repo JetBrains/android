@@ -84,9 +84,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    // this will throw an exception if we don't have a full Android SDK, so we need to do this first thing before any other setup
-    String sdkPath = getTestSdkPath();
-
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
@@ -111,7 +108,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // the manifest on their own.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir(), isToAddSdk());
+    myFacet = addAndroidFacet(myModule, isToAddSdk());
 
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
@@ -128,7 +125,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     for (MyAdditionalModuleData data : modules) {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      final AndroidFacet facet = addAndroidFacet(additionalModule, sdkPath, getPlatformDir());
+      final AndroidFacet facet = addAndroidFacet(additionalModule);
       facet.setProjectType(data.myProjectType);
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
@@ -155,9 +152,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
-
-    // If we do not need a recent target, we disable the studio embedded target to allow tests to pick the test SDK in the testData
-    StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(!requireRecentSdk());
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
@@ -272,7 +266,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected void tearDown() throws Exception {
     try {
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-      StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
       myModule = null;
       myAdditionalModules = null;
       myFixture.tearDown();
@@ -292,16 +285,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
   }
 
-  public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {
-    return addAndroidFacet(module, sdkPath, platformDir, true);
+  public static AndroidFacet addAndroidFacet(Module module) {
+    return addAndroidFacet(module, true);
   }
 
-  public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir, boolean addSdk) {
+  public static AndroidFacet addAndroidFacet(Module module, boolean addSdk) {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
 
     if (addSdk) {
-      addAndroidSdk(module, sdkPath, platformDir);
+      addLatestAndroidSdk(module);
     }
     final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);

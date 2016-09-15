@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android;
 
-import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.application.PathManager;
@@ -32,7 +32,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
@@ -53,9 +52,6 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalD
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
-
-  /** Environment variable or system property pointing to the directory name of the platform inside $sdk/platforms, e.g. "android-17" */
-  private static final String PLATFORM_DIR_PROPERTY = "ADT_TEST_PLATFORM";
 
   protected JavaCodeInsightTestFixture myFixture;
 
@@ -94,93 +90,20 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
   }
 
-  public static String getDefaultTestSdkPath() {
-    return getTestDataPath() + "/sdk1.5";
-  }
-
-  public static String getDefaultPlatformDir() {
-    return "android-1.5";
-  }
-
-  protected String getTestSdkPath() {
-    if (requireRecentSdk()) {
-      String override = getRecentSdkPath();
-      if (override != null) {
-        return override;
-      }
-      fail("This unit test requires " + SdkConstants.ANDROID_HOME_ENV + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
-    }
-
-    return getDefaultTestSdkPath();
-  }
-
-  @Nullable
-  public static String getRecentSdkPath() {
-    String override = System.getProperty(SdkConstants.ANDROID_HOME_ENV);
-    if (override != null) {
-      assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getProperty(PLATFORM_DIR_PROPERTY) != null);
-      assertTrue(override, new File(override).exists());
-      return override;
-    }
-    override = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    if (override != null) {
-      assertTrue("Must also define " + PLATFORM_DIR_PROPERTY, System.getenv(PLATFORM_DIR_PROPERTY) != null);
-      return override;
-    }
-
-    return null;
-  }
-
-  protected String getPlatformDir() {
-    if (requireRecentSdk()) {
-      String override = getRecentPlatformDir();
-      if (override != null) {
-        return override;
-      }
-      fail("This unit test requires " + SdkConstants.ANDROID_HOME_ENV + " and " + PLATFORM_DIR_PROPERTY + " to be defined.");
-    }
-    return getDefaultPlatformDir();
-  }
-
-  @Nullable
-  public static String getRecentPlatformDir() {
-    String override = System.getProperty(PLATFORM_DIR_PROPERTY);
-    if (override != null) {
-      return override;
-    }
-    override = System.getenv(PLATFORM_DIR_PROPERTY);
-    if (override != null) {
-      return override;
-    }
-    return null;
-  }
-
-  /** Is the bundled (incomplete) SDK install adequate or do we need to find a valid install? */
-  protected boolean requireRecentSdk() {
-    return false;
-  }
-
-  protected static void addAndroidSdk(Module module, String sdkPath, String platformDir) {
-    Sdk androidSdk = createAndroidSdk(sdkPath, platformDir);
+  protected static void addLatestAndroidSdk(Module module) {
+    Sdk androidSdk = createLatestAndroidSdk();
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
   }
 
-  public static Sdk createAndroidSdk(String sdkPath, String platformDir) {
+  public static Sdk createLatestAndroidSdk() {
+    String sdkPath = TestUtils.getSdk().toString();
+    String platformDir = TestUtils.getLatestAndroidPlatform();
+
     Sdk sdk = ProjectJdkTable.getInstance().createSdk("android_test_sdk", AndroidSdkType.getInstance());
     SdkModificator sdkModificator = sdk.getSdkModificator();
     sdkModificator.setHomePath(sdkPath);
 
-    VirtualFile androidJar;
-    if (platformDir.equals(getDefaultPlatformDir())) {
-      // Compatibility: the unit tests were using android.jar outside the sdk1.5 install;
-      // we need to use that one, rather than the real one in sdk1.5, in order for the
-      // tests to pass. Longer term, we should switch the unit tests over to all using
-      // a valid SDK.
-      String androidJarPath = sdkPath + "/../android.jar!/";
-      androidJar = JarFileSystem.getInstance().findFileByPath(androidJarPath);
-    } else {
-      androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
-    }
+    VirtualFile androidJar = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar");
     sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
 
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
@@ -194,17 +117,12 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     assertNotNull(sdkData);
-    IAndroidTarget target = sdkData.findTargetByName("Android 4.2"); // TODO: Get rid of this hardcoded version number
-    if (target == null) {
-      IAndroidTarget[] targets = sdkData.getTargets();
-      for (IAndroidTarget t : targets) {
-        if (t.getLocation().contains(platformDir)) {
-          target = t;
-          break;
-        }
-      }
-      if (target == null && targets.length > 0) {
-        target = targets[targets.length - 1];
+    IAndroidTarget target = null;
+    IAndroidTarget[] targets = sdkData.getTargets();
+    for (IAndroidTarget t : targets) {
+      if (t.getLocation().contains(platformDir)) {
+        target = t;
+        break;
       }
     }
     assertNotNull(target);
@@ -232,7 +150,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
-    Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
+    Sdk androidSdk = createLatestAndroidSdk();
     AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
