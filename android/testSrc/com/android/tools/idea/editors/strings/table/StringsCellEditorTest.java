@@ -20,7 +20,7 @@ import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.table.JBTable;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

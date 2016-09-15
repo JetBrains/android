@@ -6,6 +6,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;

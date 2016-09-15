@@ -22,6 +22,7 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

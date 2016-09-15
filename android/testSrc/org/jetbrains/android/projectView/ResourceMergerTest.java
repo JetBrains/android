@@ -4,7 +4,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.openapi.module.Module;
 import com.intellij.projectView.BaseProjectViewTestCase;
 import com.intellij.psi.PsiDirectory;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.IOException;
 

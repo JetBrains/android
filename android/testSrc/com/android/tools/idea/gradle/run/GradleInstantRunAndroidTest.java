@@ -21,7 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.hash.HashCode;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import static org.junit.Assert.assertNotEquals;
 

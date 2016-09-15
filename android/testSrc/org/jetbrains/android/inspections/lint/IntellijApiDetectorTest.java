@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;

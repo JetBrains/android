@@ -17,7 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.annotations.Nullable;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 

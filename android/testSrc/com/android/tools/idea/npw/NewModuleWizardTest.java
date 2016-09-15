@@ -25,7 +25,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import javax.swing.*;
 import java.io.File;

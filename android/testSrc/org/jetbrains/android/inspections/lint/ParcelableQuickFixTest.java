@@ -29,7 +29,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

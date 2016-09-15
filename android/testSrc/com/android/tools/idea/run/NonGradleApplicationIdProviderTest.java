@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 /**
  * Tests for {@link NonGradleApplicationIdProvider}.

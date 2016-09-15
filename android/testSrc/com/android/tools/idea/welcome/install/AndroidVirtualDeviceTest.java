@@ -32,12 +32,11 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestBase;
 
 import java.io.File;
 import java.util.Map;

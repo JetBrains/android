@@ -28,7 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;

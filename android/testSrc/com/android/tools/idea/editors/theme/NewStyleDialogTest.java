@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 public class NewStyleDialogTest extends AndroidTestCase {
   public void testNewStyleNameSuggestion() {

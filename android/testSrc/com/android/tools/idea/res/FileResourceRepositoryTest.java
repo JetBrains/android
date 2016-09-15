@@ -24,7 +24,7 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

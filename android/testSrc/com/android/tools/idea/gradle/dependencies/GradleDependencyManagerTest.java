@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;

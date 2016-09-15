@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.facet.FacetManager;

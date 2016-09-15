@@ -17,7 +17,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.UsefulTestCase;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;

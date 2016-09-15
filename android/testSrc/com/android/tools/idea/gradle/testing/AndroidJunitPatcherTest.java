@@ -30,7 +30,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 
 import java.io.File;
