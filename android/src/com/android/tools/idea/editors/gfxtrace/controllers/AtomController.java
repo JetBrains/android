@@ -48,6 +48,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -865,6 +866,29 @@ public class AtomController extends TreeController implements AtomStream.Listene
     myTree.addMouseListener(mouseHandler);
     myTree.addMouseMotionListener(mouseHandler);
     myTree.addMouseWheelListener(mouseHandler);
+
+    setNavigableComponentAction(myTree, new AbstractAction("Jump to command") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AtomRangePath selectedAtomsPath = editor.getAtomStream().getSelectedAtomsPath();
+        long selectedAtomIndex = selectedAtomsPath == null ? 0 : selectedAtomsPath.getLast();
+        long max = editor.getAtomStream().getAtomCount() - 1;
+        JSpinner spinner = new JSpinner(new SpinnerNumberModel((Number)selectedAtomIndex, 0L, max, 1));
+
+        int result = JOptionPane.showOptionDialog(editor.getComponent(), spinner, (String)getValue(Action.NAME),
+                                                  JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                                                  null, null, null);
+        if (result == JOptionPane.OK_OPTION) {
+          long atomIndex = (Long)spinner.getValue();
+          editor.getAtomStream().selectAtoms(atomIndex, 1, this);
+        }
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return editor.getAtomStream().isLoaded();
+      }
+    });
   }
 
   @NotNull
