@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
 

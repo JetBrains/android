@@ -26,7 +26,7 @@ import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 

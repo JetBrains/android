@@ -24,7 +24,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.IOException;
 

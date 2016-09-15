@@ -27,7 +27,7 @@ import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.openapi.project.Project;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

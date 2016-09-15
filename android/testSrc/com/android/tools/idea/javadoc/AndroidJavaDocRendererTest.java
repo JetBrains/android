@@ -21,7 +21,7 @@ import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {

@@ -3,6 +3,7 @@ package org.jetbrains.android;
 import com.intellij.codeInsight.navigation.CtrlMouseHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiReference;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 /**
  * @author Eugene.Kudelevsky

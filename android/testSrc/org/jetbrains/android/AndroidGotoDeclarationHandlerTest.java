@@ -25,6 +25,7 @@ import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.AndroidValueResourcesTest;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.ui;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.Stack;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import javax.swing.*;
 import java.io.File;

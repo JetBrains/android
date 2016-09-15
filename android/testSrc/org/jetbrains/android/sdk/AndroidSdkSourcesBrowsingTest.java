@@ -19,7 +19,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import org.jetbrains.android.AndroidSdkResolveScopeProvider;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;

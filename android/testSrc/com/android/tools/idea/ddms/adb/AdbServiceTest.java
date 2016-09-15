@@ -18,7 +18,7 @@ package com.android.tools.idea.ddms.adb;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import java.util.concurrent.ExecutionException;

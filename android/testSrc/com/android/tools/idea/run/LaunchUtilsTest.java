@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 

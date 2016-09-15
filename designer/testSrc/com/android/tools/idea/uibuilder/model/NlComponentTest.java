@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.util.Arrays;
 import java.util.Collections;

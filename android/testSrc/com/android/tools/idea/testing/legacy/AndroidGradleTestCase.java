@@ -1,19 +1,19 @@
 /*
- * Copyright 2000-2009 JetBrains s.r.o.
+ * Copyright (C) 2016 The Android Open Source Project
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-package com.android.tools.idea.testing;
+package com.android.tools.idea.testing.legacy;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.testing.Modules;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -56,7 +57,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
-import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
@@ -84,7 +85,9 @@ import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
@@ -93,7 +96,11 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
- * Base class for unit tests that operate on Gradle projects
+ * A (soon to be obsolete) base class for unit tests that operate on Gradle projects.
+ * We will incrementally convert over children tests to a new base class that instead depends on
+ * our test SDK checked into prebuilts/studio/sdk.
+ *
+ * @deprecated Convert tests to use {@link com.android.tools.idea.testing.AndroidGradleTestCase} instead
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);

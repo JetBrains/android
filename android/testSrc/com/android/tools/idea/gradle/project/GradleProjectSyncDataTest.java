@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.PathUtil;
 

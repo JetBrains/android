@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

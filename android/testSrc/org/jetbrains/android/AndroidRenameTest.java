@@ -36,6 +36,7 @@ import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

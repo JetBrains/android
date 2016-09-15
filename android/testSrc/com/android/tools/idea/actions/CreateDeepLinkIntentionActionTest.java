@@ -20,7 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 public class CreateDeepLinkIntentionActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "deeplink/";

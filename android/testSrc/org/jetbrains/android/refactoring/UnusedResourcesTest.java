@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 /**
  * This tests unused resource removal for a JPS project. The gradle scenario is

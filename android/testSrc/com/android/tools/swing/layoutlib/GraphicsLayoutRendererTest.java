@@ -18,7 +18,7 @@ package com.android.tools.swing.layoutlib;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
