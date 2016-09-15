@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
@@ -28,10 +29,13 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.android.tools.swing.util.BigSpinnerNumberModel;
+import com.android.tools.swing.util.HexFormatter;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.UnsignedLong;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -62,11 +66,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.Segment;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -241,7 +248,37 @@ public class MemoryController extends Controller {
 
   private void update() {
     myLoading.stopLoading();
-    myScrollPane.setViewportView(new MemoryPanel(myDataType.getMemoryModel(myMemoryData)));
+    MemoryPanel memoryPanel = new MemoryPanel(myDataType.getMemoryModel(myMemoryData));
+    myScrollPane.setViewportView(memoryPanel);
+
+    setNavigableComponentAction(memoryPanel, new AbstractAction("Jump to address") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // we can't use Long as then comparison with other Longs will fail, and we NEED to compare to numbers, not just Comparable
+        JSpinner spinner = new JSpinner(
+          new BigSpinnerNumberModel(UnsignedLong.fromLongBits(myMemoryData.getAddress()).bigIntegerValue(), BigInteger.ZERO,
+                                    UnsignedLong.MAX_VALUE.bigIntegerValue(), 1));
+        ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setFormatterFactory(new DefaultFormatterFactory(){
+          @Override
+          public JFormattedTextField.AbstractFormatter getDefaultFormatter() {
+            return new HexFormatter();
+          }
+        });
+
+        int result = JOptionPane.showOptionDialog(myEditor.getComponent(), spinner, (String)getValue(Action.NAME),
+                                                  JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                                                  null, null, null);
+        if (result == JOptionPane.OK_OPTION) {
+          myEditor.activatePath(
+            myAtomPath.memoryAfter(MemoryProtos.PoolNames.Application_VALUE, new MemoryRange().setBase(((Number)spinner.getValue()).longValue())), this);
+        }
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return myEditor.getAtomStream().isLoaded();
+      }
+    });
   }
 
   private enum DataType {
