@@ -20,11 +20,11 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 
 public class TogglePaletteModeAction extends ToggleAction {
-  private final NlOldPalettePanel myPalette;
-  private final NlOldPalettePanel.Mode myMode;
+  private final NlPalettePanel myPalette;
+  private final PaletteMode myMode;
 
-  public TogglePaletteModeAction(@NotNull NlOldPalettePanel palette, @NotNull NlOldPalettePanel.Mode mode) {
-    super(mode.getMenuText());
+  public TogglePaletteModeAction(@NotNull NlPalettePanel palette, @NotNull PaletteMode mode) {
+    super(mode.getMenuTitle());
     myPalette = palette;
     myMode = mode;
   }

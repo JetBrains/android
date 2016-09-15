@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.editor.NlAbstractWindowManager;
 import com.android.tools.idea.uibuilder.editor.NlPaletteManager;
-import com.android.tools.idea.uibuilder.palette.NlOldPalettePanel;
+import com.android.tools.idea.uibuilder.editor.PaletteToolWindow;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class ShowComponentTreeAction extends LightToolWindowAction<NlOldPalettePanel> {
+public class ShowComponentTreeAction extends LightToolWindowAction<PaletteToolWindow> {
 
   public ShowComponentTreeAction() {
-    super(NlOldPalettePanel.class);
+    super(PaletteToolWindow.class);
   }
 
   @NotNull
@@ -34,7 +34,7 @@ public class ShowComponentTreeAction extends LightToolWindowAction<NlOldPaletteP
   }
 
   @Override
-  protected void actionPerformed(@NotNull NlOldPalettePanel palette) {
-    palette.activateComponentTree();
+  protected void actionPerformed(@NotNull PaletteToolWindow palette) {
+    palette.requestFocusInComponentTree();
   }
 }
