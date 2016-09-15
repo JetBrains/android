@@ -1453,6 +1453,7 @@ public final class GradleUtil {
                                                                    boolean usingExperimentalPlugin,
                                                                    boolean invalidateSyncOnFailure) {
     if (updateGradlePluginVersion(project, pluginVersion, gradleVersion, usingExperimentalPlugin)) {
+      invalidateLastSync(project, "Recommended upgrade");
       GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
       return true;
     }
@@ -1538,19 +1539,15 @@ public final class GradleUtil {
         }
       });
     }
-    else if (alreadyInCorrectVersion.get()) {
-      // No version was updated because the correct version is already applied.
-      return true;
-    }
-
-    if (updateModels && isNotEmpty(gradleVersion)) {
+    boolean gradleUpdated = false;
+    if (isNotEmpty(gradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
         GradleVersion current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
-            updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
+            gradleUpdated = updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
           }
           catch (IOException e) {
             LOG.warn("Failed to update Gradle version in wrapper", e);
@@ -1558,7 +1555,7 @@ public final class GradleUtil {
         }
       }
     }
-    return updateModels;
+    return updateModels || alreadyInCorrectVersion.get() || gradleUpdated;
   }
 
   private static boolean isAndroidPlugin(@NotNull ArtifactDependencyModel dependency, boolean checkForExperimentalPlugin) {
