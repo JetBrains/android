@@ -43,9 +43,9 @@ import java.util.Map;
 public class ChooseApiLevelDialog extends DialogWrapper implements DistributionChartComponent.DistributionSelectionChangedListener {
   private JPanel myPanel;
   private DistributionChartComponent myDistributionChart;
+  private JPanel myChartPanel; // Same as myDistributionChart. The form complains if the binding is not a JPanel (can't be a subclass)
   private JBLabel myDescriptionLeft;
   private JBScrollPane myScrollPane;
-  private JPanel myChartPanel;
   private JBLabel myDescriptionRight;
   private JBLabel myIntroducedLabel;
   private JBLabel myLearnMoreLinkLabel;
@@ -72,10 +72,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    myDistributionChart = new DistributionChartComponent();
     myDistributionChart.registerDistributionSelectionChangedListener(this);
-    myChartPanel.setLayout(new BorderLayout());
-    myChartPanel.add(myDistributionChart, BorderLayout.CENTER);
     myDistributionChart.init();
     myScrollPane.getViewport().setOpaque(false);
     myScrollPane.setOpaque(false);
@@ -137,5 +134,9 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
    */
   public int getSelectedApiLevel() {
     return mySelectedApiLevel;
+  }
+
+  private void createUIComponents() {
+    myChartPanel = myDistributionChart = new DistributionChartComponent();
   }
 }
