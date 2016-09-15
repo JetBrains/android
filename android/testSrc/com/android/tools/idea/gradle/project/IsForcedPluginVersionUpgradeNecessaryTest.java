@@ -27,7 +27,7 @@ import java.util.Collection;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link PostProjectSetupTasksExecutor#isForcedPluginVersionUpgradeNecessary(AndroidGradleModelVersions)}.
+ * Tests for {@link PostProjectSetupTasksExecutor#shouldPreviewBeForcedToUpgradePluginVersion(AndroidGradleModelVersions)}.
  */
 @RunWith(Parameterized.class)
 public class IsForcedPluginVersionUpgradeNecessaryTest {
@@ -59,6 +59,6 @@ public class IsForcedPluginVersionUpgradeNecessaryTest {
   @Test
   public void testIsPluginVersionUpgradeNecessary() {
     AndroidGradleModelVersions modelVersions = new AndroidGradleModelVersions(myCurrent, myLatest, false);
-    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isForcedPluginVersionUpgradeNecessary(modelVersions));
+    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.shouldPreviewBeForcedToUpgradePluginVersion(modelVersions));
   }
 }
