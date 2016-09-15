@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
@@ -138,6 +139,10 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   @Override
   public void onAtomsSelected(AtomRangePath path, Object source) {
     updateBuffer();
+  }
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
   }
 
   private void updateBuffer() {
