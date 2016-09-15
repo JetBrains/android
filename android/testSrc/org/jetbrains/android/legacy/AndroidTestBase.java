@@ -18,6 +18,7 @@ package org.jetbrains.android.legacy;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -216,6 +217,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     assertNotNull(target);
     data.setBuildTarget(target);
     sdkModificator.setSdkAdditionalData(data);
+    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
     sdkModificator.commitChanges();
     return sdk;
   }
