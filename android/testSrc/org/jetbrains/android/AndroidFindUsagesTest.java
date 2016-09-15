@@ -29,6 +29,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
 
 import java.util.*;

@@ -20,7 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

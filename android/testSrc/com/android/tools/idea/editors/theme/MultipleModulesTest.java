@@ -22,7 +22,7 @@ import com.google.common.collect.Collections2;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 

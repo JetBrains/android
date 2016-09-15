@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;

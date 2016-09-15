@@ -17,7 +17,7 @@ import com.google.common.io.Files;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

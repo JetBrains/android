@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android;
+package org.jetbrains.android.legacy;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
@@ -50,6 +50,13 @@ import java.nio.file.Paths;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
+/**
+ * A (soon to be obsolete) base class that depends on ANDROID_HOME / ADT_TEST_PLATFORM env vars.
+ * We will incrementally convert over children tests to a new base class that instead depends on
+ * our test SDK checked into prebuilts/studio/sdk.
+ *
+ * @deprecated Convert tests to use {@link org.jetbrains.android.AndroidTestBase} instead
+ */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
 

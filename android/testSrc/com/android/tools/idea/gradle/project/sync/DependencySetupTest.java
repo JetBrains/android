@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

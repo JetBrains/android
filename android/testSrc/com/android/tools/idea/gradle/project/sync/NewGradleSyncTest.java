@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;

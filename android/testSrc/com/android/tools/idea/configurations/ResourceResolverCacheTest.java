@@ -26,7 +26,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTagValue;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.FrameworkResourceLoader;
 

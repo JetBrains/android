@@ -25,7 +25,7 @@ import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;

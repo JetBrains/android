@@ -18,7 +18,7 @@ package com.android.tools.idea.editors;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 public class AndroidImportFilterTest extends AndroidTestCase {
   public void test() {

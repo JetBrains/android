@@ -23,7 +23,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

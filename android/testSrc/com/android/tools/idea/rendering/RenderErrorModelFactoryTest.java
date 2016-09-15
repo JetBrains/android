@@ -29,8 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import lombok.ast.Try;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -38,7 +37,6 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.print.attribute.standard.Fidelity;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
@@ -48,10 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.android.internal.R.attr.layout;
 import static com.android.tools.idea.rendering.RenderErrorModelFactory.isBuiltByJdk7OrHigher;
-import static com.intellij.icons.AllIcons.General.Tip;
-import static javax.swing.text.html.HTML.Tag.DL;
 
 
 public class RenderErrorModelFactoryTest extends AndroidTestCase {

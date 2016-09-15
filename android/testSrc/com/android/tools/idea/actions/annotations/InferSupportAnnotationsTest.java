@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
-import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.android.legacy.AndroidTestBase;
 
 import java.util.Arrays;
 import java.util.List;

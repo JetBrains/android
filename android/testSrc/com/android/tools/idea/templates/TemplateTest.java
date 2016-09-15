@@ -23,7 +23,7 @@ import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;

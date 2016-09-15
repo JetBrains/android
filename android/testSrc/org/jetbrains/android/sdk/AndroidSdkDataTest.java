@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.File;
 

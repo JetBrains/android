@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 
