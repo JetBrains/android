@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.intellij.lang.annotations.Language;
 
