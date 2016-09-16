@@ -29,7 +29,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

@@ -18,7 +18,7 @@ package com.android.tools.idea.ui;
 import com.google.common.base.Function;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import javax.accessibility.Accessible;
 import javax.swing.*;

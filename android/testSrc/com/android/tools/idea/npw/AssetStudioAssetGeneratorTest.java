@@ -22,7 +22,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 

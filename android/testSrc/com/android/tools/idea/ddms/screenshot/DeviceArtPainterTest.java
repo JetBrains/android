@@ -26,7 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;

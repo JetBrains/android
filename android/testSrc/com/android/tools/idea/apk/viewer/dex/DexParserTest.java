@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.junit.Test;

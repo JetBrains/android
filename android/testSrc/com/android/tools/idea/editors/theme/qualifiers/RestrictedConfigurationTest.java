@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.theme.qualifiers;
 import com.android.ide.common.resources.configuration.*;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.google.common.collect.Lists;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.util.ArrayList;
 import java.util.Collection;

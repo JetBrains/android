@@ -3,7 +3,6 @@ package org.jetbrains.android;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.android.legacy.AndroidTestCase;
 
 /**
  * @author Eugene.Kudelevsky

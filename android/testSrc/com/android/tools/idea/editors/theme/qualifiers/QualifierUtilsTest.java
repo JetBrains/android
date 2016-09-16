@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.LayoutDirection;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class QualifierUtilsTest extends AndroidTestCase {
 

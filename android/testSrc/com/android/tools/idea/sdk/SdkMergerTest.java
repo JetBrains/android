@@ -21,7 +21,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 

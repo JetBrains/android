@@ -19,7 +19,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.collect.ImmutableSet;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.junit.Test;
 
 import java.io.File;

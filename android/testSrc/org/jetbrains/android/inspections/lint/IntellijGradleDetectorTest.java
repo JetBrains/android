@@ -19,7 +19,7 @@ import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -24,7 +24,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;

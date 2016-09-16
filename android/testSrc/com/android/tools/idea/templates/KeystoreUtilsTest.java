@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import freemarker.template.TemplateModelException;
 import junit.framework.TestCase;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 

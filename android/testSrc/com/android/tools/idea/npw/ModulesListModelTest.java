@@ -26,7 +26,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
 import java.util.Collection;

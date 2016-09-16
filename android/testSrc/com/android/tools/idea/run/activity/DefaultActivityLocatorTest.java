@@ -17,7 +17,7 @@ package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 
 import static org.mockito.Mockito.mock;

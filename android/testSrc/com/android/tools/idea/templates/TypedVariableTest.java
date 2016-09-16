@@ -19,7 +19,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

@@ -23,7 +23,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,11 +54,6 @@ public abstract class RenderTestBase extends AndroidTestCase {
   protected static final String DEFAULT_DEVICE_ID = "Nexus 4";
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   protected RenderTask createRenderTask(VirtualFile file) throws Exception {
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
