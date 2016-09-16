@@ -58,7 +58,9 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
     Map<String, RemotePackage> remotePackages = Maps.newHashMap();
     Revision fakeCmakeVersion = new Revision(1, 2);
     String fakeCmakePackage = SdkConstants.FD_CMAKE + RepoPackage.PATH_SEPARATOR + fakeCmakeVersion.toString();
-    remotePackages.put(fakeCmakePackage, new FakePackage(fakeCmakePackage, fakeCmakeVersion, null));
+    FakePackage cmakePackage = new FakePackage(fakeCmakePackage);
+    cmakePackage.setRevision(fakeCmakeVersion);
+    remotePackages.put(fakeCmakePackage, cmakePackage);
     packages.setRemotePkgInfos(remotePackages);
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
 
@@ -96,7 +98,9 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
 
     Revision fakeCmakeVersion = new Revision(1, 2);
     String fakeCmakePackage = SdkConstants.FD_CMAKE + RepoPackage.PATH_SEPARATOR + fakeCmakeVersion.toString();
-    remotePackages.put(fakeCmakePackage, new FakePackage(fakeCmakePackage, fakeCmakeVersion, null));
+    FakePackage cmakePackage = new FakePackage(fakeCmakePackage);
+    cmakePackage.setRevision(fakeCmakeVersion);
+    remotePackages.put(fakeCmakePackage, cmakePackage);
     packages.setRemotePkgInfos(remotePackages);
 
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
