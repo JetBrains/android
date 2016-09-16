@@ -55,6 +55,8 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.GradleSyncStateIntegrationTest.class,
+  com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityCheckerTest.class,
+  com.android.tools.idea.gradle.project.sync.compatibility.VersionIncompatibilityTest.class,
   com.android.tools.idea.gradle.project.sync.issues.ExternalNativeBuildIssuesReporterTest.class,
   com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporterTest.class,
   com.android.tools.idea.gradle.project.sync.issues.UnhandledIssueMessageReporterTest.class,
