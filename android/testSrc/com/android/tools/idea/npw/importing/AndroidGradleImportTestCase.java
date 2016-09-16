@@ -102,8 +102,8 @@ public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase 
     try (JarOutputStream jar = new JarOutputStream(buffer, manifest)) {
       jar.putNextEntry(new JarEntry("/dummy.txt"));
       jar.write(TOP_LEVEL_BUILD_GRADLE.getBytes(Charset.defaultCharset()));
-      return buffer.toByteArray();
     }
+    return buffer.toByteArray();
   }
 
   @NotNull
