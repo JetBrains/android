@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.base.Splitter;
@@ -31,7 +31,7 @@ import java.util.List;
  * <li>Version X (e,g, "1.0.0", "M")</li>
  * </ul>
  */
-class VersionRange {
+public class VersionRange {
   @NonNls private static final char OR_GREATER = '+';
   @NonNls private static final char START_INCLUSIVE = '[';
   @NonNls private static final char START_EXCLUSIVE = '(';
@@ -47,7 +47,7 @@ class VersionRange {
   private final boolean myMaxVersionInclusive;
 
   @NotNull
-  static VersionRange parse(@NotNull String value) {
+  public static VersionRange parse(@NotNull String value) {
     if (value.isEmpty()) {
       throw new IllegalArgumentException("Empty string is not a valid value");
     }
@@ -95,7 +95,7 @@ class VersionRange {
     myMaxVersionInclusive = maxVersionInclusive;
   }
 
-  boolean contains(@NotNull String value) {
+  public boolean contains(@NotNull String value) {
     if (myParsedMinVersion != null) {
       boolean contains = false;
       GradleVersion version = GradleVersion.tryParse(value);
@@ -121,7 +121,7 @@ class VersionRange {
   }
 
   @NotNull
-  String getDescription() {
+  public String getDescription() {
     if (myMinVersion.equals(myMaxVersion)) {
       return myMinVersion;
     }
@@ -132,6 +132,24 @@ class VersionRange {
   }
 
   private static String inclusiveness(boolean inclusive) {
-    return "(" + (inclusive ? "inclusive" : "exclusive") + ")";
+    return " (" + (inclusive ? "inclusive" : "exclusive") + ")";
+  }
+
+  @NotNull
+  public String getMinVersion() {
+    return myMinVersion;
+  }
+
+  public boolean isMinVersionInclusive() {
+    return myMinVersionInclusive;
+  }
+
+  @Nullable
+  public String getMaxVersion() {
+    return myMaxVersion;
+  }
+
+  public boolean isMaxVersionInclusive() {
+    return myMaxVersionInclusive;
   }
 }

@@ -38,7 +38,9 @@ import java.util.List;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 import static com.android.ide.common.blame.Message.Kind.ERROR;
 import static com.android.ide.common.blame.Message.Kind.WARNING;
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
@@ -92,10 +94,8 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
 
     SyncMessage message = mySyncMessagesStub.getReportedMessage();
     assertNotNull(message);
-
-    String[] text = message.getText();
-    assertThat(text).hasLength(1);
-    assertEquals(nativeToolOutput, text[0]);
+    assertThat(message.getText()).hasLength(1);
+    assertAbout(syncMessage()).that(message).hasMessageLine(nativeToolOutput, 0);
 
     PositionInFile position = message.getPosition();
     assertNotNull(position);

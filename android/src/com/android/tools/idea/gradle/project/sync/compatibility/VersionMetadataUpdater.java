@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.ide.AppLifecycleListener;
@@ -68,54 +68,45 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
   }
 
   private static void fetchVersionMetadataUpdate(final boolean startedByUser) {
-    fetchMetadata().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        long now = System.currentTimeMillis();
-        PropertiesComponent.getInstance().setValue(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, String.valueOf(now));
-      }
+    fetchMetadata().doWhenDone(() -> {
+      long now = System.currentTimeMillis();
+      PropertiesComponent.getInstance().setValue(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, String.valueOf(now));
     });
   }
 
   @NotNull
   private static ActionCallback fetchMetadata() {
-    final ActionCallback callback = new ActionCallback();
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        String url = "https://dl.google.com/android/studio/metadata/android-component-compatibility.xml";
-        try {
-          Document metadata = HttpRequests.request(url).connect(new HttpRequests.RequestProcessor<Document>() {
-            @Override
-            public Document process(@NotNull HttpRequests.Request request) throws IOException {
-              try {
-                return loadDocument(request.getReader());
-              }
-              catch (JDOMException e) {
-                LOG.info("Failed to parse XML metadata", e);
-                return null;
-              }
-              catch (Throwable e) {
-                // Some other unexpected error related to JRE setup, e.g.
-                // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
-                //     at javax.crypto.KeyGenerator.a(DashoA13*..)
-                //     ....
-                // See http://b.android.com/149270 for more.
-                LOG.info("Failed to parse XML metadata", e);
-                return null;
-              }
-            }
-          });
-          if (metadata != null) {
-            VersionCompatibilityService.getInstance().updateMetadata(metadata);
-            callback.setDone();
+    ActionCallback callback = new ActionCallback();
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      String url = "https://dl.google.com/android/studio/metadata/android-component-compatibility.xml";
+      try {
+        Document metadata = HttpRequests.request(url).connect(request -> {
+          try {
+            return loadDocument(request.getReader());
           }
+          catch (JDOMException e) {
+            LOG.info("Failed to parse XML metadata", e);
+            return null;
+          }
+          catch (Throwable e) {
+            // Some other unexpected error related to JRE setup, e.g.
+            // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
+            //     at javax.crypto.KeyGenerator.a(DashoA13*..)
+            //     ....
+            // See http://b.android.com/149270 for more.
+            LOG.info("Failed to parse XML metadata", e);
+            return null;
+          }
+        });
+        if (metadata != null) {
+          VersionCompatibilityChecker.getInstance().updateMetadata(metadata);
+          callback.setDone();
         }
-        catch (IOException e) {
-          LOG.info(String.format("Failed to connect to '%1$s'", url), e);
-        }
-        callback.setRejected();
       }
+      catch (IOException e) {
+        LOG.info(String.format("Failed to connect to '%1$s'", url), e);
+      }
+      callback.setRejected();
     });
     return callback;
   }

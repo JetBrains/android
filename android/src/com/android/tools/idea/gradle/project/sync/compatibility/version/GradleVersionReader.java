@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,44 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
- * Obtains the version of the Android Gradle plugin that a project is using.
+ * Obtains the version of Gradle that a project is using.
  */
-class AndroidGradlePluginVersionReader implements ComponentVersionReader {
+class GradleVersionReader implements ComponentVersionReader {
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return AndroidFacet.getInstance(module) != null;
+    return AndroidGradleFacet.getInstance(module) != null;
   }
 
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-      if (androidModel != null) {
-        return androidModel.getAndroidProject().getModelVersion();
-      }
-    }
-    return null;
+    GradleVersion gradleVersion = getGradleVersion(module.getProject());
+    return gradleVersion != null ? gradleVersion.toString() : null;
   }
 
   @Override
@@ -64,11 +55,6 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
-    String version = SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-    if (expectedVersion != null && expectedVersion.contains(version)) {
-      NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(version), null);
-      return singletonList(quickFix);
-    }
     return emptyList();
   }
 
@@ -80,6 +66,6 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   @Override
   @NotNull
   public String getComponentName() {
-    return "Android Gradle plugin";
+    return "Gradle";
   }
 }

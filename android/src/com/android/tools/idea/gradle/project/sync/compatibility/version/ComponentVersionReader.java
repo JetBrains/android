@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.compatibility;
+package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Obtains the version of a component in a project (e.g. Gradle, Android Gradle plugin, etc.)
  */
-interface ComponentVersionReader {
+public interface ComponentVersionReader {
   ComponentVersionReader IDE = new IdeVersionReader();
   ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader();
   ComponentVersionReader GRADLE = new GradleVersionReader();

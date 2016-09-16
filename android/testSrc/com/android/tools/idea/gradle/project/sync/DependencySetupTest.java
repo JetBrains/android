@@ -104,11 +104,11 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     runWriteCommandAction(project, buildModel::applyChanges);
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
 
-    SyncMessagesStub messageReporter = SyncMessagesStub.replaceSyncMessagesService(project);
+    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
 
     requestSyncAndWait();
 
-    SyncMessage reportedMessage = messageReporter.getReportedMessage();
+    SyncMessage reportedMessage = syncMessages.getReportedMessage();
     assertNotNull(reportedMessage);
     String[] text = reportedMessage.getText();
     assertThat(text).isNotEmpty();
