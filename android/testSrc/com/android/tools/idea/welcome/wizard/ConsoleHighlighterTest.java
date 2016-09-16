@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
 import com.intellij.testFramework.fixtures.*;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 
 public class ConsoleHighlighterTest extends AndroidTestBase {
   private ConsoleHighlighter myHighlighter;

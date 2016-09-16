@@ -21,7 +21,7 @@ import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
 
 import javax.swing.*;

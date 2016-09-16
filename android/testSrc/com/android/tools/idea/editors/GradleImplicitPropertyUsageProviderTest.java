@@ -21,7 +21,7 @@ import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
   public void testGradleWrapper() {

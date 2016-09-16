@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.precheck;
 
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
 import java.util.List;

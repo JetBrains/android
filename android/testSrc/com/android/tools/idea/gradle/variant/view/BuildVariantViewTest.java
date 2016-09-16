@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import static org.easymock.classextension.EasyMock.*;
 

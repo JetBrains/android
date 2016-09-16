@@ -431,7 +431,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     append("sdk.dir=" + TestUtils.getSdk(), localProperties, Charsets.UTF_8);
   }
 
-  private static void createGradleWrapper(File projectRoot) throws IOException {
+  protected static void createGradleWrapper(File projectRoot) throws IOException {
     GradleWrapper.create(projectRoot);
   }
 

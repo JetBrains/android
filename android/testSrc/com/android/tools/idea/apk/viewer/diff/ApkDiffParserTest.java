@@ -18,7 +18,7 @@ package com.android.tools.idea.apk.viewer.diff;
 import com.android.tools.idea.apk.viewer.ApkEntry;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;

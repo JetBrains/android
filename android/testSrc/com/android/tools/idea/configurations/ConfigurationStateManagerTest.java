@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class ConfigurationStateManagerTest extends AndroidTestCase {
   public void test1() {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 import org.w3c.dom.Element;
@@ -31,12 +31,6 @@ import static com.android.tools.idea.templates.Template.*;
 public class ParameterTest extends AndroidTestCase {
 
   private static final String BASE_PATH = "resourceRepository/";
-
-  @Override
-  protected boolean requireRecentSdk() {
-    // Need valid layoutlib install
-    return true;
-  }
 
   Parameter myParameter;
   Parameter.Constraint myConstraintUnderTest;

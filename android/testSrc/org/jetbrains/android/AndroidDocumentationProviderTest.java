@@ -17,7 +17,6 @@ package org.jetbrains.android;
 
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.io.BufferedReader;
 import java.io.IOException;

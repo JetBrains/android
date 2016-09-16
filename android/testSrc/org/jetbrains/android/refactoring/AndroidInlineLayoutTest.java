@@ -6,7 +6,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * @author Eugene.Kudelevsky

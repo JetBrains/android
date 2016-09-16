@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.aidl;
 
 import com.intellij.testFramework.ParsingTestCase;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 
 public class AidlParserTest extends ParsingTestCase {
   public AidlParserTest() {
