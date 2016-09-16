@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.ui.DistributionChartComponent;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -40,7 +42,7 @@ import java.util.Map;
 /**
  * An explanation dialog that helps the user select an API level.
  */
-public class ChooseApiLevelDialog extends DialogWrapper implements DistributionChartComponent.DistributionSelectionChangedListener {
+public class ChooseApiLevelDialog extends DialogWrapper implements DistributionChartComponent.SelectionChangedListener {
   private JPanel myPanel;
   private DistributionChartComponent myDistributionChart;
   private JPanel myChartPanel; // Same as myDistributionChart. The form complains if the binding is not a JPanel (can't be a subclass)
@@ -83,10 +85,8 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myDescriptionRight.setBackground(JBColor.background());
     myLearnMoreLinkLabel.setForeground(JBColor.blue);
     myLearnMoreLinkLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    Font font = myLearnMoreLinkLabel.getFont();
-    Map attributes = font.getAttributes();
-    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-    myLearnMoreLinkLabel.setFont(font.deriveFont(attributes));
+    Map<TextAttribute, ?> attributes = ImmutableMap.of(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+    myLearnMoreLinkLabel.setFont(myLearnMoreLinkLabel.getFont().deriveFont(attributes));
     myLearnMoreLinkLabel.addMouseListener(new MouseInputAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -105,7 +105,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   }
 
   @Override
-  public void onDistributionSelected(Distribution d) {
+  public void onDistributionSelected(@NotNull Distribution d) {
     int halfwayIndex = d.getDescriptionBlocks().size() / 2;
     myDescriptionLeft.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(0, halfwayIndex + 1)));
     myDescriptionRight.setText(getHtmlFromBlocks(d.getDescriptionBlocks().subList(halfwayIndex + 1, d.getDescriptionBlocks().size())));
@@ -114,15 +114,12 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myLearnMoreLinkLabel.setText(d.getUrl());
   }
 
-  private String getHtmlFromBlocks(List<Distribution.TextBlock> blocks) {
+  private static String getHtmlFromBlocks(List<Distribution.TextBlock> blocks) {
     StringBuilder sb = new StringBuilder();
     sb.append("<html>");
     for (Distribution.TextBlock block : blocks) {
-      sb.append("<h3>");
-      sb.append(block.title);
-      sb.append("</h3>");
-      sb.append(block.body);
-      sb.append("<br>");
+      sb.append("<h3>").append(block.title).append("</h3>");
+      sb.append(block.body).append("<br>");
     }
     sb.append("</html>");
     return sb.toString();
