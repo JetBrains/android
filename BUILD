@@ -170,6 +170,7 @@ iml_module(
         "designer/testData/**/*",
     ]) + [
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
