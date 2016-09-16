@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 
