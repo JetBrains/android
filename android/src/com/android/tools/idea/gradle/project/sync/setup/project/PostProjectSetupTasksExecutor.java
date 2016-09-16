@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.*;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -176,7 +177,7 @@ public class PostProjectSetupTasksExecutor {
 
     SyncMessages messages = SyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
-    messages.reportComponentIncompatibilities();
+    VersionCompatibilityChecker.getInstance().checkAndReportComponentIncompatibilities(myProject);
 
     findAndReportStructureIssues(myProject);
 
