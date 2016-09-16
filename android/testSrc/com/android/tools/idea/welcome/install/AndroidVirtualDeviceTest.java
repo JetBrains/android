@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.Revision;
-import com.android.repository.api.Dependency;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -29,7 +27,6 @@ import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -112,7 +109,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
-    FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
+    FakePackage remotePlatform = new FakePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
