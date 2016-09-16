@@ -110,6 +110,7 @@ public final class AndroidSdkUtils {
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
   public static final String SDK_NAME_PREFIX = "Android ";
   public static final String DEFAULT_JDK_NAME = "JDK";
+  public static final String ADB_PATH_PROPERTY = "android.adb.path";
 
   private static AndroidSdkData ourSdkData;
 
@@ -719,6 +720,16 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static File getAdb(@NotNull Project project) {
+    String path = System.getProperty(ADB_PATH_PROPERTY);
+    if (path != null) {
+      File adb = new File(path);
+      if (adb.exists()) {
+        return adb;
+      }
+      else {
+        LOG.warn(String.format("%1$s was set to \"%2$s\", but no such file exists.", ADB_PATH_PROPERTY, path));
+      }
+    }
     AndroidSdkData data = getProjectSdkData(project);
     if (data == null) {
       data = getFirstAndroidModuleSdkData(project);
