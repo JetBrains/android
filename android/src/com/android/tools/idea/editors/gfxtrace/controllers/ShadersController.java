@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.logcat.RegexFilterComponent;
+import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -520,6 +521,9 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     final List<ListenableFuture<Object>> shaderFutures = new ArrayList<>(cell.shaderResources.size());
     for (ResourceID resourceID : cell.shaderResources.values()) {
+      if (BinaryID.INVALID.equals(resourceID)) {
+        continue;
+      }
       ResourcePath shaderPath = myEditor.getAtomStream().getSelectedAtomsPath().getPathToLast().resourceAfter(resourceID);
       ListenableFuture<Object> myFuturePath = myEditor.getClient().get(shaderPath);
       shaderFutures.add(myFuturePath);
@@ -592,6 +596,10 @@ public class ShadersController extends Controller implements ResourceCollection.
       ResourceInfo[] shadersBundle = NO_RESOURCES;
       ResourceInfo[] programsBundle = NO_RESOURCES;
       for (ResourceBundle bundle : myEditor.getResourceCollection().getResourceBundles().getBundles()) {
+        if (bundle.getType() == null) {
+          continue;
+        }
+
         switch (bundle.getType()) {
           case Shader:
             shadersBundle = bundle.getResources();

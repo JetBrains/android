@@ -95,5 +95,7 @@ public class GapisFeatures {
   /**
    * @return whether GAPIS supports the getFramebufferAttachment RPC method.
    */
-  public boolean hasFramebufferAttachment() { return myFeatures.contains(FEATURE_FRAMEBUFFER_ATTACHMENT); }
+  public boolean hasFramebufferAttachment() {
+    return myFeatures.contains(FEATURE_FRAMEBUFFER_ATTACHMENT);
+  }
 }
