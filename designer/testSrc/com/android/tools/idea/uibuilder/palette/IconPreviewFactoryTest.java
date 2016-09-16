@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -44,11 +44,6 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
     "        android:layout_height=\"match_parent\"\n" +
     "        android:text=\"@string/hello\" />\n" +
     "</FrameLayout>";
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   // This test is here to make sure we generate a preview image for each component that is supposed to have a preview.
   // If LayoutLib has trouble with a component (or a combination of components) we may start missing previews of several components.
