@@ -91,7 +91,7 @@ public class ViewInspectorProviderTest extends LayoutTestCase {
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
     List<NlComponentEditor> editors = inspector.getEditors();
-    assertThat(editors.size()).isEqualTo(12);
+    assertThat(editors.size()).isEqualTo(14);
     assertThat(inspector.getMaxNumberOfRows()).isEqualTo(editors.size() + 1);
 
     Set<String> inspectorProperties = new HashSet<>(new SwitchHandler().getInspectorProperties());
@@ -117,9 +117,6 @@ public class ViewInspectorProviderTest extends LayoutTestCase {
         assertThat(inspectorProperties.remove(property.getName())).named(property.getName()).isTrue();
       }
     }
-    // The following 2 attributes were added in API 23 and we may be using an older SDK:
-    inspectorProperties.remove(ATTR_TRACK_TINT);
-    inspectorProperties.remove(ATTR_THUMB_TINT);
     assertThat(inspectorProperties).isEmpty();
   }
 

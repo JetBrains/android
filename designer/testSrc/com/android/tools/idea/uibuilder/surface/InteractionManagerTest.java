@@ -28,10 +28,6 @@ import java.awt.datatransfer.Transferable;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
