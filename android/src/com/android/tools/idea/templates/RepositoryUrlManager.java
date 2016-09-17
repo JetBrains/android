@@ -28,7 +28,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleCache;
+import com.android.tools.idea.gradle.util.GradleLocalCache;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
@@ -418,7 +418,7 @@ public class RepositoryUrlManager {
       }
     }
     // Regular Gradle dependency? Look in Gradle cache
-    GradleVersion versionFound = GradleCache.getInstance().findLatestArtifactVersion(coordinate, project, filter);
+    GradleVersion versionFound = GradleLocalCache.getInstance().findLatestArtifactVersion(coordinate, project, filter);
     if (versionFound != null) {
       return versionFound.toString();
     }

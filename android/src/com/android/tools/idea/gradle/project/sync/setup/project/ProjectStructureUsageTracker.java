@@ -23,6 +23,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
@@ -45,7 +46,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -109,7 +109,7 @@ public class ProjectStructureUsageTracker {
 
       String appId = AndroidStudioUsageTracker.anonymizeUtf8(model.getApplicationId());
       AndroidProject androidProject = model.getAndroidProject();
-      GradleVersion gradleVersion = getGradleVersion(myProject);
+      GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
       if (gradleVersion == null) {
         gradleVersion = new GradleVersion(0, 0, 0);
       }
