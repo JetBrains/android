@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
-import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.tasks.UpdateSessionTasksProvider;
@@ -61,8 +60,13 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     InstantRunStatsService.get(myEnv.getProject()).notifyDeployStarted();
 
     InstantRunBuildAnalyzer analyzer = null;
-    if (myInstantRunContext != null && myInstantRunContext.getInstantRunBuildInfo() != null) {
+    InstantRunBuildInfo instantRunBuildInfo = myInstantRunContext != null ? myInstantRunContext.getInstantRunBuildInfo() : null;
+    if (instantRunBuildInfo != null) {
       analyzer = new InstantRunBuildAnalyzer(myEnv.getProject(), myInstantRunContext, myPreviousSessionProcessHandler);
+
+      if (InstantRunSettings.isRecorderEnabled()) {
+        FlightRecorder.get(myEnv.getProject()).saveBuildInfo(instantRunBuildInfo);
+      }
     }
 
     if (analyzer != null && analyzer.canReuseProcessHandler()) {
