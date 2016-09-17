@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class SpecificActivityLocatorTest extends AndroidTestCase {
   public SpecificActivityLocatorTest() {

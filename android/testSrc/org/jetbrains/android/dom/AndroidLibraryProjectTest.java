@@ -10,7 +10,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.AndroidFindUsagesTest;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
 

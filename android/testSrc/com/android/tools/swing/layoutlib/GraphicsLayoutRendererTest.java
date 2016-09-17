@@ -18,7 +18,7 @@ package com.android.tools.swing.layoutlib;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,11 +32,6 @@ import static org.junit.Assert.*;
 
 public class GraphicsLayoutRendererTest extends AndroidTestCase {
   private static Dimension EMPTY_DIMENSION = new Dimension();
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public void testInflateAndRender() throws InitializationException, ParserConfigurationException, IOException, SAXException {
     VirtualFile layout = myFixture.copyFileToProject("themeEditor/theme_preview_layout.xml", "res/layout/theme_preview_layout.xml");

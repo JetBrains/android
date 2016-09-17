@@ -23,7 +23,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
-import org.jetbrains.android.legacy.AndroidTestBase;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;

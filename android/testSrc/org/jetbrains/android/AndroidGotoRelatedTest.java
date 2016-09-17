@@ -13,7 +13,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.legacy.AndroidTestCase;
 
 import java.util.*;
 

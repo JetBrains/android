@@ -18,7 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;

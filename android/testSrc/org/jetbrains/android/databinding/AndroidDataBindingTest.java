@@ -17,7 +17,7 @@ package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
 import com.intellij.psi.*;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidDataBindingTest extends AndroidTestCase {
   private static final String DUMMY_CLASS_QNAME = "p1.p2.DummyClass";

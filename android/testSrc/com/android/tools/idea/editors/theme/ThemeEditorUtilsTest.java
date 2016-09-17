@@ -34,7 +34,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,11 +52,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private String sdkPlatformPath;
   private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public ThemeEditorUtilsTest() {
     super(false);

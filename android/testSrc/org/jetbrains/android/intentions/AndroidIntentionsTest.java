@@ -3,7 +3,7 @@ package org.jetbrains.android.intentions;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;

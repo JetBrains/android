@@ -26,15 +26,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTagValue;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.FrameworkResourceLoader;
 
 public class ResourceResolverCacheTest extends AndroidTestCase {
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public void test() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");
