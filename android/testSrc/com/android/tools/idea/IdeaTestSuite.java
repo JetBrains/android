@@ -32,12 +32,10 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.templates.TemplateTest.class, // we typically set DISABLE_STUDIO_TEMPLATE_TESTS because it's so slow
   // The following classes had failures when run in Bazel.
-  com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
   com.android.tools.idea.editors.AndroidGeneratedSourcesFilterTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
   com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
-  com.android.tools.idea.editors.theme.ThemeEditorUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
   com.android.tools.idea.gradle.AndroidGradleModelTest.class,
   com.android.tools.idea.gradle.dependencies.GradleDependencyManagerTest.class,

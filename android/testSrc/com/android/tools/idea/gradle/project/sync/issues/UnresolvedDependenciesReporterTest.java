@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.InstallRepos
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;

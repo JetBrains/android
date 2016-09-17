@@ -21,7 +21,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.util.List;
 

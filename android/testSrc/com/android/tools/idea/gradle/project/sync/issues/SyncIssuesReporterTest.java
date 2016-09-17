@@ -19,7 +19,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;

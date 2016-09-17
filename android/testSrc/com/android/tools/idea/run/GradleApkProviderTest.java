@@ -17,7 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.ArrayList;
 import java.util.Collection;

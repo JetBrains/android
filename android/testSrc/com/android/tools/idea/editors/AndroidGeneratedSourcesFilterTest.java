@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors;
 
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Charsets;
 import com.intellij.ide.util.DirectoryUtil;
 import com.intellij.openapi.command.WriteCommandAction;

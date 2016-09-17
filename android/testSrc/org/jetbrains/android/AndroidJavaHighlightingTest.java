@@ -3,7 +3,6 @@ package org.jetbrains.android;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
 
 /**
  * @author Eugene.Kudelevsky

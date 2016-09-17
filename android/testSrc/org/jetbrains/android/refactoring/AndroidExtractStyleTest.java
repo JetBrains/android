@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

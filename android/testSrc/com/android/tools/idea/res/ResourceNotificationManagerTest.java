@@ -30,7 +30,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

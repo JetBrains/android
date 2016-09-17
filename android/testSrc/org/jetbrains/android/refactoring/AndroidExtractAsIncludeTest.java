@@ -2,7 +2,7 @@ package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
  * @author Eugene.Kudelevsky

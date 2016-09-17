@@ -22,7 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidSafeDeleteTestTest extends AndroidTestCase {
   private static final String TEST_FOLDER = "/createComponent/";

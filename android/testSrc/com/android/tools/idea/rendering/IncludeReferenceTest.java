@@ -22,7 +22,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class IncludeReferenceTest extends AndroidTestCase {

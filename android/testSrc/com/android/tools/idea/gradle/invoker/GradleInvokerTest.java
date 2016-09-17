@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.testFramework.UsefulTestCase;

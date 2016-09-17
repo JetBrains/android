@@ -31,7 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -48,11 +48,6 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
   }
 
   public void testGetStyleResourceUrl() {

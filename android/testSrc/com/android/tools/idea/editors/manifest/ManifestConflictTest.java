@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.manifest;
 import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;

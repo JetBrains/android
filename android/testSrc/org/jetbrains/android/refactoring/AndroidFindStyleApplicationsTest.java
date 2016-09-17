@@ -7,7 +7,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 
 import java.util.ArrayList;
