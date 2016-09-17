@@ -69,7 +69,9 @@ public interface ComponentVersionReader {
    * of values.
    */
   @NotNull
-  List<NotificationHyperlink> getQuickFixes(@NotNull Module module, @Nullable VersionRange expectedVersion, @Nullable PositionInFile location);
+  List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
+                                            @Nullable VersionRange expectedVersion,
+                                            @Nullable PositionInFile location);
 
   /**
    * Indicates whether the component version is applicable to all modules in the project.
