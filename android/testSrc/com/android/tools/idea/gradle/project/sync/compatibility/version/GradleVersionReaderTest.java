@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 

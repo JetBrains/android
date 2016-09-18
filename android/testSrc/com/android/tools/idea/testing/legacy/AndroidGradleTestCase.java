@@ -47,6 +47,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -57,8 +58,8 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
-import org.jetbrains.android.legacy.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.legacy.AndroidTestBase;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -85,9 +86,7 @@ import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
-import static com.intellij.openapi.util.io.FileUtil.copyDir;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
@@ -566,7 +565,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait() throws Exception {
     SyncListener syncListener = requestSync();
-    assertTrue(syncListener.success);
+    if (!syncListener.success) {
+      String cause = syncListener.failureMessage;
+      if (StringUtil.isEmpty(cause)) {
+        cause = "<Unknown>";
+      }
+      fail(cause);
+    }
   }
 
   @NotNull

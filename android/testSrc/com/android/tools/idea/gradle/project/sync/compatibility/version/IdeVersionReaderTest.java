@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;

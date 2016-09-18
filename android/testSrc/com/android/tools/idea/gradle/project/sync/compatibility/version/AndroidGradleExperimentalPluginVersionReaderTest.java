@@ -23,8 +23,8 @@ import com.intellij.openapi.module.Module;
 
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
+import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.testing.TestProjectPaths.EXPERIMENTAL_PLUGIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
@@ -32,19 +32,19 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link AndroidGradlePluginVersionReader}.
  */
-public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase {
+public class AndroidGradleExperimentalPluginVersionReaderTest extends AndroidGradleTestCase {
   private AndroidGradlePluginVersionReader myVersionReader;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionReader = new AndroidGradlePluginVersionReader(ORIGINAL);
+    myVersionReader = new AndroidGradlePluginVersionReader(COMPONENT);
   }
 
   public void testAppliesToWithAndroidModule() throws Exception {
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
-    assertTrue(myVersionReader.appliesTo(appModule));
+    assertFalse(myVersionReader.appliesTo(appModule));
   }
 
   public void testAppliesToWithJavaModule() throws Exception {
@@ -56,20 +56,20 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
   public void testAppliesToWithExperimentalAndroidModule() throws Exception {
     loadProject(EXPERIMENTAL_PLUGIN);
     Module appModule = myModules.getAppModule();
-    assertFalse(myVersionReader.appliesTo(appModule));
+    assertTrue(myVersionReader.appliesTo(appModule));
   }
 
   public void testGetComponentVersion() throws Exception {
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
-    String version = myVersionReader.getComponentVersion(appModule);
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, version);
+    assertNull(myVersionReader.getComponentVersion(appModule));
   }
 
   public void testGetComponentVersionWithExperimentalPlugin() throws Exception {
     loadProject(EXPERIMENTAL_PLUGIN);
     Module appModule = myModules.getAppModule();
-    assertNull(myVersionReader.getComponentVersion(appModule));
+    String version = myVersionReader.getComponentVersion(appModule);
+    assertEquals(GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION, version);
   }
 
   public void testGetQuickFixes() throws Exception {
@@ -77,17 +77,7 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     Module appModule = myModules.getAppModule();
 
     List<NotificationHyperlink> quickFixes = myVersionReader.getQuickFixes(appModule, VersionRange.parse("[1.2.0, +)"), null);
-    assertThat(quickFixes).hasSize(2);
-
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
-    FixAndroidGradlePluginVersionHyperlink fixAndroidGradlePluginQuickFix = (FixAndroidGradlePluginVersionHyperlink)quickFix;
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
-
-    quickFix = quickFixes.get(1);
-    assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
-    OpenUrlHyperlink openUrlQuickFix = (OpenUrlHyperlink)quickFix;
-    assertEquals("http://tools.android.com/tech-docs/new-build-system/version-compatibility", openUrlQuickFix.getUrl());
+    assertThat(quickFixes).isEmpty();
   }
 
   public void testGetQuickFixesWithExperimentalPlugin() throws Exception {
@@ -95,6 +85,16 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
     Module appModule = myModules.getAppModule();
 
     List<NotificationHyperlink> quickFixes = myVersionReader.getQuickFixes(appModule, VersionRange.parse("[0.7.0, +)"), null);
-    assertThat(quickFixes).isEmpty();
+    assertThat(quickFixes).hasSize(2);
+
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+    FixAndroidGradlePluginVersionHyperlink fixAndroidGradlePluginQuickFix = (FixAndroidGradlePluginVersionHyperlink)quickFix;
+    assertEquals(GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION, fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
+
+    quickFix = quickFixes.get(1);
+    assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
+    OpenUrlHyperlink openUrlQuickFix = (OpenUrlHyperlink)quickFix;
+    assertEquals("http://tools.android.com/tech-docs/new-build-system/version-compatibility", openUrlQuickFix.getUrl());
   }
 }
