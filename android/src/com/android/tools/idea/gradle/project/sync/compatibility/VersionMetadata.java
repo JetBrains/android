@@ -39,9 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
-import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
-import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.IDE;
+import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.*;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
@@ -166,6 +164,7 @@ class VersionMetadata {
     this.myDataVersion = dataVersion;
     myReadersByComponentName.put("gradle", GRADLE);
     myReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
+    myReadersByComponentName.put("android-gradle-experimental-plugin", ANDROID_GRADLE_EXPERIMENTAL_PLUGIN);
     if (isAndroidStudio()) {
       myReadersByComponentName.put("android-studio", IDE);
     }

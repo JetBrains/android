@@ -38,6 +38,7 @@ public class VersionRange {
   @NonNls private static final char END_INCLUSIVE = ']';
   @NonNls private static final char END_EXCLUSIVE = ')';
 
+  @NotNull private final String myUnparsedValue;
   @NotNull private final String myMinVersion;
   @Nullable private final GradleVersion myParsedMinVersion;
   private final boolean myMinVersionInclusive;
@@ -55,7 +56,7 @@ public class VersionRange {
     char lastChar = value.charAt(size - 1);
     if (lastChar == OR_GREATER) {
       String minVersion = value.substring(0, size - 1);
-      return new VersionRange(minVersion, true, null, false);
+      return new VersionRange(value, minVersion, true, null, false);
     }
     char firstChar = value.charAt(0);
     if (firstChar == START_INCLUSIVE || firstChar == START_EXCLUSIVE) {
@@ -76,12 +77,17 @@ public class VersionRange {
           maxVersion = null;
         }
       }
-      return new VersionRange(minVersion, minVersionInclusive, maxVersion, maxVersionInclusive);
+      return new VersionRange(value, minVersion, minVersionInclusive, maxVersion, maxVersionInclusive);
     }
-    return new VersionRange(value, false, null, false);
+    return new VersionRange(value, value, false, null, false);
   }
 
-  private VersionRange(@NotNull String minVersion, boolean minVersionInclusive, @Nullable String maxVersion, boolean maxVersionInclusive) {
+  private VersionRange(@NotNull String unparsedValue,
+                       @NotNull String minVersion,
+                       boolean minVersionInclusive,
+                       @Nullable String maxVersion,
+                       boolean maxVersionInclusive) {
+    myUnparsedValue = unparsedValue;
     myMinVersion = minVersion;
     GradleVersion parsedMinVersion = GradleVersion.tryParse(minVersion);
     if (parsedMinVersion != null && parsedMinVersion.getMajor() == 0 && minVersion.equals(parsedMinVersion.getMajorSegment().getText())) {
@@ -151,5 +157,10 @@ public class VersionRange {
 
   public boolean isMaxVersionInclusive() {
     return myMaxVersionInclusive;
+  }
+
+  @Override
+  public String toString() {
+    return myUnparsedValue;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
@@ -23,12 +24,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
+
 /**
  * Obtains the version of a component in a project (e.g. Gradle, Android Gradle plugin, etc.)
  */
 public interface ComponentVersionReader {
   ComponentVersionReader IDE = new IdeVersionReader();
-  ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader();
+  ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader(ORIGINAL);
+  ComponentVersionReader ANDROID_GRADLE_EXPERIMENTAL_PLUGIN = new AndroidGradlePluginVersionReader(COMPONENT);
   ComponentVersionReader GRADLE = new GradleVersionReader();
 
   /**

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -94,10 +93,10 @@ class VersionIncompatibility {
       msg.append("</ul>");
     }
 
-    MessageType failureCategory = myCompatibilityCheck.getType();
+    MessageType messageType = myCompatibilityCheck.getType();
     SyncMessage message;
 
-    List<String> textLines = Lists.newArrayList();
+    List<String> textLines = new ArrayList<>();
     textLines.add(msg.toString());
     String failureMsg = myRequirement.getFailureMessage();
     if (failureMsg != null) {
@@ -107,15 +106,20 @@ class VersionIncompatibility {
     String[] text = toStringArray(textLines);
 
     if (position != null) {
-      message = new SyncMessage(project, DEFAULT_GROUP, failureCategory, position, text);
+      message = new SyncMessage(project, DEFAULT_GROUP, messageType, position, text);
     }
     else {
-      message = new SyncMessage(DEFAULT_GROUP, failureCategory, text);
+      message = new SyncMessage(DEFAULT_GROUP, messageType, text);
     }
 
     message.add(reader.getQuickFixes(myModule, null, null));
     message.add(myRequirementVersionReader.getQuickFixes(myModule, requirementVersionRange, position));
 
     SyncMessages.getInstance(project).report(message);
+  }
+
+  @NotNull
+  MessageType getType() {
+    return myCompatibilityCheck.getType();
   }
 }

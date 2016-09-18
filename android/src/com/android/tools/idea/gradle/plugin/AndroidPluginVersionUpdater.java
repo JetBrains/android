@@ -235,7 +235,7 @@ public class AndroidPluginVersionUpdater {
       myGradleVersionUpdated = true;
     }
 
-    public boolean versionUpdateSuccessful() {
+    public boolean versionUpdateSuccess() {
       return (myPluginVersionUpdated || myGradleVersionUpdated) && myPluginVersionUpdateError == null && myGradleVersionUpdateError == null;
     }
   }
