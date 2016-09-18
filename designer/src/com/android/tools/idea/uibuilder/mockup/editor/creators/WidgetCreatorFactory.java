@@ -61,6 +61,9 @@ public final class WidgetCreatorFactory {
       case SdkConstants.TEXT_VIEW:
         creator = new TextViewCreator(mockup, model, screenView, selection);
         break;
+      case SdkConstants.ATTR_DRAWABLE:
+        creator = new ExtractIconCreator(mockup, model, screenView, selection);
+        break;
       default:
         creator = new ViewWithBackgroundCreator(mockup, model, screenView, selection);
     }

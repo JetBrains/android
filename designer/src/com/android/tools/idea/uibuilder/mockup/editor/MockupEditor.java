@@ -41,8 +41,14 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Panel displaying the mockup and allowing actions like
- * cropping and widget extraction
+ * <p>
+ * The mockup editor is the core of the user interaction with the mockup.
+ *</p>
+ *
+ * <p>
+ * By default, it allows to do a selection on the image contained in the current Mockup set with {@link #setMockup(Mockup)}.
+ * The behavior of the the editor can be changed by implementing {@link Tool}.
+ * </p>
  */
 public class MockupEditor extends JPanel {
 
@@ -63,8 +69,20 @@ public class MockupEditor extends JPanel {
   private final MockupViewPanel myMockupViewPanel;
   private final MyTopBar myTopBar;
 
+  /**
+   * Create a new mockup editor associated with the provided DesignSurface.
+   * If a model is available at creation time, it can be provided as a parameter, otherwise
+   * the design surface will notify the {@link MockupEditor} when the model is changed. ({@link DesignSurfaceListener}).
+   *
+   * @param surface The surface where the {@link MockupEditor} will be displayed.
+   * @param model The optional model to provide if it is already created.
+   */
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
+
+    // DO NOT CHANGE THE CALL ORDER
+    // The order of initialisation should stay the same to respect to
+    // dependencies
     myMockupListener = this::notifyListeners;
     myModelListener = new MyModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
@@ -80,6 +98,9 @@ public class MockupEditor extends JPanel {
     initSelection();
   }
 
+  /**
+   * Get the first selected component if there is one, else the root component of the model
+   */
   private void initSelection() {
     if (myModel != null) {
       List<NlComponent> selection = myModel.getSelectionModel().getSelection();
@@ -127,6 +148,10 @@ public class MockupEditor extends JPanel {
     notifyListeners(mockup);
   }
 
+  /**
+   * Set the mockup and attach a listener to it.
+   * @param mockup The new mockup
+   */
   private void setMockup(@Nullable Mockup mockup) {
     if (myMockup != null) {
       myMockup.removeMockupListener(myMockupListener);
@@ -137,28 +162,45 @@ public class MockupEditor extends JPanel {
     }
   }
 
+  /**
+   * Notify every {@link MockupEditorListener} attached to this instance that there has been
+   * an update regarding the mockup.
+   * @param mockup The new or updated mockup.
+   */
   private void notifyListeners(Mockup mockup) {
     myEditorListeners.forEach(listener -> listener.editorUpdated(mockup));
   }
 
+  /**
+   * Add a {@link MockupEditorListener} to get notification about any change regarding the mockup.
+   * @param listener The listener to attach to the mockup.
+   */
   public void addListener(@NotNull MockupEditorListener listener) {
     if (!myEditorListeners.contains(listener)) {
       myEditorListeners.add(listener);
     }
   }
 
+  /**
+   * Remove a previously added listener
+   * @param listener the listener to remove
+   */
   public void removeListener(@NotNull MockupEditorListener listener) {
     myEditorListeners.remove(listener);
   }
 
+  /**
+   * Get the {@link MockupViewPanel} displayed in the editor.
+   * @return the {@link MockupViewPanel} displayed in the editor.
+   */
   @NotNull
   public MockupViewPanel getMockupViewPanel() {
     return myMockupViewPanel;
   }
 
   /**
-   * Disable every currently active tool and
-   * enable only the default one
+   * Disable every currently active tools and
+   * enable only the default one ({@link ExtractWidgetTool})
    */
   private void resetTools() {
     for (Tool activeTool : myActiveTools) {
@@ -171,7 +213,7 @@ public class MockupEditor extends JPanel {
   }
 
   /**
-   * Disable tool and enable default tool
+   * Disable tool and enable default tool if no other tool is enabled
    *
    * @param tool the tool to disable
    */
@@ -194,11 +236,21 @@ public class MockupEditor extends JPanel {
     myActiveTools.add(tool);
   }
 
+  /**
+   * Get the current mockup displayed in the editor if any.
+   * @return the current mockup displayed in the editor if any.
+   */
   @Nullable
   public Mockup getMockup() {
     return myMockup;
   }
 
+  /**
+   * Set the current model associated with the editor. Typically, this is the model
+   * retrieve from the Design surface screen view{@link DesignSurface#getCurrentScreenView()}
+   * or from the {@link NlComponent} of the {@link Mockup#getComponent()}
+   * @param model The model to set on this instance
+   */
   private void setModel(@Nullable NlModel model) {
     if (model == myModel) {
       return;
@@ -217,6 +269,10 @@ public class MockupEditor extends JPanel {
     selectionUpdated(myModel, selection);
   }
 
+  /**
+   * Displays an error in the mockup editor for {@value MyTopBar#ERROR_MESSAGE_DISPLAY_DURATION}ms
+   * @param message The message to display
+   */
   public void showError(String message) {
     if(myTopBar != null) {
       myTopBar.showError(message);
@@ -224,7 +280,12 @@ public class MockupEditor extends JPanel {
   }
 
   /**
-   * Tool used in the mockup editor
+   * A tool is an extension to the {@link MockupEditor}. Each tool is responsible to set
+   * the desired state of the MockupEditor when enabled and reset it when disabled.
+   *
+   * A tool can disabled itself using {@link MockupEditor#disableTool(Tool)}.
+   *
+   * If needed, a tool can add a {@link MockupViewLayer} to display information in the editor
    */
   public interface Tool {
 

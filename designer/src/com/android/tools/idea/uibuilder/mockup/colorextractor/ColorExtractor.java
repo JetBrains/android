@@ -27,10 +27,9 @@ import java.util.Collection;
  * Asynchronously extract the meaningful myColor of an image.
  *
  * The subclass should implements {@link #run(ColorExtractorCallback)} that will do
- * the work in a separate thread. The results will be passed with the {@link ColorExtractorCallback}
+ * the work in a separate thread. The results will be passed with as a {@link Collection} of {@link ExtractedColor}
+ * in the {@link ColorExtractorCallback}
  *
- * Then for each cluster we only take the most present myColor.
- * Doing so, the myColor used only for anti-aliasing in the image are not extracted.
  */
 public abstract class ColorExtractor {
 
