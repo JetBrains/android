@@ -42,24 +42,42 @@ import java.util.Collections;
 import static com.android.SdkConstants.*;
 
 /**
- * Create a new widget with information extracted from the Mockup and add it the model.
+ * The {@link WidgetCreator} is the base class to create a new widget or resource with
+ * data extracted from the Mockup and add it the model.
  *
+ * <p>
  * The subclasses should implement {@link #getAndroidViewTag()} and return the desired tag for the
- * newly created {@link NlComponent}.
+ * newly created {@link NlComponent}. If the subclass creates only a resource, it can return an empty string.
+ * </p>
  *
+ * <p>
  * If the component needs do any processing before adding the component, such as running the color extractor,
- * It can implements {@link #getOptionsComponent(DoneCallback)} and {@link #hasOptionsComponent()}.
+ * It can implements {@link #getOptionsComponent(DoneCallback)} and {@link #hasOptionsComponent()}. Also, if the creator
+ * only creates a resource, all the processing can be done using the {@link #getOptionsComponent(DoneCallback)} method. In this case,
+ * The {@link #addToModel()} method should be overridden to avoid the creation of a new component.
+ * </p>
  *
+ * <p>
  * The pre-processing is done inside {@link #getOptionsComponent(DoneCallback)}, and once done the callback should
  * be called with {@link DoneCallback#done(int)} and {@link DoneCallback#FINISH}. To cancel the component addition,
  * the callback can also be called with {@link DoneCallback#CANCEL}.
+ * </p>
  *
+ * <p>
  * {@link #getOptionsComponent(DoneCallback)} does not need to return a component if not action is needed from the
  * user to do the pre-processing.
+ * </p>
  *
- * The {@link WidgetCreatorFactory} is useful to create a WidgetCreator using the View name.
+ * <p>
+ * The {@link WidgetCreatorFactory} is useful to create a WidgetCreator using the only View name.
+ * </p>
  *
+ * <p>
  * This class also provide helper methods to add attributes common to all Views
+ * </p>
+ *
+ * @see WidgetCreatorFactory
+ * @see com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool
  */
 public abstract class WidgetCreator {
 
@@ -109,7 +127,7 @@ public abstract class WidgetCreator {
         COLORS_XML,
         Collections.singletonList(
           configForFolder.getFolderName(ResourceFolderType.VALUES)),
-        String.format("#%06X", color.getRGB())
+        String.format("#%06X", color.getRGB()) // write the color value in hex format (#RRGGBB)
       );
     }
   }
@@ -165,7 +183,7 @@ public abstract class WidgetCreator {
    *
    * @return
    */
-  public final NlComponent addToModel() {
+  public NlComponent addToModel() {
     ensureNewComponentCreated();
     assert myComponent != null;
     AttributesTransaction transaction = myComponent.startAttributeTransaction();

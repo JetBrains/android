@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators.forms;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import java.awt.event.ActionListener;
 
@@ -38,6 +40,7 @@ public class ImageCreatorForm {
     return myDoNotSetSourceButton;
   }
 
+  @NotNull
   public String getDrawableName() {
     return myDrawableName.getText();
   }

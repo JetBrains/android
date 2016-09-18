@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myComponent" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="10" bottom="5" right="5"/>
     <constraints>
-      <xy x="20" y="20" width="262" height="185"/>
+      <xy x="20" y="20" width="338" height="185"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -102,21 +102,21 @@
         <properties/>
         <border type="none"/>
         <children>
+          <component id="375e2" class="javax.swing.JButton" binding="myDismissButton" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Dismiss"/>
+            </properties>
+          </component>
           <component id="2c4f6" class="javax.swing.JButton" binding="myImportButton" default-binding="true">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Add"/>
               <toolTipText value="Add color to resource"/>
-            </properties>
-          </component>
-          <component id="375e2" class="javax.swing.JButton" binding="myDismissButton" default-binding="true">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Dismiss"/>
             </properties>
           </component>
         </children>

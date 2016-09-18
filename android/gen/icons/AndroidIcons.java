@@ -500,5 +500,6 @@ public class AndroidIcons {
     public static final Icon CreateWidget = load("/icons/mockup/mockup_add.png"); // 16x16
     public static final Icon CreateLayout = load("/icons/mockup/new_layout.png"); // 16x16
     public static final Icon MatchWidget = load("/icons/mockup/aspect_ratio.png"); // 16x16
+    public static final Icon ExtractBg = load("/icons/mockup/extract_bg.png"); // 16x16
   }
 }

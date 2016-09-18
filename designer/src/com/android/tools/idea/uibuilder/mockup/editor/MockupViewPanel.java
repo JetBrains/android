@@ -39,7 +39,7 @@ import static java.lang.Math.*;
  */
 public class MockupViewPanel extends JPanel {
 
-  private static final int MAX_SCALE = 10;
+  private static final int MAX_SCALE = 20;
   public static final int MAX_HD_SCALE_LEVEL = 2;
   private static final float MIN_SCALE = 0.95f;
   private static final Color BACKGROUND = UIUtil.getPanelBackground();
