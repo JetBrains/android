@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.apk.AndroidApkFacet;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
+import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -209,20 +210,20 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     assert state != null;
 
     String extraFlags = ACTIVITY_EXTRA_FLAGS;
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      // The following flag is temporary routing the URL directly to the supervisor until updates to play / chrome are rolled out.
-      extraFlags += " -n \"com.google.android.instantapps.supervisor/.UrlHandler\"";
-      // This will cause the instant app supervisor to wait for the debugger, not the actual instant app.
-      waitForDebugger = false;
-    }
 
-    final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
-      getAndroidDebuggerContext().getAndroidDebugger(),
-      getAndroidDebuggerContext().getAndroidDebuggerState(),
-      getProfilerState(),
-      getProject(),
-      waitForDebugger,
-      extraFlags);
+    StartActivityFlagsProvider startActivityFlagsProvider;
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      startActivityFlagsProvider = new InstantAppStartActivityFlagsProvider();
+    }
+    else {
+      startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
+        getAndroidDebuggerContext().getAndroidDebugger(),
+        getAndroidDebuggerContext().getAndroidDebuggerState(),
+        getProfilerState(),
+        getProject(),
+        waitForDebugger,
+        extraFlags);
+    }
 
     try {
       return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
