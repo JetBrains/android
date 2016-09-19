@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -59,7 +60,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     loadProject(MODULE_INFO_GRADLE_ONLY);
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -67,7 +68,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     loadProject(MODULE_INFO_BOTH);
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -76,7 +77,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(myAndroidFacet);
 
     assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.free.debug", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
