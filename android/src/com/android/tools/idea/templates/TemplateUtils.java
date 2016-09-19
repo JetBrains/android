@@ -34,11 +34,13 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -290,9 +292,34 @@ public class TemplateUtils {
   }
 
   /**
-   * Note: reformatting the PSI file requires that this be wrapped in a write command.
+   * Reformats and rearranges the part of the File concerning the PsiElement received
+   *
+   * @param project The project which contains the given element
+   * @param psiElement The element to be reformated and rearranged
+   */
+  public static void reformatAndRearrange(@NotNull Project project, @NotNull PsiElement psiElement) {
+    reformatAndRearrange(project, psiElement.getContainingFile().getVirtualFile(), psiElement);
+  }
+
+  /**
+   * Reformats and rearranges the entire File
    */
   public static void reformatAndRearrange(@NotNull Project project, @NotNull VirtualFile virtualFile) {
+    reformatAndRearrange(project, virtualFile, null);
+  }
+
+  /**
+   * Reformats and rearranges the file (entirely or part of it)
+   *
+   * Note: reformatting the PSI file requires that this be wrapped in a write command.
+   *
+   * @param project The project which contains the given element
+   * @param virtualFile Virtual file to be reformatted and rearranged, if null, the entire file will be considered
+   * @param psiElement The element in the file to be reformatted and rearranged
+   */
+  private static void reformatAndRearrange(@NotNull Project project,
+                                           @NotNull VirtualFile virtualFile,
+                                           @Nullable PsiElement psiElement) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
 
@@ -306,10 +333,13 @@ public class TemplateUtils {
 
     PsiFile psiFile = psiDocumentManager.getPsiFile(document);
     if (psiFile != null) {
-      CodeStyleManager.getInstance(project).reformat(psiFile);
+      TextRange textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
+      CodeStyleManager.getInstance(project).reformatRange(psiFile, textRange.getStartOffset(), textRange.getEndOffset());
 
+      // The textRange of psiElement in the file can change after reformatting
+      textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(textRange));
     }
   }
 

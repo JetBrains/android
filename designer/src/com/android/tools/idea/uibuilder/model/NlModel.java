@@ -34,6 +34,7 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
@@ -1579,6 +1580,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
       removeNamespaceAttributes(component);
+      TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
     }
   }
 
