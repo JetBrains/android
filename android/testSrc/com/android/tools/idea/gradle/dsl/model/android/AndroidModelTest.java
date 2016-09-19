@@ -685,7 +685,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     android.addBuildType("type");
     Collection<BuildTypeModel> buildTypes = android.buildTypes();
     assertSize(1, buildTypes);
-    assertEquals("buildTypes", "type", buildTypes.iterator().next().name());
+    assertEquals("buildTypes", "type", getOnlyElement(buildTypes).name());
 
     applyChanges(buildModel);
     assertEmpty(android.buildTypes()); // Empty blocks are not saved to the file.
@@ -708,7 +708,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     android.addProductFlavor("flavor");
     Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(1, productFlavors);
-    assertEquals("productFlavors", "flavor", productFlavors.iterator().next().name());
+    assertEquals("productFlavors", "flavor", getOnlyElement(productFlavors).name());
 
     applyChanges(buildModel);
     assertEmpty(android.productFlavors()); // Empty blocks are not saved to the file.
@@ -717,6 +717,29 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     assertEmpty(android.productFlavors()); // Empty blocks are not saved to the file.
+  }
+
+  public void testAddAndApplyEmptySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSigningConfig("config");
+    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    assertEquals("signingConfigs", "config", getOnlyElement(signingConfigs).name());
+
+    applyChanges(buildModel);
+    assertEmpty(android.signingConfigs()); // Empty blocks are not saved to the file.
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+    assertEmpty(android.signingConfigs()); // Empty blocks are not saved to the file.
   }
 
   public void testAddAndApplyDefaultConfigBlock() throws Exception {
@@ -779,7 +802,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix());
   }
 
-  public void testAddAndApplyProdcutFlavorBlock() throws Exception {
+  public void testAddAndApplyProductFlavorBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
@@ -816,6 +839,45 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     productFlavor = getOnlyElement(productFlavors);
     assertEquals("productFlavors", "flavor", productFlavor.name());
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId());
+  }
+
+  public void testAddAndApplySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSigningConfig("config");
+    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    SigningConfigModel signingConfig = getOnlyElement(signingConfigs);
+    signingConfig.setKeyAlias("myKeyAlias");
+
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfig = getOnlyElement(signingConfigs);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
+
+    applyChanges(buildModel);
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfig = getOnlyElement(signingConfigs);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfig = getOnlyElement(signingConfigs);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
   }
 
   public void testRemoveAndApplyDefaultConfigBlock() throws Exception {
@@ -933,6 +995,49 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertSize(1, productFlavors);
     productFlavorsIterator = productFlavors.iterator();
     assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
+  }
+
+  public void testRemoveAndApplySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "  signingConfigs { \n" +
+                  "    config1 { \n" +
+                  "    } \n" +
+                  "    config2 {" +
+                  "    } \n" +
+                  "  } \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertSize(2, signingConfigs);
+    Iterator<SigningConfigModel> signingConfigsIterator = signingConfigs.iterator();
+    assertEquals("signingConfigs", "config1", signingConfigsIterator.next().name());
+    assertEquals("signingConfigs", "config2", signingConfigsIterator.next().name());
+
+    android.removeSigningConfig("config2");
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfigsIterator = signingConfigs.iterator();
+    assertEquals("signingConfigs", "config1", signingConfigsIterator.next().name());
+
+    applyChanges(buildModel);
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfigsIterator = signingConfigs.iterator();
+    assertEquals("signingConfigs", "config1", signingConfigsIterator.next().name());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    signingConfigs = android.signingConfigs();
+    assertSize(1, signingConfigs);
+    signingConfigsIterator = signingConfigs.iterator();
+    assertEquals("signingConfigs", "config1", signingConfigsIterator.next().name());
   }
 
   public void testRemoveAndApplyBlockApplicationStatements() throws Exception {

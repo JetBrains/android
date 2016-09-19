@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBu
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
@@ -75,7 +77,7 @@ public final class AndroidModel extends GradleDslBlockModel {
   @NotNull
   public Collection<BuildTypeModel> buildTypes() {
     BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
-    return buildTypes == null ? ImmutableList.<BuildTypeModel>of() : buildTypes.get();
+    return buildTypes == null ? ImmutableList.of() : buildTypes.get();
   }
 
   @NotNull
@@ -224,7 +226,7 @@ public final class AndroidModel extends GradleDslBlockModel {
   @NotNull
   public Collection<ProductFlavorModel> productFlavors() {
     ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
-    return productFlavors == null ? ImmutableList.<ProductFlavorModel>of() : productFlavors.get();
+    return productFlavors == null ? ImmutableList.of() : productFlavors.get();
   }
 
   @NotNull
@@ -248,6 +250,37 @@ public final class AndroidModel extends GradleDslBlockModel {
     ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
     if (productFlavors != null) {
       productFlavors.removeProperty(flavor);
+    }
+    return this;
+  }
+
+  @NotNull
+  public Collection<SigningConfigModel> signingConfigs() {
+    SigningConfigsDslElement signingConfigs = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+  }
+
+  @NotNull
+  public AndroidModel addSigningConfig(@NotNull String config) {
+    SigningConfigsDslElement signingConfigs = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfigs == null) {
+      signingConfigs = new SigningConfigsDslElement(myDslElement);
+      myDslElement.setNewElement(SIGNING_CONFIGS_BLOCK_NAME, signingConfigs);
+    }
+
+    SigningConfigDslElement configElement = signingConfigs.getProperty(config, SigningConfigDslElement.class);
+    if (configElement == null) {
+      configElement = new SigningConfigDslElement(signingConfigs, config);
+      signingConfigs.setNewElement(config, configElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeSigningConfig(@NotNull String configName) {
+    SigningConfigsDslElement signingConfig = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfig != null) {
+      signingConfig.removeProperty(configName);
     }
     return this;
   }
