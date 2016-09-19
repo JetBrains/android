@@ -20,8 +20,11 @@
         <os family="windows" />
     </condition>
 
+<!-- GRPC not yet used in AOSP
     <target name="preBuild" depends="profiler">
     </target>
+-->
+    <target name="preBuild" />
 
     <target name="profiler">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler">
