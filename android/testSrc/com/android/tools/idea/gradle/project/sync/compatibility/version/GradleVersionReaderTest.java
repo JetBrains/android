@@ -16,13 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 
+import java.util.List;
+
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +93,29 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
 
   public void testIsProjectLevel() {
     assertTrue(myVersionReader.isProjectLevel());
+  }
+
+  public void testGetQuickFixes() throws Exception {
+    loadSimpleApplication();
+
+    Module appModule = myModules.getAppModule();
+    List<NotificationHyperlink> quickFixes = myVersionReader.getQuickFixes(appModule, null, null);
+    assertThat(quickFixes).hasSize(2);
+
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+
+    FixAndroidGradlePluginVersionHyperlink fixAndroidGradlePluginQuickFix = (FixAndroidGradlePluginVersionHyperlink)quickFix;
+    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, fixAndroidGradlePluginQuickFix.getPluginVersion().toString());
+
+    GradleVersion gradleVersion = fixAndroidGradlePluginQuickFix.getGradleVersion();
+    assertNotNull(gradleVersion);
+    assertEquals(GRADLE_LATEST_VERSION, gradleVersion.toString());
+
+    quickFix = quickFixes.get(1);
+    assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
+    OpenUrlHyperlink openUrlQuickFix = (OpenUrlHyperlink)quickFix;
+    assertEquals("https://developer.android.com/studio/releases/index.html#Revisions", openUrlQuickFix.getUrl());
   }
 
   public void testGetName() {

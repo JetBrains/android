@@ -112,7 +112,6 @@ class VersionIncompatibility {
       message = new SyncMessage(DEFAULT_GROUP, messageType, text);
     }
 
-    message.add(reader.getQuickFixes(myModule, null, null));
     message.add(myRequirementVersionReader.getQuickFixes(myModule, requirementVersionRange, position));
 
     SyncMessages.getInstance(project).report(message);
