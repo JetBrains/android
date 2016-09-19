@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,12 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
-
 class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
   @Override
   void cleanUp(@NotNull Project project) {
-    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
+    GradleProjectSettings projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     if (projectSettings == null) {
       projectSettings = new GradleProjectSettings();
     }
@@ -54,6 +53,4 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
       settings.setExternalProjectPath(basePath);
     }
   }
-
-
 }

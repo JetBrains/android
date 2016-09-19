@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,13 +32,9 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.intellij.openapi.ui.Messages.OK;
-import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
+import static com.intellij.openapi.ui.Messages.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -48,7 +46,7 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
 
   @Override
   void cleanUp(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    GradleProjectSettings gradleSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
@@ -94,7 +92,7 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
           msg = createUseWrapperQuestion(reason);
         }
         else {
-          GradleVersion gradleVersion = getGradleVersion(gradleHomePath);
+          GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(gradleHomePath);
           if (gradleVersion == null) {
             String reason = String.format("The path\n'%1$s'\n, does not belong to a Gradle distribution.", gradleHomePath.getPath());
             msg = createUseWrapperQuestion(reason);

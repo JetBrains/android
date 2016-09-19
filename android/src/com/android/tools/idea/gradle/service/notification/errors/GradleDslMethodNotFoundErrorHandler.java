@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -43,7 +44,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 
 public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandler {
   @Override
@@ -127,7 +127,7 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
   }
 
   private static boolean isUsingWrapper(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    GradleProjectSettings gradleSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
     return (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && gradleWrapper != null;

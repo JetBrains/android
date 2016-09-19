@@ -145,38 +145,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void getGradleVersionFromJarUsingGradleLibraryJar() {
-    File jarFile = new File("gradle-core-2.0.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.0"), gradleVersion);
-  }
-
-  @Test
-  public void rc() {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=179838
-    File jarFile = new File("gradle-core-2.5-rc-1.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.5"), gradleVersion);
-  }
-
-  @Test
-  public void nightly() {
-    File jarFile = new File("gradle-core-2.10-20151029230024+0000.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.10"), gradleVersion);
-  }
-
-  @Test
-  public void getGradleVersionFromJarUsingNonGradleLibraryJar() {
-    File jarFile = new File("ant-1.9.3.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNull(gradleVersion);
-  }
-
-  @Test
   public void getGradleWrapperVersionWithUrl() {
     // Tries both http and https, bin and all. Also versions 2.2.1, 2.2 and 1.12
     String url = "https://services.gradle.org/distributions/gradle-2.2.1-all.zip";

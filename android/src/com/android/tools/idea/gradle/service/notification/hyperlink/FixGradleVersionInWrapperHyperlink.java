@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
@@ -29,7 +30,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
@@ -79,7 +79,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   }
 
   private static void setDistributionTypeAndSync(@NotNull Project project) {
-    GradleProjectSettings settings = getGradleProjectSettings(project);
+    GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
     if (settings != null) {
       settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     }

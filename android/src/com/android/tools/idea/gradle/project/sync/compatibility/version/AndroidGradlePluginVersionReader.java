@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
@@ -43,12 +43,10 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-      if (androidModel != null) {
-        return androidModel.getAndroidProject().getModelVersion();
-      }
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    if (pluginInfo != null) {
+      GradleVersion pluginVersion = pluginInfo.getPluginVersion();
+      return pluginVersion != null ? pluginVersion.toString() : null;
     }
     return null;
   }
@@ -64,8 +62,9 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
-    String version = SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-    if (expectedVersion != null && expectedVersion.contains(version)) {
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    if (pluginInfo != null) {
+      String version = pluginInfo.getPluginGeneration().getRecommendedVersion();
       NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(version), null);
       return singletonList(quickFix);
     }

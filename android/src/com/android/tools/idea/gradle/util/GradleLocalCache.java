@@ -37,10 +37,10 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static java.util.Collections.sort;
 
-public class GradleCache {
+public class GradleLocalCache {
   @NotNull
-  public static GradleCache getInstance() {
-    return ServiceManager.getService(GradleCache.class);
+  public static GradleLocalCache getInstance() {
+    return ServiceManager.getService(GradleLocalCache.class);
   }
 
   @Nullable
