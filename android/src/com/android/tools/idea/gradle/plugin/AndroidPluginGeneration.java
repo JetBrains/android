@@ -54,6 +54,12 @@ public enum AndroidPluginGeneration {
     public String getRecommendedVersion() {
       return GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
+
+    @Override
+    @NotNull
+    public String getDescription() {
+      return "Android Gradle plugin";
+    }
   },
 
   // This is the "experimental" plugin.
@@ -80,6 +86,12 @@ public enum AndroidPluginGeneration {
     @NotNull
     public String getRecommendedVersion() {
       return GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
+    }
+
+    @Override
+    @NotNull
+    public String getDescription() {
+      return "Android Gradle \"experimental\" plugin";
     }
   };
 
@@ -149,4 +161,7 @@ public enum AndroidPluginGeneration {
 
   @NotNull
   public abstract String getRecommendedVersion();
+
+  @NotNull
+  public abstract String getDescription();
 }

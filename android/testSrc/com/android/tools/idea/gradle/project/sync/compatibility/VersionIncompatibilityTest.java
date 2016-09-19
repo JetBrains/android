@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Pair;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
@@ -41,7 +42,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testReportMessages() throws Exception {
+  public void testReportMessagesWithWarning() throws Exception {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
@@ -65,6 +66,35 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasType(WARNING)
                                             .hasMessageLine("Android Gradle plugin 2.1.3 requires Gradle 2.14.1 (or newer)", 0)
+                                            .hasMessageLine(failureMessage, 1);
+    // @formatter:on
+  }
+
+  public void testReportMessagesWithError() throws Exception {
+    loadSimpleApplication();
+
+    Module appModule = myModules.getAppModule();
+
+    Component base = new Component("grade", "2.14.1", null);
+    Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(GRADLE, "2.14.1");
+
+    String failureMessage = "Wrong Android Gradle plugin version";
+    Component requirement = new Component("android-gradle-plugin", "2.1.3", failureMessage);
+    base.addRequirement(requirement);
+
+    CompatibilityCheck check = new CompatibilityCheck(base, ERROR);
+
+    VersionIncompatibility incompatibility =
+      new VersionIncompatibility(appModule, check, baseReaderAndVersion, requirement, ANDROID_GRADLE_PLUGIN);
+    incompatibility.reportMessages(getProject());
+
+    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    assertNotNull(message);
+    assertThat(message.getText()).hasLength(2);
+
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasType(ERROR)
+                                            .hasMessageLine("Gradle 2.14.1 requires Android Gradle plugin 2.1.3 (or newer)", 0)
                                             .hasMessageLine(failureMessage, 1);
     // @formatter:on
   }
