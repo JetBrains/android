@@ -40,6 +40,7 @@ import static java.lang.Math.*;
 public class MockupViewPanel extends JPanel {
 
   private static final int MAX_SCALE = 10;
+  public static final int MAX_HD_SCALE_LEVEL = 2;
   private static final float MIN_SCALE = 0.95f;
   private static final Color BACKGROUND = UIUtil.getPanelBackground();
   private static RenderingHints HQ_RENDERING = new RenderingHints(null);
@@ -664,7 +665,7 @@ public class MockupViewPanel extends JPanel {
 
       // Remove antialiasing when getting closer to enable
       // the user to make a pixel perfect selection
-      myHqRendering = zoom <= MIN_SCALE + (MAX_SCALE - MIN_SCALE) / 2f;
+      myHqRendering = zoom <= MAX_HD_SCALE_LEVEL;
       mySelectionLayer.contentResized();
       repaint();
     }
