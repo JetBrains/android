@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -1185,7 +1186,7 @@ public class GradleSyncTest {
 
     // Make sure the library was added.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "org.apache.http.legacy-android-23";
+    String libraryName = "org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
 
