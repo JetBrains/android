@@ -84,6 +84,7 @@ public class TutorialStep extends JPanel {
           JEditorPane section = new JEditorPane();
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
+          section.setDragEnabled(false);
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
           UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
           myContents.add(section);
@@ -209,6 +210,16 @@ public class TutorialStep extends JPanel {
     @Override
     public void mousePressed(EditorMouseEvent e) {
       myIsTextSelectedOnMousePressed = isAnythingSelected();
+      if (myIsTextSelectedOnMousePressed) {
+        // This disables drag and drop, but ensures developers aren't required to click again to clear the selection before trying to select
+        // a different set of text.
+        selectNothing();
+      }
+    }
+
+    private void selectNothing() {
+      LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docStart)));
     }
 
     private void selectAllText() {
