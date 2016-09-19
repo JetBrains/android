@@ -488,7 +488,7 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     // Need to use targetSdkVersion 9
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
-    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintCommitPrefEditsInspection(),
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintApplySharedPrefInspection(),
                   "Replace commit() with apply()", "/src/test/pkg/CommitToApply.java", "java");
   }
 
