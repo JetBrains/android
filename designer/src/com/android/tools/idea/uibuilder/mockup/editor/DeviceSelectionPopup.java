@@ -167,7 +167,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
       myNoMatchingDevice = true;
     }
 
-    mySelectedDevice = myMatchingDevices.get(0);
+    Device currentDevice = null;
     for (Device device : myMatchingDevices) {
       String deviceLabel;
       if (device == myConfiguration.getDevice()) {
@@ -187,11 +187,18 @@ public class DeviceSelectionPopup extends DialogWrapper {
         // and display it on top if it matches the image ratio
         deviceLabel = String.format("* %s (current)", deviceLabel);
         myDevicesComboBox.insertItemAt(deviceLabel, 0);
+        currentDevice = myConfiguration.getDevice();
       }
       else {
         myDevicesComboBox.addItem(deviceLabel);
       }
     }
+    if(currentDevice != null) {
+      myMatchingDevices.remove(currentDevice);
+      myMatchingDevices.add(0, currentDevice);
+    }
+    mySelectedDevice = myMatchingDevices.get(0);
+    myDevicesComboBox.setSelectedIndex(0);
     updateDevicePreview();
   }
 
