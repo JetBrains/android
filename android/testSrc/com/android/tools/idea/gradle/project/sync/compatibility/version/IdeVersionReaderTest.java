@@ -33,7 +33,7 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionReader = new IdeVersionReader();
+    myVersionReader = new IdeVersionReader("Android Studio");
   }
 
   @Override
@@ -48,8 +48,22 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testAppliesTo() {
+  public void testAppliesToWithAndroidStudio() {
+    ApplicationInfo applicationInfo = replaceApplicationInfo();
+
+    String name = "Android Studio";
+    when(applicationInfo.getVersionName()).thenReturn(name);
+
     assertTrue(myVersionReader.appliesTo(mock(Module.class)));
+  }
+
+  public void testAppliesToWithIdea() {
+    ApplicationInfo applicationInfo = replaceApplicationInfo();
+
+    String name = "Idea";
+    when(applicationInfo.getVersionName()).thenReturn(name);
+
+    assertFalse(myVersionReader.appliesTo(mock(Module.class)));
   }
 
   public void testGetComponentVersion() {

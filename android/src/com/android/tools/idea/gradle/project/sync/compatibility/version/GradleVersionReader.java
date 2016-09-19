@@ -17,16 +17,20 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 /**
  * Obtains the version of Gradle that a project is using.
@@ -55,7 +59,16 @@ class GradleVersionReader implements ComponentVersionReader {
   public List<NotificationHyperlink> getQuickFixes(@NotNull Module module,
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
-    return emptyList();
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    if (pluginInfo != null) {
+      GradleVersion pluginVersion = GradleVersion.parse(pluginInfo.getPluginGeneration().getRecommendedVersion());
+      GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+      String text = "Fix Gradle version (as part of the update, the Android plugin will be updated to version " + pluginVersion + ")";
+      quickFixes.add(new FixAndroidGradlePluginVersionHyperlink(text, pluginVersion, gradleVersion));
+    }
+    quickFixes.add(new OpenUrlHyperlink("https://developer.android.com/studio/releases/index.html#Revisions", "Open Documentation"));
+    return quickFixes;
   }
 
   @Override

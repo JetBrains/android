@@ -27,9 +27,15 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 
 class IdeVersionReader implements ComponentVersionReader {
+  @NotNull private final String myIdeName;
+
+  IdeVersionReader(@NotNull String ideName) {
+    myIdeName = ideName;
+  }
+
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return true;
+    return myIdeName.equals(getComponentName());
   }
 
   @Nullable

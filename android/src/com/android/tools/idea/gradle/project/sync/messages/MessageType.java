@@ -35,7 +35,7 @@ public enum MessageType {
   @Nullable
   public static MessageType findByName(@NotNull String name) {
     for (MessageType type : values()) {
-      if (type.name().equals(name)) {
+      if (type.name().equalsIgnoreCase(name)) {
         return type;
       }
     }
