@@ -40,12 +40,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 /**
  * Checks if there are component version metadata updates from a remote server. The check is perform on IDE startup, once, every day.
  */
-public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
-  private static final Logger LOG = Logger.getInstance(VersionMetadataUpdater.class);
+public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Adapter {
+  private static final Logger LOG = Logger.getInstance(CompatibilityChecksMetadataUpdater.class);
 
   private static final String LAST_CHECK_TIMESTAMP_PROPERTY_NAME = "android-component-compatibility-check";
 
-  public VersionMetadataUpdater() {
+  public CompatibilityChecksMetadataUpdater() {
     String checkIntervalProperty = System.getProperty("android.version.compatibility.check.interval");
     final CheckInterval checkInterval = CheckInterval.find(checkIntervalProperty);
 
@@ -67,7 +67,7 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
     fetchVersionMetadataUpdate(true);
   }
 
-  private static void fetchVersionMetadataUpdate(final boolean startedByUser) {
+  private static void fetchVersionMetadataUpdate(boolean startedByUser) {
     fetchMetadata().doWhenDone(() -> {
       long now = System.currentTimeMillis();
       PropertiesComponent.getInstance().setValue(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, String.valueOf(now));
