@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.model.MergedManifest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -32,6 +33,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.InstantAppUrlFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +41,8 @@ import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 
@@ -63,6 +67,11 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       XmlFile manifest = getAndroidManifestPsi(module);
       if (manifest != null) {
         deepLinks.addAll(getAllDeepLinks(manifest.getRootTag()));
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && androidFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+          MergedManifest mergedManifest = MergedManifest.get(androidFacet);
+          deepLinks.addAll(new InstantAppUrlFinder(mergedManifest).getAllUrls());
+        }
       }
     }
     myList = new JBList(deepLinks.toArray(new String[deepLinks.size()]));
