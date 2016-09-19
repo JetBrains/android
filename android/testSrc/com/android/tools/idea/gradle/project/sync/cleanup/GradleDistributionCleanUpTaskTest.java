@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.SystemProperties;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.util.UUID;
 
 import static com.android.SdkConstants.FD_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -122,7 +122,7 @@ public class GradleDistributionCleanUpTaskTest extends AndroidGradleTestCase {
 
   @NotNull
   private GradleProjectSettings doGetGradleProjectSettings() {
-    GradleProjectSettings settings = getGradleProjectSettings(getProject());
+    GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
     assertNotNull(settings);
     return settings;
   }

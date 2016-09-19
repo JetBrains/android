@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,7 +49,6 @@ import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind.*;
@@ -206,7 +206,7 @@ public class GradleSyncState {
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
-    GradleVersion gradleVersion = getGradleVersion(myProject);
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
     // @formatter:off

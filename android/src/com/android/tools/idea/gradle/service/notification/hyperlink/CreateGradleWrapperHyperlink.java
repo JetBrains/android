@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -25,7 +26,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
@@ -39,7 +39,7 @@ public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
     File projectDirPath = getBaseDirPath(project);
     try {
       GradleWrapper.create(projectDirPath);
-      GradleProjectSettings settings = getGradleProjectSettings(project);
+      GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
       if (settings != null) {
         settings.setDistributionType(DEFAULT_WRAPPED);
       }

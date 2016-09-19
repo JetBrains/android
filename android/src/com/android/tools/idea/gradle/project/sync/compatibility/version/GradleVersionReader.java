@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static java.util.Collections.emptyList;
 
 /**
@@ -40,7 +40,7 @@ class GradleVersionReader implements ComponentVersionReader {
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
-    GradleVersion gradleVersion = getGradleVersion(module.getProject());
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(module.getProject());
     return gradleVersion != null ? gradleVersion.toString() : null;
   }
 

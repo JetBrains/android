@@ -119,7 +119,7 @@ public class VersionCompatibilityChecker {
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
-      checkAndReportComponentIncompatibilities(module, incompatibilitiesByCheck, cache);
+      collectComponentIncompatibilities(module, incompatibilitiesByCheck, cache);
     }
 
     if (incompatibilitiesByCheck.isEmpty()) {
@@ -131,9 +131,9 @@ public class VersionCompatibilityChecker {
     }
   }
 
-  private void checkAndReportComponentIncompatibilities(@NotNull Module module,
-                                                        @NotNull Map<String, VersionIncompatibility> incompatibilitiesByCheck,
-                                                        @NotNull ComponentVersionAndReaderCache cache) {
+  private void collectComponentIncompatibilities(@NotNull Module module,
+                                                 @NotNull Map<String, VersionIncompatibility> incompatibilitiesByCheck,
+                                                 @NotNull ComponentVersionAndReaderCache cache) {
     for (CompatibilityCheck check : myMetadata.getCompatibilityChecks()) {
       Component component = check.getComponent();
       Pair<ComponentVersionReader, String> readerAndVersion = getComponentVersion(component, module, cache);

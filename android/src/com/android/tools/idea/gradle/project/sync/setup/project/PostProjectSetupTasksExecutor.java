@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
@@ -103,12 +104,12 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
-import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectDiagnostics.findAndReportStructureIssues;
-import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
+import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectDiagnostics.findAndReportStructureIssues;
+import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -210,7 +211,7 @@ public class PostProjectSetupTasksExecutor {
 
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
-    GradleVersion gradleVersion = getGradleVersion(myProject);
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     if (gradleVersion != null && pluginInfo != null) {
       GradleVersion currentPluginVersion = pluginInfo.getPluginVersion();
       if (currentPluginVersion != null) {
@@ -809,7 +810,7 @@ public class PostProjectSetupTasksExecutor {
 
         AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         assert androidModel != null;
-        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidModel)) {
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }
