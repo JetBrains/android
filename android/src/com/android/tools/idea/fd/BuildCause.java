@@ -19,12 +19,12 @@ import org.jetbrains.annotations.NotNull;
 
 public enum BuildCause {
   // reasons for clean build
-  NO_DEVICE(BuildMode.CLEAN),
-  APP_NOT_INSTALLED(BuildMode.CLEAN),
-  MISMATCHING_TIMESTAMPS(BuildMode.CLEAN),
   USER_REQUESTED_CLEAN_BUILD(BuildMode.CLEAN),
 
   // reasons for full build
+  NO_DEVICE(BuildMode.FULL),
+  APP_NOT_INSTALLED(BuildMode.FULL),
+  MISMATCHING_TIMESTAMPS(BuildMode.FULL),
   API_TOO_LOW_FOR_INSTANT_RUN(BuildMode.FULL),
   FIRST_INSTALLATION_TO_DEVICE(BuildMode.FULL), // first installation in this Android Studio session
   MANIFEST_RESOURCE_CHANGED(BuildMode.FULL),
