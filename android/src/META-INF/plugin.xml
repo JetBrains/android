@@ -25,7 +25,7 @@
       <interface-class>org.jetbrains.android.AndroidPlugin</interface-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.gradle.project.sync.compatibility.VersionMetadataUpdater</implementation-class>
+      <implementation-class>com.android.tools.idea.gradle.project.sync.compatibility.CompatibilityChecksMetadataUpdater</implementation-class>
       <headless-implementation-class/>
     </component>
     <component>

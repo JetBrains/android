@@ -66,7 +66,7 @@ import static com.intellij.openapi.util.JDOMUtil.writeDocument;
  * </p>
  */
 public class VersionCompatibilityChecker {
-  @NotNull private VersionMetadata myMetadata = new VersionMetadata(1);
+  @NotNull private CompatibilityChecksMetadata myMetadata = new CompatibilityChecksMetadata(1);
 
   @NotNull
   public static VersionCompatibilityChecker getInstance() {
@@ -78,12 +78,12 @@ public class VersionCompatibilityChecker {
   }
 
   public void reloadMetadata() {
-    myMetadata = VersionMetadata.reloadMetadata();
+    myMetadata = CompatibilityChecksMetadata.reload();
   }
 
   @VisibleForTesting
   void reloadMetadataForTesting(@NotNull @Language("XML") String metadata) throws JDOMException, IOException {
-    myMetadata = VersionMetadata.reloadMetadataForTesting(metadata);
+    myMetadata = CompatibilityChecksMetadata.reloadForTesting(metadata);
   }
 
   /**
@@ -94,11 +94,11 @@ public class VersionCompatibilityChecker {
    */
   boolean updateMetadata(@NotNull Document metadata) {
     try {
-      VersionMetadata updated = VersionMetadata.loadMetadata(metadata.getRootElement());
+      CompatibilityChecksMetadata updated = CompatibilityChecksMetadata.load(metadata.getRootElement());
       if (updated.getDataVersion() > myMetadata.getDataVersion()) {
         myMetadata = updated;
 
-        File metadataFilePath = VersionMetadata.getMetadataFilePath();
+        File metadataFilePath = CompatibilityChecksMetadata.getSourceFilePath();
         writeDocument(metadata, metadataFilePath, SystemProperties.getLineSeparator());
         getLogger().info("Saved component version metadata to: " + metadataFilePath);
         return true;

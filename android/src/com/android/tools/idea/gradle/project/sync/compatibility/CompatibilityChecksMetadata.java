@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.JDOMUtil;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -43,11 +44,10 @@ import static com.android.tools.idea.gradle.project.sync.compatibility.version.C
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.PlatformUtils.isIntelliJ;
 
-class VersionMetadata {
+class CompatibilityChecksMetadata {
   @NonNls private static final String BUILD_FILE_PREFIX = "buildFile:";
   @NonNls private static final String METADATA_FILE_NAME = "android-component-compatibility.xml";
 
@@ -57,64 +57,64 @@ class VersionMetadata {
   @NotNull private final Map<String, ComponentVersionReader> myReadersByComponentName = new ConcurrentHashMap<>();
 
   @NotNull
-  static VersionMetadata reloadMetadata() {
-    File metadataFilePath = getMetadataFilePath();
+  static CompatibilityChecksMetadata reload() {
+    File metadataFilePath = getSourceFilePath();
     if (metadataFilePath.isFile()) {
       try {
-        Element root = load(metadataFilePath);
-        return loadMetadata(root);
+        Element root = JDOMUtil.load(metadataFilePath);
+        return load(root);
       }
       catch (Throwable e) {
         String message = "Failed to load/parse file '" + metadataFilePath.getPath() + "'. Loading metadata from local file.";
         getLogger().info(message, e);
-        return loadLocalMetadata();
+        return loadLocal();
       }
     }
     else {
-      return loadLocalMetadata();
+      return loadLocal();
     }
   }
 
   @NotNull
-  private static VersionMetadata loadLocalMetadata() {
-    try (InputStream inputStream = VersionMetadata.class.getResourceAsStream(METADATA_FILE_NAME)) {
-      Element root = load(inputStream);
-      return loadMetadata(root);
+  private static CompatibilityChecksMetadata loadLocal() {
+    try (InputStream inputStream = CompatibilityChecksMetadata.class.getResourceAsStream(METADATA_FILE_NAME)) {
+      Element root = JDOMUtil.load(inputStream);
+      return load(root);
     }
     catch (RuntimeException e) {
-      logFailureToReadLocalMetadataFile(e);
+      logFailureToReadLocalFile(e);
       throw e;
     }
     catch (Throwable e) {
-      logFailureToReadLocalMetadataFile(e);
+      logFailureToReadLocalFile(e);
       throw new RuntimeException(e);
     }
   }
 
-  private static void logFailureToReadLocalMetadataFile(@NotNull Throwable e) {
+  private static void logFailureToReadLocalFile(@NotNull Throwable e) {
     getLogger().info("Failed to load/parse local metadata file.", e);
   }
 
   @NotNull
   private static Logger getLogger() {
-    return Logger.getInstance(VersionMetadata.class);
+    return Logger.getInstance(CompatibilityChecksMetadata.class);
   }
 
   @VisibleForTesting
   @NotNull
-  static VersionMetadata reloadMetadataForTesting(@NotNull @Language("XML") String metadata) throws JDOMException, IOException {
-    Element root = load(new StringReader(metadata));
-    return loadMetadata(root);
+  static CompatibilityChecksMetadata reloadForTesting(@NotNull @Language("XML") String metadata) throws JDOMException, IOException {
+    Element root = JDOMUtil.load(new StringReader(metadata));
+    return load(root);
   }
 
   @NotNull
-  static File getMetadataFilePath() {
+  static File getSourceFilePath() {
     File configPath = new File(toSystemDependentName(PathManager.getConfigPath()));
     return new File(configPath, METADATA_FILE_NAME);
   }
 
   @NotNull
-  static VersionMetadata loadMetadata(@NotNull Element root) {
+  static CompatibilityChecksMetadata load(@NotNull Element root) {
     String dataVersionText = root.getAttributeValue("version");
     int dataVersion = 1;
     try {
@@ -123,7 +123,7 @@ class VersionMetadata {
     catch (NumberFormatException ignored) {
     }
 
-    VersionMetadata metadata = new VersionMetadata(dataVersion);
+    CompatibilityChecksMetadata metadata = new CompatibilityChecksMetadata(dataVersion);
     for (Element checkElement : root.getChildren("check")) {
       Element componentElement = checkElement.getChild("component");
       Component version = createComponent(componentElement, metadata);
@@ -145,7 +145,7 @@ class VersionMetadata {
   }
 
   @NotNull
-  private static Component createComponent(@NotNull Element xmlElement, @NotNull VersionMetadata metadata) {
+  private static Component createComponent(@NotNull Element xmlElement, @NotNull CompatibilityChecksMetadata metadata) {
     String name = xmlElement.getAttribute("name").getValue();
     if (name.startsWith(BUILD_FILE_PREFIX)) {
       name = name.substring(BUILD_FILE_PREFIX.length());
@@ -160,7 +160,7 @@ class VersionMetadata {
     return new Component(name, version, failureMsg);
   }
 
-  VersionMetadata(int dataVersion) {
+  CompatibilityChecksMetadata(int dataVersion) {
     this.myDataVersion = dataVersion;
     myReadersByComponentName.put("gradle", GRADLE);
     myReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
