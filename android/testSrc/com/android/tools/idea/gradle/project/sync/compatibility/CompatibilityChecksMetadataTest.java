@@ -35,29 +35,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- * Test for {@link VersionMetadata}.
+ * Test for {@link CompatibilityChecksMetadata}.
  */
-public class VersionMetadataTest {
+public class CompatibilityChecksMetadataTest {
   @Test
   public void loadMetadata() throws Exception {
     @Language("XML")
-    String metadata = "<compatibility version='1'>\n" +
-                      "  <check failureType='error'>\n" +
-                      "    <component name='gradle' version='[2.4, +)'>\n" +
-                      "      <requires name='android-gradle-plugin' version='[1.5.0, +]'>\n" +
-                      "        <failureMsg>\n" +
-                      "           <![CDATA[\n" +
-                      "Please use Android Gradle plugin 1.5.0 or newer.\n" +
-                      "]]>\n" +
-                      "        </failureMsg>\n" +
-                      "      </requires>\n" +
-                      "    </component>\n" +
-                      "  </check>\n" +
-                      "</compatibility>";
-    Document document = loadDocument(new StringReader(metadata));
-    VersionMetadata versionMetadata = VersionMetadata.loadMetadata(document.getRootElement());
+    String metadataText = "<compatibility version='1'>\n" +
+                          "  <check failureType='error'>\n" +
+                          "    <component name='gradle' version='[2.4, +)'>\n" +
+                          "      <requires name='android-gradle-plugin' version='[1.5.0, +]'>\n" +
+                          "        <failureMsg>\n" +
+                          "           <![CDATA[\n" +
+                          "Please use Android Gradle plugin 1.5.0 or newer.\n" +
+                          "]]>\n" +
+                          "        </failureMsg>\n" +
+                          "      </requires>\n" +
+                          "    </component>\n" +
+                          "  </check>\n" +
+                          "</compatibility>";
+    Document document = loadDocument(new StringReader(metadataText));
+    CompatibilityChecksMetadata metadata = CompatibilityChecksMetadata.load(document.getRootElement());
 
-    List<CompatibilityCheck> compatibilityChecks = versionMetadata.getCompatibilityChecks();
+    List<CompatibilityCheck> compatibilityChecks = metadata.getCompatibilityChecks();
     assertThat(compatibilityChecks).hasSize(1);
 
     CompatibilityCheck compatibilityCheck = compatibilityChecks.get(0);
@@ -88,7 +88,7 @@ public class VersionMetadataTest {
 
     assertEquals("Please use Android Gradle plugin 1.5.0 or newer.", requirement.getFailureMessage());
 
-    Map<String, ComponentVersionReader> readers = versionMetadata.getReadersByComponentName();
+    Map<String, ComponentVersionReader> readers = metadata.getReadersByComponentName();
     assertSame(GRADLE, readers.get("gradle"));
     assertSame(ANDROID_GRADLE_PLUGIN, readers.get("android-gradle-plugin"));
   }

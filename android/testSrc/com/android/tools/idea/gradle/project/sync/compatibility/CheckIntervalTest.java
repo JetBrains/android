@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
-import com.android.tools.idea.gradle.project.sync.compatibility.VersionMetadataUpdater.CheckInterval;
+import com.android.tools.idea.gradle.project.sync.compatibility.CompatibilityChecksMetadataUpdater.CheckInterval;
 import org.junit.Test;
 
 import static java.util.concurrent.TimeUnit.DAYS;
