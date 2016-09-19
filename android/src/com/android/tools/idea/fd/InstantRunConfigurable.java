@@ -216,7 +216,7 @@ public class InstantRunConfigurable
     // Update plugin version
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
     UpdateResult result = updater.updatePluginVersion(GradleVersion.parse(pluginVersion), GradleVersion.parse(GRADLE_LATEST_VERSION));
-    if (result.isPluginVersionUpdated() && result.versionUpdateSuccessful()) {
+    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
       AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();

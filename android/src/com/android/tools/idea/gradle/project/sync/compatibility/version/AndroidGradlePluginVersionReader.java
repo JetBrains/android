@@ -15,36 +15,48 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * Obtains the version of the Android Gradle plugin that a project is using.
  */
 class AndroidGradlePluginVersionReader implements ComponentVersionReader {
+  @NotNull private final AndroidPluginGeneration myPluginGeneration;
+
+  AndroidGradlePluginVersionReader(@NotNull AndroidPluginGeneration pluginGeneration) {
+    myPluginGeneration = pluginGeneration;
+  }
+
   @Override
   public boolean appliesTo(@NotNull Module module) {
-    return AndroidFacet.getInstance(module) != null;
+    if (AndroidFacet.getInstance(module) == null) {
+      return false;
+    }
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
+    return isSupportedGeneration(pluginInfo);
   }
 
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
-    if (pluginInfo != null) {
+    if (isSupportedGeneration(pluginInfo)) {
       GradleVersion pluginVersion = pluginInfo.getPluginVersion();
       return pluginVersion != null ? pluginVersion.toString() : null;
     }
@@ -63,12 +75,18 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
                                                    @Nullable VersionRange expectedVersion,
                                                    @Nullable PositionInFile location) {
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(module.getProject());
-    if (pluginInfo != null) {
+    if (isSupportedGeneration(pluginInfo)) {
       String version = pluginInfo.getPluginGeneration().getRecommendedVersion();
-      NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(version), null);
-      return singletonList(quickFix);
+      List<NotificationHyperlink> quickFixes = new ArrayList<>();
+      quickFixes.add(new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(version), GradleVersion.parse(GRADLE_LATEST_VERSION)));
+      quickFixes.add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
+      return quickFixes;
     }
     return emptyList();
+  }
+
+  private boolean isSupportedGeneration(@Nullable AndroidPluginInfo pluginInfo) {
+    return pluginInfo != null && myPluginGeneration == pluginInfo.getPluginGeneration();
   }
 
   @Override
@@ -79,6 +97,6 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   @Override
   @NotNull
   public String getComponentName() {
-    return "Android Gradle plugin";
+    return myPluginGeneration.getDescription();
   }
 }

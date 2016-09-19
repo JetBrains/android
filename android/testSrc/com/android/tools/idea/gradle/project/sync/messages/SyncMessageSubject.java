@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
   @NotNull
@@ -42,21 +43,28 @@ public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage>
 
   @NotNull
   public SyncMessageSubject hasType(@NotNull MessageType expected) {
-    assertThat(getSubject().getType()).named("type").isEqualTo(expected);
+    assertThat(getNotNullSubject().getType()).named("type").isEqualTo(expected);
     return this;
   }
 
   @NotNull
   public SyncMessageSubject hasGroup(@NotNull String expected) {
-    assertThat(getSubject().getGroup()).named("group").isEqualTo(expected);
+    assertThat(getNotNullSubject().getGroup()).named("group").isEqualTo(expected);
     return this;
   }
 
   @NotNull
   public SyncMessageSubject hasMessageLine(@NotNull String text, int index) {
-    String[] textLines = getSubject().getText();
+    String[] textLines = getNotNullSubject().getText();
     assertThat(textLines.length).named("message line count").isGreaterThan(index);
     assertThat(textLines[index]).named("message[" + index + "]").isEqualTo(text);
     return this;
+  }
+
+  @NotNull
+  private SyncMessage getNotNullSubject() {
+    SyncMessage syncMessage = super.getSubject();
+    assertNotNull(syncMessage);
+    return syncMessage;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 
 /**
@@ -126,8 +128,17 @@ public class VersionCompatibilityChecker {
       return;
     }
 
+    boolean hasErrors = false;
+
     for (VersionIncompatibility versionIncompatibility : incompatibilitiesByCheck.values()) {
+      if (versionIncompatibility.getType() == ERROR) {
+        hasErrors = true;
+      }
       versionIncompatibility.reportMessages(project);
+    }
+
+    if (hasErrors) {
+      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 

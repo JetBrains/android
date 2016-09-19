@@ -86,7 +86,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
@@ -166,7 +165,9 @@ public class PostProjectSetupTasksExecutor {
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
-    if (GradleSyncState.getInstance(myProject).lastSyncFailed() && myUsingCachedProjectData) {
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+
+    if (syncState.lastSyncFailed() && myUsingCachedProjectData) {
       // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
       // version of such interfaces.
       myUsingCachedProjectData = false;
@@ -176,8 +177,7 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    SyncMessages messages = SyncMessages.getInstance(myProject);
-    messages.reportDependencySetupErrors();
+    SyncMessages.getInstance(myProject).reportDependencySetupErrors();
     VersionCompatibilityChecker.getInstance().checkAndReportComponentIncompatibilities(myProject);
 
     findAndReportStructureIssues(myProject);
@@ -190,7 +190,7 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (GradleSyncState.getInstance(myProject).getSummary().hasErrors() || GradleSyncState.getInstance(myProject).lastSyncFailed()) {
+    if (syncState.getSummary().hasErrors() || syncState.lastSyncFailed()) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
@@ -212,48 +212,6 @@ public class PostProjectSetupTasksExecutor {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
-    if (gradleVersion != null && pluginInfo != null) {
-      GradleVersion currentPluginVersion = pluginInfo.getPluginVersion();
-      if (currentPluginVersion != null) {
-        Pair<GradleVersion, GradleVersion> versionsToUpdateTo =
-          checkCompatibility(gradleVersion, currentPluginVersion, pluginInfo.isExperimental());
-        if (versionsToUpdateTo != null) {
-          GradleVersion pluginVersionToUpdateTo = versionsToUpdateTo.getFirst();
-          GradleVersion gradleVersionToUpdateTo = versionsToUpdateTo.getSecond();
-
-          boolean updateGradleOnly = pluginVersionToUpdateTo.compareTo(currentPluginVersion) == 0;
-          String msg = String.format("Android plugin %1$s is not compatible with Gradle %2$s.", currentPluginVersion, gradleVersion);
-          SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, msg);
-
-          NotificationHyperlink updateVersionQuickFix;
-          if (updateGradleOnly) {
-            // Same plugin versions, just update Gradle.
-            String version = gradleVersionToUpdateTo.toString();
-            updateVersionQuickFix = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(myProject, version);
-          }
-          else {
-            updateVersionQuickFix = new FixAndroidGradlePluginVersionHyperlink(pluginVersionToUpdateTo, gradleVersionToUpdateTo);
-          }
-
-          List<NotificationHyperlink> quickFixes = new ArrayList<>();
-          if (updateVersionQuickFix != null) {
-            quickFixes.add(updateVersionQuickFix);
-          }
-
-          quickFixes
-            .add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
-
-          message.add(quickFixes);
-          SyncMessages.getInstance(myProject).report(message);
-
-          GradleSyncState.getInstance(myProject).getSummary().setSyncErrorsFound(true);
-          addSdkLinkIfNecessary();
-          checkSdkToolsVersion(myProject);
-          updateGradleSyncState();
-          return;
-        }
-      }
-    }
 
     executeProjectChanges(myProject, () -> {
       IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
@@ -298,7 +256,7 @@ public class PostProjectSetupTasksExecutor {
           GradleVersion pluginVersion = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
           GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
           UpdateResult result = updater.updatePluginVersionAndSync(pluginVersion, latestGradleVersion, false);
-          if (result.versionUpdateSuccessful()) {
+          if (result.versionUpdateSuccess()) {
             // plugin version updated and a project sync was requested. No need to continue.
             return;
           }
@@ -335,37 +293,6 @@ public class PostProjectSetupTasksExecutor {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     disposeModulesMarkedForRemoval();
-  }
-
-  @Nullable
-  // Pair: plugin version, gradle version. Both non-null if the pair is not null.
-  static Pair<GradleVersion, GradleVersion> checkCompatibility(@NotNull GradleVersion gradleVersion,
-                                                               @NotNull GradleVersion pluginVersion,
-                                                               boolean isExperimentalPlugin) {
-    GradleVersion pluginVersionToUpdateTo = null;
-    GradleVersion gradleVersionToUpdateTo = null;
-
-    boolean isStable = isStableVersion(pluginVersion, isExperimentalPlugin);
-    String latestPluginVersionWithSecurityFix = getLatestPluginVersionWithSecurityFix(isStable, isExperimentalPlugin);
-
-    if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) < 0 &&
-        pluginVersion.compareTo(latestPluginVersionWithSecurityFix) >= 0) {
-      // plugin 2.1.3+ and Gradle older than 2.14.1.
-      pluginVersionToUpdateTo = pluginVersion;
-      gradleVersionToUpdateTo = GRADLE_VERSION_WITH_SECURITY_FIX;
-    }
-    else if (gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) >= 0 &&
-             pluginVersion.compareTo(latestPluginVersionWithSecurityFix) < 0) {
-      // plugin version older than 2.1.3 and Gradle 2.14.1+
-      pluginVersionToUpdateTo = GradleVersion.parse(latestPluginVersionWithSecurityFix);
-      gradleVersionToUpdateTo = gradleVersion;
-    }
-
-    if (pluginVersionToUpdateTo != null) {
-      return Pair.create(pluginVersionToUpdateTo, gradleVersionToUpdateTo); // Not compatible. These are the versions to update in the IDE.
-    }
-
-    return null; // Versions are compatible.
   }
 
   private void reset() {
