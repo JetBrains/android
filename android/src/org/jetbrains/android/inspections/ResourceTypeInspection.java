@@ -2227,7 +2227,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
       if (!thenAllowed) return InspectionResult.invalid(thenExpression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(elseExpression);
     }
     else if (expression instanceof PsiNewExpression) {
@@ -2404,7 +2404,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
       if (!thenAllowed) return InspectionResult.invalid(expression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(expression);
     }
 
@@ -2565,12 +2565,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      if (thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
+      if (thenExpression != null && isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
         return InspectionResult.invalid(expression);
       }
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
-        .valid() : InspectionResult.invalid(expression);
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid())
+             ? InspectionResult.valid() : InspectionResult.invalid(expression);
     }
 
     if (e != argument && argument instanceof PsiReferenceExpression) {

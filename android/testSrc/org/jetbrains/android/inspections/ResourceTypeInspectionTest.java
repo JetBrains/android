@@ -1325,6 +1325,49 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testIntRangeOnTernaryOperators() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "import java.util.ArrayList;\n" +
+            "import java.util.List;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    @SuppressWarnings(\"MismatchedQueryAndUpdateOfCollection\")\n" +
+            "    private List<String> mItems = new ArrayList<>();\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test1() {\n" +
+            "        return mItems == null ? 0 : mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test2() {\n" +
+            "        return 0; // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test3() {\n" +
+            "        return mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test4() {\n" +
+            "        if (mItems == null) {\n" +
+            "            return 0;\n" +
+            "        } else {\n" +
+            "            return mItems.size();\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int testError() {\n" +
+            "        return /*Value must be ≥ 0*/mItems == null ? -1 : mItems.size()/**/; // ERROR\n\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testStringDefOnEquals() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=186598
     doCheck("package test.pkg;\n" +
