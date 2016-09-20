@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.testing.TestProjectPathsGenerator.TestProjectPathsInfo;
+import com.intellij.openapi.util.SystemInfo;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,6 +27,11 @@ import java.nio.file.Paths;
  */
 public class TestProjectPathsGeneratorTest extends AndroidGradleTestCase {
   public void testCodeGeneration() throws IOException {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     TestProjectPathsInfo info = TestProjectPathsGenerator.generateTestProjectPathsFile();
     String javaFilePath = info.javaFilePath.getPath();
     String content = new String(Files.readAllBytes(Paths.get(javaFilePath)));

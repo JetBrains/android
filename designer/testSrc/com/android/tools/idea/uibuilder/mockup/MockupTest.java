@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import org.mockito.Mock;
 
 import java.awt.*;
@@ -198,6 +199,11 @@ public class MockupTest extends MockupTestCase {
   }
 
   public void testFilePathRelative() {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final NlModel model = createModel1Mockup(MOCKUP_PSD, DEFAULT_TEST_POSITION, null);
     final NlComponent component = model.getComponents().get(0);
     final Mockup mockup = Mockup.create(component);

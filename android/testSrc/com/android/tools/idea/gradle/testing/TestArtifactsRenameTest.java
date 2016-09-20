@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiClass;
 
 public class TestArtifactsRenameTest extends TestArtifactsTestCase {
@@ -34,12 +35,22 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
   }
 
   public void testRenameInOnlyUnitTests() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
 
     renameAndCheckResults(1);
   }
 
   public void testRenameInOnlyAndroidTests() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setUnitTestFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(1);
   }

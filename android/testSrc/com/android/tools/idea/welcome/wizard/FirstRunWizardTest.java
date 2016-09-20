@@ -24,6 +24,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -87,6 +88,11 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   public void testStepsVisibility() {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     File wrongPath = new File("/$@@  \"\'should/not/exist");
     File androidHome = TestUtils.getSdk();
 
