@@ -24,11 +24,12 @@ import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import org.jetbrains.android.AndroidTestCase;
 
-public class AndroidSafeDeleteTestTest extends AndroidTestCase {
+public class AndroidSafeDeleteTest extends AndroidTestCase {
   private static final String TEST_FOLDER = "/createComponent/";
 
-  public AndroidSafeDeleteTestTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   public void testDeleteComponent() {

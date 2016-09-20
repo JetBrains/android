@@ -27,8 +27,10 @@ import static org.mockito.Mockito.when;
  * Tests for {@link DefaultActivityLocator}.
  */
 public class DefaultActivityLocatorTest extends AndroidTestCase {
-  public DefaultActivityLocatorTest() {
-    super(false);
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   public void testActivity() throws Exception {

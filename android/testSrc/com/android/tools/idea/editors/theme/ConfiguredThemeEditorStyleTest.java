@@ -40,8 +40,9 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
-  public ConfiguredThemeEditorStyleTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

@@ -47,9 +47,9 @@ public class MultipleModulesTest extends AndroidTestCase {
   public void testThemeResolver() {
     final VirtualFile appThemes = myFixture.copyFileToProject("themeEditor/multimodulesProject/app_themes.xml", "res/values/themes.xml");
     myFixture.copyFileToProject("themeEditor/multimodulesProject/unusedlibrary_themes.xml",
-                                getContentRootPath(UNUSEDLIBRARY) + "/res/values/themes.xml");
+                                getAdditionalModulePath(UNUSEDLIBRARY) + "/res/values/themes.xml");
     myFixture.copyFileToProject("themeEditor/multimodulesProject/usedlibrary_themes.xml",
-                                getContentRootPath(USEDLIBRARY) + "/res/values/themes.xml");
+                                getAdditionalModulePath(USEDLIBRARY) + "/res/values/themes.xml");
 
     // Main theme module
     final Configuration configuration1 = myFacet.getConfigurationManager().getConfiguration(appThemes);
