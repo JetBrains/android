@@ -27,7 +27,7 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link PostProjectSetupTasksExecutor#isForcedPluginVersionUpgradeNecessary(String, GradleVersion)}.
+ * Tests for {@link PostProjectSetupTasksExecutor#shouldPreviewBeForcedToUpgradePluginVersion(String, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
 public class IsForcedPluginVersionUpgradeNecessaryTest {
@@ -58,6 +58,6 @@ public class IsForcedPluginVersionUpgradeNecessaryTest {
 
   @Test
   public void testIsPluginVersionUpgradeNecessary() {
-    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isForcedPluginVersionUpgradeNecessary(myRecommended, myCurrent));
+    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent));
   }
 }
