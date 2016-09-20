@@ -42,8 +42,17 @@ final class SearchItemHandler extends MenuHandler {
       return false;
     }
 
-    if (type.equals(InsertType.CREATE) && !editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
+    if (type.equals(InsertType.CREATE)) {
+      if (editor.getMinSdkVersion().getApiLevel() < 11) {
+        newChild.setAndroidAttribute("actionViewClass", "android.support.v7.widget.SearchView");
+      }
+      else {
+        newChild.setAndroidAttribute("actionViewClass", "android.widget.SearchView");
+      }
+
+      if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
+        editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
+      }
     }
 
     return true;
