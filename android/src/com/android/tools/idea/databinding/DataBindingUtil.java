@@ -31,6 +31,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -301,24 +302,26 @@ public class DataBindingUtil {
     XmlAttributeValue attrValue = psiAttribute.getValueElement();
     if (attrValue instanceof PsiLanguageInjectionHost) {
       final Ref<PsiElement> injections = Ref.create();
-      InjectedLanguageUtil.enumerate(attrValue, new PsiLanguageInjectionHost.InjectedPsiVisitor() {
-        @Override
-        public void visit(@NotNull PsiFile injectedPsi, @NotNull List<PsiLanguageInjectionHost.Shred> places) {
-          if (injectedPsi instanceof DbFile) {
-            injections.set(injectedPsi);
-          }
+      InjectedLanguageUtil.enumerate(attrValue, (injectedPsi, places) -> {
+        if (injectedPsi instanceof DbFile) {
+          injections.set(injectedPsi);
         }
       });
       if (injections.get() != null) {
         PsiDbDefaults defaults = PsiTreeUtil.getChildOfType(injections.get(), PsiDbDefaults.class);
         if (defaults != null) {
-          // TODO: extract value from literals and resolve variable values if needed.
           PsiDbConstantValue constantValue = defaults.getConstantValue();
-          if (constantValue.getNode().getElementType() == DbTokenTypes.STRING_LITERAL) {
-            String text = constantValue.getText();
-            return text.substring(1, text.length() -1);  // return unquoted string literal.
+          ASTNode stringLiteral = constantValue.getNode().findChildByType(DbTokenTypes.STRING_LITERAL);
+          if (stringLiteral == null) {
+            return constantValue.getText();
+          } else {
+            String text = stringLiteral.getText();
+            if (text.length() > 1) {
+              return text.substring(1, text.length() - 1);  // return unquoted string literal.
+            } else {
+              return text;
+            }
           }
-          return constantValue.getText();
         }
       }
     }
