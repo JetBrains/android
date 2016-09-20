@@ -24,6 +24,7 @@ import com.android.testutils.TestResources;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
@@ -46,6 +47,7 @@ import static com.android.SdkConstants.*;
 import static com.android.utils.SdkUtils.createPathComment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeFalse;
 
 /**
  * Tests for {@link BuildOutputParser}.
@@ -85,6 +87,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void parseParsedBuildIssue() throws IOException {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     String output = "AGPBI: {\"kind\":\"ERROR\",\"text\":\"" +
                     "No resource identifier found for attribute \\u0027a\\u0027 in package" +
                     " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
@@ -396,6 +401,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void redirectValueLinksOutput() throws Exception {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     TestResources.getFileInDirectory(
       getClass(), "/values.xml", "src/test/resources/testData/resources/baseSet/values/values.xml");
 
@@ -516,6 +524,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void redirectFileLinksOutput() throws Exception {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
     File layoutDir = new File(tempDir, "layout-land");
@@ -729,6 +740,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void buildCommandFailed() {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     String output =
       ":app:externalNativeBuildDebug\n" +
       "  building /foo/bar/libtest.so\n" +
@@ -1900,6 +1914,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void ndkWarningOutputUnix() throws Exception {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     createTempXmlFile();
     String output =
       ":foolib:compileLint\n" +
@@ -2069,6 +2086,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void newManifestMergeError() throws Exception {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     createTempFile(DOT_XML);
     String output =
       sourceFilePath + ":50:4 Warning:\n" +
@@ -2111,6 +2131,9 @@ public class BuildOutputParserTest {
 
   @Test
   public void manifestMergeWindowsError() throws Exception {
+    // Do not run tests on Windows (see http://b.android.com/222904)
+    assumeFalse(SystemInfo.isWindows);
+
     createTempFile(DOT_XML);
     String output =
       ":processFlavor1DebugManifest\n" +
