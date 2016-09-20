@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.intellij.ide.util.DirectoryUtil;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -36,6 +37,11 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     loadProject(SYNC_MULTIPROJECT, true);
     AndroidGeneratedSourcesFilter filter = new AndroidGeneratedSourcesFilter();
 
