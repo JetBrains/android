@@ -47,11 +47,11 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     File androidSdkHomePath = IdeSdks.getInstance().getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {

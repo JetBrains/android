@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
  * Sets up a {@link com.intellij.openapi.module.Module} using the settings from a model coming from an external system (e.g. Gradle.)
  */
 public interface BuildVariantModuleCustomizer<T> extends ModuleCustomizer<T> {
-  ExtensionPointName<BuildVariantModuleCustomizer> EP_NAME =
-    ExtensionPointName.create("com.android.gradle.buildVariantModuleCustomizer");
-
   /**
    * @return the "external system" where this customizer is available (e.g. Gradle), or {@link ProjectSystemId#IDE} if it is always
    * available.

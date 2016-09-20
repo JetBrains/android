@@ -297,11 +297,11 @@
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidGradleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.NativeAndroidGradleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.JavaProjectDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.ProjectCleanupDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NativeAndroidGradleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.JavaProjectDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectCleanupDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
@@ -1056,12 +1056,12 @@
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.androidModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.cppModuleSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
-    <extensionPoint qualifiedName="com.android.gradle.buildVariantModuleCustomizer"
-                    interface="com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"
                     interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
@@ -1146,11 +1146,6 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkLocationNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkIntegrationDeprecatedErrorHandler"/>
-
-    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
-    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
-    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
-    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.cpp.ContentRootModuleCustomizer"/>
 
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>

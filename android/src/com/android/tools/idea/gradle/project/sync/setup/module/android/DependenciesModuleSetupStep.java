@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.Dependencies;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -59,14 +60,14 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
-  private Dependencies myDependencies = new Dependencies();
+  private DependenciesSetup myDependenciesSetup = new DependenciesSetup();
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     AndroidProject androidProject = androidModel.getAndroidProject();
 
     DependencySet dependencies = Dependency.extractFrom(androidModel);
@@ -124,7 +125,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
     Collection<String> binaryPaths = dependency.getPaths(BINARY);
     Collection<String> sourcePaths = dependency.getPaths(SOURCE);
     Collection<String> docPaths = dependency.getPaths(DOC);
-    myDependencies
+    myDependenciesSetup
       .setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
 
     File buildFolder = androidProject.getBuildFolder();
@@ -188,7 +189,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        myDependencies.setUpLibraryDependency(module, modelsProvider, name, DependencyScope.COMPILE, Collections.singletonList(library));
+        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, DependencyScope.COMPILE, Collections.singletonList(library));
       }
     }
   }
@@ -197,5 +198,10 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull
   public String getDescription() {
     return "Android dependencies setup";
+  }
+
+  @Override
+  public boolean invokeOnBuildVariantChange() {
+    return true;
   }
 }

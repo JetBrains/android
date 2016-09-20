@@ -226,10 +226,9 @@ public class PostProjectBuildTasksExecutor {
   }
 
   /**
-   * Even though {@link com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer} already excluded the folders
-   * "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of "$buildDir" and exclude any non-generated folders
-   * that may have been created by other plug-ins. We need to be aggressive when excluding folder to prevent over-indexing files, which
-   * will degrade the IDE's performance.
+   * Even though 'Project sync' already excluded the folders "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of
+   * "$buildDir" and exclude any non-generated folder that may have been created by other plug-ins. We need to be aggressive when excluding
+   * folder to prevent over-indexing files, which will degrade the IDE's performance.
    */
   private void excludeOutputFolders() {
     if (myProject.isDisposed()) {

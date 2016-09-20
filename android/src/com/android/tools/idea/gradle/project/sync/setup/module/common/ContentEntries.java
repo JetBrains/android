@@ -41,10 +41,9 @@ public abstract class ContentEntries {
   protected ContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull Collection<ContentEntry> values) {
     myRootModel = rootModel;
     myValues = values;
-    removeExistingContentEntries(rootModel);
   }
 
-  private static void removeExistingContentEntries(@NotNull ModifiableRootModel rootModel) {
+  protected static void removeExistingContentEntries(@NotNull ModifiableRootModel rootModel) {
     for (ContentEntry contentEntry : rootModel.getContentEntries()) {
       rootModel.removeContentEntry(contentEntry);
     }

@@ -23,22 +23,30 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidContentEntries.findOrCreateContentEntries;
 
 public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
-    AndroidContentEntries contentEntries = AndroidContentEntries.findOrCreateContentEntries(rootModel, androidModel);
-    contentEntries.setUpContentEntries(gradleModels);
+    AndroidContentEntries contentEntries = findOrCreateContentEntries(rootModel, androidModel, gradleModels);
+    contentEntries.setUpContentEntries(module, gradleModels);
   }
 
   @Override
   @NotNull
   public String getDescription() {
     return "Source folder(s) setup";
+  }
+
+  @Override
+  public boolean invokeOnBuildVariantChange() {
+    return true;
   }
 }

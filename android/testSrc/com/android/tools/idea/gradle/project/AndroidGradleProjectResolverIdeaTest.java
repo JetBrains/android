@@ -43,7 +43,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
