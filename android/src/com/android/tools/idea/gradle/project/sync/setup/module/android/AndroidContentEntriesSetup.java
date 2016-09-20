@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntries;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -30,13 +26,11 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
@@ -44,91 +38,69 @@ import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
-class AndroidContentEntries extends ContentEntries {
+class AndroidContentEntriesSetup extends ContentEntriesSetup {
   @NotNull private final AndroidGradleModel myAndroidModel;
 
-  @NotNull
-  static AndroidContentEntries findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel,
-                                                          @NotNull AndroidGradleModel androidModel,
-                                                          @Nullable SyncAction.ModuleModels gradleModels) {
-    if (!hasNativeModel(rootModel.getModule(), gradleModels)) {
-      removeExistingContentEntries(rootModel);
-    }
+  // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
+  private final boolean myHasNativeModel;
 
-    ContentEntry contentEntry = rootModel.addContentEntry(androidModel.getRootDir());
-    List<ContentEntry> contentEntries = Collections.singletonList(contentEntry);
-
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
-    if (!isAncestor(androidModel.getRootDirPath(), buildFolderPath, false)) {
-      contentEntries.add(rootModel.addContentEntry(pathToIdeaUrl(buildFolderPath)));
-    }
-    return new AndroidContentEntries(androidModel, rootModel, contentEntries);
-  }
-
-  private AndroidContentEntries(@NotNull AndroidGradleModel androidModel,
-                                @NotNull ModifiableRootModel rootModel,
-                                @NotNull Collection<ContentEntry> contentEntries) {
-    super(rootModel, contentEntries);
+  AndroidContentEntriesSetup(@NotNull AndroidGradleModel androidModel, @NotNull ModifiableRootModel moduleModel, boolean hasNativeModel) {
+    super(moduleModel);
     myAndroidModel = androidModel;
+    myHasNativeModel = hasNativeModel;
   }
 
-  void setUpContentEntries(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
+  @Override
+  public void execute(@NotNull List<ContentEntry> contentEntries) {
     Variant selectedVariant = myAndroidModel.getSelectedVariant();
 
-    // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
-    boolean addNativeSources = hasNativeModel(module, gradleModels);
-
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-    addSourceFolders(mainArtifact, false, addNativeSources);
+    addSourceFolders(mainArtifact, contentEntries, false);
 
     for (BaseArtifact artifact : getTestArtifacts(selectedVariant)) {
-      addSourceFolders(artifact, true, addNativeSources);
+      addSourceFolders(artifact, contentEntries, true);
     }
 
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
       if (flavor != null) {
-        addSourceFolder(flavor, addNativeSources);
+        addSourceFolder(flavor, contentEntries);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = myAndroidModel.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
-      addSourceFolder(buildTypeContainer.getSourceProvider(), false, addNativeSources);
+      addSourceFolder(buildTypeContainer.getSourceProvider(), contentEntries, false);
 
       Collection<SourceProvider> testSourceProviders = myAndroidModel.getTestSourceProviders(buildTypeContainer.getExtraSourceProviders());
       for (SourceProvider testSourceProvider : testSourceProviders) {
-        addSourceFolder(testSourceProvider, true, addNativeSources);
+        addSourceFolder(testSourceProvider, contentEntries, true);
       }
     }
 
     ProductFlavorContainer defaultConfig = getAndroidProject().getDefaultConfig();
-    addSourceFolder(defaultConfig, addNativeSources);
+    addSourceFolder(defaultConfig, contentEntries);
 
-    addExcludedOutputFolders();
+    addExcludedOutputFolders(contentEntries);
     addOrphans();
   }
 
-  private static boolean hasNativeModel(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
-    return (gradleModels != null ? gradleModels.findModel(NativeAndroidProject.class) : NativeAndroidGradleModel.get(module)) == null;
-  }
-
-  private void addSourceFolders(@NotNull BaseArtifact artifact, boolean isTest, boolean addNativeSources) {
-    addGeneratedSourceFolders(artifact, isTest);
+  private void addSourceFolders(@NotNull BaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
+    addGeneratedSourceFolders(artifact, contentEntries, isTest);
 
     SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(variantSourceProvider, isTest, addNativeSources);
+      addSourceFolder(variantSourceProvider, contentEntries, isTest);
     }
 
     SourceProvider multiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(multiFlavorSourceProvider, isTest, addNativeSources);
+      addSourceFolder(multiFlavorSourceProvider, contentEntries, isTest);
     }
   }
 
-  private void addGeneratedSourceFolders(@NotNull BaseArtifact artifact, boolean isTest) {
+  private void addGeneratedSourceFolders(@NotNull BaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
 
     GradleVersion modelVersion = myAndroidModel.getModelVersion();
@@ -138,44 +110,45 @@ class AndroidContentEntries extends ContentEntries {
 
       //noinspection ConstantConditions - this returned null in 1.2
       if (generatedSourceFolders != null) {
-        addSourceFolders(generatedSourceFolders, sourceType, true);
+        addSourceFolders(generatedSourceFolders, contentEntries, sourceType, true);
       }
     }
 
     if (artifact instanceof AndroidArtifact) {
       sourceType = getResourceSourceType(isTest);
-      addSourceFolders(((AndroidArtifact)artifact).getGeneratedResourceFolders(), sourceType, true);
+      AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
+      addSourceFolders(androidArtifact.getGeneratedResourceFolders(), contentEntries, sourceType, true);
     }
   }
 
-  private void addSourceFolder(@NotNull ProductFlavorContainer flavor, boolean addNativeSources) {
-    addSourceFolder(flavor.getSourceProvider(), false, addNativeSources);
+  private void addSourceFolder(@NotNull ProductFlavorContainer flavor, @NotNull List<ContentEntry> contentEntries) {
+    addSourceFolder(flavor.getSourceProvider(), contentEntries, false);
 
     Collection<SourceProvider> testSourceProviders = myAndroidModel.getTestSourceProviders(flavor.getExtraSourceProviders());
     for (SourceProvider sourceProvider : testSourceProviders) {
-      addSourceFolder(sourceProvider, true, addNativeSources);
+      addSourceFolder(sourceProvider, contentEntries, true);
     }
   }
 
-  private void addSourceFolder(@NotNull SourceProvider sourceProvider, boolean isTest, boolean addNativeSources) {
+  private void addSourceFolder(@NotNull SourceProvider sourceProvider, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
 
-    addSourceFolders(sourceProvider.getResDirectories(), sourceType, false);
-    addSourceFolders(sourceProvider.getResourcesDirectories(), sourceType, false);
-    addSourceFolders(sourceProvider.getAssetsDirectories(), sourceType, false);
+    addSourceFolders(sourceProvider.getResDirectories(), contentEntries, sourceType, false);
+    addSourceFolders(sourceProvider.getResourcesDirectories(), contentEntries, sourceType, false);
+    addSourceFolders(sourceProvider.getAssetsDirectories(), contentEntries, sourceType, false);
 
     sourceType = getSourceType(isTest);
-    addSourceFolders(sourceProvider.getAidlDirectories(), sourceType, false);
-    addSourceFolders(sourceProvider.getJavaDirectories(), sourceType, false);
+    addSourceFolders(sourceProvider.getAidlDirectories(), contentEntries, sourceType, false);
+    addSourceFolders(sourceProvider.getJavaDirectories(), contentEntries, sourceType, false);
 
-    if (addNativeSources) {
-      addSourceFolders(sourceProvider.getCDirectories(), sourceType, false);
-      addSourceFolders(sourceProvider.getCppDirectories(), sourceType, false);
+    if (myHasNativeModel) {
+      addSourceFolders(sourceProvider.getCDirectories(), contentEntries, sourceType, false);
+      addSourceFolders(sourceProvider.getCppDirectories(), contentEntries, sourceType, false);
     }
 
-    addSourceFolders(sourceProvider.getRenderscriptDirectories(), sourceType, false);
+    addSourceFolders(sourceProvider.getRenderscriptDirectories(), contentEntries, sourceType, false);
     if (myAndroidModel.getFeatures().isShadersSupported()) {
-      addSourceFolders(sourceProvider.getShadersDirectories(), sourceType, false);
+      addSourceFolders(sourceProvider.getShadersDirectories(), contentEntries, sourceType, false);
     }
   }
 
@@ -189,12 +162,15 @@ class AndroidContentEntries extends ContentEntries {
     return isTest ? TEST_SOURCE : SOURCE;
   }
 
-  private void addSourceFolders(@NotNull Collection<File> folderPaths, @NotNull JpsModuleSourceRootType type, boolean generated) {
+  private void addSourceFolders(@NotNull Collection<File> folderPaths,
+                                @NotNull List<ContentEntry> contentEntries,
+                                @NotNull JpsModuleSourceRootType type,
+                                boolean generated) {
     for (File folderPath : folderPaths) {
       if (generated && !isGeneratedAtCorrectLocation(folderPath)) {
         myAndroidModel.registerExtraGeneratedSourceFolder(folderPath);
       }
-      addSourceFolder(folderPath, type, generated);
+      addSourceFolder(folderPath, contentEntries, type, generated);
     }
   }
 
@@ -203,9 +179,9 @@ class AndroidContentEntries extends ContentEntries {
     return isAncestor(generatedFolderPath, folderPath, false);
   }
 
-  private void addExcludedOutputFolders() {
+  private void addExcludedOutputFolders(@NotNull List<ContentEntry> contentEntries) {
     File buildFolderPath = getAndroidProject().getBuildFolder();
-    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, getValues());
+    ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
     if (parentContentEntry != null) {
       List<File> excludedFolderPaths = myAndroidModel.getExcludedFolderPaths();
       for (File folderPath : excludedFolderPaths) {

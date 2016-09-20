@@ -17,20 +17,17 @@ package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntries;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
@@ -38,30 +35,17 @@ import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
-class JavaContentEntries extends ContentEntries {
+class JavaContentEntriesSetup extends ContentEntriesSetup {
   @NotNull private final JavaProject myJavaProject;
 
-  @NotNull
-  static JavaContentEntries findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel,
-                                                       @NotNull JavaProject javaProject) {
-    List<ContentEntry> entries = new ArrayList<>();
-    for (JavaModuleContentRoot contentRoot : javaProject.getContentRoots()) {
-      File rootDirPath = contentRoot.getRootDirPath();
-      ContentEntry contentEntry = rootModel.addContentEntry(pathToIdeaUrl(rootDirPath));
-      entries.add(contentEntry);
-    }
-    return new JavaContentEntries(javaProject, rootModel, entries);
-  }
-
-  private JavaContentEntries(@NotNull JavaProject javaProject,
-                             @NotNull ModifiableRootModel rootModel,
-                             @NotNull Collection<ContentEntry> values) {
-    super(rootModel, values);
+  JavaContentEntriesSetup(@NotNull JavaProject javaProject, @NotNull ModifiableRootModel moduleModel) {
+    super(moduleModel);
     myJavaProject = javaProject;
   }
 
-  void setUpContentEntries(@NotNull Module module) {
-    boolean isTopLevelJavaModule = isGradleProjectModule(module);
+  @Override
+  public void execute(@NotNull List<ContentEntry> contentEntries) {
+    boolean isTopLevelJavaModule = isGradleProjectModule(getModule());
 
     File buildFolderPath = myJavaProject.getBuildFolderPath();
     boolean buildFolderExcluded = buildFolderPath != null;
@@ -70,15 +54,15 @@ class JavaContentEntries extends ContentEntries {
       if (contentRoot == null) {
         continue;
       }
-      addSourceFolders(contentRoot.getSourceDirPaths(), SOURCE, false);
-      addSourceFolders(contentRoot.getGenSourceDirPaths(), SOURCE, true);
-      addSourceFolders(contentRoot.getResourceDirPaths(), RESOURCE, false);
-      addSourceFolders(contentRoot.getTestDirPaths(), TEST_SOURCE, false);
-      addSourceFolders(contentRoot.getGenTestDirPaths(), TEST_SOURCE, true);
-      addSourceFolders(contentRoot.getTestResourceDirPaths(), TEST_RESOURCE, false);
+      addSourceFolders(contentRoot.getSourceDirPaths(), contentEntries, SOURCE, false);
+      addSourceFolders(contentRoot.getGenSourceDirPaths(), contentEntries, SOURCE, true);
+      addSourceFolders(contentRoot.getResourceDirPaths(), contentEntries, RESOURCE, false);
+      addSourceFolders(contentRoot.getTestDirPaths(), contentEntries, TEST_SOURCE, false);
+      addSourceFolders(contentRoot.getGenTestDirPaths(), contentEntries, TEST_SOURCE, true);
+      addSourceFolders(contentRoot.getTestResourceDirPaths(), contentEntries, TEST_RESOURCE, false);
 
       for (File excluded : contentRoot.getExcludeDirPaths()) {
-        ContentEntry contentEntry = findParentContentEntry(excluded, getValues());
+        ContentEntry contentEntry = findParentContentEntry(excluded, contentEntries);
         if (contentEntry != null) {
           if (isTopLevelJavaModule && buildFolderExcluded) {
             // We need to "undo" the implicit exclusion of "build" folder for top-level module.
@@ -95,9 +79,12 @@ class JavaContentEntries extends ContentEntries {
     addOrphans();
   }
 
-  private void addSourceFolders(@NotNull Collection<File> folderPaths, @NotNull JpsModuleSourceRootType type, boolean generated) {
+  private void addSourceFolders(@NotNull Collection<File> folderPaths,
+                                @NotNull Collection<ContentEntry> contentEntries,
+                                @NotNull JpsModuleSourceRootType type,
+                                boolean generated) {
     for (File path : folderPaths) {
-      addSourceFolder(path, type, generated);
+      addSourceFolder(path, contentEntries, type, generated);
     }
   }
 }

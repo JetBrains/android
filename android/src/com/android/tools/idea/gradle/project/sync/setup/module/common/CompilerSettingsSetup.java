@@ -26,10 +26,10 @@ import java.io.File;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
 public class CompilerSettingsSetup {
-  public void setOutputPaths(@NotNull ModifiableRootModel rootModel, @NotNull File mainOutputPath, @Nullable File testOutputPath) {
-    CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
+  public void setOutputPaths(@NotNull ModifiableRootModel moduleModel, @NotNull File mainOutputPath, @Nullable File testOutputPath) {
+    CompilerModuleExtension compilerSettings = moduleModel.getModuleExtension(CompilerModuleExtension.class);
     if (compilerSettings == null) {
-      String msg = String.format("No compiler extension is found for module '%1$s'", rootModel.getModule().getName());
+      String msg = String.format("No compiler extension is found for module '%1$s'", moduleModel.getModule().getName());
       Logger.getInstance(getClass()).warn(msg);
       return;
     }
