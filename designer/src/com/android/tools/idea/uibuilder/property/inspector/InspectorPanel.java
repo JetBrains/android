@@ -20,9 +20,6 @@ import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.welcome.install.ComponentInstaller;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
@@ -33,6 +30,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +50,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final int HORIZONTAL_SPACING = 6;
 
   private final JComponent myAllPropertiesLink;
-  private final List<InspectorProvider> myProviders;
+  private final NlInspectorProviders myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final JPanel myInspector;
@@ -68,7 +66,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     super(new BorderLayout());
     myAllPropertiesLink = allPropertiesLink;
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myProviders = createProviders(project);
+    myProviders = NlInspectorProviders.getInstance(project);
     myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
@@ -117,17 +115,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     return false;
   }
 
-  private static List<InspectorProvider> createProviders(@NotNull Project project) {
-    return ImmutableList.of(new IdInspectorProvider(),
-                            ViewInspectorProvider.getInstance(project),
-                            new ProgressBarInspectorProvider(),
-                            new TextInspectorProvider(),
-                            new MockupInspectorProvider()
-    );
-  }
-
   private static GridLayoutManager createLayoutManager(int rows, int columns) {
-    Insets margin = new Insets(0, 0, 0, 0);
+    Insets margin = new JBInsets(0, 0, 0, 0);
     // Hack: Use this constructor to get myMinCellSize = 0 which is not possible in the recommended constructor.
     return new GridLayoutManager(rows, columns, margin, 0, 0);
   }
@@ -156,18 +145,17 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         propertiesByName.putIfAbsent(property.getName(), property);
       }
 
-      List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
-      myInspectors = inspectors;
+      myInspectors = myProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
 
       int rows = 0;
-      for (InspectorComponent inspector : inspectors) {
+      for (InspectorComponent inspector : myInspectors) {
         rows += inspector.getMaxNumberOfRows();
       }
-      rows += inspectors.size(); // 1 row for each divider (including 1 after the last property)
+      rows += myInspectors.size(); // 1 row for each divider (including 1 after the last property)
       rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
       myInspector.setLayout(createLayoutManager(rows, 2));
-      for (InspectorComponent inspector : inspectors) {
+      for (InspectorComponent inspector : myInspectors) {
         addSeparator();
         inspector.attachToInspector(this);
       }
@@ -193,29 +181,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   }
 
   public void refresh() {
-    ApplicationManager.getApplication().invokeLater(() -> myInspectors.stream().forEach(InspectorComponent::refresh));
-  }
-
-  @NotNull
-  private static List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
-                                                                    @NotNull NlPropertiesManager propertiesManager,
-                                                                    @NotNull Map<String, NlProperty> properties,
-                                                                    @NotNull List<InspectorProvider> allProviders) {
-    List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.size());
-
-    if (components.isEmpty()) {
-      // create just the id inspector, which we know can handle a null component
-      // this is simply to avoid the screen flickering when switching components
-      return ImmutableList.of(new IdInspectorProvider().createCustomInspector(components, properties, propertiesManager));
-    }
-
-    for (InspectorProvider provider : allProviders) {
-      if (provider.isApplicable(components, properties, propertiesManager)) {
-        inspectors.add(provider.createCustomInspector(components, properties, propertiesManager));
-      }
-    }
-
-    return inspectors;
+    ApplicationManager.getApplication().invokeLater(() -> myInspectors.forEach(InspectorComponent::refresh));
   }
 
   public boolean activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {

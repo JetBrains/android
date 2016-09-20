@@ -23,9 +23,6 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.ui.LafManager;
-import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -36,17 +33,12 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-public class ViewInspectorProvider implements InspectorProvider, ProjectComponent, LafManagerListener {
+public class ViewInspectorProvider implements InspectorProvider {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
   private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
-  @NotNull
-  public static ViewInspectorProvider getInstance(@NotNull Project project) {
-    return project.getComponent(ViewInspectorProvider.class);
-  }
-
-  private ViewInspectorProvider(@NotNull Project project) {
+  public ViewInspectorProvider(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
     myInspectors = new HashMap<>();
   }
@@ -86,6 +78,11 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     return inspector;
   }
 
+  @Override
+  public void resetCache() {
+    myInspectors.clear();
+  }
+
   private static class ViewInspectorComponent implements InspectorComponent {
     // These layout properties should be shown for all child components of layouts that have the property.
     // Which we can do by simply ask if the property is present.
@@ -98,6 +95,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     private final String myComponentName;
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
+    private final int mySrcPropertyIndex;
 
     public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
@@ -105,7 +103,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
-      useSrcCompatIfExist(properties);
+      mySrcPropertyIndex = myPropertyNames.indexOf(ATTR_SRC);
       myEditors = new ArrayList<>(myPropertyNames.size());
       createEditors(properties, propertiesManager);
     }
@@ -131,6 +129,7 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
                                  @NotNull Map<String, NlProperty> properties,
                                  @NotNull NlPropertiesManager propertiesManager) {
       // TODO: Update the properties in the editors instead of recreating the editors
+      useSrcCompatIfExist(properties);
       myEditors.clear();
       createEditors(properties, propertiesManager);
     }
@@ -177,41 +176,10 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     }
 
     private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {
-      if (properties.containsKey(ATTR_SRC_COMPAT)) {
-        int index = myPropertyNames.indexOf(ATTR_SRC);
-        if (index >= 0) {
-          myPropertyNames.set(index, ATTR_SRC_COMPAT);
-        }
+      if (mySrcPropertyIndex < 0) {
+        return;
       }
+      myPropertyNames.set(mySrcPropertyIndex, properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC);
     }
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
-    LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @Override
-  public void lookAndFeelChanged(LafManager source) {
-    myInspectors.clear();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return ViewInspectorProvider.class.getSimpleName();
   }
 }

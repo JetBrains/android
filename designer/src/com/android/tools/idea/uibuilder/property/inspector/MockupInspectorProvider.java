@@ -51,6 +51,11 @@ public class MockupInspectorProvider implements InspectorProvider {
     return myInspector;
   }
 
+  @Override
+  public void resetCache() {
+    myInspector = null;
+  }
+
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
