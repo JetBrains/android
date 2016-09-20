@@ -21,8 +21,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.legacy.AndroidTestBase;
-import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -86,8 +84,7 @@ public class AndroidLintTest extends AndroidTestCase {
     new WriteCommandAction(myFixture.getProject(), "") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        ((AndroidAddStringResourceQuickFix)action)
-          .invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello");
+        action.invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello");
       }
     }.execute();
 
@@ -375,13 +372,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // Needs a valid SDK; can't use the mock one in the test data.
     AndroidSdkData prevSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (prevSdkData == null) {
-      String recentSdkPath = AndroidTestBase.getRecentSdkPath();
-      String platformDir = AndroidTestBase.getRecentPlatformDir();
-      if (recentSdkPath == null || platformDir == null) {
-        System.out.println("Not running " + this.getClass() + "#" + getName() + ": Needs SDK with Support Repo installed");
-        return;
-      }
-      Sdk androidSdk = createAndroidSdk(recentSdkPath, platformDir);
+      Sdk androidSdk = createLatestAndroidSdk();
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
@@ -608,13 +599,13 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testStringTypos() throws Exception {
     doTestWithFix(new AndroidLintTyposInspection(),
-                  "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
+                  "Replace with \"Android\"", "/res/values-nb/strings.xml", "xml");
   }
 
   // Regression test for http://b.android.com/186465
   public void testStringTyposCDATA() throws Exception {
     doTestWithFix(new AndroidLintTyposInspection(),
-                  "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
+                  "Replace with \"Android\"", "/res/values-nb/strings.xml", "xml");
   }
 
   public void testWrongViewCall() throws Exception {

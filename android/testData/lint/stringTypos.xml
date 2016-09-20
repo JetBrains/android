@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="my_typo">Welcome to <warning>te<caret>h</warning> app</string>
+    <string name="my_typo_nb">Mer moro med <warning>An<caret>driod</warning></string>
 </resources>
