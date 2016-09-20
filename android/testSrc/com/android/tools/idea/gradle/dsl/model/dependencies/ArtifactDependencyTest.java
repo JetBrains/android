@@ -97,7 +97,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_WITHIN_PARENS);
   }
 
-  private void doTestParsingConfigurationVersion(String text) throws IOException {
+  private void doTestParsingConfigurationVersion(@NotNull String text) throws IOException {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -106,8 +106,33 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
 
+    ArtifactDependencyModel dependency = dependencies.get(0);
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.1");
-    expected.assertMatches(dependencies.get(0));
+    expected.assertMatches(dependency);
+
+    verifyDependencyConfiguration(dependency.configuration());
+  }
+
+  private static void verifyDependencyConfiguration(@Nullable DependencyConfigurationModel configuration) {
+    assertNotNull(configuration);
+
+    assertEquals(Boolean.TRUE, configuration.force().value());
+    assertEquals(Boolean.FALSE, configuration.transitive().value());
+
+    List<ExcludedDependencyModel> excludedDependencies = configuration.excludes();
+    assertThat(excludedDependencies).hasSize(3);
+
+    ExcludedDependencyModel first = excludedDependencies.get(0);
+    assertNull(first.group().value());
+    assertEquals("cglib", first.module().value());
+
+    ExcludedDependencyModel second = excludedDependencies.get(1);
+    assertEquals("org.jmock", second.group().value());
+    assertNull(second.module().value());
+
+    ExcludedDependencyModel third = excludedDependencies.get(2);
+    assertEquals("org.unwanted", third.group().value());
+    assertEquals("iAmBuggy", third.module().value());
   }
 
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_parens() throws IOException {
@@ -122,7 +147,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_WITHIN_PARENS);
   }
 
-  private void doTestSetVersionWithConfigurationClosure(String text) throws IOException {
+  private void doTestSetVersionWithConfigurationClosure(@NotNull String text) throws IOException {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -135,6 +160,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.1");
     expected.assertMatches(hibernate);
+    verifyDependencyConfiguration(hibernate.configuration());
 
     hibernate.setVersion("3.0");
 
@@ -148,6 +174,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.0");
     expected.assertMatches(hibernate);
+    verifyDependencyConfiguration(hibernate.configuration());
   }
 
   public void testParsingWithCompactNotation() throws IOException {
@@ -240,19 +267,45 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
+    ArtifactDependencyModel jdkDependency = dependencies.get(0);
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
     expected.classifier = "jdk14";
     expected.extension = "jar";
-    expected.assertMatches(dependencies.get(0));
+    expected.assertMatches(jdkDependency);
+    assertNull(jdkDependency.configuration());
 
+    ArtifactDependencyModel espressoDependency = dependencies.get(1);
     expected = new ExpectedArtifactDependency(ANDROID_TEST_COMPILE, "espresso-contrib", "com.android.support.test.espresso", "2.2.2");
-    expected.assertMatches(dependencies.get(1));
+    expected.assertMatches(espressoDependency);
 
-    // TODO: how to assert contents of the build.file
+    DependencyConfigurationModel configuration = espressoDependency.configuration();
+    assertNotNull(configuration);
+
+    configuration.excludes();
+
+    List<ExcludedDependencyModel> excludedDependencies = configuration.excludes();
+    assertThat(excludedDependencies).hasSize(4);
+
+    ExcludedDependencyModel first = excludedDependencies.get(0);
+    assertEquals("com.android.support", first.group().value());
+    assertEquals("support-v4", first.module().value());
+
+    ExcludedDependencyModel second = excludedDependencies.get(1);
+    assertEquals("com.android.support", second.group().value());
+    assertEquals("support-annotations", second.module().value());
+
+    ExcludedDependencyModel third = excludedDependencies.get(2);
+    assertEquals("com.android.support", third.group().value());
+    assertEquals("recyclerview-v7", third.module().value());
+
+    ExcludedDependencyModel fourth = excludedDependencies.get(3);
+    assertEquals("com.android.support", fourth.group().value());
+    assertEquals("design", fourth.module().value());
   }
 
 
@@ -562,7 +615,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(appcompatDependencyModel);
     GradleNotNullValue<String> appcompatDependency = appcompatDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), appcompatDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(appcompatDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(appcompatDependency.getFile().getPath()));
     assertEquals("dependencies.compile", appcompatDependency.getPropertyName());
     assertEquals("appcompat", appcompatDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> appcompatResolvedVariables = appcompatDependency.getResolvedVariables();
@@ -571,7 +625,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
     assertNotNull(appcompatVariable);
     assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(appcompatVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(appcompatVariable.getFile().getPath()));
     assertEquals("ext.appcompat", appcompatVariable.getPropertyName());
     assertEquals("appcompat = 'com.android.support:appcompat-v7:22.1.1'", appcompatVariable.getDslText());
     assertEquals(0, appcompatVariable.getResolvedVariables().size());
@@ -582,7 +637,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(guavaDependencyModel);
     GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), guavaDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
     assertEquals("dependencies.runtime", guavaDependency.getPropertyName());
     assertEquals("\"com.google.guava:guava:$guavaVersion\"", guavaDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
@@ -591,7 +647,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
@@ -617,7 +674,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(guavaDependencyModel);
     GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), guavaDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
     assertEquals("dependencies.compile", guavaDependency.getPropertyName());
     assertEquals("group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"", guavaDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
@@ -626,7 +684,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
@@ -652,7 +711,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
@@ -680,7 +740,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(appcompatDependencyModel);
     GradleNotNullValue<String> appcompatDependency = appcompatDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), appcompatDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(appcompatDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(appcompatDependency.getFile().getPath()));
     assertEquals("dependencies.compile.compile", appcompatDependency.getPropertyName());
     assertEquals("appcompat", appcompatDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> appcompatResolvedVariables = appcompatDependency.getResolvedVariables();
@@ -689,7 +750,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
     assertNotNull(appcompatVariable);
     assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(appcompatVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(appcompatVariable.getFile().getPath()));
     assertEquals("ext.appcompat", appcompatVariable.getPropertyName());
     assertEquals("appcompat = 'com.android.support:appcompat-v7:22.1.1'", appcompatVariable.getDslText());
     assertEquals(0, appcompatVariable.getResolvedVariables().size());
@@ -700,7 +762,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(guavaDependencyModel);
     GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), guavaDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
     assertEquals("dependencies.compile.compile", guavaDependency.getPropertyName());
     assertEquals("\"com.google.guava:guava:$guavaVersion\"", guavaDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
@@ -709,7 +772,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
@@ -736,7 +800,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(guavaDependencyModel);
     GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
     assertEquals(expected.compactNotation(), guavaDependency.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaDependency.getFile().getPath()));
     assertEquals("dependencies.compile.compile", guavaDependency.getPropertyName());
     assertEquals("(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\")", guavaDependency.getDslText());
     Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
@@ -745,7 +810,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
@@ -771,7 +837,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
     assertEquals("18.0", guavaVersionVariable.value());
-    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()), FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
+    assertEquals(FileUtil.toSystemIndependentName(myBuildFile.getPath()),
+                 FileUtil.toSystemIndependentName(guavaVersionVariable.getFile().getPath()));
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());

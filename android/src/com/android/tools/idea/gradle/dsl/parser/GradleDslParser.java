@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
@@ -104,16 +105,18 @@ public final class GradleDslParser {
       return false;
     }
 
+    GrClosableBlock[] closureArguments = expression.getClosureArguments();
     GradleDslExpression expressionElement = getExpressionElement(dslElement, expression, name, expression);
     if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().size() > 0) {
-      dslElement.addParsedElement(name, expressionElement);
-      // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
-      // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
+      // This element is a method call with arguments and an optional closure associated with it.
       // ex: compile("dependency") {}
+      if (closureArguments.length > 0) {
+        expressionElement.setParsedClosureElement(getClosureElement(expressionElement, closureArguments[0], name));
+      }
+      dslElement.addParsedElement(name, expressionElement);
       return true;
     }
 
-    GrClosableBlock[] closureArguments = expression.getClosureArguments();
     if (closureArguments.length == 0) {
       if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().isEmpty()) {
         dslElement.addParsedElement(name, expressionElement);
@@ -236,6 +239,11 @@ public final class GradleDslParser {
     }
     if (propertyElement == null) {
       return false;
+    }
+
+    GroovyPsiElement lastArgument = arguments[arguments.length - 1];
+    if (lastArgument instanceof GrClosableBlock) {
+      propertyElement.setParsedClosureElement(getClosureElement(propertyElement, (GrClosableBlock)lastArgument, name));
     }
 
     blockElement.addParsedElement(propertyName, propertyElement);
@@ -363,6 +371,9 @@ public final class GradleDslParser {
           }
         }
       }
+      else if (expression instanceof GrClosableBlock) {
+        methodCall.setParsedClosureElement(getClosureElement(methodCall, (GrClosableBlock)expression, propertyName));
+      }
       else {
         GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
         if (dslExpression != null) {
@@ -454,6 +465,21 @@ public final class GradleDslParser {
       }
     }
     return expressionMap;
+  }
+
+  @NotNull
+  private static GradleDslClosure getClosureElement(@NotNull GradleDslElement parentElement,
+                                                    @NotNull GrClosableBlock closableBlock,
+                                                    @NotNull String propertyName) {
+    GradleDslClosure closureElement;
+    if (parentElement.getParent() instanceof DependenciesDslElement) {
+      closureElement = new DependencyConfigurationDslElement(parentElement, closableBlock, propertyName);
+    }
+    else {
+      closureElement = new GradleDslClosure(parentElement, closableBlock, propertyName);
+    }
+    parse(closableBlock, closureElement);
+    return closureElement;
   }
 
   private static GradlePropertiesDslElement getBlockElement(@NotNull List<String> qualifiedName,

@@ -53,15 +53,17 @@ public abstract class GradleDslElement {
 
   @Nullable private GroovyPsiElement myPsiElement;
 
+  @Nullable private GradleDslClosure myClosureElement;
+
   private volatile boolean myModified;
 
   /**
    * Creates an in stance of a {@link GradleDslElement}
    *
-   * @param parent the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if this
-   *               element is the root element, i.e a {@link GradleDslFile}.
+   * @param parent     the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if
+   *                   this element is the root element, i.e a {@link GradleDslFile}.
    * @param psiElement the {@link GroovyPsiElement} of this dsl element.
-   * @param name the name of this element.
+   * @param name       the name of this element.
    */
   protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
     assert parent != null || this instanceof GradleDslFile;
@@ -83,6 +85,15 @@ public abstract class GradleDslElement {
     else {
       myDslFile = parent.myDslFile;
     }
+  }
+
+  public void setParsedClosureElement(@NotNull GradleDslClosure closureElement) {
+    myClosureElement = closureElement;
+  }
+
+  @Nullable
+  public GradleDslClosure getClosureElement() {
+    return myClosureElement;
   }
 
   @NotNull
@@ -174,7 +185,8 @@ public abstract class GradleDslElement {
       if (closableBlock != null) {
         setPsiElement(closableBlock);
       }
-    } else {
+    }
+    else {
       if (addedElement instanceof GrApplicationStatement) {
         setPsiElement((GrApplicationStatement)addedElement);
       }
@@ -214,7 +226,7 @@ public abstract class GradleDslElement {
     }
 
     GroovyPsiElement psiElement = getPsiElement();
-    if(psiElement == null || !psiElement.isValid()) {
+    if (psiElement == null || !psiElement.isValid()) {
       return;
     }
 
@@ -280,7 +292,7 @@ public abstract class GradleDslElement {
   }
 
   protected static void deleteIfEmpty(@Nullable PsiElement element) {
-    if(element == null || !element.isValid()) {
+    if (element == null || !element.isValid()) {
       return;
     }
 
@@ -331,7 +343,7 @@ public abstract class GradleDslElement {
     else if (element instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)element;
       if ((listOrMap.isMap() && listOrMap.getNamedArguments().length == 0)
-          || (!listOrMap.isMap() && listOrMap.getInitializers().length == 0) ) {
+          || (!listOrMap.isMap() && listOrMap.getInitializers().length == 0)) {
         listOrMap.delete();
       }
     }

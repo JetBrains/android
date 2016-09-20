@@ -37,6 +37,10 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
     else if (dependency instanceof GradleDslExpressionList) {
       GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
       for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
+        GradleDslClosure dependencyClosureElement = dependency.getClosureElement();
+        if (expression.getClosureElement() == null && dependencyClosureElement != null) {
+          expression.setParsedClosureElement(dependencyClosureElement);
+        }
         elementList.addParsedElement(expression);
       }
     }
