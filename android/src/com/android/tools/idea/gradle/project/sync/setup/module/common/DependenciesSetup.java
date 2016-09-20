@@ -35,7 +35,7 @@ import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static java.io.File.separatorChar;
 
-public class Dependencies {
+public class DependenciesSetup {
   public void setUpLibraryDependency(@NotNull Module module,
                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                      @NotNull String libraryName,
@@ -79,8 +79,17 @@ public class Dependencies {
           binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
         File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
         if (annotations.isFile()) {
-          updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance(),
-                                       modelsProvider);
+          updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
+        }
+      }
+      else if (libraryName.startsWith("support-annotations-") && binaryPath.endsWith(DOT_JAR)) {
+        // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
+        // with its own external annotations. However, there are a few that we want to make available in the
+        // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the
+        // platform annotations zip file instead. We'll also need to add this as a root here.
+        File annotations = new File(binaryPath.substring(0, binaryPath.length() - DOT_JAR.length()) + "-" + FN_ANNOTATIONS_ZIP);
+        if (annotations.isFile()) {
+          updateLibrarySourcesIfAbsent(library, annotations, AnnotationOrderRootType.getInstance(), modelsProvider);
         }
       }
     }
@@ -107,6 +116,13 @@ public class Dependencies {
       String url = pathToUrl(path);
       libraryModel.addRoot(url, OrderRootType.CLASSES);
     }
+  }
+
+  private static void updateLibrarySourcesIfAbsent(@NotNull Library library,
+                                                   @NotNull File path,
+                                                   @NotNull OrderRootType pathType,
+                                                   @NotNull IdeModifiableModelsProvider modelsProvider) {
+    updateLibrarySourcesIfAbsent(library, Collections.singletonList(path.getPath()), pathType, modelsProvider);
   }
 
   private static void updateLibrarySourcesIfAbsent(@NotNull Library library,

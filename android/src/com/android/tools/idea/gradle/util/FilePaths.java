@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,11 +24,9 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.openapi.vfs.VfsUtilCore.*;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
@@ -64,7 +61,7 @@ public final class FilePaths {
       rootFilePath = new File(s);
     }
     else {
-      rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
+      rootFilePath = virtualToIoFile(rootFile);
     }
     return isAncestor(rootFilePath, path, false);
   }

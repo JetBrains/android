@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import com.android.annotations.Nullable;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntries;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +49,12 @@ class AndroidContentEntries extends ContentEntries {
 
   @NotNull
   static AndroidContentEntries findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel,
-                                                          @NotNull AndroidGradleModel androidModel) {
+                                                          @NotNull AndroidGradleModel androidModel,
+                                                          @Nullable SyncAction.ModuleModels gradleModels) {
+    if (!hasNativeModel(rootModel.getModule(), gradleModels)) {
+      removeExistingContentEntries(rootModel);
+    }
+
     ContentEntry contentEntry = rootModel.addContentEntry(androidModel.getRootDir());
     List<ContentEntry> contentEntries = Collections.singletonList(contentEntry);
 
@@ -64,11 +72,11 @@ class AndroidContentEntries extends ContentEntries {
     myAndroidModel = androidModel;
   }
 
-  void setUpContentEntries(@NotNull SyncAction.ModuleModels gradleModels) {
+  void setUpContentEntries(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
     Variant selectedVariant = myAndroidModel.getSelectedVariant();
 
     // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
-    boolean addNativeSources = gradleModels.findModel(NativeAndroidProject.class) == null;
+    boolean addNativeSources = hasNativeModel(module, gradleModels);
 
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(mainArtifact, false, addNativeSources);
@@ -100,6 +108,10 @@ class AndroidContentEntries extends ContentEntries {
 
     addExcludedOutputFolders();
     addOrphans();
+  }
+
+  private static boolean hasNativeModel(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
+    return (gradleModels != null ? gradleModels.findModel(NativeAndroidProject.class) : NativeAndroidGradleModel.get(module)) == null;
   }
 
   private void addSourceFolders(@NotNull BaseArtifact artifact, boolean isTest, boolean addNativeSources) {

@@ -135,10 +135,10 @@ public class ModuleSetup {
   private void setUpAndroidModule(@NotNull Module module,
                                   @NotNull SyncAction.ModuleModels models,
                                   @NotNull ProgressIndicator indicator,
-                                  AndroidGradleModel androidModel) {
+                                  @NotNull AndroidGradleModel androidModel) {
     for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
       displayStepDescription(step.getDescription(), module, indicator);
-      step.setUpModule(module, androidModel, myModelsProvider, models, indicator);
+      step.setUpModule(module, myModelsProvider, androidModel, models, indicator);
     }
   }
 

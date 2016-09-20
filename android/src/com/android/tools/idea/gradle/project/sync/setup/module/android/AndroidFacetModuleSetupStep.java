@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -43,11 +42,11 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   private static final String SEPARATOR = "/";
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
     if (facet == null) {
       facet = createAndAddFacet(module, ideModelsProvider);
@@ -74,8 +73,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    facetProperties.PROJECT_TYPE = androidProject.getProjectType();
+    facetProperties.PROJECT_TYPE = androidModel.getProjectType();
 
     File modulePath = androidModel.getRootDirPath();
     SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
