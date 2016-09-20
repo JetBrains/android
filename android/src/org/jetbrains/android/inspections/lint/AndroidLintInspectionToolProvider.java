@@ -53,7 +53,8 @@ import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.ObjectAnimatorDetector.KEEP_ANNOTATION;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
-import static com.android.xml.AndroidManifest.*;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
+import static com.android.xml.AndroidManifest.NODE_USES_FEATURE;
 
 /**
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
@@ -421,6 +422,18 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintAppLinksAutoVerifyWarningInspection extends AndroidLintInspectionBase {
     public AndroidLintAppLinksAutoVerifyWarningInspection() {
       super(AndroidBundle.message("android.lint.inspections.app.links.auto.verify.warning"), AppLinksAutoVerifyDetector.ISSUE_WARNING);
+    }
+  }
+
+  public static class AndroidLintApplySharedPrefInspection extends AndroidLintInspectionBase {
+    public AndroidLintApplySharedPrefInspection() {
+      super(AndroidBundle.message("android.lint.inspections.apply.shared.pref"), CleanupDetector.APPLY_SHARED_PREF);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] { new ReplaceStringQuickFix("Replace commit() with apply()", "(commit)\\s*\\(", "apply") };
     }
   }
 
@@ -1745,15 +1758,6 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintCommitPrefEditsInspection extends AndroidLintInspectionBase {
     public AndroidLintCommitPrefEditsInspection() {
       super(AndroidBundle.message("android.lint.inspections.commit.pref.edits"), CleanupDetector.SHARED_PREF);
-    }
-
-    @NotNull
-    @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      if (message.contains("commit") && message.contains("apply")) {
-        return new AndroidLintQuickFix[] { new ReplaceStringQuickFix("Replace commit() with apply()", "(commit)\\s*\\(", "apply") };
-      }
-      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
