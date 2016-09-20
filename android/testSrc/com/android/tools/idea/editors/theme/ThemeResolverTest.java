@@ -24,7 +24,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
 
@@ -103,7 +103,8 @@ public class ThemeResolverTest extends AndroidTestCase {
     // Set API level 17 and check that only the V17 theme can be resolved
     //noinspection ConstantConditions
     configuration
-      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, configurationManager.getHighestApiTarget()));
+      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, null));
+    context = new ThemeEditorContext(configuration);
     resolver = context.getThemeResolver();
     assertNull(resolver.getTheme("V20OnlyTheme"));
     assertNull(resolver.getTheme("V19OnlyTheme"));
