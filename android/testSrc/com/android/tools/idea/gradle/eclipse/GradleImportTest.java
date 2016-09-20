@@ -17,6 +17,7 @@ import com.google.common.io.Files;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.imageio.ImageIO;
@@ -1013,6 +1014,11 @@ public class GradleImportTest extends AndroidTestCase {
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void testReplaceJar() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Add in some well known jars and make sure they get migrated as dependencies
     File projectDir = createProject("test1", "test.pkg");
     File libs = new File(projectDir, "libs");

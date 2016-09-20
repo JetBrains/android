@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   public void testDependencyResolvableOnlyInUnitTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Junit is a dependency for android test, defined in project's build.gradle.
     String importString = "import org.junit.Ass<caret>ert;";
 
@@ -31,6 +37,11 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   public void testDependencyResolvableOnlyInAndroidTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Gson is a dependency for android test, defined in project's build.gradle.
     String importString = "import com.google.gson.Gs<caret>on;";
 
@@ -54,6 +65,11 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   public void testSourceResolvableOnlyInUnitTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Create class located in unit test source
     setUnitTestFileContent("MyClass.java", "class MyClass {}");
 
@@ -66,6 +82,11 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   public void testSourceResolvableOnlyInAndroidTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Create class located in android test source
     setAndroidTestFileContent("MyClass.java", "class MyClass {}");
 

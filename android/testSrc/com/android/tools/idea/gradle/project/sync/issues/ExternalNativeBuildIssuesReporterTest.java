@@ -30,6 +30,7 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -109,6 +110,11 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
   }
 
   public void testReportWithError() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     loadSimpleApplication();
     Module appModule = myModules.getAppModule();
 

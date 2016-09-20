@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -46,6 +47,16 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
+
+  @Override
+  protected boolean shouldRunTest() {
+    if (SystemInfo.isWindows) {
+      System.out.println("Class '" + getClass().getName() +
+                         "' is skipped because it does not run on Windows (http://b.android.com/222904).");
+      return false;
+    }
+    return super.shouldRunTest();
+  }
 
   public void testSrcFolderIncluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
