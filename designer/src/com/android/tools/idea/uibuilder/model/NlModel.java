@@ -1793,14 +1793,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
     for (ResourceNotificationManager.Reason r : reason) {
       switch (r) {
-        case RESOURCE_EDIT: {
+        case RESOURCE_EDIT:
           notifyModified(ChangeType.RESOURCE_EDIT);
-        }
-        break;
-        case EDIT: {
+          break;
+        case EDIT:
           notifyModified(ChangeType.EDIT);
-        }
-        break;
+          break;
+        case IMAGE_RESOURCE_CHANGED:
+          RefreshRenderAction.clearCache(mySurface);
+          break;
         default:
           notifyModified(ChangeType.RESOURCE_CHANGED);
       }
