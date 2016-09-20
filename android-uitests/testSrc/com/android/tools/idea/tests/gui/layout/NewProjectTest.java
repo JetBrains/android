@@ -79,7 +79,6 @@ public class NewProjectTest {
     assertThat(text.contains("Test Application"));
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testCreateNewMobileProject() {
