@@ -94,7 +94,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
         GrClosableBlock closableBlock = injection.getClosableBlock();
         if (closableBlock != null) {
-          String blockText  = closableBlock.getText();
+          String blockText = closableBlock.getText();
           variableName = blockText.substring(1, blockText.length() - 1);
         }
         else {
@@ -144,6 +144,8 @@ public final class GradleDslLiteral extends GradleDslExpression {
   public void setConfigBlock(@NotNull GrClosableBlock block) {
     // For now we only support setting the config block on literals for newly created dependencies.
     Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
+
+    // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
 
     myUnsavedConfigBlock = block;
     setModified(true);
@@ -202,7 +204,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Override
   protected void delete() {
-    if(myExpression == null) {
+    if (myExpression == null) {
       return;
     }
     PsiElement parent = myExpression.getParent();
@@ -279,19 +281,20 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Nullable
   private GrLiteral createLiteral() {
-    if(myUnsavedValue == null) {
+    if (myUnsavedValue == null) {
       return null;
     }
 
     CharSequence unsavedValueText = null;
     if (myUnsavedValue instanceof String) {
       unsavedValueText = GrStringUtil.getLiteralTextByValue((String)myUnsavedValue);
-    } else if (myUnsavedValue instanceof Integer || myUnsavedValue instanceof Boolean) {
+    }
+    else if (myUnsavedValue instanceof Integer || myUnsavedValue instanceof Boolean) {
       unsavedValueText = myUnsavedValue.toString();
     }
     myUnsavedValue = null;
 
-    if(unsavedValueText == null) {
+    if (unsavedValueText == null) {
       return null;
     }
 
