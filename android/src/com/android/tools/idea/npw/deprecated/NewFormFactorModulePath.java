@@ -325,7 +325,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
 
     if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
-      String iapkName = myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor);
+      // Note, this naming is provisional until the instant app workflow is better sorted out.
+      String iapkName = "instant-" +
+                        (myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor));
 
       Map<String, Object> iapkTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
       iapkTemplateState.put(ATTR_ATOM_NAME, moduleName);
