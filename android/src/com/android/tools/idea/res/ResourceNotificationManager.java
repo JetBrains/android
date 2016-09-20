@@ -31,8 +31,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.*;
 import com.intellij.psi.xml.*;
+import com.intellij.util.messages.MessageBusConnection;
+import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -179,7 +184,7 @@ public class ResourceNotificationManager implements ProjectComponent {
       if (file != null) {
         FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
         if (fileEventObserver == null) {
-          fileEventObserver = new FileEventObserver();
+          fileEventObserver = new FileEventObserver(module);
           myFileToObserverMap.put(file, fileEventObserver);
         }
         fileEventObserver.addListener(listener);
@@ -672,10 +677,13 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
   }
 
-  private static class FileEventObserver {
+  private class FileEventObserver extends BulkFileListener.Adapter {
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
+    private Module myModule;
+    private MessageBusConnection myMessageBusConnection;
 
-    public FileEventObserver() {
+    public FileEventObserver(Module module) {
+      myModule = module;
     }
 
     private void addListener(@NotNull ResourceChangeListener listener) {
@@ -694,9 +702,36 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void registerListeners() {
+      myMessageBusConnection = ApplicationManager.getApplication().getMessageBus().connect(myModule);
+      myMessageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, this);
     }
 
     private void unregisterListeners() {
+      myMessageBusConnection.disconnect();
+    }
+
+    @Override
+    public void after(@NotNull List<? extends VFileEvent> events) {
+      events.stream()
+        .filter(e -> {
+          VirtualFile file = e.getFile();
+          if (file == null || !ImageFileTypeManager.getInstance().isImage(file)) {
+            return false;
+          }
+
+          VirtualFile parent = file.getParent();
+          if (parent == null) {
+            return false;
+          }
+
+          ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
+          return ResourceFolderType.DRAWABLE == resType ||
+                 ResourceFolderType.MIPMAP == resType;
+        })
+        .findAny()
+        .ifPresent((e) -> {
+          notice(Reason.IMAGE_RESOURCE_CHANGED);
+        });
     }
 
     private boolean hasListeners() {
@@ -904,6 +939,11 @@ public class ResourceNotificationManager implements ProjectComponent {
      * Project build. Not a direct resource edit, but for example when a custom view
      * is compiled it can affect how a resource like layouts should be rendered
      */
-    PROJECT_BUILD
+    PROJECT_BUILD,
+
+    /**
+     * Image changed. This might be needed to invalidate layoutlib drawable caches.
+     */
+    IMAGE_RESOURCE_CHANGED
   }
 }
