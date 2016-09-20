@@ -15,12 +15,9 @@
  */
 package com.android.tools.swing.util;
 
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import com.intellij.util.ui.UIUtil;
+
+import java.awt.*;
 
 public class GraphicsUtil {
 
@@ -63,14 +60,7 @@ public class GraphicsUtil {
    * @param vertCentered if true, the string will be centered vertically
    */
   public static void drawCenteredString(Graphics2D g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
-    FontMetrics fm = g.getFontMetrics(g.getFont());
-    int textWidth = fm.stringWidth(str);
-    int x = horzCentered ? Math.max(rect.x, rect.x + (rect.width - textWidth) / 2) : rect.x;
-    int y = vertCentered ? Math.max(rect.y, rect.y + rect.height / 2 + fm.getAscent() * 2 / 5) : rect.y;
-    Shape oldClip = g.getClip();
-    g.clip(rect);
-    g.drawString(str, x, y);
-    g.setClip(oldClip);
+    UIUtil.drawCenteredString(g, rect, str, horzCentered, vertCentered);
   }
 
   /**
@@ -80,6 +70,6 @@ public class GraphicsUtil {
    * @param str the string to draw
    */
   public static void drawCenteredString(Graphics2D g, Rectangle rect, String str) {
-    drawCenteredString(g, rect, str, true, true);
+    UIUtil.drawCenteredString(g, rect, str);
   }
 }
