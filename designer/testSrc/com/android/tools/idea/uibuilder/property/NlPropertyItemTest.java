@@ -201,9 +201,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
     NlPropertyItem size = createFrom(myTextView, ATTR_TEXT_SIZE);
     assertThat(size.getResolvedValue()).isEqualTo(null);
 
-    // TODO: Investigate why this works in Studio but not in the test.
-    //size.setValue("@dimen/text_size_small_material");
-    //assertThat(size.getResolvedValue()).isEqualTo("14sp");
+    size.setValue("@dimen/text_size_small_material");
+    assertThat(size.getResolvedValue()).isEqualTo("14sp");
 
     size.setDefaultValue(new PropertiesMap.Property("@dimen/text_size_small_material", "14sp"));
     assertThat(size.getResolvedValue()).isEqualTo("14sp");

@@ -199,7 +199,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     modificator.removeAllRoots();
     modificator.addRoot(classesJarFile, OrderRootType.CLASSES);
     modificator.addRoot(mockSdkSourcesDir, OrderRootType.SOURCES);
-    final VirtualFile resDir = LocalFileSystem.getInstance().findFileByPath(testSdkPath + "/platforms/android-1.5/data/res");
+    final VirtualFile resDir = LocalFileSystem.getInstance().findFileByPath(testSdkPath + "/platforms/" + getPlatformDir() + "/data/res");
     modificator.addRoot(resDir, OrderRootType.CLASSES);
     modificator.commitChanges();
     ModuleRootModificationUtil.setModuleSdk(myModule, sdk);
