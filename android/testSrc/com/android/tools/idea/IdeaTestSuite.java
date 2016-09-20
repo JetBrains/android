@@ -36,6 +36,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.editors.AndroidGeneratedSourcesFilterTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
   com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
+  com.android.tools.idea.editors.theme.ResolutionUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
   com.android.tools.idea.gradle.AndroidGradleModelTest.class,
   com.android.tools.idea.gradle.dependencies.GradleDependencyManagerTest.class,
