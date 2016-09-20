@@ -41,6 +41,7 @@ import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -179,6 +180,17 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
     ourLock.unlock();
     return constraintModel;
+  }
+
+  /**
+   * Clear any heavy weight objects.
+   * Needed for test tearDowns.
+   */
+  @TestOnly
+  public static void clearCache() {
+    ourLock.lock();
+    ourModelCache.clear();
+    ourLock.unlock();
   }
 
   /**
