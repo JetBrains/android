@@ -45,7 +45,6 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ER
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.util.PlatformUtils.isIntelliJ;
 
 class CompatibilityChecksMetadata {
   @NonNls private static final String BUILD_FILE_PREFIX = "buildFile:";
@@ -166,10 +165,7 @@ class CompatibilityChecksMetadata {
     myReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
     myReadersByComponentName.put("android-gradle-experimental-plugin", ANDROID_GRADLE_EXPERIMENTAL_PLUGIN);
     if (isAndroidStudio()) {
-      myReadersByComponentName.put("android-studio", IDE);
-    }
-    else if (isIntelliJ()) {
-      myReadersByComponentName.put("idea", IDE);
+      myReadersByComponentName.put("android-studio", ANDROID_STUDIO);
     }
   }
 

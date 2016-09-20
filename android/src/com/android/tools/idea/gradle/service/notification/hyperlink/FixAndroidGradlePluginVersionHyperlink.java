@@ -33,7 +33,6 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}. This constructor updates the Gradle model to the version in
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
-   *
    */
   public FixAndroidGradlePluginVersionHyperlink() {
     this(GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION), GradleVersion.parse(GRADLE_LATEST_VERSION));
@@ -41,11 +40,25 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
 
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}.
-   *  @param pluginVersion  the version to update the Android Gradle plugin to.
+   *
+   * @param pluginVersion the version to update the Android Gradle plugin to.
    * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
    */
   public FixAndroidGradlePluginVersionHyperlink(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    super("fixGradleElements", "Fix plugin version and sync project");
+    this("Fix plugin version and sync project", pluginVersion, gradleVersion);
+  }
+
+  /**
+   * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}.
+   *
+   * @param text          the text to display in the hyperlink.
+   * @param pluginVersion the version to update the Android Gradle plugin to.
+   * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
+   */
+  public FixAndroidGradlePluginVersionHyperlink(@NotNull String text,
+                                                @NotNull GradleVersion pluginVersion,
+                                                @Nullable GradleVersion gradleVersion) {
+    super("fixGradleElements", text);
     myPluginVersion = pluginVersion;
     myGradleVersion = gradleVersion;
   }
