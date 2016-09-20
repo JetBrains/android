@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.cpp.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.cpp.NativeAndroidGradleFacetModuleCustomizer;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;
@@ -43,8 +43,8 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 public class NativeAndroidGradleModelDataService extends AbstractProjectDataService<NativeAndroidGradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(NativeAndroidGradleModelDataService.class);
 
-  private final ImmutableList<ModuleCustomizer<NativeAndroidGradleModel>> myCustomizers =
-    ImmutableList.of(new NativeAndroidGradleFacetModuleCustomizer(), new ContentRootModuleCustomizer());
+  private final ImmutableList<CppModuleSetupStep> mySetupSteps =
+    ImmutableList.of(new CppAndroidFacetModuleSetupStep(), new ContentRootModuleSetupStep());
 
   @NotNull
   @Override
@@ -79,7 +79,7 @@ public class NativeAndroidGradleModelDataService extends AbstractProjectDataServ
         Map<String, NativeAndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
         for (Module module : modelsProvider.getModules()) {
           NativeAndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
-          customizeModule(module, project, modelsProvider, androidModel);
+          customizeModule(module, modelsProvider, androidModel);
         }
       }
     }.execute();
@@ -100,11 +100,10 @@ public class NativeAndroidGradleModelDataService extends AbstractProjectDataServ
   }
 
   private void customizeModule(@NotNull Module module,
-                               @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider,
                                @Nullable NativeAndroidGradleModel androidModel) {
-    for (ModuleCustomizer<NativeAndroidGradleModel> customizer : myCustomizers) {
-      customizer.customizeModule(project, module, modelsProvider, androidModel);
+    for (CppModuleSetupStep setupStep : mySetupSteps) {
+      setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
     }
   }
 }
