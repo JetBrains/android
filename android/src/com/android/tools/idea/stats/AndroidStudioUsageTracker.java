@@ -25,20 +25,19 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails.SoftwareLifeCycleChannel;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.StudioProjectChange;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.impl.ProjectLifecycleListener;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
-import com.sun.management.OperatingSystemMXBean;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
-import javax.management.MXBean;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +54,14 @@ public class AndroidStudioUsageTracker {
     scheduler.scheduleWithFixedDelay(AndroidStudioUsageTracker::runDailyReports, 0, 1, TimeUnit.DAYS);
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay(AndroidStudioUsageTracker::runHourlyReports, 0, 1, TimeUnit.HOURS);
+
+    subscribeToEvents();
+  }
+
+  private static void subscribeToEvents() {
+    Application app = ApplicationManager.getApplication();
+    MessageBusConnection connection = app.getMessageBus().connect();
+    connection.subscribe(ProjectLifecycleListener.TOPIC, new ProjectLifecycleTracker());
   }
 
   private static void runDailyReports() {
@@ -134,6 +141,30 @@ public class AndroidStudioUsageTracker {
       case BETA: return SoftwareLifeCycleChannel.BETA;
       case RELEASE: return SoftwareLifeCycleChannel.STABLE;
       default: return SoftwareLifeCycleChannel.UNKNOWN_LIFE_CYCLE_CHANNEL;
+    }
+  }
+
+  /**
+   * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
+   */
+  private static class ProjectLifecycleTracker extends ProjectLifecycleListener.Adapter {
+    int myProjectsOpen = 0;
+    @Override
+    public void beforeProjectLoaded(@NotNull Project project) {
+      myProjectsOpen++;
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+                                       .setStudioProjectChange(StudioProjectChange.newBuilder()
+                                                                 .setProjectsOpen(myProjectsOpen)));
+    }
+
+    @Override
+    public void afterProjectClosed(@NotNull Project project) {
+      myProjectsOpen--;
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
+                                       .setStudioProjectChange(StudioProjectChange.newBuilder()
+                                                                 .setProjectsOpen(myProjectsOpen)));
     }
   }
 }
