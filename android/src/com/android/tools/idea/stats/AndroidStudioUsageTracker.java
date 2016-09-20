@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.impl.ProjectLifecycleListener;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.util.messages.MessageBusConnection;
@@ -148,23 +149,22 @@ public class AndroidStudioUsageTracker {
    * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
    */
   private static class ProjectLifecycleTracker extends ProjectLifecycleListener.Adapter {
-    int myProjectsOpen = 0;
     @Override
     public void beforeProjectLoaded(@NotNull Project project) {
-      myProjectsOpen++;
+      int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                                 .setProjectsOpen(myProjectsOpen)));
+                                                                 .setProjectsOpen(projectsOpen)));
     }
 
     @Override
     public void afterProjectClosed(@NotNull Project project) {
-      myProjectsOpen--;
+      int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
                                        .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                                 .setProjectsOpen(myProjectsOpen)));
+                                                                 .setProjectsOpen(projectsOpen)));
     }
   }
 }
