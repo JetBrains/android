@@ -53,6 +53,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.controlFlow.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
+import com.intellij.psi.impl.compiled.ClsAnnotationImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -969,13 +970,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         LocalQuickFix[] fixes = LocalQuickFix.EMPTY_ARRAY;
         List<LocalQuickFix> list = Lists.newArrayList();
         for (String permissionName : requirement.getMissingPermissions(lookup)) {
-          list.add(new AddPermissionFix(facet, permissionName));
+          list.add(new AddPermissionFix(facet, permissionName, requirement));
         }
         if (!list.isEmpty()) {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
         registerProblem(holder, MISSING_PERMISSION, methodCall, message, fixes);
-      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
+      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23
+          && requirement.getLastApplicableApi() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
         if (securityException != null &&
@@ -1055,10 +1057,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static class AddPermissionFix implements LocalQuickFix {
     private final AndroidFacet myFacet;
     private final String myPermissionName;
+    private PermissionRequirement myRequirement;
 
-    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName) {
+    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, @NotNull PermissionRequirement requirement) {
       myFacet = facet;
       myPermissionName = permissionName;
+      myRequirement = requirement;
     }
 
     @Nls
@@ -1133,6 +1137,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         // Do this *after* adding the tag to the document; otherwise, setting the
         // namespace prefix will not work correctly
         permissionTag.setAttribute(ATTR_NAME, ANDROID_URI, myPermissionName);
+
+        // Some permissions only apply for a range of API levels - for example,
+        // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
+        // case set a maxSdkVersion attribute on the uses-permission element.
+        if (myRequirement.getLastApplicableApi() != Integer.MAX_VALUE
+            && myRequirement.getLastApplicableApi() >= AndroidModuleInfo.get(myFacet).getMinSdkVersion().getApiLevel()) {
+          permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myRequirement.getLastApplicableApi()));
+        }
 
         CodeStyleManager.getInstance(project).reformat(permissionTag);
 
@@ -1993,7 +2005,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) || qualifiedName.startsWith("test.pkg.")) {
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
-          if (type != null) {
+          if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
         }

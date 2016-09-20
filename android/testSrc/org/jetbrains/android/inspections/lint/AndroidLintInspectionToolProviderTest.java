@@ -344,8 +344,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
-    if (issue == NamespaceDetector.TYPO ||                  // IDEA has its own spelling check
-        issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
+    if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
         issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
         // Reimplemented by ResourceTypeInspection
