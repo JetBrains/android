@@ -49,7 +49,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.sync.CommandLineArgsTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.version.AndroidGradleExperimentalPluginVersionReaderTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.version.AndroidGradlePluginVersionReaderTest.class,
-  com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityCheckerIntegrationTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityCheckerTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.version.GradleVersionReaderTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.VersionIncompatibilityTest.class,
