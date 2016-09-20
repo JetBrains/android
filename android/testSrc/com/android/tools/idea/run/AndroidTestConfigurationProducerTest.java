@@ -25,6 +25,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
@@ -47,6 +48,11 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   }
 
   public void testCanCreateConfigurationFromFromAndroidTestClass() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     assertNotNull(createConfigurationFromClass("google.simpleapplication.ApplicationTest"));
   }
 
@@ -55,6 +61,11 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   }
 
   public void testCanCreateConfigurationFromFromAndroidTestDirectory() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     assertNotNull(createConfigurationFromDirectory("app/src/androidTest/java"));
   }
 

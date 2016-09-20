@@ -29,6 +29,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -93,6 +94,11 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   public void testGenerateToolTipText() throws IOException {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import org.mockito.Mock;
 
 import java.nio.file.FileSystems;
@@ -51,6 +52,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetFullFilePathAbsolute() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path fullFilePath = MockupFileHelper.getFullFilePath(mockProject, "/foo/bar");
     assertNotNull(fullFilePath);
     assertEquals("/foo/bar", fullFilePath.toString());
@@ -63,6 +69,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePath() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path path = MockupFileHelper.getXMLFilePath(mockProject, "mockup.psd");
     assertNotNull(path);
     final String[] split = path.toString().split(FileSystems.getDefault().getSeparator());
@@ -71,6 +82,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathInnerDir() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path path = MockupFileHelper.getXMLFilePath(mockProject, "dir/mockup.psd");
     assertNotNull(path);
     final String[] split = path.toString().split(FileSystems.getDefault().getSeparator());
@@ -79,6 +95,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathOuterDir() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path path = MockupFileHelper.getXMLFilePath(mockProject, "../mockup.psd");
     assertNotNull(path);
     final String[] split = path.toString().split(FileSystems.getDefault().getSeparator());
@@ -88,6 +109,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathAbsoluteOutside() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path path = MockupFileHelper.getXMLFilePath(mockProject, "/root/mockup.psd");
     assertNotNull(path);
     final String[] split = path.toString().split(FileSystems.getDefault().getSeparator());
@@ -97,6 +123,11 @@ public class MockupFileHelperTest extends MockupTestCase {
   }
 
   public void testGetXMLFilePathAbsoluteInside() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     final Path path = MockupFileHelper.getXMLFilePath(mockProject, mockProject.getBasePath() + "/mockup/test.psd");
     assertNotNull(path);
     assertEquals("mockup/test.psd", path.toString());
