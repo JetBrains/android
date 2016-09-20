@@ -54,8 +54,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   private String sdkPlatformPath;
   private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
 
-  public ThemeEditorUtilsTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   private void compareWithGoldenFile(@NotNull String text, @NotNull String goldenFile) throws IOException {

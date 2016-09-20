@@ -86,7 +86,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test14() {
-    final String libStylesPath = getContentRootPath("lib") + "/res/values/styles.xml";
+    final String libStylesPath = getAdditionalModulePath("lib") + "/res/values/styles.xml";
     final String stylesLocalPath = BASE_PATH + getTestName(true) + "_styles.xml";
     myFixture.copyFileToProject(stylesLocalPath, libStylesPath);
     doTestErrorMessageShown(true, true, true);
@@ -94,7 +94,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test15() {
-    final String libModuleDir = getContentRootPath("lib");
+    final String libModuleDir = getAdditionalModulePath("lib");
     final String libStylesPath = libModuleDir + "/res/values/styles.xml";
     final String appStylePath = "/res/values/styles.xml";
     final String appLayoutLocalPath = BASE_PATH + getTestName(true) + "_1.xml";
@@ -116,7 +116,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test35() throws Exception {
-    final String libModuleDir = getContentRootPath("lib");
+    final String libModuleDir = getAdditionalModulePath("lib");
     final String libStylesPath = libModuleDir + "/res/values/styles.xml";
     final String appStylePath = "/res/values/styles.xml";
     final String appLayoutLocalPath = BASE_PATH + getTestName(true) + "_1.xml";
@@ -130,7 +130,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test16() {
-    final String libModuleDir = getContentRootPath("lib");
+    final String libModuleDir = getAdditionalModulePath("lib");
     final String libStylesPath = libModuleDir + "/res/values/styles.xml";
     final String appLayoutPath = "res/layout/layout.xml";
 

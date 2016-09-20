@@ -30,7 +30,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 public class AndroidMultiModuleRenameTest extends AndroidTestCase {
   public static final String LIBRARY_MODULE = "library";
-  public static final String LIBRARY_PATH = getContentRootPath(LIBRARY_MODULE);
+  public static final String LIBRARY_PATH = getAdditionalModulePath(LIBRARY_MODULE);
 
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
