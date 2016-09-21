@@ -4,7 +4,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
 import com.intellij.openapi.module.Module;
 import com.intellij.projectView.BaseProjectViewTestCase;
 import com.intellij.psi.PsiDirectory;
-import org.jetbrains.android.legacy.AndroidTestCase;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected Module createMainModule() throws IOException {
     Module result = super.createMainModule();
-    AndroidTestCase.addAndroidFacet(result, AndroidTestCase.getRecentSdkPath(), AndroidTestCase.getRecentPlatformDir());
+    AndroidTestCase.addAndroidFacet(result);
     return result;
   }
 
