@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -70,7 +71,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
@@ -151,7 +151,7 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    File androidSdkPath = getAndroidSdkPath();
+    File androidSdkPath = TestUtils.getSdk();
 
     execute(new GuiTask() {
       @Override
