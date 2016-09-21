@@ -225,9 +225,12 @@ public class Jdks {
   @Nullable
   public static Sdk createEmbeddedJdk() {
     if (isAndroidStudio()) {
-      Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
-      assert jdk != null;
-      return jdk;
+      File embeddedJdkPath = getEmbeddedJdkPath();
+      if (embeddedJdkPath != null) {
+        Sdk jdk = createJdk(embeddedJdkPath.getPath());
+        assert jdk != null;
+        return jdk;
+      }
     }
     return null;
   }

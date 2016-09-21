@@ -187,7 +187,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       boolean useEmbeddedJdk = useEmbeddedJdk();
       updateJdkTextField(useEmbeddedJdk);
 
-      String path = getEmbeddedJdkPath().getPath();
+      File embeddedJdkPath = getEmbeddedJdkPath();
+      String path = embeddedJdkPath != null ? embeddedJdkPath.getPath() : "";
       if (!useEmbeddedJdk) {
         // If the user-selected path is the same as the "embedded JDK" path, ignore it because there is no user-selected path yet.
         if (path.equals(myUserSelectedJdkHomePath)) {
@@ -222,7 +223,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationTextField.setText(myOriginalNdkHomePath);
 
-    String jdkPath = myOriginalUseEmbeddedJdk ? getEmbeddedJdkPath().getPath() : myOriginalJdkHomePath;
+    File embeddedJdkPath = getEmbeddedJdkPath();
+    String jdkPath = myOriginalUseEmbeddedJdk && embeddedJdkPath != null ? embeddedJdkPath.getPath() : myOriginalJdkHomePath;
     myJdkLocationTextField.setText(jdkPath);
     myUserSelectedJdkHomePath = myOriginalJdkHomePath;
     updateJdkTextField(myOriginalUseEmbeddedJdk);
