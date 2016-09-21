@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -23,7 +24,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -214,7 +214,8 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       setErrorHtml("Please enter a package name (This package uniquely identifies your application or library)");
       return false;
     } else {
-      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      // Fully qualified reference can be deleted once com.android.tools.idea.npw.WizardUtils has been removed
+      String message = com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName(packageName);
       if (message != null) {
         setErrorHtml("Invalid package name: " + message);
         return false;

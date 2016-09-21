@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -168,7 +167,8 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       return false;
     }
     else {
-      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      // Fully qualified reference can be deleted once com.android.tools.idea.npw.WizardUtils has been removed
+      String message = com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName(packageName);
       if (message != null) {
         setErrorHtml("Invalid package name: " + message);
         return false;
