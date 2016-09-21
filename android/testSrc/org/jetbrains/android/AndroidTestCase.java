@@ -51,7 +51,6 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,6 +156,65 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
+      myModule = null;
+      myAdditionalModules = null;
+      myFixture.tearDown();
+      myFixture = null;
+      myFacet = null;
+      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
+      if (RenderSecurityManager.RESTRICT_READS) {
+        RenderSecurityManager.sEnabled = true;
+      }
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public static void tuneModule(JavaModuleFixtureBuilder moduleBuilder, String moduleDirPath) {
+    moduleBuilder.addContentRoot(moduleDirPath);
+
+    //noinspection ResultOfMethodCallIgnored
+    new File(moduleDirPath + "/src/").mkdir();
+    moduleBuilder.addSourceRoot("src");
+
+    //noinspection ResultOfMethodCallIgnored
+    new File(moduleDirPath + "/gen/").mkdir();
+    moduleBuilder.addSourceRoot("gen");
+  }
+
+  protected String getContentRootPath() {
+    return "";
+  }
+
+  protected static String getContentRootPath(@NotNull String moduleName) {
+    return "/additionalModules/" + moduleName;
+  }
+
+  protected boolean isToAddSdk() {
+    return true;
+  }
+
+  protected String getResDir() {
+    return "res";
+  }
+
+  /**
+   * Defines the project level to set for the test project, or null for the default
+   */
+  @Nullable
+  protected LanguageLevel getLanguageLevel() {
+    return null;
+  }
+
+  protected AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
+    return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
+  }
+
   protected void collectAllowedRoots(List<String> roots) throws IOException {
   }
 
@@ -177,12 +235,26 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected boolean isToAddSdk() {
-    return true;
+  public static AndroidFacet addAndroidFacet(Module module) {
+    return addAndroidFacet(module, true);
   }
 
-  protected String getContentRootPath() {
-    return "";
+  public static AndroidFacet addAndroidFacet(Module module, boolean addSdk) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
+
+    if (addSdk) {
+      addLatestAndroidSdk(module);
+    }
+    final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+    facetModel.addFacet(facet);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        facetModel.commit();
+      }
+    });
+    return facet;
   }
 
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
@@ -208,26 +280,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     new File(moduleDirPath).mkdirs();
     tuneModule(moduleFixtureBuilder, moduleDirPath);
     modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, projectType, isMainModuleDependency));
-  }
-
-  protected static String getContentRootPath(@NotNull String moduleName) {
-    return "/additionalModules/" + moduleName;
-  }
-
-  protected String getResDir() {
-    return "res";
-  }
-
-  public static void tuneModule(JavaModuleFixtureBuilder moduleBuilder, String moduleDirPath) {
-    moduleBuilder.addContentRoot(moduleDirPath);
-
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath + "/src/").mkdir();
-    moduleBuilder.addSourceRoot("src");
-
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath + "/gen/").mkdir();
-    moduleBuilder.addSourceRoot("gen");
   }
 
   protected void createManifest() throws IOException {
@@ -260,59 +312,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
         }
       }
     });
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-      myModule = null;
-      myAdditionalModules = null;
-      myFixture.tearDown();
-      myFixture = null;
-      myFacet = null;
-      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      if (RenderSecurityManager.RESTRICT_READS) {
-        RenderSecurityManager.sEnabled = true;
-      }
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  protected AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
-    return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
-  }
-
-  public static AndroidFacet addAndroidFacet(Module module) {
-    return addAndroidFacet(module, true);
-  }
-
-  public static AndroidFacet addAndroidFacet(Module module, boolean addSdk) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-
-    if (addSdk) {
-      addLatestAndroidSdk(module);
-    }
-    final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-    facetModel.addFacet(facet);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        facetModel.commit();
-      }
-    });
-    return facet;
-  }
-
-  /**
-   * Defines the project level to set for the test project, or null for the default
-   */
-  @Nullable
-  protected LanguageLevel getLanguageLevel() {
-    return null;
   }
 
   protected void doGlobalInspectionTest(@NotNull GlobalInspectionTool inspection,
