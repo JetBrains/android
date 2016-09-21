@@ -34,6 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -68,7 +69,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     final File projectFile = new File(myProjectRootDir, SdkConstants.FN_BUILD_GRADLE);
     final String configPath = projectFile.getPath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, myProjectName, projectRootDirPath, configPath);
-    myCachedProject = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
+    myCachedProject = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
 
     ModuleData moduleData =
       new ModuleData("", GradleConstants.SYSTEM_ID, JAVA.getId(), myModule.getName(), projectRootDirPath, configPath);
@@ -204,8 +205,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       assertEquals(myProjectRootDir.getPath(), project.getBasePath());
 
       // Verify that '.idea' directory was created.
-      File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);
-      assertTrue(ideaProjectDir.isDirectory());
+      assertTrue(new File(ProjectKt.getStateStore(project).getDirectoryStorePath()).isDirectory());
     }
 
     @Override
