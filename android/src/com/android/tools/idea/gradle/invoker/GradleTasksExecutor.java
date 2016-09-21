@@ -105,7 +105,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPT
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
@@ -113,8 +112,6 @@ import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.ui.MessageType.*;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.WARNING;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
@@ -310,11 +307,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         commandLineArgs.addAll(myContext.getCommandLineArgs());
         addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
         attemptToUseEmbeddedGradle(project);
-
-        if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
-          addProfilerClassPathInitScriptCommandLineOption(commandLineArgs);
-          commandLineArgs.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
-        }
 
         // Don't include passwords in the log
         String logMessage = "Build command line options: " + commandLineArgs;
