@@ -103,7 +103,7 @@ public class EmbeddedDistributionPaths {
     return rootDirPath.isDirectory() ? rootDirPath : null;
   }
 
-  @NotNull
+  @Nullable
   public static File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
 
@@ -128,13 +128,16 @@ public class EmbeddedDistributionPaths {
     return getSystemSpecificJdkPath(jdkRootPath);
   }
 
-  @NotNull
+  @Nullable
   private static File getSystemSpecificJdkPath(File jdkRootPath) {
     if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
-    assert jdkRootPath.isDirectory();
-    return jdkRootPath;
+    if (jdkRootPath.isDirectory()) {
+      return jdkRootPath;
+    } else {
+      return null;
+    }
   }
 
   @NotNull
