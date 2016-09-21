@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
@@ -200,6 +201,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     group.add(addLocaleAction);
     group.add(newShowOnlyKeysNeedingTranslationsAction());
+    group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
   }
