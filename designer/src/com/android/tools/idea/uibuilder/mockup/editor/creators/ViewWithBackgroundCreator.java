@@ -17,10 +17,8 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ColorChooserForm;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -31,14 +29,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
- *
+ * Create a new simple View and show a popup to set the background of the view
  */
 public class ViewWithBackgroundCreator extends SimpleViewCreator {
-  private ColorResourceHolder myColor;
+  protected ColorResourceHolder myColor;
 
   /**
    * Create a simple {@value SdkConstants#VIEW} tag
@@ -65,34 +61,24 @@ public class ViewWithBackgroundCreator extends SimpleViewCreator {
   @Nullable
   @Override
   public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
-    ColorChooserForm colorChooserForm =
-      new ColorChooserForm("Extract Background color", createColorSelectedListener(doneCallback));
+    ViewAndColorForm viewAndColorForm =
+      new ViewAndColorForm("Extract Background color", createColorSelectedListener(doneCallback));
     final BufferedImage image = getMockup().getImage();
     if (image == null) {
       return null;
     }
-    extractColor(image, new ColorExtractor.ColorExtractorCallback() {
-      @Override
-      public void result(Collection<ExtractedColor> rgbColors) {
-        colorChooserForm.addColors(rgbColors);
-      }
-
-      @Override
-      public void progress(int progress) {
-        colorChooserForm.setProgress(progress);
-      }
-    });
-    return colorChooserForm.getComponent();
+    extractColor(viewAndColorForm, image);
+    return viewAndColorForm.getComponent();
   }
 
   /**
    * Create a listener that will call the provided done callback after setting the selected color
    *
    * @param doneCallback The callback provided by {@link WidgetCreator}
-   * @return The {@link ColorChooserForm.ColorSelectedListener} that will be called by the {@link ColorChooserForm}
+   * @return The {@link ViewAndColorForm.ColorSelectedListener} that will be called by the {@link ViewAndColorForm}
    */
   @NotNull
-  private ColorChooserForm.ColorSelectedListener createColorSelectedListener(@NotNull DoneCallback doneCallback) {
+  protected ViewAndColorForm.ColorSelectedListener createColorSelectedListener(@NotNull DoneCallback doneCallback) {
     return colorHolder -> {
       myColor = colorHolder;
       if (myColor != null) {
@@ -111,7 +97,7 @@ public class ViewWithBackgroundCreator extends SimpleViewCreator {
   protected void addAttributes(@NotNull AttributesTransaction transaction) {
     super.addAttributes(transaction);
     if (myColor != null && myColor.value != null) {
-      if (myColor.name != null) {
+      if (myColor.name != null && !myColor.name.isEmpty()) {
         transaction
           .setAttribute(null, SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_BACKGROUND,
                         SdkConstants.COLOR_RESOURCE_PREFIX + myColor.name);

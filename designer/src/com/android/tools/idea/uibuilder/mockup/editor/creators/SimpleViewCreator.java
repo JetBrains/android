@@ -19,6 +19,8 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
+import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 
 import static com.android.SdkConstants.VIEW;
 
@@ -37,6 +40,7 @@ import static com.android.SdkConstants.VIEW;
 public class SimpleViewCreator extends WidgetCreator {
 
   @MockupCoordinate private final Rectangle mySelectionBounds;
+  protected ColorResourceHolder myColor;
   @AndroidCoordinate Rectangle myAndroidBounds = new Rectangle();
 
   /**
@@ -91,6 +95,21 @@ public class SimpleViewCreator extends WidgetCreator {
                                                              DBSCANColorExtractor.getMinClusterSize(subimage));
     colorExtractor.run(callback);
   }
+
+  protected void extractColor(final ViewAndColorForm viewAndColorForm, BufferedImage image) {
+    extractColor(image, new ColorExtractor.ColorExtractorCallback() {
+      @Override
+      public void result(Collection<ExtractedColor> rgbColors) {
+        viewAndColorForm.addColors(rgbColors);
+      }
+
+      @Override
+      public void progress(int progress) {
+        viewAndColorForm.setProgress(progress);
+      }
+    });
+  }
+
 
   /**
    * {@inheritDoc}

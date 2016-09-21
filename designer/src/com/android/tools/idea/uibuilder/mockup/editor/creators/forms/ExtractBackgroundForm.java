@@ -72,10 +72,11 @@ public class ExtractBackgroundForm {
     });
 
     myDrawableName.getDocument().addDocumentListener(createDrawableNameListener());
-    myUndoRedoPanel.add(createUndoRedoButtons(), BorderLayout.SOUTH);
-    validateColorName(myDrawableName.getDocument());
+    final JComponent undoRedoButtons = createUndoRedoButtons();
+    undoRedoButtons.setOpaque(false);
+    myUndoRedoPanel.add(undoRedoButtons, BorderLayout.SOUTH);
+    validateDrawableName(myDrawableName.getDocument());
   }
-
 
 
   /**
@@ -86,12 +87,12 @@ public class ExtractBackgroundForm {
     return new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        myOKButton.setEnabled(validateColorName(e.getDocument()));
+        myOKButton.setEnabled(validateDrawableName(e.getDocument()));
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        myOKButton.setEnabled(validateColorName(e.getDocument()));
+        myOKButton.setEnabled(validateDrawableName(e.getDocument()));
       }
 
       @Override
@@ -109,7 +110,7 @@ public class ExtractBackgroundForm {
 
         @Override
         public void update(AnActionEvent e) {
-          getTemplatePresentation().setEnabled(myRemoveBackgroundPanel.canUndo());
+          e.getPresentation().setEnabled(myRemoveBackgroundPanel.canUndo());
         }
 
         @Override
@@ -121,7 +122,7 @@ public class ExtractBackgroundForm {
 
         @Override
         public void update(AnActionEvent e) {
-          getTemplatePresentation().setEnabled(myRemoveBackgroundPanel.canRedo());
+          e.getPresentation().setEnabled(myRemoveBackgroundPanel.canRedo());
         }
 
         @Override
@@ -139,7 +140,7 @@ public class ExtractBackgroundForm {
    * @param document the document containing the color name
    * @return true if the name is correct, false otherwise
    */
-  private boolean validateColorName(Document document) {
+  private boolean validateDrawableName(Document document) {
     if (document.getLength() <= 0) {
       myErrorLabel.setForeground(JBColor.foreground());
       myErrorLabel.setText("To create the drawable, enter a name");
@@ -180,6 +181,11 @@ public class ExtractBackgroundForm {
     myOKButton.addActionListener(myListener);
   }
 
+  public void setErrorText(String errorMessage) {
+    myErrorLabel.setForeground(JBColor.RED);
+    myErrorLabel.setText(String.format("<html>%s</html>", errorMessage));
+  }
+
   /**
    * Return the root component of this form
    */
@@ -192,11 +198,13 @@ public class ExtractBackgroundForm {
    *
    * @return the value of the text field.
    */
+  @NotNull
   public String getDrawableName() {
     return myDrawableName.getText();
   }
 
   private void createUIComponents() {
     // Do not remove, needed for the form creation
+    myComponent = new ToolRootPanel();
   }
 }

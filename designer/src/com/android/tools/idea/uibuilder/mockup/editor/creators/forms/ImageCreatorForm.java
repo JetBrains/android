@@ -30,6 +30,7 @@ public class ImageCreatorForm {
   private JButton mySetSourceButton;
 
   public ImageCreatorForm() {
+
   }
 
   public void addSetSourceListener(ActionListener listener) {
@@ -49,4 +50,7 @@ public class ImageCreatorForm {
     return myComponent;
   }
 
+  private void createUIComponents() {
+    myComponent = new ToolRootPanel();
+  }
 }

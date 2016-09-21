@@ -60,7 +60,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
   private static final String PROMPT_HELP_TEXT = "Only displaying devices with same aspect ratio as the image.";
   private static final JBColor ERROR_COLOR = JBColor.RED;
   private static final String NO_DEVICE_MESSAGE = "No device or AVD matching the image dimension has been found.\n" +
-                                                 "Create a new AVD with the same aspect ratio as the image or choose another image for better result.";
+                                                  "Create a new AVD with the same aspect ratio as the image or choose another image for better result.";
   private static final Color MESSAGE_COLOR = JBColor.foreground();
   private static final Logger LOGGER = Logger.getInstance(DeviceSelectionPopup.class);
 
@@ -167,12 +167,8 @@ public class DeviceSelectionPopup extends DialogWrapper {
       myNoMatchingDevice = true;
     }
 
-    Device currentDevice = null;
     for (Device device : myMatchingDevices) {
       String deviceLabel;
-      if (device == myConfiguration.getDevice()) {
-
-      }
       if (isNexus(device)) {
         deviceLabel = getNexusLabel(device);
       }
@@ -186,16 +182,8 @@ public class DeviceSelectionPopup extends DialogWrapper {
         // Set a special label for the current device
         // and display it on top if it matches the image ratio
         deviceLabel = String.format("* %s (current)", deviceLabel);
-        myDevicesComboBox.insertItemAt(deviceLabel, 0);
-        currentDevice = myConfiguration.getDevice();
       }
-      else {
-        myDevicesComboBox.addItem(deviceLabel);
-      }
-    }
-    if(currentDevice != null) {
-      myMatchingDevices.remove(currentDevice);
-      myMatchingDevices.add(0, currentDevice);
+      myDevicesComboBox.addItem(deviceLabel);
     }
     mySelectedDevice = myMatchingDevices.get(0);
     myDevicesComboBox.setSelectedIndex(0);
@@ -345,9 +333,8 @@ public class DeviceSelectionPopup extends DialogWrapper {
 
   private void setConfigurationDevice(@NotNull Device selectedDevice) {
     final State state = selectedDevice.getDefaultState().deepCopy();
-    state.setOrientation(myScreenOrientation);
-    myConfiguration.setDevice(selectedDevice, false);
-    myConfiguration.setDeviceState(state);
+    myConfiguration.setDeviceStateName(state.getName());
+    myConfiguration.getConfigurationManager().selectDevice(selectedDevice);
   }
 
   private void createUIComponents() {

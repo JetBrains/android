@@ -81,7 +81,7 @@ public class MockupLayer extends Layer {
     final BufferedImage image = mockup.getImage();
     if (image != null) {
       final Rectangle dest = mockup.getScreenBounds(myScreenView);
-      final Rectangle src = mockup.getCropping();
+      final Rectangle src = mockup.getRealCropping();
 
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockup.getAlpha()));
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);

@@ -15,67 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
-import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ExtractBackgroundForm;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
- * Extract a Drawable without creating any component
+ * Creates an new RecyclerView from the selection
  */
-public class ExtractIconCreator extends ImageViewCreator {
+public class RecyclerViewCreator extends SimpleViewCreator {
 
   /**
-   * Create a new creator to extract a drawable without creating a new component
+   * Create a RecyclerView
+   * with the size, mockup, and tools position attributes
    *
    * @param mockup     the mockup to extract the information from
    * @param model      the model to insert the new component into
    * @param screenView The currentScreen view displayed in the {@link DesignSurface}.
+   *                   Used to convert the size of component from the mockup to the Android coordinates.
+   * @param selection  The selection made in the {@link MockupEditor}
    */
-  protected ExtractIconCreator(@NotNull Mockup mockup,
-                               @NotNull NlModel model,
-                               @NotNull ScreenView screenView,
-                               @NotNull Rectangle selection) {
+  public RecyclerViewCreator(@NotNull Mockup mockup,
+                             @NotNull NlModel model,
+                             @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
-
-  }
-
-  @Override
-  protected void addAttributes(@NotNull AttributesTransaction transaction) {
   }
 
   @NotNull
   @Override
   public String getAndroidViewTag() {
-    return "";
+    return SdkConstants.RECYCLER_VIEW;
   }
-
-  @Nullable
-  @Override
-  public NlComponent addToModel() {
-    return null;
-  }
-
-  @Override
-  public boolean hasOptionsComponent() {
-    return true;
-  }
-
-  @Nullable
-  @Override
-  public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
-    return super.getOptionsComponent(doneCallback);
-  }
-
-
 }

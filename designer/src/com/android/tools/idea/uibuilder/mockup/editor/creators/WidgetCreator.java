@@ -183,6 +183,7 @@ public abstract class WidgetCreator {
    *
    * @return
    */
+  @Nullable
   public NlComponent addToModel() {
     ensureNewComponentCreated();
     assert myComponent != null;
