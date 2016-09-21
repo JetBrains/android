@@ -301,9 +301,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   private RowEntry<?> createRowForParameter(@Nullable final Module module, @NotNull Parameter parameter) {
 
-    /**
-     * Handle custom parameter types first.
-     */
+    // Handle custom parameter types first.
     // TODO: Should we extract this logic into an extension point at some point, in order to be
     // more friendly to third-party plugins with templates? Do they need custom UI components?
     if (ATTR_PACKAGE_NAME.equals(parameter.id)) {
@@ -335,9 +333,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    /**
-     * Handle standard parameter types
-     */
+    // Handle standard parameter types
     switch (parameter.type) {
       case STRING:
         assert parameter.name != null;
@@ -539,16 +535,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       return;
     }
 
-    /**
-     * Some parameter values should be saved for later runs through this wizard, so do that first.
-     */
+    // Some parameter values should be saved for later runs through this wizard, so do that first.
     for (RowEntry rowEntry : myParameterRows.values()) {
       rowEntry.accept();
     }
 
-    /**
-     * Prepare the template data-model, starting from scratch and filling in all values we know
-     */
+    // Prepare the template data-model, starting from scratch and filling in all values we know
     Map<String, Object> templateValues = getModel().getTemplateValues();
     templateValues.clear();
 
@@ -579,9 +571,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
     }
 
-    /**
-     * Register the resource directories associated with the active source provider
-     */
+    // Register the resource directories associated with the active source provider
     templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
 
     String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
@@ -619,9 +609,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    /**
-     * Register application-wide settings
-     */
+    // Register application-wide settings
     String applicationPackage = AndroidPackageUtils.getPackageForApplication(getModel().getFacet());
     if (!myPackageName.get().equals(applicationPackage)) {
       templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(facet));
