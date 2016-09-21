@@ -29,8 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_MOCKUP;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
 
 /**
  * Shows the popup for editing the mockup of the selected component
@@ -66,6 +65,9 @@ public class MockupEditAction extends AnAction {
         ourFileChooserActionListener.setFilePathProperty(new NlPropertyItem(
           Collections.singletonList(nlComponent),
           TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP)));
+        ourFileChooserActionListener.setCropProperty(new NlPropertyItem(
+          Collections.singletonList(nlComponent),
+          TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP_CROP)));
       }
       else {
         getTemplatePresentation().setEnabled(false);

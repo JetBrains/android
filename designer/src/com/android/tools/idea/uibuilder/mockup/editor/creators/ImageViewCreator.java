@@ -16,38 +16,25 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ImageCreatorForm;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ExtractBackgroundForm;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.checkDrawableExist;
 import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.createDrawable;
-import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
 
 /**
  * Create an ImageView and displays option to export the selection as a drawable
@@ -57,7 +44,11 @@ public class ImageViewCreator extends SimpleViewCreator {
   public static final Logger LOGGER = Logger.getInstance(ImageViewCreator.class);
   public static final String DRAWABLE_TYPE = "png";
 
-  @Nullable private String myNewDrawableName;
+  private final Rectangle mySelection;
+  private RemoveBackgroundPanel myRemoveBackgroundPanel;
+  private ExtractBackgroundForm myExtractBackgroundForm;
+  @Nullable private String myDrawableName;
+
 
   /**
    * Create a simple {@value SdkConstants#VIEW} tag
@@ -73,6 +64,9 @@ public class ImageViewCreator extends SimpleViewCreator {
                           @NotNull NlModel model,
                           @NotNull ScreenView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
+    mySelection = selection;
+    myRemoveBackgroundPanel = new RemoveBackgroundPanel();
+    myExtractBackgroundForm = new ExtractBackgroundForm(myRemoveBackgroundPanel);
   }
 
   @NotNull
@@ -89,21 +83,49 @@ public class ImageViewCreator extends SimpleViewCreator {
   @Nullable
   @Override
   public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
-    ImageCreatorForm imageCreatorForm = new ImageCreatorForm();
-    imageCreatorForm.addSetSourceListener(e -> {
-      myNewDrawableName = imageCreatorForm.getDrawableName();
-      createDrawable(myNewDrawableName, DRAWABLE_TYPE, doneCallback, getMockup(), getModel(),
-                     getSelectionBounds(), this);
+    Mockup mockup = getMockup();
+    BufferedImage image = mockup.getImage();
+    if (image == null) {
+      return null;
+    }
+
+    myExtractBackgroundForm.setOKListener(actionEvent -> {
+      BufferedImage extractedImage = myRemoveBackgroundPanel.getImage();
+      if (extractedImage == null) {
+        doneCallback.done(DoneCallback.CANCEL);
+        return;
+      }
+      myDrawableName = myExtractBackgroundForm.getDrawableName();
+      if(checkDrawableExist(myDrawableName, DRAWABLE_TYPE, getModel().getFacet())) {
+        myExtractBackgroundForm.setErrorText(String.format(
+          "A drawable resource named <i>%s</i> already exists and will be overwritten.", myDrawableName));
+        return;
+      }
+      createDrawable(myDrawableName, DRAWABLE_TYPE,
+                     doneCallback, getModel(), extractedImage, this);
+
     });
-    imageCreatorForm.getDoNotSetSourceButton().addActionListener(e -> doneCallback.done(DoneCallback.CANCEL));
-    return imageCreatorForm.getComponent();
+
+    Rectangle realCropping = mockup.getRealCropping();
+    BufferedImage subimage = image.getSubimage(realCropping.x + mySelection.x,
+                                               realCropping.y + mySelection.y,
+                                               mySelection.width,
+                                               mySelection.height);
+    myRemoveBackgroundPanel.setImage(subimage);
+    myRemoveBackgroundPanel.setPreferredSize(new Dimension(300, 300));
+    return myExtractBackgroundForm.getComponent();
   }
 
   @Override
   protected void addAttributes(@NotNull AttributesTransaction transaction) {
     super.addAttributes(transaction);
-    if (myNewDrawableName != null) {
-      transaction.setAttribute(null, ANDROID_NS_NAME_PREFIX + ATTR_SRC, DRAWABLE_PREFIX + myNewDrawableName);
+    if (getDrawableName() != null) {
+      transaction.setAttribute(null, ANDROID_NS_NAME_PREFIX + ATTR_SRC, DRAWABLE_PREFIX + getDrawableName());
     }
+  }
+
+  @Nullable
+  public String getDrawableName() {
+    return myDrawableName;
   }
 }

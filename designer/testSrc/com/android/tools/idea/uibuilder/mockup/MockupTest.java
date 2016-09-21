@@ -261,9 +261,8 @@ public class MockupTest extends MockupTestCase {
     DesignSurface mockSurface = mock(DesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
-    final Dimension size = screenView.getPreferredSize();
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
-    assertEquals(new Rectangle(0, 0, size.width, size.height), destinationRectangle);
+    assertEquals(new Rectangle(0, 0, component.w, component.h), destinationRectangle);
   }
 }
 
