@@ -71,8 +71,6 @@ import java.util.stream.Collectors;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
-import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -322,30 +320,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
-    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) == null) {
-      return Collections.emptyList();
-    }
-
-    if (!(configuration instanceof AndroidRunConfigurationBase)) {
-      return Collections.emptyList();
-    }
-
-    Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
-    try {
-      File propertiesFile = createTempFile("profiler", ".properties");
-      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
-
-      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
-      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
-      writer.close();
-
-      String profilingOption = AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath());
-      return Collections.singletonList(profilingOption);
-    }
-    catch (IOException e) {
-      Throwables.propagate(e);
-      return Collections.emptyList();
-    }
+    return Collections.emptyList();
   }
 
   private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,

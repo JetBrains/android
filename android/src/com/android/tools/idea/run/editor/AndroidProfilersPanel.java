@@ -21,13 +21,11 @@ import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
-
 /**
  * The configuration panel for the Android profiler settings.
  */
 public class AndroidProfilersPanel {
-  private static final boolean EXPERIMENTAL_ENABLED = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+  private static final boolean EXPERIMENTAL_ENABLED = false;
 
   private JPanel myPanel;
   private JCheckBox myAdvancedProfilingCheckBox;
@@ -75,7 +73,7 @@ public class AndroidProfilersPanel {
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    boolean enabled = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+    boolean enabled = false;
     state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && enabled;
 
     state.GAPID_ENABLED = myGapidEnabled.isSelected();
