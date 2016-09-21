@@ -389,7 +389,10 @@ public final class IdeSdks {
    */
   public static void setUseEmbeddedJdk() {
     if (isAndroidStudio()) {
-      setJdkPath(getEmbeddedJdkPath());
+      File embeddedJdkPath = getEmbeddedJdkPath();
+      if (embeddedJdkPath != null) {
+        setJdkPath(embeddedJdkPath);
+      }
     }
   }
 
