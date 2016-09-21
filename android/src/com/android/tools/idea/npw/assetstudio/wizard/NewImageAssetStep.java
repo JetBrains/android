@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,16 +32,18 @@ import java.util.Collections;
 public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
 
   private final GenerateIconsPanel myGenerateIconsPanel;
+  @NotNull private final AndroidFacet myFacet;
 
-  public NewImageAssetStep(@NotNull GenerateIconsModel model) {
+  public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getFacet());
+    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getPaths());
+    myFacet = facet;
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel()));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
   }
 
   @NotNull

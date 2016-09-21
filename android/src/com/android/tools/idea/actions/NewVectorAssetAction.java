@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -75,7 +74,7 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
     }
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewVectorAssetStep(new GenerateVectorIconModel(facet)));
+    wizardBuilder.addStep(new NewVectorAssetStep(new GenerateVectorIconModel(facet), facet));
     return wizardBuilder.build();
   }
 
