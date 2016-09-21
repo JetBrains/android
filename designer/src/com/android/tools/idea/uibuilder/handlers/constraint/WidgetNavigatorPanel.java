@@ -84,7 +84,7 @@ public class WidgetNavigatorPanel extends JPanel
   private double myDeviceScale;
   private Point myDesignSurfaceOffset;
   private Point mySecondScreenOffset;
-  private int myCenterOffset;
+  private Point myCenterOffset;
   private boolean myIsZoomed;
   private int myYScreenNumber;
   private int myXScreenNumber;
@@ -95,6 +95,7 @@ public class WidgetNavigatorPanel extends JPanel
     super(new BorderLayout());
     myDesignSurfaceOffset = new Point();
     mySecondScreenOffset = new Point();
+    myCenterOffset = new Point();
     myMiniMap = new MiniMap();
     myAncestorListener = new MyAncestorListenerAdapter();
     myColorSet = BLUEPRINT_COLOR_SET;
@@ -371,10 +372,10 @@ public class WidgetNavigatorPanel extends JPanel
      */
     public boolean isInDesignSurfaceRectangle(MouseEvent e) {
       assert myDesignSurface != null;
-      return e.getX() > myDesignSurfaceOffset.x + myCenterOffset
-             && e.getX() < myDesignSurfaceOffset.x + myCenterOffset + myDesignSurface.getWidth() * myScreenViewScale
-             && e.getY() > myDesignSurfaceOffset.y
-             && e.getY() < myDesignSurfaceOffset.y + myDesignSurface.getHeight() * myScreenViewScale;
+      return e.getX() > myDesignSurfaceOffset.x + myCenterOffset.x
+             && e.getX() < myDesignSurfaceOffset.x + myCenterOffset.x + myDesignSurface.getWidth() * myScreenViewScale
+             && e.getY() > myDesignSurfaceOffset.y + myCenterOffset.y
+             && e.getY() < myDesignSurfaceOffset.y + myCenterOffset.y + myDesignSurface.getHeight() * myScreenViewScale;
     }
 
     @Override
@@ -461,12 +462,15 @@ public class WidgetNavigatorPanel extends JPanel
     myIsZoomed = designSurfaceSize.getWidth() < currentScreenView.getX() + contentSize.getWidth()
                  || designSurfaceSize.getHeight() < currentScreenView.getY() + contentSize.getHeight();
 
-    double surfaceScale = PREFERRED_SIZE.height / designSurfaceSize.getHeight();
+    double surfaceScale = Math.min(PREFERRED_SIZE.height / designSurfaceSize.getHeight(),
+                                   PREFERRED_SIZE.width / designSurfaceSize.width);
     myScaledScreenSpace = (int)Math.round(SCREEN_SPACE * surfaceScale);
 
-    myScreenViewScale = PREFERRED_SIZE.height / contentSize.getHeight();
+    myScreenViewScale = Math.min(PREFERRED_SIZE.height / contentSize.getHeight(),
+                                 PREFERRED_SIZE.width / contentSize.getWidth());
 
-    myDeviceScale = PREFERRED_SIZE.height / myDeviceSize.getHeight() / (double)myYScreenNumber;
+    myDeviceScale = Math.min(PREFERRED_SIZE.height / myDeviceSize.getHeight() / (double)myYScreenNumber,
+                             PREFERRED_SIZE.width / myDeviceSize.getWidth() / (double)myXScreenNumber);
     computeOffsets(currentScreenView);
   }
 
@@ -490,7 +494,8 @@ public class WidgetNavigatorPanel extends JPanel
         }
       }
     }
-    myCenterOffset = (int)Math.round((PREFERRED_SIZE.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale) / 2);
+    myCenterOffset.x = (int)Math.round((PREFERRED_SIZE.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale) / 2);
+    myCenterOffset.y = (int)Math.round((PREFERRED_SIZE.getHeight() - myYScreenNumber * myDeviceSize.getHeight() * myDeviceScale) / 2);
   }
 
   private class MiniMap extends JPanel {
@@ -569,16 +574,16 @@ public class WidgetNavigatorPanel extends JPanel
 
       final double componentRatio = myDeviceScale;
       gc.drawRect(
-        (int)Math.round(myCenterOffset + component.x * componentRatio),
-        (int)Math.round(component.y * componentRatio),
+        (int)Math.round(myCenterOffset.x + component.x * componentRatio),
+        (int)Math.round(myCenterOffset.y + component.y * componentRatio),
         (int)Math.round(component.w * componentRatio),
         (int)Math.round(component.h * componentRatio));
 
       assert myDesignSurface != null;
       if (myDesignSurface.getScreenMode() == BOTH && blueprintView != null) {
         gc.drawRect(
-          (int)Math.round(myCenterOffset + mySecondScreenOffset.x + component.x * componentRatio),
-          (int)Math.round(mySecondScreenOffset.y + component.y * componentRatio),
+          (int)Math.round(myCenterOffset.x + mySecondScreenOffset.x + component.x * componentRatio),
+          (int)Math.round(myCenterOffset.y + mySecondScreenOffset.y + component.y * componentRatio),
           (int)Math.round(component.w * componentRatio),
           (int)Math.round(component.h * componentRatio)
         );
@@ -601,8 +606,8 @@ public class WidgetNavigatorPanel extends JPanel
         gc.setColor(NORMAL_SCREEN_VIEW_COLOR);
       }
       gc.fillRect(
-        myCenterOffset,
-        0,
+        myCenterOffset.x,
+        myCenterOffset.y,
         (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
         (int)Math.round(myDeviceSize.getHeight() * myDeviceScale)
       );
@@ -611,8 +616,8 @@ public class WidgetNavigatorPanel extends JPanel
         RenderResult renderResult = currentScreenView.getModel().getRenderResult();
         if (renderResult != null && renderResult.getImage() != null) {
           BufferedImage image = renderResult.getImage().getOriginalImage();
-          gc.drawImage(image, myCenterOffset,
-                       0,
+          gc.drawImage(image,
+                       myCenterOffset.x, myCenterOffset.y,
                        (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
                        (int)Math.round(myDeviceSize.getHeight() * myDeviceScale), null);
         }
@@ -624,8 +629,8 @@ public class WidgetNavigatorPanel extends JPanel
 
         gc.setColor(BLUEPRINT_SCREEN_VIEW_COLOR);
         gc.fillRect(
-          myCenterOffset + mySecondScreenOffset.x,
-          mySecondScreenOffset.y,
+          myCenterOffset.x + mySecondScreenOffset.x,
+          myCenterOffset.y + mySecondScreenOffset.y,
           (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
           (int)Math.round(myDeviceSize.getHeight() * myDeviceScale)
         );
@@ -636,8 +641,8 @@ public class WidgetNavigatorPanel extends JPanel
       // Rectangle of the drawing surface
       gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
 
-      int x = (int)Math.round(myCenterOffset + myDesignSurfaceOffset.x - (currentScreenView.getX() / 2) * myScreenViewScale);
-      int y = (int)Math.round(myDesignSurfaceOffset.y - (currentScreenView.getX() / 2) * myScreenViewScale);
+      int x = (int)Math.round(myCenterOffset.x + myDesignSurfaceOffset.x - (currentScreenView.getX() / 2) * myScreenViewScale);
+      int y = (int)Math.round(myCenterOffset.y + myDesignSurfaceOffset.y - (currentScreenView.getX() / 2) * myScreenViewScale);
       int width = (int)Math.round((myDesignSurfaceSize.getWidth() - currentScreenView.getX() / 2.) * myScreenViewScale);
       int height = (int)Math.round((myDesignSurfaceSize.getHeight() - currentScreenView.getY() / 2.) * myScreenViewScale);
 
@@ -668,7 +673,9 @@ public class WidgetNavigatorPanel extends JPanel
       gc.fillRect(x,
                   y + height,
                   width,
-                  (int)Math.round(myDeviceSize.getHeight() * myDeviceScale) * myYScreenNumber - y - height);
+                  (int)Math.round(Math.max(
+                    (myDeviceSize.getHeight() * myDeviceScale) * myYScreenNumber - y - height,
+                    (myDeviceSize.getWidth() * myDeviceScale) * myXScreenNumber - y - height)));
     }
 
   }
