@@ -19,7 +19,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -70,7 +70,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(myAppFacet);
 
-    addAndroidSdk(myAppModule, getTestSdkPath(), getPlatformDir());
+    addLatestAndroidSdk(myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
