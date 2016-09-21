@@ -23,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public abstract class DeviceSampler implements Runnable {
   /**
@@ -53,9 +56,9 @@ public abstract class DeviceSampler implements Runnable {
   @Nullable protected volatile Future<?> myExecutingTask;
   @Nullable protected volatile Client myClient;
   @NotNull private final Semaphore myDataSemaphore;
-  protected volatile boolean myRunning;
-  protected volatile CountDownLatch myTaskStatus;
-  protected volatile boolean myIsPaused;
+  protected volatile boolean myRunning = false;
+  protected volatile CountDownLatch myTaskFinished = null;
+  protected volatile boolean myIsPaused = false;
 
   public DeviceSampler(@NotNull TimelineData timelineData, int sampleFrequencyMs) {
     myTimelineData = timelineData;
@@ -67,7 +70,6 @@ public abstract class DeviceSampler implements Runnable {
   public void start() {
     if (myExecutingTask == null && myClient != null) {
       myRunning = true;
-      myTaskStatus = new CountDownLatch(1);
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
       myClient.setHeapInfoUpdateEnabled(true);
 
@@ -84,20 +86,25 @@ public abstract class DeviceSampler implements Runnable {
       myDataSemaphore.release();
 
       myExecutingTask.cancel(true);
-      try {
-        myTaskStatus.await();
-      }
-      catch (InterruptedException ignored) {
-        // We're stopping anyway, so just ignore the interruption.
+      if (myTaskFinished != null) {
+        try {
+          myTaskFinished.await();
+        }
+        catch (InterruptedException ignored) {
+          // We're stopping anyway, so just ignore the interruption.
+        }
       }
 
       if (myClient != null) {
         myClient.setHeapInfoUpdateEnabled(false);
       }
-      myExecutingTask = null;
+
       for (TimelineEventListener listener : myListeners) {
         listener.onStop();
       }
+
+      myTaskFinished = null;
+      myExecutingTask = null;
     }
   }
 
@@ -166,8 +173,9 @@ public abstract class DeviceSampler implements Runnable {
   @Override
   public void run() {
     long timeToWait = mySampleFrequencyMs;
-    while (myRunning) {
-      try {
+    myTaskFinished = new CountDownLatch(1);
+    try {
+      while (myRunning) {
         long start = System.currentTimeMillis();
         boolean acquired = myDataSemaphore.tryAcquire(timeToWait, TimeUnit.MILLISECONDS);
         if (myRunning && !myIsPaused) {
@@ -180,21 +188,17 @@ public abstract class DeviceSampler implements Runnable {
 
         Client client = myClient; // needed because myClient is volatile
         if ((client == null) || !client.isValid()) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              stop();
-            }
-          });
-          myRunning = false;
+          ApplicationManager.getApplication().invokeLater(this::stop);
           break;
         }
       }
-      catch (InterruptedException e) {
-        myRunning = false;
-      }
     }
-    myTaskStatus.countDown();
+    catch (InterruptedException ignored) {
+    }
+    finally {
+      myRunning = false;
+      myTaskFinished.countDown();
+    }
   }
 
   @NotNull
