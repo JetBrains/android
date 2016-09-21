@@ -77,7 +77,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    File moduleRoot = new File(myFixture.getTempDirPath() + getModulePath());
+    File moduleRoot = new File(myFixture.getTempDirPath());
 
     if (!moduleRoot.exists()) {
       assertTrue(moduleRoot.mkdirs());
@@ -95,7 +95,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule, setupShouldAddSdkToModules());
+    myFacet = addAndroidFacet(myModule);
 
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
@@ -111,7 +111,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     for (MyAdditionalModuleData data : modules) {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      AndroidFacet facet = addAndroidFacet(additionalModule, setupShouldAddSdkToModules());
+      AndroidFacet facet = addAndroidFacet(additionalModule);
       facet.setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
       myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
@@ -175,17 +175,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   /**
-   * Returns the path that {@link #myModule} is installed into.
-   *
-   * <p>By default, this is the same as the root of the test project, but this can be customized by
-   * child classes if desired (for example, to test that a feature works even with a non-standard
-   * module location).
-   */
-  protected String getModulePath() {
-    return "";
-  }
-
-  /**
    * Returns the path that any additional modules registered by
    * {@link #configureAdditionalModules(TestFixtureBuilder, List)} or
    * {@link #addModuleWithAndroidFacet(TestFixtureBuilder, List, String, int, boolean)} are
@@ -201,14 +190,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   protected boolean providesCustomManifest() {
     return false;
-  }
-
-  /**
-   * By default, {@link #setUp()} will attach the latest SDK to all initialized modules. However,
-   * test children can disable this if they want to provide their own, e.g. mock SDK.
-   */
-  protected boolean setupShouldAddSdkToModules() {
-    return true;
   }
 
   /**
