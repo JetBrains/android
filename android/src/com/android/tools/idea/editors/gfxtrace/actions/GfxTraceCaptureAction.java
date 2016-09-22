@@ -144,7 +144,7 @@ public class GfxTraceCaptureAction extends ToggleAction {
   }
 
   private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
-    DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
+    DeviceInfo.PkgInfoProvider provider = new DeviceInfo.PkgInfoProvider(myView.getProject(), device);
     final ActivitySelector selector = new ActivitySelector(provider);
     selector.setListener(new ActivitySelector.Listener() {
       @Override
