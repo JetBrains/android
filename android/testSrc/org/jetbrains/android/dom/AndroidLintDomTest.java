@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
+
 public class AndroidLintDomTest extends AndroidDomTestCase {
   public AndroidLintDomTest() {
     super(false, "dom/lint");

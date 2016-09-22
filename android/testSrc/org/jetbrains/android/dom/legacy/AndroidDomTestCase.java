@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2016 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.jetbrains.android.dom;
+package org.jetbrains.android.dom.legacy;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -32,7 +17,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.UsefulTestCase;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
@@ -56,13 +41,16 @@ import java.util.List;
  * </ul>
  * Some of these methods use test name to choose a file from testData folder they're going to use, look out for
  * {@link #getTestName(String, boolean)} and similar methods to spot that.
+ *
+ * @deprecated Unit tests should use {@link org.jetbrains.android.dom.AndroidDomTestCase} instead.
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
-abstract class AndroidDomTestCase extends AndroidTestCase {
-  protected final String myTestFolder;
+public abstract class AndroidDomTestCase extends AndroidTestCase {
+  protected final String testFolder;
 
-  protected AndroidDomTestCase(String testFolder) {
-    myTestFolder = testFolder;
+  protected AndroidDomTestCase(boolean createManifest, String testFolder) {
+    super(createManifest);
+    this.testFolder = testFolder;
   }
 
   @Override
@@ -95,26 +83,26 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   @Override
-  protected final String getResDir() {
+  protected String getResDir() {
     return "dom/res";
   }
 
-  protected final void doTestJavaCompletion(String aPackage) throws Throwable {
-    String fileName = getTestName(false) + ".java";
-    VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
+  protected void doTestJavaCompletion(String aPackage) throws Throwable {
+    final String fileName = getTestName(false) + ".java";
+    final VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.java");
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.java");
   }
 
-  protected final void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
+  protected void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
     throws IOException {
-    VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
+    final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    List<String> variants = myFixture.getLookupElementStrings();
+    final List<String> variants = myFixture.getLookupElementStrings();
     assertNotNull(variants);
-    List<String> expectedVariants = new ArrayList<>();
+    final List<String> expectedVariants = new ArrayList<>();
 
     if (systemNamespace) {
       expectedVariants.add(SdkConstants.ANDROID_URI);
@@ -135,13 +123,13 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   /**
    * Loads file, invokes code completion at &lt;caret&gt; marker and returns resulting completion variants as strings.
    */
-  protected final void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
+  protected void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     UsefulTestCase.assertSameElements(lookupElementStrings, variants);
   }
 
-  protected final void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
+  protected void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     assertContainsElements(lookupElementStrings, variants);
@@ -154,14 +142,14 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     return myFixture.getLookupElementStrings();
   }
 
-  protected final void doTestHighlighting() throws Throwable {
+  protected void doTestHighlighting() throws Throwable {
     doTestHighlighting(getTestName(true) + ".xml");
   }
 
   /**
    * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter
    */
-  protected final void doTestHighlighting(String fileName) throws Throwable {
+  protected void doTestHighlighting(String fileName) throws Throwable {
     doTestHighlighting(copyFileToProject(fileName));
   }
 
@@ -169,23 +157,23 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
    * Loads a virtual file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
    * described by an example, check the usages of the function to find out.
    */
-  protected final void doTestHighlighting(VirtualFile virtualFile) throws Throwable {
+  protected void doTestHighlighting(VirtualFile virtualFile) throws Throwable {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  protected final void doTestJavaHighlighting(String aPackage) throws Throwable {
-    String fileName = getTestName(false) + ".java";
-    VirtualFile virtualFile = copyFileToProject(fileName, "src/" + aPackage.replace('.', '/') + '/' + fileName);
+  protected void doTestJavaHighlighting(String aPackage) throws Throwable {
+    final String fileName = getTestName(false) + ".java";
+    final VirtualFile virtualFile = copyFileToProject(fileName, "src/" + aPackage.replace('.', '/') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  protected final void doTestCompletion() throws Throwable {
+  protected void doTestCompletion() throws Throwable {
     doTestCompletion(true);
   }
 
-  protected final void doTestCompletion(boolean lowercaseFirstLetter) throws Throwable {
+  protected void doTestCompletion(boolean lowercaseFirstLetter) throws Throwable {
     toTestCompletion(getTestName(lowercaseFirstLetter) + ".xml", getTestName(lowercaseFirstLetter) + "_after.xml");
   }
 
@@ -193,30 +181,30 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
    * Loads first file, puts caret on the &lt;caret&gt; marker, invokes code completion. If running the code completion results in returning
    * only one completion variant, chooses it to complete code at the caret.
    */
-  protected final void toTestCompletion(String fileBefore, String fileAfter) throws Throwable {
+  protected void toTestCompletion(String fileBefore, String fileAfter) throws Throwable {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(myTestFolder + '/' + fileAfter);
+    myFixture.checkResultByFile(testFolder + '/' + fileAfter);
   }
 
   /**
    * Variant of {@link #toTestCompletion(String, String)} that chooses the first completion variant
    * when several possibilities are available.
    */
-  protected final void toTestFirstCompletion(@NotNull String fileBefore, @NotNull String fileAfter) throws Throwable {
+  protected void toTestFirstCompletion(@NotNull String fileBefore, @NotNull String fileAfter) throws Throwable {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(myTestFolder + '/' + fileAfter);
+    myFixture.checkResultByFile(testFolder + '/' + fileAfter);
   }
 
-  protected final void doTestSpellcheckerQuickFixes() throws IOException {
+  protected void doTestSpellcheckerQuickFixes() throws IOException {
     myFixture.enableInspections(SpellCheckingInspection.class);
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
-    List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
+    final List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
     assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
     assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
@@ -227,16 +215,16 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
    */
   protected abstract String getPathToCopy(String testFileName);
 
-  protected final VirtualFile copyFileToProject(String path) throws IOException {
+  protected VirtualFile copyFileToProject(String path) throws IOException {
     return copyFileToProject(path, getPathToCopy(path));
   }
 
-  protected final VirtualFile copyFileToProject(String from, String to) throws IOException {
-    return myFixture.copyFileToProject(myTestFolder + '/' + from, to);
+  protected VirtualFile copyFileToProject(String from, String to) throws IOException {
+    return myFixture.copyFileToProject(testFolder + '/' + from, to);
   }
 
-  protected final void doTestAndroidPrefixCompletion(@Nullable String prefix) throws IOException {
-    VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
+  protected void doTestAndroidPrefixCompletion(@Nullable String prefix) throws IOException {
+    final VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.complete(CompletionType.BASIC);
     List<String> strs = myFixture.getLookupElementStrings();
@@ -245,33 +233,33 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
       assertEquals(strs.get(0), prefix);
     }
     else if (strs != null && strs.size() > 0) {
-      String first = strs.get(0);
+      final String first = strs.get(0);
       assertFalse(first.endsWith(":"));
     }
   }
 
-  protected final void doTestExternalDoc(String expectedPart) {
-    PsiElement originalElement = myFixture.getFile().findElementAt(
+  protected void doTestExternalDoc(String expectedPart) {
+    final PsiElement originalElement = myFixture.getFile().findElementAt(
       myFixture.getEditor().getCaretModel().getOffset());
-    PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).
+    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).
       findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
-    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
-    List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
-    String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
+    final DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    final List<String> urls = provider.getUrlFor(docTargetElement, originalElement);
+    final String doc = ((ExternalDocumentationProvider)provider).fetchExternalDocumentation(myFixture.getProject(), docTargetElement, urls);
     assertNotNull(doc);
     assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }
 
-  protected final List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
-    List<HighlightInfo> infos = myFixture.doHighlighting();
-    List<IntentionAction> actions = new ArrayList<>();
+  protected List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
+    final List<HighlightInfo> infos = myFixture.doHighlighting();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
-      List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
+      final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
 
       if (ranges != null) {
         for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
-          IntentionAction action = pair.getFirst().getAction();
+          final IntentionAction action = pair.getFirst().getAction();
           if (aClass == null || action.getClass() == aClass) {
             actions.add(action);
           }
@@ -281,15 +269,19 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     return actions;
   }
 
-  protected final void doTestOnClickQuickfix(VirtualFile file) {
+  protected void doTestOnClickQuickfix(VirtualFile file) {
     myFixture.configureFromExistingVirtualFile(file);
-    List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEquals(1, actions.size());
-    IntentionAction action = actions.get(0);
+    final IntentionAction action = actions.get(0);
     assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    WriteCommandAction.runWriteCommandAction(
-      null, () -> ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject()));
-    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject());
+      }
+    });
+    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
   }
 }
 

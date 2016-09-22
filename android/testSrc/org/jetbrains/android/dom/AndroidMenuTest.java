@@ -5,6 +5,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 
 import java.io.IOException;

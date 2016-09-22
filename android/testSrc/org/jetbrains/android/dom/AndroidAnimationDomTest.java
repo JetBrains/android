@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 public class AndroidAnimationDomTest extends AndroidDomTestCase {
   public AndroidAnimationDomTest() {

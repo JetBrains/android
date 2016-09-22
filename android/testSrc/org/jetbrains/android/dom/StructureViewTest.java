@@ -27,6 +27,7 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.structure.DomStructureViewBuilder;
 import com.intellij.util.xml.structure.DomStructureViewBuilderProvider;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilder;
 import org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilder;

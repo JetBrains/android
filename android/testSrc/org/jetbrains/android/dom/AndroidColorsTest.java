@@ -17,6 +17,7 @@ package org.jetbrains.android.dom;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 public class AndroidColorsTest extends AndroidDomTestCase {
   public AndroidColorsTest() {

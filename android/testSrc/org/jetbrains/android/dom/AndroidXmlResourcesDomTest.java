@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 import java.util.Arrays;
 import java.util.List;
