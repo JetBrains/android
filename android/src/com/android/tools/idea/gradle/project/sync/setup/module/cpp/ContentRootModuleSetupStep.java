@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module.android;
+package com.android.tools.idea.gradle.project.sync.setup.module.cpp;
 
-import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -28,49 +27,27 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
+public class ContentRootModuleSetupStep extends CppModuleSetupStep {
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidGradleModel androidModel,
+                               @NotNull NativeAndroidGradleModel androidModel,
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-    boolean hasNativeModel = hasNativeModel(module, gradleModels);
-    AndroidContentEntriesSetup setup = new AndroidContentEntriesSetup(androidModel, moduleModel, hasNativeModel);
-    List<ContentEntry> contentEntries = findContentEntries(moduleModel, androidModel, hasNativeModel);
+    CppContentEntriesSetup setup = new CppContentEntriesSetup(androidModel, moduleModel);
+    List<ContentEntry> contentEntries = findContentEntries(moduleModel, androidModel);
     setup.execute(contentEntries);
   }
 
   @NotNull
   private static List<ContentEntry> findContentEntries(@NotNull ModifiableRootModel moduleModel,
-                                                       @NotNull AndroidGradleModel androidModel,
-                                                       boolean hasNativeModel) {
-    if (!hasNativeModel) {
-      removeExistingContentEntries(moduleModel);
-    }
-
-    List<ContentEntry> contentEntries = new ArrayList<>();
-    ContentEntry contentEntry = moduleModel.addContentEntry(androidModel.getRootDir());
-    contentEntries.add(contentEntry);
-
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
-    if (!isAncestor(androidModel.getRootDirPath(), buildFolderPath, false)) {
-      contentEntries.add(moduleModel.addContentEntry(pathToIdeaUrl(buildFolderPath)));
-    }
-    return contentEntries;
-  }
-
-  private static boolean hasNativeModel(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
-    return (gradleModels != null ? gradleModels.findModel(NativeAndroidProject.class) : NativeAndroidGradleModel.get(module)) == null;
+                                                       @NotNull NativeAndroidGradleModel androidModel) {
+    return Lists.newArrayList(moduleModel.addContentEntry(pathToIdeaUrl(androidModel.getRootDirPath())));
   }
 
   @Override

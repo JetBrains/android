@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.SourceFolder;
@@ -29,28 +30,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.isPathInContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.*;
 
-public abstract class ContentEntries {
-  @NotNull private final ModifiableRootModel myRootModel;
-  @NotNull private final Collection<ContentEntry> myValues;
+public abstract class ContentEntriesSetup {
+  @NotNull private final ModifiableRootModel myModuleModel;
   @NotNull private final List<RootSourceFolder> myOrphans = new ArrayList<>();
 
-  protected ContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull Collection<ContentEntry> values) {
-    myRootModel = rootModel;
-    myValues = values;
+  protected ContentEntriesSetup(@NotNull ModifiableRootModel moduleModel) {
+    myModuleModel = moduleModel;
   }
 
-  protected static void removeExistingContentEntries(@NotNull ModifiableRootModel rootModel) {
+  public static void removeExistingContentEntries(@NotNull ModifiableRootModel rootModel) {
     for (ContentEntry contentEntry : rootModel.getContentEntries()) {
       rootModel.removeContentEntry(contentEntry);
     }
   }
 
-  protected void addSourceFolder(@NotNull File folderPath, @NotNull JpsModuleSourceRootType type, boolean generated) {
-    ContentEntry parent = findParentContentEntry(folderPath, myValues);
+  public abstract void execute(@NotNull List<ContentEntry> contentEntries);
+
+  protected void addSourceFolder(@NotNull File folderPath,
+                                 @NotNull Collection<ContentEntry> contentEntries,
+                                 @NotNull JpsModuleSourceRootType type,
+                                 boolean generated) {
+    ContentEntry parent = findParentContentEntry(folderPath, contentEntries);
     if (parent == null) {
       myOrphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
@@ -86,13 +88,13 @@ public abstract class ContentEntries {
   protected void addOrphans() {
     for (RootSourceFolder orphan : myOrphans) {
       File path = orphan.getPath();
-      ContentEntry contentEntry = myRootModel.addContentEntry(pathToIdeaUrl(path));
+      ContentEntry contentEntry = myModuleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }
 
   @NotNull
-  protected Collection<ContentEntry> getValues() {
-    return myValues;
+  protected Module getModule() {
+    return myModuleModel.getModule();
   }
 }
