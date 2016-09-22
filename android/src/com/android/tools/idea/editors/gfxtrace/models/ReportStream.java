@@ -103,7 +103,7 @@ public class ReportStream implements PathListener {
         if (maxSeverity.compareTo(itemSeverity) > 0) {
           maxSeverity = itemSeverity;
         }
-        if (maxSeverity != LogProtos.Severity.Emergency) {
+        if (maxSeverity == LogProtos.Severity.Emergency) {
           break;
         }
       }
