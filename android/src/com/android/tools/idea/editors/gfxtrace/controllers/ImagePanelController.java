@@ -92,4 +92,8 @@ public abstract class ImagePanelController extends Controller {
       }
     });
   }
+
+  protected JComponent getFocusComponent() {
+    return myImagePanel.getFocusComponent();
+  }
 }
