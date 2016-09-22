@@ -79,6 +79,21 @@ public class NewProjectTest {
     assertThat(text.contains("Test Application"));
   }
 
+  /**
+   * Verify creating a new project from default template.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. From the welcome screen, click on "Start a new Android Studio project".
+   *   2. Enter a unique project name.
+   *   3. Accept all other defaults.
+   *   Verify:
+   *   1. Check that the project contains 2 module.
+   *   2. Check that MainActivity is in AndroidManifest.
+   *   </pre>
+   */
   @Category(GuiSanityTestSuite.class)
   @Test
   public void testCreateNewMobileProject() {
@@ -86,15 +101,7 @@ public class NewProjectTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
 
-    // Verify state of project
     guiTest.ideFrame().requireModuleCount(2);
-    AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
-    assertThat(appAndroidModel.getVariantNames()).named("variants").containsExactly("debug", "release");
-    assertThat(appAndroidModel.getSelectedVariant().getName()).named("selected variant").isEqualTo("debug");
-
-    AndroidProject model = appAndroidModel.getAndroidProject();
-    ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertThat(minSdkVersion.getApiString()).named("minSdkVersion API").isEqualTo("19");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
