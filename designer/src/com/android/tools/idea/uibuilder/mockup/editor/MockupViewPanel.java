@@ -142,7 +142,9 @@ public class MockupViewPanel extends JPanel {
    * @param mockup
    */
   private void updateDisplayedImage(@Nullable Mockup mockup) {
-    if (mockup == null) {
+    if (mockup == null || !Mockup.hasMockupAttribute(mockup.getComponent())) {
+      myImage = null;
+      myDisplayedImage = null;
       return;
     }
     myImage = mockup.getImage();
