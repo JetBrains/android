@@ -1257,7 +1257,6 @@ public class GradleSyncTest {
   }
 
   // https://code.google.com/p/android/issues/detail?id=185313
-  @Ignore("error: Failed to find target with hash string [in prebuilts/studio/sdk]")
   @Test
   public void sdkCreationForAddons() throws IOException {
     guiTest.importSimpleApplication();
