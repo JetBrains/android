@@ -143,12 +143,15 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     ThemeMenuAction themeAction = new ThemeMenuAction(configurationHolder);
     group.add(themeAction);
 
+    group.addSeparator();
     LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
 
     group.addSeparator();
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
+
+    group.addSeparator();
     group.add(new MockupToggleAction(surface));
 
     return group;

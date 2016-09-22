@@ -47,7 +47,7 @@ public class DeviceMenuAction extends FlatComboAction {
   private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    this(renderContext, !RenderService.NELE_ENABLED);
+    this(renderContext, true);
   }
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
@@ -56,7 +56,7 @@ public class DeviceMenuAction extends FlatComboAction {
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Device in Editor");
     if (classicStyle) {
-      presentation.setIcon(AndroidIcons.Display);
+      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     }
     updatePresentation(presentation);
   }

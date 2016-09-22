@@ -54,16 +54,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Layout Variants");
-    /* TODO: We'll have a preview action here later;
-    if (RenderService.NELE_ENABLED) {
-      presentation.setText("Variations");
-      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
-    } else {
-
-    ... but for now this is just for variations
-    */
-    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
-    //presentation.setIcon(AndroidIcons.AndroidFile);
+    presentation.setIcon(AndroidIcons.NeleIcons.Variants);
   }
 
   @Override
