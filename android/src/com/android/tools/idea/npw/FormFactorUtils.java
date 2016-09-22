@@ -124,6 +124,10 @@ public class FormFactorUtils {
     return input -> input != null && filterPkgDesc(input, formFactor, minSdkLevel);
   }
 
+  public static boolean isFormFactorAvailable(@NotNull FormFactor formFactor, int minSdkLevel, int targetSdkLevel) {
+    return doFilter(formFactor,  minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel);
+  }
+
   private static boolean filterPkgDesc(@NotNull RepoPackage p, @NotNull FormFactor formFactor, int minSdkLevel) {
     return isApiType(p) && doFilter(formFactor, minSdkLevel, getTag(p), getFeatureLevel(p));
   }
