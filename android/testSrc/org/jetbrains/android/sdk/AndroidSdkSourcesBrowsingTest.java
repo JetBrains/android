@@ -34,6 +34,33 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
   @NonNls private static final String MODULE_DIR = "module";
   public static final String SDK_SOURCES_TARGET_PATH = "/sdk_sources";
 
+  public void testSdkSourcesHighlighting1() throws Exception {
+    myFixture.allowTreeAccessForAllFiles();
+    final String sdkSourcesPath = configureMockSdk();
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/Activity.java");
+    assertNotNull(file);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(false, false, false);
+  }
+
+  public void testSdkSourcesHighlighting2() throws Exception {
+    myFixture.allowTreeAccessForAllFiles();
+    final String sdkSourcesPath = configureMockSdk();
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/ActivityThread.java");
+    assertNotNull(file);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(false, false, false);
+  }
+
+  public void testSdkSourcesHighlighting3() throws Exception {
+    myFixture.allowTreeAccessForAllFiles();
+    final String sdkSourcesPath = configureMockSdk();
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/util/UtilClass.java");
+    assertNotNull(file);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting(false, false, false);
+  }
+
   public void testSdkWithEmptySources() throws Exception {
     configureAndroidSdkWithSources(SDK_SOURCES_PATH_PREFIX + "1");
 
@@ -62,33 +89,6 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     final String expectedActivityFilePath = FileUtil.toSystemIndependentName(sdkSourcesPath + "/android/app/Activity.java");
     assertTrue("Expected: " + expectedActivityFilePath + "\nActual: " + activityVFile.getPath(),
                FileUtil.pathsEqual(expectedActivityFilePath, activityVFile.getPath()));
-  }
-
-  public void testSdkSourcesHighlighting1() throws Exception {
-    myFixture.allowTreeAccessForAllFiles();
-    final String sdkSourcesPath = configureMockSdk();
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/Activity.java");
-    assertNotNull(file);
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.checkHighlighting(false, false, false);
-  }
-
-  public void testSdkSourcesHighlighting2() throws Exception {
-    myFixture.allowTreeAccessForAllFiles();
-    final String sdkSourcesPath = configureMockSdk();
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/ActivityThread.java");
-    assertNotNull(file);
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.checkHighlighting(false, false, false);
-  }
-
-  public void testSdkSourcesHighlighting3() throws Exception {
-    myFixture.allowTreeAccessForAllFiles();
-    final String sdkSourcesPath = configureMockSdk();
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/util/UtilClass.java");
-    assertNotNull(file);
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.checkHighlighting(false, false, false);
   }
 
   public void testProjectSourcesHighlighting() throws Exception {
@@ -139,6 +139,25 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     doTestNavigationToResource(new LogicalPosition(30, 46), 1, FileResourceElementWrapper.class);
   }
 
+  private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {
+    myFixture.allowTreeAccessForAllFiles();
+    final String sdkSourcesPath = configureMockSdk();
+
+    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/Activity.java");
+    myFixture.configureFromExistingVirtualFile(file);
+
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(position);
+
+    PsiElement[] elements = GotoDeclarationAction.findAllTargetElements(
+      myFixture.getProject(), myFixture.getEditor(),
+      myFixture.getEditor().getCaretModel().getOffset());
+    assertEquals(expectedCount, elements.length);
+
+    for (PsiElement element : elements) {
+      assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(element), aClass);
+    }
+  }
+
   public void testFindingInternalResourceClasses() throws Exception {
     configureMockSdk();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
@@ -162,25 +181,6 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     PsiClass[] classes = myFixture.getJavaFacade().findClasses(
       "android.app.Activity", GlobalSearchScope.allScope(myFixture.getProject()));
     assertEquals(1, classes.length);
-  }
-
-  private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {
-    myFixture.allowTreeAccessForAllFiles();
-    final String sdkSourcesPath = configureMockSdk();
-
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(sdkSourcesPath + "/android/app/Activity.java");
-    myFixture.configureFromExistingVirtualFile(file);
-
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(position);
-
-    PsiElement[] elements = GotoDeclarationAction.findAllTargetElements(
-      myFixture.getProject(), myFixture.getEditor(),
-      myFixture.getEditor().getCaretModel().getOffset());
-    assertEquals(expectedCount, elements.length);
-
-    for (PsiElement element : elements) {
-      assertInstanceOf(LazyValueResourceElementWrapper.computeLazyElement(element), aClass);
-    }
   }
 
   private String configureMockSdk() {
