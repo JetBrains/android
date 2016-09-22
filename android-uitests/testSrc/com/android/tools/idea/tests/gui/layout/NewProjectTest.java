@@ -100,16 +100,6 @@ public class NewProjectTest {
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     assertThat(editor.getCurrentFileContents()).contains("\".MainActivity\"");
-
-    // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
-    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
-    }
   }
 
   @Test
