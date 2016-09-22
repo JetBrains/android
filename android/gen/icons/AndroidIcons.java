@@ -185,6 +185,7 @@ public class AndroidIcons {
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
     public static final Icon Theme = load("/icons/nele/theme.png");
+    public static final Icon Variants = load("/icons/nele/variants.png");
 
     public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
     public static final Icon ZoomOut = load("/icons/nele/zoom-out.png");
@@ -299,6 +300,7 @@ public class AndroidIcons {
     public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
     public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraints.png");
     public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");
+    public static final Icon Margin = load("/icons/sherpa/margin.png");
     public static final Icon GuidelineVertical = load("/icons/sherpa/guideline_vertical.png");
     public static final Icon GuidelineHorizontal = load("/icons/sherpa/guideline_horizontal.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
