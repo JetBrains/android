@@ -23,16 +23,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 
 public class RunConfigurationModuleSetupStep extends AndroidModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
     if (facet != null && facet.isAppProject()) {
       createRunConfigurations(facet);

@@ -46,6 +46,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -552,7 +553,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait() throws Exception {
     SyncListener syncListener = requestSync();
-    assertTrue(syncListener.success);
+    if (!syncListener.success) {
+      String cause = syncListener.failureMessage;
+      if (StringUtil.isEmpty(cause)) {
+        cause = "<Unknown>";
+      }
+      fail(cause);
+    }
   }
 
   @NotNull

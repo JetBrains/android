@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service;
+package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.NATIVE_ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NATIVE_ANDROID_MODEL;
 
 public class NativeAndroidGradleModelDataService extends AbstractProjectDataService<NativeAndroidGradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(NativeAndroidGradleModelDataService.class);

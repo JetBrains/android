@@ -109,7 +109,8 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
           updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance(),
                                        modelsProvider);
         }
-      } else if (libraryName.startsWith("support-annotations-") && binaryPath.endsWith(DOT_JAR)) {
+      }
+      else if (libraryName.startsWith("support-annotations-") && binaryPath.endsWith(DOT_JAR)) {
         // The support annotations is a Java library, not an Android library, so it's not distributed as an AAR
         // with its own external annotations. However, there are a few that we want to make available in the
         // IDE (for example, code completion on @VisibleForTesting(otherwise = |), so we bundle these in the

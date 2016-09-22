@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AndroidModuleSetupStep extends ModuleSetupStep<AndroidGradleModel> {
-  public static final ExtensionPointName<AndroidModuleSetupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.androidModuleSetupStep");
+public abstract class CppModuleSetupStep extends ModuleSetupStep<NativeAndroidGradleModel> {
+  public static final ExtensionPointName<CppModuleSetupStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.cppModuleSetupStep");
 
   @NotNull
-  public static AndroidModuleSetupStep[] getExtensions() {
+  public static CppModuleSetupStep[] getExtensions() {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 }

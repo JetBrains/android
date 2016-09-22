@@ -25,7 +25,7 @@ import java.io.File;
 
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
-public class CompilerSettings {
+public class CompilerSettingsSetup {
   public void setOutputPaths(@NotNull ModifiableRootModel rootModel, @NotNull File mainOutputPath, @Nullable File testOutputPath) {
     CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
     if (compilerSettings == null) {

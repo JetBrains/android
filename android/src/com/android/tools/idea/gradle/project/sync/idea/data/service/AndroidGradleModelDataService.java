@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service;
+package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -64,7 +63,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
@@ -85,18 +84,17 @@ import static java.util.Collections.sort;
 public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleModelDataService.class);
 
-  private final List<ModuleCustomizer<AndroidGradleModel>> myCustomizers;
+  private final List<AndroidModuleSetupStep> mySetupSteps;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidGradleModelDataService() {
-    this(ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
-                          new RunConfigModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer()));
+    this(ImmutableList.copyOf(AndroidModuleSetupStep.getExtensions()));
   }
 
   @VisibleForTesting
-  AndroidGradleModelDataService(@NotNull List<ModuleCustomizer<AndroidGradleModel>> customizers) {
-    myCustomizers = customizers;
+  AndroidGradleModelDataService(@NotNull List<AndroidModuleSetupStep> setupSteps) {
+    mySetupSteps = setupSteps;
   }
 
   @NotNull
@@ -156,7 +154,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         for (Module module : modelsProvider.getModules()) {
           AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
 
-          customizeModule(module, project, modelsProvider, androidModel);
+          setUpModule(module, modelsProvider, androidModel);
           if (androidModel != null) {
             AndroidProject androidProject = androidModel.getAndroidProject();
 
@@ -324,12 +322,11 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     return index;
   }
 
-  private void customizeModule(@NotNull Module module,
-                               @NotNull Project project,
-                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                               @Nullable AndroidGradleModel androidModel) {
-    for (ModuleCustomizer<AndroidGradleModel> customizer : myCustomizers) {
-      customizer.customizeModule(project, module, modelsProvider, androidModel);
+  private void setUpModule(@NotNull Module module,
+                           @NotNull IdeModifiableModelsProvider modelsProvider,
+                           @Nullable AndroidGradleModel androidModel) {
+    for (AndroidModuleSetupStep setupStep : mySetupSteps) {
+      setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
     }
   }
 }
