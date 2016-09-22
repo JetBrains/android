@@ -249,6 +249,10 @@ public class DesignSurface extends JPanel implements Disposable {
     myErrorPanelSplitter.setShowDividerIcon(showDivider);
     myErrorPanelSplitter.setShowDividerControls(showDivider);
     myErrorPanelSplitter.setResizeEnabled(showDivider);
+
+    if (isMinimized) {
+      myErrorPanelSplitter.setProportion(1f);
+    }
   }
 
   @NotNull
