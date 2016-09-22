@@ -15,14 +15,12 @@
  */
 package org.jetbrains.android.dom;
 
-import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
-
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidColorStateListDomTest extends AndroidDomTestCase {
   public AndroidColorStateListDomTest() {
-    super(true, "dom/color");
+    super("dom/color");
   }
 
   @Override

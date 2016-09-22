@@ -100,6 +100,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestJavaCompletion(String aPackage) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
     VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(file);
@@ -109,6 +110,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
     throws IOException {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -155,6 +157,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestHighlighting() throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     doTestHighlighting(getTestName(true) + ".xml");
   }
 
@@ -175,6 +178,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestJavaHighlighting(String aPackage) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
     VirtualFile virtualFile = copyFileToProject(fileName, "src/" + aPackage.replace('.', '/') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(virtualFile);
@@ -186,6 +190,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestCompletion(boolean lowercaseFirstLetter) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     toTestCompletion(getTestName(lowercaseFirstLetter) + ".xml", getTestName(lowercaseFirstLetter) + "_after.xml");
   }
 
@@ -214,6 +219,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final void doTestSpellcheckerQuickFixes() throws IOException {
     myFixture.enableInspections(SpellCheckingInspection.class);
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
@@ -236,6 +242,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestAndroidPrefixCompletion(@Nullable String prefix) throws IOException {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.complete(CompletionType.BASIC);

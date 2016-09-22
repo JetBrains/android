@@ -18,14 +18,13 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 import java.io.IOException;
 import java.util.List;
 
 public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public AndroidDrawableResourcesDomTest() {
-    super(true, "dom/drawable");
+    super("dom/drawable");
   }
 
   @Override
