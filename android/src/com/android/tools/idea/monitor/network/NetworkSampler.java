@@ -18,23 +18,27 @@ package com.android.tools.idea.monitor.network;
 import com.android.ddmlib.*;
 import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class NetworkSampler extends DeviceSampler {
   public static final String NETWORK_STATS_FILE = "/proc/net/xt_qtaguid/stats";
   private static final int TIMELINE_DATA_STREAM_SIZE = 2;
   private static final int TIMELINE_DATA_SIZE = 2048;
   private static final int MAX_TIMEOUT_SECOND = 1;
-  private static final Logger LOG = Logger.getLogger(NetworkSampler.class.getName());
   private static final String LINE_SPLIT_REGEX = "[ \t\r\n\f]";
 
   private int myUid;
   private long myStartingRxBytes;
   private long myStartingTxBytes;
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(DeviceSampler.class);
+  }
 
   public NetworkSampler(int frequencyMs) {
     super(new TimelineData(TIMELINE_DATA_STREAM_SIZE, TIMELINE_DATA_SIZE, new TimelineData.AreaTransform()), frequencyMs);
@@ -62,7 +66,7 @@ public class NetworkSampler extends DeviceSampler {
    */
   public int checkStatsFile(@NotNull Client client) {
     // Stops checking if the selected client is changed.
-    if (myClient != client) {
+    if (getClient() != client) {
       return 0;
     }
     IDevice device = client.getDevice();
@@ -77,17 +81,18 @@ public class NetworkSampler extends DeviceSampler {
       return receiver.getOutput().contains("No such file") ? -1 : 1;
     }
     catch (TimeoutException timeoutException) {
-      LOG.warning(String.format("TimeoutException %1$s in ls %2$s", timeoutException.getMessage(), NETWORK_STATS_FILE));
+      getLog().warn(String.format("TimeoutException %1$s in ls %2$s", timeoutException.getMessage(), NETWORK_STATS_FILE));
     }
     catch (AdbCommandRejectedException rejectedException) {
-      LOG.warning(
+      getLog().warn(
         String.format("AdbCommandRejectedException %1$s in ls %2$s", rejectedException.getMessage(), NETWORK_STATS_FILE));
     }
     catch (ShellCommandUnresponsiveException unresponsiveException) {
-      LOG.warning(String.format("ShellCommandUnresponsiveException %1$s in ls %2$s", unresponsiveException.getMessage(), NETWORK_STATS_FILE));
+      getLog().warn(
+        String.format("ShellCommandUnresponsiveException %1$s in ls %2$s", unresponsiveException.getMessage(), NETWORK_STATS_FILE));
     }
     catch (IOException ioException) {
-      LOG.warning(String.format("IOException %1$s in ls %2$s", ioException.getMessage(), NETWORK_STATS_FILE));
+      getLog().warn(String.format("IOException %1$s in ls %2$s", ioException.getMessage(), NETWORK_STATS_FILE));
     }
     return 0;
   }
@@ -97,7 +102,7 @@ public class NetworkSampler extends DeviceSampler {
    */
   @Override
   protected void sample(boolean forced) throws InterruptedException {
-    Client client = myClient;
+    Client client = getClient();
     IDevice device = client != null ? client.getDevice() : null;
     if (device == null) {
       return;
@@ -121,13 +126,7 @@ public class NetworkSampler extends DeviceSampler {
     catch (TimeoutException timeoutException) {
       myDataType = TYPE_TIMEOUT;
     }
-    catch (AdbCommandRejectedException commandRejectedException) {
-      myDataType = TYPE_UNREACHABLE;
-    }
-    catch (ShellCommandUnresponsiveException commandUnresponsiveException) {
-      myDataType = TYPE_UNREACHABLE;
-    }
-    catch (IOException ioException) {
+    catch (AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException ignored) {
       myDataType = TYPE_UNREACHABLE;
     }
     if (receiver.isFileMissing() || myDataType != TYPE_DATA) {
@@ -138,8 +137,8 @@ public class NetworkSampler extends DeviceSampler {
       myStartingTxBytes = receiver.getTxBytes();
     }
     else {
-      myTimelineData.add(System.currentTimeMillis(), myDataType, (receiver.getRxBytes() - myStartingRxBytes) / 1024.f,
-                         (receiver.getTxBytes() - myStartingTxBytes) / 1024.f);
+      getTimelineData().add(System.currentTimeMillis(), myDataType, (receiver.getRxBytes() - myStartingRxBytes) / 1024.f,
+                            (receiver.getTxBytes() - myStartingTxBytes) / 1024.f);
     }
   }
 
@@ -149,16 +148,16 @@ public class NetworkSampler extends DeviceSampler {
       device.executeShellCommand("cat /proc/" + pid + "/status", uidReceiver, MAX_TIMEOUT_SECOND, TimeUnit.SECONDS);
     }
     catch (TimeoutException timeoutException) {
-      LOG.warning(String.format("TimeoutException to get uid from pid %d", pid));
+      getLog().warn(String.format("TimeoutException to get uid from pid %d", pid));
     }
     catch (AdbCommandRejectedException commandRejectedException) {
-      LOG.warning(String.format("AdbCommandRejectedException to get uid from pid %d", pid));
+      getLog().warn(String.format("AdbCommandRejectedException to get uid from pid %d", pid));
     }
     catch (ShellCommandUnresponsiveException commandUnresponsiveException) {
-      LOG.warning(String.format("ShellCommandUnresponsiveException to get uid from pid %d", pid));
+      getLog().warn(String.format("ShellCommandUnresponsiveException to get uid from pid %d", pid));
     }
     catch (IOException ioException) {
-      LOG.warning(String.format("IOException to get uid from pid %d", pid));
+      getLog().warn(String.format("IOException to get uid from pid %d", pid));
     }
     return uidReceiver.getUid();
   }
@@ -186,15 +185,14 @@ public class NetworkSampler extends DeviceSampler {
         if (line.startsWith("Uid:")) {
           String[] values = line.split(LINE_SPLIT_REGEX);
           if (values.length <= INDEX_OF_EFFECTIVE_USER_ID) {
-
-            LOG.warning(String.format("NumberFormatException %1$s \n length %2$d", line, values.length));
+            getLog().warn(String.format("NumberFormatException %1$s \n length %2$d", line, values.length));
             return;
           }
           try {
             myUid = Integer.parseInt(values[INDEX_OF_EFFECTIVE_USER_ID]);
           }
           catch (NumberFormatException e) {
-            LOG.warning(String.format("NumberFormatException %1$s in %2$s", e.getMessage(), line));
+            getLog().warn(String.format("NumberFormatException %1$s in %2$s", e.getMessage(), line));
           }
           break;
         }
@@ -270,7 +268,7 @@ public class NetworkSampler extends DeviceSampler {
             int tempRxBytes = Integer.parseInt(values[INDEX_OF_RX_BYTES]);
             int tempTxBytes = Integer.parseInt(values[INDEX_OF_TX_BYTES]);
             if (tempRxBytes < 0 || tempTxBytes < 0) {
-              LOG.warning(String.format("Negative rxBytes %1$d and/or txBytes %2$d in %3$s", tempRxBytes, tempTxBytes, line));
+              getLog().warn(String.format("Negative rxBytes %1$d and/or txBytes %2$d in %3$s", tempRxBytes, tempTxBytes, line));
               continue;
             }
             myRxBytes += tempRxBytes;
@@ -278,8 +276,8 @@ public class NetworkSampler extends DeviceSampler {
           }
         }
         catch (NumberFormatException e) {
-          LOG.warning(String.format("Expected int value, instead got uid %1$s, rxBytes %2$s, txBytes %3$s in %4$s", values[INDEX_OF_UID],
-                                    values[INDEX_OF_RX_BYTES], values[INDEX_OF_TX_BYTES], line));
+          getLog().warn(String.format("Expected int value, instead got uid %1$s, rxBytes %2$s, txBytes %3$s in %4$s", values[INDEX_OF_UID],
+                                      values[INDEX_OF_RX_BYTES], values[INDEX_OF_TX_BYTES], line));
         }
       }
     }
