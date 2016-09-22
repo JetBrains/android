@@ -32,8 +32,9 @@ public class DeepLinkCodeGeneratorActionTest extends AndroidTestCase {
     "outsideactivity/AndroidManifest.xml";
   private static final String JAVA_FILE = "Class.java";
 
-  public DeepLinkCodeGeneratorActionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
