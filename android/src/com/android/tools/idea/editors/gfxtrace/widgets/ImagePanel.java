@@ -69,7 +69,7 @@ public class ImagePanel extends JPanel {
     scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
     scrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     add(scrollPane, BorderLayout.CENTER);
-    add(new JPanel(new FlowLayout(FlowLayout.LEFT)) {{
+    add(new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2)) {{
       add(myImage.getLevelChooser());
       add(myStatus, BorderLayout.SOUTH);
     }} , BorderLayout.SOUTH);
@@ -124,6 +124,10 @@ public class ImagePanel extends JPanel {
     myImage.setImage(image);
   }
 
+  public JComponent getFocusComponent() {
+    return myImage;
+  }
+
   private static final class ImageComponent extends JComponent {
     private static final double ZOOM_FIT = Double.POSITIVE_INFINITY;
     private static final double MAX_ZOOM_FACTOR = 8;
@@ -158,23 +162,20 @@ public class ImagePanel extends JPanel {
       };
       this.emptyText.attachTo(parent);
       this.zoom = ZOOM_FIT;
-      this.levelChooser.addListener(new LevelChooser.Listener() {
-        @Override
-        public void levelChanged(int level) {
-          loadLevel(level);
-        }
-      });
+      this.levelChooser.addListener(level -> loadLevel(level));
 
       MouseAdapter mouseHandler = new MouseAdapter() {
         private int lastX, lastY;
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
+          requestFocus();
           zoom(Math.max(-ZOOM_AMOUNT, Math.min(ZOOM_AMOUNT, e.getWheelRotation())), e.getPoint());
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
+          requestFocus();
           lastX = e.getX();
           lastY = e.getY();
 
@@ -417,7 +418,8 @@ public class ImagePanel extends JPanel {
       }
 
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
-      int w = (int)(level.getWidth(this) * scale), h = (int)(level.getHeight(this) * scale);
+      int levelWidth = level.getWidth(this), levelHeight = level.getHeight(this);
+      int w = (int)(levelWidth * scale), h = (int)(levelHeight * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
       if (drawCheckerBoard && channels[CHANNEL_ALPHA]) {
@@ -425,10 +427,6 @@ public class ImagePanel extends JPanel {
         g.fillRect(x, y, w, h);
       }
 
-      AffineTransform transform = ((Graphics2D)g).getTransform();
-      if (flipped) {
-        ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
-      }
       if (displayed == null) {
         Composite composite = null;
         if (channels[CHANNEL_RED] && channels[CHANNEL_GREEN] && channels[CHANNEL_BLUE] && channels[CHANNEL_ALPHA]) {
@@ -458,16 +456,15 @@ public class ImagePanel extends JPanel {
 
         if (composite != null) {
           //noinspection UndesirableClassUsage
-          displayed = new BufferedImage(level.getWidth(this), level.getHeight(this), BufferedImage.TYPE_4BYTE_ABGR);
+          displayed = new BufferedImage(levelWidth, levelHeight, BufferedImage.TYPE_4BYTE_ABGR);
           Graphics2D displayedG = displayed.createGraphics();
           displayedG.setComposite(composite);
           displayedG.drawImage(level, 0, 0, this);
           displayedG.dispose();
         }
       }
-      g.drawImage(displayed, x, y, w, h, this);
+      g.drawImage(displayed, x, y, x + w, y + h, 0, flipped ? levelHeight : 0, levelWidth, flipped ? 0 : levelHeight, this);
 
-      ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
 
@@ -508,6 +505,7 @@ public class ImagePanel extends JPanel {
       }
       this.level = (level == null) ? MultiLevelImage.EMPTY_LEVEL : level;
       this.displayed = null;
+      levelChooser.updateLevelSize(level.getWidth(), level.getHeight());
       revalidate();
       repaint();
     }
@@ -521,15 +519,12 @@ public class ImagePanel extends JPanel {
     }
 
     private void scrollBy(int dx, int dy) {
-      if (dx == 0 && dy == 0) {
-        // Do the revalidate and repaint that scrollRectoToVisible would do.
-        revalidate();
-        repaint();
-      }
-      else {
+      if (dx != 0 || dy != 0) {
         // The passed rectangle is relative to the currently visible rectangle, i.e. it is not in view coordinates.
         parent.scrollRectToVisible(new Rectangle(new Point(dx, dy), parent.getExtentSize()));
       }
+      revalidate();
+      repaint();
     }
 
     private Point getCenterPoint() {
@@ -583,8 +578,7 @@ public class ImagePanel extends JPanel {
     }
 
     /**
-     * A {@link Paint} that will paint a checkerboard pattern. The current implementation aligns the pattern to the window (device)
-     * coordinates, so the checkerboard remains stationary, even when the panel and the image is scrolled.
+     * A {@link Paint} that will paint a checkerboard pattern.
      */
     private static class CheckerboardPaint implements Paint, PaintContext {
       private static final int CHECKER_SIZE = JBUI.scale(15);
@@ -600,10 +594,13 @@ public class ImagePanel extends JPanel {
       private WritableRaster cachedRaster;
       private int[] cachedEvenRow = new int[0];
       private int[] cachedOddRow = new int[0];
+      private int translateX, translateY;
 
       @Override
       public PaintContext createContext(
           ColorModel cm, Rectangle deviceBounds, Rectangle2D userBounds, AffineTransform xform, RenderingHints hints) {
+        translateX = (int) xform.getTranslateX();
+        translateY = (int) xform.getTranslateY();
         return this;
       }
 
@@ -619,6 +616,8 @@ public class ImagePanel extends JPanel {
 
       @Override
       public Raster getRaster(int x, int y, int w, int h) {
+        x -= translateX;
+        y -= translateY;
         WritableRaster raster = cachedRaster;
         if (raster == null || w > raster.getWidth() || h > raster.getHeight()) {
           cachedRaster = raster = getColorModel().createCompatibleWritableRaster(w, h);
@@ -672,25 +671,21 @@ public class ImagePanel extends JPanel {
 
     private static class LevelChooser extends JPanel {
       private final JSlider mySlider = new JSlider();
+      private final JBLabel myValueLabel = new JBLabel("0");
 
       public LevelChooser() {
+        super(new FlowLayout(FlowLayout.LEFT, 5, 2));
         mySlider.setPaintTicks(true);
         mySlider.setSnapToTicks(true);
         mySlider.setMajorTickSpacing(1);
         mySlider.setFocusable(false);
         setVisible(false);
 
-        final JBLabel valueLabel = new JBLabel("0");
-        mySlider.addChangeListener(new ChangeListener() {
-          @Override
-          public void stateChanged(ChangeEvent e) {
-            valueLabel.setText(String.valueOf(mySlider.getValue()));
-          }
-        });
+        addListener(level -> myValueLabel.setText(String.valueOf(level)));
 
         add(new JBLabel("Level:"));
         add(mySlider);
-        add(valueLabel);
+        add(myValueLabel);
       }
 
       public boolean update(int numLevels) {
@@ -703,6 +698,10 @@ public class ImagePanel extends JPanel {
         mySlider.setMinimum(0);
         mySlider.setMaximum(numLevels - 1);
         return value >= numLevels;
+      }
+
+      public void updateLevelSize(int width, int height) {
+        myValueLabel.setText(mySlider.getValue() + ": " + width + "x" + height);
       }
 
       public int getLevel() {

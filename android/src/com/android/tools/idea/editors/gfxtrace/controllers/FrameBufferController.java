@@ -27,15 +27,14 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.ui.content.Content;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.util.List;
-
 public class FrameBufferController extends ImagePanelController implements AtomStream.Listener {
-  public static JComponent createUI(GfxTraceEditor editor) {
-    return new FrameBufferController(editor).myPanel;
+  public static Content createUI(GfxTraceEditor editor, MainController.ContentCreator contentCreator) {
+    FrameBufferController controller = new FrameBufferController(editor);
+    return contentCreator.create(controller.myPanel, controller.getFocusComponent());
   }
 
   private static final int MAX_SIZE = 0xffff;

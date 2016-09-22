@@ -40,6 +40,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.content.Content;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +55,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class TexturesController extends ImagePanelController {
-  public static JComponent createUI(GfxTraceEditor editor) {
-    return new TexturesController(editor).myPanel;
+  public static Content createUI(GfxTraceEditor editor, MainController.ContentCreator contentCreator) {
+    TexturesController controller = new TexturesController(editor);
+    return contentCreator.create(controller.myPanel, controller.getFocusComponent());
   }
 
   @NotNull private AtomComboAction myJumpToAtomComboAction;
@@ -69,6 +71,9 @@ public class TexturesController extends ImagePanelController {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
         myJumpToAtomComboAction.setAtomIds(item == null ? Collections.emptyList() : Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList()));
+        if (myList.getFocusComponent().hasFocus()) {
+          getFocusComponent().requestFocusInWindow();
+        }
 
         if (item != null && myCurrentResourceId != item.info.getID()) {
           myCurrentResourceId = item.info.getID();

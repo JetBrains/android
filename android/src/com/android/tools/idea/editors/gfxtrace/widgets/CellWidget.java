@@ -133,6 +133,10 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
     }
   }
 
+  public JComponent getFocusComponent() {
+    return myComponent;
+  }
+
   protected abstract void setSelectedIndex(C component, int index);
 
   public interface SelectionListener<T> {
