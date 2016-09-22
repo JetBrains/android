@@ -96,7 +96,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     return new AtomController(editor).myPanel;
   }
 
-  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  @NotNull private static final Logger LOG = Logger.getInstance(AtomController.class);
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
 
   public static abstract class Renderable {

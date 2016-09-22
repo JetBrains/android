@@ -177,21 +177,28 @@ public class TexturesController extends ImagePanelController {
 
           if (resource instanceof Texture2D) {
             Texture2D texture = (Texture2D)resource;
-            base = texture.getLevels()[0];
             mipmapLevels = texture.getLevels().length;
+            if (mipmapLevels > 0) {
+              base = texture.getLevels()[0];
+            }
           }
           else if (resource instanceof Cubemap) {
             Cubemap texture = (Cubemap)resource;
-            base = texture.getLevels()[0].getNegativeZ();
             mipmapLevels = texture.getLevels().length;
+            if (mipmapLevels > 0) {
+              base = texture.getLevels()[0].getNegativeZ();
+            }
           }
 
           if (base != null) {
             cell.imageInfo = base;
             cell.extraLabel = ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
           }
+          else if (mipmapLevels != -1) {
+            cell.extraLabel = "incomplete texture";
+          }
           else {
-            cell.extraLabel = "Unknown texture type: " + resource.getClass().getName();
+            cell.extraLabel = "Unknown texture type: " + resource.getClass().getSimpleName();
           }
 
           myList.repaint();
@@ -225,6 +232,10 @@ public class TexturesController extends ImagePanelController {
     }
 
     private static String getTypeLabel(GfxAPIProtos.ResourceType type) {
+      if (type == null) {
+        return null;
+      }
+
       switch (type) {
         case Texture1D: return "1D";
         case Texture2D: return "2D";
