@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -34,18 +32,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.rendering.RenderedImage.ShadowType;
-
 public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final List<ViewInfo> mySystemRootViews;
-  @Nullable private final RenderedImage myImage;
+  @Nullable private final BufferedImage myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
-  @NotNull private final Rectangle myImageBounds;
   @NotNull private final Map<Object, PropertiesMap> myDefaultProperties;
 
   public RenderResult(@Nullable RenderTask renderTask,
@@ -63,20 +58,8 @@ public class RenderResult {
       List<ViewInfo> systemRootViews = session.getSystemRootViews();
       mySystemRootViews = systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : null;
 
-      Configuration configuration = renderTask.getConfiguration();
-      BufferedImage image = session.getImage();
-      boolean alphaChannelImage = session.isAlphaChannelImage() || renderTask.requiresTransparency();
-      ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
-      if (shadowType == ShadowType.NONE && renderTask.isNonRectangular()) {
-        shadowType = ShadowType.ARBITRARY;
-      } else {
-        Device device = renderTask.getConfiguration().getDevice();
-        if (device != null && device.isScreenRound()) {
-          shadowType = ShadowType.ARBITRARY;
-        }
-      }
       // image might be null if we only inflated the layout but we didn't call render
-      myImage = image != null ? new RenderedImage(configuration, image, alphaChannelImage, shadowType) : null;
+      myImage = session.getImage();
       Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
       myDefaultProperties = defaultProperties != null ? defaultProperties : Collections.emptyMap();
     } else {
@@ -85,9 +68,6 @@ public class RenderResult {
       myImage = null;
       myDefaultProperties = Collections.emptyMap();
     }
-
-    myImageBounds =
-      new Rectangle(0, 0, myImage != null ? myImage.getOriginalWidth() : 0, myImage != null ? myImage.getOriginalHeight() : 0);
   }
 
   /**
@@ -114,13 +94,8 @@ public class RenderResult {
   }
 
   @Nullable
-  public RenderedImage getImage() {
-    return myImage;
-  }
-
-  @Nullable
   public BufferedImage getRenderedImage() {
-    return myImage != null ? myImage.getOriginalImage() : null;
+    return myImage;
   }
 
   @NotNull
@@ -158,11 +133,6 @@ public class RenderResult {
 
   public void setIncludedWithin(@Nullable IncludeReference includedWithin) {
     myIncludedWithin = includedWithin;
-  }
-
-  @NotNull
-  public Rectangle getOriginalBounds() {
-    return myImageBounds;
   }
 
   @NotNull

@@ -349,8 +349,8 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       BufferedImage image = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
 
       RenderResult renderResult = myScreenView.getModel().getRenderResult();
-      if (renderResult != null && renderResult.getImage() != null) {
-        BufferedImage fullImage = renderResult.getImage().getOriginalImage();
+      if (renderResult != null && renderResult.getRenderedImage() != null) {
+        BufferedImage fullImage = renderResult.getRenderedImage();
         // Draw the component into the preview image
         Graphics2D g2d = (Graphics2D)image.getGraphics();
 
