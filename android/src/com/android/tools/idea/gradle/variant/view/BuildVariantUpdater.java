@@ -20,23 +20,20 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel.NativeVariant;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +45,7 @@ import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -135,7 +133,7 @@ class BuildVariantUpdater {
     }
     androidModel.setSelectedVariantName(variantToSelect);
     androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
-    Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
+    Module module = setUpModule(androidFacet.getModule(), androidModel);
 
     for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
       String gradlePath = library.getProject();
@@ -159,7 +157,7 @@ class BuildVariantUpdater {
     }
     nativeAndroidModel.setSelectedVariantName(variantToSelect);
     nativeAndroidFacet.getConfiguration().SELECTED_BUILD_VARIANT = nativeAndroidModel.getSelectedVariant().getName();
-    invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
+    setUpModule(nativeAndroidFacet.getModule(), nativeAndroidModel);
 
     // TODO: Also update the dependent modules variants.
     return true;
@@ -177,85 +175,39 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  private static Module setUpModule(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidModel.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), module, modelsProvider, androidModel);
+      for (AndroidModuleSetupStep setupStep : AndroidModuleSetupStep.getExtensions()) {
+        if (setupStep.invokeOnBuildVariantChange()) {
+          setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
+        }
       }
       modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
     return module;
   }
 
   @NotNull
-  private static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
-    return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
-  }
-
-  @VisibleForTesting
-  @NotNull
-  static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
-                                                                               @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<AndroidGradleModel>> customizers = Lists.newArrayList();
-    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be AndroidGradleModel or subclass.
-      if (AndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
-        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
-        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
-          //noinspection unchecked
-          customizers.add(customizer);
-        }
-      }
-    }
-    return customizers;
-  }
-
-  @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
+  private static Module setUpModule(@NotNull Module module, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (ModuleCustomizer<NativeAndroidGradleModel> customizer : getNativeAndroidCustomizers(nativeAndroidModel.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), module, modelsProvider, nativeAndroidModel);
+      for (CppModuleSetupStep setupStep : CppModuleSetupStep.getExtensions()) {
+        if (setupStep.invokeOnBuildVariantChange()) {
+          setupStep.setUpModule(module, modelsProvider, nativeAndroidModel, null, null);
+        }
       }
       modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
     return module;
-  }
-
-  @NotNull
-  private static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
-    @NotNull ProjectSystemId targetProjectSystemId) {
-    return getNativeAndroidCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
-  }
-
-  @VisibleForTesting
-  @NotNull
-  static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
-    @NotNull ProjectSystemId targetProjectSystemId,
-    @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> customizers = Lists.newArrayList();
-    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be NativeAndroidGradleModel or subclass.
-      if (NativeAndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
-        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
-        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
-          //noinspection unchecked
-          customizers.add(customizer);
-        }
-      }
-    }
-    return customizers;
   }
 
   private void ensureVariantIsSelected(@NotNull Project project,
