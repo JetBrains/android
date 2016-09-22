@@ -16,13 +16,22 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
+import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
 public class ContentRootModuleSetupStep extends JavaModuleSetupStep {
   @Override
@@ -31,9 +40,23 @@ public class ContentRootModuleSetupStep extends JavaModuleSetupStep {
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
                           @NotNull SyncAction.ModuleModels gradleModels,
                           @NotNull ProgressIndicator indicator) {
-    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
-    JavaContentEntries contentEntries = JavaContentEntries.findOrCreateContentEntries(rootModel, javaProject);
-    contentEntries.setUpContentEntries(module);
+    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+    JavaContentEntriesSetup setup = new JavaContentEntriesSetup(javaProject, moduleModel);
+    List<ContentEntry> contentEntries = findContentEntries(moduleModel, javaProject);
+    setup.execute(contentEntries);
+  }
+
+  @NotNull
+  private static List<ContentEntry> findContentEntries(@NotNull ModifiableRootModel moduleModel, @NotNull JavaProject javaProject) {
+    removeExistingContentEntries(moduleModel);
+
+    List<ContentEntry> contentEntries = new ArrayList<>();
+    for (JavaModuleContentRoot contentRoot : javaProject.getContentRoots()) {
+      File rootDirPath = contentRoot.getRootDirPath();
+      ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(rootDirPath));
+      contentEntries.add(contentEntry);
+    }
+    return contentEntries;
   }
 
   @Override

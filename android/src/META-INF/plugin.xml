@@ -1157,6 +1157,9 @@
 
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootModuleSetupStep"/>
+
+    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
+    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
