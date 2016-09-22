@@ -1159,6 +1159,7 @@ public class RenderErrorModelFactory {
         break;
       }
     }
+
     builder.add("The following classes could not be instantiated:");
 
     Throwable firstThrowable = null;
@@ -1389,12 +1390,37 @@ public class RenderErrorModelFactory {
       .build();
   }
 
+  /**
+   * Support lib classes will fail to instantiate if the preview is not using the right theme.
+   */
+  private void reportAppCompatRequired(@NotNull RenderLogger logger) {
+    Map<String, Throwable> brokenClasses = logger.getBrokenClasses();
+
+    if (brokenClasses == null || brokenClasses.isEmpty()) {
+      return;
+    }
+
+    brokenClasses.values().stream()
+      .filter(Objects::nonNull)
+      .filter(t -> t.getMessage().startsWith("You need to use a Theme.AppCompat"))
+      .findAny()
+      .ifPresent(t -> {
+        addIssue()
+          .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY + 1) // Reported above broken classes
+          .setSummary("Using the design library requires using Theme.AppCompat or a descendant")
+          .setHtmlContent(new HtmlBuilder()
+            .add("Select ").addItalic("Theme.AppCompat").add(" or a descendant in the theme selector."))
+          .build();
+      });
+  }
+
   @NotNull
   private RenderErrorModel getRenderErrorModel() {
     RenderLogger logger = myResult.getLogger();
     RenderTask renderTask = myResult.getRenderTask();
 
     reportMissingStyles(logger);
+    reportAppCompatRequired(logger);
     if (renderTask != null) {
       reportOldNinePathRenderLib(logger, renderTask);
       reportRelevantCompilationErrors(logger, renderTask);
