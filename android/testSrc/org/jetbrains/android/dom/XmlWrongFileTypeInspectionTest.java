@@ -21,6 +21,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestUtils;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.inspections.XmlWrongFileTypeInspection;
 import org.jetbrains.annotations.NotNull;
 

@@ -22,6 +22,7 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;

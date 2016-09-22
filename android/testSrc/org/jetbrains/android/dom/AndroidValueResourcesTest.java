@@ -37,6 +37,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 

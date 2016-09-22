@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
+
 /**
  * @author Eugene.Kudelevsky
  */

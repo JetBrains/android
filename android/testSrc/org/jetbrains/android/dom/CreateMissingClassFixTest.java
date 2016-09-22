@@ -21,6 +21,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.AndroidTestUtils;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 public class CreateMissingClassFixTest extends AndroidDomTestCase {
   public CreateMissingClassFixTest() {

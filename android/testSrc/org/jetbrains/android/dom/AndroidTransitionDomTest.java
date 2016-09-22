@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
+import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 
 public class AndroidTransitionDomTest extends AndroidDomTestCase {
   public AndroidTransitionDomTest() {
