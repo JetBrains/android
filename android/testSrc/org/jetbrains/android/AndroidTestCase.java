@@ -51,7 +51,6 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,54 +64,42 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected Module myModule;
   protected List<Module> myAdditionalModules;
 
-  private boolean myCreateManifest;
   protected AndroidFacet myFacet;
   protected CodeStyleSettings mySettings;
 
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
 
-  public AndroidTestCase(boolean createManifest) {
-    this.myCreateManifest = createManifest;
-  }
-
-  public AndroidTestCase() {
-    this(true);
-  }
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    final String dirPath = myFixture.getTempDirPath() + getContentRootPath();
-    final File dir = new File(dirPath);
+    JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
+    File moduleRoot = new File(myFixture.getTempDirPath() + getModulePath());
 
-    if (!dir.exists()) {
-      assertTrue(dir.mkdirs());
+    if (!moduleRoot.exists()) {
+      assertTrue(moduleRoot.mkdirs());
     }
-    tuneModule(moduleFixtureBuilder, dirPath);
+    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, moduleRoot.toString());
 
-    final ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
+    ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
 
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
-    // Must be done before addAndroidFacet, and must always be done, even if !myCreateManifest.
-    // We will delete it at the end of setUp; this is needed when unit tests want to rewrite
-    // the manifest on their own.
+    // Must be done before addAndroidFacet, and must always be done, even if a test provides
+    // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule, isToAddSdk());
+    myFacet = addAndroidFacet(myModule, setupShouldAddSdkToModules());
 
     LanguageLevel languageLevel = getLanguageLevel();
     if (languageLevel != null) {
-      final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
+      LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
       if (extension != null) {
         extension.setLanguageLevel(languageLevel);
       }
@@ -121,21 +108,20 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
     myAdditionalModules = new ArrayList<>();
-
     for (MyAdditionalModuleData data : modules) {
-      final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
+      Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      final AndroidFacet facet = addAndroidFacet(additionalModule);
+      AndroidFacet facet = addAndroidFacet(additionalModule, setupShouldAddSdkToModules());
       facet.setProjectType(data.myProjectType);
-      final String rootPath = getContentRootPath(data.myDirName);
-      myFixture.copyDirectoryToProject("res", rootPath + "/res");
+      String rootPath = getAdditionalModulePath(data.myDirName);
+      myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
       if (data.myIsMainModuleDependency) {
         ModuleRootModificationUtil.addDependency(myModule, additionalModule);
       }
     }
 
-    if (!myCreateManifest) {
+    if (providesCustomManifest()) {
       deleteManifest();
     }
 
@@ -157,111 +143,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
-  protected void collectAllowedRoots(List<String> roots) throws IOException {
-  }
-
-  public void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
-    final List<String> newRoots = new ArrayList<>(roots);
-    newRoots.removeAll(myAllowedRoots);
-
-    final String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
-    VfsRootAccess.allowRootAccess(newRootsArray);
-    myAllowedRoots.addAll(newRoots);
-
-    Disposer.register(disposable, new Disposable() {
-      @Override
-      public void dispose() {
-        VfsRootAccess.disallowRootAccess(newRootsArray);
-        myAllowedRoots.removeAll(newRoots);
-      }
-    });
-  }
-
-  protected boolean isToAddSdk() {
-    return true;
-  }
-
-  protected String getContentRootPath() {
-    return "";
-  }
-
-  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                            @NotNull List<MyAdditionalModuleData> modules) {
-  }
-
-  protected void addModuleWithAndroidFacet(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                           @NotNull List<MyAdditionalModuleData> modules,
-                                           @NotNull String dirName,
-                                           int projectType) {
-    // By default, created module is declared as a main module's dependency
-    addModuleWithAndroidFacet(projectBuilder, modules, dirName, projectType, true);
-  }
-
-  protected void addModuleWithAndroidFacet(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                           @NotNull List<MyAdditionalModuleData> modules,
-                                           @NotNull String dirName,
-                                           int projectType,
-                                           boolean isMainModuleDependency) {
-    final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    final String moduleDirPath = myFixture.getTempDirPath() + getContentRootPath(dirName);
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath).mkdirs();
-    tuneModule(moduleFixtureBuilder, moduleDirPath);
-    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, projectType, isMainModuleDependency));
-  }
-
-  protected static String getContentRootPath(@NotNull String moduleName) {
-    return "/additionalModules/" + moduleName;
-  }
-
-  protected String getResDir() {
-    return "res";
-  }
-
-  public static void tuneModule(JavaModuleFixtureBuilder moduleBuilder, String moduleDirPath) {
-    moduleBuilder.addContentRoot(moduleDirPath);
-
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath + "/src/").mkdir();
-    moduleBuilder.addSourceRoot("src");
-
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath + "/gen/").mkdir();
-    moduleBuilder.addSourceRoot("gen");
-  }
-
-  protected void createManifest() throws IOException {
-    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  protected void createProjectProperties() throws IOException {
-    myFixture.copyFileToProject(SdkConstants.FN_PROJECT_PROPERTIES, SdkConstants.FN_PROJECT_PROPERTIES);
-  }
-
-  protected void deleteManifest() throws IOException {
-    deleteManifest(myModule);
-  }
-
-  protected void deleteManifest(final Module module) throws IOException {
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertNotNull(facet);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        String manifestRelativePath = facet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
-        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(module, manifestRelativePath, true);
-        if (manifest != null) {
-          try {
-            manifest.delete(this);
-          }
-          catch (IOException e) {
-            fail("Could not delete default manifest");
-          }
-        }
-      }
-    });
-  }
-
   @Override
   protected void tearDown() throws Exception {
     try {
@@ -281,55 +162,193 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  protected AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
-    return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
-  }
+  private static void initializeModuleFixtureBuilderWithSrcAndGen(JavaModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+    moduleFixtureBuilder.addContentRoot(moduleRoot);
 
-  public static AndroidFacet addAndroidFacet(Module module) {
-    return addAndroidFacet(module, true);
-  }
+    //noinspection ResultOfMethodCallIgnored
+    new File(moduleRoot + "/src/").mkdir();
+    moduleFixtureBuilder.addSourceRoot("src");
 
-  public static AndroidFacet addAndroidFacet(Module module, boolean addSdk) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-
-    if (addSdk) {
-      addLatestAndroidSdk(module);
-    }
-    final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-    facetModel.addFacet(facet);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        facetModel.commit();
-      }
-    });
-    return facet;
+    //noinspection ResultOfMethodCallIgnored
+    new File(moduleRoot + "/gen/").mkdir();
+    moduleFixtureBuilder.addSourceRoot("gen");
   }
 
   /**
-   * Defines the project level to set for the test project, or null for the default
+   * Returns the path that {@link #myModule} is installed into.
+   *
+   * <p>By default, this is the same as the root of the test project, but this can be customized by
+   * child classes if desired (for example, to test that a feature works even with a non-standard
+   * module location).
+   */
+  protected String getModulePath() {
+    return "";
+  }
+
+  /**
+   * Returns the path that any additional modules registered by
+   * {@link #configureAdditionalModules(TestFixtureBuilder, List)} or
+   * {@link #addModuleWithAndroidFacet(TestFixtureBuilder, List, String, int, boolean)} are
+   * installed into.
+   */
+  protected static String getAdditionalModulePath(@NotNull String moduleName) {
+    return "/additionalModules/" + moduleName;
+  }
+
+  /**
+   * Indicates whether this class provides its own {@code AndroidManifest.xml} for its tests. If
+   * {@code true}, then {@link #setUp()} calls {@link #deleteManifest()} before finishing.
+   */
+  protected boolean providesCustomManifest() {
+    return false;
+  }
+
+  /**
+   * By default, {@link #setUp()} will attach the latest SDK to all initialized modules. However,
+   * test children can disable this if they want to provide their own, e.g. mock SDK.
+   */
+  protected boolean setupShouldAddSdkToModules() {
+    return true;
+  }
+
+  /**
+   * Get the "res" directory for this SDK. Children classes can override this if they need to
+   * provide a custom "res" location for tests.
+   */
+  protected String getResDir() {
+    return "res";
+  }
+
+  /**
+   * Defines the project level to set for the test project, or null to get the default language
+   * level associated with the test project.
    */
   @Nullable
   protected LanguageLevel getLanguageLevel() {
     return null;
   }
 
-  protected void doGlobalInspectionTest(@NotNull GlobalInspectionTool inspection,
-                                        @NotNull String globalTestDir,
-                                        @NotNull AnalysisScope scope) {
+  protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
+    return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
+  }
+
+  /**
+   * Hook point for child test classes to register directories that can be safely accessed by all
+   * of its tests.
+   *
+   * @see {@link VfsRootAccess}
+   */
+  protected void collectAllowedRoots(List<String> roots) throws IOException {
+  }
+
+  private void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
+    List<String> newRoots = new ArrayList<>(roots);
+    newRoots.removeAll(myAllowedRoots);
+
+    String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    VfsRootAccess.allowRootAccess(newRootsArray);
+    myAllowedRoots.addAll(newRoots);
+
+    Disposer.register(disposable, () -> {
+      VfsRootAccess.disallowRootAccess(newRootsArray);
+      myAllowedRoots.removeAll(newRoots);
+    });
+  }
+
+  public static AndroidFacet addAndroidFacet(Module module) {
+    return addAndroidFacet(module, true);
+  }
+
+  private static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
+
+    if (attachSdk) {
+      addLatestAndroidSdk(module);
+    }
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+    facetModel.addFacet(facet);
+    ApplicationManager.getApplication().runWriteAction(facetModel::commit);
+    return facet;
+  }
+
+  protected void configureAdditionalModules(
+    @NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder, @NotNull List<MyAdditionalModuleData> modules) {
+  }
+
+  protected final void addModuleWithAndroidFacet(
+    @NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+    @NotNull List<MyAdditionalModuleData> modules,
+    @NotNull String dirName,
+    int projectType) {
+    // By default, created module is declared as a main module's dependency
+    addModuleWithAndroidFacet(projectBuilder, modules, dirName, projectType, true);
+  }
+
+  protected final void addModuleWithAndroidFacet(
+    @NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+    @NotNull List<MyAdditionalModuleData> modules,
+    @NotNull String dirName,
+    int projectType,
+    boolean isMainModuleDependency) {
+    JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
+    String moduleDirPath = myFixture.getTempDirPath() + getAdditionalModulePath(dirName);
+    //noinspection ResultOfMethodCallIgnored
+    new File(moduleDirPath).mkdirs();
+    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, moduleDirPath);
+    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, projectType, isMainModuleDependency));
+  }
+
+  protected final void createManifest() throws IOException {
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
+  protected final void createProjectProperties() throws IOException {
+    myFixture.copyFileToProject(SdkConstants.FN_PROJECT_PROPERTIES, SdkConstants.FN_PROJECT_PROPERTIES);
+  }
+
+  protected final void deleteManifest() throws IOException {
+    deleteManifest(myModule);
+  }
+
+  protected final void deleteManifest(final Module module) throws IOException {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull(facet);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        String manifestRelativePath = facet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
+        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(module, manifestRelativePath, true);
+        if (manifest != null) {
+          try {
+            manifest.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete default manifest");
+          }
+        }
+      }
+    });
+  }
+
+  protected final void doGlobalInspectionTest(
+    @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
 
-  protected void doGlobalInspectionTest(@NotNull GlobalInspectionToolWrapper wrapper,
-                                        @NotNull String globalTestDir,
-                                        @NotNull AnalysisScope scope) {
+  /**
+   * Given an inspection and a path to a directory that contains an "expected.xml" file, run the
+   * inspection on the current test project and verify that its output matches that of the
+   * expected file.
+   */
+  protected final void doGlobalInspectionTest(
+    @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     myFixture.enableInspections(wrapper.getTool());
 
     scope.invalidate();
 
-    final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-    final GlobalInspectionContextForTests globalContext =
+    InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
+    GlobalInspectionContextForTests globalContext =
       CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
@@ -342,10 +361,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
-    private MyAdditionalModuleData(@NotNull JavaModuleFixtureBuilder moduleFixtureBuilder,
-                                   @NotNull String dirName,
-                                   int projectType,
-                                   boolean isMainModuleDependency) {
+    private MyAdditionalModuleData(
+      @NotNull JavaModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;

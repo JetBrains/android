@@ -47,8 +47,9 @@ public class AndroidRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
   private static final String R_JAVA_PATH = "gen/p1/p2/R.java";
 
-  public AndroidRenameTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
