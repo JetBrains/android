@@ -30,6 +30,7 @@ import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
+import com.android.tools.idea.editors.gfxtrace.widgets.TreeUtil;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -52,8 +53,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
@@ -81,7 +80,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
@@ -1029,7 +1027,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
     if (treeState != null) {
       while (treeState.hasMoreElements()) {
-        myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
+        myTree.expandPath(TreeUtil.getTreePathInTree(treeState.nextElement(), myTree));
       }
     }
   }
@@ -1264,40 +1262,6 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
   @Override
   public void onReportItemSelected(ReportItem reportItem) {
-  }
-
-  @Nullable("if this path can not be found in this tree")
-  public static TreePath getTreePathInTree(TreePath treePath, JTree tree) {
-    Object root = tree.getModel().getRoot();
-    Object[] path = treePath.getPath();
-    List<Object> newPath = new ArrayList<Object>();
-    Object found = null;
-    for (Object node : path) {
-      if (found == null) {
-        if (Objects.equal(root, node)) {
-          found = root;
-        }
-        else {
-          return null;
-        }
-      }
-      else {
-        Object foundChild = null;
-        for (int i = 0; i < tree.getModel().getChildCount(found); i++) {
-          Object child = tree.getModel().getChild(found, i);
-          if (Objects.equal(node, child)) {
-            foundChild = child;
-            break;
-          }
-        }
-        if (foundChild == null) {
-          return null;
-        }
-        found = foundChild;
-      }
-      newPath.add(found);
-    }
-    return new TreePath(newPath.toArray());
   }
 
   @Override
