@@ -104,8 +104,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     List<String> args = new ArrayList<>(commandLineArguments);
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
-    FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    args.addAll(getInstantRunArguments(buildSelection.getBuildMode(), fileChanges));
+    args.addAll(getInstantRunArguments(buildSelection.getBuildMode()));
 
     List<String> tasks = new LinkedList<>();
     if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
@@ -227,7 +226,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     return isAppRunning && myRunContext.isSameExecutorAsPreviousSession();
   }
 
-  private static List<String> getInstantRunArguments(@NotNull BuildMode buildMode, @Nullable FileChangeListener.Changes changes) {
+  private static List<String> getInstantRunArguments(@NotNull BuildMode buildMode) {
     List<String> args = Lists.newArrayListWithExpectedSize(3);
 
     // TODO: Add a user-level setting to disable this?
@@ -238,38 +237,21 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     sb.append("=");
     sb.append(OptionalCompilationStep.INSTANT_DEV.name());
 
-    if (buildMode == BuildMode.HOT) {
-      appendChangeInfo(sb, changes);
-    }
-    else if (buildMode == BuildMode.COLD) {
-      sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
-    }
-    else {
-      sb.append(",").append(OptionalCompilationStep.FULL_APK.name());
+    switch (buildMode) {
+      case HOT:
+        break;
+      case COLD:
+        sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
+        break;
+      case FULL:
+      case CLEAN:
+        sb.append(",").append(OptionalCompilationStep.FULL_APK.name());
+        break;
     }
 
     args.add(sb.toString());
 
     return args;
-  }
-
-  private static void appendChangeInfo(@NotNull StringBuilder sb, @Nullable FileChangeListener.Changes changes) {
-    if (changes == null) {
-      return;
-    }
-
-    //https://code.google.com/p/android/issues/detail?id=213205
-    // If users change the manifest inside Gradle, then Gradle doesn't handle this situation very well
-    // (i.e. if we say only Java changed, but Gradle finds that the merged manifest has also changed, then it gets confused)
-    // So for now, we just remove this.
-    //if (!changes.nonSourceChanges) {
-    //  if (changes.localResourceChanges) {
-    //    sb.append(",LOCAL_RES_ONLY");
-    //  }
-    //  if (changes.localJavaChanges) {
-    //    sb.append(",LOCAL_JAVA_ONLY");
-    //  }
-    //}
   }
 
   /**

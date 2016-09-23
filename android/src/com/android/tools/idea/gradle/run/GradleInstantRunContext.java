@@ -21,7 +21,6 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
-import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
@@ -191,12 +190,6 @@ public class GradleInstantRunContext implements InstantRunContext {
 
     // TODO: this needs to be fixed to search through the attributes
     return manifestSpecifiesMultiProcess(manifest.getDocumentElement(), InstantRunManager.ALLOWED_MULTI_PROCESSES);
-  }
-
-  @Nullable
-  @Override
-  public FileChangeListener.Changes getFileChangesAndReset() {
-    return InstantRunManager.get(myFacet.getModule().getProject()).getChangesAndReset();
   }
 
   @NotNull
