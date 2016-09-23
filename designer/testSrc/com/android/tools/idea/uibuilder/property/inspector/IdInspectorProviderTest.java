@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.inspector.IdInspectorProvider.IdInspectorComponent;
 import com.google.common.collect.ImmutableList;
@@ -34,7 +35,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class IdInspectorProviderTest extends InspectorProviderTestCase {
+public class IdInspectorProviderTest extends PropertyTestCase {
   private IdInspectorProvider myProvider;
 
   @Override
@@ -44,16 +45,16 @@ public class IdInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testIsApplicable() {
-    assertThat(isApplicable(myProvider, myLayout)).isTrue();
-    assertThat(isApplicable(myProvider, myTextBox)).isTrue();
+    assertThat(isApplicable(myProvider, myMerge)).isTrue();
+    assertThat(isApplicable(myProvider, myTextView)).isTrue();
     assertThat(isApplicable(myProvider, myCheckBox1)).isTrue();
     assertThat(isApplicable(myProvider, myProgressBar)).isTrue();
-    assertThat(isApplicable(myProvider, myTextBox, myCheckBox1, mySwitch)).isTrue();
-    assertThat(isApplicable(myProvider, myTextBox, myCheckBox1, mySwitch, myLayout)).isTrue();
+    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch)).isTrue();
+    assertThat(isApplicable(myProvider, myTextView, myCheckBox1, mySwitch, myMerge)).isTrue();
   }
 
   public void testIsNotApplicableForPreferenceAndMenuComponents() {
-    Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(myTextBox));
+    Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(myTextView));
     for (String tagName : PreferenceUtils.VALUES) {
       assertThat(myProvider.isApplicable(ImmutableList.of(mockComponentWithTag(tagName)), properties, myPropertiesManager)).isFalse();
     }
@@ -63,7 +64,7 @@ public class IdInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testInspectorComponent() {
-    List<NlComponent> components = ImmutableList.of(myTextBox);
+    List<NlComponent> components = ImmutableList.of(myTextView);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     IdInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
@@ -90,7 +91,7 @@ public class IdInspectorProviderTest extends InspectorProviderTestCase {
   }
 
   public void testUpdateProperties() {
-    List<NlComponent> components = ImmutableList.of(myTextBox);
+    List<NlComponent> components = ImmutableList.of(myTextView);
     Map<String, NlProperty> properties = getPropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     IdInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
@@ -98,7 +99,7 @@ public class IdInspectorProviderTest extends InspectorProviderTestCase {
     inspector.updateProperties(ImmutableList.of(), properties, myPropertiesManager);
     assertThat(inspector.getConstraintPanel().isVisible()).isFalse();
 
-    components = ImmutableList.of(myButton);
+    components = ImmutableList.of(myButtonInConstraintLayout);
     properties = getPropertyMap(components);
     inspector.updateProperties(components, properties, myPropertiesManager);
     assertThat(inspector.getConstraintPanel().isVisible()).isTrue();

@@ -35,24 +35,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class NlPropertyItemTest extends PropertyTestCase {
-  private NlModel myModel;
-  private NlComponent myMerge;
-  private NlComponent myTextView;
-  private NlComponent myButton1;
-  private NlComponent myButton2;
-  private NlComponent myButton3;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myModel = createModel();
-    myTextView = findComponent(myModel, "text", 100);
-    myButton1 = findComponent(myModel, "button1", 200);
-    myButton2 = findComponent(myModel, "button2", 300);
-    myButton3 = findComponent(myModel, "button3", 400);
-    myMerge = myTextView.getParent();
-    assertThat(myMerge).isNotNull();
-  }
 
   public void testCreateFlagProperty() {
     NlPropertyItem item = createFrom(myTextView, ATTR_GRAVITY);
@@ -159,12 +141,12 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
   public void testGetValue() {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
-    assertThat(new NlPropertyItem(ImmutableList.of(myTextView), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Text");
-    assertThat(new NlPropertyItem(ImmutableList.of(myButton1), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Button");
-    assertThat(new NlPropertyItem(ImmutableList.of(myButton2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Text");
-    assertThat(new NlPropertyItem(ImmutableList.of(myButton3), ANDROID_URI, text.getDefinition()).getValue()).isNull();
-    assertThat(new NlPropertyItem(ImmutableList.of(myButton1, myButton2), ANDROID_URI, text.getDefinition()).getValue()).isNull();
-    assertThat(new NlPropertyItem(ImmutableList.of(myTextView, myButton2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Text");
+    assertThat(new NlPropertyItem(ImmutableList.of(myTextView), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
+    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox1), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("Enable Wifi");
+    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
+    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox3), ANDROID_URI, text.getDefinition()).getValue()).isNull();
+    assertThat(new NlPropertyItem(ImmutableList.of(myCheckBox1, myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isNull();
+    assertThat(new NlPropertyItem(ImmutableList.of(myTextView, myCheckBox2), ANDROID_URI, text.getDefinition()).getValue()).isEqualTo("SomeText");
   }
 
   public void testIsDefaultValue() {
@@ -179,7 +161,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
   public void testGetResolvedValue() {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
-    assertThat(text.getResolvedValue()).isEqualTo("Text");
+    assertThat(text.getResolvedValue()).isEqualTo("SomeText");
 
     NlPropertyItem textAppearance = createFrom(myTextView, ATTR_TEXT_APPEARANCE);
     assertThat(textAppearance.getResolvedValue()).isNull();
@@ -226,7 +208,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.getTagName()).isEqualTo(TEXT_VIEW);
 
     // Multiple component does not give access to tag and tagName
-    NlPropertyItem text2 = new NlPropertyItem(ImmutableList.of(myTextView, myButton1), ANDROID_URI, text.getDefinition());
+    NlPropertyItem text2 = new NlPropertyItem(ImmutableList.of(myTextView, myCheckBox1), ANDROID_URI, text.getDefinition());
     assertThat(text2.getTag()).isNull();
     assertThat(text2.getTagName()).isNull();
   }
@@ -268,40 +250,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.toString()).isEqualTo("NlPropertyItem{name=text, namespace=@android:}");
     assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
     assertThat(text.isEditable(0)).isTrue();
-  }
-
-  @NotNull
-  private NlModel createModel() {
-    return model("merge.xml",
-                 component(VIEW_MERGE)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(TEXT_VIEW)
-                       .withBounds(100, 100, 100, 100)
-                       .id("@id/text")
-                       .width("100dp")
-                       .height("100dp")
-                       .text("Text"),
-                     component(BUTTON)
-                       .withBounds(100, 200, 100, 100)
-                       .id("@id/button1")
-                       .width("100dp")
-                       .height("100dp")
-                       .text("Button"),
-                     component(BUTTON)
-                       .withBounds(100, 300, 100, 100)
-                       .id("@id/button2")
-                       .width("100dp")
-                       .height("100dp")
-                       .text("Text"),
-                     component(BUTTON)
-                       .withBounds(100, 400, 100, 100)
-                       .id("@id/button3")
-                       .width("100dp")
-                       .height("100dp")
-                   )).build();
   }
 
   private static class SimpleGroupItem extends PTableGroupItem {

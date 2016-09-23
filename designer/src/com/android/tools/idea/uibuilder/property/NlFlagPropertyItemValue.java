@@ -59,11 +59,6 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
-  public boolean isValueUnset() {
-    return !myFlags.isItemSet(this);
-  }
-
-  @Override
   @Nullable
   public String getResolvedValue() {
     return getValue();
@@ -75,8 +70,8 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
-  @NotNull
-  public String resolveValue(@NotNull String value) {
+  @Nullable
+  public String resolveValue(@Nullable String value) {
     return value;
   }
 

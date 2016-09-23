@@ -139,8 +139,8 @@ public class TextInspectorProvider implements InspectorProvider {
       myStyleEditor = NlEnumEditor.createForInspector(createEnumStyleListener());
       myFontFamilyEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myTypefaceEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
-      myFontSizeEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
-      mySpacingEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myFontSizeEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
+      mySpacingEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myBoldEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleBold, "Bold");
       myItalicsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleItalics, "Italics");
       myAllCapsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAllCaps, "All Caps");
