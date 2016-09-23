@@ -24,7 +24,7 @@ import java.util.List;
 
 public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public AndroidDrawableResourcesDomTest() {
-    super(true, "dom/drawable");
+    super("dom/drawable");
   }
 
   @Override

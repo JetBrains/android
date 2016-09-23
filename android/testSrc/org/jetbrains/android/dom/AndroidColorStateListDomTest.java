@@ -20,7 +20,7 @@ package org.jetbrains.android.dom;
  */
 public class AndroidColorStateListDomTest extends AndroidDomTestCase {
   public AndroidColorStateListDomTest() {
-    super(true, "dom/color");
+    super("dom/color");
   }
 
   @Override
