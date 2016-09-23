@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
@@ -347,6 +348,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         for (NlComponent component : myComponents) {
           String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
           component.setAttribute(myNamespace, myName, v);
+          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
         }
       }
     }.execute();
