@@ -79,13 +79,13 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
   }
 
   /**
-   * Set the text of the crop label using the value of {@link Mockup#getRealCropping()}
+   * Set the text of the crop label using the value of {@link Mockup#getComputedCropping()}
    *
    * @param mockup
    */
   private void setCropLabel(@Nullable Mockup mockup) {
     if (mockup != null) {
-      UIUtil.invokeLaterIfNeeded(() -> myMockupEditor.setSelectionText(mockup.getRealCropping()));
+      UIUtil.invokeLaterIfNeeded(() -> myMockupEditor.setSelectionText(mockup.getComputedCropping()));
     }
   }
 

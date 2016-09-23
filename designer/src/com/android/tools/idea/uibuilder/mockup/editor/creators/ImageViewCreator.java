@@ -106,7 +106,7 @@ public class ImageViewCreator extends SimpleViewCreator {
 
     });
 
-    Rectangle realCropping = mockup.getRealCropping();
+    Rectangle realCropping = mockup.getComputedCropping();
     BufferedImage subimage = image.getSubimage(realCropping.x + mySelection.x,
                                                realCropping.y + mySelection.y,
                                                mySelection.width,

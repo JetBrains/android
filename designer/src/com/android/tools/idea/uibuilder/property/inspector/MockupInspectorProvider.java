@@ -1,5 +1,6 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -34,9 +35,10 @@ public class MockupInspectorProvider implements InspectorProvider {
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
-    return properties.keySet().containsAll(MOCKUP_PROPERTIES)
-           && !components.isEmpty()
-           && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
+    //noinspection ConstantConditions
+    return Mockup.ENABLE_FEATURE && properties.keySet().containsAll(MOCKUP_PROPERTIES)
+                  && !components.isEmpty()
+                  && components.get(0).getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
   }
 
   @NotNull

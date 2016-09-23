@@ -136,7 +136,7 @@ public final class ResourcesUtil {
     }
 
     // Extract selection from original image
-    final Rectangle realCropping = mockup.getRealCropping();
+    final Rectangle realCropping = mockup.getComputedCropping();
     BufferedImage subImage =
       image.getSubimage(selectionBounds.x + realCropping.x, selectionBounds.y + realCropping.y, selectionBounds.width,
                         selectionBounds.height);

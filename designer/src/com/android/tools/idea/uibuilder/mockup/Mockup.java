@@ -97,6 +97,8 @@ import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener
  */
 public class Mockup implements ModelListener {
 
+  public static final boolean ENABLE_FEATURE = true;
+
   private final static Pattern REGEX_CROP = Pattern.compile("(([0-9]+|-1)\\s+([0-9]+|-1)\\s*){1,2}");
   private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
 
@@ -463,7 +465,7 @@ public class Mockup implements ModelListener {
    * @return the cropping rectangle with negative size values
    * replaced by the actual image dimensions or 0 if this Mockup has no image
    */
-  public Rectangle getRealCropping() {
+  public Rectangle getComputedCropping() {
     if (myCropping.width >= 0 && myCropping.height >= 0) {
       return myCropping;
     }

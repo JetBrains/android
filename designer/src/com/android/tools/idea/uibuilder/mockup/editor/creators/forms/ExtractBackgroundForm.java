@@ -181,6 +181,10 @@ public class ExtractBackgroundForm {
     myOKButton.addActionListener(myListener);
   }
 
+  /**
+   * Displays an error message inside the panel
+   * @param errorMessage
+   */
   public void setErrorText(String errorMessage) {
     myErrorLabel.setForeground(JBColor.RED);
     myErrorLabel.setText(String.format("<html>%s</html>", errorMessage));

@@ -194,7 +194,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
   }
 
   @NotNull
-  private AnAction createAnActionButton(final CreatorAction creatorAction, boolean viewGroupOnly) {
+  private AnAction createAnActionButton(@NotNull final CreatorAction creatorAction, boolean viewGroupOnly) {
     return new AnAction(creatorAction.myTitle, creatorAction.myTitle, creatorAction.myIcon) {
 
       @Override
@@ -229,7 +229,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     };
   }
 
-  private static boolean canAddChild(CreatorAction creatorAction, NlComponent component) {
+  private static boolean canAddChild(@NotNull CreatorAction creatorAction, @NotNull NlComponent component) {
     if (!component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
       return false;
     }
@@ -237,7 +237,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     return true;
   }
 
-  private static boolean isListClass(NlComponent component) {
+  private static boolean isListClass(@NotNull NlComponent component) {
     for (String className : LIST_CLASSES) {
       if (component.isOrHasSuperclass(className)) {
         return true;
@@ -246,7 +246,11 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     return false;
   }
 
-  private void executeCreator(WidgetCreator creator) {
+  /**
+   * Displays the creator's component if any and then call {@link WidgetCreator#addToModel()}
+   * @param creator
+   */
+  private void executeCreator(@NotNull WidgetCreator creator) {
 
     for (int i = 0; i < myMockupViewPanel.getComponentCount(); i++) {
       if (myMockupViewPanel.getComponent(i) != this) {
