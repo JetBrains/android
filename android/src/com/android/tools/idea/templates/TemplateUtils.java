@@ -298,14 +298,14 @@ public class TemplateUtils {
    * @param psiElement The element to be reformated and rearranged
    */
   public static void reformatAndRearrange(@NotNull Project project, @NotNull PsiElement psiElement) {
-    reformatAndRearrange(project, psiElement.getContainingFile().getVirtualFile(), psiElement);
+    reformatAndRearrange(project, psiElement.getContainingFile().getVirtualFile(), psiElement, true);
   }
 
   /**
    * Reformats and rearranges the entire File
    */
   public static void reformatAndRearrange(@NotNull Project project, @NotNull VirtualFile virtualFile) {
-    reformatAndRearrange(project, virtualFile, null);
+    reformatAndRearrange(project, virtualFile, null, false);
   }
 
   /**
@@ -316,10 +316,12 @@ public class TemplateUtils {
    * @param project The project which contains the given element
    * @param virtualFile Virtual file to be reformatted and rearranged, if null, the entire file will be considered
    * @param psiElement The element in the file to be reformatted and rearranged
+   * @param keepDocumentLocked True if the document will still be modified in the same write action
    */
   private static void reformatAndRearrange(@NotNull Project project,
                                            @NotNull VirtualFile virtualFile,
-                                           @Nullable PsiElement psiElement) {
+                                           @Nullable PsiElement psiElement,
+                                           boolean keepDocumentLocked) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
 
@@ -340,6 +342,10 @@ public class TemplateUtils {
       textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
       ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(textRange));
+
+      if (keepDocumentLocked) {
+        psiDocumentManager.commitDocument(document);
+      }
     }
   }
 
