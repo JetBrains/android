@@ -114,13 +114,6 @@ public class InstantRunConfigurable
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
-
-    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (project.isDefault()) {
-        continue;
-      }
-      InstantRunManager.updateFileListener(project);
-    }
   }
 
   @Override
