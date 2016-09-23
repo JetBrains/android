@@ -137,8 +137,8 @@ public class LayoutMetadata {
    * @return the value stored with the given node and name, or null
    */
   @Nullable
-  public static String getProperty(@NotNull XmlTag node, @NotNull String name) {
-    String value = node.getAttributeValue(name, TOOLS_URI);
+  public static String getProperty(@NotNull TagSnapshot node, @NotNull String name) {
+    String value = node.getAttribute(name, TOOLS_URI);
     if (value != null && value.isEmpty()) {
       value = null;
     }
@@ -190,7 +190,7 @@ public class LayoutMetadata {
    * @return a binding, or null
    */
   @Nullable
-  public static AdapterBinding getNodeBinding(@Nullable Object viewObject, @NotNull XmlTag xmlNode) {
+  public static AdapterBinding getNodeBinding(@Nullable Object viewObject, @NotNull TagSnapshot xmlNode) {
     String header = getProperty(xmlNode, KEY_LV_HEADER);
     String footer = getProperty(xmlNode, KEY_LV_FOOTER);
     String layout = getProperty(xmlNode, KEY_LV_ITEM);
@@ -198,9 +198,8 @@ public class LayoutMetadata {
       int count = 12;
       // If we're dealing with a grid view, multiply the list item count
       // by the number of columns to ensure we have enough items
-      if (xmlNode instanceof Element && xmlNode.getName().endsWith(GRID_VIEW)) {
-        Element element = (Element)xmlNode;
-        String columns = element.getAttributeNS(ANDROID_URI, ATTR_NUM_COLUMNS);
+      if (xmlNode.tagName.endsWith(GRID_VIEW)) {
+        String columns = xmlNode.getAttribute(ATTR_NUM_COLUMNS, ANDROID_URI);
         int multiplier = 2;
         if (columns != null && columns.length() > 0 &&
             !columns.equals(VALUE_AUTO_FIT)) {
@@ -288,7 +287,7 @@ public class LayoutMetadata {
 
     String capitalizedName = StringUtil.capitalize(name);
     if (title == null) {
-      title = value != null ? String.format("Set %1$s", capitalizedName) : String.format("Clear %1$s", capitalizedName);
+      title = String.format(value != null ? "Set %1$s" : "Clear %1$s", capitalizedName);
     }
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, title, file) {
       @Override

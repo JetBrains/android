@@ -607,9 +607,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public AdapterBinding getAdapterBinding(final ResourceReference adapterView, final Object adapterCookie, final Object viewObject) {
     // Look for user-recorded preference for layout to be used for previews
-    if (adapterCookie instanceof XmlTag) {
-      XmlTag uiNode = (XmlTag)adapterCookie;
-      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, uiNode);
+    if (adapterCookie instanceof TagSnapshot) {
+      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, (TagSnapshot)adapterCookie);
+      if (binding != null) {
+        return binding;
+      }
+    }
+    else if (adapterCookie instanceof XmlTag) {
+      AdapterBinding binding =
+        LayoutMetadata.getNodeBinding(viewObject, TagSnapshot.createTagSnapshotWithoutChildren((XmlTag)adapterCookie));
       if (binding != null) {
         return binding;
       }
