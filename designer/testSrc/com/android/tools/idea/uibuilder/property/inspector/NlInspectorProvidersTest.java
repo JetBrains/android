@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
@@ -39,7 +40,7 @@ import java.util.Map;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
-public class NlInspectorProvidersTest extends InspectorProviderTestCase {
+public class NlInspectorProvidersTest extends PropertyTestCase {
   private NlInspectorProviders myProviders;
 
   @Override
@@ -52,19 +53,19 @@ public class NlInspectorProvidersTest extends InspectorProviderTestCase {
     ((ProjectImpl)getProject()).registerComponentImplementation(FileEditorManager.class, TestFileEditorManager.class);
 
     List<InspectorComponent> emptyInspectors = getInspectorsFor(ImmutableList.of());
-    List<InspectorComponent> textInspectors = getInspectorsFor(myTextBox);
+    List<InspectorComponent> textInspectors = getInspectorsFor(myTextView);
     List<InspectorComponent> progressInspectors = getInspectorsFor(myProgressBar);
     List<InspectorComponent> buttonInspectors = getInspectorsFor(myButton);
 
     assertSameInstances(emptyInspectors, getInspectorsFor(ImmutableList.of()));
-    assertSameInstances(textInspectors, getInspectorsFor(myTextBox));
+    assertSameInstances(textInspectors, getInspectorsFor(myTextView));
     assertSameInstances(progressInspectors, getInspectorsFor(myProgressBar));
     assertSameInstances(buttonInspectors, getInspectorsFor(myButton));
 
     myProviders.lookAndFeelChanged(LafManager.getInstance());
 
     assertDifferentInstances(emptyInspectors, getInspectorsFor(ImmutableList.of()));
-    assertDifferentInstances(textInspectors, getInspectorsFor(myTextBox));
+    assertDifferentInstances(textInspectors, getInspectorsFor(myTextView));
     assertDifferentInstances(progressInspectors, getInspectorsFor(myProgressBar));
     assertDifferentInstances(buttonInspectors, getInspectorsFor(myButton));
 
