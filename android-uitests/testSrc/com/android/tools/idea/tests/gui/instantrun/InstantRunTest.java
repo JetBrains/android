@@ -67,6 +67,12 @@ public class InstantRunTest {
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
     getEmulatorConnection().deleteAvd(AVD_NAME);
+
+    // Debugging purposes only: show stacktrace in case we time out and hang the IDE.
+    Thread.currentThread().setUncaughtExceptionHandler((t, e) -> {
+      System.out.println("Thread " + t.getName() + " finishing with an uncaught exception");
+      e.printStackTrace();
+    });
   }
 
   @After
