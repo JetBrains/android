@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.Magnificator;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +37,7 @@ import static java.lang.Math.*;
 /**
  * Panel that show the Mockup in the Editor window
  */
-public class MockupViewPanel extends JPanel implements Magnificator {
+public class MockupViewPanel extends JPanel {
 
   private static final int MAX_SCALE = 20;
   public static final int MAX_HD_SCALE_LEVEL = 2;
@@ -128,8 +127,6 @@ public class MockupViewPanel extends JPanel implements Magnificator {
     setFocusable(true);
     requestFocusInWindow();
 
-    // Enable pinching to zoom
-    putClientProperty(Magnificator.CLIENT_PROPERTY_KEY, this);
   }
 
   /**
@@ -191,7 +188,7 @@ public class MockupViewPanel extends JPanel implements Magnificator {
     }
     myImage = mockup.getImage();
     if (myImage != null) {
-      myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
+      myDisplayedImage = createDisplayedImage(myImage, mockup.getComputedCropping());
     }
     updateSelectionLayerBounds();
     repaint();
@@ -230,7 +227,7 @@ public class MockupViewPanel extends JPanel implements Magnificator {
     if (myDisplayOnlyCroppedRegion != displayOnlyCroppedRegion) {
       myDisplayOnlyCroppedRegion = displayOnlyCroppedRegion;
       if (myImage != null && myMockup != null) {
-        myDisplayedImage = createDisplayedImage(myImage, myMockup.getRealCropping());
+        myDisplayedImage = createDisplayedImage(myImage, myMockup.getComputedCropping());
         updateSelectionLayerBounds();
       }
       repaint();
@@ -305,7 +302,7 @@ public class MockupViewPanel extends JPanel implements Magnificator {
    * or if cropping bounds matches the image bounds. Otherwise it is the cropped region of the mockup
    *
    * @param image    Mockup's image {@link Mockup#getImage()}
-   * @param cropping Mockup cropping area : {@link Mockup#getRealCropping()}
+   * @param cropping Mockup cropping area : {@link Mockup#getComputedCropping()}
    * @return the scaled image
    */
   @Nullable
@@ -333,7 +330,7 @@ public class MockupViewPanel extends JPanel implements Magnificator {
       mySelectionLayer.setSelection(0, 0, 0, 0);
       return;
     }
-    mySelectionLayer.setSelection(myMockup.getRealCropping());
+    mySelectionLayer.setSelection(myMockup.getComputedCropping());
   }
 
   /**
@@ -614,12 +611,6 @@ public class MockupViewPanel extends JPanel implements Magnificator {
         x += H_GAP + preferredSize.width;
       }
     }
-  }
-
-  @Override
-  public Point magnify(double scale, Point at) {
-    myPanZoomManager.zoom((float)scale, at);
-    return new Point((int)(at.x * scale), (int)(at.y * scale));
   }
 
   /**

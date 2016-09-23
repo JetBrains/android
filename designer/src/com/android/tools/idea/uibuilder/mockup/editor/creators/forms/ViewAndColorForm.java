@@ -126,7 +126,6 @@ public class ViewAndColorForm {
     }
   }
 
-
   private void createUIComponents() {
     myComponent = new ToolRootPanel();
     myAutoCompleteForm = new AutoCompleteForm(myFacet);

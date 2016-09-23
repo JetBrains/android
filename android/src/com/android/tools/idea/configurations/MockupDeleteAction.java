@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -34,6 +35,11 @@ public class MockupDeleteAction extends AnAction {
   public MockupDeleteAction(@NotNull NlComponent leafComponent) {
     super(TITLE);
     myNlComponent = leafComponent;
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    e.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
   }
 
   @Override

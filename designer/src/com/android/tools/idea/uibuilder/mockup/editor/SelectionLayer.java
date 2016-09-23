@@ -299,6 +299,13 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    resetSelectionLocation();
+  }
+
+  /**
+   * Reset the location of the selection to the location of the bounds if it is empty
+   */
+  private void resetSelectionLocation() {
     if (mySelection.isEmpty()) {
       mySelection.setLocation(myBounds.x, myBounds.y);
       updateKnobPosition();
@@ -522,7 +529,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
     updateKnobPosition();
     myParent.repaint();
-    mouseReleased(null);
+    resetSelectionLocation();
   }
 
   /**

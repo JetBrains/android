@@ -302,6 +302,7 @@ public class MockupEditor extends JPanel {
    * @param tool the tool to enable
    */
   public void enableTool(@NotNull Tool tool) {
+    myActiveTools.remove(myExtractWidgetTool);
     myExtractWidgetTool.disable(this);
     tool.enable(this);
     myActiveTools.add(tool);
@@ -429,7 +430,7 @@ public class MockupEditor extends JPanel {
     private JLabel myErrorLabel;
     private Timer myErrorTimer;
 
-    MyTopBar(CropTool cropTool, SelectionEditors selectionEditors) {
+    MyTopBar(@NotNull CropTool cropTool, @NotNull SelectionEditors selectionEditors) {
       super(new BorderLayout());
       add(createTitleBar(cropTool), BorderLayout.NORTH);
       add(createActionBar(selectionEditors), BorderLayout.SOUTH);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -44,6 +45,7 @@ public class MockupToggleAction extends ToggleAction {
     presentation.setIcon(getDesignIcon());
     presentation.setDescription(getDescription());
   }
+
 
   @NotNull
   private String getDescription() {
@@ -80,6 +82,7 @@ public class MockupToggleAction extends ToggleAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
+    event.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
     event.getPresentation().setIcon(getDesignIcon());
     getTemplatePresentation().setDescription(getDescription());
   }

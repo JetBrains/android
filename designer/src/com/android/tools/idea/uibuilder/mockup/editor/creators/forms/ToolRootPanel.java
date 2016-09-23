@@ -21,7 +21,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- *
+ * Base class for root component of the Tools popup. It draws rounded border.
+ * The children need to be set to not opaque.
  */
 public class ToolRootPanel extends JPanel {
 

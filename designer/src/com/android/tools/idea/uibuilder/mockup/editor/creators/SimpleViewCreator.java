@@ -40,7 +40,6 @@ import static com.android.SdkConstants.VIEW;
 public class SimpleViewCreator extends WidgetCreator {
 
   @MockupCoordinate private final Rectangle mySelectionBounds;
-  protected ColorResourceHolder myColor;
   @AndroidCoordinate Rectangle myAndroidBounds = new Rectangle();
 
   /**
@@ -57,7 +56,7 @@ public class SimpleViewCreator extends WidgetCreator {
     super(mockup, model, screenView);
     mySelectionBounds = selection;
 
-    Rectangle cropping = getMockup().getRealCropping();
+    Rectangle cropping = getMockup().getComputedCropping();
     final NlComponent component = getMockup().getComponent();
     final float xScale = component.w / (float)cropping.width;
     final float yScale = component.h / (float)cropping.height;
@@ -84,7 +83,7 @@ public class SimpleViewCreator extends WidgetCreator {
    * @param callback The callback to get the result of the color extraction
    */
   protected void extractColor(@NotNull BufferedImage image, @NotNull ColorExtractor.ColorExtractorCallback callback) {
-    final Rectangle realCropping = getMockup().getRealCropping();
+    final Rectangle realCropping = getMockup().getComputedCropping();
     final Rectangle selectionBounds = getSelectionBounds();
     final BufferedImage subimage = image.getSubimage(realCropping.x + selectionBounds.x,
                                                      realCropping.y + selectionBounds.y,
@@ -109,7 +108,6 @@ public class SimpleViewCreator extends WidgetCreator {
       }
     });
   }
-
 
   /**
    * {@inheritDoc}
