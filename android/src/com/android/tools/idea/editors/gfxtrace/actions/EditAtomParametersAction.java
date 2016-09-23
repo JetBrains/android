@@ -32,6 +32,8 @@ import com.android.tools.swing.util.BigSpinnerNumberModel;
 import com.android.tools.swing.util.FloatFilter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.UnsignedInteger;
+import com.google.common.primitives.UnsignedLong;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
@@ -391,10 +393,10 @@ public class EditAtomParametersAction extends AbstractAction {
         return 65535;
       }
       if (type == Method.Uint32) {
-        return 4294967295L;
+        return UnsignedInteger.MAX_VALUE.longValue();
       }
       if (type == Method.Uint64) {
-        return new BigInteger("18446744073709551615");
+        return UnsignedLong.MAX_VALUE.bigIntegerValue();
       }
       throw new IllegalArgumentException("not unsigned type" + type);
     }
