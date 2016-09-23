@@ -20,7 +20,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 
 public class AndroidColorsTest extends AndroidDomTestCase {
   public AndroidColorsTest() {
-    super(true, "dom/color");
+    super("dom/color");
   }
 
   @Override

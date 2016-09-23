@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class XmlWrongFileTypeInspectionTest extends AndroidDomTestCase {
   public XmlWrongFileTypeInspectionTest() {
-    super(true, "dom/anim");
+    super("dom/anim");
   }
 
   @Override

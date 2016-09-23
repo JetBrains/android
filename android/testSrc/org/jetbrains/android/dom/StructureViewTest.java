@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class StructureViewTest extends AndroidDomTestCase {
   public StructureViewTest() {
-    super(false, "dom");
+    super("dom");
   }
 
   public void testResourceStructure() throws Exception {
