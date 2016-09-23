@@ -29,6 +29,11 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
   }
 
   @Override
+  public String getTargetModuleName() {
+    return null;
+  }
+
+  @Override
   public IdeaModule getDependencyModule() {
     return myModule;
   }
@@ -42,7 +47,4 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
   public boolean getExported() {
     return false;
   }
-
-  @Override
-  public IdeaModuleIdentifier getTarget() { throw new UnsupportedOperationException(); }
 }
