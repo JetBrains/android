@@ -22,7 +22,6 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -40,7 +39,12 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
  */
 public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public AndroidLayoutDomTest() {
-    super(false, "dom/layout");
+    super("dom/layout");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -78,7 +82,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(copyFileToProject("an6.xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type("\n");
-    myFixture.checkResultByFile(testFolder + "/an6_after.xml");
+    myFixture.checkResultByFile(myTestFolder + "/an6_after.xml");
   }
 
   public void testAttributeNameCompletion7() throws Throwable {
@@ -94,7 +98,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testOpenDrawerAttributeNameCompletion() throws Throwable {
     // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
-    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    myFixture.copyFileToProject(myTestFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
     toTestCompletion("drawer_layout.xml", "drawer_layout_after.xml");
   }
 
@@ -121,9 +125,9 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     assertTrue(presentation.isStrikeout());
   }
 
-  // "contex" is completed to "tools:context", "xmlns:tools" with right value is inserted
-  public void testToolsContextAttributeCompletion() throws Throwable {
-    toTestCompletion("tools_context.xml", "tools_context_after.xml");
+  // "conDes" is completed to "android:contentDescription", "xmlns:android" with right value is inserted
+  public void testAutoAddNamespaceCompletion() throws Throwable {
+    toTestCompletion("android_content.xml", "android_content_after.xml");
   }
 
   // "tools:" inside tag should autocomplete to available tools attributes, only "tools:targetApi" in this case
@@ -178,7 +182,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + '/' + "commonPrefixIdea63531_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + "commonPrefixIdea63531_after.xml");
   }
 
   public void testHighlighting() throws Throwable {
@@ -244,7 +248,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testCustomTagCompletion0() throws Throwable {
     final VirtualFile labelViewJava = copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
 
-    VirtualFile lf1 = myFixture.copyFileToProject(testFolder + '/' + "ctn0.xml", "res/layout/layout1.xml");
+    VirtualFile lf1 = myFixture.copyFileToProject(myTestFolder + '/' + "ctn0.xml", "res/layout/layout1.xml");
     myFixture.configureFromExistingVirtualFile(lf1);
     myFixture.complete(CompletionType.BASIC);
     List<String> variants = myFixture.getLookupElementStrings();
@@ -256,7 +260,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     assertNotNull(labelViewClass);
     myFixture.renameElement(labelViewClass, "LabelView1");
 
-    VirtualFile lf2 = myFixture.copyFileToProject(testFolder + '/' + "ctn0.xml", "res/layout/layout2.xml");
+    VirtualFile lf2 = myFixture.copyFileToProject(myTestFolder + '/' + "ctn0.xml", "res/layout/layout2.xml");
     myFixture.configureFromExistingVirtualFile(lf2);
     myFixture.complete(CompletionType.BASIC);
     variants = myFixture.getLookupElementStrings();
@@ -275,7 +279,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
       }
     });
 
-    VirtualFile lf3 = myFixture.copyFileToProject(testFolder + '/' + "ctn0.xml", "res/layout/layout3.xml");
+    VirtualFile lf3 = myFixture.copyFileToProject(myTestFolder + '/' + "ctn0.xml", "res/layout/layout3.xml");
     myFixture.configureFromExistingVirtualFile(lf3);
     myFixture.complete(CompletionType.BASIC);
     variants = myFixture.getLookupElementStrings();
@@ -296,7 +300,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type("p1\n");
-    myFixture.checkResultByFile(testFolder + '/' + "ctn2_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + "ctn2_after.xml");
   }
 
   public void testCustomTagCompletion3() throws Throwable {
@@ -315,7 +319,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type("p1\n");
-    myFixture.checkResultByFile(testFolder + '/' + "ctn5_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + "ctn5_after.xml");
   }
 
   public void testCustomTagCompletion6() throws Throwable {
@@ -352,7 +356,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "context", "text", "textAlignment", "textColor", "textDirection", "textSize");
+    doTestCompletionVariants("can1.xml", "context", "contextClickable", "text", "textAlignment", "textColor", "textDirection", "textSize");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
@@ -363,7 +367,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.type("text");
     List<String> lookupElementStrings = myFixture.getLookupElementStrings();
     assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, "android:textAlignment", "android:textDirection", "text", "textColor",
+    UsefulTestCase.assertSameElements(lookupElementStrings,
+                                      "android:contextClickable", "android:textAlignment", "android:textDirection", "text", "textColor",
                                       "textSize");
   }
 
@@ -384,9 +389,9 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testToolsAttributesCompletion() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
     // Create layout that we will use to test the layout completion
-    myFixture.copyFileToProject(testFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
+    myFixture.copyFileToProject(myTestFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
     toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml");
     toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml");
   }
@@ -405,7 +410,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + "tn1_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + "tn1_after.xml");
   }
 
   public void testFlagCompletion() throws Throwable {
@@ -465,7 +470,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testSystemResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av6.xml", "@android:color/primary_text_dark", "@android:drawable/menuitem_background");
+    doTestCompletionVariantsContains("av6.xml", "@android:color/primary_text_dark", "@android:drawable/menuitem_background");
   }
 
   public void testCompletionSpecialCases() throws Throwable {
@@ -484,7 +489,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testDrawerLayoutOpenDrawerCompletion() throws Throwable {
     // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
-    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    myFixture.copyFileToProject(myTestFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
     doTestCompletionVariants("drawer_layout_attr_completion.xml", "start", "end", "left", "right");
   }
 
@@ -568,7 +573,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   // Test that support library component alternatives are pushed higher in completion
   public void testSupportLibraryCompletion() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    myFixture.copyFileToProject(myTestFolder + "/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
     VirtualFile file = copyFileToProject("tn14.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -583,8 +588,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   // Test android:layout_width and android:layout_height highlighting for framework and library layouts
   public void testWidthHeightHighlighting() throws Throwable {
     // For unit tests there are no support libraries, copy dummy classes that imitate support library ones
-    myFixture.copyFileToProject(testFolder + "/PercentRelativeLayout.java", "src/android/support/percent/PercentRelativeLayout.java");
-    myFixture.copyFileToProject(testFolder + "/PercentFrameLayout.java", "src/android/support/percent/PercentFrameLayout.java");
+    myFixture.copyFileToProject(myTestFolder + "/PercentRelativeLayout.java", "src/android/support/percent/PercentRelativeLayout.java");
+    myFixture.copyFileToProject(myTestFolder + "/PercentFrameLayout.java", "src/android/support/percent/PercentFrameLayout.java");
 
     doTestHighlighting("dimensions_layout.xml");
   }
@@ -625,9 +630,9 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testIdCompletion2() throws Throwable {
-    doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
-                             "@android:id/selectTextMode",
-                             "@android:id/startSelectingText", "@android:id/stopSelectingText");
+    doTestCompletionVariantsContains("idcompl2.xml",
+                                     "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
+                                     "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText");
   }
 
   public void testNewIdCompletion1() throws Throwable {
@@ -659,7 +664,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(copyFileToProject("StyleNameCompletion_layout.xml", "res/layout/layout.xml"));
     copyFileToProject("StyleNameCompletion_style.xml", "res/values/styles.xml");
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + "/StyleNameCompletion_layout_after.xml");
+    myFixture.checkResultByFile(myTestFolder + "/StyleNameCompletion_layout_after.xml");
   }
 
   public void testIdReferenceCompletion() throws Throwable {
@@ -748,7 +753,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(true) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
   }
 
   public void testCustomAttrsPerformance() throws Throwable {
@@ -807,14 +812,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }*/
 
   private void doCopyManyStrings() {
-    myFixture.copyFileToProject(testFolder + "/many_strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(myTestFolder + "/many_strings.xml", "res/values/strings.xml");
     for (int i = 0; i < 30; i++) {
-      myFixture.copyFileToProject(testFolder + "/many_strings.xml", "res/values-" + Integer.toString(i) + "/strings.xml");
+      myFixture.copyFileToProject(myTestFolder + "/many_strings.xml", "res/values-" + Integer.toString(i) + "/strings.xml");
     }
   }
 
   public void testViewClassReference() throws Throwable {
-    VirtualFile file = myFixture.copyFileToProject(testFolder + "/vcr.xml", getPathToCopy("vcr.xml"));
+    VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/vcr.xml", getPathToCopy("vcr.xml"));
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
     String text = psiFile.getText();
@@ -831,12 +836,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testViewClassReference1() throws Throwable {
-    VirtualFile file = myFixture.copyFileToProject(testFolder + "/vcr1.xml", getPathToCopy("vcr1.xml"));
+    VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/vcr1.xml", getPathToCopy("vcr1.xml"));
     myFixture.testHighlighting(true, false, true, file);
   }
 
   public void testViewClassReference2() throws Throwable {
-    VirtualFile file = myFixture.copyFileToProject(testFolder + "/vcr2.xml", getPathToCopy("vcr2.xml"));
+    VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/vcr2.xml", getPathToCopy("vcr2.xml"));
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
     String text = psiFile.getText();
@@ -862,8 +867,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testOnClickHighlighting1() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity3.java", "src/p1/p2/Activity1.java");
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity3.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
   }
 
@@ -875,15 +880,15 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testOnClickHighlighting3() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity5.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity5.java", "src/p1/p2/Activity1.java");
     doTestHighlighting();
   }
 
   public void testOnClickHighlighting4() throws Throwable {
     myFixture.allowTreeAccessForAllFiles();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity6.java", "src/p1/p2/Activity1.java");
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity6.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
   }
 
@@ -891,8 +896,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76262
     myFixture.allowTreeAccessForAllFiles();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity8.java", "src/p1/p2/Activity2.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity8.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
   }
 
@@ -902,14 +907,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     // attribute instead
     myFixture.allowTreeAccessForAllFiles();
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity9.java", "src/p1/p2/Activity2.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity9.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
   }
 
   public void testOnClickHighlightingJava() throws Throwable {
     myFixture.enableInspections(new UnusedDeclarationInspection());
-    final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
+    final VirtualFile f = myFixture.copyFileToProject(myTestFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, false);
   }
@@ -963,7 +968,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
         actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
       }
     }.execute();
-    myFixture.checkResultByFile("res/values/drawables.xml", testFolder + '/' + getTestName(true) + "_drawable_after.xml", true);
+    myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawable_after.xml", true);
   }
 
   public void testXsdFile1() throws Throwable {
@@ -1033,7 +1038,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testJavaCreateResourceFromUsage() throws Throwable {
     final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(true) + ".java");
     doCreateFileResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("res/layout/unknown.xml", testFolder + '/' + getTestName(true) + "_layout_after.xml", true);
+    myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/' + getTestName(true) + "_layout_after.xml", true);
   }
 
   public void testAndroidPrefixCompletion1() throws Throwable {
@@ -1060,7 +1065,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     final VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     doCreateFileResourceFromUsage(virtualFile);
     myFixture.type("selector");
-    myFixture.checkResultByFile("res/drawable/unknown.xml", testFolder + '/' + getTestName(true) + "_drawable_after.xml", true);
+    myFixture.checkResultByFile("res/drawable/unknown.xml", myTestFolder + '/' + getTestName(true) + "_drawable_after.xml", true);
   }
 
   public void testPrivateAndPublicResources() throws Throwable {
@@ -1189,7 +1194,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testOnClickIntention() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
@@ -1200,12 +1205,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
         action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
       }
     });
-    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
-    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
+    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity_after.java", false);
   }
 
   public void testOnClickIntentionIncorrectName() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntentionIncorrectName.xml");
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
@@ -1214,7 +1219,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testOnClickQuickFix1() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
@@ -1223,7 +1228,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testOnClickQuickFix2() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
@@ -1235,30 +1240,30 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
       }
     });
 
-    myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
-    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
+    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity1_after.java", false);
   }
 
   public void testOnClickQuickFix3() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     doTestOnClickQuickfix(file);
-    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity2_after.java", false);
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity2_after.java", false);
   }
 
   public void testOnClickQuickFix4() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
-    myFixture.copyFileToProject(testFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity1.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     final VirtualFile file = copyFileToProject("onClickIntention.xml");
     doTestOnClickQuickfix(file);
-    myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
+    myFixture.checkResultByFile("src/p1/p2/Activity1.java", myTestFolder + "/OnClickActivity1_after.java", false);
   }
 
   public void testOnClickQuickFixIncorrectName() throws Throwable {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
-    myFixture.copyFileToProject(testFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(myTestFolder + "/OnClickActivityIncorrectName.java", "src/p1/p2/Activity1.java");
     final VirtualFile file = copyFileToProject("onClickIntentionIncorrectName.xml");
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> fixes = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
@@ -1267,17 +1272,17 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testSpellchecker() throws Throwable {
     myFixture.enableInspections(SpellCheckingInspection.class);
-    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    myFixture.copyFileToProject(myTestFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
     doTestHighlighting();
   }
 
   public void testSpellcheckerQuickfix() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
+    myFixture.copyFileToProject(myTestFolder + "/spellchecker_resources.xml", "res/values/sr.xml");
     doTestSpellcheckerQuickFixes();
   }
 
   public void testAar() throws Throwable {
-    PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + testFolder + "/myaar", "classes.jar", "res");
+    PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
     doTestCompletion();
   }
 
@@ -1293,7 +1298,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type(textToType);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(true) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
   }
 
   private static boolean containElementStartingWith(List<String> elements, String prefix) {
