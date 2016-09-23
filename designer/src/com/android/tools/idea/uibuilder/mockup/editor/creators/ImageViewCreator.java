@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.mockup.editor.creators.ResourcesUtil.createDrawable;
 import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
 
 /**
@@ -89,7 +90,11 @@ public class ImageViewCreator extends SimpleViewCreator {
   @Override
   public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
     ImageCreatorForm imageCreatorForm = new ImageCreatorForm();
-    imageCreatorForm.addSetSourceListener(e -> createDrawable(imageCreatorForm.getDrawableName(), doneCallback));
+    imageCreatorForm.addSetSourceListener(e -> {
+      myNewDrawableName = imageCreatorForm.getDrawableName();
+      createDrawable(myNewDrawableName, DRAWABLE_TYPE, doneCallback, getMockup(), getModel(),
+                     getSelectionBounds(), this);
+    });
     imageCreatorForm.getDoNotSetSourceButton().addActionListener(e -> doneCallback.done(DoneCallback.CANCEL));
     return imageCreatorForm.getComponent();
   }
@@ -100,129 +105,5 @@ public class ImageViewCreator extends SimpleViewCreator {
     if (myNewDrawableName != null) {
       transaction.setAttribute(null, ANDROID_NS_NAME_PREFIX + ATTR_SRC, DRAWABLE_PREFIX + myNewDrawableName);
     }
-  }
-
-  /**
-   * Create a drawable into the drawable folder with the given name. The image created will be a png file.
-   *
-   * @param drawableName The name of the image to create (without the extension)
-   * @param doneCallback The callback to call once the image is created
-   */
-  private void createDrawable(@NotNull String drawableName, @NotNull DoneCallback doneCallback) {
-    AndroidFacet facet = getModel().getFacet();
-    try {
-      Rectangle selectionBounds = getSelectionBounds();
-      BufferedImage image = getMockup().getImage();
-      if (image == null) {
-        return;
-      }
-
-      // Extract selection from original image
-      final Rectangle realCropping = getMockup().getRealCropping();
-      BufferedImage subImage =
-        image.getSubimage(selectionBounds.x + realCropping.x, selectionBounds.y + realCropping.y, selectionBounds.width,
-                          selectionBounds.height);
-
-      // Transform the new image into a byte array
-      byte[] imageInByte = imageToByteArray(subImage);
-
-      // Create a new file in the res/drawable folder
-      List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
-        ResourceFolderType.DRAWABLE,
-        VfsUtilCore.toVirtualFileArray(facet.getModuleResources(true).getResourceDirs()));
-
-      Project project = getModel().getProject();
-      // Check if the drawable folder already exist, create it otherwise
-      if (!drawableSubDirs.isEmpty()) {
-        createDrawableFile(drawableName, imageInByte, project, drawableSubDirs.get(0), doneCallback);
-      }
-      else {
-        createDrawableAndFolder(drawableName, facet, imageInByte, project, doneCallback);
-      }
-    }
-    catch (IOException e) {
-      LOGGER.error("Could not export selection to drawable");
-    }
-  }
-
-  /**
-   * Create a byte array from a BufferedImage
-   *
-   * @param subImage the image to convert
-   * @return the byte array representing the image
-   * @throws IOException
-   */
-  private static byte[] imageToByteArray(BufferedImage subImage) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ImageIO.write(subImage, DRAWABLE_TYPE, baos);
-    baos.flush();
-    byte[] imageInByte = baos.toByteArray();
-    baos.close();
-    return imageInByte;
-  }
-
-  /**
-   * Create the drawable folder into the main resource directory and
-   * then create the new image file represented by imageInByte
-   *
-   * @param drawableName The name of the drawable to create
-   * @param facet        the current facet of the model
-   * @param imageInByte  the byte representation of the image to create
-   * @param project      the current project
-   * @param doneCallback The callback to call one the image is created
-   */
-  private void createDrawableAndFolder(@NotNull String drawableName,
-                                       @NotNull AndroidFacet facet,
-                                       @NotNull byte[] imageInByte,
-                                       @NotNull Project project,
-                                       @NotNull DoneCallback doneCallback) {
-    Collection<VirtualFile> resDirectories = facet.getMainIdeaSourceProvider().getResDirectories();
-    Iterator<VirtualFile> iterator = resDirectories.iterator();
-    if (iterator.hasNext()) {
-      CommandProcessor.getInstance().executeCommand(
-        project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
-          try {
-            VirtualFile drawableDir = createChildDirectoryIfNotExist(project, iterator.next(), FD_RES_DRAWABLE);
-            createDrawableFile(drawableName, imageInByte, project, drawableDir, doneCallback);
-          }
-          catch (IOException e) {
-            LOGGER.error(e);
-          }
-        }),
-        "Export selection to drawable",
-        null
-      );
-    }
-  }
-
-  /**
-   * Create the image file in the drawable directory
-   *
-   * @param drawableName The name of the drawable to create
-   * @param imageInByte  the byte representation of the image to create
-   * @param project      the current project
-   * @param doneCallback The callback to call one the image is created
-   */
-  private void createDrawableFile(@NotNull String drawableName,
-                                  @NotNull byte[] imageInByte,
-                                  @NotNull Project project,
-                                  @NotNull VirtualFile drawableDir,
-                                  @NotNull DoneCallback doneCallback) {
-    CommandProcessor.getInstance().executeCommand(
-      project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
-        try {
-          myNewDrawableName = drawableName;
-          final VirtualFile folder = drawableDir.createChildData(this, drawableName + "." + DRAWABLE_TYPE);
-          folder.setBinaryContent(imageInByte);
-          doneCallback.done(DoneCallback.FINISH);
-        }
-        catch (IOException e) {
-          LOGGER.error(e);
-          doneCallback.done(DoneCallback.CANCEL);
-        }
-      }),
-      "Export selection to drawable",
-      null
-    );
   }
 }
