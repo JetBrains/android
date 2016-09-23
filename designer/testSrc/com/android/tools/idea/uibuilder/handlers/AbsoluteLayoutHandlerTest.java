@@ -183,9 +183,9 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                  "    android:layout_weight=\"1\">\n" +
                  "\n" +
                  "      <TextView\n" +
-                 "        android:id=\"@id/myText\"\n" +
-                 "        android:layout_width=\"1000px\"\n" +
-                 "        android:layout_height=\"150px\"\n" +
+                 "          android:id=\"@id/myText\"\n" +
+                 "          android:layout_width=\"1000px\"\n" +
+                 "          android:layout_height=\"150px\"\n" +
                  "          android:layout_x=\"50dp\"\n" +
                  "          android:layout_y=\"550dp\" />\n" +
                  "  </AbsoluteLayout>\n" +
