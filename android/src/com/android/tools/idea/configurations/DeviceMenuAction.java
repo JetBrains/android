@@ -131,11 +131,6 @@ public class DeviceMenuAction extends FlatComboAction {
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
   public Icon getDeviceClassIcon(@Nullable Device device) {
-    if (myClassicStyle) {
-      FormFactor formFactor = device != null ? FormFactor.getFormFactor(device) : FormFactor.MOBILE;
-      return formFactor.getIcon();
-    }
-
     if (device != null) {
       if (HardwareConfigHelper.isWear(device)) {
         return AndroidIcons.NeleIcons.Wear;
