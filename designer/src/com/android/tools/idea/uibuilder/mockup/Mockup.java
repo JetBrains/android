@@ -79,7 +79,17 @@ import java.util.regex.Pattern;
  * <li> h : height of the mockup on the ScreenView (in dip). will be scaled if needed (default to component height)</li>
  * </ul>
  *
+ * <p>
+ * One Mockup object is associated with only one component.
+ * Instances of this class are created using the {@link #create(NlComponent, boolean)} methods which can return a cached instance
+ * if it was already created.
+ * </p>
+ *
+ * <p> To write value from the mockup to the xml, one can use the {@link MockupFileHelper} class</p>
+ *
  * @see MockupLayer
+ * @see com.android.tools.idea.uibuilder.mockup.editor.MockupEditor
+ * @see MockupFileHelper
  */
 public class Mockup implements ModelListener {
 
@@ -87,8 +97,8 @@ public class Mockup implements ModelListener {
   private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
 
   private final static Pattern REGEX_OPACITY = Pattern.compile("[01]|[01]?\\.\\d+");
-  public static final float DEFAULT_OPACITY = 0.5f;
-  public static final float DEFAULT_OPACITY_IF_ERROR = 1f;
+  static final float DEFAULT_OPACITY = 0.5f;
+  static final float DEFAULT_OPACITY_IF_ERROR = 1f;
 
   // Position string indexes for
   // x,y,weight,height of the positioning rectangle

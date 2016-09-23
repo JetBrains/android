@@ -24,27 +24,48 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 /**
- * Handles the creation of the widgets and layouts from a mockup
+ * Handles the creation of the widgets and layouts from a mockup using the
+ * android class name for the view.
  */
 public final class WidgetCreatorFactory {
 
 
+  /**
+   * Creates a new WidgetCreator for the given View tagName.
+   * If no {@link WidgetCreator} exists for the given tagName, returns a {@link SimpleViewCreator}
+   * that will create a simple View tag
+   * @param tagName The tag of the view to create
+   * @param mockup The mockup to extract information from
+   * @param model The model to add the new component to
+   * @param screenView The current ScreenView where the Mockup is used
+   * @param selection The bounds of the selection on the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   * @return A {@link WidgetCreator} to create the view with tagName or default to a simple View
+   */
   @NotNull
-  public static WidgetCreator create(@NotNull String widgetClassName,
+  public static WidgetCreator create(@NotNull String tagName,
                                      @NotNull Mockup mockup,
                                      @NotNull NlModel model,
                                      @NotNull ScreenView screenView,
-                                     @NotNull Rectangle bounds) {
+                                     @NotNull Rectangle selection) {
     @NotNull final WidgetCreator creator;
-    switch (widgetClassName) {
+    switch (tagName) {
       case SdkConstants.VIEW_INCLUDE:
-        creator = new IncludeTagCreator(mockup, model, screenView, bounds);
+        creator = new IncludeTagCreator(mockup, model, screenView, selection);
         break;
       case SdkConstants.IMAGE_VIEW:
-        creator = new ImageViewCreator(mockup, model, screenView, bounds);
+        creator = new ImageViewCreator(mockup, model, screenView, selection);
+        break;
+      case SdkConstants.FLOATING_ACTION_BUTTON:
+        creator = new FloatingActionButtonCreator(mockup, model, screenView, selection);
+        break;
+      case SdkConstants.TEXT_VIEW:
+        creator = new TextViewCreator(mockup, model, screenView, selection);
+        break;
+      case SdkConstants.ATTR_DRAWABLE:
+        creator = new ExtractIconCreator(mockup, model, screenView, selection);
         break;
       default:
-        creator = new SimpleViewCreator(mockup, model, screenView, bounds);
+        creator = new ViewWithBackgroundCreator(mockup, model, screenView, selection);
     }
     return creator;
   }

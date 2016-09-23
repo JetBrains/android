@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static com.android.SdkConstants.*;
 
@@ -48,9 +48,15 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
     .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
     .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout))
     .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", AndroidIcons.Views.ImageView))
+    .add(new CreatorAction(FLOATING_ACTION_BUTTON, "Create new FloatingActionButton", AndroidIcons.Views.FloatingActionButton))
+    .add(new CreatorAction(TEXT_VIEW, "Create new TextView", AndroidIcons.Views.TextView))
     .build();
 
-  public static final Logger LOGGER = Logger.getLogger(ExtractWidgetTool.class.getName());
+  private static ImmutableList<CreatorAction> ourOtherCreationActions = new ImmutableList.Builder<CreatorAction>()
+    .add(new CreatorAction(ATTR_DRAWABLE, "Create drawable", AndroidIcons.Mockup.ExtractBg))
+    .build();
+
+  public static final Logger LOGGER = Logger.getInstance(ExtractWidgetTool.class.getName());
   private final MockupViewPanel myMockupViewPanel;
   private final MockupEditor myMockupEditor;
   private final DesignSurface mySurface;
@@ -77,7 +83,7 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   @Override
   public void paint(Graphics g) {
     Graphics2D g2d = (Graphics2D)g;
-    final Composite composite = g2d.getComposite();
+    Composite composite = g2d.getComposite();
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myAlpha));
     super.paint(g2d);
     g2d.setComposite(composite);
@@ -122,8 +128,15 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
    * @return The toolbar JComponent to add to the layout
    */
   private JComponent createActionToolbar() {
-    final DefaultActionGroup group = new DefaultActionGroup(createActionsButtons());
-    final ActionToolbar actionToolbar = ActionManager.getInstance()
+    DefaultActionGroup group = new DefaultActionGroup(createActionsButtons());
+
+    if (!ourOtherCreationActions.isEmpty()) {
+      group.addSeparator();
+      for (CreatorAction otherCreationAction : ourOtherCreationActions) {
+        group.add(createAnActionButton(otherCreationAction));
+      }
+    }
+    ActionToolbar actionToolbar = ActionManager.getInstance()
       .createActionToolbar(ActionPlaces.UNKNOWN, group, false);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     actionToolbar.setTargetComponent(this);
@@ -162,48 +175,68 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
   private List<AnAction> createActionsButtons() {
     List<AnAction> actions = new ArrayList<>(ourWidgetCreationActions.size());
     for (CreatorAction creatorAction : ourWidgetCreationActions) {
-      actions.add(new AnAction(creatorAction.myTitle, creatorAction.myTitle, creatorAction.myIcon) {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          Mockup mockup = myMockupEditor.getMockup();
-          ScreenView currentScreenView = mySurface.getCurrentScreenView();
-          if (mockup == null) {
-            myMockupEditor.showError("Cannot create a widget from an empty mockup");
-            LOGGER.warning("MockupEditor has no associated mockup");
-            return;
-          }
-          if (currentScreenView == null) {
-            myMockupEditor.showError("The designer is not ready to create a new widget");
-            LOGGER.warning("The DesignSurface does not have a current screen view");
-            return;
-          }
-          WidgetCreator creator = WidgetCreatorFactory.create(
-            creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+      actions.add(createAnActionButton(creatorAction));
+    }
+    return actions;
+  }
 
-          if (creator.hasOptionsComponent()) {
-            setEnabled(false);
-            final JComponent optionsComponent = creator.getOptionsComponent(
-              type -> { // Done
-                setEnabled(true);
-                myMockupViewPanel.removeAll();
-                if(WidgetCreator.DoneCallback.FINISH == type) {
-                  creator.addToModel();
-                }
-              }
-            );
-            if (optionsComponent != null) {
-              optionsComponent.setEnabled(true);
-              myMockupViewPanel.add(optionsComponent);
-              myMockupViewPanel.doLayout();
-            }
-          }
-          else {
+  @NotNull
+  private AnAction createAnActionButton(final CreatorAction creatorAction) {
+    return new AnAction(creatorAction.myTitle, creatorAction.myTitle, creatorAction.myIcon) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        Mockup mockup = myMockupEditor.getMockup();
+        ScreenView currentScreenView = mySurface.getCurrentScreenView();
+        if (mockup == null) {
+          myMockupEditor.showError("Cannot create a widget from an empty mockup");
+          LOGGER.warn("MockupEditor has no associated mockup");
+          return;
+        }
+        if (currentScreenView == null) {
+          myMockupEditor.showError("The designer is not ready to create a new widget");
+          LOGGER.warn("The DesignSurface does not have a current screen view");
+          return;
+        }
+        WidgetCreator creator = WidgetCreatorFactory.create(
+          creatorAction.myAndroidClassName, mockup, currentScreenView.getModel(), currentScreenView, mySelection);
+        executeCreator(creator, e.getPresentation());
+      }
+    };
+  }
+
+  private void executeCreator(WidgetCreator creator, Presentation presentation) {
+
+    for (int i = 0; i < myMockupViewPanel.getComponentCount(); i++) {
+      if (myMockupViewPanel.getComponent(i) != this) {
+        myMockupViewPanel.remove(i);
+      }
+    }
+    myMockupViewPanel.doLayout();
+
+    if (creator.hasOptionsComponent()) {
+      setEnabled(false);
+      final JComponent optionsComponent = creator.getOptionsComponent(
+        type -> { // Done
+          setEnabled(true);
+          myMockupViewPanel.removeAll();
+          if (WidgetCreator.DoneCallback.FINISH == type) {
             creator.addToModel();
           }
         }
-      });
+      );
+      if (optionsComponent != null) {
+
+        // Check if the component we are about to add is already present
+        // to avoid showing twice the same panel
+
+        optionsComponent.setEnabled(true);
+        myMockupViewPanel.add(optionsComponent);
+        myMockupViewPanel.doLayout();
+      }
     }
-    return actions;
+    else {
+      creator.addToModel();
+    }
   }
 
   /**
@@ -239,4 +272,5 @@ public class ExtractWidgetTool extends JPanel implements MockupEditor.Tool {
       myIcon = icon;
     }
   }
+
 }
