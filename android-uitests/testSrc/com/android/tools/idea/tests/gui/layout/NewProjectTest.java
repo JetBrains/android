@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -76,7 +74,7 @@ public class NewProjectTest {
       .getEditor()
       .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
     String text = editor.getCurrentFileContents();
-    assertThat(text.contains("Test Application"));
+    assertThat(text).contains("Test Application");
   }
 
   /**
@@ -187,7 +185,6 @@ public class NewProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
-  @Ignore("http://ag/1460601")
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
