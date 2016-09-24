@@ -1027,6 +1027,7 @@ public class GradleSyncTest {
     assertNull(AndroidFacet.getInstance(appModule));
   }
 
+  @Ignore("http://ag/1460601")
   @Test
   public void withModuleLanguageLevel() throws IOException {
     guiTest.importMultiModule();
