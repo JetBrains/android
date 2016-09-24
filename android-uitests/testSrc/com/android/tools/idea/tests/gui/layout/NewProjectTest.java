@@ -187,6 +187,7 @@ public class NewProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
+  @Ignore("http://ag/1460601")
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
