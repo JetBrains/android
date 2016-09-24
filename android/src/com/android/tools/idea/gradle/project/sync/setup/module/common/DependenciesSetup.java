@@ -106,6 +106,7 @@ public class DependenciesSetup {
 
     LibraryOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addLibraryEntry(library);
     orderEntry.setScope(scope);
+    orderEntry.setExported(true);
   }
 
   private static void updateLibraryBinaryPaths(@NotNull Library library,

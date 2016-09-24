@@ -330,9 +330,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // TODO replace with AndroidProject#PROPERTY_STUDIO_VERSION once builder-model gets updated.
     args.add(createProjectProperty("android.injected.studio.version", ideVersion));
 
-    // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
-
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
       if (refreshExternalNativeModels != null) {

@@ -68,54 +68,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void supportsDependencyGraph() {
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.1")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3.0")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3+")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
-  }
-
-  @Test
-  public void supportsDependencyGraphWithTextVersion() {
-    assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0-dev"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.1"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3.0"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3+"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
-  }
-
-  @Test
-  public void getDependenciesWithModelThatSupportsDependencyGraph() {
-    BaseArtifact artifact = mock(BaseArtifact.class);
-    Dependencies dependencies = mock(Dependencies.class);
-
-    when(artifact.getCompileDependencies()).thenReturn(dependencies);
-
-    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("2.2.0"));
-    assertSame(dependencies, actual);
-
-    verify(artifact).getCompileDependencies();
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void getDependenciesWithModelThatDoesNotSupportDependencyGraph() {
-    BaseArtifact artifact = mock(BaseArtifact.class);
-    Dependencies dependencies = mock(Dependencies.class);
-
-    when(artifact.getDependencies()).thenReturn(dependencies);
-
-    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("1.2.0"));
-    assertSame(dependencies, actual);
-
-    verify(artifact).getDependencies();
-  }
-
-  @Test
   public void getGradleInvocationJvmArgWithNullBuildMode() {
     assertNull(GradleUtil.getGradleInvocationJvmArg(null));
   }

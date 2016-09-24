@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -24,24 +25,22 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
+import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -63,6 +62,12 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
 
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+  @Override
+  protected void tearDown() throws Exception {
+    //noinspection SuperTearDownInFinally
+    super.tearDown();
+    LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidGradleModel.class, null);
   }
 
   public void testWithNonExistingInterModuleDependencies() throws Exception {
@@ -124,31 +129,12 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
     assertNull(androidFacet);
     assertNull(getAndroidProject(localAarModule));
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localAarModule);
 
-    LibraryOrderEntry libraryDependency = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-    assertNull(libraryDependency); // Should not expose the AAR as library, instead it should use the "exploded AAR".
+    // Should not expose the AAR as library, instead it should use the "exploded AAR".
+    assertAbout(libraryDependencies()).that(localAarModule).isEmpty();
 
     Module appModule = myModules.getAppModule();
-    moduleRootManager = ModuleRootManager.getInstance(appModule);
-    // Verify that the module depends on the AAR that it contains (in "exploded-aar".)
-    libraryDependency = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-
-    assertNotNull(libraryDependency);
-    assertThat(libraryDependency.getLibraryName()).isEqualTo("library-debug-unspecified");
-    assertFalse(libraryDependency.isExported());
+    assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified");
   }
 
   public void testWithLocalJarsArModules() throws Exception {
@@ -160,38 +146,72 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(localJarModule);
-    OrderEntry[] orderEntries = moduleRootManager.getOrderEntries();
-
-    // Verify that the module depends on the jar that it contains.
-    LibraryOrderEntry libraryDependency = null;
-    for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        libraryDependency = (LibraryOrderEntry)orderEntry;
-        break;
-      }
-    }
-    assertNotNull(libraryDependency);
-    assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
-    assertFalse(libraryDependency.isExported());
+    assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local");
   }
 
   public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(appModule);
+    assertAbout(moduleDependencies()).that(appModule).contains("library2");
+  }
 
-    // Collect all module dependencies.
-    List<String> moduleDependencies = new ArrayList<>();
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry dependency = (ModuleOrderEntry)orderEntry;
-        String moduleName = dependency.getModuleName();
-        moduleDependencies.add(moduleName);
-      }
-    }
+  // See: https://code.google.com/p/android/issues/detail?id=210172
+  public void testTransitiveDependenciesFromJavaModule() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module appModule = myModules.getAppModule();
 
-    assertThat(moduleDependencies).contains("library2");
+    // 'app' module should have 'guava' as dependency.
+    // 'app' -> 'lib' -> 'guava'
+    assertAbout(libraryDependencies()).that(appModule).contains("guava-17.0");
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=212338
+  public void testTransitiveDependenciesFromAndroidModule() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module appModule = myModules.getAppModule();
+
+    // 'app' module should have 'javawriter' as dependency.
+    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
+    assertAbout(libraryDependencies()).that(appModule).contains("javawriter-2.5.0");
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=212557
+  public void testTransitiveAndroidModuleDependency() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module appModule = myModules.getAppModule();
+
+    // 'app' module should have 'library1' as module dependency.
+    // 'app' -> 'library2' -> 'library1'
+    assertAbout(moduleDependencies()).that(appModule).contains("library1");
+  }
+
+  public void testJavaLibraryModuleDependencies() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module appModule = myModules.getAppModule();
+
+    // dependency should be set on the module not the compiled jar.
+    assertAbout(moduleDependencies()).that(appModule).contains("lib");
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib");
+  }
+
+  public void testDependencySetUpInJavaModule() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module libModule = myModules.getModule("lib");
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib");
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=213627
+  public void testJarsInLibsFolder() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+
+    // 'fakelib' is in 'libs' directory in 'library2' module.
+    Module library2Module = myModules.getModule("library2");
+    assertAbout(libraryDependencies()).that(library2Module).contains("fakelib");
+
+    // 'app' module should have 'fakelib' as dependency.
+    // 'app' -> 'library2' -> 'fakelib'
+    Module appModule = myModules.getAppModule();
+    assertAbout(libraryDependencies()).that(appModule).contains("fakelib");
   }
 }

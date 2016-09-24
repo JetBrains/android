@@ -40,6 +40,7 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
@@ -50,6 +51,7 @@ import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
 import java.util.List;
@@ -102,6 +104,7 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewProjectActions();
     setUpExperimentalFeatures();
     setupAnalytics();
+    disableGradleOrderEnumeratorHandler();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -122,26 +125,23 @@ public class AndroidStudioInitializer implements Runnable {
   /*
    * sets up collection of Android Studio specific analytics.
    */
-  private void setupAnalytics() {
+  private static void setupAnalytics() {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
   }
 
-  private void setUpExperimentalFeatures() {
+  private static void setUpExperimentalFeatures() {
     if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
       ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
         @Override
         public void projectOpened(final Project project) {
           StartupManager.getInstance(project).runWhenProjectIsInitialized(
-            new Runnable() {
-              @Override
-              public void run() {
-                ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-                ToolWindow toolWindow =
-                  toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
-                toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
-                new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
-                toolWindow.show(null);
-              }
+            () -> {
+              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+              ToolWindow toolWindow =
+                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
+              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
+              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
+              toolWindow.show(null);
             }
           );
         }
@@ -279,4 +279,15 @@ public class AndroidStudioInitializer implements Runnable {
     }
   }
 
+  // GradleOrderEnumeratorHandler turns off the "exported" dependency mechanism in IDE for Gradle projects.
+  private static void disableGradleOrderEnumeratorHandler() {
+    ExtensionPoint<OrderEnumerationHandler.Factory> extensionPoint =
+      Extensions.getRootArea().getExtensionPoint(OrderEnumerationHandler.EP_NAME);
+    for (OrderEnumerationHandler.Factory factory : extensionPoint.getExtensions()) {
+      if (factory instanceof GradleOrderEnumeratorHandler.FactoryImpl) {
+        extensionPoint.unregisterExtension(factory);
+        return;
+      }
+    }
+  }
 }

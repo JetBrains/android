@@ -30,7 +30,6 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(null);
     assertFalse(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
@@ -43,7 +42,6 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertFalse(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
@@ -56,7 +54,6 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
@@ -69,7 +66,6 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertTrue(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
@@ -82,7 +78,6 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertTrue(features.isShadersSupported());
-    assertTrue(features.isDependencyGraphSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
     assertTrue(features.isProductFlavorVersionSuffixSupported());
     assertTrue(features.isExternalBuildSupported());

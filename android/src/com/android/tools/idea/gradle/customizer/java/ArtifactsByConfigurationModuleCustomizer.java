@@ -77,6 +77,7 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
 
               LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
               orderEntry.setScope(COMPILE);
+              orderEntry.setExported(true);
             }
           }
         }
