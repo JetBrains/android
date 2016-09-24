@@ -19,6 +19,8 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
+import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
+import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 
 import static com.android.SdkConstants.VIEW;
 
@@ -53,7 +56,7 @@ public class SimpleViewCreator extends WidgetCreator {
     super(mockup, model, screenView);
     mySelectionBounds = selection;
 
-    Rectangle cropping = getMockup().getRealCropping();
+    Rectangle cropping = getMockup().getComputedCropping();
     final NlComponent component = getMockup().getComponent();
     final float xScale = component.w / (float)cropping.width;
     final float yScale = component.h / (float)cropping.height;
@@ -80,7 +83,7 @@ public class SimpleViewCreator extends WidgetCreator {
    * @param callback The callback to get the result of the color extraction
    */
   protected void extractColor(@NotNull BufferedImage image, @NotNull ColorExtractor.ColorExtractorCallback callback) {
-    final Rectangle realCropping = getMockup().getRealCropping();
+    final Rectangle realCropping = getMockup().getComputedCropping();
     final Rectangle selectionBounds = getSelectionBounds();
     final BufferedImage subimage = image.getSubimage(realCropping.x + selectionBounds.x,
                                                      realCropping.y + selectionBounds.y,
@@ -90,6 +93,20 @@ public class SimpleViewCreator extends WidgetCreator {
     ColorExtractor colorExtractor = new DBSCANColorExtractor(subimage, DBSCANColorExtractor.DEFAULT_EPS,
                                                              DBSCANColorExtractor.getMinClusterSize(subimage));
     colorExtractor.run(callback);
+  }
+
+  protected void extractColor(final ViewAndColorForm viewAndColorForm, BufferedImage image) {
+    extractColor(image, new ColorExtractor.ColorExtractorCallback() {
+      @Override
+      public void result(Collection<ExtractedColor> rgbColors) {
+        viewAndColorForm.addColors(rgbColors);
+      }
+
+      @Override
+      public void progress(int progress) {
+        viewAndColorForm.setProgress(progress);
+      }
+    });
   }
 
   /**

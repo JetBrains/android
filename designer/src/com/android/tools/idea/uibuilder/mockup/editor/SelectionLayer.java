@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,6 +44,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
                                                           BasicStroke.CAP_BUTT,
                                                           BasicStroke.JOIN_MITER,
                                                           10.0f, new float[]{5.0f}, 0.0f);
+  private static final Color SELECTION_OVERLAY_COLOR = JBColor.GRAY;
 
   // Index of the Knobs in myKnobs
   // depending the position
@@ -57,6 +59,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private final static int MOVE = KNOB_COUNT - 1;
 
   private final static Cursor[] CURSORS = new Cursor[KNOB_COUNT];
+  public static final float OVERLAY_ALPHA = 0.5f;
 
   static {
     CURSORS[N] = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
@@ -109,6 +112,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private boolean myFixedRatio;
   private double myRatioWidth;
   private double myRatioHeight;
+  private Rectangle myHolderRectangle = new Rectangle();
 
   public SelectionLayer(JPanel parent, AffineTransform affineTransform) {
     myParent = parent;
@@ -124,40 +128,95 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     if (!mySelection.isEmpty() && mySelection.x >= 0 && mySelection.y >= 0) {
       drawSelection(g);
+      drawSelectionOverlay(g);
+      drawHoveredKnob(g);
     }
   }
 
-  private void drawSelection(Graphics2D g) {
+  /**
+   * Draw the selection rectangle
+   */
+  private void drawSelection(@NotNull Graphics2D g) {
+    Rectangle scaledSelection = transformRect(myAffineTransform, mySelection, myHolderRectangle);
     g.setColor(KNOB_COLOR);
-    drawScaledRect(g, myAffineTransform, mySelection);
+    g.draw(scaledSelection);
     g.setColor(KNOB_OUTLINE);
     g.setStroke(DASH);
-    drawScaledRect(g, myAffineTransform, mySelection);
+    g.draw(scaledSelection);
+  }
 
+  /**
+   * Draw the hovered know if one of the know is hovered
+   * @param g the graphics context
+   */
+  private void drawHoveredKnob(@NotNull Graphics2D g) {
+    Composite composite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
     if (myHoveredKnob >= 0 && myHoveredKnob != MOVE) {
       g.setColor(HOVERED_KNOB_COLOR);
-      fillScaledRect(g, myAffineTransform, myKnobs[myHoveredKnob]);
+      g.fill(transformRect(myAffineTransform, myKnobs[myHoveredKnob], myHolderRectangle));
       g.setColor(KNOB_OUTLINE);
-      drawScaledRect(g, myAffineTransform, myKnobs[myHoveredKnob]);
+      g.draw(transformRect(myAffineTransform, myKnobs[myHoveredKnob], myHolderRectangle));
     }
+    g.setComposite(composite);
   }
 
-  private static void drawScaledRect(Graphics g, AffineTransform transform, Rectangle rectangle) {
-    final double[] ints = {rectangle.x, rectangle.y};
-    transform.transform(ints, 0, ints, 0, 1);
-    g.drawRect((int)Math.round(ints[0]),
-               (int)Math.round(ints[1]),
-               (int)Math.round(rectangle.width*transform.getScaleX()),
-               (int)Math.round(rectangle.height*transform.getScaleY()));
+  /**
+   * Draw an overlay around the selection
+   * @param g the graphics context
+   */
+  private void drawSelectionOverlay(@NotNull Graphics2D g) {
+    Composite composite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OVERLAY_ALPHA));
+    g.setColor(SELECTION_OVERLAY_COLOR);
+
+    // Top
+    myHolderRectangle.setBounds(myBounds.x, myBounds.y, myBounds.width, mySelection.y);
+    g.fill(transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle));
+
+    // Left
+    myHolderRectangle.setBounds(myBounds.x, mySelection.y, mySelection.x, mySelection.height);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(0, 1);
+    g.fill(myHolderRectangle);
+
+    // Right
+    int x = mySelection.x + mySelection.width;
+    myHolderRectangle.setBounds(x, mySelection.y, myBounds.width - x, mySelection.height);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(1, 1);
+    myHolderRectangle.grow(-1, 0);
+    g.fill(myHolderRectangle);
+
+    // Bottom
+    int y = mySelection.y + mySelection.height;
+    myHolderRectangle.setBounds(0, y, myBounds.width, myBounds.height - y - 1);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(0, 2);
+    g.fill(myHolderRectangle);
+
+    g.setComposite(composite);
   }
 
-  private static void fillScaledRect(Graphics g, AffineTransform transform, Rectangle rectangle) {
-    final double[] ints = {rectangle.x, rectangle.y};
-    transform.transform(ints, 0, ints, 0, 1);
-    g.fillRect((int)Math.round(ints[0]),
-               (int)Math.round(ints[1]),
-               (int)Math.round(rectangle.width*transform.getScaleX()),
-               (int)Math.round(rectangle.height*transform.getScaleY()));
+
+  /**
+   * Scale the source Rectangle using the provided affine transform and set the converted
+   * bounds to the destination rectangle. The source and destination rectangle can be the same.
+   *
+   * @param transform The transform used to transform the rectangle
+   * @param src       The rectangle that will be transformed
+   * @param dst       The resulting transformed rectangle
+   * @return the destination rectangle
+   */
+  private static Rectangle transformRect(@NotNull AffineTransform transform, @NotNull Rectangle src, @NotNull Rectangle dst) {
+    final double[] location = {src.x, src.y, src.x + src.width, src.y + src.height};
+    transform.transform(location, 0, location, 0, 2);
+    double x1 = location[0];
+    double y1 = location[1];
+    double x2 = location[2];
+    double y2 = location[3];
+    dst.setRect(x1, y1, x2 - x1, y2 - y1);
+    return dst;
   }
 
   public void contentResized() {
@@ -240,6 +299,13 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    resetSelectionLocation();
+  }
+
+  /**
+   * Reset the location of the selection to the location of the bounds if it is empty
+   */
+  private void resetSelectionLocation() {
     if (mySelection.isEmpty()) {
       mySelection.setLocation(myBounds.x, myBounds.y);
       updateKnobPosition();
@@ -369,6 +435,10 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
    * @see #getBounds()
    */
   public void setSelection(int x, int y, int width, int height) {
+    x = Math.min(myBounds.width, Math.max(0, x));
+    y = Math.min(myBounds.height, Math.max(0, y));
+    width = Math.min(myBounds.width - x, Math.max(0, width));
+    height = Math.min(myBounds.height - y, Math.max(0, height));
     mySelection.setBounds(x, y, width, height);
     updateKnobPosition();
     myParent.repaint();
@@ -459,6 +529,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
     updateKnobPosition();
     myParent.repaint();
+    resetSelectionLocation();
   }
 
   /**

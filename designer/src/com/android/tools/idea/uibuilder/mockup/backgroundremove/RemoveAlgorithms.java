@@ -115,7 +115,8 @@ public final class RemoveAlgorithms {
           visited[y * width + nx % width] = true;
           // Set this pixel to be transparent
           double alpha;
-          if (dist > threshold / 2.0) {
+          if (((dstPixels[nx] >> 24) & 0xFF) == 0xFF
+              && dist > threshold / 2.0) {
             alpha = 0xFF * (dist / threshold);
           }
           else {

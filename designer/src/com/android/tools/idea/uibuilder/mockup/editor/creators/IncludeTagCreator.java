@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
@@ -44,6 +45,8 @@ import static com.android.SdkConstants.*;
  */
 public class IncludeTagCreator extends SimpleViewCreator {
 
+  private String myNewLayoutResource;
+
   /**
    * Create a new layout and an include tag referencing this layout
    * in the {@link NlModel} provided in the constructor
@@ -65,10 +68,10 @@ public class IncludeTagCreator extends SimpleViewCreator {
    */
   @Override
   protected void addAttributes(@NotNull AttributesTransaction transaction) {
-    final String newLayoutResource = createNewIncludedLayout();
+    myNewLayoutResource = createNewIncludedLayout();
     super.addAttributes(transaction);
-    if (newLayoutResource != null) {
-      addIncludeAttribute(transaction, newLayoutResource);
+    if (myNewLayoutResource != null) {
+      addIncludeAttribute(transaction, myNewLayoutResource);
     }
   }
 
@@ -79,6 +82,27 @@ public class IncludeTagCreator extends SimpleViewCreator {
   @Override
   public String getAndroidViewTag() {
     return VIEW_INCLUDE;
+  }
+
+  @Nullable
+  @Override
+  public NlComponent addToModel() {
+    NlComponent component = getMockup().getComponent();
+    if (component.isOrHasSuperclass(CLASS_RECYCLER_VIEW)) {
+      addListItemAttribute(component);
+      return component;
+    }
+    else {
+      return super.addToModel();
+    }
+  }
+
+  private void addListItemAttribute(NlComponent component) {
+    String newLayoutResource = createNewIncludedLayout();
+    WriteCommandAction.runWriteCommandAction(
+      getModel().getProject(), "Add listitem attribute", null,
+      () -> component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + newLayoutResource),
+      getModel().getFile());
   }
 
   /**

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.*;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,18 +36,24 @@ public class MockupToggleAction extends ToggleAction {
   public static final Dimension OPEN_DIMENSION = new Dimension(200, 200);
   private final DesignSurface mySurface;
 
-  private final static String TOGGLE_ACTION_TITLE = "Show/Hide Mockup";
+  private final static String SHOW_ACTION_TITLE = "Show Mockup Editor";
+  private final static String HIDE_ACTION_TITLE = "Hide Mockup Editor";
 
   public MockupToggleAction(@NotNull DesignSurface surface) {
-    Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(getDesignIcon(surface.isMockupVisible()));
-    presentation.setDescription(TOGGLE_ACTION_TITLE);
     mySurface = surface;
+    Presentation presentation = getTemplatePresentation();
+    presentation.setIcon(getDesignIcon());
+    presentation.setDescription(getDescription());
   }
 
-  private static Icon getDesignIcon(boolean active) {
-    return AndroidIcons.Mockup.Mockup;
 
+  @NotNull
+  private String getDescription() {
+    return mySurface.isCanvasResizing() ? HIDE_ACTION_TITLE : SHOW_ACTION_TITLE;
+  }
+
+  private static Icon getDesignIcon() {
+    return AndroidIcons.Mockup.Mockup;
   }
 
   @Override
@@ -76,6 +82,8 @@ public class MockupToggleAction extends ToggleAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setIcon(getDesignIcon(mySurface.isMockupVisible()));
+    event.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
+    event.getPresentation().setIcon(getDesignIcon());
+    getTemplatePresentation().setDescription(getDescription());
   }
 }

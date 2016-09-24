@@ -15,35 +15,38 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import com.android.tools.idea.configurations.MockupEditAction;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
+import com.android.tools.idea.uibuilder.mockup.editor.tools.SelectionEditors;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.Timer;
-import javax.swing.border.CompoundBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.*;
 import java.util.List;
 
 /**
  * <p>
  * The mockup editor is the core of the user interaction with the mockup.
- *</p>
+ * </p>
  *
  * <p>
  * By default, it allows to do a selection on the image contained in the current Mockup set with {@link #setMockup(Mockup)}.
@@ -52,22 +55,29 @@ import java.util.List;
  */
 public class MockupEditor extends JPanel {
 
-  public static final Logger LOG = Logger.getInstance(MockupEditor.class);
   private static final String TITLE = "Mockup Editor";
+  private static final String NO_MOCKUP_TEXT = "<html>No mockup available for this View.<br/>Click to add mockup</html>";
   private static final Dimension MINIMUM_SIZE = new Dimension(100, 100);
+
+  private static final String CARD_MOCKUP_VIEW_PANEL = "mockupViewPanel";
+  private static final String CARD_NO_MOCKUP = "noMockup";
+
   private final MyModelListener myModelListener;
-
-  @Nullable private NlModel myModel;
-  @Nullable private Mockup myMockup;
-
+  private final SelectionEditors mySelectionEditors;
   private final List<MockupEditorListener> myEditorListeners = new ArrayList<>();
   private final Set<Tool> myActiveTools = new HashSet<>();
   private final ExtractWidgetTool myExtractWidgetTool;
   private final Mockup.MockupModelListener myMockupListener;
+  private final JPanel myCenterPanel;
+  private final CardLayout myCenterCardLayout;
+  private final DesignSurface mySurface;
 
+  @Nullable private NlModel myModel;
+  @Nullable private Mockup myMockup;
   // UI
   private final MockupViewPanel myMockupViewPanel;
   private final MyTopBar myTopBar;
+  private final JPanel myBottomPanel;
 
   /**
    * Create a new mockup editor associated with the provided DesignSurface.
@@ -75,24 +85,32 @@ public class MockupEditor extends JPanel {
    * the design surface will notify the {@link MockupEditor} when the model is changed. ({@link DesignSurfaceListener}).
    *
    * @param surface The surface where the {@link MockupEditor} will be displayed.
-   * @param model The optional model to provide if it is already created.
+   * @param model   The optional model to provide if it is already created.
    */
   public MockupEditor(@NotNull DesignSurface surface, @Nullable NlModel model) {
     super(new BorderLayout());
-
-    // DO NOT CHANGE THE CALL ORDER
-    // The order of initialisation should stay the same to respect to
-    // dependencies
-    myMockupListener = this::notifyListeners;
+    mySurface = surface;
+    JLabel addMockupIcon = createNoMockupIcon(createAddMockupMouseAdapter());
+    myMockupListener = (mockup, changedFlags) -> notifyListeners(mockup);
+    myBottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     myModelListener = new MyModelListener(this);
     myMockupViewPanel = new MockupViewPanel(this);
     myExtractWidgetTool = new ExtractWidgetTool(surface, this);
+    mySelectionEditors = new SelectionEditors(myMockupViewPanel);
+    myTopBar = new MyTopBar(new CropTool(this), mySelectionEditors);
+
+    myCenterCardLayout = new CardLayout();
+    myCenterPanel = new JPanel(myCenterCardLayout);
+    myCenterPanel.add(myMockupViewPanel, CARD_MOCKUP_VIEW_PANEL);
+    myCenterPanel.add(addMockupIcon, CARD_NO_MOCKUP);
+    add(myTopBar, BorderLayout.NORTH);
+    add(myCenterPanel, BorderLayout.CENTER);
+
+    add(myBottomPanel, BorderLayout.SOUTH);
+
     setModel(model);
     surface.addListener(new MyDesignSurfaceListener(this));
 
-    add(myMockupViewPanel, BorderLayout.CENTER);
-    myTopBar = new MyTopBar(new CropTool(this));
-    add(myTopBar, BorderLayout.NORTH);
     myExtractWidgetTool.enable(this);
     setMinimumSize(MINIMUM_SIZE);
     initSelection();
@@ -112,6 +130,20 @@ public class MockupEditor extends JPanel {
   }
 
   /**
+   * Create a text and Icon wo display when no mockup is available
+   *
+   * @param listener
+   */
+  private static JLabel createNoMockupIcon(MouseListener listener) {
+    JLabel addMockupIcon = new JBLabel(NO_MOCKUP_TEXT, AndroidIcons.Mockup.NoMockup, SwingConstants.CENTER);
+    addMockupIcon.setHorizontalTextPosition(SwingConstants.CENTER);
+    addMockupIcon.setVerticalTextPosition(SwingConstants.BOTTOM);
+    addMockupIcon.setIconTextGap(15);
+    addMockupIcon.addMouseListener(listener);
+    return addMockupIcon;
+  }
+
+  /**
    * Update the currently displayed mockup with the new selection
    *
    * @param model     The model where the selection has been made
@@ -128,10 +160,16 @@ public class MockupEditor extends JPanel {
         selectedComponent = selection.get(0);
       }
     }
-    if(myMockup == null || selectedComponent != myMockup.getComponent()) {
+    if (myMockup == null || selectedComponent != myMockup.getComponent()) {
       showMockupInEditor(selectedComponent != null
                          ? Mockup.create(selectedComponent, false)
                          : null);
+    }
+    else if (!Mockup.hasMockupAttribute(myMockup.getComponent())) {
+      showNoMockup(true);
+    }
+    else {
+      showNoMockup(false);
     }
   }
 
@@ -141,6 +179,7 @@ public class MockupEditor extends JPanel {
    * @param mockup the new mockup to display in the editor
    */
   private void showMockupInEditor(@Nullable Mockup mockup) {
+    showNoMockup(mockup == null);
     if (mockup != myMockup) {
       setMockup(mockup);
     }
@@ -150,6 +189,7 @@ public class MockupEditor extends JPanel {
 
   /**
    * Set the mockup and attach a listener to it.
+   *
    * @param mockup The new mockup
    */
   private void setMockup(@Nullable Mockup mockup) {
@@ -162,9 +202,14 @@ public class MockupEditor extends JPanel {
     }
   }
 
+  private void showNoMockup(boolean show) {
+    myCenterCardLayout.show(myCenterPanel, show ? CARD_NO_MOCKUP : CARD_MOCKUP_VIEW_PANEL);
+  }
+
   /**
    * Notify every {@link MockupEditorListener} attached to this instance that there has been
    * an update regarding the mockup.
+   *
    * @param mockup The new or updated mockup.
    */
   private void notifyListeners(Mockup mockup) {
@@ -173,6 +218,7 @@ public class MockupEditor extends JPanel {
 
   /**
    * Add a {@link MockupEditorListener} to get notification about any change regarding the mockup.
+   *
    * @param listener The listener to attach to the mockup.
    */
   public void addListener(@NotNull MockupEditorListener listener) {
@@ -183,14 +229,34 @@ public class MockupEditor extends JPanel {
 
   /**
    * Remove a previously added listener
+   *
    * @param listener the listener to remove
    */
   public void removeListener(@NotNull MockupEditorListener listener) {
     myEditorListeners.remove(listener);
   }
 
+  @NotNull
+  private MouseAdapter createAddMockupMouseAdapter() {
+    return new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (myModel != null) {
+          List<NlComponent> selection = myModel.getSelectionModel().getSelection();
+          if (selection.isEmpty()) {
+            myModel.getSelectionModel().setSelection(myModel.getComponents());
+          }
+          if (!selection.isEmpty()) {
+            new MockupEditAction(mySurface).actionPerformed(null);
+          }
+        }
+      }
+    };
+  }
+
   /**
    * Get the {@link MockupViewPanel} displayed in the editor.
+   *
    * @return the {@link MockupViewPanel} displayed in the editor.
    */
   @NotNull
@@ -210,6 +276,8 @@ public class MockupEditor extends JPanel {
     if (myMockup != null) {
       myExtractWidgetTool.enable(this);
     }
+    myMockupViewPanel.getSelectionLayer().clearSelection();
+    mySelectionEditors.setVisible(false);
   }
 
   /**
@@ -221,8 +289,11 @@ public class MockupEditor extends JPanel {
     tool.disable(this);
     myActiveTools.remove(tool);
     if (myActiveTools.isEmpty()) {
+      myActiveTools.add(myExtractWidgetTool);
       myExtractWidgetTool.enable(this);
     }
+    myBottomPanel.removeAll();
+    validate();
   }
 
   /**
@@ -231,6 +302,7 @@ public class MockupEditor extends JPanel {
    * @param tool the tool to enable
    */
   public void enableTool(@NotNull Tool tool) {
+    myActiveTools.remove(myExtractWidgetTool);
     myExtractWidgetTool.disable(this);
     tool.enable(this);
     myActiveTools.add(tool);
@@ -238,6 +310,7 @@ public class MockupEditor extends JPanel {
 
   /**
    * Get the current mockup displayed in the editor if any.
+   *
    * @return the current mockup displayed in the editor if any.
    */
   @Nullable
@@ -249,6 +322,7 @@ public class MockupEditor extends JPanel {
    * Set the current model associated with the editor. Typically, this is the model
    * retrieve from the Design surface screen view{@link DesignSurface#getCurrentScreenView()}
    * or from the {@link NlComponent} of the {@link Mockup#getComponent()}
+   *
    * @param model The model to set on this instance
    */
   private void setModel(@Nullable NlModel model) {
@@ -271,12 +345,22 @@ public class MockupEditor extends JPanel {
 
   /**
    * Displays an error in the mockup editor for {@value MyTopBar#ERROR_MESSAGE_DISPLAY_DURATION}ms
+   *
    * @param message The message to display
    */
   public void showError(String message) {
-    if(myTopBar != null) {
+    if (myTopBar != null) {
       myTopBar.showError(message);
     }
+  }
+
+  public void setSelectionText(Rectangle selection) {
+    mySelectionEditors.setSelection(selection);
+  }
+
+  public void addBottomControls(JComponent component) {
+    myBottomPanel.add(component);
+    validate();
   }
 
   /**
@@ -346,43 +430,42 @@ public class MockupEditor extends JPanel {
     private JLabel myErrorLabel;
     private Timer myErrorTimer;
 
-    MyTopBar(CropTool cropTool) {
+    MyTopBar(@NotNull CropTool cropTool, @NotNull SelectionEditors selectionEditors) {
       super(new BorderLayout());
-      add(createTitleBar(), BorderLayout.NORTH);
-      add(createActionBar(cropTool), BorderLayout.SOUTH);
+      add(createTitleBar(cropTool), BorderLayout.NORTH);
+      add(createActionBar(selectionEditors), BorderLayout.SOUTH);
       myErrorTimer = new Timer(ERROR_MESSAGE_DISPLAY_DURATION, e -> showError(""));
       myErrorTimer.setRepeats(false);
+      setPreferredSize(new Dimension(100, 70));
+      setMinimumSize(getPreferredSize());
     }
 
     @NotNull
-    private JPanel createActionBar(CropTool cropTool) {
-      JPanel actionBar = new JPanel(new BorderLayout());
-      actionBar.add(cropTool, BorderLayout.EAST);
+    private JPanel createActionBar(SelectionEditors selectionEditors) {
+      JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+      actionBar.add(selectionEditors);
       myErrorLabel = new JLabel();
       myErrorLabel.setForeground(JBColor.RED);
       actionBar.add(myErrorLabel, BorderLayout.WEST);
-      actionBar.setBorder(new CompoundBorder(
-        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        IdeBorderFactory.createEmptyBorder(0, 10, 0, 5)));
+      actionBar.setBorder(IdeBorderFactory.createEmptyBorder(0, 10, 0, 5));
       return actionBar;
     }
 
     @NotNull
-    private static JPanel createTitleBar() {
+    private static JPanel createTitleBar(CropTool cropTool) {
       JPanel titleBar = new JPanel(new BorderLayout());
-
       titleBar.add(new JBLabel(TITLE), BorderLayout.WEST);
-      titleBar.setBorder(new CompoundBorder(
-        IdeBorderFactory.createBorder(SideBorder.BOTTOM),
-        IdeBorderFactory.createEmptyBorder(4, 5, 4, 10)));
+      titleBar.add(cropTool, BorderLayout.EAST);
+      titleBar.setBorder(IdeBorderFactory.createEmptyBorder(0, 5, 0, 10));
       return titleBar;
     }
 
     private void showError(String message) {
       UIUtil.invokeLaterIfNeeded(() -> myErrorLabel.setText(message));
-      if(!message.isEmpty()) {
+      if (!message.isEmpty()) {
         myErrorTimer.restart();
-      } else {
+      }
+      else {
         myErrorTimer.stop();
       }
     }
@@ -404,12 +487,17 @@ public class MockupEditor extends JPanel {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection());
+      processModelChange(model);
     }
 
     @Override
     public void modelRendered(@NotNull NlModel model) {
-      myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection());
+      processModelChange(model);
+    }
+
+    private void processModelChange(@NotNull NlModel model) {
+      UIUtil.invokeLaterIfNeeded(
+        () -> myMockupEditor.selectionUpdated(model, model.getSelectionModel().getSelection()));
     }
   }
 }

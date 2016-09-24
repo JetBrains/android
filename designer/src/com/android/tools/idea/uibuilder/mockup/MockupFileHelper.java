@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.mockup.old.MockupEditorPopup;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
@@ -29,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,38 +82,11 @@ public class MockupFileHelper {
       .withDescription("PSD, JPEG, PNG are accepted");
   }
 
-  public static void writeFileNameToXML(VirtualFile virtualFile, @Nullable NlComponent component) {
-    if (component == null) {
-      return;
-    }
-    final NlModel model = component.getModel();
-    final Path filePath = getXMLFilePath(model.getProject(), virtualFile.getPath());
-    if (filePath != null) {
-      final String path = filePath.toString();
-      final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup file", model.getFile()) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP, path);
-        }
-      };
-      action.execute();
-    }
-  }
-
-  public static void writeOpacityToXML(Float opacity, @Nullable NlComponent component) {
-    if (component == null) {
-      return;
-    }
-    final NlModel model = component.getModel();
-    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup Opacity", model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_OPACITY, String.valueOf(opacity));
-      }
-    };
-    action.execute();
-  }
-
+  /**
+   * Write the attribute {@link SdkConstants#ATTR_MOCKUP_CROP} and its value using the provided mockup
+   * @param mockup The mockup to retrieve the position string from
+   * @see #getPositionString(Mockup)
+   */
   public static void writePositionToXML(@NotNull Mockup mockup) {
     NlComponent component = mockup.getComponent();
     if (component == null) {
@@ -137,6 +108,12 @@ public class MockupFileHelper {
     action.execute();
   }
 
+  /**
+   * Return the string representing the crop and bounds of the provided mockup.
+   *
+   * @param mockup The mockup to retrieve the position from
+   * @return A string representing the bounds and crop of the mockup.
+   */
   public static String getPositionString(@NotNull Mockup mockup) {
     final Rectangle bounds = mockup.getBounds();
     final Rectangle crop = mockup.getCropping();
@@ -160,8 +137,8 @@ public class MockupFileHelper {
    * If the path is inside the project, we write the relative form
    * otherwise we use the absolute
    *
-   * @param project  Current woriking project
-   * @param filePath File path used by the user in XML or set by the {@link MockupEditorPopup}
+   * @param project  Current project
+   * @param filePath File path to modify
    * @return Relative or absolute path or null if the path couldn't be resolved
    */
   @Nullable
@@ -186,6 +163,13 @@ public class MockupFileHelper {
     return path;
   }
 
+  /**
+   * Returns the absolute file path for the provided path. If the path is relative, it will be resolved
+   * relatively to the provided project base directory
+   * @param project The project used to resolve the path
+   * @param filePath The path to return as absolute
+   * @return The absolute version of the file path
+   */
   @Nullable
   public static Path getFullFilePath(Project project, String filePath) {
     final String basePath = project.getBasePath();

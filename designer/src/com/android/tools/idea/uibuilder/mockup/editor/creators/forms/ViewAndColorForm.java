@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -40,29 +42,37 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Popup allowing the user to import colors as a resource
+ * Popup allowing the user to import colors as a resource and a set at tag name from an autocomplete field
+ * if the {@link AndroidFacet} is provided in {@link #ViewAndColorForm(String, ColorSelectedListener, AndroidFacet)}, or by setting it using
+ * {@link AutoCompleteForm#setFacet(AndroidFacet)}
+ *
+ * @see AutoCompleteForm
  */
-public class ColorChooserForm {
+public class ViewAndColorForm {
 
   private static final int MAX_COLOR = 5;
   private static final String DEFAULT_TITLE = "Import color";
   private static final String WAIT_TEXT = "Finding colors in selection...";
   private static final String NO_COLOR_SELECTED = "No color selected";
-  private static final Logger LOGGER = Logger.getInstance(ColorChooserForm.class);
+  private static final Logger LOGGER = Logger.getInstance(ViewAndColorForm.class);
 
   private JPanel myComponent;
   private JTextField myColorName;
-  private JButton myImportButton;
+  private JButton myAddButton;
   private JPanel myColor;
   private JButton myDismissButton;
   private JLabel myTitle;
   private JPanel myColorListPanel;
   private JProgressBar myProgressBar;
   private JPanel myBottomPanel;
+  private JBLabel myViewTypeLabel;
+  private AutoCompleteForm myAutoCompleteForm;
   private JLabel myErrorLabel;
 
   private final List<Color> myColorList = new ArrayList<>();
   private final WidgetCreator.ColorResourceHolder mySelectedColor = new WidgetCreator.ColorResourceHolder(null, null);
+  @Nullable private AndroidFacet myFacet;
+  @Nullable private ActionListener myAddListener;
 
   /**
    * Create a new form with the provided title.
@@ -70,17 +80,34 @@ public class ColorChooserForm {
    * The argument passed to the listener will be null if the cause of
    * calling is a dismiss action
    *
-   * @param title         Title to displau in the popup
-   * @param colorListener Listenr
+   * @param title         Title to display in the popup
+   * @param colorListener Listener called when a color is selected
    */
-  public ColorChooserForm(@Nullable String title, @NotNull ColorSelectedListener colorListener) {
+  public ViewAndColorForm(@Nullable String title, @NotNull ColorSelectedListener colorListener) {
+    this(title, colorListener, null);
+  }
+
+  /**
+   * Create a new form with the provided title.
+   * The colorListener is called when the add or dismiss button are clicked.
+   * The argument passed to the listener will be null if the cause of
+   * calling is a dismiss action
+   *
+   * If the facet is not null, also displays a field to set the tag of the view
+   *
+   * @param title         Title to display in the popup
+   * @param colorListener Listener called when a color is selected
+   * @param facet         facet to activate view tag field with autocompletion
+   */
+  public ViewAndColorForm(@Nullable String title, @NotNull ColorSelectedListener colorListener, @Nullable AndroidFacet facet) {
+    myFacet = facet;
     myErrorLabel = new JBLabel("", UIUtil.ComponentStyle.REGULAR);
     myErrorLabel.setForeground(JBColor.RED);
     myErrorLabel.setMaximumSize(new Dimension(150, -1));
     myColorListPanel.add(new JLabel(WAIT_TEXT));
     myTitle.setText(title == null ? DEFAULT_TITLE : title);
 
-    myImportButton.addActionListener(e -> {
+    myAddButton.addActionListener(e -> {
       mySelectedColor.name = myColorName.isEnabled() ? myColorName.getText() : "";
       colorListener.colorSelected(mySelectedColor);
     });
@@ -88,6 +115,28 @@ public class ColorChooserForm {
     myDismissButton.addActionListener(e -> colorListener.colorSelected(null));
     myProgressBar.setIndeterminate(true);
     myColorName.getDocument().addDocumentListener(createColorNameDocumentListener());
+    myColor.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+
+    if (myFacet == null) {
+      myAutoCompleteForm.getComponent().setVisible(false);
+      myViewTypeLabel.setVisible(false);
+    }
+    else {
+      myAutoCompleteForm.setFacet(myFacet);
+    }
+  }
+
+  private void createUIComponents() {
+    myComponent = new ToolRootPanel();
+    myAutoCompleteForm = new AutoCompleteForm(myFacet);
+  }
+
+  public void setAddListener(@NotNull ActionListener addListener) {
+    if (myAddListener != null) {
+      myAddButton.removeActionListener(myAddListener);
+    }
+    myAddListener = addListener;
+    myAddButton.addActionListener(addListener);
   }
 
   /**
@@ -99,12 +148,12 @@ public class ColorChooserForm {
     return new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        myImportButton.setEnabled(validateColorName(e.getDocument()));
+        myAddButton.setEnabled(validateColorName(e.getDocument()));
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        myImportButton.setEnabled(validateColorName(e.getDocument()));
+        myAddButton.setEnabled(validateColorName(e.getDocument()));
       }
 
       @Override
@@ -119,7 +168,7 @@ public class ColorChooserForm {
    * @param document the document containing the color name
    * @return true if the name is correct, false otherwise
    */
-  private boolean validateColorName(Document document) {
+  private boolean validateColorName(@NotNull Document document) {
     // TODO Check if the color name already exist
     if (mySelectedColor == null
         || mySelectedColor.value == null
@@ -133,14 +182,14 @@ public class ColorChooserForm {
       try {
         ValueResourceNameValidator.validate(text, ResourceType.COLOR, null);
         myErrorLabel.setText("");
-        myImportButton.setEnabled(true);
+        myAddButton.setEnabled(true);
         return true;
       }
       catch (MergingException ex) {
         myErrorLabel.setText
           (String.format("<html> %s </html>",
                          ValueResourceNameValidator.getErrorText(text, ResourceType.COLOR)));
-        myImportButton.setEnabled(false);
+        myAddButton.setEnabled(false);
         return false;
       }
     }
@@ -186,7 +235,7 @@ public class ColorChooserForm {
    * @param colors
    */
   @SuppressWarnings("UseJBColor")
-  public void addColors(Collection<ExtractedColor> colors) {
+  public void addColors(@NotNull Collection<ExtractedColor> colors) {
     myBottomPanel.removeAll();
     myErrorLabel.setPreferredSize(myBottomPanel.getSize());
     myErrorLabel.setMaximumSize(myErrorLabel.getPreferredSize());
@@ -221,6 +270,11 @@ public class ColorChooserForm {
   public void setProgress(int progress) {
     myProgressBar.setIndeterminate(false);
     myProgressBar.setValue(progress);
+  }
+
+  @NotNull
+  public String getTagName() {
+    return myAutoCompleteForm == null ? "" : myAutoCompleteForm.getTagName();
   }
 
   /**
@@ -269,10 +323,10 @@ public class ColorChooserForm {
         @Override
         public void mouseClicked(MouseEvent e) {
           int colorIndex = getColorIndexAtPosition(e.getX(), e.getY());
-          if (colorIndex >= 0 && colorIndex < myColorList.size()) {
+          if (colorIndex >= 0 && colorIndex < Math.min(myColorList.size(), MAX_COLOR)) {
             myListener.colorSelected(new WidgetCreator.ColorResourceHolder(myColorList.get(colorIndex), null));
           }
-          else if (colorIndex == myColorList.size()) {
+          else if (colorIndex == Math.min(myColorList.size(), MAX_COLOR)) {
             myListener.colorSelected(null);
           }
         }
@@ -298,7 +352,7 @@ public class ColorChooserForm {
      * return value shoudld be checked
      */
     private int getColorIndexAtPosition(int x, int y) {
-      return (x / USED_SPACE) + ((myColorList.size() + 1 * USED_SPACE) % getWidth()) * (y / USED_SPACE);
+      return (x / USED_SPACE) + (((myColorList.size() + 1) * USED_SPACE) % getWidth()) * (y / USED_SPACE);
     }
 
     /**
@@ -342,10 +396,14 @@ public class ColorChooserForm {
       for (int i = 0; i < myColorList.size() && i <= MAX_COLOR; i++) {
         g.setColor(myColorList.get(i));
         int width = getWidth();
-        g.fillRect(i * USED_SPACE % width, (i * USED_SPACE) / width, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
+        int x = i * USED_SPACE % width;
+        int y = (i * USED_SPACE) / width;
+        g.fillRect(x, y, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
+        g.setColor(JBColor.border());
+        g.drawRect(x, y, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
         if (i == myHoveredColor) {
-          g.setColor(JBColor.border());
-          g.drawRect(i * USED_SPACE % width, (i * USED_SPACE) / width, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
+          g.setColor(JBColor.border().darker());
+          g.drawRect(x, y, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
         }
       }
     }
@@ -354,9 +412,9 @@ public class ColorChooserForm {
      * Draw a rectangle to unselect the color
      */
     private void drawNoColorButton(@NotNull Graphics g) {
-      int i = myColorList.size();
+      int i = Math.min(MAX_COLOR, myColorList.size());
       int width = getWidth();
-      int x = i * USED_SPACE % width;
+      int x = (i * USED_SPACE) % width;
       int y = (i * USED_SPACE) / width;
       g.setColor(JBColor.foreground());
       g.fillRect(x, y, COLOR_ICON_SIZE, COLOR_ICON_SIZE);
