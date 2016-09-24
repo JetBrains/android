@@ -444,7 +444,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public void assertBuildsCleanly(@NotNull Project project, boolean allowWarnings, @NotNull String... extraArgs) throws Exception {
+  public static void assertBuildsCleanly(@NotNull Project project, boolean allowWarnings, @NotNull String... extraArgs) throws Exception {
     File base = virtualToIoFile(project.getBaseDir());
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
@@ -453,6 +453,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // TODO: Add in --no-daemon, anything to suppress total time?
     List<String> args = Lists.newArrayList();
     args.add(gradlew.getPath());
+    args.add("--offline"); // Unit tests should not download anything
     args.add("assembleDebug");
     Collections.addAll(args, extraArgs);
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
