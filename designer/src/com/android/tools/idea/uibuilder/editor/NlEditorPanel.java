@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
@@ -74,8 +75,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
-    MockupEditor mockupEditor = new MockupEditor(mySurface, model);
-    mySurface.setMockupEditor(mockupEditor);
 
     JPanel contentPanel = new JPanel(new BorderLayout());
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
@@ -85,7 +84,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // Hold the surface and MockupEditor
     AnimatedComponentSplitter surfaceMockupWrapper = new AnimatedComponentSplitter(false, true);
     surfaceMockupWrapper.setInnerComponent(contentPanel);
-    surfaceMockupWrapper.setLastComponent(mockupEditor);
+
+    if (Mockup.ENABLE_FEATURE) {
+      MockupEditor mockupEditor = new MockupEditor(mySurface, model);
+      mySurface.setMockupEditor(mockupEditor);
+      surfaceMockupWrapper.setLastComponent(mockupEditor);
+    }
+
     Disposer.register(editor, surfaceMockupWrapper);
 
     /**

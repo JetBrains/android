@@ -64,8 +64,8 @@ public class MockupViewPanel extends JPanel {
   private Mockup.MockupModelListener myMockupListener;
 
   private List<SelectionListener> mySelectionListeners = new ArrayList<>();
-  AffineTransform myImageTransform = new AffineTransform();
-  Point2D.Float myImageOffset = new Point2D.Float();
+  private final AffineTransform myImageTransform = new AffineTransform();
+  private final Point2D.Float myImageOffset = new Point2D.Float();
   private boolean myHqRendering = true;
 
   /**
@@ -99,17 +99,17 @@ public class MockupViewPanel extends JPanel {
    * @param mockupEditor
    */
   public MockupViewPanel(@NotNull MockupEditor mockupEditor) {
-    myMockupListener = this::updateDisplayedImage;
+    myMockupListener = (mockup1, changedFlags) -> updateDisplayedImage(mockup1);
     mockupEditor.addListener(this::update);
     setLayout(new MyLayoutManager());
     setBackground(BACKGROUND);
     setOpaque(true);
+    mySelectionLayer = new SelectionLayer(this, myImageTransform);
     Mockup mockup = mockupEditor.getMockup();
     if (mockup != null) {
       setMockup(mockup);
       updateDisplayedImage(mockup);
     }
-    mySelectionLayer = new SelectionLayer(this, myImageTransform);
 
     MyMouseInteraction mouseInteraction = new MyMouseInteraction();
     addMouseListener(mouseInteraction);
@@ -126,6 +126,7 @@ public class MockupViewPanel extends JPanel {
     resetState();
     setFocusable(true);
     requestFocusInWindow();
+
   }
 
   /**
@@ -187,8 +188,9 @@ public class MockupViewPanel extends JPanel {
     }
     myImage = mockup.getImage();
     if (myImage != null) {
-      myDisplayedImage = createDisplayedImage(myImage, mockup.getRealCropping());
+      myDisplayedImage = createDisplayedImage(myImage, mockup.getComputedCropping());
     }
+    updateSelectionLayerBounds();
     repaint();
   }
 
@@ -225,7 +227,8 @@ public class MockupViewPanel extends JPanel {
     if (myDisplayOnlyCroppedRegion != displayOnlyCroppedRegion) {
       myDisplayOnlyCroppedRegion = displayOnlyCroppedRegion;
       if (myImage != null && myMockup != null) {
-        myDisplayedImage = createDisplayedImage(myImage, myMockup.getRealCropping());
+        myDisplayedImage = createDisplayedImage(myImage, myMockup.getComputedCropping());
+        updateSelectionLayerBounds();
       }
       repaint();
     }
@@ -299,7 +302,7 @@ public class MockupViewPanel extends JPanel {
    * or if cropping bounds matches the image bounds. Otherwise it is the cropped region of the mockup
    *
    * @param image    Mockup's image {@link Mockup#getImage()}
-   * @param cropping Mockup cropping area : {@link Mockup#getRealCropping()}
+   * @param cropping Mockup cropping area : {@link Mockup#getComputedCropping()}
    * @return the scaled image
    */
   @Nullable
@@ -327,7 +330,7 @@ public class MockupViewPanel extends JPanel {
       mySelectionLayer.setSelection(0, 0, 0, 0);
       return;
     }
-    mySelectionLayer.setSelection(myMockup.getRealCropping());
+    mySelectionLayer.setSelection(myMockup.getComputedCropping());
   }
 
   /**
@@ -363,12 +366,14 @@ public class MockupViewPanel extends JPanel {
    * and notify the listener with the converted selection
    */
   private void notifySelectionEnded() {
+    //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < mySelectionListeners.size(); i++) {
       mySelectionListeners.get(i).selectionEnded(this, mySelectionLayer.getSelection());
     }
   }
 
   private void notifySelectionStarted(int x, int y) {
+    //noinspection ForLoopReplaceableByForEach
     for (int i = 0; i < mySelectionListeners.size(); i++) {
       mySelectionListeners.get(i).selectionStarted(this, x, y);
     }
@@ -431,12 +436,7 @@ public class MockupViewPanel extends JPanel {
      * @param e MouseEvent
      */
     private void toSelectionLayer(MouseEvent e) {
-      if (myDisplayedImage == null) {
-        mySelectionLayer.setBounds(0, 0, getWidth(), getHeight());
-      }
-      else {
-        mySelectionLayer.setBounds(0, 0, myDisplayedImage.getWidth(), myDisplayedImage.getHeight());
-      }
+      updateSelectionLayerBounds();
       mySelectionLayer.mousePressed(e);
     }
 
@@ -496,15 +496,22 @@ public class MockupViewPanel extends JPanel {
     }
   }
 
+  private void updateSelectionLayerBounds() {
+    if (myDisplayedImage == null) {
+      mySelectionLayer.setBounds(0, 0, getWidth(), getHeight());
+    }
+    else {
+      mySelectionLayer.setBounds(0, 0, myDisplayedImage.getWidth(), myDisplayedImage.getHeight());
+    }
+  }
+
   private static boolean isPanAction(MouseEvent e) {
     return SwingUtilities.isMiddleMouseButton(e)
            || isPanKey(e);
   }
 
   private static boolean isPanKey(InputEvent e) {
-    final int modifiers = e.getModifiers();
-    return (modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK
-           || (modifiers & InputEvent.CTRL_MASK) == InputEvent.CTRL_MASK;
+    return e.isControlDown();
   }
 
   /**
@@ -543,6 +550,7 @@ public class MockupViewPanel extends JPanel {
 
       int componentCount = parent.getComponentCount();
       int totalWidth = componentCount * H_GAP;
+      int totalHeight = 0;
 
       // Find total size of all components
       for (int i = 0; i < componentCount; i++) {
@@ -552,31 +560,49 @@ public class MockupViewPanel extends JPanel {
           preferredSize.setSize(component.getSize());
         }
         totalWidth += preferredSize.width;
+        totalHeight = max(preferredSize.height, totalHeight);
       }
 
       final int selectionWidth = (int)round(selection.width * myImageTransform.getScaleX());
+      final int selectionHeight = (int)round(selection.height * myImageTransform.getScaleY());
       float[] selectionOrigin = new float[]{selection.x, selection.y};
       myImageTransform.transform(selectionOrigin, 0, selectionOrigin, 0, 1);
 
       int selectionX = round(selectionOrigin[0]);
-      int selectionY = round(selectionOrigin[1]);
+      int y = round(selectionOrigin[1]);
 
       // Find fist x offset
       int x = selectionX + selectionWidth + H_GAP;
       if (x + totalWidth > getWidth()) {
+        // Tries to display everything to the right of the selection
         if (totalWidth < 0.9 * selectionWidth) {
           x = min(getWidth(), selectionX + selectionWidth) - H_GAP - totalWidth;
         }
         else {
+          // If it does not fit, tries to display at the left of the selection
           x = selectionX - totalWidth - H_GAP;
+          if (x < 0) x = 0; // Ensure it appears in the bounds
+
+          if (x + totalWidth > selectionX) {
+            // If the components cover the selection
+            // display above or under the selection depending on
+            // where there is the more space
+            if (y < getHeight() / 2) {
+              y += selectionHeight + H_GAP;
+            }
+            else {
+              y -= totalHeight + H_GAP;
+            }
+
+            // Clamp inside the bounds
+            x = max(0, ((selectionX + selectionWidth) - totalWidth) / 2);
+          }
         }
       }
-      if (x < 0) x = 0;
 
       for (int i = 0; i < componentCount; i++) {
         Component component = parent.getComponent(i);
         Dimension preferredSize = component.getPreferredSize();
-        int y = selectionY;
         if (y + preferredSize.height > getHeight()) {
           y -= y + preferredSize.height - getHeight();
         }

@@ -34,11 +34,12 @@ public final class WidgetCreatorFactory {
    * Creates a new WidgetCreator for the given View tagName.
    * If no {@link WidgetCreator} exists for the given tagName, returns a {@link SimpleViewCreator}
    * that will create a simple View tag
-   * @param tagName The tag of the view to create
-   * @param mockup The mockup to extract information from
-   * @param model The model to add the new component to
+   *
+   * @param tagName    The tag of the view to create
+   * @param mockup     The mockup to extract information from
+   * @param model      The model to add the new component to
    * @param screenView The current ScreenView where the Mockup is used
-   * @param selection The bounds of the selection on the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
+   * @param selection  The bounds of the selection on the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    * @return A {@link WidgetCreator} to create the view with tagName or default to a simple View
    */
   @NotNull
@@ -64,8 +65,11 @@ public final class WidgetCreatorFactory {
       case SdkConstants.ATTR_DRAWABLE:
         creator = new ExtractIconCreator(mockup, model, screenView, selection);
         break;
+      case SdkConstants.RECYCLER_VIEW:
+        creator = new RecyclerViewCreator(mockup, model, screenView, selection);
+        break;
       default:
-        creator = new ViewWithBackgroundCreator(mockup, model, screenView, selection);
+        creator = new AutoCompleteViewCreator(mockup, model, screenView, selection);
     }
     return creator;
   }

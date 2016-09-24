@@ -183,6 +183,7 @@ public abstract class WidgetCreator {
    *
    * @return
    */
+  @Nullable
   public NlComponent addToModel() {
     ensureNewComponentCreated();
     assert myComponent != null;
@@ -261,7 +262,7 @@ public abstract class WidgetCreator {
     if (newMockup == null) {
       return;
     }
-    final Rectangle cropping = myMockup.getRealCropping();
+    final Rectangle cropping = myMockup.getComputedCropping();
     newMockup.setCropping(cropping.x + bounds.x,
                           cropping.y + bounds.y,
                           bounds.width,

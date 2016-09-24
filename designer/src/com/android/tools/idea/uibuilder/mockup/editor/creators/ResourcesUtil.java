@@ -40,12 +40,45 @@ import static com.android.SdkConstants.FD_RES_DRAWABLE;
 import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
 
 /**
- *
+ * Utilities class to create resources
  */
 public final class ResourcesUtil {
 
   private static final Logger LOGGER = Logger.getInstance(ResourcesUtil.class);
 
+  /**
+   * Check if a drawable with the provided name and extension exist
+   * @param drawableName Name of the drawable without extension
+   * @param drawableType Extension of the drwable file
+   * @param facet Current facet
+   * @return true is the a drawable exists
+   */
+  public static boolean checkDrawableExist(@NotNull String drawableName,
+                                           @NotNull String drawableType,
+                                           @NotNull AndroidFacet facet) {
+    List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
+      ResourceFolderType.DRAWABLE,
+      VfsUtilCore.toVirtualFileArray(facet.getModuleResources(true).getResourceDirs()));
+
+    for (VirtualFile dir : drawableSubDirs) {
+      if (dir.findChild(String.format("%s.%s", drawableName, drawableType)) != null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Creates a new drawable in the first folder returned by {@link AndroidResourceUtil#getResourceSubdirs(ResourceFolderType, VirtualFile[])}
+   * @param drawableName The name of the drawable to create
+   * @param drawableType The extension of the drawable file
+   * @param doneCallback The callback to call when the creation is done
+   * @param model The model to retrieve the Facet and Project
+   * @param image The image to save as a drawable
+   * @param requestor The object requesting the creation of the drawable
+   * @return true if the drawable was created
+   */
   public static boolean createDrawable(@NotNull String drawableName,
                                        @NotNull String drawableType,
                                        @NotNull WidgetCreator.DoneCallback doneCallback,
@@ -66,7 +99,7 @@ public final class ResourcesUtil {
       // Check if the drawable folder already exist, create it otherwise
       Project project = model.getProject();
       if (!drawableSubDirs.isEmpty()) {
-        createDrawableFile(drawableName, drawableType, imageInByte, project, drawableSubDirs.get(0), doneCallback, requestor);
+        createDrawableFile(drawableName + "." + drawableType, imageInByte, project, drawableSubDirs.get(0), doneCallback, requestor);
       }
       else {
         createDrawableAndFolder(drawableName, drawableType, facet, imageInByte, project, doneCallback, requestor);
@@ -103,7 +136,7 @@ public final class ResourcesUtil {
     }
 
     // Extract selection from original image
-    final Rectangle realCropping = mockup.getRealCropping();
+    final Rectangle realCropping = mockup.getComputedCropping();
     BufferedImage subImage =
       image.getSubimage(selectionBounds.x + realCropping.x, selectionBounds.y + realCropping.y, selectionBounds.width,
                         selectionBounds.height);
@@ -157,7 +190,7 @@ public final class ResourcesUtil {
         project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
           try {
             VirtualFile drawableDir = createChildDirectoryIfNotExist(project, iterator.next(), FD_RES_DRAWABLE);
-            createDrawableFile(drawableName, drawableType, imageInByte, project, drawableDir, doneCallback, requestor);
+            createDrawableFile(drawableName + "." + drawableType, imageInByte, project, drawableDir, doneCallback, requestor);
           }
           catch (IOException e) {
             LOGGER.error(e);
@@ -172,14 +205,13 @@ public final class ResourcesUtil {
   /**
    * Create the image file in the drawable directory
    *
-   * @param drawableName The name of the drawable to create
+   * @param fileName     The name of the file and the extension
    * @param imageInByte  the byte representation of the image to create
    * @param project      the current project
    * @param doneCallback The callback to call one the image is created
    * @param requestor    Object requesting the drawable creation
    */
-  private static void createDrawableFile(@NotNull String drawableName,
-                                         @NotNull String drawableType,
+  private static void createDrawableFile(@NotNull String fileName,
                                          @NotNull byte[] imageInByte,
                                          @NotNull Project project,
                                          @NotNull VirtualFile drawableDir,
@@ -188,7 +220,7 @@ public final class ResourcesUtil {
     CommandProcessor.getInstance().executeCommand(
       project, () -> ApplicationManager.getApplication().runWriteAction(() -> {
         try {
-          final VirtualFile folder = drawableDir.createChildData(requestor, drawableName + "." + drawableType);
+          VirtualFile folder = drawableDir.createChildData(requestor, fileName);
           folder.setBinaryContent(imageInByte);
           doneCallback.done(WidgetCreator.DoneCallback.FINISH);
         }

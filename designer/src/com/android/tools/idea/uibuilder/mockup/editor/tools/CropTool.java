@@ -19,9 +19,9 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
+import com.android.tools.idea.uibuilder.mockup.editor.SelectionLayer;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -35,35 +35,26 @@ import java.awt.*;
  */
 public class CropTool extends JPanel implements MockupEditor.Tool {
 
-  private static final String TITLE = "Crop: ";
-  private final JBLabel myCropLabel = new JBLabel("0,0 0x0", SwingConstants.CENTER);
   private final MockupEditor myMockupEditor;
   @Nullable private Mockup myMockup;
   private final MockupViewPanel.SelectionListener mySelectionListener;
-  boolean myActive;
+  private boolean myActive;
   private MockupViewPanel myMockupViewPanel;
   private MatchComponentRatio myMatchComponentRatioAction;
 
+
   public CropTool(MockupEditor mockupEditor) {
-    super(new BorderLayout());
+    super(new FlowLayout(FlowLayout.RIGHT, 3, 1));
     myMockupEditor = mockupEditor;
     myMockupViewPanel = mockupEditor.getMockupViewPanel();
     myMockupEditor.addListener(this::update);
-    add(new JBLabel(TITLE), BorderLayout.WEST);
-    add(myCropLabel, BorderLayout.CENTER);
-    add(createCropButton(), BorderLayout.EAST);
+    add(createCropButton());
     update(mockupEditor.getMockup());
     mySelectionListener = new MySelectionListener();
   }
 
   private void update(@Nullable Mockup mockup) {
-    if (myMockup != null) {
-      myMockup.removeMockupListener(this::setCropLabel);
-    }
     myMockup = mockup;
-    if (myMockup != null) {
-      myMockup.addMockupListener(this::setCropLabel);
-    }
     setCropLabel(mockup);
   }
 
@@ -88,19 +79,14 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
   }
 
   /**
-   * Set the text of the crop label using the value of {@link Mockup#getRealCropping()}
+   * Set the text of the crop label using the value of {@link Mockup#getComputedCropping()}
    *
    * @param mockup
    */
   private void setCropLabel(@Nullable Mockup mockup) {
-    if(mockup == null) {
-      UIUtil.invokeLaterIfNeeded(() -> myCropLabel.setText(""));
-      return;
+    if (mockup != null) {
+      UIUtil.invokeLaterIfNeeded(() -> myMockupEditor.setSelectionText(mockup.getComputedCropping()));
     }
-    final Rectangle cropping = mockup.getRealCropping();
-    final String cropString = String.format("%d,%d %dx%d",
-                                            cropping.x, cropping.y, cropping.width, cropping.height);
-    UIUtil.invokeLaterIfNeeded(() -> myCropLabel.setText(cropString));
   }
 
   @Override
@@ -112,6 +98,17 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
     myMockupViewPanel.setSelectionToMockupCrop();
     setCropActionsEnabled(false);
     update(mockupEditor.getMockup());
+    mockupEditor.addBottomControls(createApplyButton());
+  }
+
+  @NotNull
+  private JComponent createApplyButton() {
+    JPanel panel = new JPanel();
+    JButton apply = new JButton("Finish Crop");
+    apply.addActionListener(e -> myMockupEditor.disableTool(this));
+    panel.add(new JLabel("<html>Select area to fit inside the selected component</html>"));
+    panel.add(apply);
+    return panel;
   }
 
   @Override
@@ -127,6 +124,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private void setCropActionsEnabled(boolean enabled) {
     myMatchComponentRatioAction.getTemplatePresentation().setEnabled(enabled);
+    myMatchComponentRatioAction.setSelected(null, false);
   }
 
   /**
@@ -159,18 +157,21 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private class MatchComponentRatio extends ToggleAction {
 
+    public static final String TITLE = "Match component ratio";
+
     public MatchComponentRatio() {
-      getTemplatePresentation().setIcon(AndroidIcons.Mockup.MatchWidget);
+      super(TITLE, TITLE, AndroidIcons.Mockup.MatchWidget);
     }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
+      super.update(e);
       e.getPresentation().setEnabled(myActive && myMockup != null);
     }
 
     @Override
     public boolean isSelected(AnActionEvent e) {
-      return myMockupViewPanel != null && myMockupViewPanel.getSelectionLayer().isFixedRatio();
+      return myActive && myMockupViewPanel != null && myMockupViewPanel.getSelectionLayer().isFixedRatio();
     }
 
     @Override
@@ -178,11 +179,13 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
       if (myMockup == null) {
         return;
       }
-      final NlComponent component = myMockup.getComponent();
-      myMockupViewPanel.getSelectionLayer().setFixedRatio(state);
+      NlComponent component = myMockup.getComponent();
+      SelectionLayer selectionLayer = myMockupViewPanel.getSelectionLayer();
+      selectionLayer.setFixedRatio(state);
       if (state) {
         // Set the aspect ratio of the current selection to the same as the component
-        myMockupViewPanel.getSelectionLayer().setAspectRatio(component.w, component.h);
+        selectionLayer.setAspectRatio(component.w, component.h);
+        saveSelectionToMockup(selectionLayer.getSelection(), myMockup);
       }
     }
   }

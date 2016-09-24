@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -31,9 +30,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
- * Create a new FloatingActionButton with the right color
+ * Creator that displays a popup with a Auto completion field to choose the tag name of the created view
+ * and extract a background color
  */
-public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
+public class AutoCompleteViewCreator extends ViewWithBackgroundCreator {
+  private String myViewTag = SdkConstants.VIEW;
 
   /**
    * Create a simple {@value SdkConstants#VIEW} tag
@@ -45,17 +46,11 @@ public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
    *                   Used to convert the size of component from the mockup to the Android coordinates.
    * @param selection  The selection made in the {@link MockupEditor}
    */
-  public FloatingActionButtonCreator(@NotNull Mockup mockup,
-                                     @NotNull NlModel model,
-                                     @NotNull ScreenView screenView,
-                                     @NotNull Rectangle selection) {
+  public AutoCompleteViewCreator(@NotNull Mockup mockup,
+                                 @NotNull NlModel model,
+                                 @NotNull ScreenView screenView,
+                                 @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
-  }
-
-  @NotNull
-  @Override
-  public String getAndroidViewTag() {
-    return SdkConstants.FLOATING_ACTION_BUTTON;
   }
 
   @Override
@@ -66,31 +61,22 @@ public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
   @Nullable
   @Override
   public JComponent getOptionsComponent(@NotNull DoneCallback doneCallback) {
-    ViewAndColorForm viewAndColorForm =
-      new ViewAndColorForm("Set color as background tint", createColorSelectedListener(doneCallback));
+    ViewAndColorForm autoCompleteForm = new ViewAndColorForm(
+      "Create a new view", createColorSelectedListener(doneCallback), getModel().getFacet());
     final BufferedImage image = getMockup().getImage();
     if (image == null) {
       return null;
     }
-    extractColor(viewAndColorForm, image);
-    return viewAndColorForm.getComponent();
+    extractColor(autoCompleteForm, image);
+    autoCompleteForm.setAddListener(e -> {
+      myViewTag = autoCompleteForm.getTagName();
+    });
+    return autoCompleteForm.getComponent();
   }
 
+  @NotNull
   @Override
-  protected void addAttributes(@NotNull AttributesTransaction transaction) {
-    super.addAttributes(transaction);
-    if (myColor != null && myColor.value != null) {
-      if (myColor.name != null && !myColor.name.isEmpty()) {
-        // If the color has a name, it has already been saved as a resource, so reference this resource
-        // in the attribute
-        transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_BACKGROUND_TINT,
-                                 SdkConstants.COLOR_RESOURCE_PREFIX + myColor.name);
-      }
-      else {
-        // Else set the raw value of the color
-        transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_BACKGROUND_TINT,
-                                 String.format("#%06X", myColor.value.getRGB()));
-      }
-    }
+  public String getAndroidViewTag() {
+    return myViewTag;
   }
 }
