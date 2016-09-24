@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,32 @@ public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<J
   public BuildSignedApkDialogGradleStepFixture apkDestinationFolder(@NotNull String folder) {
     JTextField textField = robot().finder().findByLabel("APK Destination Folder:", TextFieldWithBrowseButton.class).getTextField();
     new JTextComponentFixture(robot(), textField).deleteText().enterText(folder);
+    return this;
+  }
+
+  @NotNull
+  public BuildSignedApkDialogGradleStepFixture setV1SignatureEnabled(boolean enabled) {
+    JCheckBox v1CheckBox = (JCheckBox) robot().finder()
+      .find(c -> c instanceof JCheckBox && "V1 (Jar Signature)".equals(((JCheckBox) c).getText()));
+    if (enabled) {
+      new JCheckBoxFixture(robot(), v1CheckBox).select();
+    } else {
+      new JCheckBoxFixture(robot(), v1CheckBox).deselect();
+    }
+
+    return this;
+  }
+
+  @NotNull
+  public BuildSignedApkDialogGradleStepFixture setV2SignatureEnabled(boolean enabled) {
+    JCheckBox v2CheckBox = (JCheckBox) robot().finder()
+      .find(c -> c instanceof JCheckBox && "V2 (Full APK Signature)".equals(((JCheckBox) c).getText()));
+    if (enabled) {
+      new JCheckBoxFixture(robot(), v2CheckBox).select();
+    } else {
+      new JCheckBoxFixture(robot(), v2CheckBox).deselect();
+    }
+
     return this;
   }
 
