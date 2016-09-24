@@ -69,9 +69,6 @@ final class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
 
-    // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
-
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     if (refreshExternalNativeModels != null) {
       myProject.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);

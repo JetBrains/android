@@ -25,9 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
@@ -56,7 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -85,7 +82,6 @@ import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -96,7 +92,6 @@ import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -121,58 +116,6 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  public static boolean updateGradleVersion(@NotNull Project project, @NotNull GradleVersion gradleVersion) throws IOException {
-    // The project is using a version of Gradle with security issue. Prompt user to upgrade.
-    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
-    if (gradleSettings != null) {
-      DistributionType distributionType = gradleSettings.getDistributionType();
-
-      if (distributionType == DEFAULT_WRAPPED) {
-        GradleWrapper gradleWrapper = GradleWrapper.find(project);
-        if (gradleWrapper != null) {
-          return gradleWrapper.updateDistributionUrlAndDisplayFailure(gradleVersion.toString());
-        }
-      }
-      else if (distributionType == LOCAL) {
-        String title = "Update Gradle Version";
-
-        String msg = "Would you like the project to use the Gradle wrapper?\n" +
-                     "(The wrapper will automatically download version " + gradleVersion.toString() + ").\n\n" +
-                     "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-        int answer = showOkCancelDialog(project, msg, title, getQuestionIcon());
-        if (answer == Messages.OK) {
-          // Create wrapper.
-          return createGradleWrapper(project, gradleVersion.toString(), gradleSettings);
-        }
-        ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(title, gradleVersion.toString());
-        if (dialog.showAndGet()) {
-          String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
-          gradleSettings.setGradleHome(enteredGradleHomePath);
-          gradleSettings.setDistributionType(LOCAL);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean createGradleWrapper(@NotNull Project project,
-                                             @NotNull String gradleVersion,
-                                             @NotNull GradleProjectSettings gradleSettings) throws IOException {
-    File projectDirPath = getBaseDirPath(project);
-
-    // attempt to delete the whole gradle wrapper folder.
-    File gradleDirPath = new File(projectDirPath, FD_GRADLE);
-    if (!delete(gradleDirPath)) {
-      // deletion failed. Let sync continue.
-      return false;
-    }
-
-    createGradleWrapper(projectDirPath, gradleVersion);
-    gradleSettings.setDistributionType(DEFAULT_WRAPPED);
-    return true;
-  }
-
   @NotNull
   public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
     try {
@@ -189,20 +132,7 @@ public final class GradleUtil {
 
   @NotNull
   public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
-    if (modelVersion != null && androidModelSupportsDependencyGraph(modelVersion)) {
-      return artifact.getCompileDependencies();
-    }
-    //noinspection deprecation
     return artifact.getDependencies();
-  }
-
-  public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
-    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
-    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
-  }
-
-  public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
   public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
@@ -554,44 +484,6 @@ public final class GradleUtil {
     else {
       return false;
     }
-  }
-
-  /**
-   * Creates the Gradle wrapper in the project at the given directory.
-   *
-   * @param projectDirPath the project's root directory.
-   * @param gradleVersion  the version of Gradle to use.
-   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
-   * not created (e.g. the template files for the wrapper were not found.)
-   * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
-   */
-  @VisibleForTesting
-  static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
-    if (!projectWrapperDirPath.isDirectory()) {
-      File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-      if (!wrapperSrcDirPath.exists()) {
-        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-          wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
-          if (wrapperSrcDirPath.exists()) {
-            break;
-          }
-          else {
-            wrapperSrcDirPath = null;
-          }
-        }
-      }
-      if (wrapperSrcDirPath == null) {
-        return false;
-      }
-      copyDirContent(wrapperSrcDirPath, projectDirPath);
-    }
-
-    File wrapperPropertiesFile = GradleWrapper.getDefaultPropertiesFilePath(projectDirPath);
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFile);
-    gradleWrapper.updateDistributionUrl(gradleVersion);
-    return true;
   }
 
   /**
