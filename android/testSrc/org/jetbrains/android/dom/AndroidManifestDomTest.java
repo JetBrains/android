@@ -9,7 +9,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.dom.legacy.AndroidDomTestCase;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,12 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
   public AndroidManifestDomTest() {
-    super(false, "dom/manifest");
+    super("dom/manifest");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -29,11 +33,11 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
-    doTestCompletionVariants("an1.xml", "android:icon", "android:label", "android:priority", "android:logo", "replace");
+    doTestCompletionVariantsContains("an1.xml", "android:icon", "android:label", "android:priority", "android:logo", "replace");
   }
 
   public void testAttributeNameCompletion2() throws Throwable {
-    doTestCompletionVariants("an2.xml", "debuggable", "description", "hasCode", "vmSafeMode");
+    doTestCompletionVariantsContains("an2.xml", "debuggable", "description", "hasCode", "vmSafeMode");
   }
 
   public void testAttributeNameCompletion3() throws Throwable {
@@ -177,21 +181,21 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion2() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion3() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion4() throws Throwable {
@@ -199,7 +203,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion5() throws Throwable {
@@ -207,7 +211,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionDoc() throws Throwable {
@@ -252,7 +256,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testIntentActionCompletion3() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml");
+    toTestFirstCompletion("IntentActionCompletion3.xml", "IntentActionCompletion3_after.xml");
   }
 
   // Regression test for http://b.android.com/154004
@@ -340,7 +344,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testIntentsCompletion1() throws Throwable {
-    doTestCompletion();
+    toTestFirstCompletion("intentsCompletion1.xml", "intentsCompletion1_after.xml");
   }
 
   public void testIntentsCompletion2() throws Throwable {
