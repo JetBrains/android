@@ -1402,7 +1402,7 @@ public class RenderErrorModelFactory {
 
     brokenClasses.values().stream()
       .filter(Objects::nonNull)
-      .filter(t -> t.getMessage().startsWith("You need to use a Theme.AppCompat"))
+      .filter(t -> t.getMessage() != null && t.getMessage().startsWith("You need to use a Theme.AppCompat"))
       .findAny()
       .ifPresent(t -> {
         addIssue()
