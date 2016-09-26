@@ -25,12 +25,8 @@ android {
   }
 }
 
-repositories {
-  mavenCentral()
-}
-
 dependencies {
   testCompile 'junit:junit:4.12'
-  androidTestCompile 'com.google.code.gson:gson:2.4'
+  androidTestCompile 'com.google.code.gson:gson:2.3'
   androidTestCompile project(':module3')
 }
