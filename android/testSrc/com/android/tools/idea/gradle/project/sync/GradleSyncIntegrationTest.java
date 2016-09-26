@@ -17,12 +17,17 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -33,11 +38,13 @@ import java.util.Collections;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 /**
@@ -102,6 +109,18 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     createEmptyGradleSettingsFile();
     // Sync should be successful for single-module projects with an empty settings.gradle file.
     requestSyncAndWait();
+  }
+
+  public void testModuleJavaLanguageLevel() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module library1Module = myModules.getModule("library1");
+    LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
+    assertEquals(JDK_1_7, javaLanguageLevel);
+  }
+
+  @Nullable
+  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
+    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
   private void createEmptyGradleSettingsFile() throws IOException {

@@ -1027,21 +1027,6 @@ public class GradleSyncTest {
     assertNull(AndroidFacet.getInstance(appModule));
   }
 
-  @Ignore("http://ag/1460601")
-  @Test
-  public void withModuleLanguageLevel() throws IOException {
-    guiTest.importMultiModule();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    Module library = ideFrame.getModule("library");
-    Module library2 = ideFrame.getModule("library2");
-    Module app = ideFrame.getModule("app");
-
-    assertEquals(JDK_1_6, getJavaLanguageLevel(library));
-    assertEquals(JDK_1_5, getJavaLanguageLevel(library2));
-    assertEquals(JDK_1_7, getJavaLanguageLevel(app));
-  }
-
   @Test
   public void withModuleLanguageLevelEqualTo8() throws IOException {
     Sdk jdk = IdeSdks.getInstance().getJdk();
