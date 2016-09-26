@@ -175,8 +175,9 @@ iml_module(
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
     ],
-    test_timeout = "long",
     test_class = "com.android.tools.idea.IdeaTestSuite",
+    test_shard_count = 2,
+    test_timeout = "long",
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
