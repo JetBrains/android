@@ -27,8 +27,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +62,12 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
       return;
     }
 
+    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+    LanguageLevel languageLevel = androidModel.getJavaLanguageLevel();
+    if (languageLevel != null) {
+      moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+    }
+
     AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
     Sdk sdk = findSuitableAndroidSdk(compileTarget);
@@ -77,7 +85,6 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
       return;
     }
 
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
     moduleModel.setSdk(sdk);
     String sdkPath = sdk.getHomePath();
     if (sdkPath == null) {
