@@ -58,7 +58,7 @@ public class SyncMessagesStub extends SyncMessages {
   }
 
   @Nullable
-  public NotificationData getReportedNotification() {
+  public NotificationData getNotification() {
     return myNotification;
   }
 }
