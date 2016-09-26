@@ -24,7 +24,7 @@ import com.android.tools.idea.lint.AddTargetVersionCheckQuickFix;
 import com.android.tools.idea.lint.LintIdeJavaParser;
 import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.client.api.JavaEvaluator;
@@ -952,7 +952,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       Project project = methodCall.getProject();
       final AndroidFacet facet = AndroidFacet.getInstance(methodCall);
       assert facet != null; // already checked early on in the inspection visitor
-      PermissionHolder lookup = DeclaredPermissionsLookup.getPermissionHolder(facet.getModule());
+      PermissionHolder lookup = MergedManifest.get(facet.getModule()).getPermissionHolder();
       if (!requirement.isSatisfied(lookup)) {
         // See if it looks like we're holding the permission implicitly by @RequirePermission
         // annotations in the surrounding context
@@ -1154,7 +1154,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
         CodeStyleManager.getInstance(project).reformat(permissionTag);
 
-        DeclaredPermissionsLookup.getInstance(project).reset();
         FileDocumentManager.getInstance().saveAllDocuments();
         PsiFile containingFile = permissionTag.getContainingFile();
         // No edits were made to the current document, so trigger a rescan to ensure

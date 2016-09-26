@@ -57,10 +57,6 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.model.DeclaredPermissionsLookup</implementation-class>
-      <skipForDefaultProject/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
       <skipForDefaultProject/>
     </component>
