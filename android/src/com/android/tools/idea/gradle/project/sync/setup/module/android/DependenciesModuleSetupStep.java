@@ -101,6 +101,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setScope(dependency.getScope());
+      orderEntry.setExported(true);
 
       if (compiledArtifact != null) {
         setModuleCompiledArtifact(moduleDependency, compiledArtifact);

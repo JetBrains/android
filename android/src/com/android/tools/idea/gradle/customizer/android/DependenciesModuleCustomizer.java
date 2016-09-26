@@ -101,6 +101,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setScope(dependency.getScope());
+      orderEntry.setExported(true);
 
       if (compiledArtifact != null) {
         setModuleCompiledArtifact(moduleDependency, compiledArtifact);

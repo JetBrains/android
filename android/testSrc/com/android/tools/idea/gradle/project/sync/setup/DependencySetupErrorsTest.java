@@ -23,6 +23,9 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
+/**
+ * Tests for {@link DependencySetupErrors}.
+ */
 public class DependencySetupErrorsTest {
   private DependencySetupErrors myErrors;
 
