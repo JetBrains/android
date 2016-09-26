@@ -150,6 +150,13 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintFirebaseMessagingMissingTokenRefreshInspection extends AndroidLintInspectionBase {
+    public AndroidLintFirebaseMessagingMissingTokenRefreshInspection() {
+      super(AndroidBundle.message("android.lint.inspections.firebase.messaging.missing.token.refresh"),
+            FirebaseMessagingDetector.MISSING_TOKEN_REFRESH);
+    }
+  }
+
   public static class AndroidLintFloatMathInspection extends AndroidLintInspectionBase {
     public AndroidLintFloatMathInspection() {
       super(AndroidBundle.message("android.lint.inspections.float.math"), MathDetector.ISSUE);
