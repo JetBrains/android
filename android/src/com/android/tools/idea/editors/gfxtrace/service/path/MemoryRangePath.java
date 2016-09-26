@@ -26,7 +26,7 @@ import java.io.IOException;
 public final class MemoryRangePath extends Path {
   @Override
   public String getSegmentString() {
-    return "MemoryRange<" + myPool + ">[" + Long.toHexString(myAddress) + ':' + Long.toHexString(getEndAddress()) + ']';
+    return "MemoryRange<" + myPool + ">[" + Long.toHexString(myAddress) + (getSize() == 0 ? "" : ':' + Long.toHexString(getEndAddress())) + ']';
   }
 
   @Override
