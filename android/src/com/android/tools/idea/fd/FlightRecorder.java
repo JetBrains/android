@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.run.AndroidDevice;
 import com.android.utils.FileUtils;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -36,6 +40,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,6 +86,41 @@ public class FlightRecorder {
 
     ApplicationManager.getApplication().executeOnPooledThread(
       new BuildInfoRecorderTask(myBasePath, myTimestamp, instantRunBuildInfo));
+  }
+
+  public void saveTargetDeviceInfo(@NotNull AndroidDevice device) {
+    try {
+      Path deviceLog = myBasePath.resolve(timeStampToFolder(myTimestamp)).resolve(getDeviceLogFileName(device));
+      Files.write(deviceLog, new byte[0]);
+    }
+    catch (IOException e) {
+      Logger.getInstance(FlightRecorder.class).info("Unable to record deployment device info", e);
+    }
+  }
+
+  // We need very little detail about the device itself, so we can encode it directly in the file name
+  private static String getDeviceLogFileName(@NotNull AndroidDevice device) {
+    // for avds, everything we need is already included in idea.log
+    if (device.isVirtual()) {
+      return "TARGET-AVD";
+    }
+
+    ListenableFuture<IDevice> launchedDevice = device.getLaunchedDevice();
+    if (!launchedDevice.isDone()) {
+      return "OFFLINE";
+    }
+
+    IDevice d;
+    try {
+      d = launchedDevice.get();
+    }
+    catch (InterruptedException | ExecutionException e) {
+      return "OFFLINE";
+    }
+
+    return DevicePropertyUtil.getManufacturer(d, "unknown").replace(' ', '.') +
+           '-' +
+           DevicePropertyUtil.getModel(d, "unknown").replace(' ', '.');
   }
 
   @NotNull
