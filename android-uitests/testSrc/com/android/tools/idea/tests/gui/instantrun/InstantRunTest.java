@@ -150,6 +150,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
+  @Ignore("hangs entire suite in continuous build a few times per day")
   @Category(GuiSanityTestSuite.class)
   @Test
   public void coldSwap() throws Exception {
