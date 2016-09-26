@@ -1,15 +1,11 @@
 buildscript {
   repositories {
-    maven { url '../../../../../../../../prebuilts/tools/common/offline-m2' }
-    maven { url '../../../../../../../../prebuilts/tools/common/m2/repository/' }
-   }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:+'
+    jcenter()
+    if (System.getenv("MAVEN_URL") != null) {
+      maven {url System.getenv("MAVEN_URL")}
+    }
   }
-}
-
-subprojects {
-  repositories {
-    maven { url '../../../../../../../../../prebuilts/tools/common/m2/repository/' }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.12.+'
   }
 }
