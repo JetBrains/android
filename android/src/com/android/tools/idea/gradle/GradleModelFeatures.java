@@ -19,12 +19,9 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsDependencyGraph;
-
 public class GradleModelFeatures {
   @Nullable private final GradleVersion myModelVersion;
 
-  private boolean myDependencyGraphSupported;
   private boolean myIssueReportingSupported;
   private boolean myShadersSupported;
   private boolean myTestedTargetVariantsSupported;
@@ -34,7 +31,6 @@ public class GradleModelFeatures {
 
   GradleModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
-    myDependencyGraphSupported = myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");
     myShadersSupported = modelVersionIsAtLeast("2.1.0");
     myConstraintLayoutSdkLocationSupported = myModelVersion != null && myModelVersion.compareTo("2.1.0") > 0;
@@ -43,10 +39,6 @@ public class GradleModelFeatures {
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
-  }
-
-  public boolean isDependencyGraphSupported() {
-    return myDependencyGraphSupported;
   }
 
   public boolean isIssueReportingSupported() {
