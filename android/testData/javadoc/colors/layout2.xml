@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-  <TextView android:textColor="@android:color/secondary_text_material_dar<caret>k"/>
+  <TextView android:textColor="@android:color/my_whit<caret>e"/>
 </LinearLayout>
