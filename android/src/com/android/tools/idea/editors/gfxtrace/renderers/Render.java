@@ -171,7 +171,14 @@ public final class Render {
   public static void render(@NotNull ReportController.Group group,
                             @NotNull SimpleColoredComponent component) {
     render(group.getName(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-    render(" " + group.getChildCount(), component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+    int actualCount = group.getDelegateChildCount();
+    int displayedCount = group.getChildCount();
+    if (actualCount != displayedCount) {
+      render(" " + actualCount + " (showing " + displayedCount + ")", component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+    }
+    else {
+      render(" " + displayedCount, component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+    }
   }
 
   public static void render(@NotNull ReportController.Node node,
