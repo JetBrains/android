@@ -22,4 +22,6 @@ public enum TestGroup {
   TEST_SUPPORT,
   THEME,
   EDITING,
+  /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
+  DEFAULT,
 }
