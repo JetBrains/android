@@ -111,6 +111,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
@@ -274,6 +275,14 @@ public class PostProjectSetupTasksExecutor {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     disposeModulesMarkedForRemoval();
+
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.isAppProject()) {
+        createRunConfigurations(facet);
+      }
+    }
   }
 
   private void reset() {
