@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -25,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -83,7 +81,7 @@ public class GradleBuildTest {
    * <p>
    * This test does not try and run the project.
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void compileWithJack() throws IOException {
     GradleInvocationResult buildResult = guiTest.importProjectAndWaitForProjectSyncToFinish("JackAndJillApp")

@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -26,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.*;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -87,7 +85,7 @@ public class LayoutInspectorTest {
    */
   @Ignore("http://b/30795134")
   @Test
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   public void launchLayoutInspector() throws Exception {
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
     guiTest.ideFrame()

@@ -16,20 +16,19 @@
 package com.android.tools.idea.tests.gui.gradle.flavors;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
-
 import org.fest.swing.util.PatternTextMatcher;
 import org.fest.swing.util.StringTextMatcher;
 import org.junit.*;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
@@ -102,7 +101,7 @@ public class FlavorsExecutionTest {
    * </pre>
    */
   @Ignore("http://b/30795134")
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void runBuildFlavors() throws Exception {
     guiTest.ideFrame()

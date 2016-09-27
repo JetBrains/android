@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
@@ -23,7 +22,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -112,7 +110,7 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created.
    * </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
@@ -141,7 +139,7 @@ public class NewModuleTest {
    *   a new folder matching the module name should have been created
    * </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()

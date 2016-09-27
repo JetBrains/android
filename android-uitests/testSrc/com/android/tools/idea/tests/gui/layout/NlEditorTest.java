@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
@@ -72,7 +72,7 @@ public class NlEditorTest {
    *   1. The added component shows up in the xml
    * </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void basicLayoutEdit() throws Exception {
     guiTest.importSimpleApplication()
