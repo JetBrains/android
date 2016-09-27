@@ -110,6 +110,11 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -122,6 +127,11 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
