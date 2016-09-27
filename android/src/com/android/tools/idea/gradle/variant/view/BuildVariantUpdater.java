@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
