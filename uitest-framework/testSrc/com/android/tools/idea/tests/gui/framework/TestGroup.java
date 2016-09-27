@@ -19,6 +19,7 @@ public enum TestGroup {
   PROJECT_SUPPORT,
   THEME,
   EDITING,
+  QA,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT,
 }

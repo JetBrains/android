@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -35,7 +36,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class LaunchAndroidApplicationTest {
   }
 
   @Ignore("http://b/30795134")
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     guiTest.importSimpleApplication();
@@ -137,7 +137,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    */
   @Ignore("http://b/30795134")
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
     WelcomeFrameFixture welcomeFrame =  WelcomeFrameFixture.find(guiTest.robot());
