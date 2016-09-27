@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
@@ -135,14 +134,10 @@ public class GuiTestSuiteRunner extends Suite {
     return false;
   }
 
-  @Nullable
+  @NotNull
   public static TestGroup getTestGroup(@NotNull Class<?> suiteClass) {
-    for (Annotation annotation : suiteClass.getAnnotations()) {
-      if (annotation instanceof RunIn) {
-        return ((RunIn)annotation).value();
-      }
-    }
-    return null;
+    RunIn runIn = suiteClass.getAnnotation(RunIn.class);
+    return (runIn != null) ? runIn.value() : TestGroup.DEFAULT;
   }
 
   @Override
