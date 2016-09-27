@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
@@ -36,7 +34,6 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * UI tests for {@link NlEditor}
  */
-@RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
 public class NlEditorTest {
 
