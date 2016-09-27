@@ -17,8 +17,11 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
@@ -40,6 +43,12 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}, limited by {@link IncludeTestGroups} if present. */
 public class GuiTestSuiteRunner extends Suite {
+
+  /** The name of a property specifying a {@link TestGroup} to run. If unspecified, all tests are run regardless of group. */
+  private static final String TEST_GROUP_PROPERTY_NAME = "ui.test.group";
+
+  /** @deprecated Use {@link GuiTestSuiteRunner#TEST_GROUP_PROPERTY_NAME} instead. */
+  @Deprecated
   @Retention(RetentionPolicy.RUNTIME)
   public @interface IncludeTestGroups {
     TestGroup[] value();
@@ -49,6 +58,14 @@ public class GuiTestSuiteRunner extends Suite {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
     setScheduler(IDE_DISPOSER);
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
+    try {
+      String testGroupProperty = System.getProperty(TEST_GROUP_PROPERTY_NAME);
+      if (testGroupProperty != null) {
+        filter(new TestGroupFilter(TestGroup.valueOf(testGroupProperty)));
+      }
+    } catch (NoTestsRemainException e) {
+      throw new InitializationError(e);
+    }
   }
 
   @NotNull
@@ -132,6 +149,25 @@ public class GuiTestSuiteRunner extends Suite {
       return true;
     }
     return false;
+  }
+
+  private static class TestGroupFilter extends Filter {
+    @NotNull final TestGroup testGroup;
+
+    TestGroupFilter(@NotNull TestGroup testGroup) {
+      this.testGroup = testGroup;
+    }
+
+    @Override
+    public boolean shouldRun(Description description) {
+      return (description.isTest() && getTestGroup(description.getTestClass()) == testGroup)
+        || description.getChildren().stream().anyMatch(this::shouldRun);
+    }
+
+    @Override
+    public String describe() {
+      return TestGroupFilter.class.getSimpleName() + " for " + testGroup;
+    }
   }
 
   @NotNull

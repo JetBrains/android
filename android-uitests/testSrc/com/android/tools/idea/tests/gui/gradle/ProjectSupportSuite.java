@@ -20,6 +20,8 @@ import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 
+/** @deprecated Use {@link GuiTestSuiteRunner#TEST_GROUP_PROPERTY_NAME} instead. */
+@Deprecated
 @RunWith(GuiTestSuiteRunner.class)
 @GuiTestSuiteRunner.IncludeTestGroups({PROJECT_SUPPORT})
 public class ProjectSupportSuite {
