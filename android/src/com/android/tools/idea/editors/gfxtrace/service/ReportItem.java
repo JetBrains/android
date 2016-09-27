@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos.Severity;
@@ -26,6 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class ReportItem implements BinaryObject {
+  public boolean isAtLeast(LogProtos.Severity severity) {
+    // LogProtos.Severity enum increases from Emergency to Debug
+    return severity.compareTo(getSeverity()) >= 0;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Severity mySeverity;
   private MsgRef myMessage;
