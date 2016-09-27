@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -26,10 +25,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -41,17 +39,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,14 +60,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXT
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
-import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.sort;
 
 /**
@@ -129,14 +114,12 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     }
   }
 
-  private void doImport(@NotNull final Collection<DataNode<AndroidGradleModel>> toImport,
-                        @NotNull final Project project,
-                        @NotNull final IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
+                        @NotNull Project project,
+                        @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
-        LanguageLevel javaLangVersion = JDK_1_8;
-
         SyncMessages messages = SyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
 
@@ -211,26 +194,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
           messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
         }
 
-        Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
-
-        if (jdk == null || (!isAndroidStudio() && !isApplicableJdk(jdk, javaLangVersion))) {
-          jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
-        }
-        if (jdk == null) {
-          String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-          String msg = String.format("Unable to find a JDK %1$s installed.\n", javaLangVersion.getPresentableText());
-          msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
-          NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, PROJECT_SYNC);
-          ExternalSystemNotificationManager.getInstance(project).showNotification(GRADLE_SYSTEM_ID, notification);
-        }
-        else {
-          String homePath = jdk.getHomePath();
-          if (homePath != null) {
-            applyJdkToProject(project, jdk);
-            homePath = toSystemDependentName(homePath);
-            IdeSdks.getInstance().setJdkPath(new File(homePath));
-            PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
-          }
+        for (PostSyncProjectSetupStep projectSetupStep : PostSyncProjectSetupStep.getExtensions()) {
+          projectSetupStep.setUpProject(project, modelsProvider, null);
         }
       }
     }.execute();

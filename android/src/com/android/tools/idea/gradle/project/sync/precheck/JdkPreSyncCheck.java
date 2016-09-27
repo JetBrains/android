@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
-import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
@@ -60,7 +60,7 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
       return false;
     }
     String jdkHomePath = jdk.getHomePath();
-    return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && isApplicableJdk(jdk, JDK_1_8);
+    return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && Jdks.getInstance().isApplicableJdk(jdk, JDK_1_8);
   }
 
 }

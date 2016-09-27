@@ -20,7 +20,6 @@ import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.pico.DefaultPicoContainer;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 import org.picocontainer.ComponentAdapter;
 
 import static org.junit.Assert.assertSame;
@@ -40,7 +39,8 @@ public final class IdeComponents {
     doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance);
   }
 
-  public static <T> T replaceService(@NotNull Project project, @NotNull Class<T> serviceType) {
+  @NotNull
+  public static <T> T replaceServiceWithMock(@NotNull Project project, @NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
     replaceService(project, serviceType, mock);
     return mock;

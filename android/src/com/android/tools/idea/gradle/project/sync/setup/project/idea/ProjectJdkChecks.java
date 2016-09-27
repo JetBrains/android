@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
@@ -47,7 +48,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 
 final class ProjectJdkChecks {
   private ProjectJdkChecks() {
@@ -68,7 +68,7 @@ final class ProjectJdkChecks {
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
     if (version != null && version.getFeatureLevel() >= 21) {
       Sdk jdk = IdeSdks.getInstance().getJdk();
-      if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
+      if (jdk != null && !Jdks.getInstance().isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 
         List<NotificationHyperlink> quickFixes = Lists.newArrayList(getJdkQuickFixes(project));
