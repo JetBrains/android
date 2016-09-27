@@ -880,7 +880,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.project.PostProjectSetupTasksExecutor"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors"/>
@@ -1055,13 +1055,15 @@
     <extensionPoint name="mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.npw.NewModuleDynamicPathFactory"/>
-    <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
-    <extensionPoint qualifiedName="com.android.gradle.androidModuleSetupStep"
+
+    <extensionPoint qualifiedName="com.android.gradle.sync.androidModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.cppModuleSetupStep"
+    <extensionPoint qualifiedName="com.android.gradle.sync.cppModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.javaModuleSetupStep"
+    <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
+
+    <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"
@@ -1117,6 +1119,21 @@
         implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.gradle.sync">
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.RunConfigurationModuleSetupStep"/>
+
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootModuleSetupStep"/>
+
+    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
+    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.gradle">
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
@@ -1148,19 +1165,6 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GenericErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkLocationNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.NdkIntegrationDeprecatedErrorHandler"/>
-
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.RunConfigurationModuleSetupStep"/>
-
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootModuleSetupStep"/>
-
-    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
-    <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">

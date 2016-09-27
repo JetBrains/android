@@ -20,8 +20,8 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class CppModuleSetupStep extends ModuleSetupStep<NativeAndroidGradleModel> {
-  public static final ExtensionPointName<CppModuleSetupStep>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.cppModuleSetupStep");
+  private static final ExtensionPointName<CppModuleSetupStep>
+    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.cppModuleSetupStep");
 
   @NotNull
   public static CppModuleSetupStep[] getExtensions() {

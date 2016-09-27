@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project;
+package com.android.tools.idea.gradle.project.sync.setup.project.idea;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -105,8 +105,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAI
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
-import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectDiagnostics.findAndReportStructureIssues;
-import static com.android.tools.idea.gradle.project.sync.setup.project.ProjectJdkChecks.hasCorrectJdkVersion;
+import static com.android.tools.idea.gradle.project.sync.setup.project.idea.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -175,11 +174,11 @@ public class PostProjectSetupTasksExecutor {
     SyncMessages.getInstance(myProject).reportDependencySetupErrors();
     VersionCompatibilityChecker.getInstance().checkAndReportComponentIncompatibilities(myProject);
 
-    findAndReportStructureIssues(myProject);
+    ProjectDiagnostics.findAndReportStructureIssues(myProject);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      if (!hasCorrectJdkVersion(module)) {
+      if (!ProjectJdkChecks.hasCorrectJdkVersion(module)) {
         // we already displayed the error, no need to check each module.
         break;
       }
@@ -638,7 +637,7 @@ public class PostProjectSetupTasksExecutor {
 
         AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
         assert androidModel != null;
-        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidModel)) {
+        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidModel)) {
           // we already displayed the error, no need to check each module.
           checkJdkVersion = false;
         }
