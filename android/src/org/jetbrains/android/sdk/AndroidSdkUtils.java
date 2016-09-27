@@ -23,8 +23,8 @@ import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -78,8 +78,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.sdk.Jdks.chooseOrCreateJavaSdk;
-import static com.android.tools.idea.sdk.Jdks.createJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -275,7 +273,7 @@ public final class AndroidSdkUtils {
    */
   @Nullable
   public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
-    Sdk jdk = chooseOrCreateJavaSdk();
+    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
     if (sdkPath != null && jdk != null) {
       sdkPath = toSystemIndependentName(sdkPath);
       IAndroidTarget target = findBestTarget(sdkPath);
@@ -327,7 +325,7 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkPath,
                                              @NotNull String sdkName,
                                              boolean addRoots) {
-    Sdk jdk = chooseOrCreateJavaSdk();
+    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
     return jdk != null ? createNewAndroidPlatform(target, sdkPath, sdkName, jdk, addRoots) : null;
   }
 
@@ -625,7 +623,7 @@ public final class AndroidSdkUtils {
   private static Sdk createNewAndroidPlatform(@Nullable IAndroidTarget target, @NotNull String androidSdkPath, @NotNull String jdkPath) {
     if (isNotEmpty(jdkPath)) {
       jdkPath = toSystemIndependentName(jdkPath);
-      Sdk jdk = createJdk(jdkPath);
+      Sdk jdk = Jdks.getInstance().createJdk(jdkPath);
       if (jdk != null) {
         androidSdkPath = toSystemIndependentName(androidSdkPath);
         if (target == null) {

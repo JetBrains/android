@@ -312,6 +312,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
+    <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
@@ -1062,6 +1063,8 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.CppModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep"/>
 
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
@@ -1134,6 +1137,9 @@
 
     <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
     <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
+
+    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.project.JdkPostSyncProjectSetupStep"/>
+
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Jdk8RequiredErrorHandler"/>
   </extensions>
 
