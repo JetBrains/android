@@ -19,11 +19,10 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
-import org.junit.runners.model.Statement;
+import org.junit.runners.model.RunnerScheduler;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -48,6 +47,7 @@ public class GuiTestSuiteRunner extends Suite {
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
+    setScheduler(IDE_DISPOSER);
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
   }
 
@@ -140,18 +140,15 @@ public class GuiTestSuiteRunner extends Suite {
     return (runIn != null) ? runIn.value() : TestGroup.DEFAULT;
   }
 
-  @Override
-  @NotNull
-  protected Statement childrenInvoker(final RunNotifier notifier) {
-    return new Statement() {
-      @Override
-      public void evaluate() {
-        // Run all the tests and dispose IdeTestApplication at the end.
-        for (final Runner child : getChildren()) {
-          runChild(child, notifier);
-        }
-        IdeTestApplication.disposeInstance();
-      }
-    };
-  }
+  private static final RunnerScheduler IDE_DISPOSER = new RunnerScheduler() {
+    @Override
+    public void schedule(Runnable childStatement) {
+      childStatement.run();
+    }
+
+    @Override
+    public void finished() {
+      IdeTestApplication.disposeInstance();
+    }
+  };
 }
