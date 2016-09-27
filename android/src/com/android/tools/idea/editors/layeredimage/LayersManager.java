@@ -26,6 +26,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,8 +103,14 @@ public class LayersManager extends NlAbstractWindowManager {
       anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
     }
 
+    ThreeComponentsSplitter contentSplitter = designer.getContentSplitter();
+    if (contentSplitter.getInnerComponent() == null) {
+      // If the inner component was removed we are bound to get a NPE during the LTW constructor.
+      // This is a fix for http://b.android.com/219047
+      return null;
+    }
     return new LightToolWindow(layersPanel, "Image Layers", AllIcons.Toolwindows.ToolWindowPalette,
-                               layersPanel, layersPanel, designer.getContentSplitter(), anchor, this,
+                               layersPanel, layersPanel, contentSplitter, anchor, this,
                                myProject, propertiesComponent, getVisibilityKeyName(designer), 200, null);
   }
 
