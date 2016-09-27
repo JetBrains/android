@@ -33,6 +33,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
+import org.jetbrains.android.Features;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -299,6 +300,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
+    }
+    if (Features.NELE_MOCK_DATA && TOOLS_URI.equals(element.getXmlElementNamespace())) {
+      // For tools: attributes, we also add the mock types
+      types.add(ResourceType.MOCK);
     }
     return types;
   }

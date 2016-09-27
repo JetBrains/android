@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder;
+package org.jetbrains.android;
+
+import com.intellij.openapi.application.ApplicationManager;
 
 public class Features {
-  private static final boolean ALL_ENABLED = Boolean.getBoolean("nele.all");
+  private static final boolean ALL_ENABLED = ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("features.all");
 
   /**
-   * Animations preview toolbar
+   * Layout editor animations preview toolbar
    */
-  public static final boolean ANIMATIONS_PREVIEW_ENABLED = ALL_ENABLED || Boolean.getBoolean("nele.animated.preview");
+  public static final boolean NELE_ANIMATIONS_PREVIEW = ALL_ENABLED || Boolean.getBoolean("nele.animated.preview");
+
+  /**
+   * Layout editor mock data support
+   */
+  public static final boolean NELE_MOCK_DATA = ALL_ENABLED || Boolean.getBoolean("nele.mock.data");
 }
