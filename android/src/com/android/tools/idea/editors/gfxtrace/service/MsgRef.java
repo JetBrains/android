@@ -17,14 +17,34 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class MsgRef implements BinaryObject {
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MsgRef that = (MsgRef)o;
+    return myIdentifier == that.myIdentifier && Arrays.equals(myArguments, that.myArguments);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myIdentifier;
+    result = 31 * result + Arrays.hashCode(myArguments);
+    return result;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private int myIdentifier;
   private int[] myArguments;
