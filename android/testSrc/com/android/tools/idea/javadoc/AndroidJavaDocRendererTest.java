@@ -16,13 +16,12 @@
 
 package com.android.tools.idea.javadoc;
 
-import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
@@ -258,66 +257,46 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "            is a period then it is appended to your package name. </body></html>");
   }
 
+  // @formatter:off
+  /**
+   * This test requires {@link #requireRecentSdk} to return true (since we need a real SDK to resolve this
+   * framework color, but unfortunately that doesn't work for other tests; the testLocalAttributes tests don't
+   * pass on a recent SDK
+   * <pre>
   public void testFrameworkColors1() {
     checkJavadoc("/javadoc/colors/layout.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table><tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr>" +
-                 /**/"</table></td><td>Not enabled</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr>" +
-                 /**/"</table></td><td>Not window_focused</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Pressed</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Selected</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Activated</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr>" +
-                 /**/"</table></td><td>Default</td><td><BR/>@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
-                 "</td></tr>" +
-                 "</table><BR/>" +
-                 "@android:color/primary_text_dark => primary_text_dark.xml<BR/>" +
+                 "<table style=\"background-color:rgb(255,255,255);color:black;width:200px;text-align:center;" +
+                 "vertical-align:middle;\" border=\"0\">" +
+                 "<tr height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\">" +
+                 "#ffffff" +
+                 "</td>" +
+                 "</tr><" +
+                 "/table><BR/>\n" +
+                 "@color/primary_text_dark => primary_text_dark.xml => @android:color/background_light => #ffffffff<BR/>\n" +
                  "</body></html>");
   }
-
+  </pre>
+  */ // @formatter:on
   public void testFrameworkColors2() {
+    // @android:color/my_white is defined in
+    // testData/sdk1.5/platforms/android-1.5/data/res/values
+    // We're testing this because the bundled test platform isn't a complete framework so it doesn't
+    // have the real framework attributes (and the one it does, @android:string/cancel, has a different
+    // value than in the real platform. If we ever update the unit tests to use a more modern
+    // platform, the below should be changed to a real framework color.
     checkJavadoc("/javadoc/colors/layout2.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table><tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#35ffffff</td></tr>" +
-                 /**/"</table></td><td>Not enabled</td><td><BR/>" +
-                 /**/"@android:color/secondary_text_default_material_dark => #b3ffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#b3ffffff</td></tr>" +
-                 /**/"</table></td><td>Default</td><td><BR/>" +
-                 /**/"@android:color/secondary_text_default_material_dark => #b3ffffff<BR/>" +
-                 "</td></tr>" +
+                 "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" " +
+                 "border=\"0\">" +
+                 "<tr height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">" +
+                 "#ffffff" +
+                 "</td>" +
+                 "</tr>" +
                  "</table><BR/>" +
-                 "@android:color/secondary_text_material_dark => secondary_text_material_dark.xml<BR/>" +
+                 "@android:color/my_white => #ffffff<BR/>" +
                  "</body></html>");
   }
 
@@ -344,71 +323,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr>" +
-                 /**/"</table></td><td>Not enabled</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr>" +
-                 /**/"</table></td><td>Not window_focused</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Pressed</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr>" +
-                 /**/"</table></td><td>Not enabled</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr>" +
-                 /**/"</table></td><td>Not window_focused</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Pressed</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Selected</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr>" +
-                 /**/"</table></td><td>Activated</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr>" +
-                 /**/"</table></td><td>Default</td><td><BR/>" +
-                 /**/"@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
-                 /**/"</td></tr>" +
-                 /**/"</table></td><td>Activated</td><td><BR/>" +
-                 /**/"@android:color/primary_text_dark => primary_text_dark.xml<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td>" +
-                 /**/"<table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\">" +
-                 /**/"<tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#aa44aa</td></tr>" +
-                 /**/"</table></td><td>Default</td><td><BR/>@color/fourth => #aa44aa<BR/>" +
-                 "</td></tr>" +
-                 "</table><BR/>" +
-                 "@color/first => @color/second => @color/third => third.xml<BR/>" +
+                 "<table><tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_disabled</B></FONT></td><td>Not enabled</td></tr>" +
+                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark</B></FONT></td><td>Not window_focused</td></tr>" +
+                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_inverse</B></FONT></td><td>Pressed</td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Selected</td><td><BR/>@android:color/my_white => #ffffff<BR/></td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>@android:color/primary_text_dark => #000000<BR/></td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;" +
+                 "vertical-align:middle;\" border=\"0\">" +
+                 "<tr height=\"33\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">" +
+                 "#aa44aa" +
+                 "</td>" +
+                 "</tr>" +
+                 "</table>" +
+                 "</td><td>Default</td><td><BR/>@color/fourth => #aa44aa<BR/></td></tr></table>" +
+                 "<BR/>@color/first => @color/second => @color/third => third.xml<BR/>" +
                  "</body></html>");
   }
 
@@ -421,12 +350,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
-                 "<BR/>" +
-                 "Inherits from: @android:style/TextAppearance:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = ?textColorLink => #ff33b5e5<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = ?textColorHighlight => 6633b5e5<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary => #ff000000<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary => #ff000000" +
+                 "<BR/><BR/>" +
+                 "Inherits from: @android:style/TextAppearance:<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => #808080<BR/>" +
                  "</body></html>");
   }
@@ -436,30 +365,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     // even if the android: prefix is not explicitly written.
     checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml",
                  "<html><body><BR/>" +
-                 "@android:style/Theme.Holo.Dialog<BR/>" +
-                 "<BR/><hr><B>Theme.Holo.Dialog</B>:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>listPreferredItemPaddingRight</B> = 16dip<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textAppearance</B> = @style/TextAppearance.Holo => @style/TextAppearance.Holo<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowActionModeOverlay</B> = true<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>buttonBarStyle</B> = @style/Holo.ButtonBar.AlertDialog => @style/Holo.ButtonBar.AlertDialog<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowIsFloating</B> = true<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowActionBar</B> = false<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowBackground</B> = @drawable/dialog_full_holo_dark<BR/>" +
-                 "<div style=\"background-color:gray;padding:10px\"><img src='file:" + TestUtils.getSdk() + "/platforms/android-24/data/res/drawable-hdpi/dialog_full_holo_dark.9.png' " +
-                 "alt=\"" + TestUtils.getSdk() + "/platforms/android-24/data/res/drawable-hdpi/dialog_full_holo_dark.9.png\" />" +
-                 "</div>146&#xd7;62 px (146&#xd7;62 dp @ mdpi)&nbsp;&nbsp;&nbsp;&nbsp;android:<B>borderlessButtonStyle</B> = @style/Widget.Holo.Button.Borderless.Small => @style/Widget.Holo.Button.Borderless.Small<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowTitleStyle</B> = @style/DialogWindowTitle.Holo => @style/DialogWindowTitle.Holo<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>listPreferredItemPaddingEnd</B> = 16dip<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>preferencePanelStyle</B> = @style/PreferencePanel.Dialog => @style/PreferencePanel.Dialog<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowCloseOnTouchOutside</B> = @bool/config_closeDialogWhenTouchOutside => true<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>listPreferredItemPaddingLeft</B> = 16dip<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowFrame</B> = @null<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowAnimationStyle</B> = @style/Animation.Holo.Dialog => @style/Animation.Holo.Dialog<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textAppearanceInverse</B> = @style/TextAppearance.Holo.Inverse => @style/TextAppearance.Holo.Inverse<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowContentOverlay</B> = @null<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>windowSoftInputMode</B> = stateUnspecified|adjustPan<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>colorBackgroundCacheHint</B> = @null<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>listPreferredItemPaddingStart</B> = 16dip<BR/>" +
+                 "@android:style/Theme.FrameworkTheme<BR/>" +
+                 "<BR/>" +
+                 "<hr><B>Theme.FrameworkTheme</B>:<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorPrimary</B> = @color/state_list<BR/>" +
+                 "<table><tr><td>" +
+                 "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table>" +
+                 "</td><td>Default</td></tr></table>" +
                  "</body></html>");
   }
 
