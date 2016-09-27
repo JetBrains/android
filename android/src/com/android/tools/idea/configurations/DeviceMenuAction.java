@@ -23,7 +23,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.rendering.RenderService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -44,20 +43,12 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 public class DeviceMenuAction extends FlatComboAction {
   private static final boolean LIST_RECENT_DEVICES = false;
   private final ConfigurationHolder myRenderContext;
-  private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    this(renderContext, true);
-  }
-
-  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
-    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Device in Editor");
-    if (classicStyle) {
-      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
-    }
+    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     updatePresentation(presentation);
   }
 
@@ -74,10 +65,6 @@ public class DeviceMenuAction extends FlatComboAction {
       Device device = configuration.getDevice();
       String label = getDeviceLabel(device, true);
       presentation.setText(label);
-
-      if (!myClassicStyle) {
-        presentation.setIcon(getDeviceClassIcon(device));
-      }
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
