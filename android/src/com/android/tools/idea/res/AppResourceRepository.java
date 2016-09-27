@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
@@ -142,6 +143,9 @@ public class AppResourceRepository extends MultiResourceRepository {
     LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
+    if (Features.NELE_MOCK_DATA) {
+      repositories.add(new MockDataResourceRepository(facet));
+    }
     return repositories;
   }
 
