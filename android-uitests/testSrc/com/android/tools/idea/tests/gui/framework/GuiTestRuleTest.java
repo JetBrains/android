@@ -29,8 +29,6 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
