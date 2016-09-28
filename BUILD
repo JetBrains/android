@@ -171,6 +171,7 @@ iml_module(
     ]) + [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
