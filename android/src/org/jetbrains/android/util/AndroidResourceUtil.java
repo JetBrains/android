@@ -1030,6 +1030,7 @@ public class AndroidResourceUtil {
     if (!(resolvedElement instanceof PsiClass)) {
       return null;
     }
+    Module resolvedModule = ModuleUtilCore.findModuleForPsiElement(resolvedElement);
     final PsiClass aClass = (PsiClass)resolvedElement;
     final String classShortName = aClass.getName();
     final boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
@@ -1041,7 +1042,7 @@ public class AndroidResourceUtil {
       final String qName = aClass.getQualifiedName();
 
       if (SdkConstants.CLASS_R.equals(qName) || AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
-        return new MyReferredResourceFieldInfo(resClassName, resFieldName, true, false);
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, true, false);
       }
     }
     final PsiFile containingFile = resolvedElement.getContainingFile();
@@ -1051,7 +1052,7 @@ public class AndroidResourceUtil {
     if (fromManifest ? !isManifestJavaFile(facet, containingFile) : !isRJavaFile(facet, containingFile)) {
       return null;
     }
-    return new MyReferredResourceFieldInfo(resClassName, resFieldName, false, fromManifest);
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, false, fromManifest);
   }
 
   /**
@@ -1197,12 +1198,15 @@ public class AndroidResourceUtil {
   public static class MyReferredResourceFieldInfo {
     private final String myClassName;
     private final String myFieldName;
+    private final Module myResolvedModule;
     private final boolean mySystem;
     private final boolean myFromManifest;
 
-    public MyReferredResourceFieldInfo(@NotNull String className, @NotNull String fieldName, boolean system, boolean fromManifest) {
+    public MyReferredResourceFieldInfo(
+      @NotNull String className, @NotNull String fieldName, @Nullable Module resolvedModule, boolean system, boolean fromManifest) {
       myClassName = className;
       myFieldName = fieldName;
+      myResolvedModule = resolvedModule;
       mySystem = system;
       myFromManifest = fromManifest;
     }
@@ -1215,6 +1219,11 @@ public class AndroidResourceUtil {
     @NotNull
     public String getFieldName() {
       return myFieldName;
+    }
+
+    @Nullable
+    public Module getResolvedModule() {
+      return myResolvedModule;
     }
 
     public boolean isSystem() {
