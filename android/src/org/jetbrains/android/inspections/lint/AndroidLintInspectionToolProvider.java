@@ -972,6 +972,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNamespaceTypoInspection extends AndroidLintInspectionBase {
+    public AndroidLintNamespaceTypoInspection() {
+      super(AndroidBundle.message("android.lint.inspections.namespace.typo"), com.android.tools.lint.checks.NamespaceDetector.TYPO);
+    }
+  }
+
   public static class AndroidLintNegativeMarginInspection extends AndroidLintInspectionBase {
     public AndroidLintNegativeMarginInspection() {
       super(AndroidBundle.message("android.lint.inspections.negative.margin"), NegativeMarginDetector.ISSUE);
