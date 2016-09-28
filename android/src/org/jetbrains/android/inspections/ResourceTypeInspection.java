@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
 import com.android.tools.lint.checks.*;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
@@ -867,7 +868,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   /** Attempts to infer the current thread context at the site of the given method call */
   @Nullable
   private static List<String> getThreadContext(PsiCall methodCall) {
-    PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
+    //noinspection unchecked
+    PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true,
+                                                   PsiAnonymousClass.class, PsiLambdaExpression.class);
     return getThreads(method);
   }
 
