@@ -960,14 +960,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @Nls
     @NotNull
     @Override
-    public String getName() {
-      return "Add permission check";
-    }
-
-    @NotNull
-    @Override
     public String getFamilyName() {
-      return getName();
+      return "Add permission check";
     }
 
     @Override
