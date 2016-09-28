@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
+import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,13 +43,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -125,10 +122,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
-        Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
-        GradleVersion oneDotTwoModelVersion = new GradleVersion(1, 2, 0);
+        AndroidProjectValidator projectValidator = new AndroidProjectValidator(project);
 
-        String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
 
         // Module name, build
@@ -139,6 +134,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
           setUpModule(module, modelsProvider, androidModel);
           if (androidModel != null) {
+            projectValidator.validate(module, androidModel);
+
             AndroidProject androidProject = androidModel.getAndroidProject();
 
             checkBuildToolsCompatibility(module, androidProject, modulesUsingBuildTools23rc1);
@@ -146,23 +143,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
             if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(androidProject)) {
               modelVersionWithLayoutRenderingIssue = androidProject.getModelVersion();
-            }
-
-            GradleVersion modelVersion = GradleVersion.parse(androidProject.getModelVersion());
-            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(oneDotTwoModelVersion) >= 0;
-
-            // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
-            Charset modelEncoding = null;
-            if (isModelVersionOneDotTwoOrNewer) {
-              try {
-                modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
-              }
-              catch (UnsupportedCharsetException ignore) {
-                // It's not going to happen.
-              }
-            }
-            if (nonMatchingModelEncodingFound == null && modelEncoding != null && ideEncoding.compareTo(modelEncoding) != 0) {
-              nonMatchingModelEncodingFound = modelEncoding.displayName();
             }
 
             // Warn users that there are generated source folders at the wrong location.
@@ -178,12 +158,10 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
           }
         }
 
+        projectValidator.fixAndReportFoundIssues();
+
         if (!modulesUsingBuildTools23rc1.isEmpty()) {
           reportBuildTools23rc1Usage(modulesUsingBuildTools23rc1, project);
-        }
-
-        if (nonMatchingModelEncodingFound != null) {
-          setIdeEncodingAndAddEncodingMismatchMessage(nonMatchingModelEncodingFound, project);
         }
 
         if (modelVersionWithLayoutRenderingIssue != null) {
@@ -250,19 +228,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
       AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
       notification.showBalloon("Android Build Tools", msg.toString(), NotificationType.ERROR);
     }
-  }
-
-  private static void setIdeEncodingAndAddEncodingMismatchMessage(@NotNull String newEncoding, @NotNull Project project) {
-    EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
-    String[] text = {String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
-                                   encodings.getDefaultCharset().displayName(), newEncoding),
-      "Mismatching encodings can lead to serious bugs."};
-    encodings.setDefaultCharsetName(newEncoding);
-
-    SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text);
-    message.add(new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info..."));
-
-    SyncMessages.getInstance(project).report(message);
   }
 
   private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
