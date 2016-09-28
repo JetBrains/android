@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.builder.model.AndroidProject;
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -24,6 +25,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -38,8 +40,11 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,6 +64,12 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProject.PROJECT_TYPE_LIBRARY);
   }
 
   @Override
@@ -383,6 +394,26 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
     doCreateValueResourceFromUsage(virtualFile);
     myFixture.checkResultByFile("res/values/bools.xml", myTestFolder + '/' + getTestName(true) + "_bools_after.xml", true);
+  }
+
+  /**
+   * Test quickfix where the R class is from a dependency, not the main module. This is a proxy for testing Bazel projects where
+   * the main "workspace" module doesn't have a manifest or resources. There are instead some resource-only modules which are
+   * dependencies of the main module.
+   */
+  public void testJavaCreateFromUsageResourcesInDeps() throws Throwable {
+    // Replace lib manifest (defaults to p1.p2) with one that has the right package (p1.p2.lib).
+    Module libModule = myAdditionalModules.get(0);
+    deleteManifest(libModule);
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    // Should be okay even if main module is missing a manifest since the resources come from the library.
+    deleteManifest(myModule);
+
+    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+    doCreateValueResourceFromUsage(virtualFile);
+    myFixture.checkResultByFile("additionalModules/lib/res/values/strings.xml",
+                                myTestFolder + '/' + getTestName(true) + "_strings_after.xml", true);
   }
 
   public void testAttrReferenceCompletion() throws Throwable {
