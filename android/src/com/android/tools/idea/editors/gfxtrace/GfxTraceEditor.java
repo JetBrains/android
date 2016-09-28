@@ -406,12 +406,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myConnectionListeners.add(listener);
   }
 
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
-  }
-
   @Override
   public void setState(@NotNull FileEditorState state) {
 

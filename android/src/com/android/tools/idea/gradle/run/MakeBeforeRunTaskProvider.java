@@ -23,16 +23,15 @@ import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.*;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -58,7 +57,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -129,7 +131,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
+    if (configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
       if (runConfiguration instanceof PreferGradleMake) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.

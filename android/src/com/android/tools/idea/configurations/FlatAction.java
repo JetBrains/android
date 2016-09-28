@@ -56,7 +56,7 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
   public JComponent createCustomComponent(Presentation presentation) {
     JPanel panel = new JPanel(new GridBagLayout());
     FlatButton button = createComboBoxButton(presentation);
-    panel.add(button, new GridBagConstraints(0, 0, 1, 1, 1, 1, CENTER, BOTH, new Insets(0, 0, 0, 0), 0, 0));
+    panel.add(button, new GridBagConstraints(0, 0, 1, 1, 1, 1, CENTER, BOTH, JBUI.emptyInsets(), 0, 0));
     return panel;
   }
 

@@ -41,4 +41,3 @@ public class CreateDeviceAction extends DeviceUiAction {
     DeviceUiAction.showHardwareProfileWizard(new ConfigureDeviceModel(myProvider));
   }
 }
-

@@ -40,6 +40,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -51,6 +52,8 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.util.Consumer;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +73,7 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -174,8 +178,7 @@ public final class Projects {
         if (!project.isDisposed()) {
           ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(() -> {
             disableExcludedModules(projectInfo, modulesToImport);
-            ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-            dataManager.importData(projectInfo, project, true /* synchronous */);
+            doSelectiveImport(modulesToImport, project);
           });
         }
       });
@@ -202,6 +205,35 @@ public final class Projects {
     }
   }
 
+  /**
+   * Reuse external system 'selective import' feature for importing of the project sub-set.
+   * And do not ignore projectNode children data, e.g. project libraries
+   */
+  private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> enabledModules, @NotNull Project project) {
+    ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+    DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null :
+                                        ExternalSystemApiUtil.findParent(enabledModules.iterator().next(), PROJECT);
+
+    // do not ignore projectNode childs data, e.g. project libraries
+    if (projectNode != null) {
+      final Collection<DataNode<ModuleData>> allModules = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE);
+      if (enabledModules.size() != allModules.size()) {
+        final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
+        moduleToIgnore.removeAll(enabledModules);
+        for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
+          ExternalSystemApiUtil.visit(moduleNode, new Consumer<DataNode<?>>() {
+            @Override
+            public void consume(DataNode node) {
+              node.setIgnored(true);
+            }
+          });
+        }
+      }
+      dataManager.importData(projectNode, project, true /* synchronous */);
+    } else {
+      dataManager.importData(enabledModules, project, true /* synchronous */);
+    }
+  }
   public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
       if (!project.isDisposed()) {
@@ -327,11 +359,6 @@ public final class Projects {
    * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
    */
   public static void enforceExternalBuild(@NotNull Project project) {
-    if (requiresAndroidModel(project)) {
-      // Android Studio should use GradleInvoker instead of JPS (besides better performance and integration with the 'Gradle' console,
-      // Instant Run only works with GradleInvoker.
-      AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = isAndroidStudio();
-    }
   }
 
   /**

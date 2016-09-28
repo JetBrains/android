@@ -249,7 +249,6 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     public NodeCellRenderer() {
       super();
-      setSupportFontFallback(true);
       getIpad().right = 0;
       myRightComponent.getIpad().left = 0;
     }

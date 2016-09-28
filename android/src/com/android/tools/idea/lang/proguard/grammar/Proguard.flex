@@ -29,9 +29,6 @@ import com.intellij.psi.TokenType;
 %unicode
 %function advance
 %type IElementType
-%eof{
-return;
-%eof}
 
 CRLF = [ ]*[\n\r]+   // Newlines
 WS = [ \t\f]+        // Whitespace
@@ -95,4 +92,4 @@ CLOSE_BRACE = "}"
 }
 
 // If we've reached here, then the character is unrecognized.
-. { return TokenType.BAD_CHARACTER; }
+[^] { return TokenType.BAD_CHARACTER; }

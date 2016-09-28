@@ -85,15 +85,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   }
 
   private void saveFile() {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          saveFileFromEDT();
-        }
-        catch (IOException e) {
-          LOG.error("Unexpected exception while saving 9-patch file", e);
-        }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      try {
+        saveFileFromEDT();
+      }
+      catch (IOException e) {
+        LOG.error("Unexpected exception while saving 9-patch file", e);
       }
     });
   }
@@ -133,12 +130,6 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @Override
   public String getName() {
     return NAME;
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override

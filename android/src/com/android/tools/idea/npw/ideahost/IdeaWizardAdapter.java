@@ -97,6 +97,11 @@ final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDeleg
   }
 
   @Override
+  public boolean canProceed() {
+    return myGuestWizard.canGoForward().get();
+  }
+
+  @Override
   public void dispose() {
     myListeners.releaseAll();
     myGuestWizard.removeResultListener(this);

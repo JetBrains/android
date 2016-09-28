@@ -26,7 +26,10 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.DocumentBulkUpdateListener;
 import com.intellij.openapi.editor.ex.DocumentEx;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -115,12 +118,6 @@ public class GradleFileEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public String getName() {
     return AndroidBundle.message("android.gradle.editor.tab.name");
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override

@@ -152,6 +152,12 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
     myWizardAdapter.doFinishAction();
   }
 
+  @Override
+  public boolean canProceed() {
+    assert myWizardAdapter != null;
+    return myWizardAdapter.canProceed();
+  }
+
   private void createWizardAdaptor(@NotNull AbstractWizard hostWizard, @NotNull WizardType type) {
     Preconditions.checkState(myWizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.");
 

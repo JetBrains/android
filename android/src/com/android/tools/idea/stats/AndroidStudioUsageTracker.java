@@ -27,18 +27,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails.SoftwareLifeCycleChannel;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
-import com.sun.management.OperatingSystemMXBean;
 import org.jetbrains.annotations.NotNull;
 
-import javax.management.MXBean;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +60,7 @@ public class AndroidStudioUsageTracker {
         .setProductDetails(
           ProductDetails.newBuilder()
             .setProduct(ProductDetails.ProductKind.STUDIO)
-            .setBuild(application.getBuild().asStringWithAllDetails())
+            .setBuild(application.getBuild().asString())
             .setVersion(application.getStrictVersion())
             .setOsArchitecture(CommonMetricsData.getOsArchitecture())
           .setChannel(lifecycleChannelFromUpdateSettings()))
