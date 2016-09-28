@@ -206,7 +206,7 @@ public class FlightRecorder {
     try (Stream<Path> stream = Files.list(logsHome)) {
       return stream
         .filter(p -> Files.isReadable(p) && p.getFileName().toString().startsWith("idea.log"))
-        .sorted()
+        .sorted((p1, p2) -> Long.compare(p2.toFile().lastModified(), p1.toFile().lastModified()))
         .limit(3)
         .collect(Collectors.toList());
     }
