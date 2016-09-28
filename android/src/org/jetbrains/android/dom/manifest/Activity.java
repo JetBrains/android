@@ -22,9 +22,11 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.structure.manifest.ActivityPresentationProvider;
 
 import java.util.List;
@@ -44,7 +46,8 @@ public interface Activity extends ApplicationComponent {
   AndroidAttributeValue<PsiClass> getParentActivityName();
 
   @Attribute("enabled")
-  @Convert(AndroidBooleanValueConverter.class)
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("bool")
   AndroidAttributeValue<String> getEnabled();
 
   @Attribute("exported")
