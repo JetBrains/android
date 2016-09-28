@@ -90,14 +90,8 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
     
     @NotNull
     @Override
-    public String getName() {
-      return getQuickFixName();
-    }
-
-    @NotNull
-    @Override
     public String getFamilyName() {
-      return getName(); 
+      return getQuickFixName();
     }
 
     @Override
