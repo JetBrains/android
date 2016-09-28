@@ -90,6 +90,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int FETCH_TRACE_TIMEOUT_MS = 30000;
 
   public static final String LOADING_CAPTURE = "Loading capture...";
+  public static final String NO_FRAMES_IN_CONTEXT = "No frames in selected context";
   public static final String SELECT_ATOM = "Select a frame or command";
   public static final String SELECT_DRAW_CALL = "Select a draw call";
   public static final String SELECT_MEMORY = "Select a memory range or pointer in the command list";
