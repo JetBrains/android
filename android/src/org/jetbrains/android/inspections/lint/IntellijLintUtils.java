@@ -112,17 +112,14 @@ public class IntellijLintUtils {
    * Returns true if the given issue is suppressed at the given element within the given file
    *
    * @param element the element to check
-   * @param file the file containing the element
    * @param issue the issue to check
    * @return true if the given issue is suppressed
    */
-  public static boolean isSuppressed(@NonNull PsiElement element, @NonNull PsiFile file, @NonNull Issue issue) {
+  public static boolean isSuppressed(@NonNull PsiElement scope, @NonNull Issue issue) {
     // Search upwards for suppress lint and suppress warnings annotations
-    //noinspection ConstantConditions
-    while (element != null && element != file) { // otherwise it will keep going into directories!
-      if (element instanceof PsiModifierListOwner) {
-        PsiModifierListOwner owner = (PsiModifierListOwner)element;
-        PsiModifierList modifierList = owner.getModifierList();
+    while (scope != null) {
+      if (scope instanceof PsiModifierListOwner) {
+        PsiModifierList modifierList = ((PsiModifierListOwner) scope).getModifierList();
         if (modifierList != null) {
           for (PsiAnnotation annotation : modifierList.getAnnotations()) {
             String fqcn = annotation.getQualifiedName();
@@ -163,7 +160,12 @@ public class IntellijLintUtils {
           }
         }
       }
-      element = element.getParent();
+
+      scope = scope.getParent();
+      if (scope instanceof PsiFile) {
+        // otherwise it will keep going into directories!
+        break;
+      }
     }
 
     return false;
