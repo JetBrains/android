@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -23,19 +23,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
+public abstract class SyncErrorHandler {
+  public static final ExtensionPointName<SyncErrorHandler> EP_NAME
+    = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
 
-public class UnsupportedClassVersionErrorHandler extends AbstractSyncErrorHandler {
-  @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    String firstLine = message.get(0);
-    if (firstLine.endsWith(ProjectImportErrorHandler.USE_JDK_8)) {
-      updateNotification(notification, project, firstLine, getJdkQuickFixes(project));
-      return true;
-    }
-    return false;
-  }
+  public abstract boolean handleError(@NotNull Throwable error, @NotNull Project project);
+
+  public abstract boolean handleError(@NotNull List<String> message,
+                                      @NotNull ExternalSystemException error,
+                                      @NotNull NotificationData notification,
+                                      @NotNull Project project);
 }

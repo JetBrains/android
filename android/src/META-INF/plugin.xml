@@ -1066,6 +1066,8 @@
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
+                    interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"
                     interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
@@ -1132,6 +1134,7 @@
 
     <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>
     <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.CppAndroidFacetModuleSetupStep"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Jdk8RequiredErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
@@ -1146,7 +1149,6 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedClassVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSupportRepoErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>

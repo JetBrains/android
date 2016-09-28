@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -76,7 +77,15 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     if (isEmpty(msg)) {
       return;
     }
+
     List<String> lines = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(msg);
+
+    for (SyncErrorHandler errorHandler : SyncErrorHandler.EP_NAME.getExtensions()) {
+      if (errorHandler.handleError(lines, error, notification, project)) {
+        return;
+      }
+    }
+
     for (AbstractSyncErrorHandler handler : myHandlers) {
       if (handler.handleError(lines, error, notification, project)) {
         return;

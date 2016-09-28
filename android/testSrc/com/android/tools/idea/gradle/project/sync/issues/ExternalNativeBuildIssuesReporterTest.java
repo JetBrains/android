@@ -137,7 +137,7 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
 
     assertNull(mySyncMessagesStub.getReportedMessage());
 
-    NotificationData notification = mySyncMessagesStub.getReportedNotification();
+    NotificationData notification = mySyncMessagesStub.getNotification();
     assertNotNull(notification);
 
     assertTrue(myErrorHandler.isInvoked());

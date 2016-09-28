@@ -210,7 +210,7 @@ public class SyncMessages {
     return new NotificationData(title, text, category, source);
   }
 
-  private void updateNotification(@NotNull NotificationData notification,
+  public void updateNotification(@NotNull NotificationData notification,
                                   @NotNull String text,
                                   @NotNull List<NotificationHyperlink> quickFixes) {
     String message = text;
