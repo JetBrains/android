@@ -76,66 +76,10 @@ public class IntellijApiDetector extends ApiDetector {
         PsiClass[] classes = file.getClasses();
         if (classes.length > 0) {
           // TODO: This is weird; I should just perform the per class checks as part of visitClass!!
-          file.accept(new ApiCheckVisitor(context, classes[0], file));
+          file.accept(new ApiCheckVisitor(context, classes[0]));
         }
       }
     };
-  }
-
-  private static int getTargetApi(@NonNull PsiElement e, @NonNull PsiElement file) {
-    PsiElement element = e;
-    // Search upwards for target api annotations
-    while (element != null && element != file) { // otherwise it will keep going into directories!
-      if (element instanceof PsiModifierListOwner) {
-        PsiModifierListOwner owner = (PsiModifierListOwner)element;
-        PsiModifierList modifierList = owner.getModifierList();
-        PsiAnnotation annotation = null;
-        if (modifierList != null) {
-          annotation = modifierList.findAnnotation(TARGET_API_FQCN);
-          if (annotation == null) {
-            annotation = modifierList.findAnnotation(REQUIRES_API_ANNOTATION);
-          }
-        }
-        if (annotation != null) {
-          for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
-            PsiAnnotationMemberValue v = pair.getValue();
-
-            if (v instanceof PsiLiteral) {
-              PsiLiteral literal = (PsiLiteral)v;
-              Object value = literal.getValue();
-              if (value instanceof Integer) {
-                return (Integer) value;
-              } else if (value instanceof String) {
-                return codeNameToApi((String) value);
-              }
-            } else if (v instanceof PsiArrayInitializerMemberValue) {
-              PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
-              for (PsiAnnotationMemberValue mmv : mv.getInitializers()) {
-                if (mmv instanceof PsiLiteral) {
-                  PsiLiteral literal = (PsiLiteral)mmv;
-                  Object value = literal.getValue();
-                  if (value instanceof Integer) {
-                    return (Integer) value;
-                  } else if (value instanceof String) {
-                    return codeNameToApi((String) value);
-                  }
-                }
-              }
-            } else if (v instanceof PsiExpression) {
-              if (v instanceof PsiReferenceExpression) {
-                String fqcn = ((PsiReferenceExpression)v).getQualifiedName();
-                return codeNameToApi(fqcn);
-              } else {
-                return codeNameToApi(v.getText());
-              }
-            }
-          }
-        }
-      }
-      element = element.getParent();
-    }
-
-    return -1;
   }
 
   private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
@@ -143,15 +87,13 @@ public class IntellijApiDetector extends ApiDetector {
     private boolean mySeenSuppress;
     private boolean mySeenTargetApi;
     private final PsiClass myClass;
-    private final PsiFile myFile;
     private final boolean myCheckAccess;
     private boolean myCheckOverride;
     private String myFrameworkParent;
 
-    public ApiCheckVisitor(JavaContext context, PsiClass clz, PsiFile file) {
+    public ApiCheckVisitor(JavaContext context, PsiClass clz) {
       myContext = context;
       myClass = clz;
-      myFile = file;
 
       myCheckAccess = context.isEnabled(UNSUPPORTED) || context.isEnabled(INLINED) || context.isEnabled(OBSOLETE_SDK);
       myCheckOverride = context.isEnabled(OVERRIDE)
@@ -232,7 +174,7 @@ public class IntellijApiDetector extends ApiDetector {
       int api = mApiDatabase.getCallVersion(myFrameworkParent, name, desc);
       if (api > buildSdk && buildSdk != -1) {
         if (mySeenSuppress &&
-            IntellijLintUtils.isSuppressed(method, myFile, OVERRIDE)) {
+            IntellijLintUtils.isSuppressed(method, OVERRIDE)) {
           return;
         }
 
@@ -307,14 +249,14 @@ public class IntellijApiDetector extends ApiDetector {
           continue;
         }
         if (mySeenTargetApi) {
-          int target = getTargetApi(aClass, myFile);
+          int target = getTargetApi(aClass);
           if (target != -1) {
             if (api <= target) {
               continue;
             }
           }
         }
-        if (mySeenSuppress && IntellijLintUtils.isSuppressed(aClass, myFile, UNSUPPORTED)) {
+        if (mySeenSuppress && IntellijLintUtils.isSuppressed(aClass, UNSUPPORTED)) {
           continue;
         }
 
@@ -472,14 +414,14 @@ public class IntellijApiDetector extends ApiDetector {
           return;
         }
         if (mySeenTargetApi) {
-          int target = getTargetApi(statement, myFile);
+          int target = getTargetApi(statement);
           if (target != -1) {
             if (api <= target) {
               return;
             }
           }
         }
-        if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+        if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, UNSUPPORTED)) {
           return;
         }
 
@@ -505,7 +447,7 @@ public class IntellijApiDetector extends ApiDetector {
         return true;
       }
       if (mySeenTargetApi) {
-        int target = getTargetApi(element, myFile);
+        int target = getTargetApi(element);
         if (target != -1) {
           if (api <= target) {
             return true;
@@ -513,7 +455,7 @@ public class IntellijApiDetector extends ApiDetector {
         }
       }
       if (mySeenSuppress &&
-          (IntellijLintUtils.isSuppressed(element, myFile, UNSUPPORTED) || IntellijLintUtils.isSuppressed(element, myFile, INLINED))) {
+          (IntellijLintUtils.isSuppressed(element, UNSUPPORTED) || IntellijLintUtils.isSuppressed(element, INLINED))) {
         return true;
       }
 
@@ -675,14 +617,14 @@ public class IntellijApiDetector extends ApiDetector {
             return;
           }
           if (mySeenTargetApi) {
-            int target = getTargetApi(statement, myFile);
+            int target = getTargetApi(statement);
             if (target != -1) {
               if (api <= target) {
                 return;
               }
             }
           }
-          if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+          if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, UNSUPPORTED)) {
             return;
           }
 

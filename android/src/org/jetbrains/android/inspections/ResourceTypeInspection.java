@@ -605,7 +605,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
     }
 
-    if (IntellijLintUtils.isSuppressed(methodCall, methodCall.getContainingFile(), UNSUPPORTED)) {
+    if (IntellijLintUtils.isSuppressed(methodCall, UNSUPPORTED)) {
       return;
     }
 
