@@ -692,11 +692,12 @@ public class ImagePanel extends JPanel {
         setVisible(numLevels > 1);
 
         int value = mySlider.getValue();
+        mySlider.setMinimum(0);
+        mySlider.setMaximum(numLevels > 0 ? numLevels - 1 : 0);
         if (value >= numLevels) {
           mySlider.setValue(numLevels - 1);
         }
-        mySlider.setMinimum(0);
-        mySlider.setMaximum(numLevels - 1);
+
         return value >= numLevels;
       }
 
