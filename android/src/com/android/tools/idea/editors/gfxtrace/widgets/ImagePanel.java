@@ -139,7 +139,9 @@ public class ImagePanel extends JPanel {
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
-          zoom(Math.max(-ZOOM_AMOUNT, Math.min(ZOOM_AMOUNT, e.getWheelRotation())), e.getPoint());
+          int rotation = e.getWheelRotation();
+          if (rotation == 0) return;
+          zoom(Math.max(-ZOOM_AMOUNT, Math.min(ZOOM_AMOUNT, rotation)), e.getPoint());
         }
 
         @Override

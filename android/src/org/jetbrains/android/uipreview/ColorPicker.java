@@ -1488,22 +1488,19 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         }
       });
 
-      addMouseWheelListener(new MouseWheelListener() {
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-          final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
-                             e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
-          int pointerValue = myPointerValue + amount;
-          pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
-          int size = getWidth();
-          pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
+      addMouseWheelListener(event -> {
+        int units = event.getUnitsToScroll();
+        if (units == 0) return;
+        int pointerValue = myPointerValue + units;
+        pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
+        int size = getWidth();
+        pointerValue = pointerValue > (size - MARGIN) ? size - MARGIN : pointerValue;
 
-          myPointerValue = pointerValue;
-          myValue = pointerValueToValue(myPointerValue);
+        myPointerValue = pointerValue;
+        myValue = pointerValueToValue(myPointerValue);
 
-          repaint();
-          fireValueChanged();
-        }
+        repaint();
+        fireValueChanged();
       });
 
       addComponentListener(new ComponentAdapter() {
