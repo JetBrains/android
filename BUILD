@@ -173,6 +173,7 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/m2:guava-18",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
     ],
