@@ -68,7 +68,7 @@ public class ClientCellRenderer extends ColoredListCellRenderer {
   }
 
   @Override
-  protected void customizeCellRenderer(JList list,
+  protected void customizeCellRenderer(@NotNull JList list,
                                        Object value,
                                        int index,
                                        boolean selected,

@@ -356,14 +356,16 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         }
         output.attachTo(launcher, outputListener);
 
-        launcher.addProgressListener((ProgressListener)event -> {
-          if (myContext.isActive(id)) {
-            ExternalSystemTaskNotificationListener listener = myContext.getTaskNotificationListener();
-            if (listener != null) {
-              listener.onStatusChange(GradleProgressEventConverter.convert(id, event));
+        if (myContext.getTaskNotificationListener() != null) {
+          launcher.addProgressListener((ProgressListener)event -> {
+            if (myContext.isActive(id)) {
+              ExternalSystemTaskNotificationListener listener = myContext.getTaskNotificationListener();
+              if (listener != null) {
+                listener.onStatusChange(GradleProgressEventConverter.convert(id, event));
+              }
             }
-          }
-        });
+          });
+        }
 
         launcher.run();
       }

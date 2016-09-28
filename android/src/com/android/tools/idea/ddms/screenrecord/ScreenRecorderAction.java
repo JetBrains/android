@@ -22,7 +22,6 @@ import com.android.ddmlib.ScreenRecorderOptions;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -136,12 +135,7 @@ public class ScreenRecorderAction {
     }
 
     @Override
-    public void onSuccess() {
-      pullRecording();
-    }
-
-    @Override
-    public void onCancel() {
+    public void onFinished() {
       pullRecording();
     }
 

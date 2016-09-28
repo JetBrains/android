@@ -54,7 +54,7 @@ public class UsbDeviceTargetProvider extends DeployTargetProvider {
 
   @Override
   public DeployTargetConfigurable createConfigurable(@NotNull Project project,
-                                                     Disposable parentDisposable,
+                                                     @NotNull Disposable parentDisposable,
                                                      @NotNull DeployTargetConfigurableContext context) {
     return new TargetConfigurable();
   }
