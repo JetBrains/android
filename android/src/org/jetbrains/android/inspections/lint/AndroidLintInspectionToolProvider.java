@@ -564,6 +564,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintHighAppVersionCodeInspection extends AndroidLintInspectionBase {
+    public AndroidLintHighAppVersionCodeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.high.app.version.code"), GradleDetector.HIGH_APP_VERSION_CODE);
+    }
+  }
+
   public static class AndroidLintDrawAllocationInspection extends AndroidLintInspectionBase {
     public AndroidLintDrawAllocationInspection() {
       super(AndroidBundle.message("android.lint.inspections.draw.allocation"), JavaPerformanceDetector.PAINT_ALLOC);
