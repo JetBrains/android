@@ -48,7 +48,7 @@ public class GuiTestRuleTest {
 
   private final ExpectedException exception = ExpectedException.none();
 
-  private final GuiTestRule guiTest = new GuiTestRule().withLeakCheck();
+  private final GuiTestRule guiTest = new GuiTestRule();
 
   @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
 
