@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.forms.ShaderEditorPanel;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.lang.glsl.highlighting.GlslSyntaxHighlighter;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
@@ -571,7 +570,7 @@ public class ShadersController extends Controller implements ResourceCollection.
 
   // Fetch associated shader source for a program.
   private void loadProgramSource(ShaderData cell) {
-    if (cell.source != null || cell.shaderResources.isEmpty()) {
+    if (!cell.source.isEmpty() || cell.shaderResources.isEmpty()) {
       return;
     }
 
@@ -785,7 +784,7 @@ public class ShadersController extends Controller implements ResourceCollection.
       if (myData == null) {
         ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(""));
       }
-      else if (!myData.isLoaded() || myData.source == null) {
+      else if (!myData.isLoaded() || myData.source.isEmpty()) {
         ApplicationManager.getApplication().runWriteAction(() -> myDocument.setText(""));
         startLoading();
       }
@@ -797,9 +796,7 @@ public class ShadersController extends Controller implements ResourceCollection.
 
     @Override
     public void dispose() {
-      if (myEditor != null) {
-        EditorFactory.getInstance().releaseEditor(myEditor);
-      }
+      EditorFactory.getInstance().releaseEditor(myEditor);
     }
 
     public ShaderData getUpdatedShaderData() {
