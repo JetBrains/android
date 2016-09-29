@@ -17,9 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
@@ -30,9 +27,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGr
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -58,7 +53,6 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNH
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
-import static java.util.Collections.sort;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -126,9 +120,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
         String modelVersionWithLayoutRenderingIssue = null;
 
-        // Module name, build
-        List<String> modulesUsingBuildTools23rc1 = Lists.newArrayList();
-
         for (Module module : modelsProvider.getModules()) {
           AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
 
@@ -137,8 +128,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
             projectValidator.validate(module, androidModel);
 
             AndroidProject androidProject = androidModel.getAndroidProject();
-
-            checkBuildToolsCompatibility(module, androidProject, modulesUsingBuildTools23rc1);
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
             if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(androidProject)) {
@@ -160,10 +149,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
         projectValidator.fixAndReportFoundIssues();
 
-        if (!modulesUsingBuildTools23rc1.isEmpty()) {
-          reportBuildTools23rc1Usage(modulesUsingBuildTools23rc1, project);
-        }
-
         if (modelVersionWithLayoutRenderingIssue != null) {
           addLayoutRenderingIssueMessage(modelVersionWithLayoutRenderingIssue, project);
         }
@@ -180,53 +165,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     Throwable error = result.getThrowable();
     if (error != null) {
       throw error;
-    }
-  }
-
-  // Build Tools 23 only works with Android plugin 1.3 or newer. Verify that the project is using compatible Build Tools/Android plugin
-  // versions.
-  private static void checkBuildToolsCompatibility(@NotNull Module module,
-                                                   @NotNull AndroidProject project,
-                                                   @NotNull List<String> moduleNames) {
-    if (isOneDotThreeOrLater(project)) {
-      return;
-    }
-
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
-    if (buildModel == null) {
-      return;
-    }
-
-    AndroidModel android = buildModel.android();
-    if (android == null) {
-      return;
-    }
-
-    if ("23.0.0 rc1".equals(android.buildToolsVersion())) {
-      moduleNames.add(module.getName());
-    }
-  }
-
-  private static boolean isOneDotThreeOrLater(@NotNull AndroidProject project) {
-    String modelVersion = project.getModelVersion();
-    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
-    return !(modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1")) && project.getApiVersion() >= 3;
-  }
-
-  private static void reportBuildTools23rc1Usage(@NotNull List<String> moduleNames, @NotNull Project project) {
-    if (!moduleNames.isEmpty()) {
-      sort(moduleNames);
-
-      StringBuilder msg = new StringBuilder();
-      msg.append("Build Tools 23.0.0 rc1 is <b>deprecated</b>.<br>\n")
-        .append("Please update these modules to use Build Tools 23.0.0 rc2 instead:");
-      for (String moduleName : moduleNames) {
-        msg.append("<br>\n * ").append(moduleName);
-      }
-      msg.append("<br>\n<br>\nOtherwise the project won't build. ");
-
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-      notification.showBalloon("Android Build Tools", msg.toString(), NotificationType.ERROR);
     }
   }
 
