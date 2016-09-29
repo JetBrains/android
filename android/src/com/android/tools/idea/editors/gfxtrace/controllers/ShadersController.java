@@ -56,6 +56,7 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter;
+import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.editor.impl.EditorImpl;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.project.Project;
@@ -751,6 +752,9 @@ public class ShadersController extends Controller implements ResourceCollection.
       super(new BorderLayout());
       final EditorFactory factory = EditorFactory.getInstance();
       myDocument = factory.createDocument("");
+      if (myDocument instanceof DocumentImpl) {
+        ((DocumentImpl)myDocument).setAcceptSlashR(true);
+      }
       myEditor = createEditor(factory, myDocument, project);
       getContentLayer().add(myEditor.getComponent(), BorderLayout.CENTER);
 
