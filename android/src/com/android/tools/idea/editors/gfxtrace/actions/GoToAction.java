@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.controllers.Controller;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -24,34 +25,23 @@ import com.intellij.openapi.fileEditor.FileEditor;
 
 import javax.swing.*;
 
-public class GoToAtomAction extends AnAction {
-
-  public GoToAtomAction() {
-    super("Jump to command");
-  }
+public class GoToAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    GfxTraceEditor editor = (GfxTraceEditor)e.getData(PlatformDataKeys.FILE_EDITOR);
-    assert editor != null;
-    long line = editor.getAtomStream().getSelectedAtomsPath().getLast();
-    long max = editor.getAtomStream().getAtomCount() - 1;
-    JSpinner spinner = new JSpinner(new SpinnerNumberModel((Number)line, 0L, max, 1));
-
-    int result = JOptionPane.showOptionDialog(editor.getComponent(), spinner, getTemplatePresentation().getText(),
-                                              JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
-                                              null, null, null);
-    if (result == JOptionPane.OK_OPTION) {
-      long atomIndex = (Long)spinner.getValue();
-      editor.getAtomStream().selectAtoms(atomIndex, 1, this);
-    }
+    Action action = Controller.getCurrentNavigable();
+    action.actionPerformed(null); // TODO maybe use AnAction here
   }
 
   @Override
   public void update(AnActionEvent event) {
     Presentation presentation = event.getPresentation();
     FileEditor editor = event.getData(PlatformDataKeys.FILE_EDITOR);
-    presentation.setVisible(editor instanceof GfxTraceEditor);
-    presentation.setEnabled(editor instanceof GfxTraceEditor && ((GfxTraceEditor)editor).getAtomStream().isLoaded());
+    Action action = Controller.getCurrentNavigable();
+    presentation.setVisible(editor instanceof GfxTraceEditor && action != null);
+    presentation.setEnabled(editor instanceof GfxTraceEditor && action != null && action.isEnabled());
+    if (action != null) {
+      presentation.setText((String)action.getValue(Action.NAME));
+    }
   }
 }
