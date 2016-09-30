@@ -114,7 +114,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   }
 
 
-  @Nullable
+  @NotNull
   public List<Data> prepareData(@NotNull AtomsPath path, @NotNull AtomList atoms, @NotNull Context context) {
     List<Data> generatedList = new ArrayList<>();
     int frameCount = 0;
@@ -179,9 +179,10 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   private void update(AtomStream atoms, boolean expectAtomsAreLoaded) {
     if (atoms.isLoaded()) {
-      final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext);
-      myList.setData(cells);
-    } else if (expectAtomsAreLoaded) {
+      ((ImageCellList)myList).setEmptyText(GfxTraceEditor.NO_FRAMES_IN_CONTEXT);
+      myList.setData(prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext));
+    }
+    else if (expectAtomsAreLoaded) {
       ((ImageCellList<?>)myList).setEmptyText("Failed to load capture");
     }
   }
