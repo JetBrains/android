@@ -25,13 +25,10 @@ import org.fest.swing.driver.JTreeLocation;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.util.Preconditions;
+
 import javax.annotation.Nonnull;
-import javax.swing.Icon;
-import javax.swing.JPopupMenu;
-import javax.swing.JTree;
-import javax.swing.UIManager;
-import java.awt.Point;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 
 public class ScrollAwareJTreeDriver extends JTreeDriver {
 
