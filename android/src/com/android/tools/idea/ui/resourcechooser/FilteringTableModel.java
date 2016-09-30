@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Similar to {@link com.intellij.ui.speedSearch.FilteringListModel} but for tables */
-class FilteringTableModel<T> extends AbstractTableModel {
+public class FilteringTableModel<T> extends AbstractTableModel {
   private final TableModel myOriginalModel;
   private final List<List<T>> myData = new ArrayList<>();
   private final Class<T> myClz;
@@ -87,6 +87,16 @@ class FilteringTableModel<T> extends AbstractTableModel {
     }
   }
 
+  @Override
+  public Class<?> getColumnClass(int columnIndex) {
+    return myOriginalModel.getColumnClass(columnIndex);
+  }
+
+  @Override
+  public String getColumnName(int column) {
+    return myOriginalModel.getColumnName(column);
+  }
+
   protected void addToFiltered(List<T> elt) {
     myData.add(elt);
   }
@@ -111,7 +121,7 @@ class FilteringTableModel<T> extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    if (rowIndex >= myData.size()) {
+    if (rowIndex >= myData.size() || rowIndex < 0 || columnIndex < 0 || columnIndex >= getColumnCount()) {
       return null;
     }
     return myData.get(rowIndex).get(columnIndex);
