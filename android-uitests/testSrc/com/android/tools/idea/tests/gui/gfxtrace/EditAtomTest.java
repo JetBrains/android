@@ -21,11 +21,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.gfxtrace.GfxTraceFixture;
 import com.android.tools.rpclib.schema.Method;
 import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JOptionPaneFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
