@@ -29,13 +29,16 @@ public class AndroidProjectValidatorIntegrationTest extends AndroidGradleTestCas
     AndroidProjectValidator validator = new AndroidProjectValidator(project);
 
     AndroidProjectValidationStrategy[] strategies = validator.getStrategies();
-    assertThat(strategies).hasLength(2);
+    assertThat(strategies).hasLength(3);
 
     AndroidProjectValidationStrategy strategy = strategies[0];
     assertThat(strategy).isInstanceOf(EncodingValidationStrategy.class);
 
     strategy = strategies[1];
     assertThat(strategy).isInstanceOf(BuildTools23Rc1ValidationStrategy.class);
+
+    strategy = strategies[2];
+    assertThat(strategy).isInstanceOf(LayoutRenderingIssueValidationStrategy.class);
 
     assertSame(project, strategy.getProject());
   }

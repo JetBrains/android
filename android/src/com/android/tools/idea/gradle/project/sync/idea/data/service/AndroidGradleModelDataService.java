@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
@@ -23,8 +22,6 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -42,17 +39,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXTRA_GENERATED_SOURCES;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -114,11 +108,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         SyncMessages messages = SyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
 
-        Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
-
         AndroidProjectValidator projectValidator = new AndroidProjectValidator(project);
-
-        String modelVersionWithLayoutRenderingIssue = null;
+        Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         for (Module module : modelsProvider.getModules()) {
           AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
@@ -126,13 +117,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
           setUpModule(module, modelsProvider, androidModel);
           if (androidModel != null) {
             projectValidator.validate(module, androidModel);
-
-            AndroidProject androidProject = androidModel.getAndroidProject();
-
-            // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
-            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(androidProject)) {
-              modelVersionWithLayoutRenderingIssue = androidProject.getModelVersion();
-            }
 
             // Warn users that there are generated source folders at the wrong location.
             File[] sourceFolders = androidModel.getExtraGeneratedSourceFolders();
@@ -149,10 +133,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
         projectValidator.fixAndReportFoundIssues();
 
-        if (modelVersionWithLayoutRenderingIssue != null) {
-          addLayoutRenderingIssueMessage(modelVersionWithLayoutRenderingIssue, project);
-        }
-
         if (hasExtraGeneratedFolders) {
           messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
         }
@@ -166,18 +146,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     if (error != null) {
       throw error;
     }
-  }
-
-  private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
-    // See https://code.google.com/p/android/issues/detail?id=170841
-    String text = String.format("Using an obsolete version of the Gradle plugin (%1$s);", modelVersion);
-    text += " this can lead to layouts not rendering correctly.";
-
-    SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text);
-    message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(),
-                              new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
-
-    SyncMessages.getInstance(project).report(message);
   }
 
   @NotNull
