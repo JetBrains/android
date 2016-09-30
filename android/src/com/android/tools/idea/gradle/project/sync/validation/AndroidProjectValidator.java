@@ -25,11 +25,12 @@ public class AndroidProjectValidator {
   @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
 
   public AndroidProjectValidator(@NotNull Project project) {
-    this(new EncodingValidationStrategy(project), new BuildTools23Rc1ValidationStrategy(project));
+    this(new EncodingValidationStrategy(project), new BuildTools23Rc1ValidationStrategy(project),
+         new LayoutRenderingIssueValidationStrategy(project));
   }
 
   @VisibleForTesting
-  AndroidProjectValidator(@NotNull AndroidProjectValidationStrategy...strategies) {
+  AndroidProjectValidator(@NotNull AndroidProjectValidationStrategy... strategies) {
     myStrategies = strategies;
   }
 

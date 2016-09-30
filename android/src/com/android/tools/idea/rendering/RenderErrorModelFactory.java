@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
@@ -92,7 +91,6 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
@@ -1124,9 +1122,8 @@ public class RenderErrorModelFactory {
                                  null;
       if (model != null) {
         // TODO: b/23032391
-        AndroidProject androidProject = model.getAndroidProject();
-        String modelVersion = androidProject.getModelVersion();
-        if (hasLayoutRenderingIssue(androidProject)) {
+        if (model.getFeatures().isLayoutRenderingIssuePresent()) {
+          GradleVersion modelVersion = model.getModelVersion();
           builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +
                           "); this can lead to layouts not rendering correctly.").newline()
             .addIcon(HtmlBuilderHelper.getTipIconPath());
@@ -1404,14 +1401,12 @@ public class RenderErrorModelFactory {
       .filter(Objects::nonNull)
       .filter(t -> t.getMessage() != null && t.getMessage().startsWith("You need to use a Theme.AppCompat"))
       .findAny()
-      .ifPresent(t -> {
-        addIssue()
-          .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY + 1) // Reported above broken classes
-          .setSummary("Using the design library requires using Theme.AppCompat or a descendant")
-          .setHtmlContent(new HtmlBuilder()
-            .add("Select ").addItalic("Theme.AppCompat").add(" or a descendant in the theme selector."))
-          .build();
-      });
+      .ifPresent(t -> addIssue()
+        .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY + 1) // Reported above broken classes
+        .setSummary("Using the design library requires using Theme.AppCompat or a descendant")
+        .setHtmlContent(new HtmlBuilder()
+          .add("Select ").addItalic("Theme.AppCompat").add(" or a descendant in the theme selector."))
+        .build());
   }
 
   @NotNull
@@ -1473,9 +1468,7 @@ public class RenderErrorModelFactory {
         final Sdk sdk = ProjectJdkTable.getInstance().findJdk(sdkNames.iterator().next());
         if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
           final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(myProject);
-          if (ShowSettingsUtil.getInstance().editConfigurable(myProject, config, () -> {
-            config.select(sdk, true);
-          })) {
+          if (ShowSettingsUtil.getInstance().editConfigurable(myProject, config, () -> config.select(sdk, true))) {
             askAndRebuild(myProject);
           }
           return;
