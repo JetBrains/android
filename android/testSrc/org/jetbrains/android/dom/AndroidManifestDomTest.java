@@ -64,6 +64,12 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestHighlighting("hl2.xml");
   }
 
+  public void testHighlighting3() throws Throwable {
+    copyFileToProject("MyActivity.java", "src/p1/p2/MyActivity.java");
+    copyFileToProject("bools.xml", "res/values-v23/bools.xml");
+    doTestHighlighting("hl3.xml");
+  }
+
   public void testTagNameCompletion3() throws Throwable {
     toTestCompletion("tn3.xml", "tn3_after.xml");
   }
