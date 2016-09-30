@@ -156,7 +156,6 @@ iml_module(
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:studio.common[module]",
-        "//tools:idea.gradle-tooling-extension-impl[module]",
     ],
     test_runtime_deps = ["//tools/adt/idea/adt-branding"],
     exports = [
@@ -185,65 +184,49 @@ iml_module(
 
 java_import(
     name = "android/lib/commons-compress-1.8.1",
-    jars = [
-        "android/lib/commons-compress-1.8.1.jar",
-    ],
+    jars = ["android/lib/commons-compress-1.8.1.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/commons-io-2.4",
-    jars = [
-        "android/lib/commons-io-2.4.jar",
-    ],
+    jars = ["android/lib/commons-io-2.4.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/juniversalchardet-1.0.3",
-    jars = [
-        "android/lib/juniversalchardet-1.0.3.jar",
-    ],
+    jars = ["android/lib/juniversalchardet-1.0.3.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/antlr4-runtime-4.5.3",
-    jars = [
-        "android/lib/antlr4-runtime-4.5.3.jar",
-    ],
+    jars = ["android/lib/antlr4-runtime-4.5.3.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-5.0.3",
-    jars = [
-        "android/lib/asm-5.0.3.jar",
-    ],
+    jars = ["android/lib/asm-5.0.3.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-analysis-5.0.3",
-    jars = [
-        "android/lib/asm-analysis-5.0.3.jar",
-    ],
+    jars = ["android/lib/asm-analysis-5.0.3.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-tree-5.0.3",
-    jars = [
-        "android/lib/asm-tree-5.0.3.jar",
-    ],
+    jars = ["android/lib/asm-tree-5.0.3.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jarutils",
-    jars = [
-        "android/lib/jarutils.jar",
-    ],
+    jars = ["android/lib/jarutils.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -256,9 +239,7 @@ java_library(
 
 java_import(
     name = "android/lib/GoogleFeedback",
-    jars = [
-        "android/lib/GoogleFeedback.jar",
-    ],
+    jars = ["android/lib/GoogleFeedback.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -271,121 +252,91 @@ java_library(
 
 java_import(
     name = "android/lib/spantable",
-    jars = [
-        "android/lib/spantable.jar",
-    ],
+    jars = ["android/lib/spantable.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jsr305-1.3.9",
-    jars = [
-        "android/lib/jsr305-1.3.9.jar",
-    ],
+    jars = ["android/lib/jsr305-1.3.9.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jgraphx-3.4.0.1",
-    jars = [
-        "android/lib/jgraphx-3.4.0.1.jar",
-    ],
+    jars = ["android/lib/jgraphx-3.4.0.1.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all",
-    jars = [
-        "android/lib/jogl-all.jar",
-    ],
+    jars = ["android/lib/jogl-all.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-linux-amd64",
-    jars = [
-        "android/lib/jogl-all-natives-linux-amd64.jar",
-    ],
+    jars = ["android/lib/jogl-all-natives-linux-amd64.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-linux-i586",
-    jars = [
-        "android/lib/jogl-all-natives-linux-i586.jar",
-    ],
+    jars = ["android/lib/jogl-all-natives-linux-i586.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-macosx-universal",
-    jars = [
-        "android/lib/jogl-all-natives-macosx-universal.jar",
-    ],
+    jars = ["android/lib/jogl-all-natives-macosx-universal.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-windows-amd64",
-    jars = [
-        "android/lib/jogl-all-natives-windows-amd64.jar",
-    ],
+    jars = ["android/lib/jogl-all-natives-windows-amd64.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-windows-i586",
-    jars = [
-        "android/lib/jogl-all-natives-windows-i586.jar",
-    ],
+    jars = ["android/lib/jogl-all-natives-windows-i586.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt",
-    jars = [
-        "android/lib/gluegen-rt.jar",
-    ],
+    jars = ["android/lib/gluegen-rt.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-linux-amd64",
-    jars = [
-        "android/lib/gluegen-rt-natives-linux-amd64.jar",
-    ],
+    jars = ["android/lib/gluegen-rt-natives-linux-amd64.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-linux-i586",
-    jars = [
-        "android/lib/gluegen-rt-natives-linux-i586.jar",
-    ],
+    jars = ["android/lib/gluegen-rt-natives-linux-i586.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-macosx-universal",
-    jars = [
-        "android/lib/gluegen-rt-natives-macosx-universal.jar",
-    ],
+    jars = ["android/lib/gluegen-rt-natives-macosx-universal.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-windows-amd64",
-    jars = [
-        "android/lib/gluegen-rt-natives-windows-amd64.jar",
-    ],
+    jars = ["android/lib/gluegen-rt-natives-windows-amd64.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-windows-i586",
-    jars = [
-        "android/lib/gluegen-rt-natives-windows-i586.jar",
-    ],
+    jars = ["android/lib/gluegen-rt-natives-windows-i586.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -398,24 +349,18 @@ java_library(
 
 java_import(
     name = "android/lib/libwebp",
-    jars = [
-        "android/lib/libwebp.jar",
-    ],
+    jars = ["android/lib/libwebp.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/dexlib2-2.0.8-dev",
-    jars = [
-        "android/lib/dexlib2-2.0.8-dev.jar",
-    ],
+    jars = ["android/lib/dexlib2-2.0.8-dev.jar"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/dexlib2-util-2.0.8-dev",
-    jars = [
-        "android/lib/dexlib2-util-2.0.8-dev.jar",
-    ],
+    jars = ["android/lib/dexlib2-util-2.0.8-dev.jar"],
     visibility = ["//visibility:public"],
 )
