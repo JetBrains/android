@@ -76,7 +76,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
     myStrategy.setModelVersion(GradleVersion.parse("1.2.0"));
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNotNull(message);
 
     String[] text = message.getText();
@@ -91,7 +91,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
     myStrategy.setModelVersion(null);
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNull(message);
   }
 }

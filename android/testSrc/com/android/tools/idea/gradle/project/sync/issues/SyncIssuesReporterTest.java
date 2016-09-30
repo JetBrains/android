@@ -106,7 +106,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(Lists.newArrayList(mySyncIssue), appModule);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);

@@ -59,7 +59,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
     VersionIncompatibility incompatibility = new VersionIncompatibility(appModule, check, baseReaderAndVersion, requirement, GRADLE);
     incompatibility.reportMessages(getProject());
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(2);
 
@@ -88,7 +88,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
       new VersionIncompatibility(appModule, check, baseReaderAndVersion, requirement, ANDROID_GRADLE_PLUGIN);
     incompatibility.reportMessages(getProject());
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(2);
 

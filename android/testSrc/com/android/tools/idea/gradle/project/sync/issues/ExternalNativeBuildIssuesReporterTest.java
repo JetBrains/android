@@ -93,7 +93,7 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
 
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
     assertAbout(syncMessage()).that(message).hasMessageLine(nativeToolOutput, 0);
@@ -135,7 +135,7 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
 
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    assertNull(mySyncMessagesStub.getReportedMessage());
+    assertNull(mySyncMessagesStub.getFirstReportedMessage());
 
     NotificationData notification = mySyncMessagesStub.getNotification();
     assertNotNull(notification);

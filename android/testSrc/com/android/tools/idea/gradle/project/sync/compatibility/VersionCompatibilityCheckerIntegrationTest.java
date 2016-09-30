@@ -59,7 +59,7 @@ public class VersionCompatibilityCheckerIntegrationTest extends AndroidGradleTes
     requestSyncAndWait();
 
     String expectedError = "Gradle 2.14.1 requires Android Gradle plugin 2.1.3 (or newer) but project is using version 2.1.2.";
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
 
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasType(ERROR)

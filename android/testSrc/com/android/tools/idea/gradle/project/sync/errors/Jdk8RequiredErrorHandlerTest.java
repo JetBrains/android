@@ -53,7 +53,7 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
     assertTrue(result);
 
     // Verity that SyncMessages was invoked to show an error message.
-    SyncMessage message = myMessagesStub.getReportedMessage();
+    SyncMessage message = myMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
     String[] text = message.getText();
@@ -67,7 +67,7 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
     boolean result = myErrorHandler.handleError(new RuntimeException("Hello World!"), getProject());
     assertFalse(result);
 
-    SyncMessage message = myMessagesStub.getReportedMessage();
+    SyncMessage message = myMessagesStub.getFirstReportedMessage();
     assertNull(message);
   }
 

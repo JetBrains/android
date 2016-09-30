@@ -95,7 +95,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
     myStrategy.getModules().add("app");
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNotNull(message);
 
     String[] text = message.getText();
@@ -110,7 +110,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
     myStrategy.getModules().clear();
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNull(message);
   }
 }

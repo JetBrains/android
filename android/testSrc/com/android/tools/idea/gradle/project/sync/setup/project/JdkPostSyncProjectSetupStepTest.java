@@ -70,7 +70,7 @@ public class JdkPostSyncProjectSetupStepTest extends AndroidGradleTestCase {
     Project project = getProject();
     mySetupStep.doSetUpProject(project, true /* Android Studio */);
 
-    SyncMessage message = mySyncMessages.getReportedMessage();
+    SyncMessage message = mySyncMessages.getFirstReportedMessage();
     assertNotNull(message);
 
     // @formatter:off
