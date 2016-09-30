@@ -70,7 +70,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
 
@@ -96,7 +96,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
     // @formatter:off
@@ -125,7 +125,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
     // @formatter:off
@@ -157,7 +157,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
 
     // @formatter:off

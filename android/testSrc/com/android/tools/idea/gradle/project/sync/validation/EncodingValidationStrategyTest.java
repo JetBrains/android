@@ -71,7 +71,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
 
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNotNull(message);
 
     String[] text = message.getText();
@@ -88,7 +88,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     myStrategy.setMismatchingEncoding(null);
     myStrategy.fixAndReportFoundIssues();
 
-    SyncMessage message = syncMessages.getReportedMessage();
+    SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNull(message);
 
     verify(myEncodings, never()).setDefaultCharsetName(anyString());

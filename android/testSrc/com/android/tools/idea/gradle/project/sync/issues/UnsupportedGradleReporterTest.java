@@ -63,7 +63,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
 

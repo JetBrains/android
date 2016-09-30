@@ -15,31 +15,35 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation;
 
+import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator.AndroidProjectValidatorImpl;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link AndroidProjectValidator}.
+ * Tests for {@link AndroidProjectValidatorImpl}.
  */
-public class AndroidProjectValidatorIntegrationTest extends AndroidGradleTestCase {
+public class AndroidProjectValidatorImplIntegrationTest extends AndroidGradleTestCase {
   public void testDefaultConstructor() {
     Project project = getProject();
-    AndroidProjectValidator validator = new AndroidProjectValidator(project);
+    AndroidProjectValidatorImpl validator = new AndroidProjectValidatorImpl(project);
+
+    Class<?>[] expectedStrategyTypes = new Class[]{
+      EncodingValidationStrategy.class,
+      BuildTools23Rc1ValidationStrategy.class,
+      LayoutRenderingIssueValidationStrategy.class,
+      ExtraGeneratedFolderValidationStrategy.class
+    };
+    int strategyCount = expectedStrategyTypes.length;
 
     AndroidProjectValidationStrategy[] strategies = validator.getStrategies();
-    assertThat(strategies).hasLength(3);
+    assertThat(strategies).hasLength(strategyCount);
 
-    AndroidProjectValidationStrategy strategy = strategies[0];
-    assertThat(strategy).isInstanceOf(EncodingValidationStrategy.class);
-
-    strategy = strategies[1];
-    assertThat(strategy).isInstanceOf(BuildTools23Rc1ValidationStrategy.class);
-
-    strategy = strategies[2];
-    assertThat(strategy).isInstanceOf(LayoutRenderingIssueValidationStrategy.class);
-
-    assertSame(project, strategy.getProject());
+    for (int i = 0; i < strategyCount; i++) {
+      AndroidProjectValidationStrategy strategy = strategies[i];
+      assertThat(strategy).isInstanceOf(expectedStrategyTypes[i]);
+      assertSame(project, strategy.getProject());
+    }
   }
 }

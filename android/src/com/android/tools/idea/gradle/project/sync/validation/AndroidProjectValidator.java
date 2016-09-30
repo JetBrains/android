@@ -21,34 +21,53 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidProjectValidator {
-  @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
+public abstract class AndroidProjectValidator {
+  public abstract void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel);
 
-  public AndroidProjectValidator(@NotNull Project project) {
-    this(new EncodingValidationStrategy(project), new BuildTools23Rc1ValidationStrategy(project),
-         new LayoutRenderingIssueValidationStrategy(project));
-  }
+  public abstract void fixAndReportFoundIssues();
 
-  @VisibleForTesting
-  AndroidProjectValidator(@NotNull AndroidProjectValidationStrategy... strategies) {
-    myStrategies = strategies;
-  }
-
-  public void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
-    for (AndroidProjectValidationStrategy strategy : myStrategies) {
-      strategy.validate(module, androidModel);
-    }
-  }
-
-  public void fixAndReportFoundIssues() {
-    for (AndroidProjectValidationStrategy strategy : myStrategies) {
-      strategy.fixAndReportFoundIssues();
+  public static class Factory {
+    @NotNull
+    public AndroidProjectValidator create(@NotNull Project project) {
+      return new AndroidProjectValidatorImpl(project);
     }
   }
 
   @VisibleForTesting
-  @NotNull
-  AndroidProjectValidationStrategy[] getStrategies() {
-    return myStrategies;
+  static class AndroidProjectValidatorImpl extends AndroidProjectValidator {
+    @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
+
+    AndroidProjectValidatorImpl(@NotNull Project project) {
+      this(new EncodingValidationStrategy(project),
+           new BuildTools23Rc1ValidationStrategy(project),
+           new LayoutRenderingIssueValidationStrategy(project),
+           new ExtraGeneratedFolderValidationStrategy(project)
+      );
+    }
+
+    @VisibleForTesting
+    AndroidProjectValidatorImpl(@NotNull AndroidProjectValidationStrategy... strategies) {
+      myStrategies = strategies;
+    }
+
+    @Override
+    public void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+      for (AndroidProjectValidationStrategy strategy : myStrategies) {
+        strategy.validate(module, androidModel);
+      }
+    }
+
+    @Override
+    public void fixAndReportFoundIssues() {
+      for (AndroidProjectValidationStrategy strategy : myStrategies) {
+        strategy.fixAndReportFoundIssues();
+      }
+    }
+
+    @VisibleForTesting
+    @NotNull
+    AndroidProjectValidationStrategy[] getStrategies() {
+      return myStrategies;
+    }
   }
 }

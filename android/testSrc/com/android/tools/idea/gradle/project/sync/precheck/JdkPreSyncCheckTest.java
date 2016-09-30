@@ -87,7 +87,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     String expectedText = "Please use JDK 8 or newer.";
     assertEquals(expectedText, result.getFailureCause());
 
-    SyncMessage message = mySyncMessagesStub.getReportedMessage();
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
 
