@@ -293,7 +293,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private void initSidePanel() {
     boolean isDefaultProject = myProject == ProjectManager.getInstance().getDefaultProject();
 
-    mySidePanel = new SidePanel(this, myHistory);
+    mySidePanel = new SidePanel(this);
 
     addConfigurable(mySdksConfigurable);
 
