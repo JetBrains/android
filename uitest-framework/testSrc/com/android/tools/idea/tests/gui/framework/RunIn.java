@@ -22,8 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/** A method with no annotation is in the {@link TestGroup} of its class; a class with no annotation is in {@link TestGroup#DEFAULT}. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface RunIn {
   @NotNull TestGroup value();
 }

@@ -124,8 +124,14 @@ public class GuiTestSuiteRunner extends Suite {
 
     @Override
     public boolean shouldRun(Description description) {
-      return (description.isTest() && testGroupOf(description.getTestClass()) == testGroup)
+      return (description.isTest() && testGroupOf(description) == testGroup)
         || description.getChildren().stream().anyMatch(this::shouldRun);
+    }
+
+    @NotNull
+    static TestGroup testGroupOf(Description description) {
+      RunIn methodAnnotation = description.getAnnotation(RunIn.class);
+      return (methodAnnotation != null) ? methodAnnotation.value() : testGroupOf(description.getTestClass());
     }
 
     @NotNull
