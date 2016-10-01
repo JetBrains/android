@@ -58,7 +58,7 @@ public class GuiTestSuiteRunner extends Suite {
   }
 
   @NotNull
-  public static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
+  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
     File parentDir = getParentDir(suiteClass);
 
@@ -124,20 +124,20 @@ public class GuiTestSuiteRunner extends Suite {
 
     @Override
     public boolean shouldRun(Description description) {
-      return (description.isTest() && getTestGroup(description.getTestClass()) == testGroup)
+      return (description.isTest() && testGroupOf(description.getTestClass()) == testGroup)
         || description.getChildren().stream().anyMatch(this::shouldRun);
+    }
+
+    @NotNull
+    static TestGroup testGroupOf(@NotNull Class<?> testClass) {
+      RunIn classAnnotation = testClass.getAnnotation(RunIn.class);
+      return (classAnnotation != null) ? classAnnotation.value() : TestGroup.DEFAULT;
     }
 
     @Override
     public String describe() {
       return TestGroupFilter.class.getSimpleName() + " for " + testGroup;
     }
-  }
-
-  @NotNull
-  public static TestGroup getTestGroup(@NotNull Class<?> suiteClass) {
-    RunIn runIn = suiteClass.getAnnotation(RunIn.class);
-    return (runIn != null) ? runIn.value() : TestGroup.DEFAULT;
   }
 
   private static final RunnerScheduler IDE_DISPOSER = new RunnerScheduler() {
