@@ -31,7 +31,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -133,6 +135,19 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     }
   }
 
+  /** Returns the views and all the children */
+  @NotNull
+  public List<NlComponentFixture> getAllComponents() {
+    ScreenView screenView = target().getCurrentScreenView();
+    if (screenView == null) {
+      return Collections.emptyList();
+    }
+
+    return screenView.getModel().flattenComponents()
+      .map(this::createComponentFixture)
+      .collect(Collectors.toList());
+  }
+
   /** Requires the selection to have the given number of selected widgets */
   @NotNull
   public DesignSurfaceFixture requireSelection(@NotNull List<NlComponentFixture> components) {
@@ -143,13 +158,13 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   /** Returns a list of the selected views */
   @NotNull
   public List<NlComponentFixture> getSelection() {
-    List<NlComponentFixture> selection = Lists.newArrayList();
     ScreenView screenView = target().getCurrentScreenView();
-    if (screenView != null) {
-      for (NlComponent component : screenView.getSelectionModel().getSelection()) {
-        selection.add(createComponentFixture(component));
-      }
+    if (screenView == null) {
+      return Collections.emptyList();
     }
-    return selection;
+
+    return screenView.getModel().getSelectionModel().getSelection().stream()
+      .map(this::createComponentFixture)
+      .collect(Collectors.toList());
   }
 }

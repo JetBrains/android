@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -31,6 +30,8 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Collections;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_TEXT;
@@ -223,5 +224,38 @@ public class NlPreviewTest {
     string1.requireActualText("String 1 defined only by edited defaultConfig");
 
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
+  }
+
+  @Test
+  public void testCopyAndPaste() throws Exception {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+
+    NlPreviewFixture layout = editor.getLayoutPreview(true);
+    assertNotNull(layout);
+    layout
+      .dragComponentToSurface("Widgets/Button")
+      .dragComponentToSurface("Widgets/CheckBox")
+      .waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture checkBox = layout.findView("CheckBox", 0);
+    checkBox.click();
+
+    // It should be selected now
+    layout.requireSelection(Collections.singletonList(checkBox));
+    assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
+
+    ideFrame.invokeMenuPath("Edit", "Cut");
+    assertEquals(3, layout.getAllComponents().size());
+
+    layout.findView("Button", 0).click();
+    ideFrame.invokeMenuPath("Edit", "Paste");
+    layout.findView("CheckBox", 0).click();
+    ideFrame.invokeMenuPath("Edit", "Copy");
+    ideFrame.invokeMenuPath("Edit", "Paste");
+    assertEquals(5, layout.getAllComponents().size());
   }
 }

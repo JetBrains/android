@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
@@ -30,6 +31,7 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * UI tests for {@link NlEditor}
@@ -87,5 +89,36 @@ public class NlEditorTest {
       .getCurrentFileContents();
     assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("<Button");
+  }
+
+  @Test
+  public void testCopyAndPaste() throws Exception {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true)
+      .dragComponentToSurface("Widgets/Button")
+      .dragComponentToSurface("Widgets/CheckBox")
+      .waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture textView = layout.findView("CheckBox", 0);
+    textView.click();
+
+    // It should be selected now
+    layout.requireSelection(Collections.singletonList(textView));
+    assertEquals(4, layout.getAllComponents().size()); // 4 = root layout + 3 widgets
+
+    ideFrame.invokeMenuPath("Edit", "Cut");
+    layout.requireSelection(Collections.emptyList());
+    assertEquals(3, layout.getAllComponents().size());
+
+    layout.findView("Button", 0).click();
+    ideFrame.invokeMenuPath("Edit", "Paste");
+    layout.findView("CheckBox", 0).click();
+    ideFrame.invokeMenuPath("Edit", "Copy");
+    ideFrame.invokeMenuPath("Edit", "Paste");
+    assertEquals(5, layout.getAllComponents().size());
   }
 }
