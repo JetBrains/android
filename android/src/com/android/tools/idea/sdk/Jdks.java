@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.UseEmbeddedJdkHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
@@ -238,5 +242,24 @@ public class Jdks {
 
   public void setJdk(@NotNull Project project, @NotNull Sdk jdk) {
     applyJdkToProject(project, jdk);
+  }
+
+  @NotNull
+  public List<NotificationHyperlink> getWrongJdkQuickFixes(@NotNull Project project) {
+    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+
+    NotificationHyperlink useEmbeddedJdkHyperlink = UseEmbeddedJdkHyperlink.create();
+    if (useEmbeddedJdkHyperlink != null) {
+      quickFixes.add(useEmbeddedJdkHyperlink);
+    }
+
+    quickFixes.add(new DownloadJdk8Hyperlink());
+
+    NotificationHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
+    if (selectJdkHyperlink != null) {
+      quickFixes.add(selectJdkHyperlink);
+    }
+
+    return quickFixes;
   }
 }

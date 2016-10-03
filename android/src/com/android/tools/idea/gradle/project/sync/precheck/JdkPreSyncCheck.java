@@ -31,7 +31,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
@@ -45,7 +44,7 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
     if (!isValidJdk(jdk)) {
       String msg = "Please use JDK 8 or newer.";
       SyncMessage message = new SyncMessage("Project sync error", MessageType.ERROR, msg);
-      List<NotificationHyperlink> quickFixes = getJdkQuickFixes(project);
+      List<NotificationHyperlink> quickFixes = Jdks.getInstance().getWrongJdkQuickFixes(project);
       message.add(quickFixes);
 
       SyncMessages.getInstance(project).report(message);

@@ -18,25 +18,34 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.project.sync.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 
-import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
+  @NotNull private final Jdks myJdks;
+
+  public Jdk8RequiredErrorHandler() {
+    this(Jdks.getInstance());
+  }
+
+  public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
+    myJdks = jdks;
+  }
+
   @Override
   public boolean handleError(@NotNull Throwable error, @NotNull Project project) {
     String text = findJdk8RequiredMessage(error);
     if (text != null) {
       SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, text);
-      message.add(getJdkQuickFixes(project));
+      message.add(myJdks.getWrongJdkQuickFixes(project));
       SyncMessages.getInstance(project).report(message);
       return true;
     }
@@ -50,7 +59,7 @@ public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
                              @NotNull Project project) {
     String text = findJdk8RequiredMessage(error);
     if (text != null) {
-      SyncMessages.getInstance(project).updateNotification(notification, text, getJdkQuickFixes(project));
+      SyncMessages.getInstance(project).updateNotification(notification, text, myJdks.getWrongJdkQuickFixes(project));
       return true;
     }
     return false;
