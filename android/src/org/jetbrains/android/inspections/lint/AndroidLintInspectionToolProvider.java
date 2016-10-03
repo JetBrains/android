@@ -1,6 +1,5 @@
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -360,14 +359,14 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  private static AndroidLintQuickFix[] getAppIndexingQuickFix(PsiElement startElement, PsiElement endElement, String message) {
+  private static AndroidLintQuickFix[] getAppIndexingQuickFix(PsiElement startElement, String message) {
     AppIndexingApiDetector.IssueType type = AppIndexingApiDetector.IssueType.parse(message);
     switch (type) {
       case SCHEME_MISSING:
       case URL_MISSING:
-        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set scheme", SdkConstants.ATTR_SCHEME, "http")};
+        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set scheme", ATTR_SCHEME, "http")};
       case HOST_MISSING:
-        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set host", SdkConstants.ATTR_HOST, null)};
+        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set host", ATTR_HOST, null)};
       case MISSING_SLASH:
         PsiElement parent = startElement.getParent();
         if (parent instanceof XmlAttribute) {
@@ -392,7 +391,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getAppIndexingQuickFix(startElement, endElement, message);
+      return getAppIndexingQuickFix(startElement, message);
     }
   }
 
@@ -404,7 +403,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getAppIndexingQuickFix(startElement, endElement, message);
+      return getAppIndexingQuickFix(startElement, message);
     }
   }
 
@@ -416,7 +415,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return getAppIndexingQuickFix(startElement, endElement, message);
+      return getAppIndexingQuickFix(startElement, message);
     }
   }
 
@@ -447,6 +446,24 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintAssertInspection extends AndroidLintInspectionBase {
     public AndroidLintAssertInspection() {
       super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintStringEscapingInspection extends AndroidLintInspectionBase {
+    public AndroidLintStringEscapingInspection() {
+      super(AndroidBundle.message("android.lint.inspections.string.escaping"), DuplicateResourceDetector.STRING_ESCAPING);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      if (message.contains("Apostrophe")) {
+        return new AndroidLintQuickFix[]{
+          new ReplaceStringQuickFix("Escape Apostrophe", "[^\\\\](')", "\\'")
+        };
+      }
+
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
@@ -505,7 +522,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{
         new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.content.description"),
-                                 SdkConstants.ATTR_CONTENT_DESCRIPTION, null)
+                                 ATTR_CONTENT_DESCRIPTION, null)
       };
     }
   }
@@ -850,7 +867,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{
         new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
-                                 SdkConstants.ATTR_BASELINE_ALIGNED, VALUE_FALSE)
+                                 ATTR_BASELINE_ALIGNED, VALUE_FALSE)
       };
     }
   }
@@ -968,7 +985,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintMergeMarkerInspection extends AndroidLintInspectionBase {
     public AndroidLintMergeMarkerInspection() {
-      super(AndroidBundle.message("android.lint.inspections.merge.marker"), com.android.tools.lint.checks.MergeMarkerDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.merge.marker"), MergeMarkerDetector.ISSUE);
     }
   }
 
@@ -980,7 +997,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintNamespaceTypoInspection extends AndroidLintInspectionBase {
     public AndroidLintNamespaceTypoInspection() {
-      super(AndroidBundle.message("android.lint.inspections.namespace.typo"), com.android.tools.lint.checks.NamespaceDetector.TYPO);
+      super(AndroidBundle.message("android.lint.inspections.namespace.typo"), NamespaceDetector.TYPO);
     }
   }
 
@@ -1158,8 +1175,7 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{
-        new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.permission.attribute"),
-                                 SdkConstants.ATTR_PERMISSION, null)
+        new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.permission.attribute"), ATTR_PERMISSION, null)
       };
     }
   }
@@ -1367,7 +1383,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{
         new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
-                                 SdkConstants.ATTR_INPUT_TYPE, null)
+                                 ATTR_INPUT_TYPE, null)
       };
     }
   }
@@ -2370,7 +2386,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintStaticFieldLeakInspection extends AndroidLintInspectionBase {
     public AndroidLintStaticFieldLeakInspection() {
-      super(AndroidBundle.message("android.lint.inspections.static.field.leak"), com.android.tools.lint.checks.LeakDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.static.field.leak"), LeakDetector.ISSUE);
     }
   }
 
