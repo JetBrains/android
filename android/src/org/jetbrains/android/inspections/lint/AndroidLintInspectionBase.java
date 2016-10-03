@@ -1,6 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -250,7 +251,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
     synchronized (ISSUE_MAP_LOCK) {
       if (ourIssue2InspectionShortName == null) {
-        ourIssue2InspectionShortName = new HashMap<Issue, String>();
+        ourIssue2InspectionShortName = new HashMap<>();
 
         final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
 

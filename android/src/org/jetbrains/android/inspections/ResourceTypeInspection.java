@@ -19,6 +19,10 @@ package org.jetbrains.android.inspections;
 import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.lint.AddTargetApiQuickFix;
+import com.android.tools.idea.lint.AddTargetVersionCheckQuickFix;
+import com.android.tools.idea.lint.LintIdeJavaParser;
+import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
 import com.android.tools.lint.checks.*;
@@ -54,7 +58,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.controlFlow.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
-import com.intellij.psi.impl.compiled.ClsAnnotationImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -188,7 +191,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return new JavaElementVisitor() {
-      private LombokPsiParser.LintPsiJavaEvaluator myEvaluator = new LombokPsiParser.LintPsiJavaEvaluator(holder.getProject());
+      private LintIdeJavaParser.LintPsiJavaEvaluator myEvaluator = new LintIdeJavaParser.LintPsiJavaEvaluator(holder.getProject());
 
       @Override
       public void visitCallExpression(PsiCallExpression callExpression) {
@@ -606,7 +609,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
     }
 
-    if (IntellijLintUtils.isSuppressed(methodCall, UNSUPPORTED)) {
+    if (LintIdeUtils.isSuppressed(methodCall, UNSUPPORTED)) {
       return;
     }
 

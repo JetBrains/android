@@ -15,7 +15,7 @@ public class ProblemData {
   private final TextRange myTextRange;
   private final Severity myConfiguredSeverity;
 
-  ProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity) {
+  public ProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity) {
     myIssue = issue;
     myTextRange = textRange;
     myMessage = message;

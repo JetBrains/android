@@ -48,9 +48,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
-import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
-import org.jetbrains.android.inspections.lint.IntellijLintRequest;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -1012,12 +1012,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) throws Exception {
-    BuiltinIssueRegistry registry = new IntellijLintIssueRegistry();
+    BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
-    IntellijLintClient client = IntellijLintClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
+    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
     LintDriver driver = new LintDriver(registry, client);
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-    LintRequest request = new IntellijLintRequest(client, project, null, modules, false);
+    LintRequest request = new LintIdeRequest(client, project, null, modules, false);
     EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
     scope.remove(Scope.CLASS_FILE);
     scope.remove(Scope.ALL_CLASS_FILES);

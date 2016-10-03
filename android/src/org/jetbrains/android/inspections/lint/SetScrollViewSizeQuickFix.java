@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
+public class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
