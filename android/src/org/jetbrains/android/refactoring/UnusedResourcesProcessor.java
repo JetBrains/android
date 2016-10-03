@@ -49,18 +49,16 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
-import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
-import org.jetbrains.android.inspections.lint.IntellijLintRequest;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyConstantExpressionEvaluator;
 
@@ -297,10 +295,10 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     UnusedResourceDetector.ISSUE_IDS.setEnabledByDefault(myIncludeIds);
 
     try {
-      IntellijLintClient client = IntellijLintClient.forBatch(myProject, map, scope, issues);
-      LintRequest request = new IntellijLintRequest(client, myProject, null, Arrays.asList(myModules), false);
+      LintIdeClient client = LintIdeClient.forBatch(myProject, map, scope, issues);
+      LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
+      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
       lint.analyze(request);
     }
     finally {
