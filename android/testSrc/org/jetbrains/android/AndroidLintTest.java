@@ -876,6 +876,12 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/src/p1/p2/SuperCallTest.java", "java");
   }
 
+  public void testStringEscapes() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=224150
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintStringEscapingInspection(),
+                  "Escape Apostrophe", "/res/values/strings.xml", "xml");
+  }
+
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }

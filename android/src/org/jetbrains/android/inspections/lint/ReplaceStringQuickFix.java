@@ -23,6 +23,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.RegEx;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,7 @@ import java.util.regex.Pattern;
  */
 class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private final String myName;
-  private final String myRegexp;
+  @RegEx private final String myRegexp;
   private final String myNewValue;
 
   /**
@@ -44,7 +45,7 @@ class ReplaceStringQuickFix implements AndroidLintQuickFix {
    * @param regexp the regular expression
    * @param newValue
    */
-  ReplaceStringQuickFix(@Nullable String name, @Nullable String regexp, @NotNull String newValue) {
+  ReplaceStringQuickFix(@Nullable String name, @Nullable @RegEx String regexp, @NotNull String newValue) {
     myName = name;
     myNewValue = newValue;
     if (regexp != null && regexp.indexOf('(') == -1) {
