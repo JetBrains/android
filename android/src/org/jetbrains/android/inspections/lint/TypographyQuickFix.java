@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-class TypographyQuickFix implements AndroidLintQuickFix {
+public class TypographyQuickFix implements AndroidLintQuickFix {
   private final Issue myIssue;
   private final String myMessage;
 

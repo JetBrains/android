@@ -41,7 +41,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import com.android.tools.idea.lint.LintIdeClient;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -435,7 +435,7 @@ public class RepositoryUrlManager {
 
     // Perform network lookup to resolve current best version, if possible
     if (project != null) {
-      LintClient client = new IntellijLintClient(project);
+      LintClient client = new LintIdeClient(project);
       Revision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
       if (latest != null) {
         String version = latest.toShortString();

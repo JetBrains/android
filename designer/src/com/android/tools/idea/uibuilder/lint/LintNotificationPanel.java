@@ -53,7 +53,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

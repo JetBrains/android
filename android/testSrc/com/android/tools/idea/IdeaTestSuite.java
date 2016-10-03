@@ -19,6 +19,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.android.tools.idea.lint.LintIdeApiDetectorTest;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -98,7 +99,7 @@ import java.nio.file.Paths;
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
-  org.jetbrains.android.inspections.lint.IntellijApiDetectorTest.class,
+  LintIdeApiDetectorTest.class,
   org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
   org.jetbrains.android.sdk.AndroidSdkDataTest.class,
