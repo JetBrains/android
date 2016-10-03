@@ -29,12 +29,8 @@ import com.android.tools.rpclib.schema.Method;
 import com.android.tools.rpclib.schema.Primitive;
 import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Verify;
-import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.driver.JTreeDriver;
-import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +40,6 @@ import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadablePanel> {
 
@@ -62,28 +57,8 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
 
   public GfxTraceFixture waitForLoadingToFinish() {
     Wait.seconds(10).expecting("open to finish").until(() -> target().getContentLayer().getComponentCount() > 0 || target().isShowingError());
-    if (target().isShowingError()) {
-      installMissingSdkComponent();
-      Wait.seconds(10).expecting("loading to finish").until(() -> target().getContentLayer().getComponentCount() > 0);
-    }
     Wait.seconds(10).expecting("data").until(myEditor.getAtomStream()::isLoaded);
     return this;
-  }
-
-  private void installMissingSdkComponent() {
-    JLabelFixture label = new JLabelFixture(robot(), robot().finder().findByType(target(), JLabel.class, true));
-    // Check to make sure this is the error we expect and not some other error.
-    label.requireText(GfxTraceEditor.MESSAGE_NO_GPU_SDK_INSTALLED);
-    HyperlinkLabel button = robot().finder().findByType(target(), HyperlinkLabel.class, true);
-    robot().click(button);
-
-    DialogFixture downloadDialog = WindowFinder.findDialog(
-      DialogMatcher.withTitle(GfxTraceEditor.INSTALL_GPU_SDK_TITLE)).withTimeout(TimeUnit.SECONDS.toMillis(10)).using(robot());
-    JButtonFixture finish = downloadDialog.button(JButtonMatcher.withText("Finish"));
-
-    // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Wait.minutes(1).expecting("GFX SDK to install").until(finish::isEnabled);
-    finish.click();
   }
 
   public JComboBoxFixture getContextComboBox() {
