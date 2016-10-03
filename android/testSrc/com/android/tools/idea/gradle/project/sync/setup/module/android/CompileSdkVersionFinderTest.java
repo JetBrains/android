@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.project.idea;
+package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import junit.framework.TestCase;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.JdkModuleSetupStep.CompileSdkVersionFinder;
+import org.junit.Before;
+import org.junit.Test;
 
-public class ProjectJdkChecksTest extends TestCase {
-  public void testFindCompileSdkVersion() {
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Tests for {@link CompileSdkVersionFinder}.
+ */
+public class CompileSdkVersionFinderTest {
+  private CompileSdkVersionFinder myFinder;
+
+  @Before
+  public void setUp() {
+    myFinder = new CompileSdkVersionFinder();
+  }
+
+  @Test
+  public void findOffsetIn() {
     String contents = "apply plugin: 'com.android.application'\n" +
                       "\n" +
                       "android {\n" +
@@ -43,7 +58,7 @@ public class ProjectJdkChecksTest extends TestCase {
                       "dependencies {\n" +
                       "    compile fileTree(dir: 'libs', include: ['*.jar'])\n" +
                       "}";
-    int offset = ProjectJdkChecks.findCompileSdkVersionValueOffset(contents);
+    int offset = myFinder.findOffsetIn(contents);
     assertEquals(73, offset);
   }
 }

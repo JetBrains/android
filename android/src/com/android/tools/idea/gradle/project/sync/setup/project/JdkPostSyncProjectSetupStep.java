@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
@@ -75,7 +74,7 @@ public class JdkPostSyncProjectSetupStep extends PostSyncProjectSetupStep {
     if (ideJdk == null) {
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, "Unable to find a JDK");
       if (androidStudio) {
-        message.add(getJdkQuickFixes(project));
+        message.add(myJdks.getWrongJdkQuickFixes(project));
       }
 
       SyncMessages.getInstance(project).report(message);

@@ -1127,6 +1127,7 @@
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.JdkModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootModuleSetupStep"/>
