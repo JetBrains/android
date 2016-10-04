@@ -19,7 +19,6 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import com.android.tools.idea.lint.LintIdeApiDetectorTest;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -73,6 +72,8 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.util.GradleProjectSettingsFinderTest.class,
   com.android.tools.idea.gradle.util.GradleVersionsTest.class,
   com.android.tools.idea.javadoc.AndroidJavaDocWithGradleTest.class,
+  com.android.tools.idea.lint.LintIdeApiDetectorTest.class,
+  com.android.tools.idea.lint.LintIdeGradleDetectorTest.class,
   com.android.tools.idea.model.AndroidModuleInfoTest.class,
   com.android.tools.idea.navigator.AndroidProjectViewTest.class,
   com.android.tools.idea.npw.NewModuleWizardStateTest.class,
@@ -95,11 +96,11 @@ import java.nio.file.Paths;
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
+  org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
-  LintIdeApiDetectorTest.class,
   org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
   org.jetbrains.android.sdk.AndroidSdkDataTest.class,
