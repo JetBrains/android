@@ -20,9 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.BuildSignedApkDialogKeystoreStepFixture;
-import com.android.utils.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,45 +47,36 @@ public class BuildSignedApkTest {
 
   @Test
   public void openAndSignUsingStore() throws IOException {
-    File jksFile = myTemporaryFolder.newFile();
-    FileUtils.delete(jksFile);
-    File dstFolder = myTemporaryFolder.newFolder();
+    File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
+    File dstFolder = myTemporaryFolder.newFolder("dst");
 
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    BuildSignedApkDialogKeystoreStepFixture signApkDialog = ideFrameFixture.invokeSignApkDialog();
-    signApkDialog.createNew()
+    guiTest.importSimpleApplication()
+      .openFromMenu(BuildSignedApkDialogKeystoreStepFixture::find, "Build", "Generate Signed APK...")
+      .createNew()
       .keyStorePath(jksFile.getAbsolutePath())
       .password("passwd")
       .passwordConfirm("passwd")
       .alias("key")
       .keyPassword("passwd2")
       .keyPasswordConfirm("passwd2")
-      .validity(3)
+      .validity("3")
       .firstAndLastName("Android Studio")
       .organizationalUnit("Android")
       .organization("Google")
       .cityOrLocality("Mountain View")
       .stateOrProvince("California")
       .countryCode("US")
-      .ok();
-
-    signApkDialog
+      .clickOk()
       .keyStorePassword("passwd")
       .keyAlias("key")
       .keyPassword("passwd2")
-      .next()
+      .clickNext()
       .apkDestinationFolder(dstFolder.getAbsolutePath())
-      .finish();
-
-    guiTest.waitForBackgroundTasks();
+      .clickFinish();
 
     File[] apks = dstFolder.listFiles();
-    assertThat(apks).isNotNull();
-    assertThat(apks.length).isEqualTo(1);
-
+    assertThat(apks).hasLength(1);
     File apk = apks[0];
-
-    assertThat(apk.isFile()).isTrue();
     try (ZipFile zf = new ZipFile(apk)) {
       assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();
     }

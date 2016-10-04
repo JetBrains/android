@@ -16,127 +16,144 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JSpinnerFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
-public class BuildSignedApkDialogCreateKeystoreSubDialogFixture
-    extends ComponentFixture<BuildSignedApkDialogCreateKeystoreSubDialogFixture, JDialog> {
+public class BuildSignedApkDialogCreateKeystoreSubDialogFixture implements ContainerFixture<JDialog> {
 
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(BuildSignedApkDialogCreateKeystoreSubDialogFixture.class, robot, target);
+  private final BuildSignedApkDialogKeystoreStepFixture myStepFixture;
+  private final JDialog myDialog;
+  private final Robot myRobot;
+
+  private BuildSignedApkDialogCreateKeystoreSubDialogFixture(
+    @NotNull JDialog dialog, @NotNull BuildSignedApkDialogKeystoreStepFixture stepFixture) {
+    myStepFixture = stepFixture;
+    myDialog = dialog;
+    myRobot = stepFixture.robot();
   }
 
   @NotNull
-  public static BuildSignedApkDialogCreateKeystoreSubDialogFixture find(@NotNull Robot robot) {
-    JDialog frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "New Key Store".equals(dialog.getTitle());
-      }
-    });
-
-    return new BuildSignedApkDialogCreateKeystoreSubDialogFixture(robot, frame);
+  public static BuildSignedApkDialogCreateKeystoreSubDialogFixture find(@NotNull BuildSignedApkDialogKeystoreStepFixture stepFixture) {
+    JDialog dialog = GuiTests.waitUntilShowing(stepFixture.robot(), Matchers.byTitle(JDialog.class, "New Key Store"));
+    return new BuildSignedApkDialogCreateKeystoreSubDialogFixture(dialog, stepFixture);
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture keyStorePath(@NotNull String path) {
-    TextFieldWithBrowseButton textComponent = (TextFieldWithBrowseButton) robot().finder().findByLabel(target(), "Key store path:");
-    textComponent.setText(path);
+    JTextField textField = ((TextFieldWithBrowseButton) robot().finder().findByLabel(target(), "Key store path:")).getTextField();
+    new JTextComponentFixture(robot(), textField).enterText(path);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture password(@NotNull String passwd) {
-    JPasswordField passwdComponent = robot().finder().findByName("myPasswordField", JPasswordField.class);
-    passwdComponent.setText(passwd);
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture password(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByName("myPasswordField", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).enterText(password);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture passwordConfirm(@NotNull String passwd) {
-    JPasswordField passwdComponent = robot().finder().findByName("myConfirmedPassword", JPasswordField.class);
-    passwdComponent.setText(passwd);
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture passwordConfirm(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByName("myConfirmedPassword", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).enterText(password);
     return this;
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture alias(@NotNull String alias) {
-    JTextComponent aliasComponent = (JTextComponent) robot().finder().findByLabel(target(), "Alias:");
-    aliasComponent.setText(alias);
+    JTextField textField = robot().finder().findByLabel(target(), "Alias:", JTextField.class);
+    new JTextComponentFixture(robot(), textField).deleteText().enterText(alias);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture keyPassword(@NotNull String passwd) {
-    JPasswordField passwdComponent = robot().finder().findByName("myKeyPasswordField", JPasswordField.class);
-    passwdComponent.setText(passwd);
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture keyPassword(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByName("myKeyPasswordField", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).enterText(password);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture keyPasswordConfirm(@NotNull String passwd) {
-    JPasswordField passwdComponent = robot().finder().findByName("myConfirmKeyPasswordField", JPasswordField.class);
-    passwdComponent.setText(passwd);
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture keyPasswordConfirm(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByName("myConfirmKeyPasswordField", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).enterText(password);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture validity(int years) {
-    JSpinner spinnerComponent = robot().finder().findByLabel("Validity (years):", JSpinner.class);
-    spinnerComponent.setValue(years);
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture validity(String years) {
+    JSpinner spinner = robot().finder().findByLabel("Validity (years):", JSpinner.class);
+    new JSpinnerFixture(robot(), spinner).enterTextAndCommit(years);
     return this;
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture firstAndLastName(@NotNull String firstAndLastName) {
     JTextField firstAndLastNameComponent = robot().finder().findByLabel("First and Last Name:", JTextField.class);
-    firstAndLastNameComponent.setText(firstAndLastName);
+    new JTextComponentFixture(robot(), firstAndLastNameComponent).enterText(firstAndLastName);
     return this;
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture organizationalUnit(@NotNull String ou) {
     JTextField ouComponent = robot().finder().findByLabel("Organizational Unit:", JTextField.class);
-    ouComponent.setText(ou);
+    new JTextComponentFixture(robot(), ouComponent).enterText(ou);
     return this;
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture organization(@NotNull String org) {
     JTextField orgComponent = robot().finder().findByLabel("Organization:", JTextField.class);
-    orgComponent.setText(org);
+    new JTextComponentFixture(robot(), orgComponent).enterText(org);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture cityOrLocality(@NotNull String org) {
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture cityOrLocality(@NotNull String city) {
     JTextField cityComponent = robot().finder().findByLabel("City or Locality:", JTextField.class);
-    cityComponent.setText(org);
+    new JTextComponentFixture(robot(), cityComponent).enterText(city);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture stateOrProvince(@NotNull String org) {
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture stateOrProvince(@NotNull String state) {
     JTextField stateComponent = robot().finder().findByLabel("State or Province:", JTextField.class);
-    stateComponent.setText(org);
+    new JTextComponentFixture(robot(), stateComponent).enterText(state);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogCreateKeystoreSubDialogFixture countryCode(@NotNull String org) {
+  public BuildSignedApkDialogCreateKeystoreSubDialogFixture countryCode(@NotNull String countryCode) {
     JTextField ccComponent = robot().finder().findByLabel("Country Code (XX):", JTextField.class);
-    ccComponent.setText(org);
+    new JTextComponentFixture(robot(), ccComponent).enterText(countryCode);
     return this;
   }
 
-  public void ok() {
-    JButton ok = (JButton) robot().finder().find(c -> c instanceof JButton && ((JButton) c).getText().equals("OK"));
-    robot().click(ok);
+  @NotNull
+  public BuildSignedApkDialogKeystoreStepFixture clickOk() {
+    GuiTests.findAndClickOkButton(this);
+    Wait.seconds(1).expecting("dialog to disappear").until(() -> !target().isShowing());
+    return myStepFixture;
+  }
+
+  @Nonnull
+  @Override
+  public JDialog target() {
+    return myDialog;
+  }
+
+  @Nonnull
+  @Override
+  public Robot robot() {
+    return myRobot;
   }
 }

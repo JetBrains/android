@@ -32,7 +32,6 @@ import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.gradle.BuildSignedApkDialogKeystoreStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
@@ -650,12 +649,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     button.requireEnabled();
     button.click();
     return AvdManagerDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public BuildSignedApkDialogKeystoreStepFixture invokeSignApkDialog() {
-    invokeMenuPath("Build", "Generate Signed APK...");
-    return BuildSignedApkDialogKeystoreStepFixture.find(robot());
   }
 
   @NotNull
