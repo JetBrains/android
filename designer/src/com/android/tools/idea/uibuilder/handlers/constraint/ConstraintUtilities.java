@@ -1257,44 +1257,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Utility class to gather all attributes and their values in one go.
-   * This avoid clearing then resetting the attributes in AttributesTransaction,
-   * which would trigger unnecessary work and relayouts.
-   */
-  static class MemoryAttributesTransaction implements NlAttributesHolder {
-    HashMap<String, HashMap<String, String>> myAttributes = new HashMap<>();
-
-    @Override
-    public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-      HashMap<String, String> attributes = myAttributes.get(namespace);
-      if (attributes == null) {
-        attributes = new HashMap<>();
-        myAttributes.put(namespace, attributes);
-      }
-      attributes.put(attribute, value);
-    }
-
-    @Override
-    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-      HashMap<String, String> attributes = myAttributes.get(namespace);
-      if (attributes == null) {
-        return null;
-      }
-      return attributes.get(attribute);
-    }
-
-    public void commit(@NotNull NlComponent component) {
-      AttributesTransaction transaction = component.startAttributeTransaction();
-      for (String namespace : myAttributes.keySet()) {
-        HashMap<String, String> attributes = myAttributes.get(namespace);
-        for (String key : attributes.keySet()) {
-          transaction.setAttribute(namespace, key, attributes.get(key));
-        }
-      }
-    }
-  }
-
-  /**
    * Utility function committing the given ConstraintModel to NlComponent,
    * either directly an AttributesTransaction to commit to disk, or via
    * a MemoryAttributesTransaction (which internally use AttributesTransaction
@@ -1308,16 +1270,11 @@ public class ConstraintUtilities {
     for (ConstraintWidget widget : widgets) {
       NlComponent component = getValidComponent(model, widget);
       if (component != null) {
+        AttributesTransaction transaction = component.startAttributeTransaction();
+        updateComponentFromWidget(model, widget, transaction);
         if (commit) {
           assert ApplicationManager.getApplication().isWriteAccessAllowed();
-          AttributesTransaction transaction = component.startAttributeTransaction();
-          updateComponentFromWidget(model, widget, transaction);
           transaction.commit();
-        }
-        else {
-          MemoryAttributesTransaction transaction = new MemoryAttributesTransaction();
-          updateComponentFromWidget(model, widget, transaction);
-          transaction.commit(component);
         }
       }
     }
