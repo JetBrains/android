@@ -16,62 +16,77 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 
-public class BuildSignedApkDialogKeystoreStepFixture extends AbstractWizardFixture<BuildSignedApkDialogKeystoreStepFixture> {
+public class BuildSignedApkDialogKeystoreStepFixture implements ContainerFixture<JDialog> {
 
-  public BuildSignedApkDialogKeystoreStepFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(BuildSignedApkDialogKeystoreStepFixture.class, robot, target);
-  }
+  private final IdeFrameFixture myIdeFrameFixture;
+  private final JDialog myDialog;
+  private final Robot myRobot;
 
   @NotNull
-  public static BuildSignedApkDialogKeystoreStepFixture find(@NotNull Robot robot) {
-    JDialog frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Generate Signed APK".equals(dialog.getTitle());
-      }
-    });
-    return new BuildSignedApkDialogKeystoreStepFixture(robot, frame);
+  public static BuildSignedApkDialogKeystoreStepFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Generate Signed APK"));
+    return new BuildSignedApkDialogKeystoreStepFixture(ideFrameFixture, dialog);
+  }
+
+  private BuildSignedApkDialogKeystoreStepFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
+    myIdeFrameFixture = ideFrameFixture;
+    myDialog = dialog;
+    myRobot = myIdeFrameFixture.robot();
   }
 
   @NotNull
   public BuildSignedApkDialogCreateKeystoreSubDialogFixture createNew() {
-    findWizardButton("Create new...").click();
-    return BuildSignedApkDialogCreateKeystoreSubDialogFixture.find(robot());
+    GuiTests.findAndClickButton(this, "Create new...");
+    return BuildSignedApkDialogCreateKeystoreSubDialogFixture.find(this);
   }
 
   @NotNull
-  public BuildSignedApkDialogKeystoreStepFixture keyStorePassword(@NotNull String passwd) {
-    JPasswordField textComponent = robot().finder().findByLabel(target(), "Key store password:", JPasswordField.class);
-    textComponent.setText(passwd);
+  public BuildSignedApkDialogKeystoreStepFixture keyStorePassword(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByLabel(target(), "Key store password:", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).deleteText().enterText(password);
     return this;
   }
 
   @NotNull
   public BuildSignedApkDialogKeystoreStepFixture keyAlias(@NotNull String alias) {
-    JTextField textComponent = robot().finder().findByLabel(target(), "Key alias:", TextFieldWithBrowseButton.class).getChildComponent();
-    textComponent.setText(alias);
+    JTextField textField = robot().finder().findByLabel(target(), "Key alias:", TextFieldWithBrowseButton.class).getChildComponent();
+    new JTextComponentFixture(robot(), textField).deleteText().enterText(alias);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogKeystoreStepFixture keyPassword(@NotNull String passwd) {
-    JPasswordField textComponent = robot().finder().findByLabel(target(), "Key password:", JPasswordField.class);
-    textComponent.setText(passwd);
+  public BuildSignedApkDialogKeystoreStepFixture keyPassword(@NotNull String password) {
+    JPasswordField passwordField = robot().finder().findByLabel(target(), "Key password:", JPasswordField.class);
+    new JTextComponentFixture(robot(), passwordField).deleteText().enterText(password);
     return this;
   }
 
   @NotNull
-  public BuildSignedApkDialogGradleStepFixture next() {
-    JButton nextButton = (JButton) robot().finder().find(c -> c instanceof JButton && ((JButton) c).getText().equals("Next"));
-    robot().click(nextButton);
-    return new BuildSignedApkDialogGradleStepFixture(robot(), target());
+  public BuildSignedApkDialogGradleStepFixture clickNext() {
+    GuiTests.findAndClickButton(this, "Next");
+    return new BuildSignedApkDialogGradleStepFixture(myIdeFrameFixture, myDialog);
+  }
+
+  @Nonnull
+  @Override
+  public JDialog target() {
+    return myDialog;
+  }
+
+  @Nonnull
+  @Override
+  public Robot robot() {
+    return myRobot;
   }
 }

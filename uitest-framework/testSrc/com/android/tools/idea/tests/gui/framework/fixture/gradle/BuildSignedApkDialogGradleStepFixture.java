@@ -15,28 +15,54 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 
-public class BuildSignedApkDialogGradleStepFixture extends AbstractWizardFixture<BuildSignedApkDialogGradleStepFixture> {
+public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<JDialog> {
 
-  public BuildSignedApkDialogGradleStepFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(BuildSignedApkDialogGradleStepFixture.class, robot, target);
+  private final IdeFrameFixture myIdeFrameFixture;
+  private final JDialog myDialog;
+  private final Robot myRobot;
+
+  BuildSignedApkDialogGradleStepFixture(@NotNull IdeFrameFixture ideFrameFixture, JDialog dialog) {
+    myIdeFrameFixture = ideFrameFixture;
+    myDialog = dialog;
+    myRobot = ideFrameFixture.robot();
   }
 
   @NotNull
   public BuildSignedApkDialogGradleStepFixture apkDestinationFolder(@NotNull String folder) {
-    JTextField textComponent = robot().finder().findByLabel("APK Destination Folder:", TextFieldWithBrowseButton.class).getTextField();
-    textComponent.setText(folder);
+    JTextField textField = robot().finder().findByLabel("APK Destination Folder:", TextFieldWithBrowseButton.class).getTextField();
+    new JTextComponentFixture(robot(), textField).deleteText().enterText(folder);
     return this;
   }
 
-  public void finish() {
-    JButton finishButton = (JButton) robot().finder().find(c -> c instanceof JButton && ((JButton) c).getText().equals("Finish"));
-    robot().click(finishButton);
+  @NotNull
+  public IdeFrameFixture clickFinish() {
+    GuiTests.findAndClickButtonWhenEnabled(this, "Finish");
+    Wait.seconds(1).expecting("dialog to disappear").until(() -> !target().isShowing());
+    GuiTests.waitForBackgroundTasks(robot());  // because "Finish" here starts a Gradle build
+    return myIdeFrameFixture;
+  }
+
+  @Nonnull
+  @Override
+  public JDialog target() {
+    return myDialog;
+  }
+
+  @Nonnull
+  @Override
+  public Robot robot() {
+    return myRobot;
   }
 }
