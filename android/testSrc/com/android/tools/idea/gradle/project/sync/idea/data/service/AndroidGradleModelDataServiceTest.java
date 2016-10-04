@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
-import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator;
+import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator;
 import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleSetupStep myModuleSetupStep1;
   @Mock private AndroidModuleSetupStep myModuleSetupStep2;
-  @Mock private AndroidProjectValidator myValidator;
+  @Mock private AndroidModuleValidator myValidator;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep1;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep2;
 
@@ -55,7 +55,7 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
 
     AndroidModuleSetupStep[] moduleSetupSteps = {myModuleSetupStep1, myModuleSetupStep2};
 
-    AndroidProjectValidator.Factory validatorFactory = mock(AndroidProjectValidator.Factory.class);
+    AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
     PostSyncProjectSetupStep[] projectSetupSteps = {myProjectSetupStep1, myProjectSetupStep2};

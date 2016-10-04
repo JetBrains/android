@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
-import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator;
+import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;
@@ -46,21 +46,21 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  */
 public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel, Void> {
   @NotNull private final AndroidModuleSetupStep[] myModuleSetupSteps;
-  @NotNull private final AndroidProjectValidator.Factory myProjectValidatorFactory;
+  @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidGradleModelDataService() {
-    this(AndroidModuleSetupStep.getExtensions(), new AndroidProjectValidator.Factory(), PostSyncProjectSetupStep.getExtensions());
+    this(AndroidModuleSetupStep.getExtensions(), new AndroidModuleValidator.Factory(), PostSyncProjectSetupStep.getExtensions());
   }
 
   @VisibleForTesting
   AndroidGradleModelDataService(@NotNull AndroidModuleSetupStep[] moduleSetupSteps,
-                                @NotNull AndroidProjectValidator.Factory projectValidatorFactory,
+                                @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
                                 @NotNull PostSyncProjectSetupStep[] projectSetupSteps) {
     myModuleSetupSteps = moduleSetupSteps;
-    myProjectValidatorFactory = projectValidatorFactory;
+    myModuleValidatorFactory = moduleValidatorFactory;
     myProjectSetupSteps = projectSetupSteps;
   }
 
@@ -99,15 +99,15 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
-        AndroidProjectValidator projectValidator = myProjectValidatorFactory.create(project);
+        AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         for (Module module : modelsProvider.getModules()) {
           AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
-          setUpModule(module, projectValidator, modelsProvider, androidModel);
+          setUpModule(module, moduleValidator, modelsProvider, androidModel);
         }
 
-        projectValidator.fixAndReportFoundIssues();
+        moduleValidator.fixAndReportFoundIssues();
 
         for (PostSyncProjectSetupStep projectSetupStep : myProjectSetupSteps) {
           projectSetupStep.setUpProject(project, modelsProvider, null);
@@ -131,14 +131,14 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   }
 
   private void setUpModule(@NotNull Module module,
-                           @NotNull AndroidProjectValidator projectValidator,
+                           @NotNull AndroidModuleValidator moduleValidator,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
                            @Nullable AndroidGradleModel androidModel) {
     for (AndroidModuleSetupStep setupStep : myModuleSetupSteps) {
       setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
     }
     if (androidModel != null) {
-      projectValidator.validate(module, androidModel);
+      moduleValidator.validate(module, androidModel);
     }
   }
 

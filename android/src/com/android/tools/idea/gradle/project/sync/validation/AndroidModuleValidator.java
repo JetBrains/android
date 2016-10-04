@@ -21,23 +21,23 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AndroidProjectValidator {
+public abstract class AndroidModuleValidator {
   public abstract void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel);
 
   public abstract void fixAndReportFoundIssues();
 
   public static class Factory {
     @NotNull
-    public AndroidProjectValidator create(@NotNull Project project) {
-      return new AndroidProjectValidatorImpl(project);
+    public AndroidModuleValidator create(@NotNull Project project) {
+      return new AndroidModuleValidatorImpl(project);
     }
   }
 
   @VisibleForTesting
-  static class AndroidProjectValidatorImpl extends AndroidProjectValidator {
+  static class AndroidModuleValidatorImpl extends AndroidModuleValidator {
     @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
 
-    AndroidProjectValidatorImpl(@NotNull Project project) {
+    AndroidModuleValidatorImpl(@NotNull Project project) {
       this(new EncodingValidationStrategy(project),
            new BuildTools23Rc1ValidationStrategy(project),
            new LayoutRenderingIssueValidationStrategy(project),
@@ -46,7 +46,7 @@ public abstract class AndroidProjectValidator {
     }
 
     @VisibleForTesting
-    AndroidProjectValidatorImpl(@NotNull AndroidProjectValidationStrategy... strategies) {
+    AndroidModuleValidatorImpl(@NotNull AndroidProjectValidationStrategy... strategies) {
       myStrategies = strategies;
     }
 

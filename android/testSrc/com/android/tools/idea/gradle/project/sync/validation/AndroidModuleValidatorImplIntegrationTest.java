@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation;
 
-import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator.AndroidProjectValidatorImpl;
+import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link AndroidProjectValidatorImpl}.
+ * Tests for {@link AndroidModuleValidatorImpl}.
  */
-public class AndroidProjectValidatorImplIntegrationTest extends AndroidGradleTestCase {
+public class AndroidModuleValidatorImplIntegrationTest extends AndroidGradleTestCase {
   public void testDefaultConstructor() {
     Project project = getProject();
-    AndroidProjectValidatorImpl validator = new AndroidProjectValidatorImpl(project);
+    AndroidModuleValidatorImpl validator = new AndroidModuleValidatorImpl(project);
 
     Class<?>[] expectedStrategyTypes = new Class[]{
       EncodingValidationStrategy.class,
