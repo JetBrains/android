@@ -25,7 +25,6 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
-import org.junit.runners.model.RunnerScheduler;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -45,7 +44,6 @@ public class GuiTestSuiteRunner extends Suite {
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
-    setScheduler(IDE_DISPOSER);
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
     try {
       String testGroupProperty = System.getProperty(TEST_GROUP_PROPERTY_NAME);
@@ -145,16 +143,4 @@ public class GuiTestSuiteRunner extends Suite {
       return TestGroupFilter.class.getSimpleName() + " for " + testGroup;
     }
   }
-
-  private static final RunnerScheduler IDE_DISPOSER = new RunnerScheduler() {
-    @Override
-    public void schedule(Runnable childStatement) {
-      childStatement.run();
-    }
-
-    @Override
-    public void finished() {
-      IdeTestApplication.disposeInstance();
-    }
-  };
 }
