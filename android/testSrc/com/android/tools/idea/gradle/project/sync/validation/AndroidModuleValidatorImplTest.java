@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.validation.AndroidProjectValidator.AndroidProjectValidatorImpl;
+import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.intellij.openapi.module.Module;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,18 +26,18 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link AndroidProjectValidatorImpl}.
+ * Tests for {@link AndroidModuleValidatorImpl}.
  */
-public class AndroidProjectValidatorImplTest {
+public class AndroidModuleValidatorImplTest {
   @Mock private AndroidProjectValidationStrategy myStrategy1;
   @Mock private AndroidProjectValidationStrategy myStrategy2;
 
-  private AndroidProjectValidator myValidator;
+  private AndroidModuleValidator myValidator;
 
   @Before
   public void setUp() {
     initMocks(this);
-    myValidator = new AndroidProjectValidatorImpl(myStrategy1, myStrategy2);
+    myValidator = new AndroidModuleValidatorImpl(myStrategy1, myStrategy2);
   }
 
   @Test
