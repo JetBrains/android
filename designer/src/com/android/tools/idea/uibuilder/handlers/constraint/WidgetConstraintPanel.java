@@ -19,10 +19,12 @@ import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +62,13 @@ public class WidgetConstraintPanel extends JPanel {
     updateComponents(property.getComponents());
   }
 
+  public void setAspect(String aspect) {
+    mWidget.setDimensionRatio(aspect);
+    WidgetCompanion companion = (WidgetCompanion)mWidget.getCompanionWidget();
+    companion.getWidgetProperties().setDimensionRatio(aspect);
+    widgetModified();
+  }
+
   static class InspectorColorSet extends BlueprintColorSet {
     InspectorColorSet() {
       mDrawBackground = false;
@@ -68,6 +77,7 @@ public class WidgetConstraintPanel extends JPanel {
       mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
       mInspectorHighlightsStrokeColor = JBColor.border();
       mInspectorStrokeColor = JBColor.foreground();
+      mInspectorConstraintColor = new JBColor(0x4481d8, 0x496784);
     }
   }
 
@@ -129,6 +139,10 @@ public class WidgetConstraintPanel extends JPanel {
     int left = getMargin(ConstraintAnchor.Type.LEFT);
     int right = getMargin(ConstraintAnchor.Type.RIGHT);
     int bottom = getMargin(ConstraintAnchor.Type.BOTTOM);
+    float ratio = mWidget.getDimensionRatio();
+    int side = mWidget.getDimensionRatioSide();
+    WidgetCompanion companion = (WidgetCompanion)mWidget.getCompanionWidget();
+    String ratioString = companion.getWidgetProperties().getDimensionRatio();
     boolean baseline = hasBaseline();
 
     boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
@@ -153,7 +167,7 @@ public class WidgetConstraintPanel extends JPanel {
 
     int widthVal = convert(mWidget.getHorizontalDimensionBehaviour());
     int heightValue = convert(mWidget.getVerticalDimensionBehaviour());
-    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue);
+    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue, ratioString);
   }
 
   /**
@@ -243,6 +257,8 @@ public class WidgetConstraintPanel extends JPanel {
     String tb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
     String bt = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     String bb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    String ratioString = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
+
     String basline = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     String hbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
     String vbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
@@ -304,7 +320,7 @@ public class WidgetConstraintPanel extends JPanel {
 
     updateCacheSize(heightStr, heightValue);
 
-    mMain.configureUi(bottom, top, left, right, basline != null, widthVal, heightValue);
+    mMain.configureUi(bottom, top, left, right, basline != null, widthVal, heightValue, ratioString);
   }
 
   private int updateCacheSize(String heightStr, int heightValue) {
