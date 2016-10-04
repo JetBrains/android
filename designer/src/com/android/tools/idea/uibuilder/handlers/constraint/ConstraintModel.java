@@ -528,14 +528,16 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
     }
 
+    boolean saveXML = false;
+
     // Make sure the components exist
     for (NlComponent component : components) {
-      createSolverWidgetFromComponent(component);
+      saveXML |= createSolverWidgetFromComponent(component);
     }
 
     // Now update our widget from the list of components...
     for (NlComponent component : components) {
-      updateSolverWidgetFromComponent(component, deepUpdate);
+      saveXML |= updateSolverWidgetFromComponent(component, deepUpdate);
     }
 
     if (USE_GUIDELINES_DURING_DND) {
@@ -547,7 +549,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
 
     // Update the ConstraintLayout instances
-    updateConstraintLayoutRoots(myWidgetsScene.getRoot());
+    if (!saveXML) {
+      updateConstraintLayoutRoots(myWidgetsScene.getRoot());
+    }
 
     // Finally, layout using our model.
     WidgetContainer root = myWidgetsScene.getRoot();
@@ -556,6 +560,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (root != null) {
         root.layout();
       }
+    }
+    if (saveXML) {
+      saveToXML(true);
     }
   }
 
@@ -582,15 +589,17 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * Create the widget associated to a component if necessary.
    *
    * @param component the component we want to represent
+   * @return true if we need to save the XML
    */
-  private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
+  private boolean createSolverWidgetFromComponent(@NotNull NlComponent component) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component);
+    boolean saveXML = false;
     if (widget != null && isConstraintLayout(component)) {
       if (!(widget instanceof ConstraintWidgetContainer)) {
         if (widget instanceof WidgetContainer) {
           ConstraintWidgetContainer container = new ConstraintWidgetContainer();
           myWidgetsScene.transformContainerToContainer((WidgetContainer)widget, container);
-          setupConstraintWidget(component, container);
+          saveXML = setupConstraintWidget(component, container);
           widget = container;
         }
         else {
@@ -640,7 +649,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           }
         }
       }
-      setupConstraintWidget(component, widget);
+      saveXML |= setupConstraintWidget(component, widget);
       myWidgetsScene.setWidget(widget);
       if (USE_GUIDELINES_DURING_DND) {
         if (dropWidget) {
@@ -652,8 +661,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
 
     for (NlComponent child : component.getChildren()) {
-      createSolverWidgetFromComponent(child);
+      saveXML |= createSolverWidgetFromComponent(child);
     }
+    return saveXML;
   }
 
   private static boolean isConstraintLayout(@NotNull NlComponent component) {
@@ -676,8 +686,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    *
    * @param component
    * @param widget
+   * @return true if we need to save the XML
    */
-  private void setupConstraintWidget(@NotNull NlComponent component, ConstraintWidget widget) {
+  private boolean setupConstraintWidget(@NotNull NlComponent component, ConstraintWidget widget) {
     WidgetDecorator blueprintDecorator = createDecorator(component, widget);
     WidgetDecorator androidDecorator = createDecorator(component, widget);
     blueprintDecorator.setStateModel(this);
@@ -692,7 +703,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     companion.setWidgetTag(component);
     widget.setCompanionWidget(companion);
     widget.setDebugName(component.getId());
-    ConstraintUtilities.updateWidget(this, widget, component);
+    return ConstraintUtilities.updateWidget(this, widget, component);
   }
 
   /**
@@ -740,7 +751,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param component  the component we want to update from
    * @param deepUpdate do a thorough update or not
    */
-  private void updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
+  private boolean updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component);
     if (USE_GUIDELINES_DURING_DND) {
       if (myDragDropWidget != null) {
@@ -749,22 +760,23 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         if (companion.getWidgetModel() == component) {
           saveToXML(true); // will retrigger an update
           myDragDropWidget = null;
-          return;
+          return false;
         }
       }
     }
-    ConstraintUtilities.updateWidget(this, widget, component);
+    boolean saveXML = ConstraintUtilities.updateWidget(this, widget, component);
     for (NlComponent child : component.getChildren()) {
-      updateSolverWidgetFromComponent(child, deepUpdate);
+      saveXML |= updateSolverWidgetFromComponent(child, deepUpdate);
     }
+    return saveXML;
   }
 
   /**
    * Traverse the hierarchy to find all ConstraintLayout instances
    * and update them. We set all the wrap_content sizes of the ConstraintLayout children
    * from layout lib
+   *  @param container
    *
-   * @param container
    */
   private void updateConstraintLayoutRoots(WidgetContainer container) {
     if (container == null) {
