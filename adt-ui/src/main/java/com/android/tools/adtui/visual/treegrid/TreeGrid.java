@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser;
+package com.android.tools.adtui.visual.treegrid;
 
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -301,7 +301,7 @@ public class TreeGrid<T> extends Box {
     return singleMatch;
   }
 
-  void selectFirst() {
+  public void selectFirst() {
     for (JList<T> list : myLists) {
       ListModel<T> model = list.getModel();
       int size = model.getSize();
