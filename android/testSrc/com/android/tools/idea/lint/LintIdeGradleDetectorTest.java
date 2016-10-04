@@ -19,8 +19,8 @@ import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.legacy.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +96,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testBadPlayServicesVersion() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-    doTest(inspection, "Change to 6.1.11");
+    doTest(inspection, "Change to 9.6.1");
   }
 
   public void testStringInt() throws Exception {
