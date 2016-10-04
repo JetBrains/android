@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.android.tools.idea.lint.LintIdeApiDetectorTest;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -126,6 +127,25 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/jdk");
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
+
+    File jdk = TestUtils.getWorkspaceFile("prebuilts/studio/jdk");
+    provideRealJdkPathForGradle(jdk);
+  }
+
+  /**
+   * Gradle cannot handle a JDK set up with symlinks. It gets confused
+   * and in two consecutive executions it thinks that we are calling it
+   * with two different JDKs. See
+   * https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
+   */
+  private static void provideRealJdkPathForGradle(File jdk) {
+    try {
+      File file = new File(jdk, "BUILD").toPath().toRealPath().toFile();
+      System.setProperty("studio.dev.jdk", file.getParentFile().getAbsolutePath());
+    }
+    catch (IOException e) {
+      // Ignore if we cannot resolve symlinks.
+    }
   }
 
   private static void symbolicLinkInTmpDir(String target) {
