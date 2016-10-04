@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.visual.treegrid;
 
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -24,16 +23,22 @@ import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A list/grid of items that are split into sections.
@@ -42,20 +47,50 @@ import java.util.ArrayList;
  */
 public class TreeGrid<T> extends Box {
 
-  private final @NotNull ArrayList<JList<T>> myLists;
-  private final @NotNull ArrayList<HideableDecorator> myHideables;
+  private final Map<Object, JComponent> mySectionToComponent;
+  private final List<JList<T>> myLists;
+  private final List<HideableDecorator> myHideables;
+  private final KeyListener myKeyListener;
   private boolean myFiltered;
 
   public TreeGrid(final @NotNull AbstractTreeStructure model) {
-    super(BoxLayout.Y_AXIS);
+    this();
+    setModelWithSectionHeaders(model);
+  }
 
+  public TreeGrid() {
+    super(BoxLayout.Y_AXIS);
+    mySectionToComponent = new IdentityHashMap<>();
+    myLists = new ArrayList<>();
+    myHideables = new ArrayList<>();
+    myKeyListener = new MyKeyListener();
+
+    // The following lines makes the background of the JSeparator the same as
+    // all the JLists thus making this appear as one list control with separators.
+    // (Used in the Palette)
+    setBackground(UIUtil.getListBackground());
+    setOpaque(true);
+  }
+
+  public void setModel(@NotNull AbstractTreeStructure model) {
+    setModel(model, false);
+  }
+
+  public void setModelWithSectionHeaders(@NotNull AbstractTreeStructure model) {
+    setModel(model, true);
+  }
+
+  private void setModel(@NotNull AbstractTreeStructure model, boolean showSectionHeaders) {
     // using the AbstractTreeStructure instead of the model as the actual TreeModel when used with IJ components
     // works in a very strange way, each time you expand or contract a node it will add or remove all its children.
     Object root = model.getRootElement();
     Object[] sections = model.getChildElements(root);
 
-    myLists = Lists.newArrayListWithCapacity(sections.length);
-    myHideables = Lists.newArrayListWithCapacity(sections.length);
+    mySectionToComponent.clear();
+    myLists.clear();
+    myHideables.clear();
+    removeAll();
+    setAutoscrolls(false);
 
     ListSelectionListener listSelectionListener = e -> {
       if (e.getValueIsAdjusting()) {
@@ -72,14 +107,7 @@ public class TreeGrid<T> extends Box {
     };
 
     for (Object section : sections) {
-      JPanel panel = new JPanel(new BorderLayout()) {// must be borderlayout for HideableDecorator to work
-        @Override
-        public Dimension getMaximumSize() {
-          return new Dimension(super.getMaximumSize().width, super.getPreferredSize().height);
-        }
-      };
       String name = section.toString();
-      HideableDecorator hidyPanel = new HideableDecorator(panel, name, false);
 
       FilteringListModel<T> listModel = new FilteringListModel<>(new AbstractListModel() {
         @Override
@@ -96,72 +124,55 @@ public class TreeGrid<T> extends Box {
 
       // JBList does not work with HORIZONTAL_WRAP
       //noinspection UndesirableClassUsage,unchecked
-      final JList<T> list = new JList<>(listModel);
+      JList<T> list = new JList<>(listModel);
+      list.setAutoscrolls(false);
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       list.setVisibleRowCount(-1);
       list.getSelectionModel().addListSelectionListener(listSelectionListener);
       list.setName(name); // for tests to find the right list
-      list.addKeyListener(new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-          // Allow jumping between lists
-          int keyCode = e.getKeyCode();
-          if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP) {
-            Object source = e.getSource();
-            if (source instanceof JList) {
-              //noinspection unchecked
-              JList<T> list = (JList<T>)source;
-              int selectedIndex = list.getSelectedIndex();
-              if (keyCode == KeyEvent.VK_DOWN) {
-                // Try to jump to the next list. (If it's empty, continue jumping until we find a list with items.)
-                int size = list.getModel().getSize();
-                if (selectedIndex == size - 1) {
-                  for (int index = ContainerUtil.indexOf(myLists, list) + 1; index != 0 && index < myLists.size(); index++) {
-                    //noinspection unchecked
-                    JList<T> nextList = myLists.get(index);
-                    if (nextList.getModel().getSize() > 0) {
-                      list.clearSelection();
-                      nextList.setSelectedIndex(0);
-                      ensureIndexVisible(nextList, 0);
-                      nextList.requestFocus();
-                      e.consume();
-                      break;
-                    }
-                  }
-                }
-              }
-              else {
-                //noinspection ConstantConditions
-                assert keyCode == KeyEvent.VK_UP : keyCode;
-                // Try to jump up to the previous list (until we find a nonempty one where we can jump to the last item)
-                if (selectedIndex == 0) {
-                  for (int index = ContainerUtil.indexOf(myLists, list) - 1; index >= 0; index--) {
-                    //noinspection unchecked
-                    JList<T> prevList = myLists.get(index);
-                    int count = prevList.getModel().getSize();
-                    if (count > 0) {
-                      list.clearSelection();
-                      prevList.setSelectedIndex(count - 1);
-                      ensureIndexVisible(prevList, count -1);
-                      prevList.requestFocus();
-                      e.consume();
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-
+      list.addKeyListener(myKeyListener);
       new ListSpeedSearch(list);
 
       myLists.add(list);
-      myHideables.add(hidyPanel);
-      hidyPanel.setContentComponent(list);
-      add(panel);
+      if (showSectionHeaders) {
+        JPanel panel = new JPanel(new BorderLayout()) {// must be BorderLayout for HideableDecorator to work
+          @Override
+          public Dimension getMaximumSize() {
+            return new Dimension(super.getMaximumSize().width, super.getPreferredSize().height);
+          }
+        };
+        HideableDecorator hidyPanel = new HideableDecorator(panel, name, false);
+        myHideables.add(hidyPanel);
+        hidyPanel.setContentComponent(list);
+        add(panel);
+        mySectionToComponent.put(section, panel);
+      }
+      else {
+        if (getComponentCount() > 0) {
+          add(new JSeparator());
+        }
+        list.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        add(list);
+        mySectionToComponent.put(section, list);
+      }
+    }
+  }
 
+  public void setVisibleSection(@Nullable Object section) {
+    JComponent visible = section != null ? mySectionToComponent.get(section) : null;
+    for (Component component : getComponents()) {
+      component.setVisible(visible == null);
+    }
+    if (visible != null) {
+      visible.setVisible(true);
+    }
+  }
+
+  @Override
+  public void setTransferHandler(@Nullable TransferHandler handler) {
+    for (JList<T> list : myLists) {
+      list.setTransferHandler(handler);
+      list.setDragEnabled(handler != null);
     }
   }
 
@@ -195,13 +206,31 @@ public class TreeGrid<T> extends Box {
     }
   }
 
-  public @Nullable T getSelectedElement() {
+  private JList<T> getSelectedList() {
     for (JList<T> list : myLists) {
       if (list.getSelectedIndex() > -1) {
-        return list.getSelectedValue();
+        return list;
       }
     }
     return null;
+  }
+
+  @Override
+  public void requestFocus() {
+    JList<T> list = getSelectedList();
+    if (list == null) {
+      selectFirst();
+      list = getSelectedList();
+    }
+    if (list != null) {
+      list.requestFocus();
+    }
+  }
+
+  @Nullable
+  public T getSelectedElement() {
+    JList<T> list = getSelectedList();
+    return list != null ? list.getSelectedValue() : null;
   }
 
   public void setSelectedElement(@Nullable T selectedElement) {
@@ -312,6 +341,221 @@ public class TreeGrid<T> extends Box {
         ensureIndexVisible(list, 0);
         return;
       }
+    }
+  }
+
+  @TestOnly
+  JList<T> getSelectedComponent() {
+    return getSelectedList();
+  }
+
+  @TestOnly
+  List<JList<T>> getLists() {
+    return myLists;
+  }
+
+  private class MyKeyListener extends KeyAdapter {
+    private int myLastMidX = -1;
+
+    @Override
+    public void keyPressed(@NotNull KeyEvent event) {
+      Object source = event.getSource();
+      if (!(source instanceof JList)) {
+        return;
+      }
+      //noinspection unchecked
+      JList<T> list = (JList<T>)source;
+      boolean consumed = false;
+      switch (event.getKeyCode()) {
+        case KeyEvent.VK_DOWN:
+          consumed = handleKeyDown(list);
+          break;
+        case KeyEvent.VK_UP:
+          consumed = handleKeyUp(list);
+          break;
+        case KeyEvent.VK_LEFT:
+          myLastMidX = -1;
+          consumed = handleKeyLeft(list);
+          break;
+        case KeyEvent.VK_RIGHT:
+          myLastMidX = -1;
+          consumed = handleKeyRight(list);
+          break;
+      }
+      if (consumed) {
+        event.consume();
+      }
+    }
+
+    private boolean handleKeyDown(@NotNull JList<T> list) {
+      int selectedIndex = list.getSelectedIndex();
+      if (selectedIndex < 0) {
+        return false;
+      }
+      if (myLastMidX < 0) {
+        myLastMidX = midX(list, selectedIndex);
+      }
+      if (!isLastRow(list, selectedIndex)) {
+        int nextLineStart = findNextListStart(list, selectedIndex);
+        int newSelectedItem = findBestMatchFromLeft(list, myLastMidX, nextLineStart);
+        selectNewItem(list, newSelectedItem, list);
+        return true;
+      }
+      else {
+        for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
+          JList<T> nextList = myLists.get(listIndex);
+          int itemCount = nextList.getModel().getSize();
+          if (itemCount > 0 && nextList.isVisible()) {
+            int newSelectedItem = findBestMatchFromLeft(nextList, myLastMidX, 0);
+            selectNewItem(nextList, newSelectedItem, list);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    private boolean handleKeyUp(@NotNull JList<T> list) {
+      int selectedIndex = list.getSelectedIndex();
+      if (selectedIndex < 0) {
+        return false;
+      }
+      if (myLastMidX < 0) {
+        myLastMidX = midX(list, selectedIndex);
+      }
+      if (!isFirstRow(list, selectedIndex)) {
+        int prevLineEnd = findPrevListEnd(list, selectedIndex);
+        int newSelectedItem = findBestMatchFromRight(list, myLastMidX, prevLineEnd);
+        selectNewItem(list, newSelectedItem, list);
+        return true;
+      }
+      else {
+        for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
+          JList<T> prevList = myLists.get(listIndex);
+          int itemCount = prevList.getModel().getSize();
+          if (itemCount > 0 && prevList.isVisible()) {
+            int newSelectedItem = findBestMatchFromRight(prevList, myLastMidX, itemCount - 1);
+            selectNewItem(prevList, newSelectedItem, list);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    private boolean handleKeyRight(@NotNull JList<T> list) {
+      int selectedIndex = list.getSelectedIndex();
+      if (selectedIndex < 0) {
+        return false;
+      }
+      if (selectedIndex < list.getModel().getSize() - 1) {
+        selectNewItem(list, selectedIndex + 1, list);
+        return true;
+      }
+      for (int listIndex = ContainerUtil.indexOf(myLists, list) + 1; listIndex != 0 && listIndex < myLists.size(); listIndex++) {
+        JList<T> nextList = myLists.get(listIndex);
+        int itemCount = nextList.getModel().getSize();
+        if (itemCount > 0 && nextList.isVisible()) {
+          selectNewItem(nextList, 0, list);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private boolean handleKeyLeft(@NotNull JList<T> list) {
+      int selectedIndex = list.getSelectedIndex();
+      if (selectedIndex < 0) {
+        return false;
+      }
+      if (selectedIndex > 0) {
+        selectNewItem(list, selectedIndex - 1, list);
+        return true;
+      }
+      for (int listIndex = ContainerUtil.indexOf(myLists, list) - 1; listIndex >= 0; listIndex--) {
+        JList<T> prevList = myLists.get(listIndex);
+        int itemCount = prevList.getModel().getSize();
+        if (itemCount > 0 && prevList.isVisible()) {
+          selectNewItem(prevList, itemCount - 1, list);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private int midX(@NotNull JList<T> list, int index) {
+      Rectangle bounds = list.getCellBounds(index, index);
+      return bounds.x + bounds.width / 2;
+    }
+
+    private boolean isFirstRow(@NotNull JList<T> list, int index) {
+      Rectangle bounds = list.getCellBounds(index, index);
+      Rectangle firstBounds = list.getCellBounds(0, 0);
+      return verticalOverlap(bounds, firstBounds);
+    }
+
+    private boolean isLastRow(@NotNull JList<T> list, int index) {
+      int last = list.getModel().getSize() - 1;
+      Rectangle bounds = list.getCellBounds(index, index);
+      Rectangle lastBounds = list.getCellBounds(last, last);
+      return verticalOverlap(bounds, lastBounds);
+    }
+
+    private boolean verticalOverlap(@NotNull Rectangle bounds1, @NotNull Rectangle bounds2) {
+      return bounds1.y < bounds2.y + bounds2.height && bounds1.y + bounds1.height > bounds2.y;
+    }
+
+    private int findPrevListEnd(@NotNull JList<T> list, int index) {
+      Rectangle bounds = list.getCellBounds(index, index);
+      int prevIndex = index;
+      Rectangle prevBounds = bounds;
+      while (index > 0 && verticalOverlap(bounds, prevBounds)) {
+        prevIndex--;
+        prevBounds = list.getCellBounds(prevIndex, prevIndex);
+      }
+      return prevIndex;
+    }
+
+    private int findNextListStart(@NotNull JList<T> list, int index) {
+      int count = list.getModel().getSize();
+      Rectangle bounds = list.getCellBounds(index, index);
+      int nextIndex = index;
+      Rectangle nextBounds = bounds;
+      while (index < count && verticalOverlap(bounds, nextBounds)) {
+        nextIndex++;
+        nextBounds = list.getCellBounds(nextIndex, nextIndex);
+      }
+      return nextIndex;
+    }
+
+    private int findBestMatchFromLeft(@NotNull JList<T> list, int x, int startIndex) {
+      int bestIndex = startIndex;
+      int count = list.getModel().getSize();
+      Rectangle bounds = list.getCellBounds(startIndex, startIndex);
+      int y = bounds.y + bounds.height / 2;
+      while (bestIndex < count && bounds.y < y && bounds.x + bounds.width < x) {
+        bestIndex++;
+        bounds = list.getCellBounds(bestIndex, bestIndex);
+      }
+      return bestIndex < count ? bestIndex : count - 1;
+    }
+
+    private int findBestMatchFromRight(@NotNull JList<T> list, int x, int startIndex) {
+      int bestIndex = startIndex;
+      Rectangle bounds = list.getCellBounds(bestIndex, bestIndex);
+      int y = bounds.y + bounds.height / 2;
+      while (bestIndex > 0 && bounds.y + bounds.height > y && bounds.x > x) {
+        bestIndex--;
+        bounds = list.getCellBounds(bestIndex, bestIndex);
+      }
+      return bestIndex;
+    }
+
+    private void selectNewItem(@NotNull JList<T> list, int index, @NotNull JList<T> prevList) {
+      prevList.clearSelection();
+      list.setSelectedIndex(index);
+      ensureIndexVisible(list, index);
+      list.requestFocus();
     }
   }
 }
