@@ -85,7 +85,6 @@ public class ConstraintInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
     drawModel.mouseDragged(androidX, androidY);
-    ConstraintModel.getConstraintModel(myScreenView.getModel()).updateMemoryXML();
   }
 
   /**

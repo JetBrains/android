@@ -25,6 +25,7 @@ import java.util.HashMap;
 public class WidgetProperties {
   HashMap<ConstraintAnchor, MarginProperty> mMarginsSource = new HashMap<>();
   String mGuidelineAttribute;
+  String mDimensionRatio;
 
   class MarginProperty {
     String attribute;
@@ -34,6 +35,15 @@ public class WidgetProperties {
   public void clear() {
     mMarginsSource.clear();
     mGuidelineAttribute = null;
+    mDimensionRatio = null;
+  }
+
+  public void setDimensionRatio(String attribute) {
+    mDimensionRatio = attribute;
+  }
+
+  public String getDimensionRatio() {
+    return mDimensionRatio;
   }
 
   public void setGuidelineAttribute(String attribute) {
