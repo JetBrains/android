@@ -37,7 +37,7 @@ public class AndroidLogcatServiceTest {
     private int myCurrentIndex = 0;
 
     @Override
-    public void receiveLogLine(@NotNull LogCatMessage line) {
+    public void onLogLineReceived(@NotNull LogCatMessage line) {
       assertEquals(EXPECTED_LOGS[myCurrentIndex++], line.toString());
     }
 

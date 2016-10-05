@@ -70,7 +70,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   public interface LogLineListener {
-    void receiveLogLine(@NotNull LogCatMessage line);
+    void onLogLineReceived(@NotNull LogCatMessage line);
   }
 
   private final Object myLock = new Object();
@@ -131,11 +131,11 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private AndroidLogcatReceiver createReceiver(@NotNull final IDevice device) {
     final LogLineListener logLineListener = new LogLineListener() {
       @Override
-      public void receiveLogLine(@NotNull LogCatMessage line) {
+      public void onLogLineReceived(@NotNull LogCatMessage line) {
         synchronized (myLock) {
           if (myListeners.containsKey(device)) {
             for (LogLineListener listener : myListeners.get(device)) {
-              listener.receiveLogLine(line);
+              listener.onLogLineReceived(line);
             }
           }
           if (myLogBuffers.containsKey(device)) {
@@ -207,7 +207,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       if (addOldLogs && myLogBuffers.containsKey(device)) {
         for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
-          listener.receiveLogLine(line);
+          listener.onLogLineReceived(line);
         }
       }
 
