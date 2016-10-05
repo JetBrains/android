@@ -332,9 +332,11 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private void attachPalette() {
     Project project = myManager.getProject();
     DumbService.getInstance(project).runWhenSmart(() -> {
-      // While we wait for the index to be ready, the preview might become inactive so we need to check first
-      if (myFile != null && NlLayoutType.typeOf(myFile).isSupportedByDesigner() && isActive) {
-        NlPaletteManager.get(project).bind(this);
+      if (myFile != null && NlLayoutType.typeOf(myFile).isSupportedByDesigner()) {
+        // While we wait for the index to be ready, the preview might become inactive so we need to check first
+        if (isActive) {
+          NlPaletteManager.get(project).bind(this);
+        }
       }
       else {
         NlPaletteManager.get(project).dispose(this);
