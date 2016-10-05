@@ -39,8 +39,26 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
  */
 public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHeaderAndDescription {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidModuleStepDynamic.class);
-
   private static final String TITLE = "Configure your new module";
+
+  private final @Nullable FormFactor myFormFactor;
+  private final ValueDeriver<String> myModuleNameDeriver = new ValueDeriver<String>() {
+    @Nullable
+    @Override
+    public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+      return makeSetOf(APPLICATION_NAME_KEY);
+    }
+
+    @Nullable
+    @Override
+    public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+      String appName = state.get(APPLICATION_NAME_KEY);
+      if (appName == null) {
+        appName = myModuleType.getFormFactor().toString();
+      }
+      return WizardUtils.computeModuleName(appName, getProject());
+    }
+  };
 
   private CreateModuleTemplate myModuleType;
   private FormFactorApiComboBox mySdkControls;
@@ -49,7 +67,6 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
   private JCheckBox myInstantAppCheckbox;
-  private final @Nullable FormFactor myFormFactor;
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactor formFactor) {
     super(TITLE, null, parentDisposable);
@@ -88,17 +105,13 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     super.init();
   }
 
-  private void createUIComponents() {
-    mySdkControls = new FormFactorApiComboBox();
-  }
-
   @Override
   public void onEnterStep() {
     super.onEnterStep();
     CreateModuleTemplate template = getFormfactorModuleTemplate();
     if (template != null && template.getFormFactor() != null && template.getMetadata() != null) {
       myModuleType = template;
-      registerValueDeriver(FormFactorUtils.getModuleNameKey(template.getFormFactor()), ourModuleNameDeriver);
+      registerValueDeriver(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleNameDeriver);
 
       // As we are re-using the SAME Step object (this) and the SAME Path object (NewFormFactorModulePath) for both
       // new "phone and tablet module" and "android lib module" we have to update the title here.
@@ -145,18 +158,6 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     return commit;
   }
 
-  @Nullable
-  private CreateModuleTemplate getFormfactorModuleTemplate() {
-    ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
-    if (moduleTemplate instanceof CreateModuleTemplate) {
-      CreateModuleTemplate type = (CreateModuleTemplate)moduleTemplate;
-      if (type.getFormFactor() != null && type.getMetadata() != null) {
-        return type;
-      }
-    }
-    return null;
-  }
-
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
@@ -169,59 +170,6 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   public boolean validate() {
     setErrorHtml("");
     return validateAppName() && validatePackageName() && validateApiLevel();
-  }
-
-  private boolean validateApiLevel() {
-    if (mySdkControls == null || mySdkControls.getItemCount() < 1) {
-      setErrorHtml("No supported platforms found. Please install the proper platform or add-on through the SDK manager.");
-      return false;
-    }
-    return true;
-  }
-
-  private final ValueDeriver<String> ourModuleNameDeriver = new ValueDeriver<String>() {
-    @Nullable
-    @Override
-    public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-      return makeSetOf(APPLICATION_NAME_KEY);
-    }
-
-    @Nullable
-    @Override
-    public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-      String appName = state.get(APPLICATION_NAME_KEY);
-      if (appName == null) {
-        appName = myModuleType.getFormFactor().toString();
-      }
-      return WizardUtils.computeModuleName(appName, getProject());
-    }
-  };
-
-  private boolean validateAppName() {
-    String appName = myState.get(APPLICATION_NAME_KEY);
-    if (appName == null || appName.isEmpty()) {
-      setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
-      return false;
-    } else if (Character.isLowerCase(appName.charAt(0))) {
-      setErrorHtml("The application name for most apps begins with an uppercase letter");
-    }
-    return true;
-  }
-
-  private boolean validatePackageName() {
-    String packageName = myState.get(PACKAGE_NAME_KEY);
-    if (packageName == null) {
-      setErrorHtml("Please enter a package name (This package uniquely identifies your application or library)");
-      return false;
-    } else {
-      // Fully qualified reference can be deleted once com.android.tools.idea.npw.WizardUtils has been removed
-      String message = com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName(packageName);
-      if (message != null) {
-        setErrorHtml("Invalid package name: " + message);
-        return false;
-      }
-    }
-    return true;
   }
 
   @Override
@@ -249,5 +197,56 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myAppName;
+  }
+
+  private void createUIComponents() {
+    mySdkControls = new FormFactorApiComboBox();
+  }
+
+  @Nullable
+  private CreateModuleTemplate getFormfactorModuleTemplate() {
+    ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
+    if (moduleTemplate instanceof CreateModuleTemplate) {
+      CreateModuleTemplate type = (CreateModuleTemplate)moduleTemplate;
+      if (type.getFormFactor() != null && type.getMetadata() != null) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  private boolean validateApiLevel() {
+    if (mySdkControls == null || mySdkControls.getItemCount() < 1) {
+      setErrorHtml("No supported platforms found. Please install the proper platform or add-on through the SDK manager.");
+      return false;
+    }
+    return true;
+  }
+
+  private boolean validateAppName() {
+    String appName = myState.get(APPLICATION_NAME_KEY);
+    if (appName == null || appName.isEmpty()) {
+      setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
+      return false;
+    } else if (Character.isLowerCase(appName.charAt(0))) {
+      setErrorHtml("The application name for most apps begins with an uppercase letter");
+    }
+    return true;
+  }
+
+  private boolean validatePackageName() {
+    String packageName = myState.get(PACKAGE_NAME_KEY);
+    if (packageName == null) {
+      setErrorHtml("Please enter a package name (This package uniquely identifies your application or library)");
+      return false;
+    } else {
+      // Fully qualified reference can be deleted once com.android.tools.idea.npw.WizardUtils has been removed
+      String message = com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName(packageName);
+      if (message != null) {
+        setErrorHtml("Invalid package name: " + message);
+        return false;
+      }
+    }
+    return true;
   }
 }
