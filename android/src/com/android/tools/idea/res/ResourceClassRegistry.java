@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.io.FileWrapper;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.xml.AndroidManifest;
@@ -35,41 +36,45 @@ import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.DOT_AAR;
 
 /**
- * A registry for class lookup of resource classes (R classes) in AAR libraries.
+ * A registry for class lookup of resource classes (R classes).
  */
-public class AarResourceClassRegistry implements ProjectComponent {
+public class ResourceClassRegistry implements ProjectComponent {
 
-  private final Map<AppResourceRepository, AarResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
+  private final Map<AppResourceRepository, ResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
   private final Project myProject;
   private Collection<String> myPackages;
 
   @SuppressWarnings("WeakerAccess")  // Accessed via reflection.
-  public AarResourceClassRegistry(Project project) {
+  public ResourceClassRegistry(Project project) {
     myProject = project;
   }
 
-  public void addLibrary(AppResourceRepository appResources, File aarDir) {
+  public void addLibrary(@NotNull AppResourceRepository appResources, @Nullable String pkg) {
+    if (pkg != null && !pkg.isEmpty()) {
+      if (myPackages == null) {
+        myPackages = new HashSet<>();
+      }
+      myPackages.add(pkg);
+      if (!myGeneratorMap.containsKey(appResources)) {
+        ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+        myGeneratorMap.put(appResources, generator);
+      }
+    }
+  }
+
+  public void addAarLibrary(@NotNull AppResourceRepository appResources, @NotNull File aarDir) {
     String path = aarDir.getPath();
     if (path.endsWith(DOT_AAR) || path.contains(AndroidGradleModel.EXPLODED_AAR)) {
       FileResourceRepository repository = appResources.findRepositoryFor(aarDir);
       if (repository != null) {
-        String pkg = getAarPackage(aarDir);
-        if (pkg != null) {
-          if (myPackages == null) {
-            myPackages = new HashSet<String>();
-          }
-          myPackages.add(pkg);
-        }
-        if (!myGeneratorMap.containsKey(appResources)) {
-          AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
-          myGeneratorMap.put(appResources, generator);
-        }
+        addLibrary(appResources, getAarPackage(aarDir));
       }
     }
   }
 
   @Nullable
-  private static String getAarPackage(@NotNull File aarDir) {
+  @VisibleForTesting
+  String getAarPackage(@NotNull File aarDir) {
     File manifest = new File(aarDir, ANDROID_MANIFEST_XML);
     if (manifest.exists()) {
       try {
@@ -93,7 +98,7 @@ public class AarResourceClassRegistry implements ProjectComponent {
       // If this is an R class or one of its inner classes.
       String pkg = name.substring(0, index);
       if (myPackages != null && myPackages.contains(pkg)) {
-        AarResourceClassGenerator generator = myGeneratorMap.get(appRepo);
+        ResourceClassGenerator generator = myGeneratorMap.get(appRepo);
         if (generator != null) {
           return generator.generate(name);
         }
@@ -124,8 +129,8 @@ public class AarResourceClassRegistry implements ProjectComponent {
   /**
    * Lazily instantiate a registry with the target project.
    */
-  public static AarResourceClassRegistry get(@NotNull Project project) {
-    return project.getComponent(AarResourceClassRegistry.class);
+  public static ResourceClassRegistry get(@NotNull Project project) {
+    return project.getComponent(ResourceClassRegistry.class);
   }
 
   // ProjectComponent methods.
@@ -149,6 +154,16 @@ public class AarResourceClassRegistry implements ProjectComponent {
   @NotNull
   @Override
   public String getComponentName() {
-    return AarResourceClassRegistry.class.getName();
+    return ResourceClassRegistry.class.getName();
+  }
+
+  @VisibleForTesting
+  Collection<String> getPackages() {
+    return myPackages;
+  }
+
+  @VisibleForTesting
+  Map<AppResourceRepository, ResourceClassGenerator> getGeneratorMap() {
+    return myGeneratorMap;
   }
 }

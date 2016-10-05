@@ -134,7 +134,7 @@ class RDotTxtParser {
           // It's essential that the order of entries match the order of attrs. So, we reorder the entries.
           int index = 0;
           for (AttrResourceValue attr : attrs) {
-            String name = AarResourceClassGenerator.getResourceName(styleableName, attr);
+            String name = ResourceClassGenerator.getResourceName(styleableName, attr);
             for (int i = index; i < myDeclaredAttrs.length; i++) {
               String declaredAttr = myDeclaredAttrs[i];
               if (declaredAttr.equals(name)) {
