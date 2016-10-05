@@ -19,3 +19,9 @@ iml_module(
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
+
+java_binary(
+    name = "baseline-images-generator",
+    runtime_deps = [":adt-ui_testlib.javas"],
+    main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
+)
