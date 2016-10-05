@@ -96,7 +96,7 @@ import java.util.List;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPalettePanel extends JPanel
+public class NlOldPalettePanel extends JPanel
   implements LightToolWindowContent, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
 
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
@@ -118,7 +118,7 @@ public class NlPalettePanel extends JPanel
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
 
-  public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+  public NlOldPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;
     myPaletteTree = new PaletteTree();
     myPaletteTree.setName("Palette Tree");

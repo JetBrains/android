@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
+import com.android.tools.idea.uibuilder.palette.NlOldPalettePanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NlPaletteManager extends NlAbstractWindowManager {
-  private NlPalettePanel myPalette;
+  private NlOldPalettePanel myPalette;
 
   public NlPaletteManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
@@ -55,7 +55,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
     else {
       if (myPalette == null) {
-        myPalette = new NlPalettePanel(myProject, getDesignSurface(designer));
+        myPalette = new NlOldPalettePanel(myProject, getDesignSurface(designer));
         createWindowContent(myPalette, myPalette.getFocusedComponent(), myPalette.getActions());
       }
       myPalette.setDesignSurface(getDesignSurface(designer));
@@ -80,7 +80,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
   }
 
   public void setDesignSurface(LightToolWindow toolWindow, @Nullable DesignSurface designSurface) {
-    NlPalettePanel palette = (NlPalettePanel)toolWindow.getContent();
+    NlOldPalettePanel palette = (NlOldPalettePanel)toolWindow.getContent();
     palette.setDesignSurface(designSurface);
   }
 
@@ -92,7 +92,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
       return toolWindow;
     }
 
-    NlPalettePanel palette = new NlPalettePanel(myProject, getDesignSurface(designer));
+    NlOldPalettePanel palette = new NlOldPalettePanel(myProject, getDesignSurface(designer));
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
