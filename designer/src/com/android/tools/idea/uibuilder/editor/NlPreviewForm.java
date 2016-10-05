@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -65,7 +63,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private RenderResult myRenderResult;
   private XmlFile myFile;
   private boolean isActive = true;
-  private NlActionsToolbar myActionsToolbar;
+  private final NlActionsToolbar myActionsToolbar;
 
   /**
    * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
@@ -168,12 +166,14 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
           screenView.getSelectionModel().setSelection(Collections.singletonList(component));
           editor.getCaretModel().moveToOffset(offset);
           editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-        } finally {
+        }
+        finally {
           myIgnoreListener = false;
         }
       }
     }
   }
+
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
       ScreenView screenView = mySurface.getCurrentScreenView();
@@ -199,7 +199,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
                 return true;
               }
             });
-          } finally {
+          }
+          finally {
             myIgnoreListener = false;
           }
         }
@@ -284,7 +285,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
       mySurface.setModel(null);
-    } else if (file == myFile) {
+    }
+    else if (file == myFile) {
       return false;
     }
 
@@ -293,7 +295,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myPendingFile = null;
       myFile = null;
       setActiveModel(null);
-    } else {
+    }
+    else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
       myPendingFile = new Pending(xmlFile, model);
@@ -312,7 +315,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     if (model == null) {
       setEditor(null);
       myManager.setDesignSurface(null);
-    } else {
+    }
+    else {
       myFile = model.getFile();
       mySurface.setModel(model);
       if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
@@ -353,15 +357,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     myRenderResult = renderResult;
   }
 
-  @Nullable
-  public Configuration getConfiguration() {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView != null) {
-      return screenView.getModel().getConfiguration();
-    }
-    return null;
-  }
-
   @NotNull
   public DesignSurface getSurface() {
     return mySurface;
@@ -388,7 +383,9 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   }
 
-  /** Minimize the palette tool window, if possible */
+  /**
+   * Minimize the palette tool window, if possible
+   */
   public void minimizePalette() {
     if (myToolWindow != null) {
       myToolWindow.minimize();
@@ -425,7 +422,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     if (myFile != null) {
       myInactiveFile = myFile;
-    } else {
+    }
+    else {
       // The file might still be rendering
       myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
     }
@@ -449,7 +447,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     String paletteKey = paletteManager.getComponentName();
     myContentSplitter.putClientProperty(key, value);
     if (key.equals(paletteKey)) {
-      myToolWindow = (LightToolWindow) value;
+      myToolWindow = (LightToolWindow)value;
     }
   }
 
