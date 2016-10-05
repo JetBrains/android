@@ -19,13 +19,14 @@ package com.android.tools.sherpa.animation;
 import com.android.tools.sherpa.drawing.ViewTransform;
 
 import java.awt.Graphics2D;
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * Basic Choreographer for animations
  */
 public class Choreographer {
-    ArrayList<Animation> mAnimations = new ArrayList<Animation>();
+    private final LinkedList<Animation> mAnimations = new LinkedList<>();
 
     /**
      * Add an animation to the choreographer and starts it immediately
@@ -58,17 +59,14 @@ public class Choreographer {
      * @return true if we still have running animations
      */
     public boolean onPaint(ViewTransform transform, Graphics2D g) {
-        ArrayList<Animation> finished = new ArrayList<Animation>();
-        for (Animation animation : mAnimations) {
+        for (Iterator<Animation> it = mAnimations.iterator(); it.hasNext();) {
+            Animation animation = it.next();
             if (!animation.step()) {
-                finished.add(animation);
+                it.remove();
             }
             animation.onPaint(transform, g);
         }
-        boolean needsRepaint = mAnimations.size() > 0;
-        for (Animation animation : finished) {
-            mAnimations.remove(animation);
-        }
-        return needsRepaint;
+
+        return mAnimations.size() > 0;
     }
 }
