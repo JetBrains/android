@@ -46,7 +46,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     loadProject(UIBUILDER_PROPERTY);
-    generateSources(false);
+    generateSources();
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     Configuration configuration = myAndroidFacet.getConfigurationManager().getConfiguration(file);

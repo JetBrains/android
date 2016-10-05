@@ -27,7 +27,7 @@ public class CreateGradleWrapperTest extends AndroidGradleTestCase {
 
   public void testCreateGradleWrapper() throws Exception {
     File baseDir = getBaseDirPath(getProject());
-    AndroidGradleTestCase.createGradleWrapper(baseDir);
+    createGradleWrapper(baseDir);
 
     assertFilesExist(baseDir, FN_GRADLE_WRAPPER_UNIX, FN_GRADLE_WRAPPER_WIN, FD_GRADLE, FD_GRADLE_WRAPPER,
                      join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR), join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
