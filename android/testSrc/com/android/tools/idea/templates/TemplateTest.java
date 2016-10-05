@@ -20,6 +20,9 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -49,9 +52,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -945,7 +945,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
-      assertBuildsCleanly(project, ALLOW_WARNINGS);
+      invokeGradleTasks(project, "assembleDebug");
+
       if (CHECK_LINT) {
         assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
         // TODO: Check for other warnings / inspections, such as unused imports?
