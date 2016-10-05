@@ -19,11 +19,12 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.testing.legacy.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -174,9 +175,8 @@ public class TemplateTest extends AndroidGradleTestCase {
           fail("Couldn't find SDK manager");
         }
         else {
-          System.out.println("recentSDK required= " + requireRecentSdk());
-          System.out.println("getTestSdkPath= " + getTestSdkPath());
-          System.out.println("getPlatformDir=" + getPlatformDir());
+          System.out.println("getTestSdkPath= " + TestUtils.getSdk());
+          System.out.println("getPlatformDir=" + TestUtils.getLatestAndroidPlatform());
           String location = sdkData.getLocation().getPath();
           System.out.println("Using SDK at " + location);
           VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
