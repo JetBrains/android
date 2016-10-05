@@ -188,7 +188,6 @@ public class GradleSyncTest {
   }
 
   @Test
-  @Ignore("http://b.android.com/221883")
   // See https://code.google.com/p/android/issues/detail?id=183368
   public void withTestOnlyInterModuleDependencies() throws IOException {
     guiTest.importMultiModule();
@@ -324,7 +323,6 @@ public class GradleSyncTest {
 
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and when run individually from IDEA, Windows OK")
   public void handlingOfOutOfMemoryErrors() throws IOException {
     guiTest.importSimpleApplication();
 
@@ -693,7 +691,6 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=167378
-  @Ignore("http://b.android.com/221883")
   @Test
   public void interJavaModuleDependencies() throws IOException {
     guiTest.importMultiModule();
