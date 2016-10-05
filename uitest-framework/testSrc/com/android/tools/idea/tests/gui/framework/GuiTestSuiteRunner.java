@@ -17,10 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
@@ -113,34 +111,4 @@ public class GuiTestSuiteRunner extends Suite {
     }
   }
 
-  private static class TestGroupFilter extends Filter {
-    @NotNull final TestGroup testGroup;
-
-    TestGroupFilter(@NotNull TestGroup testGroup) {
-      this.testGroup = testGroup;
-    }
-
-    @Override
-    public boolean shouldRun(Description description) {
-      return (description.isTest() && testGroupOf(description) == testGroup)
-        || description.getChildren().stream().anyMatch(this::shouldRun);
-    }
-
-    @NotNull
-    static TestGroup testGroupOf(Description description) {
-      RunIn methodAnnotation = description.getAnnotation(RunIn.class);
-      return (methodAnnotation != null) ? methodAnnotation.value() : testGroupOf(description.getTestClass());
-    }
-
-    @NotNull
-    static TestGroup testGroupOf(@NotNull Class<?> testClass) {
-      RunIn classAnnotation = testClass.getAnnotation(RunIn.class);
-      return (classAnnotation != null) ? classAnnotation.value() : TestGroup.DEFAULT;
-    }
-
-    @Override
-    public String describe() {
-      return TestGroupFilter.class.getSimpleName() + " for " + testGroup;
-    }
-  }
 }
