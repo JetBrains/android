@@ -203,7 +203,7 @@ public class NewProjectTest {
     }
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @Ignore("http://b.android.com/224397")
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
