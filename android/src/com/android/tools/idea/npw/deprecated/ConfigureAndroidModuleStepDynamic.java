@@ -16,14 +16,12 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.npw.*;
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +31,7 @@ import java.util.Set;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.android.tools.idea.wizard.WizardConstants.*;
+import static com.intellij.openapi.util.text.StringUtil.*;
 
 /**
  * Configuration for a new Android module
@@ -41,7 +40,9 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidModuleStepDynamic.class);
   private static final String TITLE = "Configure your new module";
 
-  private final @Nullable FormFactor myFormFactor;
+  private final @NotNull FormFactor myFormFactor;
+  private final @NotNull ScopedStateStore.Key<String> myAppNameKey;
+
   private final ValueDeriver<String> myModuleNameDeriver = new ValueDeriver<String>() {
     @Nullable
     @Override
@@ -68,10 +69,12 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private LabelWithEditLink myPackageName;
   private JCheckBox myInstantAppCheckbox;
 
-  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactor formFactor) {
+
+  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
     super(TITLE, null, parentDisposable);
     setBodyComponent(myPanel);
     myFormFactor = formFactor;
+    myAppNameKey = FormFactorUtils.getModuleNameKey(myFormFactor);
   }
 
   @Override
@@ -81,7 +84,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     myState.put(PROJECT_LOCATION_KEY, projectLocation);
     CreateModuleTemplate template = getFormfactorModuleTemplate();
     assert template != null;
-    register(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleName);
+    register(myAppNameKey, myModuleName);
     myModuleName.setName("ModuleName");
     mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk(), null, null, null);
     mySdkControls.registerWith(this);
@@ -90,7 +93,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     register(PACKAGE_NAME_KEY, myPackageName);
     registerValueDeriver(PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
 
-    if (StringUtil.isEmptyOrSpaces(myState.get(APPLICATION_NAME_KEY))) {
+    if (isEmptyOrSpaces(myState.get(APPLICATION_NAME_KEY))) {
       String name = myState.getNotNull(IS_LIBRARY_KEY, false) ? "My Library" : "My Application";
       myState.put(APPLICATION_NAME_KEY, name);
       String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
@@ -169,7 +172,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   @Override
   public boolean validate() {
     setErrorHtml("");
-    return validateAppName() && validatePackageName() && validateApiLevel();
+    return validateAppName() && validateModuleName() && validatePackageName() && validateApiLevel();
   }
 
   @Override
@@ -189,9 +192,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     // this creates the initial setting, we will later update the title in {@link #onEnterStep()}
     return getFormfactorModuleTemplate() == null
            ? NewModuleWizardDynamic.buildHeader()
-           : myFormFactor == null
-             ? WizardStepHeaderSettings.createTitleOnlyHeader(getFormfactorModuleTemplate().getName())
-             : WizardStepHeaderSettings.createTitleAndIconHeader(getFormfactorModuleTemplate().getName(), myFormFactor.getIcon());
+           : WizardStepHeaderSettings.createTitleAndIconHeader(getFormfactorModuleTemplate().getName(), myFormFactor.getIcon());
   }
 
   @Override
@@ -224,12 +225,25 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   }
 
   private boolean validateAppName() {
-    String appName = myState.get(APPLICATION_NAME_KEY);
-    if (appName == null || appName.isEmpty()) {
+    String appName = trim(myState.get(APPLICATION_NAME_KEY));
+    if (isEmpty(appName)) {
       setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
       return false;
     } else if (Character.isLowerCase(appName.charAt(0))) {
       setErrorHtml("The application name for most apps begins with an uppercase letter");
+    }
+    return true;
+  }
+
+  private boolean validateModuleName() {
+    String moduleName = trim(myState.get(myAppNameKey));
+    if (isEmpty(moduleName)) {
+      setErrorHtml("Please enter an module name");
+      return false;
+    }
+    else if (!WizardUtils.isUniqueModuleName(moduleName, getProject())) {
+      setErrorHtml(String.format("A module named '%s' already exists", moduleName));
+      return false;
     }
     return true;
   }

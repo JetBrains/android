@@ -106,7 +106,7 @@ public class WizardUtils {
    * @return true if the given module name is unique inside the given project. Returns true if the given
    * project is null.
    */
-  private static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
+  public static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
     if (project == null) {
       return true;
     }
