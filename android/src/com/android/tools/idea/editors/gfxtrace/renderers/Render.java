@@ -654,7 +654,7 @@ public final class Render {
     }
   }
 
-  private static final int MAX_DISPLAY = 3;
+  private static final int MAX_DISPLAY = 4;
 
   public static void render(@NotNull SnippetObject obj,
                             @NotNull Object[] array,
@@ -670,8 +670,9 @@ public final class Render {
       render(obj.elem(array[index]), valueType, component, attributes, NO_TAG);
     }
     if (count < array.length) {
-      component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      component.append(", ...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+    component.append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   public static void render(@NotNull SnippetObject obj,
@@ -688,8 +689,9 @@ public final class Render {
       render(obj.elem(array[index]), valueType, component, attributes, NO_TAG);
     }
     if (count < array.length) {
-      component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      component.append(", ...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+    component.append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   public static void render(@NotNull SnippetObject obj, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {

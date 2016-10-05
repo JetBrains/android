@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemorySliceInfo;
+import com.android.tools.idea.editors.gfxtrace.service.path.ArrayIndexPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.FieldPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MapIndexPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
@@ -241,6 +242,12 @@ public class StateController extends TreeController implements GpuState.Listener
       path.setMap(parent);
       return path;
     }
+    if (obj instanceof Long) {
+      ArrayIndexPath path = new ArrayIndexPath();
+      path.setIndex((Long)obj);
+      path.setArray(parent);
+      return path;
+    }
     if (obj instanceof String) {
       FieldPath path = new FieldPath();
       path.setName((String)obj);
@@ -308,6 +315,9 @@ public class StateController extends TreeController implements GpuState.Listener
       else if (path instanceof MapIndexPath) {
         result.add(0, SnippetObject.symbol(((MapIndexPath)path).getKey()));
       }
+      else if (path instanceof ArrayIndexPath) {
+        result.add(0, SnippetObject.symbol(((ArrayIndexPath)path).getIndex()));
+      }
       else {
         break;
       }
@@ -338,6 +348,21 @@ public class StateController extends TreeController implements GpuState.Listener
         final Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
         for (java.util.Map.Entry<Object, Object> e : map.entrySet()) {
           addChildNode(result, keyType, obj.key(e), valueType, obj.elem(e), true);
+        }
+      }
+    }
+    else if (underlying instanceof Object[] || underlying instanceof byte[]) {
+      Type valueType = (value.type instanceof Slice) ? ((Slice)value.type).getValueType() : ((Array)value.type).getValueType();
+      if (underlying instanceof Object[]) {
+        Object[] array = (Object[])underlying;
+        for (int i = 0; i < array.length; i++) {
+          addChildNode(result, null, obj.elem((long)i), valueType, obj.elem(array[i]), false);
+        }
+      }
+      else {
+        byte[] array = (byte[])underlying;
+        for (int i = 0; i < array.length; i++) {
+          addChildNode(result, null, obj.elem((long)i), valueType, obj.elem(array[i]), false);
         }
       }
     }
