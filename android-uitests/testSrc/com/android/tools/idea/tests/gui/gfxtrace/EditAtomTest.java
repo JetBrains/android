@@ -17,73 +17,42 @@ package com.android.tools.idea.tests.gui.gfxtrace;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gfxtrace.GfxTraceFixture;
 import com.android.tools.rpclib.schema.Method;
-import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.fixture.JOptionPaneFixture;
-import org.fest.swing.fixture.JPopupMenuFixture;
-import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class EditAtomTest {
-
-  private static final String CAPTURES_APPLICATION = "CapturesApplication";
-  private static final String SAMPLE_SNAPSHOT_NAME = "domination-launch.gfxtrace";
-
-  Method[] TYPES = new Method[] {Method.Bool, /*Method.Int8,*/ Method.Uint8, /*Method.Int16, Method.Uint16,*/ Method.Int32, Method.Uint32,
-    Method.Int64, /*Method.Uint64,*/ Method.Float32, /*Method.Float64,*/ Method.String, GfxTraceFixture.ENUM, GfxTraceFixture.FLAG, null};
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testEditAtom() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
-
-    CapturesToolWindowFixture myCapturesToolWindowFixture = guiTest.ideFrame().getCapturesToolWindow();
-    myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-
-    GfxTraceFixture gfxTraceFixture = guiTest.ideFrame().getEditor().getGfxTraceEditor();
-
-    gfxTraceFixture.selectContext("OpenGL ES context 1");
-
-    JTreeFixture tree = gfxTraceFixture.getAtomTree();
-
-    for (Method type : TYPES) {
-      try {
-        int row = gfxTraceFixture.findAndSelectAtomWithField(tree, type);
-        if (type == null) {
-          // test we do not open a edit popup if there is nothing to edit
-          tree.rightClickRow(row);
-          assertThat(guiTest.robot().finder().findAll(new TypeMatcher(JPopupMenu.class, true))).isEmpty();
-        }
-        else {
-          JPopupMenuFixture popup = tree.showPopupMenuAt(row);
-          popup.menuItemWithPath("Edit").click();
-          JOptionPaneFixture dialog = new JOptionPaneFixture(guiTest.robot());
-          if (dialog.target().getLocationOnScreen().equals(new Point())) {
-            // dirty hack to get around a bug in X/AWT where in rare cases a timing issue causes a event from X to misinform AWT about the location of the dialog
-            SwingUtilities.getAncestorOfClass(JDialog.class, dialog.target()).setLocation(10, 10);
-          }
-          dialog.cancelButton().click();
-          Wait.minutes(1).expecting("dialog to disappear").until(() -> !dialog.target().isShowing());
-        }
-      }
-      catch (Throwable ex) {
-        throw new RuntimeException("error with " + type, ex);
-      }
-    }
+    guiTest.importProjectAndWaitForProjectSyncToFinish("CapturesApplication")
+      .getCapturesToolWindow()
+      .openFile("domination-launch.gfxtrace");
+    guiTest.ideFrame()
+      .getEditor()
+      .getGfxTraceEditor()
+      .selectContext("OpenGL ES context 1")
+      .openEditDialog(Method.Bool).clickCancel()
+      //.openEditDialog(Method.Int8).clickCancel()
+      .openEditDialog(Method.Uint8).clickCancel()
+      //.openEditDialog(Method.Int16).clickCancel()
+      //.openEditDialog(Method.Uint16).clickCancel()
+      .openEditDialog(Method.Int32).clickCancel()
+      .openEditDialog(Method.Uint32).clickCancel()
+      .openEditDialog(Method.Int64).clickCancel()
+      //.openEditDialog(Method.Uint64).clickCancel()
+      .openEditDialog(Method.Float32).clickCancel()
+      //.openEditDialog(Method.Float64).clickCancel()
+      .openEditDialog(Method.String).clickCancel()
+      .openEditDialog(GfxTraceFixture.ENUM).clickCancel()
+      .openEditDialog(GfxTraceFixture.FLAG).clickCancel()
+      .assertNoEditDialogForAtomWithoutPrimitiveFields();
   }
 }

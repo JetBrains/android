@@ -30,6 +30,7 @@ import com.android.tools.rpclib.schema.Primitive;
 import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Verify;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.driver.JTreeDriver;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
@@ -40,6 +41,8 @@ import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collection;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadablePanel> {
 
@@ -67,7 +70,27 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
     return this;
   }
 
-  public int findAndSelectAtomWithField(@NotNull JTreeFixture tree, @Nullable/*no Primitive fields*/ Method method) {
+  public EditAtomDialogFixture openEditDialog(@NotNull Method type) {
+    JTreeFixture tree = getAtomTree();
+    try {
+      int row = findAndSelectAtomWithField(tree, type);
+      tree.showPopupMenuAt(row).menuItemWithPath("Edit").click();
+      return EditAtomDialogFixture.find(this);
+    }
+    catch (Throwable ex) {
+      throw new RuntimeException("error with " + type, ex);
+    }
+  }
+
+  public GfxTraceFixture assertNoEditDialogForAtomWithoutPrimitiveFields() {
+    JTreeFixture tree = getAtomTree();
+    Method noPrimitiveFields = null;  // magic value
+    tree.rightClickRow(findAndSelectAtomWithField(tree, noPrimitiveFields));
+    assertThat(robot().finder().findAll(new TypeMatcher(JPopupMenu.class, true))).isEmpty();
+    return this;
+  }
+
+  private int findAndSelectAtomWithField(@NotNull JTreeFixture tree, @Nullable/*no Primitive fields*/ Method method) {
     AtomStream atoms = myEditor.getAtomStream();
     long atomIndex = findAtomWithField(atoms.getAtoms().getAtoms(), atoms.getSelectedContext(), method);
     if (atomIndex < 0) {
@@ -116,7 +139,7 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
     return -1;
   }
 
-  public static int selectAtom(@NotNull JTreeFixture tree, long atomIndex) {
+  private static int selectAtom(@NotNull JTreeFixture tree, long atomIndex) {
     JTree jTree = tree.target();
     for (int row = 0; row < tree.target().getRowCount(); row++) {
       Object obj = jTree.getPathForRow(row).getLastPathComponent();
@@ -140,7 +163,7 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
   }
 
   @NotNull
-  public JTreeFixture getAtomTree() {
+  private JTreeFixture getAtomTree() {
     return new JTreeFixture(robot(), "AtomTree") {
       @Nonnull
       @Override
