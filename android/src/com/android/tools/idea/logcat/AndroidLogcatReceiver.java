@@ -111,7 +111,7 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
 
   // This method is package protected so other Logcat components can feed receiver processed log lines if they need to
   void notifyLine(@NotNull LogCatHeader header, @NotNull String line) {
-    myLogLineListener.receiveLogLine(new LogCatMessage(header, line));
+    myLogLineListener.onLogLineReceived(new LogCatMessage(header, line));
     myLineIndex++;
   }
 

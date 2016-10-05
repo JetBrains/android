@@ -38,7 +38,7 @@ public abstract class ApplicationLogListener implements AndroidLogcatService.Log
   }
 
   @Override
-  public void receiveLogLine(@NotNull LogCatMessage line) {
+  public void onLogLineReceived(@NotNull LogCatMessage line) {
     if (!myPackageName.equals(line.getHeader().getAppName()) || myPid != line.getHeader().getPid()) {
       myActiveHeader = null;
       return;

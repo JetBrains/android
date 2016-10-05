@@ -23,7 +23,7 @@ abstract class FormattedLogLineReceiver implements AndroidLogcatService.LogLineL
   private LogCatHeader myActiveHeader;
 
   @Override
-  public final void receiveLogLine(@NotNull LogCatMessage line) {
+  public final void onLogLineReceived(@NotNull LogCatMessage line) {
     if (!line.getHeader().equals(myActiveHeader)) {
       myActiveHeader = line.getHeader();
       String message = AndroidLogcatFormatter.formatMessageFull(myActiveHeader, line.getMessage());
