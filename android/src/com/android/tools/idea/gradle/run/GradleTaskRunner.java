@@ -60,18 +60,11 @@ public interface GradleTaskRunner {
           }
         };
 
-        // https://code.google.com/p/android/issues/detail?id=213040 - make split apks only available if an env var is set
-        List<String> args = new ArrayList<>(commandLineArguments);
-        if (!Boolean.valueOf(System.getenv(USE_SPLIT_APK))) {
-          // force multi dex when the env var is not set to true
-          args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_SIGNING_COLDSWAP_MODE, "MULTIDEX"));
-        }
-
         // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
         // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
         SwingUtilities.invokeAndWait(() -> {
           gradleInvoker.addAfterGradleInvocationTask(afterTask);
-          gradleInvoker.executeTasks(tasks, buildMode, args);
+          gradleInvoker.executeTasks(tasks, buildMode, commandLineArguments);
         });
 
         done.waitFor();
