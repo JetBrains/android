@@ -137,7 +137,7 @@ iml_module(
         "//tools/base/instant-run:studio.instant-run-client[module]",
         "//tools/base/instant-run:studio.instant-run-common[module]",
         "//tools/idea/.idea/libraries:jna",
-        "//tools/data-binding:db-compiler[module]",
+        "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/.idea/libraries:jogl-all",
         "//tools/idea/.idea/libraries:gluegen-rt",
         "//tools/adt/idea:android_2",
