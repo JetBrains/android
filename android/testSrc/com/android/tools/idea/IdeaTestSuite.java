@@ -94,6 +94,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.templates.UniqueParameterTest.class,
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class,
   com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
+  com.android.tools.idea.uibuilder.structure.NlComponentTreeTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.AndroidLintTest.class,
