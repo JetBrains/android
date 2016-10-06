@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslE
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
@@ -105,26 +107,34 @@ public final class GradleDslParser {
       return false;
     }
 
+    List<String> nameSegments = Splitter.on('.').splitToList(name);
+    if (nameSegments.size() > 1) {
+      dslElement = getBlockElement(nameSegments.subList(0, (nameSegments.size() - 1)), dslElement);
+      name = nameSegments.get(nameSegments.size() - 1);
+    }
+
+    if (dslElement == null) {
+      return false;
+    }
+
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
-    GradleDslExpression expressionElement = getExpressionElement(dslElement, expression, name, expression);
-    if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().size() > 0) {
+    GrArgumentList argumentList = expression.getArgumentList();
+    if (argumentList.getAllArguments().length > 0) {
       // This element is a method call with arguments and an optional closure associated with it.
       // ex: compile("dependency") {}
+      GradleDslExpression methodCall = getMethodCall(dslElement, expression, name, argumentList);
       if (closureArguments.length > 0) {
-        expressionElement.setParsedClosureElement(getClosureElement(expressionElement, closureArguments[0], name));
+        methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
-      dslElement.addParsedElement(name, expressionElement);
+      dslElement.addParsedElement(name, methodCall);
       return true;
     }
 
-    if (closureArguments.length == 0) {
-      if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().isEmpty()) {
-        dslElement.addParsedElement(name, expressionElement);
-        // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
-        // ex: jcenter()
-        return true;
-      }
-      return false;
+    if (argumentList.getAllArguments().length == 0 && closureArguments.length == 0) {
+      // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
+      // ex: jcenter()
+      dslElement.addParsedElement(name, new GradleDslMethodCall(dslElement, expression, name));
+      return true;
     }
 
     // Now this element is pure block element, i.e a method call with no argument but just a closure argument. So, here just process the
@@ -141,8 +151,7 @@ public final class GradleDslParser {
       name = "subprojects";
     }
 
-    List<String> nameSegments = Splitter.on('.').splitToList(name);
-    GradlePropertiesDslElement blockElement = getBlockElement(nameSegments, dslElement);
+    GradlePropertiesDslElement blockElement = getBlockElement(ImmutableList.of(name), dslElement);
     if (blockElement != null) {
       blockElement.setPsiElement(closableBlock);
       blockElements.add(blockElement);
@@ -572,6 +581,9 @@ public final class GradleDslParser {
           else if (SIGNING_CONFIGS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new SigningConfigsDslElement(resultElement);
           }
+          else if (SOURCE_SETS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SourceSetsDslElement(resultElement);
+          }
           else {
             return null;
           }
@@ -602,6 +614,9 @@ public final class GradleDslParser {
         }
         else if (resultElement instanceof SigningConfigsDslElement) {
           newElement = new SigningConfigDslElement(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof SourceSetsDslElement) {
+          newElement = new SourceSetDslElement(resultElement, nestedElementName);
         }
         else {
           return null;
