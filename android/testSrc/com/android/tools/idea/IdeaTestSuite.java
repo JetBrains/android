@@ -18,6 +18,7 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataServiceTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
 
@@ -58,6 +59,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.sync.compatibility.version.AndroidGradleExperimentalPluginVersionReaderTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.version.AndroidGradlePluginVersionReaderTest.class,
   com.android.tools.idea.gradle.project.sync.compatibility.version.GradleVersionReaderTest.class,
+  com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataServiceTest.class,
   com.android.tools.idea.gradle.project.sync.issues.ExternalNativeBuildIssuesReporterTest.class,
   com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporterTest.class,
   com.android.tools.idea.gradle.project.sync.issues.UnhandledIssueMessageReporterTest.class,
