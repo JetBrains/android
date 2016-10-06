@@ -28,7 +28,7 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCa
 
   // See http://b.android.com/221883.
   public void ignore_testRemoveAndroidTestClasspath() throws Exception {
-    loadProject(SYNC_MULTIPROJECT, false);
+    loadProject(SYNC_MULTIPROJECT);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
     Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");

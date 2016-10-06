@@ -42,7 +42,8 @@ public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
       return;
     }
 
-    loadProject(SYNC_MULTIPROJECT, true);
+    loadProject(SYNC_MULTIPROJECT);
+    generateSources();
     AndroidGeneratedSourcesFilter filter = new AndroidGeneratedSourcesFilter();
 
     VirtualFile file = findFile("module1/build/generated/source/buildConfig/debug/com/example/test/multiproject/module1/BuildConfig.java");
