@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
@@ -393,7 +394,7 @@ public class NlComponent implements NlAttributesHolder {
 
     Module module = component.getModel().getModule();
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue);
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
 
     String nextIdValue = idValue;
     int index = 0;
