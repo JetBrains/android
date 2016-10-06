@@ -23,6 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,8 +115,9 @@ public class EmbeddedDistributionPaths {
     }
 
     // Development build.
-    String relativePath = toSystemDependentName("/../../prebuilts/studio/jdk");
-    jdkRootPath = new File(toCanonicalPath(ideHomePath + relativePath));
+    String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
+    String relativePath = toSystemDependentName(jdkDevPath);
+    jdkRootPath = new File(toCanonicalPath(relativePath));
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }
