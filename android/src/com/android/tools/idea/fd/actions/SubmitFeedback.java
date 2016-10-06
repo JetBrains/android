@@ -34,7 +34,9 @@ import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 public class SubmitFeedback extends DumbAwareAction {
@@ -104,15 +106,29 @@ public class SubmitFeedback extends DumbAwareAction {
         @Override
         public void onSuccess() {
           if (myReport.isDone()) {
+            String reportId;
+            try {
+              reportId = myReport.getNow("00");
+            }
+            catch (CancellationException e) {
+              Logger.getInstance(SubmitFeedback.class).info("Submission of flight recorder logs cancelled");
+              return;
+            }
+            catch (CompletionException e) {
+              FLR_NOTIFICATION_GROUP.createNotification("Unexpected error while submitting instant run logs: " + e.getMessage(),
+                                                        NotificationType.ERROR);
+              Logger.getInstance(SubmitFeedback.class).info(e);
+              return;
+            }
             String message = String.format("<html>Thank you for submitting the bug report.<br>" +
                                            "If you would like to follow up on this report, please file a bug at <a href=\"bug\">b.android.com</a> and specify the report id '%1$s'<html>",
-                                           myReport.getNow("00"));
+                                           reportId);
             FLR_NOTIFICATION_GROUP
               .createNotification("", message, NotificationType.INFORMATION, (notification, event) -> {
                 Escaper escaper = UrlEscapers.urlFormParameterEscaper();
                 String comment = String.format("Build: %1$s\nInstant Run Report: %2$s",
                                                ApplicationInfo.getInstance().getFullVersion(),
-                                               myReport.getNow("00"));
+                                               reportId);
                 String url = String.format("https://code.google.com/p/android/issues/entry?template=%1$s&comment=%2$s&status=New",
                                            escaper.escape("Android Studio Instant Run Bug"),
                                            escaper.escape(comment));
