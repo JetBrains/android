@@ -39,9 +39,9 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
   private final ImagePanel myImage;
   private final JLabel myItemName;
 
-  public NlPreviewPanel() {
+  public NlPreviewPanel(@NotNull DependencyManager dependencyManager) {
     super(new BorderLayout(0, 0));
-    myImage = new ImagePanel();
+    myImage = new ImagePanel(dependencyManager);
     myImage.setPreferredSize(new Dimension(0, 0));
     myItemName = new JBLabel();
     myItemName.setHorizontalAlignment(SwingConstants.CENTER);
@@ -65,19 +65,30 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
   }
 
   private static class ImagePanel extends JComponent implements Disposable {
+    private final DependencyManager myDependencyManager;
     private DesignSurface myDesignSurface;
     private Palette.Item myItem;
     private BufferedImage myImage;
     private boolean myKeepImageScaledToMatchPanelWidth;
     private int myLastWidth;
 
-    private ImagePanel() {
-      setTransferHandler(new ItemTransferHandler(() -> myItem, () -> myDesignSurface));
+    private ImagePanel(@NotNull DependencyManager dependencyManager) {
+      myDependencyManager = dependencyManager;
       addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent event) {
-          TransferHandler handler = getTransferHandler();
-          handler.exportAsDrag(ImagePanel.this, event, TransferHandler.COPY);
+          if (myItem == null) {
+            return;
+          }
+          if (!myDependencyManager.needsLibraryLoad(myItem)) {
+            TransferHandler handler = getTransferHandler();
+            if (handler != null) {
+              handler.exportAsDrag(ImagePanel.this, event, TransferHandler.COPY);
+            }
+          }
+          else {
+            myDependencyManager.ensureLibraryIsIncluded(myItem);
+          }
         }
       });
     }
@@ -93,9 +104,15 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
       repaint();
     }
 
+    @Nullable
+    private Palette.Item getItem() {
+      return myItem;
+    }
+
     private void setDesignSurface(@Nullable DesignSurface designSurface) {
       myDesignSurface = designSurface;
       myImage = null;
+      setTransferHandler(designSurface != null ? new ItemTransferHandler(myDesignSurface, this::getItem) : null);
       repaint();
     }
 
@@ -128,7 +145,7 @@ public class NlPreviewPanel extends JPanel implements SelectionListener, Disposa
         }
       }
       else if (myItem != null) {
-        Icon icon = myItem.getLargeIcon();
+        Icon icon = myDependencyManager.createLargeItemIcon(myItem, this);
         int x = Math.max(0, (getWidth() - icon.getIconWidth()) / 2);
         int y = Math.max(0, (getHeight() - icon.getIconWidth()) / 2);
         icon.paintIcon(this, g, x, y);

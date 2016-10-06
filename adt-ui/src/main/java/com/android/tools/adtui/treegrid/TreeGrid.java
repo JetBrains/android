@@ -170,6 +170,9 @@ public class TreeGrid<T> extends Box {
 
   @Override
   public void setTransferHandler(@Nullable TransferHandler handler) {
+    if (GraphicsEnvironment.isHeadless()) {
+      return;
+    }
     for (JList<T> list : myLists) {
       list.setTransferHandler(handler);
       list.setDragEnabled(handler != null);
@@ -206,6 +209,7 @@ public class TreeGrid<T> extends Box {
     }
   }
 
+  @Nullable
   private JList<T> getSelectedList() {
     for (JList<T> list : myLists) {
       if (list.getSelectedIndex() > -1) {
@@ -361,12 +365,14 @@ public class TreeGrid<T> extends Box {
   }
 
   @TestOnly
+  @Nullable
   JList<T> getSelectedComponent() {
     return getSelectedList();
   }
 
   @TestOnly
-  List<JList<T>> getLists() {
+  @NotNull
+  public List<JList<T>> getLists() {
     return myLists;
   }
 
