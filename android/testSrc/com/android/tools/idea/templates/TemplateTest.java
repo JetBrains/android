@@ -367,6 +367,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "ListFragment");
   }
 
+  public void testNewModalBottomSheet() throws Exception {
+    myApiSensitiveTemplate = true;
+    checkCreateTemplate("other", "ModalBottomSheet");
+  }
+
   public void testNewAppWidget() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AppWidget");
