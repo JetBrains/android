@@ -26,7 +26,7 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -44,7 +44,7 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
     if (parsedModel != null) {
       AndroidModel android = parsedModel.android();
       if (android != null) {
-        Collection<ProductFlavorModel> parsedProductFlavors = android.productFlavors();
+        List<ProductFlavorModel> parsedProductFlavors = android.productFlavors();
         for (ProductFlavorModel parsedProductFlavor : parsedProductFlavors) {
           String name = parsedProductFlavor.name();
           ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
