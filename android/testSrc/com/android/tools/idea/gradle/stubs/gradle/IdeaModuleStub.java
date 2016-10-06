@@ -56,6 +56,11 @@ public class IdeaModuleStub implements IdeaModule {
   }
 
   @Override
+  public IdeaModuleIdentifier getIdentifier() {
+    return null;
+  }
+
+  @Override
   public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException {
     throw new UnsupportedOperationException();
   }
