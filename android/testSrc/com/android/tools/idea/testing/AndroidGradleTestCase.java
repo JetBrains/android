@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -32,9 +31,6 @@ import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.CapturingProcessHandler;
-import com.intellij.execution.process.ProcessOutput;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -57,10 +53,10 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.Consumer;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,13 +66,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -84,8 +80,8 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import static com.google.common.io.Files.append;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
@@ -100,11 +96,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
-
-  /**
-   * The name of the gradle wrapper executable associated with the current OS.
-   */
-  @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
 
   protected AndroidFacet myAndroidFacet;
   protected Modules myModules;
@@ -235,42 +226,26 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(@NotNull String relativePath) throws IOException, ConfigurationException, InterruptedException {
-    loadProject(relativePath, false);
-  }
-
-  protected void loadProject(@NotNull String relativePath, boolean buildProject)
-    throws IOException, ConfigurationException, InterruptedException {
-    loadProject(relativePath, null, buildProject);
+    loadProject(relativePath, null, null);
   }
 
   protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName)
     throws IOException, ConfigurationException, InterruptedException {
 
-    loadProject(relativePath, null, chosenModuleName, false);
+    loadProject(relativePath, null, chosenModuleName);
+  }
+
+  protected void loadProject(@NotNull String relativePath, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException, InterruptedException {
+    loadProject(relativePath, listener, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
                              @Nullable GradleSyncListener listener,
-                             boolean buildProject) throws IOException, ConfigurationException, InterruptedException {
-    loadProject(relativePath, listener, null, buildProject);
-  }
-
-  protected void loadProject(@NotNull String relativePath,
-                             @Nullable GradleSyncListener listener,
-                             @Nullable String chosenModuleName,
-                             boolean buildProject) throws IOException, ConfigurationException, InterruptedException {
+                             @Nullable String chosenModuleName) throws IOException, ConfigurationException, InterruptedException {
     prepareProjectForImport(relativePath);
     Project project = myFixture.getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
-
-    if (buildProject) {
-      try {
-        assertBuildsCleanly(project, true);
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
 
     importProject(project, project.getName(), projectRoot, listener);
 
@@ -341,10 +316,22 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected GradleInvocationResult generateSources(boolean cleanProject) throws InterruptedException {
+  protected GradleInvocationResult generateSources() throws InterruptedException {
+    return invokeGradle(getProject(), gradleInvoker -> gradleInvoker.generateSources(false));
+  }
+
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
+    throws InterruptedException {
+    assertThat(tasks).named("Gradle tasks").isNotEmpty();
+    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(Lists.newArrayList(tasks)));
+  }
+
+  @NotNull
+  private static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleInvoker> gradleInvocationTask)
+    throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
-    GradleInvoker gradleInvoker = GradleInvoker.getInstance(getProject());
+    GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
 
     GradleInvoker.AfterGradleInvocationTask task = result -> {
       resultRef.set(result);
@@ -354,7 +341,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     gradleInvoker.addAfterGradleInvocationTask(task);
 
     try {
-      gradleInvoker.generateSources(cleanProject);
+      gradleInvocationTask.consume(gradleInvoker);
     }
     finally {
       gradleInvoker.removeAfterGradleInvocationTask(task);
@@ -433,7 +420,24 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected static void createGradleWrapper(File projectRoot) throws IOException {
-    GradleWrapper.create(projectRoot);
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot);
+    File gradlePath = findEmbeddedGradleDistributionPath();
+    if (gradlePath != null) {
+      // This is not the zip file, but a symlink pointed to extracted Gradle distribution zip file.
+      /*
+        This is an example of the file system structure of the embedded Gradle distribution:
+        - gradle-2.14.1-bin
+          - gradle-2.14.1 <- This is returned by findEmbeddedGradleDistributionPath
+          - gradle-2.14.1-bin.zip <- This is the one that we need in the wrapper
+      */
+      File canonicalPath = gradlePath.getCanonicalFile();
+      String folderName = canonicalPath.getName();
+      File zipFilePath = new File(canonicalPath.getParentFile(), folderName + "-bin.zip");
+      assertAbout(file()).that(zipFilePath).isFile();
+
+      // By setting the embedded distribution in the wrapper, we avoid downloading Gradle in tests.
+      wrapper.updateDistributionUrl(zipFilePath);
+    }
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
@@ -442,49 +446,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       File testFile = baseDir != null ? new File(baseDir, path) : new File(path);
       assertTrue("File doesn't exist: " + testFile.getPath(), testFile.exists());
     }
-  }
-
-  public void assertBuildsCleanly(@NotNull Project project, boolean allowWarnings, @NotNull String... extraArgs) throws Exception {
-    File base = virtualToIoFile(project.getBaseDir());
-    File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
-    assertTrue(gradlew.exists());
-    File pwd = base.getAbsoluteFile();
-
-    // TODO: Add in --no-daemon, anything to suppress total time?
-    List<String> args = Lists.newArrayList();
-    args.add(gradlew.getPath());
-    args.add("assembleDebug");
-    Collections.addAll(args, extraArgs);
-    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
-    GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-
-    CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
-    // Building currently takes about 30s, so a 5min timeout should give a safe margin.
-    int timeoutInMilliseconds = 5 * 60 * 1000;
-    ProcessOutput processOutput = process.runProcess(timeoutInMilliseconds, true);
-    if (processOutput.isTimeout()) {
-      throw new TimeoutException("\"gradlew assembleDebug\" did not terminate within test timeout value.\n" +
-                                 "[stdout]\n" +
-                                 processOutput.getStdout() + "\n" +
-                                 "[stderr]\n" +
-                                 processOutput.getStderr() + "\n");
-    }
-    String errors = processOutput.getStderr();
-    String output = processOutput.getStdout();
-    int exitCode = processOutput.getExitCode();
-    int expectedExitCode = 0;
-    if (output.contains("BUILD FAILED") && errors.contains("Could not find any version that matches com.android.tools.build:gradle:")) {
-      // We ignore this assertion. We got here because we are using a version of the Android Gradle plug-in that is not available in Maven
-      // Central yet.
-      expectedExitCode = 1;
-    }
-    else {
-      assertTrue(output + "\n" + errors, output.contains("BUILD SUCCESSFUL"));
-      if (!allowWarnings) {
-        assertEquals(output + "\n" + errors, "", errors);
-      }
-    }
-    assertEquals(expectedExitCode, exitCode);
   }
 
   protected static void importProject(@NotNull Project project,

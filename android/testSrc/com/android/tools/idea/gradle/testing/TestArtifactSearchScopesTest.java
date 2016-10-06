@@ -153,7 +153,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
-    loadProject(SHARED_TEST_FOLDER, false);
+    loadProject(SHARED_TEST_FOLDER);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
 
@@ -176,7 +176,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   @NotNull
   private TestArtifactSearchScopes loadMultiProjectAndTestScopes() throws Exception {
-    loadProject(SYNC_MULTIPROJECT, false);
+    loadProject(SYNC_MULTIPROJECT);
     Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
     assertNotNull(module1);
 
