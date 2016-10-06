@@ -105,9 +105,7 @@ import java.nio.file.Paths;
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
-  org.jetbrains.android.projectView.ResourceMergerTest.class,
   org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
-  org.jetbrains.android.sdk.AndroidSdkDataTest.class,
 })
 public class IdeaTestSuite {
 
