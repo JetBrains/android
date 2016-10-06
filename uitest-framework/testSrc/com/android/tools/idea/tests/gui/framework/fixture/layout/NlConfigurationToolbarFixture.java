@@ -23,9 +23,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import icons.AndroidIcons;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -103,9 +103,7 @@ public class NlConfigurationToolbarFixture {
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */
   public void chooseDevice(@NotNull String label) {
-    JButton menuButton = findToolbarButton("The virtual device to render the layout with");
-    myRobot.click(menuButton);
-
+    new JButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
     clickPopupMenuItemMatching(new DeviceNameMatcher(label), myToolBar.getComponent(), myRobot);
   }
 
