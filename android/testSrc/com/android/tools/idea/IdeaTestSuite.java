@@ -18,7 +18,6 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataServiceTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
 
@@ -66,6 +65,7 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporterTest.class,
   com.android.tools.idea.gradle.project.sync.issues.UnsupportedGradleReporterTest.class,
   com.android.tools.idea.gradle.project.sync.precheck.JdkPreSyncCheckTest.class,
+  com.android.tools.idea.gradle.project.sync.setup.module.android.JdkModuleSetupStepTest.class,
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
   com.android.tools.idea.gradle.testing.AndroidJunitPatcherWithTestArtifactTest.class,
   com.android.tools.idea.gradle.testing.TestArtifactCustomScopeTest.class,
