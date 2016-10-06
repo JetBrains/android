@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -42,12 +44,13 @@ import static org.junit.Assume.assumeTrue;
 /**
  * UI test for the layout preview window
  */
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/259")
+  @Ignore("fails consistently in NlConfigurationToolbarFixture.chooseDevice")
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");

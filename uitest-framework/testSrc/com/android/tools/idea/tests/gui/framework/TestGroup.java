@@ -20,6 +20,7 @@ public enum TestGroup {
   THEME,
   EDITING,
   QA,
+  UNRELIABLE,
   /** Assigned implicitly where group is unspecified; not intended to be specified explicitly. */
   DEFAULT,
 }

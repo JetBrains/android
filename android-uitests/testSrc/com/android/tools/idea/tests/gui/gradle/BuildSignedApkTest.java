@@ -33,7 +33,7 @@ import java.util.zip.ZipFile;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class BuildSignedApkTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
