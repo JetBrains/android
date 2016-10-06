@@ -16,34 +16,43 @@
 package com.android.tools.idea.monitor.ui.visual.data;
 
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import gnu.trove.TLongArrayList;
 
 import java.util.concurrent.TimeUnit;
 
 public class MemoryTestDataGenerator extends TestDataGenerator<Long> {
-
   private TLongArrayList mData = new TLongArrayList();
-  private boolean mUseFreeMemory;
+  private SeriesDataType mDataType;
   private Runtime mRuntime;
 
-  public MemoryTestDataGenerator(boolean useFreeMemory) {
-    mUseFreeMemory = useFreeMemory;
+  public MemoryTestDataGenerator(SeriesDataType memoryDataType) {
+    mDataType = memoryDataType;
     mRuntime = Runtime.getRuntime();
   }
 
   @Override
   public SeriesData<Long> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
+    return new SeriesData<>(mTime.get(index), mData.get(index));
   }
 
   @Override
   public void generateData() {
     mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
-    if (mUseFreeMemory) {
-      mData.add(mRuntime.freeMemory());
-    } else {
-      long usedMem = mRuntime.totalMemory() - mRuntime.freeMemory();
-      mData.add(usedMem);
+    switch (mDataType) {
+      case MEMORY_TOTAL:
+      case MEMORY_JAVA:
+        long usedMem = (mRuntime.totalMemory() - mRuntime.freeMemory()) / 1024;
+        mData.add(usedMem);
+        break;
+      case MEMORY_OTHERS:
+      case MEMORY_CODE:
+      case MEMORY_GRAPHICS:
+      case MEMORY_NATIVE:
+        mData.add(mRuntime.freeMemory() / 1024);
+        break;
+      default:
+        break;
     }
   }
 }

@@ -30,7 +30,7 @@ public class SimpleEventTestDataGenerator
 
   @Override
   public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
+    return new SeriesData<>(mTime.get(index), mData.get(index));
   }
 
   @Override
@@ -42,16 +42,16 @@ public class SimpleEventTestDataGenerator
   @Override
   public void generateData() {
     boolean downAction = true;
-    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     long endTimeUs = 0;
-    if (mStartTimeUs != 0 && Math.random() > 0.5) {
+    if (Math.random() > 0.5) {
       mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mData.size() > 0) {
         EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
         // If our last action was a down action, our next action should be an up action.
         if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
           downAction = false;
-          endTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+          endTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
           currentTimeUs = lastAction.getStartUs();
         }
       }

@@ -80,8 +80,9 @@ public class EnergyDataAdapter implements DataAdapter<Long> {
   }
 
   @Override
-  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
-    // TODO: implement
+  public void reset() {
+    myTimestampData.clear();
+    myData.clear();
   }
 
   @Override

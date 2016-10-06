@@ -274,7 +274,7 @@ public class MemoryPoller extends Poller {
     }
 
     @Override
-    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
+    public void reset() {
       myDataCache.reset();
     }
 
@@ -299,7 +299,7 @@ public class MemoryPoller extends Poller {
     }
 
     @Override
-    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+    public void reset() {
       myDataCache.reset();
     }
 
@@ -324,7 +324,7 @@ public class MemoryPoller extends Poller {
     }
 
     @Override
-    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+    public void reset() {
       myDataCache.reset();
     }
 
