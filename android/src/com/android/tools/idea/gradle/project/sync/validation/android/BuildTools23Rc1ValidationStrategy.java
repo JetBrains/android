@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.validation;
+package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;

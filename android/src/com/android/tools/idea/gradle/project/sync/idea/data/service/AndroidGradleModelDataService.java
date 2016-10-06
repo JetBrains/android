@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
-import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator;
+import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;

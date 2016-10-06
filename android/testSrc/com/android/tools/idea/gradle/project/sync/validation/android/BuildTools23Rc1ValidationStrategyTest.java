@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.validation;
+package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.validation.BuildTools23Rc1ValidationStrategy.BuildToolsVersionReader;
+import com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategy.BuildToolsVersionReader;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

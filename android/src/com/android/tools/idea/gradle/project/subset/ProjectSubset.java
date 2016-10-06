@@ -58,7 +58,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
  * IDE. This feature is handy when users work with big projects (e.g. 300+ modules) but, in practice, modify sources in a few of them. A
  * smaller set of source code can make IDE's performance better (e.g. indexing and building.)
  */
-public final class ProjectSubset {
+public class ProjectSubset {
   @NonNls private static final String PROJECT_SUBSET_PROPERTY_NAME = "com.android.studio.selected.modules.on.import";
 
   private static final String MODULE_LOOKUP_MESSAGE_TITLE = "Module Lookup";
@@ -74,7 +74,7 @@ public final class ProjectSubset {
     myProject = project;
   }
 
-  public static boolean isSettingEnabled() {
+  public boolean isFeatureEnabled() {
     return GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT;
   }
 

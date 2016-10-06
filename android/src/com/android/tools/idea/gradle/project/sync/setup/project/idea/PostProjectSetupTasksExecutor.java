@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
@@ -140,6 +141,7 @@ public class PostProjectSetupTasksExecutor {
   private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
+  @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
   private boolean myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
@@ -152,7 +154,13 @@ public class PostProjectSetupTasksExecutor {
   }
 
   public PostProjectSetupTasksExecutor(@NotNull Project project) {
+    this(project, new CommonModuleValidator.Factory());
+  }
+
+  @VisibleForTesting
+  PostProjectSetupTasksExecutor(@NotNull Project project, @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
+    myModuleValidatorFactory = moduleValidatorFactory;
   }
 
   /**
@@ -174,7 +182,11 @@ public class PostProjectSetupTasksExecutor {
     SyncMessages.getInstance(myProject).reportDependencySetupErrors();
     VersionCompatibilityChecker.getInstance().checkAndReportComponentIncompatibilities(myProject);
 
-    ProjectDiagnostics.findAndReportStructureIssues(myProject);
+    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      moduleValidator.validate(module);
+    }
+    moduleValidator.fixAndReportFoundIssues();
 
     if (syncState.getSummary().hasErrors() || syncState.lastSyncFailed()) {
       addSdkLinkIfNecessary();
