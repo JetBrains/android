@@ -63,7 +63,6 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
@@ -122,7 +121,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.pom.java.LanguageLevel.*;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
@@ -854,29 +853,6 @@ public class GradleSyncTest {
 
     // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-  }
-
-  @Test
-  public void withMismatchingEncodings() throws IOException {
-    guiTest.importSimpleApplication();
-    Project project = guiTest.ideFrame().getProject();
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
-        encodings.setDefaultCharsetName("ISO-8859-1");
-      }
-    });
-
-    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    String expectedMessage =
-      "The project encoding (ISO-8859-1) has been reset to the encoding specified in the Gradle build files (UTF-8).";
-    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
-    syncMessages.findMessage(INFO, firstLineStartingWith(expectedMessage));
-
-    assertEquals("UTF-8", EncodingProjectManager.getInstance(project).getDefaultCharsetName());
   }
 
   // Verifies that the IDE switches SDKs if the IDE and project SDKs are not the same.

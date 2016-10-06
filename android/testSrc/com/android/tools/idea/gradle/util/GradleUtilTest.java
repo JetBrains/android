@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Dependencies;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
@@ -32,8 +29,10 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -151,25 +150,5 @@ public class GradleUtilTest {
     url = "http://myown.com/gradle-2.2.1-bin.zip";
     version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
-  }
-
-  @Test
-  public void hasLayoutRenderingIssue() {
-    AndroidProjectStub model = new AndroidProjectStub("app");
-
-    model.setModelVersion("1.1.0");
-    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.0");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.1");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.2");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.3");
-    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
   }
 }
