@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.ui.network.view.NetworkDetailedView;
@@ -52,8 +53,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private NetworkCaptureSegment mCaptureSegment;
 
-  private long mStartTimeUs;
-
   private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
   private Thread mSimulateTestDataThread;
@@ -84,9 +83,10 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range timeRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeUs);
+    long startTimeUs = mDataStore.getLatestTimeUs();
+    Range timeRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, 0);
+    timeRange.setOffset(startTimeUs);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
@@ -165,7 +165,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
           Random rnd = new Random();
           while (true) {
             //  Insert new data point at now.
-            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
             for (DefaultDataSeries<NetworkCaptureSegment.NetworkState> series : mCaptureData) {
               NetworkCaptureSegment.NetworkState[] states = NetworkCaptureSegment.NetworkState.values();
               // Hard coded value 10 to make the 'NONE' state more frequent

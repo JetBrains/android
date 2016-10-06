@@ -35,14 +35,12 @@ import java.util.concurrent.TimeUnit;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
+  public static final long DURATION_DATA_VARIANCE_US = TimeUnit.SECONDS.toMicros(2);
   private Map<SeriesDataType, Map<Object, DataAdapter<?>>> myDataSeriesMap = new HashMap<>();
 
   private static final Object NO_TARGET = new Object();
 
-  private long mStartTimeUs;
-
   public VisualTestSeriesDataStore() {
-    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     startGeneratingData();
   }
 
@@ -62,14 +60,13 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public void reset() {
-    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
-      adapter -> adapter.reset(mStartTimeUs, mStartTimeUs)));
+      adapter -> adapter.reset()));
   }
 
   @Override
   public long getLatestTimeUs() {
-    return TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+    return TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
   }
 
   @Override
@@ -94,7 +91,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     }
     Object key = target == null ? NO_TARGET : target;
     myDataSeriesMap.get(type).put(key, adapter);
-    adapter.reset(mStartTimeUs, mStartTimeUs);
+    adapter.reset();
   }
 
   /**
@@ -128,16 +125,23 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
           break;
         case MEMORY_TOTAL:
         case MEMORY_JAVA:
-          registerAdapter(type, new MemoryTestDataGenerator(true));
-          break;
         case MEMORY_OTHERS:
-          registerAdapter(type, new MemoryTestDataGenerator(false));
+        case MEMORY_CODE:
+        case MEMORY_GRAPHICS:
+        case MEMORY_NATIVE:
+          registerAdapter(type, new MemoryTestDataGenerator(type));
+          break;
+        case MEMORY_HEAPDUMP_EVENT:
+          registerAdapter(type, new MemoryTestDurationDataGenerator(DURATION_DATA_VARIANCE_US, DURATION_DATA_VARIANCE_US));
           break;
         case EVENT_ACTIVITY_ACTION:
           registerAdapter(type, new StackedEventTestDataGenerator("Activities"));
           break;
         case EVENT_FRAGMENT_ACTION:
           registerAdapter(type, new StackedEventTestDataGenerator("Fragments"));
+          break;
+        case EVENT_WAKE_LOCK_ACTION:
+          registerAdapter(type, new StackedEventTestDataGenerator("Wakelocks"));
           break;
         case EVENT_SIMPLE_ACTION:
           registerAdapter(type, new SimpleEventTestDataGenerator());
