@@ -71,7 +71,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
       if (InstantRunSettings.isRecorderEnabled()) {
         if (!myDeviceFutures.getDevices().isEmpty()) { // Instant Run is guaranteed to be for exactly 1 device
-          FlightRecorder.get(project).saveTargetDeviceInfo(myDeviceFutures.getDevices().get(0));
+          FlightRecorder.get(project).setLaunchTarget(myDeviceFutures.getDevices().get(0));
         }
         FlightRecorder.get(project).saveBuildInfo(instantRunBuildInfo);
       }
