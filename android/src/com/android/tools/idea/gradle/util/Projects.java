@@ -128,7 +128,7 @@ public final class Projects {
                                                                      boolean selectModulesToImport) {
     Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
     ProjectSubset subview = ProjectSubset.getInstance(project);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.getInstance(project).isFeatureEnabled() && modules.size() > 1) {
       if (selectModulesToImport) {
         // Importing a project. Allow user to select which modules to include in the project.
         Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);

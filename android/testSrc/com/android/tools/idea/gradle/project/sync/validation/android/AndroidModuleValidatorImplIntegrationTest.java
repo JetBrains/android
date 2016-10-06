@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.validation;
+package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.project.sync.validation.AndroidModuleValidator.AndroidModuleValidatorImpl;
+import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 

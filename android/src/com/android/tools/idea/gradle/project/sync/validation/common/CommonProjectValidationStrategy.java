@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.validation;
+package com.android.tools.idea.gradle.project.sync.validation.common;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class AndroidProjectValidationStrategy {
+abstract class CommonProjectValidationStrategy {
   @NotNull private final Project myProject;
 
-  AndroidProjectValidationStrategy(@NotNull Project project) {
+  CommonProjectValidationStrategy(@NotNull Project project) {
     myProject = project;
   }
 
-  abstract void validate(@NotNull Module module, @NotNull AndroidGradleModel androidModel);
+  abstract void validate(@NotNull Module module);
 
   abstract void fixAndReportFoundIssues();
 
