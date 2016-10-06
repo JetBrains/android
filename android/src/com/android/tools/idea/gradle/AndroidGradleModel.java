@@ -763,7 +763,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
    */
   @NotNull
-  public File[] getExtraGeneratedSourceFolders() {
+  public File[] getExtraGeneratedSourceFolderPaths() {
     return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
   }
 

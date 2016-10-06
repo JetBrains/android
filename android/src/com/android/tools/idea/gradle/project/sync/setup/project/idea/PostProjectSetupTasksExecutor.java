@@ -105,7 +105,6 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAI
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
-import static com.android.tools.idea.gradle.project.sync.setup.project.idea.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -175,14 +174,6 @@ public class PostProjectSetupTasksExecutor {
     VersionCompatibilityChecker.getInstance().checkAndReportComponentIncompatibilities(myProject);
 
     ProjectDiagnostics.findAndReportStructureIssues(myProject);
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      if (!ProjectJdkChecks.hasCorrectJdkVersion(module)) {
-        // we already displayed the error, no need to check each module.
-        break;
-      }
-    }
 
     if (syncState.getSummary().hasErrors() || syncState.lastSyncFailed()) {
       addSdkLinkIfNecessary();
@@ -595,7 +586,6 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private void ensureValidSdks() {
-    boolean checkJdkVersion = true;
     Collection<Sdk> invalidAndroidSdks = Sets.newHashSet();
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
 
@@ -633,13 +623,6 @@ public class PostProjectSetupTasksExecutor {
           if (isMissingAndroidLibrary(sdk)) {
             invalidAndroidSdks.add(sdk);
           }
-        }
-
-        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-        assert androidModel != null;
-        if (checkJdkVersion && !ProjectJdkChecks.hasCorrectJdkVersion(module, androidModel)) {
-          // we already displayed the error, no need to check each module.
-          checkJdkVersion = false;
         }
       }
     }

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.testing.Modules;
@@ -79,7 +80,6 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.io.Files.write;
@@ -189,7 +189,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     Sdk currentJdk = ideSdks.getJdk();
     assertNotNull(currentJdk);
-    assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), isApplicableJdk(currentJdk, JDK_1_8));
+    assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), Jdks.getInstance().isApplicableJdk(currentJdk, JDK_1_8));
   }
 
   @Override

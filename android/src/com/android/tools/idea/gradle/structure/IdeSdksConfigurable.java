@@ -596,7 +596,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
         errors.add(error);
       }
       else {
-        JavaSdkVersion version = Jdks.findVersion(jdkLocation);
+        JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
         if (version == null || !version.isAtLeast(JDK_1_8)) {
           ProjectConfigurationError error =
             new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());

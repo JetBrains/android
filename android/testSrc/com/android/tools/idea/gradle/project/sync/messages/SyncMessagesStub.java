@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -23,11 +24,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
 public class SyncMessagesStub extends SyncMessages {
-  @Nullable private SyncMessage myMessage;
+  @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
+
   @Nullable private NotificationData myNotification;
 
   @NotNull
@@ -44,12 +49,17 @@ public class SyncMessagesStub extends SyncMessages {
 
   @Override
   public void report(@NotNull SyncMessage message) {
-    myMessage = message;
+    myMessages.add(message);
   }
 
   @Nullable
-  public SyncMessage getReportedMessage() {
-    return myMessage;
+  public SyncMessage getFirstReportedMessage() {
+    return myMessages.isEmpty() ? null : myMessages.get(0);
+  }
+
+  @NotNull
+  public List<SyncMessage> getReportedMessages() {
+    return ImmutableList.copyOf(myMessages);
   }
 
   @Override

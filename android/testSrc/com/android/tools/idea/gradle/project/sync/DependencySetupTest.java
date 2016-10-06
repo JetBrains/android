@@ -113,7 +113,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     requestSyncAndWait();
 
-    SyncMessage reportedMessage = syncMessages.getReportedMessage();
+    SyncMessage reportedMessage = syncMessages.getFirstReportedMessage();
     assertNotNull(reportedMessage);
     String[] text = reportedMessage.getText();
     assertThat(text).isNotEmpty();

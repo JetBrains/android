@@ -163,7 +163,7 @@ class AndroidSdkConfigurableForm {
   private void updateJdks() {
     myJdksModel.removeAllElements();
     for (Sdk sdk : mySdkModel.getSdks()) {
-      if (Jdks.isApplicableJdk(sdk)) {
+      if (Jdks.getInstance().isApplicableJdk(sdk)) {
         myJdksModel.addElement(sdk);
       }
     }
