@@ -1092,9 +1092,11 @@ public class ConstraintUtilities {
     String bottom1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     String bottom2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     String baseline = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    String ratio = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
 
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     companion.getWidgetProperties().clear();
+    companion.getWidgetProperties().setDimensionRatio(ratio);
     setMarginType(ConstraintAnchor.Type.LEFT, component, widget);
     setMarginType(ConstraintAnchor.Type.RIGHT, component, widget);
     setMarginType(ConstraintAnchor.Type.TOP, component, widget);
