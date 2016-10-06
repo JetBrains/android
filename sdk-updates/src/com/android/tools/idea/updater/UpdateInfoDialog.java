@@ -135,19 +135,21 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       HtmlBuilder packageHtmlBuilder = new HtmlBuilder();
       packageHtmlBuilder.openHtmlBody();
 
-      for (RemotePackage p : versionedPackages.get(noVersion)) {
-        packageHtmlBuilder.addNbsps(4).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
+      if (versionedPackages.containsKey(noVersion)) {
+        packageHtmlBuilder.newline();
+        for (RemotePackage p : versionedPackages.getOrDefault(noVersion, Collections.emptySet())) {
+          packageHtmlBuilder.addNbsps(4).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
+        }
+        versionedPackages.remove(noVersion);
       }
       for (AndroidVersion version : versionedPackages.keySet()) {
-        if (version == noVersion) {
-          continue;
-        }
         packageHtmlBuilder.newline();
         packageHtmlBuilder.addNbsps(4).addBold(SdkVersionInfo.getVersionWithCodename(version) + ":").newline();
         for (RemotePackage p : versionedPackages.get(version)) {
           packageHtmlBuilder.addNbsps(8).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
         }
       }
+      packageHtmlBuilder.newline();
 
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());
