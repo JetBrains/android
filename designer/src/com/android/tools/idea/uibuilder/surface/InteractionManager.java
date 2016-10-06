@@ -588,8 +588,9 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = event.getModifiers();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
-        mySurface.getLayeredPane()
-          .scrollRectToVisible(new Rectangle(x, y, NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y));
+        mySurface.getLayeredPane().scrollRectToVisible(
+          new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                        2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
         mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
