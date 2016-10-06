@@ -8,18 +8,15 @@ import com.android.tools.sherpa.interaction.ConstraintHandle;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 
-import java.awt.BasicStroke;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
 
 /**
  * Implements a highlight hover animation on a circular anchor
  */
 public class AnimatedHoverAnchor extends Animation {
+    private static final BasicStroke sStroke = new BasicStroke(4);
+    private static final BasicStroke sThinStroke = new BasicStroke(3);
 
     private final ColorSet mColorSet;
     private ConstraintHandle mAnchor;
@@ -30,6 +27,8 @@ public class AnimatedHoverAnchor extends Animation {
     private Color mFrame;
     private boolean mShowTooltip = true;
     private long mStartTime;
+    private final Ellipse2D.Float mCircle = new Ellipse2D.Float();
+    private final Ellipse2D.Float mInnerCircle = new Ellipse2D.Float();
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
@@ -113,21 +112,20 @@ public class AnimatedHoverAnchor extends Animation {
         int alpha = 255 - getPulsatingAlpha(progress);
         int anchorSize = (int) SceneDraw.getAnchorSize(transform.getScale());
         int radius = anchorSize + 4;
-        int strokeWidth = 4;
         boolean isNewConnection = mAnchor.getAnchor().getTarget() != null
                 && mOriginalTarget != mAnchor.getAnchor().getTarget();
-        Color frame =
-                new Color(mFrame.getRed(), mFrame.getGreen(), mFrame.getBlue(), alpha);
-        Color highlight =
-                new Color(mColor.getRed(), mColor.getGreen(), mColor.getBlue(), alpha);
+
+        Composite savedComposite = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,  alpha / 255f));
+
         ConstraintWidget widget = mAnchor.getOwner();
         int l = transform.getSwingX(widget.getDrawX());
         int t = transform.getSwingY(widget.getDrawY());
         int w = transform.getSwingDimension(widget.getDrawWidth());
         if (mIsBaseline) {
             int extra = radius - 3;
-            g.setColor(highlight);
-            g.setStroke(new BasicStroke(strokeWidth - 1));
+            g.setColor(mColor);
+            g.setStroke(sThinStroke);
             int handleWidth = mAnchor.getBaselineHandleWidth(transform);
             int padding = (w - handleWidth) / 2;
             g.drawRoundRect(l + padding,
@@ -137,30 +135,28 @@ public class AnimatedHoverAnchor extends Animation {
             if (isNewConnection) {
                 // use smaller circle
                 radius = anchorSize + 3;
-                strokeWidth = 3;
             }
-            Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
-                    radius * 2, radius * 2);
-            g.setColor(frame);
-            g.setStroke(new BasicStroke(strokeWidth));
-            g.draw(circle);
+            mCircle.setFrame(x - radius, y - radius, radius * 2, radius * 2);
+            g.setColor(mFrame);
+            g.setStroke(isNewConnection ? sThinStroke : sStroke);
+            g.draw(mCircle);
             if (isNewConnection) {
                 g.setColor(mColorSet.getBackground());
-                g.fill(circle);
+                g.fill(mCircle);
                 g.setColor(mColorSet.getAnchorConnectionCircle());
                 radius -= 4;
-                Ellipse2D.Float innerCircle = new Ellipse2D.Float(x - radius, y - radius,
-                        radius * 2, radius * 2);
-                g.fill(innerCircle);
-                g.draw(innerCircle);
+                mInnerCircle.setFrame(x - radius, y - radius, radius * 2, radius * 2);
+                g.fill(mInnerCircle);
+                g.draw(mInnerCircle);
             } else {
-                circle = new Ellipse2D.Float(x - radius, y - radius,
-                        radius * 2, radius * 2);
-                g.setColor(highlight);
+                mCircle.setFrame(x - radius, y - radius, radius * 2, radius * 2);
+                g.setColor(mColor);
             }
-            g.setStroke(new BasicStroke(strokeWidth - 1));
-            g.draw(circle);
+            g.draw(mCircle);
         }
+
+        g.setComposite(savedComposite);
+
         if (!mColorSet.useTooltips()) {
             return;
         }
