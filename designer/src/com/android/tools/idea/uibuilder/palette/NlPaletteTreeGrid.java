@@ -15,58 +15,42 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.treegrid.TreeGrid;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
+import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPaletteTreeGrid extends JPanel implements Disposable {
+public class NlPaletteTreeGrid extends JPanel {
   private final Project myProject;
-  private final Set<String> myMissingLibraries;
+  private final DependencyManager myDependencyManager;
   private final JList<Palette.Group> myCategoryList;
   private final TreeGrid<Palette.Item> myTree;
-  private final TransferHandler myTransferHandler;
-  private DesignSurface myDesignSurface;
   private PaletteMode myMode;
-  private Palette myPalette;
   private SelectionListener myListener;
 
-  public NlPaletteTreeGrid(@NotNull Project project) {
+  public NlPaletteTreeGrid(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
     myProject = project;
-    myMissingLibraries = new HashSet<>();
+    myDependencyManager = dependencyManager;
     myMode = PaletteMode.ICON_AND_NAME;
     myTree = new TreeGrid<>();
-    myTransferHandler = new ItemTransferHandler(this::getSelectedItem, this::getDesignSurface);
     //noinspection unchecked
     myCategoryList = new JBList();
     myCategoryList.setBackground(UIUtil.getPanelBackground());
@@ -87,32 +71,11 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     add(palette, BorderLayout.CENTER);
     setFocusCycleRoot(true);
     setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
-
-    registerDependencyUpdates();
   }
 
   @Override
   public void requestFocus() {
     myTree.requestFocus();
-  }
-
-  @Nullable
-  public DesignSurface getDesignSurface() {
-    return myDesignSurface;
-  }
-
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    DesignSurface oldDesignSurface = myDesignSurface;
-    myDesignSurface = designSurface;
-    if (designSurface != null &&
-        (oldDesignSurface == null || designSurface.getLayoutType() != oldDesignSurface.getLayoutType()) &&
-        designSurface.getLayoutType().isSupportedByDesigner()) {
-      NlPaletteModel model = NlPaletteModel.get(myProject);
-      myPalette = model.getPalette(myDesignSurface.getLayoutType());
-      populateUiModel(myPalette);
-      checkForNewMissingDependencies();
-      repaint();
-    }
   }
 
   @NotNull
@@ -141,64 +104,18 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setFixedCellHeight(fixedCellHeight);
     myTree.setLayoutOrientation(orientation);
     //noinspection unchecked
-    myTree.setCellRenderer(new MyCellRenderer(myMissingLibraries, mode));
+    myTree.setCellRenderer(new MyCellRenderer(myDependencyManager, mode));
   }
 
-  @Override
-  public void dispose() {
-    setDesignSurface(null);
-  }
-
-  private void populateUiModel(@NotNull Palette palette) {
-    myTree.setTransferHandler(null);
-    myTree.setModel(new TreeProvider(myProject, palette));
-    myTree.setTransferHandler(myTransferHandler);
+  public void populateUiModel(@NotNull Palette palette, @NotNull DesignSurface designSurface) {
+    myCategoryList.setModel(new TreeCategoryProvider(palette));
+    AbstractTreeStructure provider = myCategoryList.getModel().getSize() == 1 ? new SingleListTreeProvider(myProject, palette)
+                                                                              : new TreeProvider(myProject, palette);
+    myTree.setModel(provider);
+    myTree.setTransferHandler(new ItemTransferHandler(designSurface, this::getSelectedItem));
     myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     setMode(myMode);
-    myCategoryList.setModel(new TreeCategoryProvider(palette));
-  }
-
-  @Nullable
-  private Module getModule() {
-    Configuration configuration =
-      myDesignSurface != null && myDesignSurface.getLayoutType().isSupportedByDesigner() ? myDesignSurface.getConfiguration() : null;
-    return configuration != null ? configuration.getModule() : null;
-  }
-
-  private boolean checkForNewMissingDependencies() {
-    Module module = getModule();
-    Set<String> missing = Collections.emptySet();
-    if (module != null) {
-      GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-      missing = fromGradleCoordinatesToDependencies(manager.findMissingDependencies(module, myPalette.getGradleCoordinates()));
-      if (myMissingLibraries.equals(missing)) {
-        return false;
-      }
-    }
-    myMissingLibraries.clear();
-    myMissingLibraries.addAll(missing);
-    return true;
-  }
-
-  public boolean needsLibraryLoad(@NotNull Palette.Item item) {
-    return myMissingLibraries.contains(item.getGradleCoordinate());
-  }
-
-  @NotNull
-  private static Set<String> fromGradleCoordinatesToDependencies(@NotNull Collection<GradleCoordinate> coordinates) {
-    return coordinates.stream()
-      .map(GradleCoordinate::getId)
-      .filter(dependency -> dependency != null)
-      .collect(Collectors.toSet());
-  }
-
-  @NotNull
-  private static List<GradleCoordinate> toGradleCoordinatesFromDependencies(@NotNull Collection<String> dependencies) {
-    return dependencies.stream()
-      .map(dependency -> GradleCoordinate.parseCoordinateString(dependency + ":+"))
-      .filter(coordinate -> coordinate != null)
-      .collect(Collectors.toList());
   }
 
   @NotNull
@@ -207,29 +124,13 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
       @Override
       public void mousePressed(MouseEvent event) {
         Palette.Item item = getSelectedItem();
-        if (item != null && needsLibraryLoad(item)) {
-          String coordinate = item.getGradleCoordinate();
-          assert coordinate != null;
-          Module module = getModule();
-          assert module != null;
-          GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-          if (!manager.ensureLibraryIsIncluded(module, toGradleCoordinatesFromDependencies(Collections.singletonList(coordinate)), null)) {
+        if (item != null && myDependencyManager.needsLibraryLoad(item)) {
+          if (!myDependencyManager.ensureLibraryIsIncluded(item)) {
             clearSelection();
           }
         }
       }
     };
-  }
-
-  private void registerDependencyUpdates() {
-    GradleSyncState.subscribe(myProject, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        if (checkForNewMissingDependencies()) {
-          repaint();
-        }
-      }
-    }, this);
   }
 
   public void setSelectionListener(@NotNull SelectionListener listener) {
@@ -251,15 +152,24 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setSelectedElement(null);
   }
 
-  private static class MyCellRenderer extends ColoredListCellRenderer<Palette.Item> {
-    private static final double DOWNLOAD_SCALE = 0.7;
-    private static final double DOWNLOAD_RELATIVE_OFFSET = (1.0 - DOWNLOAD_SCALE) / DOWNLOAD_SCALE;
+  @TestOnly
+  @NotNull
+  public JList<Palette.Group> getCategoryList() {
+    return myCategoryList;
+  }
 
-    private final Set<String> myMissingLibraries;
+  @TestOnly
+  @NotNull
+  public TreeGrid<Palette.Item> getComponentTree() {
+    return myTree;
+  }
+
+  private static class MyCellRenderer extends ColoredListCellRenderer<Palette.Item> {
+    private final DependencyManager myDependencyManager;
     private final PaletteMode myMode;
 
-    private MyCellRenderer(@NotNull Set<String> missingLibraries, @NotNull PaletteMode mode) {
-      myMissingLibraries = missingLibraries;
+    private MyCellRenderer(@NotNull DependencyManager dependencyManager, @NotNull PaletteMode mode) {
+      myDependencyManager = dependencyManager;
       myMode = mode;
       int padding = mode.getBorder();
       setIpad(new JBInsets(padding, Math.max(4, padding), padding, padding));
@@ -270,45 +180,18 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     protected void customizeCellRenderer(@NotNull JList list, @NotNull Palette.Item item, int index, boolean selected, boolean hasFocus) {
       switch (myMode) {
         case ICON_AND_NAME:
-          setIcon(createItemIcon(item, item.getIcon(), list));
+          setIcon(myDependencyManager.createItemIcon(item, list));
           append(item.getTitle());
           break;
 
         case LARGE_ICONS:
-          setIcon(createItemIcon(item, item.getLargeIcon(), list));
+          setIcon(myDependencyManager.createLargeItemIcon(item, list));
           break;
 
         case SMALL_ICONS:
-          setIcon(createItemIcon(item, item.getIcon(), list));
+          setIcon(myDependencyManager.createItemIcon(item, list));
           break;
       }
-    }
-
-    @NotNull
-    private Icon createItemIcon(@NotNull Palette.Item item, @NotNull Icon icon, @NotNull Component componentContext) {
-      if (!myMissingLibraries.contains(item.getGradleCoordinate())) {
-        return icon;
-      }
-      Icon download = AllIcons.Actions.Download;
-      BufferedImage image = UIUtil.createImage(icon.getIconWidth(),
-                                               icon.getIconHeight(),
-                                               BufferedImage.TYPE_INT_ARGB);
-      Graphics2D g2 = (Graphics2D)image.getGraphics();
-      icon.paintIcon(componentContext, g2, 0, 0);
-      int x = icon.getIconWidth() - download.getIconWidth();
-      int y = icon.getIconHeight() - download.getIconHeight();
-      if (x == 0 && y == 0) {
-        g2.scale(DOWNLOAD_SCALE, DOWNLOAD_SCALE);
-        x = (int)(icon.getIconWidth() * DOWNLOAD_RELATIVE_OFFSET);
-        y = (int)(icon.getIconHeight() * DOWNLOAD_RELATIVE_OFFSET);
-      }
-      download.paintIcon(componentContext, g2, x, y);
-      g2.dispose();
-      BufferedImage retina = ImageUtils.convertToRetina(image);
-      if (retina != null) {
-        image = retina;
-      }
-      return new JBImageIcon(image);
     }
   }
 

@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class TreeCategoryProvider extends DefaultListModel<Palette.Group> {
-  private static final Palette.Group ALL = new Palette.Group("All");
+  static final Palette.Group ALL = new Palette.Group("All");
 
   public TreeCategoryProvider(@NotNull Palette palette) {
     addElement(ALL);

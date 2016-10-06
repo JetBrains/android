@@ -28,13 +28,15 @@ import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import javax.swing.*;
+import javax.xml.ws.Holder;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case base class with assert methods for checking palette items.
@@ -46,7 +48,21 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final Splitter SPLITTER = Splitter.on("\n").trimResults();
   private static final double NO_SCALE = 1.0;
 
-  public static Palette.Group assertIsGroup(@NotNull Palette.BaseItem item, String name) {
+  @NotNull
+  public static Palette.Item findItem(@NotNull Palette palette, @NotNull String tagName) {
+    Holder<Palette.Item> found = new Holder<>();
+    palette.accept(item -> {
+      if (item.getTagName().equals(tagName)) {
+        found.value = item;
+      }
+    });
+    if (found.value == null) {
+      throw new RuntimeException("The item: " + tagName + " was not found on the palette.");
+    }
+    return found.value;
+  }
+
+  public static Palette.Group assertIsGroup(@NotNull Palette.BaseItem item, @NotNull String name) {
     assertTrue(item instanceof Palette.Group);
     Palette.Group group = (Palette.Group)item;
     assertEquals(name, group.getName());
@@ -117,7 +133,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, "ProgressBar", "ProgressBar (Large)", AndroidIcons.Views.ProgressBar, LARGE_PROGRESS_XML, LARGE_PROGRESS_PREVIEW_XML,
               LARGE_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent("ProgressBar");
-    Mockito.when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Large");
+    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Large");
     checkComponent(component, "ProgressBar (Large)", AndroidIcons.Views.ProgressBar);
   }
 
@@ -156,7 +172,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, "ProgressBar", "ProgressBar (Small)", AndroidIcons.Views.ProgressBar, SMALL_PROGRESS_XML, SMALL_PROGRESS_PREVIEW_XML,
               SMALL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent("ProgressBar");
-    Mockito.when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Small");
+    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Small");
     checkComponent(component, "ProgressBar (Small)", AndroidIcons.Views.ProgressBar);
   }
 
@@ -181,7 +197,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBar, HORIZONTAL_PROGRESS_XML,
               HORIZONTAL_PROGRESS_PREVIEW_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM, 2.0);
     NlComponent component = createMockComponent("ProgressBar");
-    Mockito.when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Horizontal");
+    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.ProgressBar.Horizontal");
     checkComponent(component, "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBar);
   }
 
@@ -214,7 +230,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBar, DISCRETE_SEEKBAR_XML, DISCRETE_SEEKBAR_PREVIEW_XML,
               DISCRETE_SEEKBAR_XML, IN_PLATFORM, 1.0);
     NlComponent component = createMockComponent("SeekBar");
-    Mockito.when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
+    when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
     checkComponent(component, "SeekBar", AndroidIcons.Views.SeekBar);
   }
 
@@ -305,7 +321,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout, VERTICAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
-    Mockito.when(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
+    when(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
     checkComponent(component, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout);
   }
 
@@ -757,9 +773,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   private static NlComponent createMockComponent(@NotNull String tag) {
-    NlComponent component = Mockito.mock(NlComponent.class);
-    Mockito.when(component.getTagName()).thenReturn(tag);
-    Mockito.when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
+    NlComponent component = mock(NlComponent.class);
+    when(component.getTagName()).thenReturn(tag);
+    when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
     return component;
   }
 
