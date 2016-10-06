@@ -44,7 +44,7 @@ public class AddGradleDependencyTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddProdModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -124,7 +124,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/284")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -207,7 +207,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 6);
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/246")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     guiTest.importSimpleApplication();

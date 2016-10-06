@@ -35,7 +35,6 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -166,7 +165,7 @@ public class NewProjectTest {
     return sb.toString();
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
