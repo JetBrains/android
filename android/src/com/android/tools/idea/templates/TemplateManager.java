@@ -19,6 +19,7 @@ import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
@@ -485,7 +486,8 @@ public class TemplateManager {
               new RenderTemplateModel(facet.getModule().getProject(), templateList.get(0), sourceSets.get(0),
                                       AndroidBundle.message("android.wizard.activity.add"));
 
-            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(renderModel, facet, templateList, targetDirectory);
+            NewModuleModel moduleModel = new NewModuleModel(facet.getModule().getProject());
+            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(moduleModel, renderModel, facet, templateList, targetDirectory);
             ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
             new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
