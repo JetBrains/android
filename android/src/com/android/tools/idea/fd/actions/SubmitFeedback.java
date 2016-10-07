@@ -72,6 +72,7 @@ public class SubmitFeedback extends DumbAwareAction {
         return;
       }
 
+      InstantRunSettings.setInstantRunEnabled(true);
       InstantRunSettings.setRecorderEnabled(true);
       Messages.showInfoMessage(project,
                                AndroidBundle.message("instant.run.flr.howto"),
