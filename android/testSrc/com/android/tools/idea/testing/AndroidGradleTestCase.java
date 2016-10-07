@@ -421,23 +421,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected static void createGradleWrapper(File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File gradlePath = findEmbeddedGradleDistributionPath();
-    if (gradlePath != null) {
-      // This is not the zip file, but a symlink pointed to extracted Gradle distribution zip file.
-      /*
-        This is an example of the file system structure of the embedded Gradle distribution:
-        - gradle-2.14.1-bin
-          - gradle-2.14.1 <- This is returned by findEmbeddedGradleDistributionPath
-          - gradle-2.14.1-bin.zip <- This is the one that we need in the wrapper
-      */
-      File canonicalPath = gradlePath.getCanonicalFile();
-      String folderName = canonicalPath.getName();
-      File zipFilePath = new File(canonicalPath.getParentFile(), folderName + "-bin.zip");
-      assertAbout(file()).that(zipFilePath).isFile();
-
-      // By setting the embedded distribution in the wrapper, we avoid downloading Gradle in tests.
-      wrapper.updateDistributionUrl(zipFilePath);
-    }
+    wrapper.updateDistributionUrl(TestUtils.getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip"));
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
