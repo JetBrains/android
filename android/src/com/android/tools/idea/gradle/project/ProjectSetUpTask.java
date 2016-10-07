@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -24,6 +25,7 @@ import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefres
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +34,6 @@ import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
@@ -93,7 +94,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      invokeLaterIfNeeded(runnable);
+      GuiUtils.invokeLaterIfNeeded(runnable, ModalityState.defaultModalityState());
     }
   }
 
