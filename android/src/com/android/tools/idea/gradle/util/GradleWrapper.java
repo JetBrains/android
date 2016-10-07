@@ -187,7 +187,7 @@ public final class GradleWrapper {
       throw new IllegalArgumentException("'" + path + "' should be a zip file");
     }
     Properties properties = getProperties();
-    properties.setProperty(DISTRIBUTION_URL_PROPERTY, pathToUrl(path));
+    properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString());
     savePropertiesToFile(properties, myPropertiesFilePath, null);
   }
 
