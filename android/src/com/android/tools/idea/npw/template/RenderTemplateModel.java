@@ -17,15 +17,13 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -47,10 +45,12 @@ import java.util.Map;
  */
 public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
-  @NotNull private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
+  @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
-  @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
+  @NotNull private final StringProperty myPackageName;
 
+  @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
@@ -58,7 +58,20 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull TemplateHandle templateHandle,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
-    myProject.setValue(project);
+    myProject = new OptionalValueProperty<>(project);
+    myPackageName = new StringValueProperty();
+    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplateHandle = templateHandle;
+    myCommandName = commandName;
+  }
+
+  public RenderTemplateModel(@NotNull OptionalProperty<Project> project,
+                             @NotNull StringProperty packageName,
+                             @NotNull TemplateHandle templateHandle,
+                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull String commandName) {
+    myProject = project;
+    myPackageName = packageName;
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
@@ -82,6 +95,14 @@ public final class RenderTemplateModel extends WizardModel {
     return mySourceSet;
   }
 
+  /**
+   * The package name affects which paths the template's output will be rendered into.
+   */
+  @NotNull
+  public StringProperty packageName() {
+    return myPackageName;
+  }
+
   public void setTemplateHandle(@NotNull TemplateHandle templateHandle) {
     myTemplateHandle = templateHandle;
   }
@@ -94,6 +115,10 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull
   public OptionalProperty<Project> getProject() {
     return myProject;
+  }
+
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
+    return myAndroidSdkInfo;
   }
 
   /**
@@ -109,9 +134,10 @@ public final class RenderTemplateModel extends WizardModel {
       getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
       return;
     }
-    AndroidProjectPaths paths = mySourceSet.get().getPaths();
 
+    AndroidProjectPaths paths = mySourceSet.get().getPaths();
     final Project project = myProject.getValue();
+
     boolean canRender = renderTemplate(true, project, paths, null, null);
     if (!canRender) {
       // If here, there was a render conflict and the user chose to cancel creating the template
