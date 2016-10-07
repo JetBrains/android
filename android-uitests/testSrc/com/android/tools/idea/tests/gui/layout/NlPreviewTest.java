@@ -50,7 +50,6 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("fails consistently in NlConfigurationToolbarFixture.chooseDevice")
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
