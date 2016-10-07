@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,6 +28,7 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 import static com.android.resources.ResourceType.ID;
 import static java.util.Arrays.stream;
 
@@ -354,7 +357,11 @@ public class LayoutParamsManager {
                                      @NotNull String attributeName,
                                      @Nullable String value,
                                      @NotNull NlModel model) {
-    EnumSet<AttributeFormat> inferredTypes = EnumSet.noneOf(AttributeFormat.class);
+    // Try to find the attribute definition and retrieve the defined formats
+    AttributeDefinition attributeDefinition =
+      ResolutionUtils.getAttributeDefinition(model.getModule(), model.getConfiguration(), ATTR_LAYOUT_RESOURCE_PREFIX + attributeName);
+    EnumSet<AttributeFormat> inferredTypes =
+      attributeDefinition != null ? EnumSet.copyOf(attributeDefinition.getFormats()) : EnumSet.noneOf(AttributeFormat.class);
     if (value != null &&
         (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF)) &&
         model.getConfiguration().getResourceResolver() != null) {
@@ -419,13 +426,6 @@ public class LayoutParamsManager {
         return setField(layoutParams, mappedField, defaultValue);
     }
     else {
-      // TODO: correctly fixes enum resolution
-      String layoutParamsName = layoutParams.getClass().getName();
-      if (inferredTypes.contains(AttributeFormat.Integer)
-          && value.equalsIgnoreCase(SdkConstants.ATTR_PARENT)
-          && layoutParamsName.equalsIgnoreCase(SdkConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS)) {
-        value = "0";
-      }
       boolean fieldSet = false;
 
       for (AttributeFormat type : inferredTypes) {
@@ -455,8 +455,26 @@ public class LayoutParamsManager {
               fieldSet = false;
             }
             break;
-          case Enum:
-          case Flag:
+          case Enum: {
+            Integer intValue = attributeDefinition != null ? attributeDefinition.getValueMapping(value) : null;
+            if (intValue != null) {
+              fieldSet = setField(layoutParams, mappedField, intValue);
+            }
+          }
+          break;
+          case Flag: {
+            OptionalInt flagValue = Splitter.on('|').splitToList(value).stream()
+              .map(StringUtil::trim)
+              .mapToInt(flagName -> {
+                Integer intValue = attributeDefinition != null ? attributeDefinition.getValueMapping(flagName) : null;
+                return intValue != null ? intValue : 0;
+              })
+              .reduce((a, b) -> a + b);
+            if (flagValue.isPresent()) {
+              fieldSet = setField(layoutParams, mappedField, flagValue.getAsInt());
+            }
+          }
+          break;
           default:
             // Couldn't be applied. If there are more types, try the rest
         }
