@@ -7,6 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="sherpa-solver" />
+    <orderEntry type="library" name="sherpa-solver" level="project" />
   </component>
 </module>

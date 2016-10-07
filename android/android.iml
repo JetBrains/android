@@ -68,7 +68,6 @@
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="properties-psi-api" />
-    <orderEntry type="library" name="asm4" level="project" />
     <orderEntry type="library" scope="TEST" name="fest" level="project" />
     <orderEntry type="module" module-name="platform-main" scope="TEST" />
     <orderEntry type="module" module-name="bootstrap" />
@@ -130,7 +129,6 @@
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
     <orderEntry type="module" module-name="layoutlib" />
-    <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="module-library">
       <library name="dexlib2">
@@ -147,9 +145,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module-library">
       <library name="gluegen-rt">
@@ -160,5 +155,17 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="analytics">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/analytics-protos.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/analytics-shared.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/analytics-tracker.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="sherpa-solver" level="project" />
   </component>
 </module>
