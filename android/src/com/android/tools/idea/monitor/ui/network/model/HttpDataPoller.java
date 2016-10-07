@@ -16,10 +16,10 @@
 package com.android.tools.idea.monitor.ui.network.model;
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.DataAdapter;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.datastore.DataAdapter;
+import com.android.tools.datastore.Poller;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.openapi.util.text.StringUtil;

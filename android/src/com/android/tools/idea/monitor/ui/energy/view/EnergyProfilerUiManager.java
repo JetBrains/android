@@ -17,12 +17,12 @@ package com.android.tools.idea.monitor.ui.energy.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.datastore.Poller;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.energy.model.EnergyPoller;
 import com.google.common.collect.Sets;
 import com.intellij.ui.components.panels.HorizontalLayout;
