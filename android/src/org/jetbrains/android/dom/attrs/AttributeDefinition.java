@@ -30,14 +30,16 @@ public class AttributeDefinition {
   private final String myName;
   private final List<String> myParentStyleables = ContainerUtil.newSmartList();
   private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
-  private final List<String> myValues = new ArrayList<>();
+  private LinkedList<String> myValues = null;
   private final Map<String, String> myStyleable2DocValue = new HashMap<>();
-  private final Map<String, String> myValueDoc = new HashMap<>();
+  private HashMap<String, String> myValueDoc = null;
+  /** Mapping of flag/enum names to their int value */
+  private HashMap<String, Integer> myValueMappings = null;
   private String myGlobalDocValue;
   private String myAttrGroup;
 
   public AttributeDefinition(@NotNull String name) {
-    this(name, null, Collections.<AttributeFormat>emptySet());
+    this(name, null, Collections.emptySet());
   }
 
   public AttributeDefinition(@NotNull String name, @Nullable String parentStyleableName, @NotNull Collection<AttributeFormat> formats) {
@@ -49,7 +51,27 @@ public class AttributeDefinition {
   }
 
   public void addValue(@NotNull String name) {
+    if (myValues == null) {
+      myValues = new LinkedList<>();
+    }
+
     myValues.add(name);
+  }
+
+  public void addValueMapping(@NotNull String flagName, @NotNull Integer intValue) {
+    if (myValueMappings == null) {
+      myValueMappings = new HashMap<>();
+    }
+
+    myValueMappings.put(flagName, intValue);
+  }
+
+  /**
+   * For flag or enum attributes, it returns the int value of the value name or null if the mapping does not exist
+   */
+  @Nullable
+  public Integer getValueMapping(@NotNull String flagName) {
+    return myValueMappings != null ? myValueMappings.get(flagName) : null;
   }
 
   @NotNull
@@ -82,7 +104,7 @@ public class AttributeDefinition {
 
   @NotNull
   public String[] getValues() {
-    return ArrayUtil.toStringArray(myValues);
+    return myValues == null ? ArrayUtil.EMPTY_STRING_ARRAY : ArrayUtil.toStringArray(myValues);
   }
 
   @Nullable
@@ -108,12 +130,16 @@ public class AttributeDefinition {
   }
 
   public void addValueDoc(@NotNull String value, @NotNull String doc) {
+    if (myValueDoc == null) {
+      myValueDoc = new HashMap<>();
+    }
+
     myValueDoc.put(value, doc);
   }
 
   @Nullable
   public String getValueDoc(@NotNull String value) {
-    return myValueDoc.get(value);
+    return myValueDoc != null ? myValueDoc.get(value) : null;
   }
 
   /**
@@ -125,7 +151,7 @@ public class AttributeDefinition {
   }
 
   public boolean isValueDeprecated(@NotNull String value) {
-    final String doc = myValueDoc.get(value);
+    final String doc = getValueDoc(value);
     return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
   }
 }
