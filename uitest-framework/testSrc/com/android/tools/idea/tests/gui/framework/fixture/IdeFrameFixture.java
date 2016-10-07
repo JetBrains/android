@@ -126,11 +126,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     };
 
-    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
-      .until(() -> !robot.finder().findAll(matcher).isEmpty());
-
-    IdeFrameImpl ideFrame = robot.finder().find(matcher);
-    return new IdeFrameFixture(robot, ideFrame, projectPath);
+    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, matcher), projectPath);
   }
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
@@ -752,14 +748,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        if (keyboardFocusManager.getFocusOwner() == null) {
-          target().requestFocus();
-        }
+    Wait.seconds(10).expecting("a component to have the focus").until(() -> {
+      // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
+      // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
+      if (keyboardFocusManager.getFocusOwner() == null) {
+        execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            target().requestFocus();
+          }
+        });
+        return false;
       }
+      return true;
     });
-    Wait.seconds(30).expecting("a component to have the focus").until(() -> keyboardFocusManager.getFocusOwner() != null);
   }
 }
