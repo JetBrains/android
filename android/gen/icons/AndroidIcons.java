@@ -461,6 +461,10 @@ public class AndroidIcons {
     public static final Icon InjectSpy = load("/icons/gfxtrace/inject_spy.png"); // 16x16
     public static final Icon DepthBuffer = load("/icons/gfxtrace/depth_buffer.png"); // 16x16
     public static final Icon ColorBuffer = load("/icons/gfxtrace/color_buffer.png"); // 16x16
+    public static final Icon ColorBuffer0 = load("/icons/gfxtrace/color_buffer0.png"); // 16x16
+    public static final Icon ColorBuffer1 = load("/icons/gfxtrace/color_buffer1.png"); // 16x16
+    public static final Icon ColorBuffer2 = load("/icons/gfxtrace/color_buffer2.png"); // 16x16
+    public static final Icon ColorBuffer3 = load("/icons/gfxtrace/color_buffer3.png"); // 16x16
     public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
     public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
     public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
