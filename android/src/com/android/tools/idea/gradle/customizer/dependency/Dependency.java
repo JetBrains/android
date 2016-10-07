@@ -133,8 +133,17 @@ public abstract class Dependency {
       addAndroidLibrary(library, dependencies, scope, unique);
     }
     if (supportsInstantApps) {
-      for (AndroidAtom androidAtom : artifactDependencies.getAtoms()) {
-        addAndroidAtom(androidAtom, dependencies, scope, unique);
+      Collection<AndroidAtom> atoms = null;
+      try {
+        atoms = artifactDependencies.getAtoms();
+      }
+      catch (Throwable e) {
+        getLogger().warn("Android plugin version " + modelVersion.toString() + " should support Atoms", e);
+      }
+      if (atoms != null) {
+        for (AndroidAtom androidAtom : atoms) {
+          addAndroidAtom(androidAtom, dependencies, scope, unique);
+        }
       }
     }
 
@@ -207,11 +216,16 @@ public abstract class Dependency {
 
     String gradleProjectPath = atom.getProject();
     if (isEmpty(gradleProjectPath)) {
-      Logger.getInstance(Dependency.class).error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
+      getLogger().error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
     }
 
     dependencies.add(new ModuleDependency(gradleProjectPath, scope));
     addAtomTransitiveDependencies(atom, dependencies, scope, unique);
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(Dependency.class);
   }
 
   private static void addBundleTransitiveDependencies(@NotNull AndroidBundle bundle,
