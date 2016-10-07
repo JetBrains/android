@@ -1,6 +1,8 @@
 package com.android.tools.idea;
 
 import com.intellij.openapi.updateSettings.UpdateStrategyCustomization;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author nik
@@ -12,12 +14,7 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
   }
 
   @Override
-  public boolean allowMajorVersionUpdate() {
-    return true;
-  }
-
-  @Override
-  public boolean useOnlyCurrentChannel() {
+  public boolean isChannelActive(@NotNull ChannelStatus channel) {
     return true;
   }
 }

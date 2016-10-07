@@ -254,6 +254,17 @@ public final class ListenerManager {
       myOnAnyInvalidated = onAnyInvalidated;
     }
 
+    /**
+     * Like {@link #with(Runnable)} but immediately runs the target callback once registered.
+     *
+     * This is essentially the {@link #listenAndFire(ObservableValue, InvalidationListener)}
+     * equivalent of {@link #listenAll(ObservableValue[])}
+     */
+    public void withAndFire(@NotNull Runnable onAnyInvalidated) {
+      with(onAnyInvalidated);
+      run();
+    }
+
     boolean ownsRunnable(@NotNull Runnable onAnyInvalidated) {
       return onAnyInvalidated.equals(myOnAnyInvalidated);
     }

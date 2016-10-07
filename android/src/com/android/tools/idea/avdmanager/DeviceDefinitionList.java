@@ -26,7 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.IdeBorderFactory;
@@ -69,8 +68,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String TABLET_TYPE = "Tablet";
   private static final String OTHER_TYPE = "Other";
 
-  private static final String DEFAULT_PHONE = "Nexus 5X";
-  private static final String DEFAULT_TABLET = "Nexus 9";
+  private static final String DEFAULT_PHONE = "Nexus 5";
+  private static final String DEFAULT_TABLET = "Nexus 10";
   private static final String DEFAULT_WEAR = "Android Wear Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
 
@@ -91,7 +90,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
   private List<Device> myDevices;
   private Device myDefaultDevice;
-  private DeviceUiAction.DeviceProvider myParentProvider;
 
   public DeviceDefinitionList() {
     super(new BorderLayout());
@@ -347,12 +345,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     setSelectedDevice(myDefaultDevice);
   }
 
-  @Nullable
-  @Override
-  public Project getProject() {
-    return myParentProvider.getProject();
-  }
-
   /**
    * Set the list's selection to the given device, or clear the selection if the
    * given device is null. The category list will also select the category to which the
@@ -564,10 +556,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       return label;
     }
   };
-
-  public void setParentProvider(DeviceUiAction.DeviceProvider parentProvider) {
-    myParentProvider = parentProvider;
-  }
 
   private abstract class DeviceColumnInfo extends ColumnInfo<Device, String> {
     private final int myWidth;

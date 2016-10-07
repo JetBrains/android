@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="annotations" />
     <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="layoutlib-api" />
   </component>
 </module>

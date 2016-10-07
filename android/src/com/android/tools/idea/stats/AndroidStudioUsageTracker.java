@@ -53,7 +53,7 @@ public class AndroidStudioUsageTracker {
                         .setProductDetails(
                                 ProductDetails.newBuilder()
                                         .setProduct(ProductDetails.ProductKind.STUDIO)
-                                        .setBuild(application.getBuild().asStringWithAllDetails())
+                                        .setBuild(application.getBuild().asString())
                                         .setVersion(application.getStrictVersion())
                                         .setOsArchitecture(CommonMetricsData.getOsArchitecture())));
     }

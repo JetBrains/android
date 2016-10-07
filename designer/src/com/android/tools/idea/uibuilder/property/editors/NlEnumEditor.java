@@ -611,7 +611,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+    public Component getListCellRendererComponent(JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value == ValueWithDisplayString.SEPARATOR) {
         return new JSeparator();
       }

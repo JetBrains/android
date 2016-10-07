@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -57,7 +58,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
     @Override
     public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
       // Under Android Studio, disable the default Make compile step for this run configuration type
-      if (CompileStepBeforeRun.ID.equals(providerID)) {
+      if (AndroidStudioInitializer.isAndroidStudio() && CompileStepBeforeRun.ID.equals(providerID)) {
         task.setEnabled(false);
       }
     }

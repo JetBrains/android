@@ -43,7 +43,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -284,9 +284,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   @NotNull
-  public List<KeyValue<String, String>> getExtraJvmArgs() {
+  public List<Pair<String, String>> getExtraJvmArgs() {
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
-      List<KeyValue<String, String>> args = Lists.newArrayList();
+      List<Pair<String, String>> args = Lists.newArrayList();
 
       if (!isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();
@@ -294,7 +294,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           File androidHomePath = IdeSdks.getAndroidSdkPath();
           // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
           if (androidHomePath != null) {
-            args.add(KeyValue.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+            args.add(Pair.create(ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
           }
         }
       }

@@ -22,7 +22,6 @@ import com.android.draw9patch.ui.ImageViewer;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -31,7 +30,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,14 +85,17 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   }
 
   private void saveFile() {
-    GuiUtils.invokeLaterIfNeeded(() -> {
-      try {
-        saveFileFromEDT();
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          saveFileFromEDT();
+        }
+        catch (IOException e) {
+          LOG.error("Unexpected exception while saving 9-patch file", e);
+        }
       }
-      catch (IOException e) {
-        LOG.error("Unexpected exception while saving 9-patch file", e);
-      }
-    }, ModalityState.defaultModalityState());
+    });
   }
 
   // Saving Files using VFS requires EDT and a write action.
@@ -131,6 +133,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @NotNull
+  @Override
+  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
+    return FileEditorState.INSTANCE;
   }
 
   @Override
