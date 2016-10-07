@@ -67,6 +67,6 @@ public class VersionCompatibilityCheckerIntegrationTest extends AndroidGradleTes
     // @formatter:on
 
     GradleSyncSummary summary = GradleSyncState.getInstance(project).getSummary();
-    assertTrue(summary.hasErrors());
+    assertTrue(summary.hasSyncErrors());
   }
 }

@@ -69,4 +69,11 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
 
     verify(mySyncListener).syncFailed(getProject(), "Error");
   }
+
+  public void testSyncErrorsFailSync() throws Exception {
+    loadSimpleApplication();
+    mySyncState.getSummary().setSyncErrorsFound(true);
+
+    assertTrue(mySyncState.lastSyncFailed());
+  }
 }

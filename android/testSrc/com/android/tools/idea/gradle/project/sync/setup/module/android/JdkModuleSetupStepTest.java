@@ -73,6 +73,6 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
     assertThat(text[0]).matches("compileSdkVersion (.*) requires compiling with JDK 7 or newer.");
 
     GradleSyncSummary summary = GradleSyncState.getInstance(getProject()).getSummary();
-    assertTrue(summary.hasErrors());
+    assertTrue(summary.hasSyncErrors());
   }
 }
