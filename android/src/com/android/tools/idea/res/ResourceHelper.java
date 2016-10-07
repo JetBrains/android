@@ -1107,9 +1107,9 @@ public class ResourceHelper {
    * @param name the resource name
    * @return the resource name, possibly with a new prefix at the beginning of it
    */
-  @Contract("_, !null -> !null")
+  @Contract("_, !null, _ -> !null")
   @Nullable
-  public static String prependResourcePrefix(@Nullable Module module, @Nullable String name) {
+  public static String prependResourcePrefix(@Nullable Module module, @Nullable String name, @Nullable ResourceFolderType folderType) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -1119,7 +1119,7 @@ public class ResourceHelper {
           String resourcePrefix = LintUtils.computeResourcePrefix(androidModel.getAndroidProject());
           if (resourcePrefix != null) {
             if (name != null) {
-              return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name);
+              return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name, folderType);
             } else {
               return resourcePrefix;
             }
