@@ -187,7 +187,7 @@ public class WidgetConstraintPanel extends JPanel {
       case WRAP_CONTENT:
         return SingleWidgetView.WRAP_CONTENT;
       case MATCH_CONSTRAINT:
-        return SingleWidgetView.ANY;
+        return SingleWidgetView.MATCH_CONSTRAINT;
     }
     return SingleWidgetView.FIXED;
   }
@@ -366,7 +366,7 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     switch (horizontalConstraint) {
-      case SingleWidgetView.ANY:
+      case SingleWidgetView.MATCH_CONSTRAINT:
         mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         break;
       case SingleWidgetView.FIXED:
@@ -384,7 +384,7 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     switch (verticalConstraint) {
-      case SingleWidgetView.ANY:
+      case SingleWidgetView.MATCH_CONSTRAINT:
         mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         break;
       case SingleWidgetView.FIXED:

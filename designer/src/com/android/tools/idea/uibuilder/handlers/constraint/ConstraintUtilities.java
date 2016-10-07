@@ -543,8 +543,22 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Update the attributes Dimension Ratio
+   *
+   * @param attributes the attributes we work on
+   * @param widget     the widget we use as a model
+   */
+  static void setRatio(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    attributes.setAttribute(SdkConstants.SHERPA_URI,
+                            SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO,
+                            companion.getWidgetProperties().getDimensionRatio());
+  }
+
+  /**
    * Update the attributes horizontal bias
-   *  @param attributes the attributes we work on
+   *
+   * @param attributes the attributes we work on
    * @param widget     the widget we use as a model
    */
   static void setHorizontalBias(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
@@ -1413,6 +1427,7 @@ public class ConstraintUtilities {
     for (ConstraintAnchor anchor : widget.getAnchors()) {
       setConnection(transaction, anchor);
     }
+    setRatio(transaction, widget);
     setHorizontalBias(transaction, widget);
     setVerticalBias(transaction, widget);
     if (widget instanceof Guideline) {
