@@ -16,33 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.annotations.Nullable;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.OccurenceNavigatorSupport;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.usageView.UsageViewManager;
 import com.intellij.usages.impl.GroupNode;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
 public class FindToolWindowFixture {
-  @NotNull private final IdeFrameFixture myParent;
-
-  public FindToolWindowFixture(@NotNull IdeFrameFixture parent) {
-    myParent = parent;
-  }
-
-  @NotNull
-  public ContentFixture getSelectedContext() {
-    return new ContentFixture(myParent);
-  }
 
   public static class ContentFixture {
     @NotNull private final Content myContent;
@@ -53,32 +42,18 @@ public class FindToolWindowFixture {
       assertNotNull(myContent);
     }
 
-
-    public void findUsagesInGeneratedCodeGroup() {
-      findUsageGroup("Usages in generated code");
-    }
-
-    public void findUsageGroup(@NotNull final String groupText) {
-      final Tree tree = getContentsTree();
-      final List<String> groupNames = Lists.newArrayList();
-      GroupNode foundGroup = execute(new GuiQuery<GroupNode>() {
+    public ImmutableList<String> getUsageGroupNames() {
+      return GuiActionRunner.execute(new GuiQuery<ImmutableList<String>>() {
         @Override
-        @Nullable
-        protected GroupNode executeInEDT() throws Throwable {
-          GroupNode rootNode = (GroupNode)tree.getModel().getRoot();
-          GroupNode found = null;
+        protected ImmutableList<String> executeInEDT() {
+          ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
+          GroupNode rootNode = (GroupNode)getContentsTree().getModel().getRoot();
           for (GroupNode subGroup : rootNode.getSubGroups()) {
-            String subGroupText = subGroup.getGroup().getText(null);
-            groupNames.add(subGroupText);
-            if (groupText.equals(subGroupText)) {
-              found = subGroup;
-            }
+            listBuilder.add(subGroup.getGroup().getText(null));
           }
-          return found;
+          return listBuilder.build();
         }
       });
-      String msg = String.format("Failed to find usage group '%1$s' in %2$s", groupText, groupNames);
-      assertNotNull(msg, foundGroup);
     }
 
     @NotNull

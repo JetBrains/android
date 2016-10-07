@@ -27,8 +27,12 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,14 +48,18 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
+import static com.android.tools.idea.layoutlib.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -61,6 +69,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   /** Min API version that supports preferences API rendering. */
   public static final int PREFERENCES_MIN_API = 22;
+  public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
   @Nullable final VirtualFile myFile;
@@ -383,26 +392,22 @@ public class Configuration implements Disposable, ModificationTracker {
     if (myActivity == NO_ACTIVITY) {
       return null;
     } else if (myActivity == null && myFile != null) {
-      myActivity = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          if (myPsiFile == null) {
-            myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
-          }
-          if (myPsiFile instanceof XmlFile) {
-            XmlFile xmlFile = (XmlFile)myPsiFile;
-            XmlTag rootTag = xmlFile.getRootTag();
-            if (rootTag != null) {
-              XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
-              if (attribute != null) {
-                return attribute.getValue();
-              }
-            }
-
-          }
-          return null;
+      myActivity = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+        if (myPsiFile == null) {
+          myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
         }
+        if (myPsiFile instanceof XmlFile) {
+          XmlFile xmlFile = (XmlFile)myPsiFile;
+          XmlTag rootTag = xmlFile.getRootTag();
+          if (rootTag != null) {
+            XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
+            if (attribute != null) {
+              return attribute.getValue();
+            }
+          }
+
+        }
+        return null;
       });
       if (myActivity == null) {
         myActivity = NO_ACTIVITY;
@@ -480,12 +485,28 @@ public class Configuration implements Disposable, ModificationTracker {
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
-              List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-              if (!types.isEmpty()) {
-                ResourceType type = types.get(0);
-                List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
-                if (matches.contains(myFile)) {
-                  return device;
+              if (ResourceFolderType.VALUES.equals(folderType)) {
+                // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.
+                // We get instead all the available folders and check that there is one compatible.
+                LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
+                if (resourceManager != null) {
+                  for (PsiFile resourceFile : resourceManager.findResourceFiles("values")) {
+                    if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
+                      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
+                      if (currentConfig.isMatchFor(folderConfiguration)) {
+                        return device;
+                      }
+                    }
+                  }
+                }
+              } else {
+                List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+                if (!types.isEmpty()) {
+                  ResourceType type = types.get(0);
+                  List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
+                  if (matches.contains(myFile)) {
+                    return device;
+                  }
                 }
               }
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
@@ -578,13 +599,31 @@ public class Configuration implements Disposable, ModificationTracker {
       // a target which matches.
       VersionQualifier version = myEditedConfig.getVersionQualifier();
       if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
-        return myManager.getTarget(version.getVersion());
+        target = myManager.getTarget(version.getVersion());
       }
 
-      return target;
+      return getTargetForRendering(target);
     }
 
     return myTarget;
+  }
+
+  /**
+   * Returns the configuration target. This will be different of {#getTarget} when using newer targets to render on screen.
+   * This method can be used to obtain a target that can be used for attribute resolution.
+   */
+  @Nullable
+  public IAndroidTarget getRealTarget() {
+    IAndroidTarget target = getTarget();
+
+    if (target instanceof CompatibilityRenderTarget) {
+      CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
+      if (compatTarget.getRealTarget() != null) {
+        return compatTarget.getRealTarget();
+      }
+    }
+
+    return target;
   }
 
   /**
@@ -737,8 +776,8 @@ public class Configuration implements Disposable, ModificationTracker {
   private static String getClosestMatch(@NotNull FolderConfiguration oldConfig, @NotNull List<State> states) {
     // create 2 lists as we're going to go through one and put the
     // candidates in the other.
-    List<State> list1 = new ArrayList<State>(states.size());
-    List<State> list2 = new ArrayList<State>(states.size());
+    List<State> list1 = new ArrayList<>(states.size());
+    List<State> list2 = new ArrayList<>(states.size());
 
     list1.addAll(states);
 
@@ -849,7 +888,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setTarget(@Nullable IAndroidTarget target) {
     if (myTarget != target) {
-      myTarget = target;
+      myTarget = getTargetForRendering(target);
       updated(CFG_TARGET);
     }
   }
@@ -1140,7 +1179,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void addListener(@NotNull ConfigurationListener listener) {
     if (myListeners == null) {
-      myListeners = new ArrayList<ConfigurationListener>();
+      myListeners = new ArrayList<>();
     }
     myListeners.add(listener);
   }
@@ -1165,14 +1204,19 @@ public class Configuration implements Disposable, ModificationTracker {
   public ResourceResolver getResourceResolver() {
     String theme = getTheme();
     if (theme != null) {
-      return myManager.getResolverCache().getResourceResolver(getTarget(), theme, getFullConfig());
+      Device device = getDevice();
+      ResourceResolverCache resolverCache = myManager.getResolverCache();
+      if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
+        resolverCache.replaceCustomConfig(theme, getFullConfig());
+      }
+      return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
     }
 
     return null;
   }
 
   /**
-   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources based on the current
+   * Returns a {@link LocalResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.
@@ -1238,5 +1282,23 @@ public class Configuration implements Disposable, ModificationTracker {
   @Override
   public long getModificationCount() {
     return myModificationCount;
+  }
+
+
+  /**
+   * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
+   */
+  @Nullable
+  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
+    if (target != null && !USE_SDK_LAYOUTLIB) {
+      try {
+        target = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+      }
+      catch (IOException e) {
+        assert false : "Unable to load embedded layoutlib";
+      }
+    }
+
+    return target;
   }
 }

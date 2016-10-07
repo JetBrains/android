@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -30,14 +30,14 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 
 public class DragFixture {
-  @NonNull private final DragDropInteraction myInteraction;
-  @NonNull private final ComponentListFixture myComponents;
-  @NonNull private final ScreenView myScreen;
+  @NotNull private final DragDropInteraction myInteraction;
+  @NotNull private final ComponentListFixture myComponents;
+  @NotNull private final ScreenView myScreen;
   @SwingCoordinate private int myCurrentX;
   @SwingCoordinate private int myCurrentY;
   private int myModifiers;
 
-  public DragFixture(@NonNull ComponentListFixture components) {
+  public DragFixture(@NotNull ComponentListFixture components) {
     myComponents = components;
 
     myScreen = myComponents.getScreen();

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.resources.ScreenRound;
+import com.android.sdklib.devices.Screen;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
@@ -28,6 +30,9 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 /**
@@ -36,34 +41,22 @@ import java.util.List;
  */
 public class ScreenView {
   private final DesignSurface mySurface;
+  private ScreenViewType myType;
   private final NlModel myModel;
+
+  public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(@NonNull DesignSurface surface, @NonNull NlModel model) {
+  public ScreenView(@NotNull DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     mySurface = surface;
+    myType = type;
     myModel = model;
 
-    myModel.addListener(new ModelListener() {
-      @Override
-      public void modelRendered(@NonNull NlModel model) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
-            mySurface.repaint();
-          }
-        });
-      }
-
-      @Override
-      public void modelChanged(@NonNull NlModel model) {
-      }
-    });
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
-      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
@@ -79,17 +72,76 @@ public class ScreenView {
     return myModel.getRenderResult();
   }
 
-  @Nullable
-  public Dimension getPreferredSize() {
+  /**
+   * Returns the current type of this ScreenView
+   */
+  @NotNull
+  public ScreenViewType getScreenViewType() { return myType; }
+
+  /**
+   * Set the type of this ScreenvVew
+
+   * @param type ScreenViewType (NORMAL or BLUEPRINT)
+   */
+  public void setType(ScreenViewType type) {
+    myType = type;
+  }
+
+  /**
+   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
+  @NotNull
+  @SwingCoordinate
+  public Dimension getSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
+    Dimension preferred = getPreferredSize(dimension);
+    double scale = mySurface.getScale();
+
+    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    return dimension;
+  }
+
+  /**
+   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   */
+  @NotNull
+  @SwingCoordinate
+  public Dimension getSize() {
+    return getSize(null);
+  }
+
+  /**
+   * Returns the current preferred size for the view.
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
+  @NotNull
+  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
     Configuration configuration = getConfiguration();
     Device device = configuration.getDevice();
     State state = configuration.getDeviceState();
     if (device != null && state != null) {
       HardwareConfig config =
         new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
-      return new Dimension(config.getScreenWidth(), config.getScreenHeight());
+
+      dimension.setSize(config.getScreenWidth(), config.getScreenHeight());
     }
-    return null;
+
+    return dimension;
+  }
+
+  @NotNull
+  public Dimension getPreferredSize() {
+    return getPreferredSize(null);
   }
 
   public void switchDevice() {
@@ -122,17 +174,21 @@ public class ScreenView {
     }
   }
 
-  @NonNull
+  @NotNull
   public Configuration getConfiguration() {
     return myModel.getConfiguration();
   }
 
-  @NonNull
+  public void setConfiguration(@NotNull Configuration configuration) {
+    myModel.setConfiguration(configuration);
+  }
+
+  @NotNull
   public NlModel getModel() {
     return myModel;
   }
 
-  @NonNull
+  @NotNull
   public SelectionModel getSelectionModel() {
     // For now, the selection model is tied to the model itself.
     // This is deliberate: rather than having each view have its own
@@ -140,6 +196,34 @@ public class ScreenView {
     // selection is "synchronized" between the views by virtue of them all
     // sharing the same selection model, currently stashed in the model itself.
     return myModel.getSelectionModel();
+  }
+
+  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
+  @Nullable
+  public Shape getScreenShape() {
+    Device device = getConfiguration().getDevice();
+    if (device == null) {
+      return null;
+    }
+
+    Screen screen = device.getDefaultHardware().getScreen();
+    if (screen.getScreenRound() != ScreenRound.ROUND) {
+      return null;
+    }
+
+    Dimension size = getSize();
+
+    int chin = screen.getChin();
+    if (chin == 0) {
+      // Plain circle
+      return new Ellipse2D.Double(x, y, size.width, size.height);
+    } else {
+      int height = size.height * chin / screen.getYDimension();
+      Area a1 = new Area(new Ellipse2D.Double(x, y, size.width, size.height + height));
+      Area a2 = new Area(new Rectangle2D.Double(x, y + 2 * (size.height + height) - height, size.width, height));
+      a1.subtract(a2);
+      return a1;
+    }
   }
 
   public DesignSurface getSurface() {

@@ -52,11 +52,9 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
     String propValue = p.getValue();
     ThreeStateCheckBox.State state = getState(propValue);
     if (state == null && propValue != null) {
-      myLabel.append(propValue, modifyAttributes(selected, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES));
-
-      // TODO: what happens if this is configuration dependent? (in theory, those should be edited in the theme editor)
-      ResourceResolver resourceResolver = p.getComponent().getModel().getConfiguration().getResourceResolver();
+      ResourceResolver resourceResolver = p.getResolver();
       if (resourceResolver != null) {
+        myLabel.append(propValue, modifyAttributes(selected, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES));
         String resolvedValue = resourceResolver.findResValue(propValue, false).getValue();
         state = getState(resolvedValue);
       }
@@ -117,7 +115,7 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats) {
+  public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
     return formats.contains(AttributeFormat.Boolean);
   }
 }

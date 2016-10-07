@@ -18,7 +18,7 @@ package com.android.tools.idea.ddms.hprof;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.chartlib.EventData;
+import com.android.tools.adtui.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
@@ -125,7 +125,7 @@ public class DumpHprofAction extends AbstractClientAction {
                   try {
                     final CaptureService service = CaptureService.getInstance(myProject);
                     String name = service.getSuggestedName(client);
-                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, name);
+                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, name, true);
                     service.appendDataCopy(handle, data.data);
                     service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                       @Override

@@ -16,27 +16,46 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.BatchInvoker.Strategy;
+import com.google.common.collect.Queues;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Queue;
 
 /**
  * A {@link Strategy} useful for tests, where a {@link Runnable} given to a {@link BatchInvoker}
- * is postponed until you call {@link #updateOneStep()}. In this way, you can observe how callbacks
- * enqueued into a batch invoker unfold one step at a time.
+ * is postponed until you call {@link #updateOneStep()} or {@link #updateAllSteps()}. In this way, you can observe how callbacks
+ * enqueued into a batch invoker unfold in a controlled manner.
  */
-final class TestInvokeStrategy implements Strategy {
-  private Runnable myUpcomingBatch;
+public final class TestInvokeStrategy implements Strategy {
+
+  /**
+   * A Queue of runnables, each runnable representing a batch of callbacks to be executed asynchronously.
+   */
+  public Queue<Runnable> myBatchQueue = Queues.newArrayDeque();
 
   @Override
-  public void invoke(@NotNull Runnable runnableBatch) {
-    myUpcomingBatch = runnableBatch;
+  public void invoke(@NotNull Runnable batch) {
+    myBatchQueue.add(batch);
   }
 
+  /**
+   * Runs a single batch of callbacks if there are any queued.
+   */
   public void updateOneStep() {
-    if (myUpcomingBatch != null) {
-      // Assign to a local variable since running this may cause invoke to be called recursively
-      Runnable local = myUpcomingBatch;
-      myUpcomingBatch = null;
-      local.run();
+    Runnable batch = myBatchQueue.poll();
+    if (batch != null) {
+      batch.run();
+    }
+  }
+
+  /**
+   * Runs a number of batches of callbacks until the invocation queue is depleted
+   */
+  public void updateAllSteps() {
+    Runnable batch = myBatchQueue.poll();
+    while (batch != null) {
+      batch.run();
+      batch = myBatchQueue.poll();
     }
   }
 }

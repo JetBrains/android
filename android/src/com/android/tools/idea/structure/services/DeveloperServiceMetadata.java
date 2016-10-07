@@ -31,18 +31,27 @@ import java.util.List;
  * level, including name, description, and various options.
  */
 public final class DeveloperServiceMetadata {
+  /**
+   * A unique string identifying a given feature/service. For features that are part of a collection or relatively common names, namespaces
+   * are suggested. For example "firebase.app_invites". This is used by plugins to retrieve the appropriate DeveloperService instance by
+   * id when necessary.
+   */
+  @NotNull private final String myId;
   @NotNull private final String myName;
   @NotNull private final String myDescription;
   @NotNull private final Icon myIcon;
 
   @NotNull private final List<String> myDependencies = Lists.newArrayList();
+  @NotNull private final List<String> myClasspathEntries = Lists.newArrayList();
+  @NotNull private final List<String> myPlugins = Lists.newArrayList();
   @NotNull private final List<String> myPermissions = Lists.newArrayList();
   @NotNull private final List<String> myModifiedFiles = Lists.newArrayList();
 
   @Nullable private URI myLearnMoreLink;
   @Nullable private URI myApiLink;
 
-  public DeveloperServiceMetadata(@NotNull String name, @NotNull String description, @NotNull Icon icon) {
+  public DeveloperServiceMetadata(@NotNull String id, @NotNull String name, @NotNull String description, @NotNull Icon icon) {
+    myId = id;
     myName = name;
     myDescription = description;
     myIcon = icon;
@@ -52,12 +61,25 @@ public final class DeveloperServiceMetadata {
     myDependencies.add(dependency);
   }
 
+  public void addClasspathEntry(@NotNull String classpathEntry) {
+    myClasspathEntries.add(classpathEntry);
+  }
+
+  public void addPlugin(@NotNull String plugin) {
+    myPlugins.add(plugin);
+  }
+
   public void addPermission(@NotNull String permission) {
     myPermissions.add(permission);
   }
 
   public void addModifiedFile(@NotNull File file) {
     myModifiedFiles.add(file.getName());
+  }
+
+  @NotNull
+  public String getId() {
+    return myId;
   }
 
   @NotNull
@@ -96,6 +118,16 @@ public final class DeveloperServiceMetadata {
   @NotNull
   public List<String> getDependencies() {
     return myDependencies;
+  }
+
+  @NotNull
+  public List<String> getClasspathEntries() {
+    return myClasspathEntries;
+  }
+
+  @NotNull
+  public List<String> getPlugins() {
+    return myPlugins;
   }
 
   @NotNull

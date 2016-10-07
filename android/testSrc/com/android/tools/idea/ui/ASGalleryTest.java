@@ -49,7 +49,7 @@ public final class ASGalleryTest extends AndroidTestCase {
     }
 
     ASGallery<ModelObject> asGallery =
-      new ASGallery<ModelObject>(
+      new ASGallery<>(
         JBList.createDefaultListModel(objects),
         new Function<ModelObject, Image>() {
           @Override
@@ -63,7 +63,8 @@ public final class ASGalleryTest extends AndroidTestCase {
             return input.myLabel;
           }
         },
-        THUMBNAIL_SIZE);
+        THUMBNAIL_SIZE,
+        null);
     asGallery.setBorder(BORDER);
     gallery = asGallery;
   }

@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="2" minor="0" micro="0" patch="20" full="{0}.{1}" eap="false" />
+  <version major="2" minor="2" micro="0" patch="12" full="{0}.{1}" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-145.1617.8"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
@@ -35,7 +35,7 @@
                patches="https://dl.google.com/android/studio/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
-  <documentation url="http://tools.android.com/welcome-to-android-studio"/>
+  <documentation url="http://developer.android.com/r/studio-ui/menu-start.html"/>
   <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"
         release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"/>
   <whatsnew url="http://tools.android.com/recent"/>

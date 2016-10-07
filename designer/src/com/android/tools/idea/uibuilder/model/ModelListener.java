@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface implemented by listeners on model changes
  */
 public interface ModelListener {
   /** Something in the model changed */
-  void modelChanged(@NonNull NlModel model);
+  void modelChanged(@NotNull NlModel model);
 
   /** The model finished rendering after updates */
-  void modelRendered(@NonNull NlModel model);
+  void modelRendered(@NotNull NlModel model);
 }

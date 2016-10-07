@@ -1,6 +1,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -102,10 +103,10 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
   @Nullable
   public static Computable<List<GotoRelatedItem>> getLazyItemsForXmlFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
-    final String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
+    final ResourceFolderType resourceType = facet.getLocalResourceManager().getFileResourceFolderType(file);
 
     // TODO: Handle menus as well!
-    if (ResourceType.LAYOUT.getName().equals(resourceType)) {
+    if (ResourceFolderType.LAYOUT == resourceType) {
       return collectRelatedJavaFiles(file, facet);
     }
     return null;

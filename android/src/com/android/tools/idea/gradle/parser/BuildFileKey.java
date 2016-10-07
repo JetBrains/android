@@ -89,6 +89,7 @@ public enum BuildFileKey {
   MINIFY_ENABLED("minifyEnabled", BOOLEAN),
   PSEUDOLOCALES_ENABLED("pseudoLocalesEnabled", BOOLEAN),
   APPLICATION_ID_SUFFIX("applicationIdSuffix", STRING),
+  // version name suffix is used both for buildType and productFlavors
   VERSION_NAME_SUFFIX("versionNameSuffix", STRING),
   ZIP_ALIGN("zipAlignEnabled", BOOLEAN),
 
@@ -98,7 +99,7 @@ public enum BuildFileKey {
   STORE_FILE("storeFile", FILE),
   STORE_PASSWORD("storePassword", STRING),
 
-  // Android blockx
+  // Android block
   DEFAULT_CONFIG("android/defaultConfig", CLOSURE),
   @Deprecated
   /**
@@ -126,7 +127,8 @@ public enum BuildFileKey {
                   NamedObject.getFactory(ImmutableList.of(KEY_ALIAS, KEY_PASSWORD, STORE_FILE, STORE_PASSWORD))),
   FLAVORS("android/productFlavors", null, CLOSURE,
           NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, APPLICATION_ID, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
-                                                  TEST_INSTRUMENTATION_RUNNER, TEST_APPLICATION_ID, VERSION_CODE, VERSION_NAME))),
+                                                  TEST_INSTRUMENTATION_RUNNER, TEST_APPLICATION_ID, VERSION_CODE, VERSION_NAME,
+                                                  VERSION_NAME_SUFFIX))),
   BUILD_TYPES("android/buildTypes", null, CLOSURE,
               NamedObject.getFactory(ImmutableList
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,

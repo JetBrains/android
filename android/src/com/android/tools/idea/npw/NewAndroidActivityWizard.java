@@ -18,7 +18,6 @@ package com.android.tools.idea.npw;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
@@ -37,10 +36,6 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
   @Nullable private final File myTemplate;
   private AddAndroidActivityPath myPath;
 
-  public NewAndroidActivityWizard(@NotNull Module module) {
-    this(module, null, null);
-  }
-
   public NewAndroidActivityWizard(Module module, @Nullable VirtualFile targetFile, @Nullable File template) {
     super(module.getProject(), module, "New Android Activity");
     myTargetFile = targetFile;
@@ -49,7 +44,7 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
 
   @Override
   public void init() {
-    myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.<String, Object>of(), getDisposable());
+    myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.of(), getDisposable());
     addPath(myPath);
     super.init();
     myHost.setPreferredWindowSize(JBUI.size(800, 640));
@@ -62,11 +57,6 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
   @Override
   protected String getWizardActionDescription() {
     return myPath.getActionDescription();
-  }
-
-  @Override
-  protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-    return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
   }
 
   @Override

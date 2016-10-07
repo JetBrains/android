@@ -25,8 +25,13 @@ import java.io.IOException;
 
 public final class ArrayIndexPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myArray.stringPath(builder).append("[").append(myIndex).append("]");
+  public String getSegmentString() {
+    return '[' + String.valueOf(myIndex) + ']';
+  }
+
+  @Override
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append(getSegmentString());
   }
 
   @Override

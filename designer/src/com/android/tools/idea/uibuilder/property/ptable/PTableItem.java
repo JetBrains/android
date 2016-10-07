@@ -19,8 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,22 +61,34 @@ public abstract class PTableItem {
   public void setExpanded(boolean expanded) {
   }
 
+  @NotNull
   public abstract String getName();
 
-  public void setValue(Object value) {
+  @Nullable
+  public String getNamespace() {
+    return null;
   }
+
+  @Nullable
+  public abstract String getValue();
+
+  @Nullable
+  public abstract String getResolvedValue();
+
+  public abstract boolean isDefaultValue(@Nullable String value);
+
+  public abstract void setValue(@Nullable Object value);
 
   @Nullable
   public String getTooltipText() {
     return null;
   }
 
-  @Nullable
-  public PTableCellEditor getCellEditor() {
-    return null;
-  }
-
   public boolean isEditable(int col) {
     return false;
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  public void mousePressed(@NotNull MouseEvent event, Rectangle rectRightColumn) {
   }
 }

@@ -17,6 +17,8 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -24,10 +26,10 @@ import org.junit.Test;
 
 import java.io.StringWriter;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidLogcatReceiverTest {
-  private AndroidConsoleWriter myWriter;
+  private AndroidLogcatService.LogLineListener myLogLineListener;
   private AndroidLogcatReceiver myReceiver;
 
   /**
@@ -44,37 +46,31 @@ public class AndroidLogcatReceiverTest {
 
   @Before
   public void setUp() {
-    myWriter = new AndroidConsoleWriter() {
+    myLogLineListener = new FormattedLogLineReceiver() {
       private final StringWriter myInnerWriter = new StringWriter();
+
+      @Override
+      protected void receiveFormattedLogLine(@NotNull String line) {
+        myInnerWriter.append(line).append('\n');
+      }
 
       @Override
       public String toString() {
         return myInnerWriter.getBuffer().toString();
       }
-
-      @Override
-      public void clear() {
-        myInnerWriter.flush();
-        myInnerWriter.getBuffer().setLength(0);
-      }
-
-      @Override
-      public void addMessage(@NotNull String text) {
-        myInnerWriter.append(text).append('\n');
-      }
     };
-    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter);
+    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogLineListener);
   }
 
   @Test
   public void processNewLineWorksOnSimpleLogEntry() {
     // the following line is sample output from 'logcat -v long'
     myReceiver.processNewLine("[ 08-18 16:39:11.439 1493:1595 W/EDMNativeHelper     ]");
-    assertThat("").isEqualTo(myWriter.toString()); // Nothing written until message is received
+    assertThat("").isEqualTo(myLogLineListener.toString()); // Nothing written until message is received
 
     myReceiver.processNewLine("EDMNativeHelperService is published");
     String expected = "08-18 16:39:11.439 1493-1595/dummy.client.name W/EDMNativeHelper: EDMNativeHelperService is published\n";
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 
   @Test
@@ -83,7 +79,7 @@ public class AndroidLogcatReceiverTest {
     myReceiver.processNewLine("Dummy Message");
 
     String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: Dummy Message\n";
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 
   @Test
@@ -102,7 +98,7 @@ public class AndroidLogcatReceiverTest {
                       "01-23 13:00:00.000 99-99/? V/UnknownClient: Line 1\n";
 
 
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 
   @Test
@@ -165,7 +161,7 @@ public class AndroidLogcatReceiverTest {
                       "+  \n" +
                       "+  }\n" +
                       "01-23 12:34:56.789 99-99/? V/UnknownClient: normal log entry\n";
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 
   @Test
@@ -185,7 +181,7 @@ public class AndroidLogcatReceiverTest {
                       "+     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
                       "+     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
 
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 
   @Test
@@ -223,6 +219,6 @@ public class AndroidLogcatReceiverTest {
                       "08-11 21:15:35.754 540-540/? D/debug tag: debug message\n" +
                       "08-11 21:15:35.754 540-540/? I/tag:with:colons: message:with:colons\n";
 
-    assertThat(myWriter.toString()).isEqualTo(expected);
+    assertThat(myLogLineListener.toString()).isEqualTo(expected);
   }
 }

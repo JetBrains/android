@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,11 +24,7 @@ import java.io.File;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-public abstract class TestArtifactsCodeInsightTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+public abstract class TestArtifactsCodeInsightTest extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {

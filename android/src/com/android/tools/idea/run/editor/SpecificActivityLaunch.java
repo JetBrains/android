@@ -19,6 +19,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
 import com.google.common.collect.ImmutableList;
@@ -39,9 +40,9 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
     @Override
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
-                                    boolean waitForDebugger,
-                                    @NotNull String extraAmOptions) {
-      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, waitForDebugger, extraAmOptions);
+                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
+                                    @NotNull ProfilerState profilerState) {
+      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, startActivityFlagsProvider);
     }
 
     @NotNull

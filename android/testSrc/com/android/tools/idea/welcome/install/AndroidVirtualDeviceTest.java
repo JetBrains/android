@@ -23,9 +23,9 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.sdklib.repositoryv2.meta.RepoFactory;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -69,10 +68,12 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
-    builder.put("image.sysdir.1", "system-images/android-23/google_apis/x86/");
+    // AVD Manager will return a system-dependent path, so the baseline must comply
+    String systemImageDir = "system-images/android-23/google_apis/x86/".replace('/', File.separatorChar);
+    builder.put("image.sysdir.1", systemImageDir);
+
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
-    builder.put("runtime.scalefactor", "auto");
     builder.put("sdcard.size", "800M");
     builder.put("skin.name", "nexus_5x");
     builder.put("snapshot.present", "no");
@@ -109,7 +110,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File(new File("/sdk").getAbsolutePath()), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
     FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
@@ -120,7 +121,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
     Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
     disposeOnTearDown(new Disposable() {
@@ -133,13 +134,12 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
     for (Map.Entry<String, String> entry : referenceMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue(), FileUtil.toSystemIndependentName(properties.get(entry.getKey())));
+      assertEquals(entry.getKey(), entry.getValue(), properties.get(entry.getKey()));
     }
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
     assertEquals("nexus_5x", skin.getName());
-    assertEquals("device-art-resources", skin.getParentFile().getName());
   }
 
   private static void recordPlatform23(MockFileOp fop) {

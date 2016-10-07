@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -32,10 +34,10 @@ import java.util.List;
 public class AdapterViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new DragHandler(editor, this, layout, components, type) {
       @Nullable
       @Override
@@ -52,10 +54,16 @@ public class AdapterViewHandler extends ViewGroupHandler {
       }
 
       @Override
-      public void paint(@NonNull NlGraphics graphics) {
+      public void paint(@NotNull NlGraphics graphics) {
         graphics.useStyle(NlDrawingStyle.INVALID);
         graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
       }
     };
+  }
+
+  @Override
+  @Nullable
+  public ScrollHandler createScrollHandler(@NonNull ViewEditor editor, @NonNull NlComponent component) {
+    return null;
   }
 }

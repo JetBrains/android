@@ -186,55 +186,40 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
       file.addModule("asdf", GradleUtil.getModuleDefaultPath(file.getFile(), ":asdf"));
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testAddModuleChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
       file.addModule(myModule);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testGetModulesChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
       file.getModules();
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testRemoveModuleStringChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
       file.removeModule("asdf");
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testRemoveModuleChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
       file.removeModule(myModule);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testGetModulePath() throws IOException {

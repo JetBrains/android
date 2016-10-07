@@ -24,6 +24,9 @@
             android:text="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
+    <ViewStub android:id="@+id/my_stub"
+              android:layout="@layout/stub"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"/>
 </RelativeLayout>
 </layout>

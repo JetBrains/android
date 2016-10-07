@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Suite;
@@ -35,13 +37,10 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static org.fest.assertions.Assertions.assertThat;
 
-/**
- * Test runner that automatically includes all test classes that extend {@link GuiTestCase}, or if specified, the tests belonging to
- * specific groups.
- */
+/** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}, limited by {@link IncludeTestGroups} if present. */
 public class GuiTestSuiteRunner extends Suite {
   @Retention(RetentionPolicy.RUNTIME)
   public @interface IncludeTestGroups {
@@ -72,7 +71,7 @@ public class GuiTestSuiteRunner extends Suite {
       String className = path.substring(testDirPath.length(), path.indexOf(DOT_CLASS)).replace(File.separatorChar, '.');
       try {
         Class<?> testClass = classLoader.loadClass(className);
-        if (GuiTestCase.class.isAssignableFrom(testClass) && isInGroup(testClass, suiteGroups)) {
+        if (isGuiTest(testClass) && isInGroup(testClass, suiteGroups)) {
           guiTestClasses.add(testClass);
         }
       }
@@ -81,6 +80,11 @@ public class GuiTestSuiteRunner extends Suite {
       }
     }
     return guiTestClasses.toArray(new Class<?>[guiTestClasses.size()]);
+  }
+
+  private static boolean isGuiTest(Class<?> testClass) {
+    RunWith runWith = testClass.getAnnotation(RunWith.class);
+    return runWith != null && runWith.value().getSimpleName().equals(GuiTestRunner.class.getSimpleName());
   }
 
   @NotNull
@@ -125,26 +129,20 @@ public class GuiTestSuiteRunner extends Suite {
     if (suiteGroups.isEmpty()) {
       return true;
     }
-    for (TestGroup testGroup : getGroups(testClass)) {
-      if (suiteGroups.contains(testGroup)) {
-        return true;
-      }
+    if (suiteGroups.contains(getTestGroup(testClass))) {
+      return true;
     }
     return false;
   }
 
-  @NotNull
-  public static List<TestGroup> getGroups(@NotNull Class<?> suiteClass) {
+  @Nullable
+  public static TestGroup getTestGroup(@NotNull Class<?> suiteClass) {
     for (Annotation annotation : suiteClass.getAnnotations()) {
-      if (annotation instanceof BelongsToTestGroups) {
-        TestGroup[] values = ((BelongsToTestGroups)annotation).value();
-        if (values != null) {
-          return Lists.newArrayList(values);
-        }
-        break;
+      if (annotation instanceof RunIn) {
+        return ((RunIn)annotation).value();
       }
     }
-    return Collections.emptyList();
+    return null;
   }
 
   @Override

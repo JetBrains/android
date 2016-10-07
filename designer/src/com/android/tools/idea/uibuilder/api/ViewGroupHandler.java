@@ -15,18 +15,45 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.List;
 
 /**
  * Handler for views that are layout managers.
  */
 public class ViewGroupHandler extends ViewHandler {
+
+  @Override
+  @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        // Most layout managers will use their palette icon for previewing.
+        // Make that the default here.
+        return NO_PREVIEW;
+      default:
+        throw new AssertionError(xmlType);
+    }
+  }
+
   /**
    * Returns whether the given layout accepts the given proposed child.
    *
@@ -35,8 +62,8 @@ public class ViewGroupHandler extends ViewHandler {
    * @param newChild the newly created component
    * @return true if the proposed child is accepted
    */
-  public boolean acceptsChild(@NonNull NlComponent layout,
-                              @NonNull NlComponent newChild) {
+  public boolean acceptsChild(@NotNull NlComponent layout,
+                              @NotNull NlComponent newChild) {
     return true;
   }
 
@@ -47,14 +74,25 @@ public class ViewGroupHandler extends ViewHandler {
    *                the children since this method is called before the deletion
    *                is performed)
    * @param deleted a nonempty list of children about to be deleted
-   * @return true if the children have been fully deleted by this participant; false
-   *         if normal deletion should resume. Note that even though an implementation may return
-   *         false from this method, that does not mean it did not perform any work. For example,
-   *         a RelativeLayout handler could remove constraints pointing to now deleted components,
-   *         but leave the overall deletion of the elements to the core designer.
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
    */
-  public boolean deleteChildren(@NonNull NlComponent parent, @NonNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
     return false;
+  }
+
+  /**
+   * Creates a new complete interaction for this view
+   *
+   * @param screenView the associated screen view
+   * @param layout     the layout creating the interaction
+   * @return a new interaction, or null if this view does not handle full interactions and use other Handlers
+   */
+  @Nullable
+  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
+    return null;
   }
 
   /**
@@ -64,14 +102,13 @@ public class ViewGroupHandler extends ViewHandler {
    * @param layout     the layout being dragged over/into
    * @param components the components being dragged
    * @param type       the <b>initial</b> type of drag, which can change along the way
-   *
    * @return a new drag handler, or null if this view does not accept children or does not allow them to be reconfigured
    */
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return null;
   }
 
@@ -85,10 +122,16 @@ public class ViewGroupHandler extends ViewHandler {
    * @return a new resize handler, or null if the layout does not allow the child to be resized or if the child is not resizable
    */
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
+    return null;
+  }
+
+
+  @Nullable
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return null;
   }
 
@@ -105,13 +148,51 @@ public class ViewGroupHandler extends ViewHandler {
    * @param insertType whether this node was created as part of a newly created view, or
    *                   as a copy, or as a move, etc.
    */
-  public void onChildInserted(@NonNull NlComponent layout,
-                              @NonNull NlComponent newChild,
-                              @NonNull InsertType insertType) {
+  public void onChildInserted(@NotNull NlComponent layout,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType insertType) {
+  }
+
+  /**
+   * Allows a ViewGroupHandler to update the mouse cursor
+   *
+   * @param screenView the ScreenView we are working on
+   * @param x          the current x mouse coordinate
+   * @param y          the current y mouse coordinate
+   * @return true if we modified the cursor
+   */
+  public boolean updateCursor(@NotNull ScreenView screenView,
+                              @AndroidCoordinate int x,
+                              @AndroidCoordinate int y) {
+    return false;
   }
 
   @Override
   public FillPolicy getFillPolicy() {
     return FillPolicy.BOTH;
   }
+
+  /**
+   * Returns true to handles painting the component
+   *
+   * @return true if the ViewGroupHandler want to be in charge of painting
+   */
+  public boolean handlesPainting() {
+    return false;
+  }
+
+  /**
+   * Paint the component and its children on the given context
+   *
+   * @param gc          graphics context
+   * @param screenView  the current screen view
+   * @param component   the component to draw
+   * @return true to indicate that we will need to be repainted
+   */
+  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
+                           @NotNull NlComponent component) {
+    // do nothing here, subclasses need to override this and handlesPainting() to be called
+    return false;
+  }
+
 }

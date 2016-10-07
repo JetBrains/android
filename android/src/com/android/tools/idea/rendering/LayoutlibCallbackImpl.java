@@ -16,12 +16,16 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -38,7 +42,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -59,8 +62,8 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
-import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
+import static com.android.ide.common.rendering.RenderParamsFlags.*;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -77,11 +80,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewHelper.CN_RV_ADAPTER,
                                                                                           RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
                                                                                           "android.support.v7.internal.app.WindowDecorActionBar"));
+  /** Directory name for the bundled layoutlib installation */
+  public static final String FD_LAYOUTLIB = "layoutlib";
 
   @NotNull private final Module myModule;
   @NotNull private final AppResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
+  private final boolean myHasAppCompat;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
@@ -122,6 +128,16 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
+
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
+
+    String javaPackage = MergedManifest.get(myModule).getPackage();
+    if (javaPackage != null && javaPackage.length() > 0) {
+      myNamespace = URI_PREFIX + javaPackage;
+    } else {
+      myNamespace = AUTO_URI;
+    }
   }
 
   /** Resets the callback state for another render */
@@ -188,36 +204,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @return The package namespace of the project or null in case of error.
    */
-  // TODO: Remove
+  @Nullable
   @Override
   public String getNamespace() {
-    // TODO: use
-    //     final String namespace = AndroidXmlSchemaProvider.getLocalXmlNamespace(facet);
-    // instead!
-    if (myNamespace == null) {
-      String javaPackage = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          final AndroidFacet facet = AndroidFacet.getInstance(myModule);
-          if (facet == null) {
-            return null;
-          }
-
-          final Manifest manifest = facet.getManifest();
-          if (manifest == null) {
-            return null;
-          }
-
-          return manifest.getPackage().getValue();
-        }
-      });
-
-      if (javaPackage != null) {
-        myNamespace = String.format(NS_CUSTOM_RESOURCES_S, javaPackage);
-      }
-    }
-
     return myNamespace;
   }
 
@@ -257,6 +246,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   @Override
   public XmlPullParser getXmlFileParser(String fileName) {
+    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
+    // layoutlib built-in directories
+    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB)) {
+      return null;
+    }
+
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
@@ -266,7 +261,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           try {
             XmlPullParser parser = getParserFactory().createParser(fileName);
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            parser.setInput(new StringReader(psiFile.getText()));
+            String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
+                             ? psiFile.getText()
+                             : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
+            parser.setInput(new StringReader(psiText));
             return parser;
           }
           catch (XmlPullParserException e) {
@@ -348,7 +346,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // contents rather than the most recently saved file contents.
     if (xml != null && xml.isFile()) {
       File parent = xml.getParentFile();
-      if (parent != null) {
+      String path = xml.getPath();
+      // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
+      // layoutlib built-in directories
+      if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB)) {
         String parentName = parent.getName();
         if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
@@ -357,6 +358,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             if (psiFile instanceof XmlFile) {
               assert myLogger != null;
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+              parser.setUseSrcCompat(myHasAppCompat);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
                 // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
                 parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
@@ -407,6 +409,17 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           for (int i = 0, n = includeNodeList.getLength(); i < n; i++) {
             Element include = (Element)includeNodeList.item(i);
             String included = include.getAttribute(ATTR_LAYOUT);
+            if (included.startsWith(LAYOUT_RESOURCE_PREFIX)) {
+              String resource = included.substring(LAYOUT_RESOURCE_PREFIX.length());
+              includeMap.put(layoutName, resource);
+            }
+          }
+
+          // Deals with tools:layout attribute from fragments
+          NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
+            Element fragment = (Element)fragmentNodeList.item(i);
+            String included = fragment.getAttributeNS(TOOLS_URI, ATTR_LAYOUT);
             if (included.startsWith(LAYOUT_RESOURCE_PREFIX)) {
               String resource = included.substring(LAYOUT_RESOURCE_PREFIX.length());
               includeMap.put(layoutName, resource);
@@ -636,7 +649,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (listFqcn.endsWith(EXPANDABLE_LIST_VIEW)) {
       binding.addItem(new DataBindingItem(LayoutMetadata.DEFAULT_EXPANDABLE_LIST_ITEM, true /* isFramework */, 1));
     }
-    else if (listFqcn.equals(SPINNER)) {
+    else if (listFqcn.equals(FQCN_SPINNER)) {
       binding.addItem(new DataBindingItem(LayoutMetadata.DEFAULT_SPINNER_ITEM, true /* isFramework */, 1));
     }
     else {
@@ -681,6 +694,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return (T)getPackage();
     }
     if (key.equals(FLAG_KEY_RECYCLER_VIEW_SUPPORT)) {
+      return (T)Boolean.TRUE;
+    }
+    if (key.equals(FLAG_KEY_XML_FILE_PARSER_SUPPORT)) {
       return (T)Boolean.TRUE;
     }
     return null;

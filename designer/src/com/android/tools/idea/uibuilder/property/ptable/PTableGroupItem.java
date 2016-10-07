@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,16 +34,42 @@ public abstract class PTableGroupItem extends PTableItem {
   }
 
   public void addChild(@NotNull PTableItem item) {
+    addChild(item, null);
+  }
+
+  public void addChild(@NotNull PTableItem item, @Nullable PTableItem after) {
     item.setParent(this);
     if (myItems == null) {
       myItems = Lists.newArrayList();
     }
-    myItems.add(item);
+    int index = after != null ? myItems.indexOf(after) : -1;
+    if (index != -1) {
+      myItems.add(index + 1, item);
+    }
+    else {
+      myItems.add(item);
+    }
+  }
+
+  public void deleteChild(@NotNull PTableItem item) {
+    assert this == item.getParent();
+    item.setParent(null);
+    myItems.remove(item);
   }
 
   @Override
   public List<PTableItem> getChildren() {
-    return myItems == null ? Collections.<PTableItem>emptyList() : myItems;
+    return myItems == null ? Collections.emptyList() : myItems;
+  }
+
+  @Nullable
+  public PTableItem getItemByName(@NotNull String propertyName) {
+    for (PTableItem item : myItems) {
+      if (item.getName().equals(propertyName)) {
+        return item;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -58,5 +85,27 @@ public abstract class PTableGroupItem extends PTableItem {
   @Override
   public void setExpanded(boolean expanded) {
     myExpanded = expanded;
+  }
+
+  @Nullable
+  @Override
+  public String getValue() {
+    throw new IllegalStateException();
+  }
+
+  @Nullable
+  @Override
+  public String getResolvedValue() {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public boolean isDefaultValue(@Nullable String value) {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public void setValue(@Nullable Object value) {
+    throw new IllegalStateException();
   }
 }

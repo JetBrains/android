@@ -29,28 +29,39 @@ import java.awt.image.BufferedImage;
  * externally.
  */
 public class ImageComponent extends OpaquePanel {
-  protected Icon myIcon = null;
+  protected BufferedImage myImage = null;
 
   public ImageComponent() {
   }
 
   public ImageComponent(@Nullable Icon icon) {
-    myIcon = icon;
+    setIcon(icon);
   }
 
   @Override
   protected void paintChildren(@NotNull Graphics g) {
-    if (myIcon == null) return;
-
-    final BufferedImage image = UIUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-    final Graphics2D gg = image.createGraphics();
-    myIcon.paintIcon(this, gg, 0, 0);
-    g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), this);
+    if (myImage == null) return;
+    Graphics2D g2 = (Graphics2D) g.create();
+    setRenderingHints(g2);
+    g2.drawImage(myImage, 0, 0, getWidth(), getHeight(), 0, 0, myImage.getWidth(), myImage.getHeight(), null);
   }
 
   public void setIcon(@Nullable Icon icon) {
-    myIcon = icon;
+    if (icon != null) {
+      myImage = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+      final Graphics2D gg = myImage.createGraphics();
+      setRenderingHints(gg);
+      icon.paintIcon(this, gg, 0, 0);
+      gg.dispose();
+    } else {
+      myImage = null;
+    }
     revalidate();
     repaint();
+  }
+
+  private static void setRenderingHints(Graphics2D gg) {
+    gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    gg.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
   }
 }

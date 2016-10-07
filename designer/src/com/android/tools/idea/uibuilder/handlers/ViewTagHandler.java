@@ -15,27 +15,71 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <view>} tag */
+/**
+ * Handler for the {@code <view>} tag
+ */
 public class ViewTagHandler extends ViewHandler {
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_CLASS, ATTR_STYLE);
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
+    return "<view>";
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
+    return "<view>";
+  }
+
+  @Override
+  @Language("XML")
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return "<view/>";
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        return super.getXml(tagName, xmlType);
+    }
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
+      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), qualifiedName -> {
+        // Don't include builtin views (these are already in the palette and likely not what the user is looking for)
+        return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+      }, null);
       if (src != null) {
-        newChild.setAttribute(null, ATTR_NAME, src);
+        newChild.setAttribute(null, ATTR_CLASS, src);
         return true;
       }
       else {

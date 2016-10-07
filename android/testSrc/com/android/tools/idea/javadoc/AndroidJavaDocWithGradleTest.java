@@ -49,11 +49,6 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
   }
 
   public void testResource() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidJavaDocWithGradleTest.testResource temporarily disabled");
-      return;
-    }
     loadProject("projects/dependentModules");
 
     checkJavadoc("/app/src/main/res/values/colors.xml",

@@ -7,21 +7,15 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "addStringRes/";
 
@@ -112,6 +106,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
 
   public void test15() throws IOException {
     doTest(getTestName(false), "strings.xml", null, true, "strings15_after.xml");
+  }
+
+  public void testFragment() throws IOException {
+    doTest();
   }
 
   public void testEscape() throws IOException {

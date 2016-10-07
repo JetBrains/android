@@ -17,13 +17,14 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdkv2.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Objects;
@@ -35,8 +36,6 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AncestorListenerAdapter;
@@ -61,11 +60,18 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
+  private List<PackageOperation.StatusChangeListener> myListeners = Lists.newArrayList();
 
   @NotNull
   @Override
   public String getId() {
     return "AndroidSdkUpdater";
+  }
+
+  @Nullable
+  @Override
+  public Runnable enableSearch(String option) {
+    return null;
   }
 
   @Nls
@@ -77,7 +83,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public String getHelpTopic() {
-    return null;
+    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/sdk-manager.html";
   }
 
   @Nullable
@@ -150,15 +156,15 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     message.openHtmlBody();
     final List<LocalPackage> toDelete = Lists.newArrayList();
     final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
-    for (NodeStateHolder holder : myPanel.getStates()) {
-      if (holder.getState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        if (holder.getPkg().hasLocal()) {
-          toDelete.add(holder.getPkg().getLocal());
+    for (PackageNodeModel model : myPanel.getStates()) {
+      if (model.getState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        if (model.getPkg().hasLocal()) {
+          toDelete.add(model.getPkg().getLocal());
         }
       }
-      else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
-               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
-        UpdatablePackage pkg = holder.getPkg();
+      else if (model.getState() == PackageNodeModel.SelectedState.INSTALLED &&
+               (model.getPkg().isUpdate() || !model.getPkg().hasLocal())) {
+        UpdatablePackage pkg = model.getPkg();
         requestedPackages.put(pkg.getRemote(), pkg);
       }
     }
@@ -178,7 +184,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.add("The following components will be installed: \n");
       message.beginList();
       Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
-      com.android.repository.api.ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       RepositoryPackages packages = getRepoManager().getPackages();
       for (RemotePackage item : requestedPackages.keySet()) {
         List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages, progress);
@@ -215,21 +221,19 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     message.closeHtmlBody();
     if (found) {
       if (confirmChange(message)) {
-        ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-          @Override
-          public void run() {
-            ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
-            com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
-            FileOp fop = FileOpUtils.create();
-            for (LocalPackage item : toDelete) {
-              StudioSdkUtil.findBestInstaller(item).uninstall(item, repoProgress, getRepoManager(), fop);
-            }
-          }
-        }, "Uninstalling", false, null, myPanel.getComponent());
-        if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values());
+        if (!requestedPackages.isEmpty() || !toDelete.isEmpty()) {
+          ModelWizardDialog dialog =
+            SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values(), toDelete, true);
           if (dialog != null) {
             dialog.show();
+            for (RemotePackage remotePackage : requestedPackages.keySet()) {
+              PackageOperation installer = getRepoManager().getInProgressInstallOperation(remotePackage);
+              if (installer != null) {
+                PackageOperation.StatusChangeListener listener = (installer1, progress) -> myPanel.getComponent().repaint();
+                myListeners.add(listener);
+                installer.registerStateChangeListener(listener);
+              }
+            }
           }
         }
 

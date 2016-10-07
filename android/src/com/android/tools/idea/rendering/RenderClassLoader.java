@@ -16,14 +16,13 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -41,9 +40,11 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   protected UrlClassLoader myJarClassLoader;
   protected boolean myInsideJarClassLoader;
+  protected final int myLayoutlibApiLevel;
 
-  public RenderClassLoader(@Nullable ClassLoader parent) {
+  public RenderClassLoader(@Nullable ClassLoader parent, int layoutlibApiLevel) {
     super(parent);
+    myLayoutlibApiLevel = layoutlibApiLevel;
   }
 
   protected abstract List<URL> getExternalJars();
@@ -109,19 +110,9 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @Nullable
-  protected Class<?> loadClassFromClassPath(String fqcn, File classPathFolder) {
-    File classFile = findClassFile(classPathFolder, fqcn);
-    if (classFile == null || !classFile.exists()) {
-      return null;
-    }
-
-    return loadClassFile(fqcn, classFile);
-  }
-
-  @Nullable
-  protected Class<?> loadClassFile(String fqcn, File classFile) {
+  protected Class<?> loadClassFile(String fqcn, @NotNull VirtualFile classFile) {
     try {
-      byte[] data = Files.toByteArray(classFile);
+      byte[] data = classFile.contentsToByteArray();
       return loadClass(fqcn, data);
     }
     catch (IOException e) {
@@ -157,17 +148,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   @NotNull
   protected byte[] convertClass(@NotNull byte[] data) {
-    return ClassConverter.rewriteClass(data);
-  }
-
-  @Nullable
-  private static File findClassFile(File parent, String className) {
-    if (!parent.exists()) {
-      return null;
-    }
-
-    File file = new File(parent, className.replace('.', File.separatorChar) + DOT_CLASS);
-    return file.exists() ? file : null;
+    return ClassConverter.rewriteClass(data, myLayoutlibApiLevel);
   }
 
   @NotNull

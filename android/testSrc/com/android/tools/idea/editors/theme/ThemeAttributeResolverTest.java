@@ -27,6 +27,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
@@ -41,16 +42,17 @@ import java.util.Set;
 public class ThemeAttributeResolverTest extends AndroidTestCase {
 
 
-  public boolean createNewStyle(@NotNull final String newStyleName,
+  public boolean createNewStyle(@NotNull final VirtualFile resourceDir,
+                                @NotNull final String newStyleName,
                                 @NotNull final String parentStyleName,
                                 @Nullable final String colorPrimaryValue,
                                 @NotNull final List<String> folders) {
-
-    return new WriteCommandAction<Boolean>(myModule.getProject(), "Create new style " + newStyleName) {
+    return new WriteCommandAction<Boolean>(getProject(), "Create new style " + newStyleName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
         result.setResult(AndroidResourceUtil.
-          createValueResource(myModule, newStyleName, null, ResourceType.STYLE, "styles.xml", folders, new Processor<ResourceElement>() {
+          createValueResource(getProject(), resourceDir, newStyleName, null, ResourceType.STYLE, "styles.xml", folders,
+                              new Processor<ResourceElement>() {
             @Override
             public boolean process(ResourceElement element) {
               assert element instanceof Style;
@@ -75,14 +77,17 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
    */
   public void testResolveAllVersion() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
+    VirtualFile resourceDir = myFile.getParent().getParent();
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
-    createNewStyle("ThemeA", "android:Theme", "red", Lists.newArrayList("values-v13", "values-v16"));
-    createNewStyle("ThemeB", "ThemeA", "blue", Lists.newArrayList("values-v12"));
-    createNewStyle("ThemeB", "ThemeA", null, Lists.newArrayList("values-v15"));
+    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-v13", "values-v16"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", "blue", Lists.newArrayList("values-v12"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, Lists.newArrayList("values-v15"));
 
-    myFacet.refreshResources();
+    // ResourceFolderRepository needs to rescan the files to pick up the changes.
+    UIUtil.dispatchAllInvocationEvents();
+
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
@@ -108,13 +113,15 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
    */
   public void testResolveAllEnum() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
-
+    VirtualFile resourceDir = myFile.getParent().getParent();
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
-    createNewStyle("ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
-    createNewStyle("ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));
+    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));
 
-    myFacet.refreshResources();
+    // ResourceFolderRepository needs to rescan the files to pick up the changes.
+    UIUtil.dispatchAllInvocationEvents();
+
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);

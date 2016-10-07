@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -53,16 +55,16 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
-import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,6 +89,7 @@ public class HtmlLinkManager {
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   private static final String URL_REFRESH_RENDER = "refreshRender";
+  private static final String URL_INSTALL_ARTIFACT = "installArtifact:";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -176,6 +179,11 @@ public class HtmlLinkManager {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
         linkRunnable.run();
+      }
+    }
+    else if (url.startsWith(URL_INSTALL_ARTIFACT)) {
+      if (module != null) {
+        handleInstallArtifact(url, module);
       }
     }
     else if (url.startsWith(URL_COMMAND)) {
@@ -409,7 +417,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = ManifestInfo.get(module, false).getPackage();
+      packageName = MergedManifest.get(module).getPackage();
       if (packageName == null) {
         return;
       }
@@ -572,7 +580,14 @@ public class HtmlLinkManager {
 
   private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int line, int column) {
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
-    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+    FileEditorManager manager = FileEditorManager.getInstance(project);
+
+    // Attempt to prefer text editor if it's available for this file
+    if (manager.openTextEditor(descriptor, true) != null) {
+      return true;
+    }
+
+    return !manager.openEditor(descriptor, true).isEmpty();
   }
 
   private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int offset) {
@@ -627,7 +642,7 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, null, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
     if (className == null) {
       return;
     }
@@ -712,13 +727,13 @@ public class HtmlLinkManager {
     @NotNull final XmlFile file,
     @NotNull final String activityName) {
 
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, new ResourceType[]{ResourceType.LAYOUT}, null, null) {
-      @NotNull
-      @Override
-      protected Action[] createLeftSideActions() {
-        return new Action[0];
-      }
-    };
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(EnumSet.of(ResourceType.LAYOUT))
+      .setFile(file)
+      .setHideLeftSideActions(true)
+      .build();
+
     if (dialog.showAndGet()) {
       String layout = dialog.getResourceName();
       if (!layout.equals(LAYOUT_RESOURCE_PREFIX + file.getName())) {
@@ -736,7 +751,7 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
-        SuppressLintIntentionAction.ensureNamespaceImported(getProject(), file, TOOLS_URI);
+        AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (tag.getName().equals(VIEW_FRAGMENT) ) {
@@ -865,9 +880,9 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null) {
-          RefreshRenderAction.clearCache(renderContext);
+        DesignSurface surface = renderTask.getDesignSurface();
+        if (surface != null) {
+          RefreshRenderAction.clearCache(surface);
         }
       }
     }
@@ -877,11 +892,23 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null) {
-          renderContext.requestRender();
+        DesignSurface surface = renderTask.getDesignSurface();
+        if (surface != null) {
+          surface.requestRender();
         }
       }
     }
+  }
+
+  public String createInstallArtifactUrl(String artifact) {
+    return URL_INSTALL_ARTIFACT + artifact;
+  }
+
+  private static void handleInstallArtifact(@NotNull String url, @NotNull final Module module) {
+    assert url.startsWith(URL_INSTALL_ARTIFACT) : url;
+    String artifact = url.substring(URL_INSTALL_ARTIFACT.length());
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
+    manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
   }
 }

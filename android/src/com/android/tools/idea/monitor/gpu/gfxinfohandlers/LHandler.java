@@ -19,7 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
 import com.intellij.util.ThreeState;

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingDecoratorWrapper;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -31,12 +30,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.LoadingDecorator;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -54,19 +47,10 @@ public abstract class ImagePanelController extends Controller {
   public ImagePanelController(@NotNull GfxTraceEditor editor, String emptyText) {
     super(editor);
     myImagePanel.getEmptyText().setText(emptyText);
-    LoadingDecorator loadingDecorator = new LoadingDecorator(myImagePanel, myEditor.getProject(), -1) {
-      @Override
-      protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
-        NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
-        result.setOpaque(true); // I regret nothing!
-        result.setBackground(UIUtil.getPanelBackground());
-        result.setBorder(JBUI.Borders.merge(JBUI.Borders.customLine(new JBColor(0, 0xffffff), 1), JBUI.Borders.empty(5), false));
-        return result;
-      }
-    };
-
-    myPanel.add(loadingDecorator.getComponent(), BorderLayout.CENTER);
-    myImageRequestController = new SingleInFlight(new LoadingDecoratorWrapper(loadingDecorator));
+    LoadablePanel loading = new LoadablePanel(myImagePanel, LoadablePanel.Style.OPAQUE);
+    myPanel.add(loading, BorderLayout.CENTER);
+    myImageRequestController = new SingleInFlight(loading);
+    myImagePanel.setImageRequestController(myImageRequestController);
   }
 
   protected void initToolbar(DefaultActionGroup group, boolean enableVerticalFlip) {
@@ -85,11 +69,12 @@ public abstract class ImagePanelController extends Controller {
       return;
     }
 
-    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
+    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, MultiLevelImage, String>() {
       @Override
-      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+      protected ResultOrError<MultiLevelImage, String> onRpcThread(
+          Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
         try {
-          return success(result.get().image);
+          return success(result.get());
         }
         catch (ErrDataUnavailable e) {
           return error(e.getMessage());
@@ -97,7 +82,7 @@ public abstract class ImagePanelController extends Controller {
       }
 
       @Override
-      protected void onUiThreadSuccess(BufferedImage result) {
+      protected void onUiThreadSuccess(MultiLevelImage result) {
         myImagePanel.setImage(result);
       }
 

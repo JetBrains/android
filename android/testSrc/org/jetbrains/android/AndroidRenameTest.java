@@ -40,13 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 9, 2009
- * Time: 8:50:20 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
   private static final String R_JAVA_PATH = "gen/p1/p2/R.java";
@@ -139,6 +132,32 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
+  public void testAndroidManifestRenameClass1() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
+  }
+
+  public void testAndroidManifestRenameClass2() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class2.xml", "AndroidManifest_rename_class1-2_after.xml");
+  }
+
+  public void testAndroidManifestRenameClass3() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class3.xml", "AndroidManifest_rename_class3_after.xml");
+  }
+
+  /**
+   * Copy {@code filePath} to project as AndroidManifest.xml, rename a class in a Java file and check if class is renamed correctly
+   * by comparing the result with {@code expectedFile}. Also check if class is actually renamed in the Java file.
+   */
+  public void doTestAndroidManifestRenameClass(final String filePath, final String expectedFile) throws Throwable {
+    deleteManifest();
+    VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "MyClass.java", "src/p1/p2/MyClass.java");
+    myFixture.copyFileToProject(BASE_PATH + filePath, "AndroidManifest.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+    checkAndRename("MyClass2");
+    myFixture.checkResultByFile(BASE_PATH + "MyClass2.java", true);
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + expectedFile, true);
+  }
+
   private void renameElementWithTextOccurences(final String newName) throws Throwable {
     Editor editor = myFixture.getEditor();
     PsiFile file = myFixture.getFile();
@@ -198,7 +217,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/strings.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("str1");
+    checkAndRename("str1");
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 
@@ -250,10 +269,24 @@ public class AndroidRenameTest extends AndroidTestCase {
     doTestStyleInheritance("styles11.xml", "styles11_after.xml", "myStyle.s1");
   }
 
+  /**
+   * Test the renaming of the parent of a style
+   */
+  public void testStyleParentRename() throws Throwable {
+    doTestStyleInheritance("styles13.xml", "styles13_after.xml", "myStyle42");
+  }
+
   private void doTestStyleInheritance(String before, String after) throws IOException {
     doTestStyleInheritance(before, after, "newStyle");
   }
 
+  /**
+   * Rename a style resource on the caret position (set in the {@code before} file). Compare the output with a result ({@code after}) file.
+   *
+   * @param before Path of the file that represents the resource file before renaming. It includes the caret position.
+   * @param after Path of the file that represents the resource file after renaming.
+   * @param newName The new name of the style being renamed
+   */
   private void doTestStyleInheritance(String before, String after, String newName) throws IOException {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);
@@ -372,7 +405,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   public void testAttr() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR9.java", "src/p1/p2/RefR9.java");
-    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.copyFileToProject(BASE_PATH + "attrs9.xml", "res/values/attrs9.xml");
     checkAndRename("attr1");
@@ -599,46 +632,46 @@ public class AndroidRenameTest extends AndroidTestCase {
   public void testRenameJavaPackage1() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage1.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
     doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage1_after.xml");
   }
 
   public void testRenameJavaPackage2() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage2.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
     doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage2_after.xml");
   }
 
   public void testRenameJavaPackage3() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage3.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
     doRenameJavaPackage("p1", "p3");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage3_after.xml");
   }
 
   public void testRenameJavaPackage4() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage4.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
     doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage4_after.xml");
   }
 
   public void testRenameJavaPackage5() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage5.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
     doRenameJavaPackage("p1", "p3");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage5_after.xml");
   }
 
   public void testRenameWidget() throws Throwable {

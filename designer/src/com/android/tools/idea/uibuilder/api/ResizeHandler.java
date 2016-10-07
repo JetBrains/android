@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -29,10 +29,10 @@ import java.awt.*;
  * {@link ViewGroupHandler#createResizeHandler} for views that are resizeable.
  */
 public abstract class ResizeHandler {
-  @NonNull protected final ViewEditor editor;
-  @NonNull protected final ViewGroupHandler handler;
-  @NonNull protected final NlComponent layout;
-  @NonNull protected final NlComponent component;
+  @NotNull protected final ViewEditor editor;
+  @NotNull protected final ViewGroupHandler handler;
+  @NotNull protected final NlComponent layout;
+  @NotNull protected final NlComponent component;
   @AndroidCoordinate protected int startX;
   @AndroidCoordinate protected int startY;
   @AndroidCoordinate protected int lastX;
@@ -54,9 +54,9 @@ public abstract class ResizeHandler {
    * @param horizontalEdgeType the horizontal (top or bottom) edge being resized, if any
    * @param verticalEdgeType   the vertical (left or right) edge being resized, if any
    */
-  protected ResizeHandler(@NonNull ViewEditor editor,
-                          @NonNull ViewGroupHandler handler,
-                          @NonNull NlComponent component,
+  protected ResizeHandler(@NotNull ViewEditor editor,
+                          @NotNull ViewGroupHandler handler,
+                          @NotNull NlComponent component,
                           @Nullable SegmentType horizontalEdgeType,
                           @Nullable SegmentType verticalEdgeType) {
     this.editor = editor;
@@ -84,7 +84,7 @@ public abstract class ResizeHandler {
   public abstract void commit(@AndroidCoordinate int x,
                               @AndroidCoordinate int y,
                               int modifiers,
-                              @NonNull @AndroidCoordinate Rectangle newBounds);
+                              @NotNull @AndroidCoordinate Rectangle newBounds);
 
   /**
    * Starts a resize at the given position
@@ -113,7 +113,7 @@ public abstract class ResizeHandler {
    */
   @Nullable
   public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers,
-                     @NonNull @AndroidCoordinate Rectangle newBounds) {
+                     @NotNull @AndroidCoordinate Rectangle newBounds) {
     lastX = x;
     lastY = y;
     lastModifiers = modifiers;
@@ -123,5 +123,5 @@ public abstract class ResizeHandler {
   /**
    * Paints the drag feedback during the resize operation
    */
-  public abstract void paint(@NonNull NlGraphics graphics);
+  public abstract void paint(@NotNull NlGraphics graphics);
 }

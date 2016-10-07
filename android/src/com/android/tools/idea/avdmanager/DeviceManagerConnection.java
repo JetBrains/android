@@ -149,6 +149,7 @@ public class DeviceManagerConnection {
         return;
       }
       ourDeviceManager.removeUserDevice(info);
+      ourDeviceManager.saveUserDevices();
     }
   }
 

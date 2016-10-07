@@ -27,21 +27,37 @@ public final class Factory {
     FmtATCRGBAMD.register();
     FmtAlpha.register();
     FmtD24S8.register();
+    FmtDepth16.register();
+    FmtDepthF16.register();
+    FmtDepthF32.register();
     FmtETC1RGB8.register();
     FmtETC2RGB8.register();
     FmtETC2RGBA8EAC.register();
+    FmtFloat16.register();
     FmtFloat32.register();
     FmtLuminance.register();
     FmtLuminanceAlpha.register();
     FmtPNG.register();
+    FmtRG.register();
     FmtRGB.register();
     FmtRGB565.register();
     FmtRGBA.register();
+    FmtRGBA1010102.register();
     FmtRGBA4444.register();
     FmtRGBA5551.register();
+    FmtRGBAF16.register();
     FmtRGBAF32.register();
+    FmtRGBF16.register();
     FmtRGBF32.register();
+    FmtRGF16.register();
+    FmtRGF32.register();
     FmtRed.register();
+    FmtRedF16.register();
+    FmtRedF32.register();
+    FmtS3DXT1RGB.register();
+    FmtS3DXT1RGBA.register();
+    FmtS3DXT3RGBA.register();
+    FmtS3DXT5RGBA.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }

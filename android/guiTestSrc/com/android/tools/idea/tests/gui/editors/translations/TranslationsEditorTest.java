@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
@@ -26,35 +26,34 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-public class TranslationsEditorTest extends GuiTestCase {
-  @Test @IdeGuiTest
+@RunWith(GuiTestRunner.class)
+public class TranslationsEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testBasics() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    // open editor on a strings file
-    String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    EditorFixture editor = myProjectFrame.getEditor();
-    editor.open(stringsXmlPath, EDITOR);
-
-    // make sure the notification is visible, and click on Open Editor to open the translations editor
-    EditorNotificationPanelFixture notificationPanel =
-      myProjectFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
-    notificationPanel.performAction("Open editor");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/values/strings.xml", EDITOR)
+      .awaitNotification("Edit translations for all locales in the translations editor.")
+      .performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized
-    waitUntilFound(myRobot, new GenericTypeMatcher<JTable>(JTable.class) {
+    GuiTests.waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
         return table.getModel() != null && table.getModel().getColumnCount() > 0;
@@ -65,12 +64,10 @@ public class TranslationsEditorTest extends GuiTestCase {
     TranslationsEditorFixture txEditor = editor.getTranslationsEditor();
     assertNotNull(txEditor);
 
-    List<String> locales = txEditor.locales();
-    Object[] expectedLocales = {"English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)"};
-    assertThat(locales).containsSequence(expectedLocales);
+    assertThat(txEditor.locales()).containsExactly(
+      "English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)").inOrder();
 
-    List<String> keys = txEditor.keys();
-    assertThat(keys).containsSequence("action_settings", "app_name", "cancel", "hello_world");
+    assertThat(txEditor.keys()).containsExactly("action_settings", "app_name", "cancel", "hello_world").inOrder();
 
     JTableCellFixture cancel = txEditor.cell(TableCell.row(2).column(6)); // cancel in zh-rCN
     assertEquals("取消", cancel.value());

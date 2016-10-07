@@ -19,13 +19,13 @@ package com.android.tools.idea.editors.gfxtrace.service.msg;
 
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.Node;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
-import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 public final class Msg implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
@@ -63,7 +63,7 @@ public final class Msg implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Identifier", new Primitive("string", Method.String)),
-      new Field("Arguments", new Map("", new Primitive("string", Method.String), new Interface("binary.Object"))),
+      new Field("Arguments", new Map("MapType", new Primitive("string", Method.String), new Interface("binary.Object"))),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -73,7 +73,8 @@ public final class Msg implements BinaryObject {
   /**
    * Returns the message as a string without any rich-formatting.
    */
-  public String getString() {
+  @Override
+  public String toString() {
     StringTable stringTable = StringTable.getCurrent();
     if (stringTable != null) {
       Node node = stringTable.get(myIdentifier);
@@ -81,7 +82,7 @@ public final class Msg implements BinaryObject {
         return node.getString(myArguments);
       }
     }
-    return myIdentifier;
+    return myIdentifier + " " + myArguments;
   }
 
   public enum Klass implements BinaryClass {

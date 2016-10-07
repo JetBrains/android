@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link DependenciesModel} and {@link ModuleDependencyModel}.

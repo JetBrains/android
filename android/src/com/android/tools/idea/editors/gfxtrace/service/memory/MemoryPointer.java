@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class MemoryPointer implements BinaryObject {
+
   @Override
   public String toString() {
     return "0x" + Long.toHexString(myAddress) + "@" + myPool;
@@ -34,7 +35,7 @@ public final class MemoryPointer implements BinaryObject {
 
   //<<<Start:Java.ClassBody:1>>>
   private long myAddress;
-  private PoolID myPool;
+  private int myPool;
 
   // Constructs a default-initialized {@link MemoryPointer}.
   public MemoryPointer() {}
@@ -49,11 +50,11 @@ public final class MemoryPointer implements BinaryObject {
     return this;
   }
 
-  public PoolID getPool() {
+  public int getPool() {
     return myPool;
   }
 
-  public MemoryPointer setPool(PoolID v) {
+  public MemoryPointer setPool(int v) {
     myPool = v;
     return this;
   }
@@ -87,14 +88,14 @@ public final class MemoryPointer implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       MemoryPointer o = (MemoryPointer)obj;
       e.uint64(o.myAddress);
-      o.myPool.encode(e);
+      e.uint32(o.myPool);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       MemoryPointer o = (MemoryPointer)obj;
       o.myAddress = d.uint64();
-      o.myPool = PoolID.decode(d);
+      o.myPool = d.uint32();
     }
     //<<<End:Java.KlassBody:2>>>
   }

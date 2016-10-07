@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -35,17 +35,17 @@ public class NlDropEvent {
   private final DropTargetDropEvent myDropEvent;
   private boolean myStatusSpecified;
 
-  public NlDropEvent(@NonNull DropTargetDragEvent dragEvent) {
+  public NlDropEvent(@NotNull DropTargetDragEvent dragEvent) {
     myDragEvent = dragEvent;
     myDropEvent = null;
   }
 
-  public NlDropEvent(@NonNull DropTargetDropEvent dropEvent) {
+  public NlDropEvent(@NotNull DropTargetDropEvent dropEvent) {
     myDragEvent = null;
     myDropEvent = dropEvent;
   }
 
-  @NonNull
+  @NotNull
   public Point getLocation() {
     if (myDragEvent != null) {
       return myDragEvent.getLocation();
@@ -55,7 +55,7 @@ public class NlDropEvent {
     }
   }
 
-  public boolean isDataFlavorSupported(@NonNull DataFlavor flavor) {
+  public boolean isDataFlavorSupported(@NotNull DataFlavor flavor) {
     if (myDragEvent != null) {
       return myDragEvent.isDataFlavorSupported(flavor);
     }
@@ -73,7 +73,7 @@ public class NlDropEvent {
     }
   }
 
-  @NonNull
+  @NotNull
   public Transferable getTransferable() {
     if (!myStatusSpecified &&
         !isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR) &&

@@ -27,9 +27,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -201,6 +202,10 @@ public class ThemeEditorStyle {
     for (final ResourceItem styleItem : getStyleResourceItems()) {
       if (configuration.equals(styleItem.getConfiguration())) {
         StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+        if (style == null) {
+          // style might be null if the value fails to parse
+          continue;
+        }
         return style.getValues();
       }
     }
@@ -353,7 +358,7 @@ public class ThemeEditorStyle {
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (maxApi <= minSdk) ? -1 : maxApi;
 
-    new WriteCommandAction.Simple(project, "Setting value of " + attribute, null) {
+    new WriteCommandAction.Simple(project, "Setting value of " + attribute) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
@@ -373,6 +378,8 @@ public class ThemeEditorStyle {
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
             facet.refreshResources();
+            // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
+            GradleInvoker.saveAllFilesSafely();
           }
         }
 
@@ -427,7 +434,7 @@ public class ThemeEditorStyle {
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
 
-    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName, null) {
+    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
@@ -447,6 +454,8 @@ public class ThemeEditorStyle {
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
             facet.refreshResources();
+            // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
+            GradleInvoker.saveAllFilesSafely();
           }
         }
 

@@ -45,16 +45,14 @@ public class ImportSourceModulePath implements WizardPath {
   @NotNull private final WizardContext myContext;
   private Collection<ModuleWizardStep> mySteps;
 
-  public ImportSourceModulePath(@Nullable VirtualFile importSource,
-                                @NotNull NewModuleWizardState wizardState,
+  public ImportSourceModulePath(@NotNull NewModuleWizardState wizardState,
                                 @NotNull WizardContext context,
                                 @Nullable Icon sidePanelIcon,
                                 @Nullable TemplateWizardStep.UpdateListener listener) {
     myWizardState = wizardState;
     myContext = context;
     List<ModuleWizardStep> steps = Lists.newLinkedList();
-    ImportSourceLocationStep locationStep = new ImportSourceLocationStep(context, importSource,
-                                                                         wizardState, sidePanelIcon, listener);
+    ImportSourceLocationStep locationStep = new ImportSourceLocationStep(context, wizardState, sidePanelIcon, listener);
     steps.add(locationStep);
     for (ModuleImporter importer : ModuleImporter.getAllImporters(myContext)) {
       steps.addAll(importer.createWizardSteps());

@@ -17,9 +17,10 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
@@ -37,7 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.File;
@@ -47,14 +50,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
 import static javax.swing.SwingUtilities.windowForComponent;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
@@ -62,8 +64,12 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Tests for {@link ModulesToImportDialog}.
  */
-@BelongsToTestGroups({PROJECT_SUPPORT})
-public class ModulesToImportDialogTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class ModulesToImportDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private List<DataNode<ModuleData>> myModules;
   private DataNode<ModuleData> myProjectModule;
   private DataNode<ModuleData> myAppModule;
@@ -86,7 +92,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
   @After
   public void closeDialog() {
     if (myDialogAndWrapper != null) {
-      myRobot.close(myDialogAndWrapper.dialog);
+      guiTest.robot().close(myDialogAndWrapper.dialog);
     }
   }
 
@@ -94,7 +100,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
   private static DataNode<ModuleData> createModule(@NotNull String name, boolean isGradleProject) {
     String path = "~/project/" + name;
     ModuleData data = new ModuleData(name, GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, path, path);
-    DataNode<ModuleData> module = new DataNode<ModuleData>(MODULE, data, null);
+    DataNode<ModuleData> module = new DataNode<>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
       module.createChild(GRADLE_MODEL, new GradleModel("app", taskNames, ":" + name, null, null));
@@ -102,22 +108,22 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     return module;
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testModuleSelection() throws IOException {
     myDialogAndWrapper = launchDialog();
 
     ModulesToImportDialog wrapper = myDialogAndWrapper.wrapper;
     // Verify that only modules that are Gradle projects are in the list.
-    assertThat(wrapper.getDisplayedModules()).containsOnly("app", "lib");
+    assertThat(wrapper.getDisplayedModules()).containsExactly("app", "lib");
 
     // Verify that all elements are checked.
     Collection<DataNode<ModuleData>> selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule, myLibModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule, myLibModule);
 
     JTableFixture table = getModuleList();
     table.enterValue(row(1).column(0), "false");
     selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule);
 
     // Save selection to disk
     File tempFile = createTempFile(randomUUID().toString(), ".xml", true);
@@ -125,48 +131,47 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     assertNotNull(targetFile);
 
     JDialog dialog = myDialogAndWrapper.dialog;
-    findByText("Save Selection As", myRobot, dialog).click();
-    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    findByText("Save Selection As", guiTest.robot(), dialog).click();
+    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
+        return "Save Module Selection".equals(dialog.getTitle());
       }
     });
     fileChooser.select(targetFile).clickOk();
 
     // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
-    MessagesFixture messages = MessagesFixture.findByTitle(myRobot, windowForComponent(dialog), "Confirm Save as");
+    MessagesFixture messages = MessagesFixture.findByTitle(guiTest.robot(), windowForComponent(dialog), "Confirm Save as");
     messages.click("Yes");
 
     // Load selection from disk
-    findByText("Select All", myRobot, dialog).click();
-    findByText("Load Selection from File", myRobot, dialog).click();
-    fileChooser = FileChooserDialogFixture.findDialog(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    findByText("Select All", guiTest.robot(), dialog).click();
+    findByText("Load Selection from File", guiTest.robot(), dialog).click();
+    fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Load Module Selection".equals(dialog.getTitle());
+        return "Load Module Selection".equals(dialog.getTitle());
       }
     });
     fileChooser.select(targetFile).clickOk();
 
     selectedModules = wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testQuickSearch() {
     myDialogAndWrapper = launchDialog();
 
     JTableFixture table = getModuleList();
-    table.focus();
-    myRobot.enterText("lib");
+    guiTest.robot().enterText("lib");
 
     table.requireSelectedRows(1);
   }
 
   @NotNull
   private JTableFixture getModuleList() {
-    return new JTableFixture(myRobot, myRobot.finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
+    return new JTableFixture(guiTest.robot(), guiTest.robot().finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
   }
 
   public DialogAndWrapper<ModulesToImportDialog> launchDialog() {
@@ -179,18 +184,16 @@ public class ModulesToImportDialogTest extends GuiTestCase {
 
     assertNotNull(dialog);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
         dialog.setModal(false);
         dialog.show();
-      }
-    });
+      });
 
-    return IdeaDialogFixture.find(myRobot, ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    return IdeaDialogFixture.find(guiTest.robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Select Modules to Include in Project Subset".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Select Modules to Include in Project Subset".equals(dialog.getTitle());
       }
     });
   }

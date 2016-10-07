@@ -34,11 +34,29 @@ import java.awt.*;
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
 
-  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<Color>(Color.WHITE);
+  private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
+  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
+  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
   private final BoolProperty myCropped = new BoolValueProperty();
-  private final ObjectProperty<GraphicGenerator.Shape> myShape =
-    new ObjectValueProperty<GraphicGenerator.Shape>(GraphicGenerator.Shape.SQUARE);
+  private final ObjectProperty<GraphicGenerator.Shape> myShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myDogEared = new BoolValueProperty();
+
+  /**
+   * Whether to use the foreground color. When using images as the source asset for our icons,
+   * you shouldn't apply the foreground color, which would paint over it and obscure the image.
+   */
+  @NotNull
+  public BoolProperty useForegroundColor() {
+    return myUseForegroundColor;
+  }
+
+  /**
+   * A color for rendering the foreground icon.
+   */
+  @NotNull
+  public ObjectProperty<Color> foregroundColor() {
+    return myForegroundColor;
+  }
 
   /**
    * A color for rendering the background shape.
@@ -87,6 +105,8 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
     launcherOptions.shape = myShape.get();
     launcherOptions.crop = myCropped.get();
     launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+    launcherOptions.useForegroundColor = myUseForegroundColor.get();
+    launcherOptions.foregroundColor = myForegroundColor.get().getRGB();
     launcherOptions.backgroundColor = myBackgroundColor.get().getRGB();
     launcherOptions.isWebGraphic = true;
     launcherOptions.isDogEar = myDogEared.get();

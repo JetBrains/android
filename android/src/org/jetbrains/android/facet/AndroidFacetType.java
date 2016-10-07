@@ -61,6 +61,6 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return AndroidIcons.AndroidModule;
   }
 }

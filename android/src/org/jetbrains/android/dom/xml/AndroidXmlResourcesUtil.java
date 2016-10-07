@@ -19,10 +19,10 @@ package org.jetbrains.android.dom.xml;
 import com.android.SdkConstants;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,8 +58,8 @@ public class AndroidXmlResourcesUtil {
 
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
-    List<String> result = new ArrayList<String>();
-    result.addAll(AndroidDomUtil.removeUnambiguousNames(AndroidDomExtender.getPreferencesClassMap(facet)));
+    List<String> result = new ArrayList<>();
+    result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getPreferencesClassMap(facet)));
     result.addAll(ROOT_TAGS);
 
     return result;
@@ -67,6 +67,6 @@ public class AndroidXmlResourcesUtil {
 
   public static boolean isSupportedRootTag(@NotNull AndroidFacet facet, @NotNull String rootTagName) {
     return ROOT_TAGS.contains(rootTagName) ||
-           SimpleClassMapConstructor.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
+           LayoutViewClassUtils.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
   }
 }

@@ -22,9 +22,9 @@ public class PsiDbClassExtractionExprImpl extends PsiDbExprImpl implements PsiDb
   }
 
   @Override
-  @Nullable
+  @NotNull
   public PsiDbType getType() {
-    return findChildByClass(PsiDbType.class);
+    return findNotNullChildByClass(PsiDbType.class);
   }
 
 }

@@ -27,6 +27,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Nullable private String myStatementName;
 
-  private GradleDslExpressionMap myToBeAddedMapArgument;
+  private GradleDslElement myToBeAddedArgument;
 
   /**
    * Create a new method call.
@@ -70,16 +71,27 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     myArguments.add(expressionMap);
   }
 
+  public void addNewArgument(@NotNull GradleDslExpression argument) {
+    addNewArgumentInternal(argument);
+
+  }
   public void addNewArgument(@NotNull GradleDslExpressionMap mapArgument) {
-    // Only adding map arguments to an empty method is supported. The other combinations are not supported as there is no real use case.
+    addNewArgumentInternal(mapArgument);
+  }
+
+  private void addNewArgumentInternal(@NotNull GradleDslElement argument) {
+    assert argument instanceof GradleDslExpression || argument instanceof GradleDslExpressionMap;
+    // Only adding expression or map arguments to an empty method is supported.
+    // The other combinations are not supported as there is no real use case.
     if (getArguments().isEmpty()) {
-      myToBeAddedMapArgument = mapArgument;
+      myToBeAddedArgument = argument;
+      setModified(true);
     }
   }
 
   @NotNull
   public List<GradleDslElement> getArguments() {
-    if (myToBeRemovedArguments.isEmpty() && myToBeAddedMapArgument == null) {
+    if (myToBeRemovedArguments.isEmpty() && myToBeAddedArgument == null) {
       return ImmutableList.copyOf(myArguments);
     }
 
@@ -103,8 +115,8 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       result.add(argument);
     }
 
-    if (myToBeAddedMapArgument != null) {
-      result.add(myToBeAddedMapArgument);
+    if (myToBeAddedArgument != null) {
+      result.add(myToBeAddedArgument);
     }
 
     for (GradleDslElement argument : myToBeRemovedArguments) {
@@ -130,11 +142,38 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   @Nullable
   @Override
   public <T> T getValue(@NotNull Class<T> clazz) {
+    if (clazz.isAssignableFrom(File.class)) {
+      return clazz.cast(getFileValue());
+    }
     Object value = getValue();
     if (clazz.isInstance(value)) {
       return clazz.cast(value);
     }
     return null;
+  }
+
+  @Nullable
+  private File getFileValue() {
+    if (!myName.equals("file")) {
+      return null;
+    }
+
+    List<GradleDslElement> arguments = getArguments();
+    if (arguments.isEmpty()) {
+      return null;
+    }
+
+    GradleDslElement pathArgument = arguments.get(0);
+    if (!(pathArgument instanceof GradleDslExpression)) {
+      return null;
+    }
+
+    String path = ((GradleDslExpression)pathArgument).getValue(String.class);
+    if (path == null) {
+      return null;
+    }
+
+    return new File(path);
   }
 
   @Override
@@ -160,10 +199,10 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     GroovyPsiElement psiElement = getPsiElement();
     if (psiElement instanceof GrMethodCallExpression) {
       GrMethodCallExpression methodCall = (GrMethodCallExpression)psiElement;
-      if (myToBeAddedMapArgument != null) {
-        myToBeAddedMapArgument.setPsiElement(methodCall.getArgumentList());
-        myToBeAddedMapArgument.applyChanges();
-        myArguments.add(myToBeAddedMapArgument);
+      if (myToBeAddedArgument != null) {
+        myToBeAddedArgument.setPsiElement(methodCall.getArgumentList());
+        myToBeAddedArgument.applyChanges();
+        myArguments.add(myToBeAddedArgument);
       }
     }
 
@@ -176,7 +215,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Override
   protected void reset() {
-    myToBeAddedMapArgument = null;
+    myToBeAddedArgument = null;
     myToBeRemovedArguments.clear();
     for (GradleDslElement argument : myArguments) {
       if (argument.isModified()) {

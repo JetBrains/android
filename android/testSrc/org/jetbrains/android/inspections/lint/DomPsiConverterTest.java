@@ -73,7 +73,7 @@ public class DomPsiConverterTest extends AndroidTestCase {
     assertNotNull(domDocument);
 
     // Perform iteration on a different thread without read access
-    final AtomicReference<String> formattedHolder = new AtomicReference<String>();
+    final AtomicReference<String> formattedHolder = new AtomicReference<>();
     Thread thread = new Thread("dom psi") {
       @Override
       public void run() {

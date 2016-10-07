@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -36,7 +36,8 @@ final class GridDragHandler extends DragHandler {
   private int row;
   private int column;
 
-  GridDragHandler(ViewEditor editor, ViewGroupHandler handler, NlComponent layout, List<NlComponent> components, DragType type) {
+  GridDragHandler(@NotNull ViewEditor editor, @NotNull ViewGroupHandler handler, @NotNull NlComponent layout,
+                  @NotNull List<NlComponent> components, @NotNull DragType type) {
     super(editor, handler, layout, components, type);
     info = new GridInfo(layout);
   }
@@ -84,7 +85,7 @@ final class GridDragHandler extends DragHandler {
   }
 
   @Override
-  public void paint(@NonNull NlGraphics graphics) {
+  public void paint(@NotNull NlGraphics graphics) {
     Insets padding = layout.getPadding();
 
     int layoutX1 = layout.x + padding.left;

@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,16 +37,22 @@ public class AndroidIconProvider extends IconProvider {
   public Icon getIcon(@NotNull PsiElement element, @Iconable.IconFlags int flags) {
     if (element instanceof XmlFile) {
       final VirtualFile file = ((XmlFile)element).getVirtualFile();
-      if (file != null && !FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
-        VirtualFile parent = file.getParent();
-        if (parent != null) {
-          String parentName = parent.getName();
-          int index = parentName.indexOf('-');
-          if (index != -1) {
-            FolderConfiguration config = FolderConfiguration.getConfigForFolder(parentName);
-            if (config != null && config.getLocaleQualifier() != null && ResourceFolderType.getFolderType(parentName) != null) {
-              return FlagManager.get().getFlag(config);
-            }
+      if (file == null) {
+        return null;
+      }
+      if (FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
+        return AndroidIcons.ManifestFile;
+      }
+      VirtualFile parent = file.getParent();
+      if (parent != null) {
+        String parentName = parent.getName();
+        // Check whether resource folder is (potentially) a resource folder with qualifiers
+        int index = parentName.indexOf('-');
+        if (index != -1) {
+          FolderConfiguration config = FolderConfiguration.getConfigForFolder(parentName);
+          if (config != null && config.getLocaleQualifier() != null && ResourceFolderType.getFolderType(parentName) != null) {
+            // If resource folder qualifier specifies locale, show a flag icon
+            return FlagManager.get().getFlag(config);
           }
         }
       }

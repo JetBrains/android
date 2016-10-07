@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.NonNull;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
@@ -39,7 +38,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * A preview component for displaying information about
@@ -49,15 +48,19 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  */
 public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionList.DeviceCategorySelectionListener {
 
+  /**
+   * Constant string used to signal the panel not to preview a null device
+   */
+  public static final String DO_NOT_DISPLAY = "DO_NOT_DISPLAY";
   private static final int FIGURE_PADDING = JBUI.scale(3);
   private static final DecimalFormat FORMAT = new DecimalFormat(".##\"");
   public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px
   public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px
-  double myMaxOutlineHeight;
+  private static final String NO_DEVICE_SELECTED = "No Device Selected";
   double myMaxOutlineWidth;
-  double myMinOutlineHeightIn;
   double myMinOutlineWidthIn;
   private static final int PADDING = JBUI.scale(20);
+
   private final AvdDeviceData myDeviceData;
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
@@ -72,6 +75,11 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;
     addListeners();
+  }
+
+  @NotNull
+  public AvdDeviceData getDeviceData() {
+    return myDeviceData;
   }
 
   /**
@@ -101,6 +109,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     myDeviceData.deviceType().addWeakListener(myRepaintListener);
     myDeviceData.diagonalScreenSize().addWeakListener(myRepaintListener);
     myDeviceData.isScreenRound().addWeakListener(myRepaintListener);
+    myDeviceData.screenDpi().addWeakListener(myRepaintListener);
   }
 
   @Override
@@ -113,6 +122,14 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     g2d.fillRect(0, 0, getWidth(), getHeight());
     g2d.setColor(JBColor.foreground());
     g2d.setFont(STANDARD_FONT);
+
+    if (myDeviceData.name().get().equals(DO_NOT_DISPLAY)) {
+      FontMetrics metrics = g2d.getFontMetrics();
+      g2d.drawString(NO_DEVICE_SELECTED,
+                     (getWidth() - metrics.stringWidth(NO_DEVICE_SELECTED)) / 2,
+                     (getHeight() - metrics.getHeight()) / 2);
+      return;
+    }
 
     boolean isCircular = myDeviceData.isWear().get() && myDeviceData.isScreenRound().get();
 
@@ -128,7 +145,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
     // Paint the device outline with dimensions labelled
     Dimension screenSize = getScaledDimension();
-    Dimension pixelScreenSize = getScreenDimension(getDefaultDeviceOrientation());
+    Dimension pixelScreenSize = myDeviceData.getDeviceScreenDimension();
     if (screenSize != null) {
       if (screenSize.getHeight() <= 0) {
         screenSize.height = 1;
@@ -183,7 +200,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
 
       double chin = (double)myDeviceData.screenChinSize().get();
-      chin *= screenSize.getWidth() / getScreenDimension(getDefaultDeviceOrientation()).getWidth();
+      chin *= screenSize.getWidth() / myDeviceData.getDeviceScreenDimension().getWidth();
       Line2D diagLine = new Line2D.Double(PADDING, JBUI.scale(100) + screenSize.height + chin, PADDING + screenSize.width, JBUI.scale(100));
       if (isCircular) {
         // Move the endpoints of the line to within the circle. Each endpoint must move towards the center axis of the circle by
@@ -234,7 +251,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       stringHeight = metrics.getHeight();
       int infoSegmentX;
       int infoSegmentY;
-      if (getDefaultDeviceOrientation().equals(ScreenOrientation.PORTRAIT)) {
+      if (myDeviceData.getDefaultDeviceOrientation().equals(ScreenOrientation.PORTRAIT)) {
         infoSegmentX = round(PADDING + screenSize.width + metrics.stringWidth(heightString) + PADDING);
         infoSegmentY = JBUI.scale(100);
       }
@@ -253,8 +270,9 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      Density pixelDensity = (myDeviceData.isTv().get()) ? Density.TV : AvdScreenData.getScreenDensity(myDeviceData.screenDpi().get());
-
+      Density pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.isTv().get(),
+                                                            myDeviceData.screenDpi().get(),
+                                                            myDeviceData.screenResolutionHeight().get());
       g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
     }
   }
@@ -263,98 +281,46 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     return (int)Math.round(d);
   }
 
-  private ScreenOrientation getDefaultDeviceOrientation() {
-    return (myDeviceData.supportsPortrait().get())
-           ? ScreenOrientation.PORTRAIT : (myDeviceData.supportsLandscape().get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
-  }
-
   /**
    * @return A scaled dimension of the given device's screen that will fit within this component's bounds.
    */
   @Nullable
   private Dimension getScaledDimension() {
-    Dimension pixelSize = getScreenDimension(getDefaultDeviceOrientation());
+    Dimension pixelSize = myDeviceData.getDeviceScreenDimension();
     if (pixelSize == null) {
       return null;
     }
     double diagonalIn = myDeviceData.diagonalScreenSize().get();
     double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
-    double heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
+    double heightIn = diagonalIn / Math.sqrt(1 + sideRatio * sideRatio);
     double widthIn = sideRatio * heightIn;
 
-    double maxHeightIn = myMaxOutlineHeight == 0 ? heightIn : myMaxOutlineHeight;
     double maxWidthIn = myMaxOutlineWidth == 0 ? widthIn : myMaxOutlineWidth;
-    double maxDimIn = Math.max(maxHeightIn, maxWidthIn);
+    double desiredMaxWidthPx = getWidth() * 0.40;
+    double desiredMinWidthPx = getWidth() * 0.10;
 
-    double desiredMaxWidthPx = getWidth() / 2;
-    double desiredMaxHeightPx = getHeight() / 2;
-    double desiredMaxPx = Math.min(desiredMaxHeightPx, desiredMaxWidthPx);
+    // This is the scaled with we want to use.
+    double widthPixels = widthIn * desiredMaxWidthPx / maxWidthIn;
 
-    double scalingFactorPxToIn = maxDimIn / desiredMaxPx;
-
-    // Test if we have to scale the min as well
-    double desiredMinWidthPx = getWidth() / 10;
-    double desiredMinHeightPx = getHeight() / 10;
-    double desiredMinIn = Math.max(desiredMinWidthPx, desiredMinHeightPx) * scalingFactorPxToIn;
-
-    double minDimIn = Math.min(myMinOutlineHeightIn, myMinOutlineWidthIn);
-    if (minDimIn < desiredMinIn) {
-      // compute F and C such that F * minDimIn + C = desiredMinIn and F * maxDimIn + C = maxDimIn
-      double f = (maxDimIn - desiredMinIn) / (maxDimIn - minDimIn);
-      double c = (desiredMinIn * myMaxOutlineWidth - maxDimIn * minDimIn) / (maxDimIn - minDimIn);
-
-      // scale the diagonal and then recompute the edges, since the edges need to be scaled evenly
-      diagonalIn = myDeviceData.diagonalScreenSize().get() * f + c;
-      heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
-      widthIn = sideRatio * heightIn;
+    // However a search result can contain both very small devices (wear) and very
+    // large devices (TV). When this is the case use this alternate scaling
+    // algorithm to avoid the wear devices to show up as a dot.
+    if (myMinOutlineWidthIn * desiredMaxWidthPx / maxWidthIn < desiredMinWidthPx) {
+      widthPixels =
+        desiredMinWidthPx + (widthIn - myMinOutlineWidthIn) * (desiredMaxWidthPx - desiredMinWidthPx) / (maxWidthIn - myMinOutlineWidthIn);
     }
-
-    return new Dimension((int)(widthIn / scalingFactorPxToIn), (int)(heightIn / scalingFactorPxToIn));
-  }
-
-  @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
-  private Dimension getScreenDimension(@NonNull ScreenOrientation orientation) {
-    // compute width and height to take orientation into account.
-    int x = myDeviceData.screenResolutionWidth().get();
-    int y = myDeviceData.screenResolutionHeight().get();
-    int screenWidth, screenHeight;
-
-    if (x > y) {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = x;
-        screenHeight = y;
-      }
-      else {
-        screenWidth = y;
-        screenHeight = x;
-      }
-    }
-    else {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = y;
-        screenHeight = x;
-      }
-      else {
-        screenWidth = x;
-        screenHeight = y;
-      }
-    }
-
-    return new Dimension(screenWidth, screenHeight);
+    double heightPixels = widthPixels / widthIn * heightIn;
+    return new Dimension((int)widthPixels, (int)heightPixels);
   }
 
   @Override
   public void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices) {
     if (devices == null) {
-      myMaxOutlineHeight = 0;
       myMaxOutlineWidth = 0;
-      myMinOutlineHeightIn = 0;
       myMinOutlineWidthIn = 0;
     }
     else {
-      double maxHeight = 0;
       double maxWidth = 0;
-      double minHeight = Double.MAX_VALUE;
       double minWidth = Double.MAX_VALUE;
       for (Device d : devices) {
         Dimension pixelSize = d.getScreenSize(d.getDefaultState().getOrientation());
@@ -362,18 +328,13 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
           continue;
         }
         double diagonal = d.getDefaultHardware().getScreen().getDiagonalLength();
-        double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
-        double heightIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
-        double widthIn = sideRatio * heightIn;
+        double sideRatio = pixelSize.getHeight() / pixelSize.getWidth();
+        double widthIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
 
         maxWidth = Math.max(maxWidth, widthIn);
-        maxHeight = Math.max(maxHeight, heightIn);
         minWidth = Math.min(minWidth, widthIn);
-        minHeight = Math.min(minHeight, heightIn);
       }
-      myMaxOutlineHeight = maxHeight;
       myMaxOutlineWidth = maxWidth;
-      myMinOutlineHeightIn = minHeight;
       myMinOutlineWidthIn = minWidth;
     }
   }

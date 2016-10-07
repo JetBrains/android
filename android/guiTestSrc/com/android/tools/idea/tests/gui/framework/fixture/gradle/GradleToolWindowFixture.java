@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
@@ -22,8 +24,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -36,7 +38,6 @@ import static com.intellij.util.ui.tree.TreeUtil.expandAll;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -52,13 +53,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
     final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
     assertNotNull(tasksTree);
 
-    pause(new Condition("tree gets populated") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get();
-      }
-    });
+    Wait.seconds(30).expecting("tree to be populated").until(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get());
 
     execute(new GuiTask() {
       @Override
@@ -69,24 +64,26 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
     Object root = tasksTree.getModel().getRoot();
     final TreePath treePath = findTaskPath((DefaultMutableTreeNode)root, taskName);
-    final Point locationOnScreen = new Point();
 
-    execute(new GuiTask() {
+    Point clickLocation = execute(new GuiQuery<Point>() {
       @Override
-      protected void executeInEDT() throws Throwable {
+      protected Point executeInEDT() throws Throwable {
         // We store screen location here because it shows weird (negative) values after 'scrollPathToVisible()' is called.
-        locationOnScreen.setLocation(tasksTree.getLocationOnScreen());
+        Point locationOnScreen = tasksTree.getLocationOnScreen();
         tasksTree.expandPath(treePath.getParentPath());
         tasksTree.scrollPathToVisible(treePath);
+        Rectangle bounds = tasksTree.getPathBounds(treePath);
+        assertNotNull(bounds);
+        bounds.translate(0, bounds.height / 2); // Make sure we are not under the horizontal scroll bar
+        tasksTree.scrollRectToVisible(bounds);
+        Rectangle visibleRect = tasksTree.getVisibleRect();
+        return new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
+                         locationOnScreen.y + bounds.y - visibleRect.y);
       }
     });
 
-    Rectangle bounds = tasksTree.getPathBounds(treePath);
-    assertNotNull(bounds);
-    Rectangle visibleRect = tasksTree.getVisibleRect();
-    Point clickLocation = new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
-                                    locationOnScreen.y + bounds.y + bounds.height / 2 - visibleRect.y);
-    myRobot.click(clickLocation, LEFT_BUTTON, 2);
+    assertNotNull(clickLocation);
+    GuiTests.doubleClick(myRobot, clickLocation);
   }
 
   @NotNull

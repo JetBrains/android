@@ -15,17 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.psi.xml.XmlTag;
+import icons.AndroidDesignerIcons;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +45,37 @@ import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingX;
 import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingY;
 import static com.android.utils.XmlUtils.formatFloatAttribute;
 
-/** Handler for the {@code <LinearLayout>} layout */
+/**
+ * Handler for the {@code <LinearLayout>} layout
+ */
 public class LinearLayoutHandler extends ViewGroupHandler {
+
+  @NotNull
   @Override
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
+    if (!component.getTagName().equals(LINEAR_LAYOUT)) {
+      return super.getTitleAttributes(component);
+    }
+    return isVertical(component) ? "(vertical)" : "(horizontal)";
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
+    if (!component.getTagName().equals(LINEAR_LAYOUT)) {
+      return super.getIcon(component);
+    }
+    return isVertical(component) ? AndroidIcons.Views.VerticalLinearLayout : AndroidIcons.Views.LinearLayout;
+  }
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_ORIENTATION);
+  }
+
+  @Override
+  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
     NlComponent prev = null;
     boolean vertical = isVertical(component);
     for (NlComponent child : component.getChildren()) {
@@ -63,7 +100,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param component the node to check layout orientation for
    * @return true if the layout is in vertical mode, otherwise false
    */
-  protected boolean isVertical(@NonNull NlComponent component) {
+  protected boolean isVertical(@NotNull NlComponent component) {
     // Horizontal is the default, so if no value is specified it is horizontal.
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     return VALUE_VERTICAL.equals(orientation);
@@ -76,7 +113,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @return "horizontal" or "vertical" depending on the current orientation of the
    *         linear layout
    */
-  private static String getCurrentOrientation(@NonNull final NlComponent component) {
+  private static String getCurrentOrientation(@NotNull final NlComponent component) {
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     if (orientation == null || orientation.length() == 0) {
       orientation = VALUE_HORIZONTAL;
@@ -134,10 +171,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     if (layout.w == 0 || layout.h == 0) {
       return null;
     }
@@ -192,10 +229,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     private Integer myHeight;
 
 
-    public LinearDragHandler(@NonNull ViewEditor editor,
-                             @NonNull NlComponent layout,
-                             @NonNull List<NlComponent> components,
-                             @NonNull DragType type) {
+    public LinearDragHandler(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull List<NlComponent> components,
+                             @NotNull DragType type) {
       super(editor, LinearLayoutHandler.this, layout, components, type);
       assert !components.isEmpty();
 
@@ -259,7 +296,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Nullable
     @Override
-    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, @InputEventMask int modifiers) {
       super.update(x, y, modifiers);
 
       boolean isVertical = myVertical;
@@ -306,7 +343,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void paint(@NonNull NlGraphics gc) {
+    public void paint(@NotNull NlGraphics gc) {
       Insets padding = layout.getPadding();
       int layoutX = layout.x + padding.left;
       int layoutW = layout.w - padding.width();
@@ -475,7 +512,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NonNull NlComponent layout, @NonNull NlComponent newChild, @NonNull InsertType insertType) {
+  public void onChildInserted(@NotNull NlComponent layout, @NotNull NlComponent newChild, @NotNull InsertType insertType) {
     if (insertType == InsertType.MOVE_WITHIN) {
       // Don't adjust widths/heights/weights when just moving within a single
       // LinearLayout
@@ -543,8 +580,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     return new LinearResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);
@@ -564,18 +601,18 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     /** List of nodes which should have their weights cleared */
     public List<NlComponent> mClearWeights;
 
-    public LinearResizeHandler(@NonNull ViewEditor editor,
-                               @NonNull ViewGroupHandler handler,
-                               @NonNull NlComponent component,
+    public LinearResizeHandler(@NotNull ViewEditor editor,
+                               @NotNull ViewGroupHandler handler,
+                               @NotNull NlComponent component,
                                @Nullable SegmentType horizontalEdgeType,
                                @Nullable SegmentType verticalEdgeType) {
       super(editor, handler, component, horizontalEdgeType, verticalEdgeType);
 
       unweightedSizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
                                                  @Override
-                                                 public String getAttribute(@NonNull XmlTag n,
+                                                 public String getAttribute(@NotNull XmlTag n,
                                                                             @Nullable String namespace,
-                                                                            @NonNull String localName) {
+                                                                            @NotNull String localName) {
                                                    // Clear out layout weights; we need to measure the unweighted sizes
                                                    // of the children
                                                    if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
@@ -755,10 +792,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
      * layout_height (for vertical LinearLayouts).
      */
     @Override
-    protected void setNewSizeBounds(@NonNull NlComponent component,
-                                    @NonNull NlComponent layout,
-                                    @NonNull Rectangle oldBounds,
-                                    @NonNull Rectangle newBounds,
+    protected void setNewSizeBounds(@NotNull NlComponent component,
+                                    @NotNull NlComponent layout,
+                                    @NotNull Rectangle oldBounds,
+                                    @NotNull Rectangle newBounds,
                                     @Nullable SegmentType horizontalEdge,
                                     @Nullable SegmentType verticalEdge) {
       updateResizeState(component, layout, oldBounds, newBounds, horizontalEdge, verticalEdge);
@@ -786,9 +823,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    protected String getResizeUpdateMessage(@NonNull NlComponent child,
-                                            @NonNull NlComponent parent,
-                                            @NonNull Rectangle newBounds,
+    protected String getResizeUpdateMessage(@NotNull NlComponent child,
+                                            @NotNull NlComponent parent,
+                                            @NotNull Rectangle newBounds,
                                             @Nullable SegmentType horizontalEdge,
                                             @Nullable SegmentType verticalEdge) {
       updateResizeState(child, parent, newBounds, newBounds,
@@ -827,7 +864,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * Returns the layout weight of of the given child of a LinearLayout, or 0.0 if it
    * does not define a weight
    */
-  private static float getWeight(@NonNull NlComponent linearLayoutChild) {
+  private static float getWeight(@NotNull NlComponent linearLayoutChild) {
     String weight = linearLayoutChild.getAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT);
     if (weight != null && weight.length() > 0) {
       try {
@@ -845,7 +882,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param linearLayout the layout to compute the total sum for
    * @return the total sum of all the layout weights in the given layout
    */
-  private static float getWeightSum(@NonNull NlComponent linearLayout) {
+  private static float getWeightSum(@NotNull NlComponent linearLayout) {
     String weightSum = linearLayout.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     float sum = -1.0f;
     if (weightSum != null) {
@@ -861,12 +898,198 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return getSumOfWeights(linearLayout);
   }
 
-  private static float getSumOfWeights(@NonNull NlComponent linearLayout) {
+  private static float getSumOfWeights(@NotNull NlComponent linearLayout) {
     float sum = 0.0f;
     for (NlComponent child : linearLayout.getChildren()) {
       sum += getWeight(child);
     }
 
     return sum;
+  }
+
+  private void clearWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+    // Clear attributes
+    String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent selected : selectedChildren) {
+      selected.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, null);
+      String size = selected.getAttribute(ANDROID_URI, sizeAttribute);
+      if (size != null && size.startsWith("0")) {
+        selected.setAttribute(ANDROID_URI, sizeAttribute, VALUE_WRAP_CONTENT);
+      }
+    }
+  }
+
+  private void distributeWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+    // Any XML to get weight sum?
+    String weightSum = component.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
+    double sum = -1.0;
+    if (weightSum != null && !weightSum.isEmpty()) {
+      // Distribute
+      try {
+        sum = Double.parseDouble(weightSum);
+      }
+      catch (NumberFormatException nfe) {
+        // Just keep using the default
+      }
+    }
+    int numTargets = selectedChildren.size();
+    double share;
+    if (sum <= 0.0) {
+      // The sum will be computed from the children, so just
+      // use arbitrary amount
+      share = 1.0;
+    }
+    else {
+      share = sum / numTargets;
+    }
+    String value = formatFloatAttribute((float)share);
+    String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent selected : selectedChildren) {
+      selected.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, value);
+
+      // Also set the width/height to 0dp to ensure actual equal
+      // size (without this, only the remaining space is
+      // distributed)
+      if (VALUE_WRAP_CONTENT.equals(selected.getAttribute(ANDROID_URI, sizeAttribute))) {
+        selected.setAttribute(ANDROID_URI, sizeAttribute, VALUE_ZERO_DP);
+      }
+    }
+  }
+
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    int rank = 0;
+    actions.add(new ToggleOrientationAction().setRank(rank += 20));
+    actions.add(new BaselineAction().setRank(rank += 20));
+    actions.add(new DistributeWeightsAction().setRank(rank += 20));
+    actions.add(new DominateWeightsAction().setRank(rank += 20));
+    actions.add(new ClearWeightsAction().setRank(rank += 20));
+    actions.add(new ViewActionSeparator().setRank(rank += 20));
+    addDefaultViewActions(actions, rank);
+  }
+
+  @Override
+  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+    addToolbarActionsToMenu("LinearLayout", actions);
+  }
+
+  private class ToggleOrientationAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      boolean isHorizontal = !isVertical(component);
+      String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
+      component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      boolean vertical = isVertical(component);
+
+      presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
+      Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
+      presentation.setIcon(icon);
+    }
+  }
+
+  private class DistributeWeightsAction extends DirectViewAction {
+    public DistributeWeightsAction() {
+      super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setVisible(selectedChildren.size() > 1);
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
+
+      distributeWeights(component, selectedChildren);
+    }
+  }
+
+  private class DominateWeightsAction extends DirectViewAction {
+    public DominateWeightsAction() {
+      super(AndroidDesignerIcons.DominateWeight, "Assign All Weight");
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
+      distributeWeights(component, selectedChildren);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setVisible(!selectedChildren.isEmpty());
+    }
+  }
+
+  private class ClearWeightsAction extends DirectViewAction {
+    public ClearWeightsAction() {
+      super(AndroidDesignerIcons.ClearWeights, "Clear All Weights");
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
+      clearWeights(component, selectedChildren);
+    }
+
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setVisible(!selectedChildren.isEmpty());
+    }
+  }
+
+  private static class BaselineAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
+      boolean align = !isBaselineAligned(component);
+      component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
+    }
+
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      boolean align = !isBaselineAligned(component);
+      presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
+      presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
+    }
+
+    private static boolean isBaselineAligned(NlComponent component) {
+      String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
+      return value == null ? true : Boolean.valueOf(value);
+    }
   }
 }

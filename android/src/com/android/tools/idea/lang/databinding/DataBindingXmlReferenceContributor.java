@@ -22,9 +22,9 @@ import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
 import com.android.tools.idea.lang.databinding.psi.*;
-import com.android.tools.idea.rendering.DataBindingInfo;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -247,7 +247,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
         if (!hasInvalidArg) {
           // todo check static
-          ModelMethod method = psiModelClass.getMethod(methodExpr.getMethodName().getText(), args, false);
+          ModelMethod method = psiModelClass.getMethod(methodExpr.getMethodName().getText(), args, false, false);
           if (method instanceof PsiModelMethod) {
             return toArray(new PsiMethodReference(methodExpr, ((PsiModelMethod)method).getPsiMethod()));
           }
@@ -381,7 +381,6 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       }
     }
 
-    @NotNull
     @Override
     public PsiModelClass getResolvedType() {
       return myModelClass;

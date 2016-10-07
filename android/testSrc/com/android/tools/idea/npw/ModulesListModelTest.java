@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.npw.ModuleListModel;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;

@@ -15,32 +15,49 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.google.common.collect.ImmutableList;
+import icons.AndroidDesignerIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <ScrollView>} widget */
+/**
+ * Handler for the {@code <ScrollView>} widget
+ */
 public class ScrollViewHandler extends ViewGroupHandler {
   @Override
-  public void onChildInserted(@NonNull NlComponent parent, @NonNull NlComponent child,
-                              @NonNull InsertType insertType) {
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SCROLLBAR_STYLE,
+      ATTR_STYLE,
+      ATTR_FILL_VIEWPORT,
+      ATTR_CLIP_TO_PADDING);
+  }
+
+  @Override
+  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+                              @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent node,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent node,
+                          @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
@@ -52,21 +69,41 @@ public class ScrollViewHandler extends ViewGroupHandler {
     return true;
   }
 
+
   @Nullable
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
   }
 
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    int maxScrollableHeight = 0;
+    for (NlComponent child : component.getChildren()) {
+      maxScrollableHeight += child.h;
+    }
+
+    // Subtract the viewport height from the scrollable size
+    maxScrollableHeight -= component.h;
+
+    if (maxScrollableHeight > 0) {
+      // There is something to scroll
+      return new ScrollViewScrollHandler(component, maxScrollableHeight, 10);
+    }
+
+    return null;
+  }
+
   static class OneChildDragHandler extends DragHandler {
-    public OneChildDragHandler(@NonNull ViewEditor editor,
-                               @NonNull ViewGroupHandler handler,
-                               @NonNull NlComponent layout,
-                               @NonNull List<NlComponent> components,
-                               @NonNull DragType type) {
+    public OneChildDragHandler(@NotNull ViewEditor editor,
+                               @NotNull ViewGroupHandler handler,
+                               @NotNull NlComponent layout,
+                               @NotNull List<NlComponent> components,
+                               @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }
 
@@ -87,11 +124,40 @@ public class ScrollViewHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void paint(@NonNull NlGraphics graphics) {
+    public void paint(@NotNull NlGraphics graphics) {
       if (layout.getChildCount() == 0) {
         graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
         graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
       }
+    }
+  }
+
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    actions.add(new ToggleRenderModeAction());
+  }
+
+  static class ToggleRenderModeAction extends ToggleViewAction {
+    public ToggleRenderModeAction() {
+      super(AndroidDesignerIcons.ViewportRender, AndroidDesignerIcons.NormalRender, "Toggle Viewport Render Mode", null);
+    }
+
+    @Override
+    public boolean isSelected(@NotNull ViewEditor editor,
+                              @NotNull ViewHandler handler,
+                              @NotNull NlComponent parent,
+                              @NotNull List<NlComponent> selectedChildren) {
+      return NlModel.isRenderViewPort();
+    }
+
+    @Override
+    public void setSelected(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            boolean selected) {
+      NlModel.setRenderViewPort(selected);
+      parent.getModel().requestRender();
     }
   }
 }

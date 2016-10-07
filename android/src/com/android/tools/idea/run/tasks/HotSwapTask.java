@@ -16,27 +16,37 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.fd.client.AppState;
+import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.*;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.Project;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-public class HotSwapTask implements LaunchTask {
-  private final AndroidFacet myFacet;
-  private final ExecutionEnvironment myEnv;
-  private boolean myNeedsActivityLaunch;
+import javax.swing.event.HyperlinkEvent;
+import java.io.IOException;
 
-  public HotSwapTask(@NotNull ExecutionEnvironment env, @NotNull AndroidFacet facet) {
-    myEnv = env;
-    myFacet = facet;
+public class HotSwapTask implements LaunchTask {
+  private final Project myProject;
+  private final InstantRunContext myInstantRunContext;
+  private final boolean myRestartActivity;
+
+  public HotSwapTask(@NotNull Project project, @NotNull InstantRunContext context, boolean restartActivity) {
+    myProject = project;
+    myInstantRunContext = context;
+    myRestartActivity = restartActivity;
   }
 
   @NotNull
@@ -52,39 +62,28 @@ public class HotSwapTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    printer.stdout("Hotswapping changes...");
-
-    InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
-
-    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-    assert model != null;
-    InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
-    assert buildInfo != null;
-
+    InstantRunManager manager = InstantRunManager.get(myProject);
+    UpdateMode updateMode = null;
     try {
-      myNeedsActivityLaunch = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
-      // Note that the above method will update the build id on the device
-      // and the InstalledPatchCache, so we don't have to do it again.
+      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(myInstantRunContext);
+      if (instantRunClient == null) {
+        return terminateLaunch(launchStatus, "Unable to connect to application. Press Run or Debug to rebuild and install the app.");
+      }
+
+      updateMode = manager.pushArtifacts(device, myInstantRunContext, myRestartActivity ? UpdateMode.WARM_SWAP : UpdateMode.HOT_SWAP);
+      printer.stdout("Hot swapped changes, activity " + (updateMode == UpdateMode.HOT_SWAP ? "not restarted" : "restarted"));
     }
-    catch (InstantRunPushFailedException e) {
-      launchStatus.terminateLaunch("Restarting launch, Error installing hot swap patches: " + e);
-
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          InstantRunUtils.setRestartSession(myEnv, device);
-          ExecutionUtil.restart(myEnv);
-        }
-      });
-
-      return true; // not an error condition since we've already terminated and restarted the launch
+    catch (InstantRunPushFailedException | IOException e) {
+      return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
 
-    InstantRunStatsService.get(myEnv.getProject()).notifyDeployType(InstantRunStatsService.DeployType.HOTSWAP);
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP, myInstantRunContext.getBuildSelection().why, device);
     return true;
   }
 
-  public boolean needsActivityLaunch() {
-    return myNeedsActivityLaunch;
+  private static boolean terminateLaunch(LaunchStatus launchStatus, String msg) {
+    launchStatus.terminateLaunch(msg);
+    InstantRunManager.LOG.info("Terminating launch: " + msg);
+    return false;
   }
 }

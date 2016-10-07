@@ -55,9 +55,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel myLoadingPanel;
   private final List<FormFactorSdkControls> myControls = Lists.newArrayList();
 
-  private Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
-  private Disposable myDisposable;
-  private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
+  private final Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
+  private final Disposable myDisposable;
+  private final Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms may require separate SDKs", disposable);
@@ -72,13 +72,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     final Set<FormFactorSdkControls> pendingControls = Sets.newHashSet(myControls);
 
     for (final FormFactorSdkControls controls : myControls) {
-      controls.init(myState, new Runnable() {
-        @Override
-        public void run() {
-          pendingControls.remove(controls);
-          if (pendingControls.isEmpty()) {
-            myLoadingPanel.setVisible(false);
-          }
+      controls.init(myState, () -> {
+        pendingControls.remove(controls);
+        if (pendingControls.isEmpty()) {
+          myLoadingPanel.setVisible(false);
         }
       });
     }
@@ -98,12 +95,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == null) {
-        continue;
-      }
       Integer prevMinSdk = myFormFactors.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
-      if (prevMinSdk == null || templateMinSdk > prevMinSdk) {
+
+      if (prevMinSdk == null) {
+        myFormFactors.put(formFactor, Math.max(templateMinSdk, formFactor.getMinOfflineApiLevel()));
+      }
+      else if (templateMinSdk > prevMinSdk) {
         myFormFactors.put(formFactor, templateMinSdk);
       }
     }
@@ -141,14 +139,14 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     // Persist the min API level choices on a per-form factor basis
     int enabledFormFactors = 0;
     for (FormFactor formFactor : myFormFactors.keySet()) {
-      Boolean included = myState.get(getInclusionKey(formFactor));
+      boolean included = myState.getNotNull(getInclusionKey(formFactor), false);
       // Disable api selection for non-enabled form factors and check to see if only one is selected
-      if (included != null && included) {
+      if (included) {
         enabledFormFactors++;
-        FormFactorSdkControls controls = myFormFactorApiSelectors.get(formFactor);
-        if (controls != null) {
-          controls.deriveValues(myState, modified);
-        }
+      }
+      FormFactorSdkControls controls = myFormFactorApiSelectors.get(formFactor);
+      if (controls != null) {
+        controls.deriveValues(myState, modified);
       }
     }
     myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
@@ -191,7 +189,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
     // Check if minSDK of the base is valid:
     AndroidTargetComboBoxItem baseMinSdk = myState.get(getTargetComboBoxKey(formFactor.baseFormFactor));
-    if (!FormFactorUtils.getMinSdkComboBoxFilter(formFactor, myFormFactors.get(formFactor)).apply(baseMinSdk)) {
+    if (!getMinSdkComboBoxFilter(formFactor, myFormFactors.get(formFactor)).apply(baseMinSdk)) {
       // Don't allow the user to continue unless all minAPIs of base form factors are chosen
       // TODO: add valid minimum SDK levels to the error message.
       setErrorHtml("Set a minimum SDK level on " + formFactor.baseFormFactor + " that is compatible with " + formFactor);

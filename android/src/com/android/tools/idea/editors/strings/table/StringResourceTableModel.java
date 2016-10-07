@@ -78,19 +78,19 @@ public class StringResourceTableModel extends AbstractTableModel {
       return "";
     }
 
+    String key = keyOfRow(row);
+
     if (column >= ConstantColumn.COUNT) {
       Locale locale = localeOfColumn(column);
-      return myData.getTranslations().contains(keyOfRow(row), locale) ? StringResourceData
-        .resourceToString(myData.getTranslations().get(keyOfRow(row), locale)) : "";
+      return locale == null ? "" : myData.resourceToString(key, locale);
     }
     switch (ConstantColumn.values()[column]) {
       case KEY:
-        return keyOfRow(row);
+        return key;
       case DEFAULT_VALUE:
-        return myData.getDefaultValues().containsKey(keyOfRow(row)) ? StringResourceData
-          .resourceToString(myData.getDefaultValues().get(keyOfRow(row))) : "";
+        return myData.resourceToString(key);
       case UNTRANSLATABLE:
-        return myData.getUntranslatableKeys().contains(keyOfRow(row));
+        return myData.getUntranslatableKeys().contains(key);
       default:
         return "";
     }

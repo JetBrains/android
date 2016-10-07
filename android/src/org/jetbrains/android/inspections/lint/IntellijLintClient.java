@@ -7,10 +7,10 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
@@ -57,7 +57,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_ERROR;
@@ -183,7 +186,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   public void report(@NonNull Context context,
                      @NonNull Issue issue,
                      @NonNull Severity severity,
-                     @Nullable Location location,
+                     @NonNull Location location,
                      @NonNull String message,
                      @NonNull TextFormat format) {
     assert false : message;
@@ -245,7 +248,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new LombokPsiParser(this);
+    return new LombokPsiParser(this, myProject);
   }
 
   @NonNull
@@ -297,7 +300,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     Module module = getModule();
     if (module != null) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-      if (moduleSdk != null) {
+      if (moduleSdk != null && moduleSdk.getSdkType() instanceof AndroidSdkType) {
         String path = moduleSdk.getHomePath();
         if (path != null) {
           File home = new File(path);
@@ -477,7 +480,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
                        @NonNull Severity severity,
-                       @Nullable Location location,
+                       @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format) {
       if (location != null) {
@@ -546,6 +549,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
         public String compute() {
           final Module module = myState.getModule();
           final Project project = module.getProject();
+          if (project.isDisposed()) {
+            return null;
+          }
+
           final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
 
           if (psiFile == null) {
@@ -627,7 +634,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
                        @NonNull Severity severity,
-                       @Nullable Location location,
+                       @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format) {
       VirtualFile vFile = null;
@@ -752,12 +759,20 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public AbstractResourceRepository getProjectResources(com.android.tools.lint.detector.api.Project project, boolean includeDependencies) {
+  public AbstractResourceRepository getResourceRepository(com.android.tools.lint.detector.api.Project project,
+                                                          boolean includeModuleDependencies,
+                                                          boolean includeLibraries) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        return includeDependencies ? facet.getProjectResources(true) : facet.getModuleResources(true);
+        if (includeLibraries) {
+          return facet.getAppResources(true);
+        } else if (includeModuleDependencies) {
+          return facet.getProjectResources(true);
+        } else {
+          return facet.getModuleResources(true);
+        }
       }
     }
 

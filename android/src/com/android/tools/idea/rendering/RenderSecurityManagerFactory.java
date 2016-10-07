@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.sdk.AndroidPlatform;

@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
@@ -158,9 +158,17 @@ class IntellijLintProject extends Project {
     Graph<Module> graph = ApplicationManager.getApplication().runReadAction(new Computable<Graph<Module>>() {
       @Override
       public Graph<Module> compute() {
-        return ModuleManager.getInstance(module.getProject()).moduleGraph();
+        com.intellij.openapi.project.Project project = module.getProject();
+        if (project.isDisposed()) {
+          return null;
+        }
+        return ModuleManager.getInstance(project).moduleGraph();
       }
     });
+
+    if (graph == null) {
+      return null;
+    }
 
     Set<AndroidFacet> facets = Sets.newHashSet();
     HashSet<Module> seen = Sets.newHashSet();
@@ -316,7 +324,7 @@ class IntellijLintProject extends Project {
       if (androidModel instanceof AndroidGradleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
       } else {
-        project = new LintAndroidProject(client, dir, dir, facet);
+        project = new LintAndroidModelProject(client, dir, dir, facet, androidModel);
       }
     }
     else {
@@ -355,7 +363,7 @@ class IntellijLintProject extends Project {
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
     for (AndroidLibrary library : libraries) {
       Project p = libraryMap.get(library);
       if (p == null) {
@@ -635,7 +643,7 @@ class IntellijLintProject extends Project {
               if (facet == null) {
                 continue;
               }
-              ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+              MergedManifest manifestInfo = MergedManifest.get(module);
               if ("android.support.v7.appcompat".equals(manifestInfo.getPackage())) {
                 mAppCompat = true;
                 break;
@@ -650,7 +658,54 @@ class IntellijLintProject extends Project {
     }
   }
 
-  private static class LintGradleProject extends LintAndroidProject {
+  private static class LintAndroidModelProject extends LintAndroidProject {
+    private final AndroidModel myAndroidModel;
+
+    private LintAndroidModelProject(
+      @NonNull LintClient client,
+      @NonNull File dir,
+      @NonNull File referenceDir,
+      @NonNull AndroidFacet facet,
+      @NonNull AndroidModel androidModel) {
+      super(client, dir, referenceDir, facet);
+      myAndroidModel = androidModel;
+    }
+
+    @Nullable
+    @Override
+    public String getPackage() {
+      String manifestPackage = super.getPackage();
+      // For now, lint only needs the manifest package; not the potentially variant specific
+      // package. As part of the Gradle work on the Lint API we should make two separate
+      // package lookup methods -- one for the manifest package, one for the build package
+      if (manifestPackage != null) {
+        return manifestPackage;
+      }
+
+      return myAndroidModel.getApplicationId();
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getMinSdkVersion() {
+      if (mMinSdkVersion == null) {
+        mMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
+      }
+      return mMinSdkVersion;
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getTargetSdkVersion() {
+      if (mTargetSdkVersion == null) {
+        mTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
+      }
+
+      return mTargetSdkVersion;
+    }
+  }
+
+  private static class LintGradleProject extends LintAndroidModelProject {
     private final AndroidGradleModel myAndroidGradleModel;
 
     /**
@@ -662,7 +717,7 @@ class IntellijLintProject extends Project {
       @NonNull File referenceDir,
       @NonNull AndroidFacet facet,
       @NonNull AndroidGradleModel androidGradleModel) {
-      super(client, dir, referenceDir, facet);
+      super(client, dir, referenceDir, facet, androidGradleModel);
       mGradleProject = true;
       mMergeManifests = true;
       myAndroidGradleModel = androidGradleModel;
@@ -801,7 +856,7 @@ class IntellijLintProject extends Project {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            Collection<JavaLibrary> libs = myAndroidGradleModel.getMainArtifact().getDependencies().getJavaLibraries();
+            Collection<JavaLibrary> libs = myAndroidGradleModel.getSelectedMainCompileDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
               if (!includeProvided) {
@@ -835,46 +890,6 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
-    @Nullable
-    @Override
-    public String getPackage() {
-      String manifestPackage = super.getPackage();
-      // For now, lint only needs the manifest package; not the potentially variant specific
-      // package. As part of the Gradle work on the Lint API we should make two separate
-      // package lookup methods -- one for the manifest package, one for the build package
-      if (manifestPackage != null) {
-        return manifestPackage;
-      }
-
-      // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-      if (androidModel != null) {
-        return androidModel.getApplicationId();
-      }
-
-      return null;
-    }
-
-    @NonNull
-    @Override
-    public AndroidVersion getMinSdkVersion() {
-      if (mMinSdkVersion == null) {
-        mMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
-      }
-
-      return mMinSdkVersion;
-    }
-
-    @NonNull
-    @Override
-    public AndroidVersion getTargetSdkVersion() {
-      if (mTargetSdkVersion == null) {
-        mTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
-      }
-
-      return mTargetSdkVersion;
-    }
-
     @Override
     public int getBuildSdk() {
       // TODO: b/22928250
@@ -883,13 +898,13 @@ class IntellijLintProject extends Project {
         String compileTarget = androidModel.getAndroidProject().getCompileTarget();
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
         if (version != null) {
-          return version.getApiLevel();
+          return version.getFeatureLevel();
         }
       }
 
       AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
-        return platform.getApiLevel();
+        return platform.getApiVersion().getFeatureLevel();
       }
 
       return super.getBuildSdk();
@@ -901,7 +916,6 @@ class IntellijLintProject extends Project {
       // TODO: b/22928250
       AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
       if (androidModel != null) {
-        androidModel.getSelectedVariant();
         return androidModel.getAndroidProject();
       }
 

@@ -29,20 +29,18 @@ public class FacetsTest extends IdeaTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
     final FacetManager facetManager = FacetManager.getInstance(myModule);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-          model.addFacet(facet);
+        @Override
+        public void run() {
+          ModifiableFacetModel model = facetManager.createModifiableModel();
+          try {
+            AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+            model.addFacet(facet);
+          }
+          finally {
+            model.commit();
+          }
         }
-        finally {
-          model.commit();
-        }
-      }
     });
-
-
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -51,7 +49,6 @@ public class FacetsTest extends IdeaTestCase {
         Facets.removeAllFacetsOfType(myModule, AndroidFacet.ID);
       }
     });
-
 
     assertEquals(0, facetManager.getFacetsByType(AndroidFacet.ID).size());
   }
@@ -72,7 +69,6 @@ public class FacetsTest extends IdeaTestCase {
       }
     });
 
-
     assertEquals(1, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -81,7 +77,6 @@ public class FacetsTest extends IdeaTestCase {
         Facets.removeAllFacetsOfType(myModule, AndroidGradleFacet.TYPE_ID);
       }
     });
-
 
     assertEquals(0, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
   }

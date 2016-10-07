@@ -15,31 +15,41 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import junit.framework.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-public class AttributeValueTest extends GuiTestCase {
-  @Test @IdeGuiTest
+import static com.google.common.truth.Truth.assertThat;
+
+@RunIn(TestGroup.EDITING)
+@RunWith(GuiTestRunner.class)
+public class AttributeValueTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testAttributeValueInput() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
-    final EditorFixture editor = myProjectFrame.getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("<TextView|"));
+    editor.moveBetween("<TextView", "");
     editor.enterText("\nandroid:fontFamily=\"monospace\"");
 
     // No double quotes have been added because of automatic first quote insertion
-    Assert.assertEquals("android:fontFamily=\"monospace\"", editor.getCurrentLineContents(true, false, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("android:fontFamily=\"monospace\"");
 
     editor.enterText("\nandroid:inputT");
     editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
     // Invoking completion adds quotes
-    Assert.assertEquals("android:inputType=\"\"", editor.getCurrentLineContents(true, false, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("android:inputType=\"\"");
   }
 }

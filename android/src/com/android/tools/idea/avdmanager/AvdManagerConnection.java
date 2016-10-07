@@ -26,20 +26,19 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
-import com.android.tools.idea.sdk.LogWrapper;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -76,10 +75,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.sdklib.repositoryv2.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
@@ -95,7 +96,6 @@ public class AvdManagerConnection {
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
-  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
@@ -114,7 +114,7 @@ public class AvdManagerConnection {
   };
 
   private AvdManager myAvdManager;
-  private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<File, AvdManagerConnection>();
+  private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<>();
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
 
@@ -342,20 +342,11 @@ public class AvdManagerConnection {
     }
 
     Map<String, String> properties = info.getProperties();
-    String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
-    String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
-    String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
+    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
+    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(emulatorBinary.getPath());
-
-    // Don't explicitly set auto since that seems to be the default behavior, but when set
-    // can cause the emulator to fail to launch with this error message:
-    //  "could not get monitor DPI resolution from system. please use -dpi-monitor to specify one"
-    // (this happens on OSX where we don't have a reliable, Retina-correct way to get the dpi)
-    if (scaleFactor != null && !"auto".equals(scaleFactor)) {
-      commandLine.addParameters("-scale", scaleFactor);
-    }
 
     if (netDelay != null) {
       commandLine.addParameters("-netdelay", netDelay);
@@ -387,46 +378,50 @@ public class AvdManagerConnection {
 
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
     // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
-        processHandler.addProcessListener(collector);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
+      processHandler.addProcessListener(collector);
 
-        try {
-          p.start();
-          p.setText("Starting AVD...");
-          for (double d = 0; d < 1; d += 1.0 / 80) {
-            p.setFraction(d);
-            //noinspection BusyWait
-            Thread.sleep(100);
-            if (processHandler.isProcessTerminated()) {
-              break;
-            }
+      try {
+        p.start();
+        p.setText("Starting AVD...");
+        for (double d = 0; d < 1; d += 1.0 / 80) {
+          p.setFraction(d);
+          //noinspection BusyWait
+          Thread.sleep(100);
+          if (processHandler.isProcessTerminated()) {
+            break;
           }
         }
-        catch (InterruptedException ignore) {
-        }
-        finally {
-          p.stop();
-          p.processFinish();
-        }
+      }
+      catch (InterruptedException ignore) {
+      }
+      finally {
+        p.stop();
+        p.processFinish();
+      }
 
-        processHandler.removeProcessListener(collector);
-        final String message = collector.getText();
+      processHandler.removeProcessListener(collector);
+      String message = limitErrorMessage(collector.getText());
 
-        if (message.toLowerCase().contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName);
-            }
-          });
-        }
+      if (message.toLowerCase(Locale.ROOT).contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
+        ApplicationManager.getApplication().invokeLater(
+          () -> Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName));
       }
     });
 
-    return EmulatorConnectionListener.getDeviceForEmulator(info.getName(), processHandler, 5, TimeUnit.MINUTES);
+    return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Limit the error message retrieved from the emulator to the smaller of 1K characters or 30 lines.
+   */
+  private static String limitErrorMessage(@NotNull String message) {
+    int offset = StringUtil.lineColToOffset(message, 30, 0);
+    if (offset < 0) {
+      offset = message.length();
+    }
+    return message.substring(0, Math.min(offset, 1024));
   }
 
   /**
@@ -468,18 +463,8 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
     }
     final SettableFuture<ListenableFuture<IDevice>> future = SettableFuture.create();
-    Runnable retry = new Runnable() {
-      @Override
-      public void run() {
-        future.set(startAvd(project, info));
-      }
-    };
-    Runnable cancel = new Runnable() {
-      @Override
-      public void run() {
-        future.setException(new RuntimeException("Retry after fixing problem by hand"));
-      }
-    };
+    Runnable retry = () -> future.set(startAvd(project, info));
+    Runnable cancel = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
     Runnable action = AccelerationErrorSolution.getActionForFix(error, project, retry, cancel);
     ApplicationManager.getApplication().invokeLater(action);
     return Futures.dereference(future);
@@ -577,14 +562,15 @@ public class AvdManagerConnection {
     if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
     }
-    if (FileUtil.filesEqual(skinFolder, AvdWizardConstants.NO_SKIN)) {
+    if (FileUtil.filesEqual(skinFolder, AvdWizardUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
-      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION, ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase());
+      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
+                             ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
@@ -618,22 +604,27 @@ public class AvdManagerConnection {
     return null;
   }
 
-  public static boolean doesSystemImageSupportRanchu(SystemImageDescription description) {
-    AndroidVersion version = description.getVersion();
-    IdDisplay tag = description.getTag();
-    String abiType = description.getAbiType();
-    Revision revision = description.getRevision();
-
-    int apiLevel = version.getApiLevel();
-    if (apiLevel < 22) {
+  public static boolean doesSystemImageSupportQemu2(@Nullable SystemImageDescription description, @NotNull FileOp fileOp) {
+    if (description == null) {
       return false;
     }
-    for (SystemImageUpdateDependency dependency : SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2) {
-      if (dependency.updateRequired(abiType, apiLevel, tag, revision)) {
-        return false;
+    ISystemImage systemImage = description.getSystemImage();
+    if (systemImage == null) {
+      return false;
+    }
+    File location = systemImage.getLocation();
+    if (!fileOp.isDirectory(location)) {
+      return false;
+    }
+    String[] files = fileOp.list(location, null);
+    if (files != null) {
+      for (String filename : files) {
+        if (FileUtil.getNameWithoutExtension(filename).equals("kernel-ranchu")) {
+          return true;
+        }
       }
     }
-    return true;
+    return false;
   }
 
   public boolean avdExists(String candidate) {
@@ -743,16 +734,10 @@ public class AvdManagerConnection {
         return ((Number)result).longValue();
       }
     }
-    catch (ClassNotFoundException e) {
+    catch (ClassNotFoundException | NoSuchMethodException e) {
       // Unsupported JDK
     }
-    catch (NoSuchMethodException e) {
-      // Unsupported JDK
-    }
-    catch (InvocationTargetException e) {
-      IJ_LOG.error(e); // Shouldn't happen (unsupported JDK?)
-    }
-    catch (IllegalAccessException e) {
+    catch (InvocationTargetException | IllegalAccessException e) {
       IJ_LOG.error(e); // Shouldn't happen (unsupported JDK?)
     }
     // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.

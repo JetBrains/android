@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler.OneChildDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -28,17 +30,23 @@ import static com.android.SdkConstants.*;
 /** Handler for the {@code <HorizontalScrollView>} widget */
 public class HorizontalScrollViewHandler extends ViewGroupHandler {
   @Override
-  public void onChildInserted(@NonNull NlComponent parent, @NonNull NlComponent child,
-                              @NonNull InsertType insertType) {
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_FILL_VIEWPORT);
+  }
+
+  @Override
+  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+                              @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent node,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent node,
+                          @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
@@ -52,10 +60,15 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
 
   @Nullable
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
+  }
+
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    actions.add(new ScrollViewHandler.ToggleRenderModeAction());
   }
 }

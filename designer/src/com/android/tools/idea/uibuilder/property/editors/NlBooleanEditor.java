@@ -16,98 +16,82 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.UIBundle;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ThreeStateCheckBox;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class NlBooleanEditor extends PTableCellEditor implements ActionListener {
+public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private final JPanel myPanel;
-  private final FixedSizeButton myBrowseButton;
   private final ThreeStateCheckBox myCheckbox;
 
   private NlProperty myProperty;
   private Object myValue;
 
-  public NlBooleanEditor() {
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlBooleanEditor(cellEditor, cellEditor));
+    return cellEditor;
+  }
 
+  public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
+    return new NlBooleanEditor(listener, null);
+  }
+
+  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel.Context context) {
+    super(listener);
     myCheckbox = new ThreeStateCheckBox();
+    myCheckbox.addActionListener(this::checkboxChanged);
+    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
+    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
 
-    myBrowseButton = new FixedSizeButton(myCheckbox);
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+    if (context != null) {
+      myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
+    }
+  }
 
-    myCheckbox.addActionListener(this);
-    myBrowseButton.addActionListener(this);
+  @Nullable
+  @Override
+  public NlProperty getProperty() {
+    return myProperty;
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlProperty;
-
-    myProperty = (NlProperty)value;
-
-    Color fg = UIUtil.getTableSelectionForeground();
-    Color bg = UIUtil.getTableSelectionBackground();
-
-    myPanel.setForeground(fg);
-    myPanel.setBackground(bg);
-
-    for (int i = 0; i < myPanel.getComponentCount(); i++) {
-      Component comp = myPanel.getComponent(i);
-      comp.setForeground(fg);
-      comp.setBackground(bg);
-    }
+  public void setProperty(@NotNull NlProperty property) {
+    myProperty = property;
 
     String propValue = myProperty.getValue();
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
     myCheckbox.setState(state == null ? ThreeStateCheckBox.State.NOT_SELECTED : state);
+  }
 
+  @NotNull
+  @Override
+  public JComponent getComponent() {
     return myPanel;
   }
 
+  @Nullable
   @Override
-  public Object getCellEditorValue() {
+  public Object getValue() {
     return myValue;
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == myCheckbox) {
-      myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
-      stopCellEditing();
-    } else if (e.getSource() == myBrowseButton) {
-      ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
-      if (dialog.showAndGet()) {
-        myValue = dialog.getResourceName();
-        stopCellEditing();
-      } else {
-        cancelCellEditing();
-      }
-    }
   }
 
   @Override
   public void activate() {
     myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
-    stopCellEditing();
+    stopEditing(myValue);
   }
 
-  @Override
-  public boolean isBooleanEditor() {
-    return true;
+  private void checkboxChanged(ActionEvent e) {
+    myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
+    stopEditing(myValue);
   }
 }

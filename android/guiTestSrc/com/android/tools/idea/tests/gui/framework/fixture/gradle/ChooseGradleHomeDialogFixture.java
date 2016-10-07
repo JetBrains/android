@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.intellij.openapi.ui.FixedSizeButton;
@@ -22,19 +23,18 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.ComponentFinder;
-import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.gradle.project.ChooseGradleHomeDialog.VALIDATION_MESSAGE_CLIENT_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -43,7 +43,6 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.*;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.query.ComponentShowingQuery.isShowing;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradleHomeDialogFixture, Dialog>
   implements ContainerFixture<Dialog> {
@@ -56,19 +55,11 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
           return false;
         }
         ComponentFinder finder = robot.finder();
-        finder.find(dialog, new ComponentMatcher() {
-          @Override
-          public boolean matches(Component c) {
-            if (c instanceof JBLabel) {
-              return "Gradle home:".equals(((JBLabel)c).getText());
-            }
-            return false;
-          }
-        });
+        finder.find(dialog, c -> (c instanceof JBLabel) && "Gradle home:".equals(((JBLabel)c).getText()));
         finder.findByType(dialog, TextFieldWithBrowseButton.class);
         return true;
       }
-    }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
+    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
     return new ChooseGradleHomeDialogFixture(robot, found.target());
   }
 
@@ -110,9 +101,8 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
-      @Override
-      public boolean test() {
+    Wait.minutes(2).expecting(String.format("error message '%1$s' to appear", errorText))
+      .until(() -> {
         ComponentFinder finder = robot().finder();
         Collection<JPanel> errorTextPanels = finder.findAll(target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
           @Override
@@ -134,8 +124,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
           }
         });
         return labels.size() == 1;
-      }
-    }, SHORT_TIMEOUT);
+      });
 
     // The label with the error message above also has HTML formatting, which makes the check for error not 100% reliable.
     // To ensure that the shown error message is what we expect, we store the message as a client property in the dialog's

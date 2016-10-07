@@ -15,11 +15,22 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
+import com.android.repository.api.ConstantSourceProvider;
+import com.android.repository.api.RepositorySourceProvider;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
 
@@ -31,8 +42,30 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
     if (isAndroidSdkManagerEnabled()) {
-      ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
+      ExternalComponentManager.getInstance().registerComponentSource(new SdkComponentSource());
+
+      URL offlineRepo = getOfflineRepoDir();
+      if (offlineRepo != null) {
+        // We don't have an actual RepoManager yet, so just get all the modules statically.
+        RepositorySourceProvider provider =
+          new ConstantSourceProvider(offlineRepo.toString(), "Offline Repo", AndroidSdkHandler.getAllModules());
+        AndroidSdkHandler.addCustomSourceProvider(provider, new StudioLoggerProgressIndicator(getClass()));
+      }
     }
+  }
+
+  @Nullable
+  private static URL getOfflineRepoDir() {
+    Path path = Paths.get(PathManager.getPreInstalledPluginsPath(), "sdk-updates", "offline-repo", "offline-repo.xml");
+    if (Files.exists(path)) {
+      try {
+        return path.toUri().toURL();
+      }
+      catch (MalformedURLException e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   @Override

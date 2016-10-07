@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateModelException;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
 @SuppressWarnings("javadoc")
 public class KeystoreUtilsTest extends TestCase {

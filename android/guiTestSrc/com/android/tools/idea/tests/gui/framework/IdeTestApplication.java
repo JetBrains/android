@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
@@ -44,13 +43,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.application.PathManager.PROPERTY_CONFIG_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.ui.UIUtil.initDefaultLAF;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.junit.Assert.assertNotNull;
 

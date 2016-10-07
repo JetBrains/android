@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="app_name">Different App Name</string>
     <string name="title_crossfade">Complex Crossfade</string>

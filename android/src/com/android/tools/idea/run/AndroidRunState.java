@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BooleanStatus;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -37,30 +37,28 @@ import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 public class AndroidRunState implements RunProfileState {
   @NotNull private final ExecutionEnvironment myEnv;
   @NotNull private final String myLaunchConfigName;
   @NotNull private final Module myModule;
-  @NotNull private final ApkProvider myApkProvider;
+  @NotNull private final ApplicationIdProvider myApplicationIdProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
-  @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
+  @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
   @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidRunState(@NotNull ExecutionEnvironment env,
                          @NotNull String launchConfigName,
                          @NotNull Module module,
-                         @NotNull ApkProvider apkProvider,
+                         @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
-                         @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
+                         @NotNull DeviceFutures deviceFutures,
                          @NotNull LaunchTasksProviderFactory launchTasksProviderFactory,
                          @Nullable ProcessHandler processHandler) {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
-    myApkProvider = apkProvider;
+    myApplicationIdProvider = applicationIdProvider;
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
     myLaunchTasksProviderFactory = launchTasksProviderFactory;
@@ -75,16 +73,16 @@ public class AndroidRunState implements RunProfileState {
 
     String applicationId;
     try {
-      applicationId = myApkProvider.getPackageName();
+      applicationId = myApplicationIdProvider.getPackageName();
     }
     catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to obtain application id");
+      throw new ExecutionException("Unable to obtain application id", e);
     }
 
     // TODO: this class is independent of gradle, except for this hack
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
-    BooleanStatus irSupportStatus = InstantRunGradleUtils.getIrSupportStatus(model, null);
-    if (irSupportStatus.success) {
+    if (InstantRunSettings.isInstantRunEnabled() &&
+        InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) {
       assert model != null;
       InstantRunBuildInfo info = InstantRunGradleUtils.getBuildInfo(model);
       if (info != null && !info.isCompatibleFormat()) {
@@ -104,7 +102,7 @@ public class AndroidRunState implements RunProfileState {
         myPreviousSessionProcessHandler.detachProcess();
       }
 
-      processHandler = new AndroidProcessHandler(applicationId);
+      processHandler = new AndroidProcessHandler(applicationId, launchTasksProvider.monitorRemoteProcess());
       console = attachConsole(processHandler, executor);
     } else {
       assert myPreviousSessionProcessHandler != null : "No process handler from previous session, yet current tasks don't create one";

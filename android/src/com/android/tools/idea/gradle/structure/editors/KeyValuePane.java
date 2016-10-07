@@ -19,19 +19,17 @@ import com.android.SdkConstants;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -55,10 +53,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.sdklib.AndroidTargetHash.getAddonHashString;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel;
@@ -107,15 +103,31 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     if (sdkHandler != null) {
       ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
       RepositoryPackages packages = sdkHandler.getSdkManager(logger).getPackages();
+      Set<String> buildToolKeys = Sets.newHashSet();
       for (LocalPackage p : packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)) {
-        buildToolsMapBuilder.put(p.getVersion().toString(), p.getVersion().toString());
+        String key = p.getVersion().toString();
+        // It's possible to end up with multiple build tools with the same key; for example
+        // "build-tools;24.0.0-preview" and "build-tools;24.0.0-rc4" - these both have the
+        // version name 24.0.0 rc4.  Prevent an exception in this scenario where the PSD
+        // can't be opened because a bi-map can't be constructed.
+        if (!buildToolKeys.contains(key)) {
+          buildToolsMapBuilder.put(key, key);
+          buildToolKeys.add(key);
+        }
       }
 
       for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(logger).getTargets(logger)) {
         String label = getTargetLabel(target);
         String apiString, platformString;
         if (target.isPlatform()) {
-          platformString = apiString = target.getVersion().getApiString();
+          String value = target.getVersion().getApiString();
+          if (target.getVersion().isPreview()) {
+            platformString = AndroidTargetHash.getPlatformHashString(target.getVersion());
+          }
+          else {
+            platformString = value;
+          }
+          apiString = value;
           apisMapBuilder.put(apiString, label);
         } else {
           platformString = getAddonHashString(target.getVendor(), target.getName(), target.getVersion());
@@ -127,7 +139,15 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     BiMap<String, String> installedBuildTools = buildToolsMapBuilder.build();
     BiMap<String, String> installedApis = apisMapBuilder.build();
     BiMap<String, String> installedCompileApis = compiledApisMapBuilder.build();
-    BiMap<String, String> javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
+
+    BiMap<String, String> javaCompatibility;
+    if (installedApis.containsKey("N")) {
+      javaCompatibility =
+        ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7", "JavaVersion.VERSION_1_8", "1.8");
+    }
+    else {
+      javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
+    }
 
     myKeysWithKnownValues = ImmutableMap.<BuildFileKey, BiMap<String, String>>builder()
         .put(BuildFileKey.MIN_SDK_VERSION, installedApis)

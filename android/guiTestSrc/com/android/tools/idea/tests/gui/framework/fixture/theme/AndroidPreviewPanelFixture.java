@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import org.fest.swing.core.Robot;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Dimension;
 import java.awt.Point;
-
-import static junit.framework.Assert.assertTrue;
-import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Fixture wrapping the {@link AndroidPreviewPanel}
@@ -40,12 +34,7 @@ public class AndroidPreviewPanelFixture extends ComponentFixture<AndroidPreviewP
 
   @NotNull
   public AndroidPreviewPanelFixture waitForRender() {
-    pause(new Condition("Waiting for preview finish loading") {
-      @Override
-      public boolean test() {
-        return target().findViewAtPoint(new Point(10, 10)) != null;
-      }
-    }, GuiTests.SHORT_TIMEOUT);
+    Wait.minutes(2).expecting("preview to finish loading").until(() -> target().findViewAtPoint(new Point(10, 10)) != null);
 
     return this;
   }

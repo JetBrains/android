@@ -144,7 +144,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       myOutputPreviewPanel.add(iconsPanel);
     }
 
-    myOutputIconType = new AsValueExpression<AndroidIconType>(new SelectedItemProperty<AndroidIconType>(myIconTypeCombo));
+    myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
 
     initializeListenersAndBindings();
 
@@ -168,23 +168,20 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       ((ConfigureIconPanel)component).addAssetListener(onAssetModified);
     }
 
-    myListeners.listenAndFire(myOutputIconType, new Consumer<AndroidIconType>() {
-      @Override
-      public void consume(AndroidIconType iconType) {
-        ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
+    myListeners.receiveAndFire(myOutputIconType, iconType -> {
+      ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
 
-        ConfigureIconPanel iconPanel = getActiveIconPanel();
-        myBindings.bind(myOutputName, iconPanel.outputName());
+      ConfigureIconPanel iconPanel = getActiveIconPanel();
+      myBindings.bind(myOutputName, iconPanel.outputName());
 
-        for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.values()) {
-          previewPanel.setVisible(false);
-        }
-        for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.get(iconType)) {
-          previewPanel.setVisible(true);
-        }
-
-        renderIconPreviews();
+      for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.values()) {
+        previewPanel.setVisible(false);
       }
+      for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.get(iconType)) {
+        previewPanel.setVisible(true);
+      }
+
+      renderIconPreviews();
     });
   }
 

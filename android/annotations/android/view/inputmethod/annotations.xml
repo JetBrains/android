@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.view.inputmethod.BaseInputConnection void closeConnection()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.inputmethod.EditorInfo hintLocales">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.inputmethod.InputMethodManager boolean setCurrentInputMethodSubtype(android.view.inputmethod.InputMethodSubtype)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.WRITE_SECURE_SETTINGS&quot;" />
     </annotation>
+  </item>
+  <item name="android.view.inputmethod.InputMethodManager void dispatchKeyEventFromInputMethod(android.view.View, android.view.KeyEvent) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.inputmethod.InputMethodManager void dispatchKeyEventFromInputMethod(android.view.View, android.view.KeyEvent) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputMethodSubtype java.lang.CharSequence getDisplayName(android.content.Context, java.lang.String, android.content.pm.ApplicationInfo)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getLanguageTag()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getLocale()">
     <annotation name="android.support.annotation.NonNull" />

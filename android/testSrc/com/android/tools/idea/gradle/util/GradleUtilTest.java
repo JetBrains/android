@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.Dependencies;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.io.FileUtil;
-import junit.framework.TestCase;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.junit.After;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -32,35 +36,108 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleUtil}.
  */
-public class GradleUtilTest extends TestCase {
+public class GradleUtilTest {
   private File myTempDir;
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myTempDir != null) {
-        FileUtil.delete(myTempDir);
-      }
-    }
-    finally {
-      super.tearDown();
+  @After
+  public void tearDown() {
+    if (myTempDir != null) {
+      delete(myTempDir);
     }
   }
 
-  public void testGetGradleInvocationJvmArgWithNullBuildMode() {
+  @Ignore("Enable when dependency graph is enabled")
+  @Test
+  public void getGeneratedSources() {
+    Collection<File> folders = Lists.newArrayList(new File(""));
+    BaseArtifact baseArtifact = mock(BaseArtifact.class);
+    when(baseArtifact.getGeneratedSourceFolders()).thenReturn(folders);
+
+    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
+    assertThat(actual).isSameAs(folders);
+  }
+
+
+  @Test
+  public void getGeneratedSourcesWithOldModel() {
+    BaseArtifact baseArtifact = mock(BaseArtifact.class);
+    when(baseArtifact.getGeneratedSourceFolders()).thenThrow(new UnsupportedMethodException(""));
+
+    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
+    assertThat(actual).isEmpty();
+  }
+
+  @Ignore("Enable when dependency graph is enabled")
+  @Test
+  public void supportsDependencyGraph() {
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.1")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3.0")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3+")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
+  }
+
+  @Ignore("Enable when dependency graph is enabled")
+  @Test
+  public void supportsDependencyGraphWithTextVersion() {
+    assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0-dev"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.1"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3.0"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3+"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
+  }
+
+  @Ignore("Enable when dependency graph is enabled")
+  @Test
+  public void getDependenciesWithModelThatSupportsDependencyGraph() {
+    BaseArtifact artifact = mock(BaseArtifact.class);
+    Dependencies dependencies = mock(Dependencies.class);
+
+    when(artifact.getCompileDependencies()).thenReturn(dependencies);
+
+    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("2.2.0"));
+    assertSame(dependencies, actual);
+
+    verify(artifact).getCompileDependencies();
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void getDependenciesWithModelThatDoesNotSupportDependencyGraph() {
+    BaseArtifact artifact = mock(BaseArtifact.class);
+    Dependencies dependencies = mock(Dependencies.class);
+
+    when(artifact.getDependencies()).thenReturn(dependencies);
+
+    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("1.2.0"));
+    assertSame(dependencies, actual);
+
+    verify(artifact).getDependencies();
+  }
+
+  @Test
+  public void getGradleInvocationJvmArgWithNullBuildMode() {
     assertNull(GradleUtil.getGradleInvocationJvmArg(null));
   }
 
-  public void testGetGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
+  @Test
+  public void getGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
     assertEquals("-DenableTranslation=true", GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
   }
 
-  public void testGetGradleWrapperPropertiesFilePath() throws IOException {
+  @Test
+  public void getGradleWrapperPropertiesFilePath() throws IOException {
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapper);
@@ -71,7 +148,8 @@ public class GradleUtilTest extends TestCase {
     assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
-  public void testLeaveGradleWrapperAloneBin() throws IOException {
+  @Test
+  public void leaveGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -88,7 +166,8 @@ public class GradleUtilTest extends TestCase {
     assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
-  public void testLeaveGradleWrapperAloneAll() throws IOException {
+  @Test
+  public void leaveGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -105,7 +184,8 @@ public class GradleUtilTest extends TestCase {
     assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
 
-  public void testReplaceGradleWrapper() throws IOException {
+  @Test
+  public void replaceGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -122,91 +202,87 @@ public class GradleUtilTest extends TestCase {
     assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
-  public void testUpdateGradleDistributionUrl() {
+  @Test
+  public void updateGradleDistributionUrl() {
     myTempDir = createTempDir();
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
-    List<String> expected = Lists.newArrayList(FileUtil.splitPath(myTempDir.getPath()));
-    expected.addAll(FileUtil.splitPath(FD_GRADLE_WRAPPER));
+    List<String> expected = Lists.newArrayList(splitPath(myTempDir.getPath()));
+    expected.addAll(splitPath(FD_GRADLE_WRAPPER));
     expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
-    assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
+    assertEquals(expected, splitPath(wrapperPath.getPath()));
   }
 
-  public void testGetPathSegments() {
+  @Test
+  public void getPathSegments() {
     List<String> pathSegments = GradleUtil.getPathSegments("foo:bar:baz");
     assertEquals(Lists.newArrayList("foo", "bar", "baz"), pathSegments);
   }
 
-  public void testGetPathSegmentsWithEmptyString() {
+  @Test
+  public void getPathSegmentsWithEmptyString() {
     List<String> pathSegments = GradleUtil.getPathSegments("");
     assertEquals(0, pathSegments.size());
   }
 
-  public void testGetGradleBuildFilePath() {
+  @Test
+  public void getGradleBuildFilePath() {
     myTempDir = createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
   }
 
-  public void testGetGradleVersionFromJarUsingGradleLibraryJar() {
+  @Test
+  public void getGradleVersionFromJarUsingGradleLibraryJar() {
     File jarFile = new File("gradle-core-2.0.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
     assertEquals(GradleVersion.parse("2.0"), gradleVersion);
   }
 
-  public void testRc() {
+  @Test
+  public void rc() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=179838
-    File jarFile = new File("gradle-messaging-2.5-rc-1.jar");
+    File jarFile = new File("gradle-core-2.5-rc-1.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
     assertEquals(GradleVersion.parse("2.5"), gradleVersion);
   }
 
-  public void testNightly() {
-    File jarFile = new File("gradle-messaging-2.10-20151029230024+0000.jar");
+  @Test
+  public void nightly() {
+    File jarFile = new File("gradle-core-2.10-20151029230024+0000.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
     assertEquals(GradleVersion.parse("2.10"), gradleVersion);
   }
 
-  public void testGetGradleVersionFromJarUsingGradleLibraryJarWithoutVersion() {
-    File jarFile = new File("gradle-core-two.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNull(gradleVersion);
-  }
-
-  public void testGetGradleVersionFromJarUsingNonGradleLibraryJar() {
+  @Test
+  public void getGradleVersionFromJarUsingNonGradleLibraryJar() {
     File jarFile = new File("ant-1.9.3.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
   }
 
-  public void testAddLocalMavenRepoInitScriptCommandLineOption() throws IOException {
-    File repoPath = new File("/xyz/repo");
+  @Test
+  public void addInitScriptCommandLineOption() throws IOException {
     List<String> cmdOptions = Lists.newArrayList();
 
-    File initScriptPath = GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(cmdOptions, repoPath);
+    String contents = "The contents of the init script file";
+    File initScriptPath = GradleUtil.addInitScriptCommandLineOption("name", contents, cmdOptions);
     assertNotNull(initScriptPath);
 
     assertEquals(2, cmdOptions.size());
     assertEquals("--init-script", cmdOptions.get(0));
     assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
 
-    String expectedScript = "allprojects {\n" +
-                            "  buildscript {\n" +
-                            "    repositories {\n" +
-                            "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}\n";
-
-    String initScript = FileUtil.loadFile(initScriptPath);
-    assertEquals(expectedScript, initScript);
+    String initScript = loadFile(initScriptPath);
+    assertEquals(contents, initScript);
   }
 
-  public void testGetGradleWrapperVersionWithUrl() {
+  @Test
+  public void getGradleWrapperVersionWithUrl() {
     // Tries both http and https, bin and all. Also versions 2.2.1, 2.2 and 1.12
     String url = "https://services.gradle.org/distributions/gradle-2.2.1-all.zip";
     String version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
@@ -262,7 +338,8 @@ public class GradleUtilTest extends TestCase {
     assertNull(version);
   }
 
-  public void testHasLayoutRenderingIssue() {
+  @Test
+  public void hasLayoutRenderingIssue() {
     AndroidProjectStub model = new AndroidProjectStub("app");
 
     model.setModelVersion("1.1.0");

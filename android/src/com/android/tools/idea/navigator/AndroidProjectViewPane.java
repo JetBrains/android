@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.google.common.collect.Lists;
+import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
-import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ViewSettings;
@@ -33,10 +34,9 @@ import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,8 +54,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
@@ -142,6 +146,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @Override
+  @NotNull
   public PsiDirectory[] getSelectedDirectories() {
     Object selectedElement = getSelectedElement();
     if (selectedElement instanceof PackageElement) {
@@ -196,12 +201,25 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       return myProject;
     }
 
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+      Object o = getSelectedElement();
+      if (o instanceof PsiDirectory) {
+        VirtualFile directory = ((PsiDirectory)o).getVirtualFile();
+        // Do not allow folder to be deleted if the folder is the root project folder.
+        // See https://code.google.com/p/android/issues/detail?id=212522
+        if (isTopModuleDirectoryOrParent(directory)) {
+          return new NoOpDeleteProvider();
+        }
+      }
+    }
+
     if (LangDataKeys.MODULE.is(dataId)) {
       Object o = getSelectedElement();
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;
         return packageElement.getModule();
-      } else if (o instanceof AndroidFacet) {
+      }
+      else if (o instanceof AndroidFacet) {
         return ((AndroidFacet)o).getModule();
       }
     }
@@ -215,7 +233,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
           PsiDirectory[] folders = packageElement.getPackage().getDirectories(GlobalSearchScope.moduleScope(m));
           if (folders.length > 0) {
             return folders[0].getVirtualFile();
-          } else {
+          }
+          else {
             return null;
           }
         }
@@ -255,8 +274,9 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       Object o = getSelectedElement();
       if (o instanceof PsiElement) {
         return o;
-      } else if (o instanceof List<?>) {
-        List<?> l = (List<?>) o;
+      }
+      else if (o instanceof List<?>) {
+        List<?> l = (List<?>)o;
         if (!l.isEmpty() && l.get(0) instanceof PsiElement) {
           return l.get(0);
         }
@@ -281,6 +301,23 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     return super.getData(dataId);
   }
 
+  private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
+      File moduleRootDirPath = moduleFilePath.getParentFile();
+      if (moduleRootDirPath == null) {
+        continue;
+      }
+      File baseDirPath = Projects.getBaseDirPath(myProject);
+      if (filesEqual(moduleRootDirPath, baseDirPath)) {
+        // This is the project module. Don't allow to delete.
+        File directoryPath = virtualToIoFile(directory);
+        return isAncestor(directoryPath, baseDirPath, false);
+      }
+    }
+    return false;
+  }
+
   private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
     public MyProjectViewTree(DefaultTreeModel treeModel) {
       super(AndroidProjectViewPane.this.myProject, treeModel);
@@ -295,6 +332,19 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     @Override
     public Object getData(@NonNls String dataId) {
       return AndroidProjectViewPane.this.getData(dataId);
+    }
+  }
+
+  // This class is used to prevent deleting folders that are actually the root project.
+  // See: https://code.google.com/p/android/issues/detail?id=212522
+  private static class NoOpDeleteProvider implements DeleteProvider {
+    @Override
+    public void deleteElement(@NotNull DataContext dataContext) {
+    }
+
+    @Override
+    public boolean canDeleteElement(@NotNull DataContext dataContext) {
+      return false;
     }
   }
 }

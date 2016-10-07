@@ -25,6 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -36,6 +37,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
+import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public final class ProjectDiagnostics {
@@ -80,9 +84,9 @@ public final class ProjectDiagnostics {
 
         List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
         if (ProjectSubset.isSettingEnabled() ) {
-          ProjectSubset subset = ProjectSubset.getInstance(project);
-          Collection<DataNode<ModuleData>> cachedModules = subset.getCachedModuleData();
-          if (cachedModules != null) {
+          DataNode<ProjectData> projectInfo = getCachedProjectData(project);
+          if (projectInfo != null) {
+            Collection<DataNode<ModuleData>> cachedModules = findAll(projectInfo, MODULE);
             for (DataNode<ModuleData> moduleNode : cachedModules) {
               if (moduleNames.contains(moduleNode.getData().getExternalName())) {
                 modulesToDisplayInDialog.add(moduleNode);

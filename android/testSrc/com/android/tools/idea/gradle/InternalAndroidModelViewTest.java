@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,11 +53,11 @@ public class InternalAndroidModelViewTest extends AndroidGradleTestCase {
 
     DefaultMutableTreeNode childAtZero = (DefaultMutableTreeNode) node.getChildAt(0);
     assertEquals(0, childAtZero.getChildCount());
-    assertEquals("File -> /a/sample/file", childAtZero.getUserObject());
+    assertEquals("File -> " + FileUtil.toSystemDependentName("/a/sample/file"), childAtZero.getUserObject());
 
     DefaultMutableTreeNode childAtOne = (DefaultMutableTreeNode) node.getChildAt(1);
     assertEquals(0, childAtOne.getChildCount());
-    assertEquals("FileUnderProject -> b/sample/file", childAtOne.getUserObject());
+    assertEquals("FileUnderProject -> " + FileUtil.toSystemDependentName("b/sample/file"), childAtOne.getUserObject());
 
     DefaultMutableTreeNode childAtTwo = (DefaultMutableTreeNode) node.getChildAt(2);
     assertEquals(0, childAtTwo.getChildCount());

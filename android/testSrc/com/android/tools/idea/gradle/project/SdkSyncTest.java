@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Tests for {@link SdkSync}.
@@ -43,13 +42,10 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(IdeSdks.getAndroidSdkPath());
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
-    IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+    });
 
     SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
@@ -57,7 +53,9 @@ public class SdkSyncTest extends IdeaTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
-    IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+    });
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();

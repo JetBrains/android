@@ -33,9 +33,10 @@ import static org.mockito.Mockito.when;
  * Tests for {@link SdkPaths}.
  */
 public class SdkPathsTest extends TestCase {
-  public static final String DUMMY_PATH = new File("/dummy/path").getPath();
   @Nullable
   private File tmpDir;
+
+  private static final String DUMMY_PATH = "/dummy/path".replace('/', File.separatorChar);
 
   @Override
   public void setUp() throws Exception {
@@ -61,7 +62,7 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidSdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'" + DUMMY_PATH + "'\ndoes not belong to a directory.", result.message);
+    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
   }
 
   public void testNoPlatformsSdkDirectory() throws Exception {
@@ -99,7 +100,7 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'" + DUMMY_PATH + "'\ndoes not belong to a directory.", result.message);
+    assertEquals(String.format("The path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
@@ -115,12 +116,11 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'" + DUMMY_PATH + "'\nis not readable.", result.message);
+    assertEquals(String.format("The path\n'%1$s'\nis not readable.", DUMMY_PATH), result.message);
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
-    tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testNoPlatformsNdkDirectory");
-
+    tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoPlatformsNdkDirectory");
     ValidationResult result = validateAndroidNdk(tmpDir, false);
     assertFalse(result.success);
     assertEquals("NDK does not contain any platforms.", result.message);
@@ -131,7 +131,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoToolchainsNdkDirectory() throws Exception {
-    tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testNoToolchainsNdkDirectory");
+    tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoToolchainsNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
 
     ValidationResult result = validateAndroidNdk(tmpDir, false);

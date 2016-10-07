@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,9 +38,9 @@ public class CreateAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), getProject(), null, null, true);
-    wizard.init();
-    wizard.showAndGet();
-    refreshAvds();
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), null);
+    if (dialog.showAndGet()) {
+      refreshAvds();
+    }
   }
 }

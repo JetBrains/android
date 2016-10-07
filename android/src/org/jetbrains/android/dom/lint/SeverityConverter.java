@@ -32,7 +32,7 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
 
   @NotNull
   @Override
-  public Collection<? extends Severity> getVariants(ConvertContext context) {
+  public Collection<Severity> getVariants(ConvertContext context) {
     return ALL_VALUES;
   }
 

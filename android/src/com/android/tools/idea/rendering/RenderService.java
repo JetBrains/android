@@ -18,18 +18,22 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
@@ -37,20 +41,23 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -61,8 +68,30 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService {
-  public static final boolean NELE_ENABLED = Boolean.getBoolean("nele.enabled");
-  private static final Object RENDERING_LOCK = new Object();
+  public static final boolean NELE_ENABLED = true;
+
+  /** Number of ms that we will wait for the rendering thread to return before timing out */
+  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+
+  private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
+  private static final ExecutorService ourRenderingExecutor = Executors.newSingleThreadExecutor((Runnable r) -> {
+    Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
+    renderingThread.setDaemon(true);
+    ourRenderingThread.set(renderingThread);
+
+    return renderingThread;
+  });
+  private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
+
+  static {
+    // Register the executor to be shutdown on close
+    ShutDownTracker.getInstance().registerShutdownTask(() -> {
+      ourRenderingExecutor.shutdownNow();
+      ourRenderingThread.set(null);
+    });
+  }
+
+  private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
 
   @NotNull
   private final AndroidFacet myFacet;
@@ -143,7 +172,7 @@ public class RenderService {
   public RenderTask createTask(@Nullable final PsiFile psiFile,
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
-                               @Nullable final RenderContext renderContext) {
+                               @Nullable final DesignSurface surface) {
     Module module = myFacet.getModule();
     final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module, logger);
@@ -157,7 +186,7 @@ public class RenderService {
       return null;
     }
 
-    warnIfObsoleteLayoutLib(module, logger, renderContext, target);
+    warnIfObsoleteLayoutLib(module, logger, surface, target);
 
     LayoutLibrary layoutLib;
     try {
@@ -167,6 +196,15 @@ public class RenderService {
         logger.addMessage(RenderProblem.createPlain(ERROR, message));
         return null;
       }
+    }
+    catch (UnsupportedJavaRuntimeException e) {
+      RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
+      javaVersionProblem.getHtmlBuilder()
+        .add(e.getPresentableMessage())
+        .newline()
+        .addLink("Install a supported JDK", JDK_INSTALL_URL);
+      logger.addMessage(javaVersionProblem);
+      return null;
     }
     catch (RenderingException e) {
       String message = e.getPresentableMessage();
@@ -199,7 +237,7 @@ public class RenderService {
     if (psiFile != null) {
       task.setPsiFile(psiFile);
     }
-    task.setRenderContext(renderContext);
+    task.setDesignSurface(surface);
 
     return task;
   }
@@ -252,11 +290,17 @@ public class RenderService {
   }
 
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
-  protected static void warnIfObsoleteLayoutLib(@NotNull final Module module,
-                                                @NotNull RenderLogger logger,
-                                                @Nullable final RenderContext renderContext,
-                                                @NotNull IAndroidTarget target) {
+  private static void warnIfObsoleteLayoutLib(@NotNull final Module module,
+                                              @NotNull RenderLogger logger,
+                                              @Nullable final DesignSurface surface,
+                                              @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
+      return;
+    }
+
+    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
+      // We are using the version shipped with studio, it can never be obsolete. StudioEmbeddedRenderTarget does not implement getVersion.
+      ourWarnAboutObsoleteLayoutLibVersions = false;
       return;
     }
 
@@ -305,13 +349,13 @@ public class RenderService {
           ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
 
           if (dialog != null && dialog.showAndGet()) {
-            if (renderContext != null) {
+            if (surface != null) {
               // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
-              Configuration configuration = renderContext.getConfiguration();
+              Configuration configuration = surface.getConfiguration();
               if (configuration != null) {
                 configuration.getConfigurationManager().setTarget(null);
               }
-              renderContext.requestRender();
+              surface.requestRender();
               // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
               // take effect.
               Messages.showInfoMessage(module.getProject(),
@@ -326,8 +370,8 @@ public class RenderService {
         public void run() {
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourWarnAboutObsoleteLayoutLibVersions = false;
-          if (renderContext != null) {
-            renderContext.requestRender();
+          if (surface != null) {
+            surface.requestRender();
           }
         }
       }));
@@ -341,13 +385,7 @@ public class RenderService {
    * method.
    */
   public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
-    runRenderAction(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        runnable.run();
-        return null;
-      }
-    });
+    runRenderAction(Executors.callable(runnable));
   }
 
   /**
@@ -355,8 +393,30 @@ public class RenderService {
    * method.
    */
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    synchronized (RENDERING_LOCK) {
-      return callable.call();
+    try {
+      // If the number of timeouts exceeds a certain threshold, stop waiting so the caller doesn't block. We try to submit a task that
+      // clean-up the timeout counter instead. If it goes through, it means the queue is free.
+      if (ourTimeoutExceptionCounter.get() > 3) {
+        ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
+      }
+
+      T result = ourRenderingExecutor.submit(callable).get(DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      // The executor seems to be taking tasks so reset the counter
+      ourTimeoutExceptionCounter.set(0);
+
+      return result;
+    }
+    catch (TimeoutException e) {
+      ourTimeoutExceptionCounter.incrementAndGet();
+
+      Thread renderingThread = ourRenderingThread.get();
+      TimeoutException timeoutException = new TimeoutException("Preview timed out while rendering the layout.\n" +
+                                                               "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
+      if (renderingThread != null) {
+        timeoutException.setStackTrace(renderingThread.getStackTrace());
+      }
+
+      throw timeoutException;
     }
   }
 
@@ -395,6 +455,35 @@ public class RenderService {
       // Not extracted as a constant; we expect this scenario to be rare
       return new ViewInfo(null, null, 0, 0, 0, 0);
     }
+  }
+
+  /**
+   * Returns the {@link XmlTag} associated with a {@link ViewInfo}, if any
+   *
+   * @param view the view to check
+   * @return the corresponding tag, if any
+   */
+  @Nullable
+  public static XmlTag getXmlTag(@NonNull ViewInfo view) {
+    Object cookie = view.getCookie();
+    if (cookie != null) {
+      if (cookie instanceof TagSnapshot) {
+        TagSnapshot snapshot = (TagSnapshot)cookie;
+        return snapshot.tag;
+      }
+      if (cookie instanceof MergeCookie) {
+        cookie = ((MergeCookie) cookie).getCookie();
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          return snapshot.tag;
+        }
+      }
+      if (cookie instanceof XmlTag) {
+        return (XmlTag)cookie;
+      }
+    }
+
+    return null;
   }
 
   /** This is the View.MeasureSpec mode shift */

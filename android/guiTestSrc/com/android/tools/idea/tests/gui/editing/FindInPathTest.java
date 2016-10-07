@@ -15,51 +15,41 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
-import org.junit.Ignore;
+import com.google.common.collect.ImmutableList;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.google.common.truth.Truth.assertThat;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-public class FindInPathTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class FindInPathTest {
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    myProjectFrame = importSimpleApplication();
-
-    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
-    findDialog.setTextToFind("ActionBarDivider")
-              .clickFind();
-
-    myProjectFrame.waitForBackgroundTasksToFinish();
-
-    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
-    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
-
-    selectedContext.findUsagesInGeneratedCodeGroup();
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
+      .setTextToFind("ActionBarDivider")
+      .clickFind()
+      .getUsageGroupNames();
+    assertThat(usageGroupNames).containsExactly("Usages in generated code");
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    myProjectFrame = importSimpleApplication();
-
-    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
-    findDialog.setTextToFind("DarkActionBar")
-              .clickFind();
-
-    myProjectFrame.waitForBackgroundTasksToFinish();
-
-    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
-    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
-
-    selectedContext.findUsagesInGeneratedCodeGroup();
-    selectedContext.findUsageGroup("Code usages");
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
+      .setTextToFind("DarkActionBar")
+      .clickFind()
+      .getUsageGroupNames();
+    assertThat(usageGroupNames).containsExactly("Usages in generated code", "Code usages");
   }
 }

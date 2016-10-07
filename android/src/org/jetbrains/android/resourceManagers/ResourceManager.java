@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -73,17 +74,25 @@ public abstract class ResourceManager {
   /** Returns true if the given directory is a resource directory in this module */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor) {
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
+  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor) {
     return processFileResources(resourceType, processor, true);
   }
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor,
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
+  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies) {
-    return processFileResources(resourceType, processor, withDependencies, true);
+    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resourceType);
+    if (folderType == null) {
+      return true;
+    }
+    return processFileResources(folderType, processor, withDependencies, true);
   }
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor,
-                                      boolean withDependencies, boolean publicOnly) {
+  public boolean processFileResources(@NotNull ResourceFolderType folderType, @NotNull FileResourceProcessor processor,
+                                       boolean withDependencies, boolean publicOnly) {
     final VirtualFile[] resDirs;
     if (withDependencies) {
       resDirs = getAllResourceDirs();
@@ -92,16 +101,17 @@ public abstract class ResourceManager {
       resDirs = resourceDirs.toArray(new VirtualFile[resourceDirs.size()]);
     }
 
-    for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(resourceType, resDirs)) {
-      final String resType = AndroidCommonUtils.getResourceTypeByDirName(resSubdir.getName());
+    for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(folderType, resDirs)) {
+      final ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
 
       if (resType != null) {
-        assert resourceType == null || resourceType.equals(resType);
+        assert folderType.equals(resType);
+        String resTypeName = resType.getName();
         for (VirtualFile resFile : resSubdir.getChildren()) {
-          final String resName = AndroidCommonUtils.getResourceName(resType, resFile.getName());
+          final String resName = AndroidCommonUtils.getResourceName(resTypeName, resFile.getName());
 
-          if (!resFile.isDirectory() && (!publicOnly || isResourcePublic(resType, resName))) {
-            if (!processor.process(resFile, resName, resType)) {
+          if (!resFile.isDirectory() && (!publicOnly || isResourcePublic(resTypeName, resName))) {
+            if (!processor.process(resFile, resName)) {
               return false;
             }
           }
@@ -121,7 +131,7 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public List<VirtualFile> getResourceSubdirs(@Nullable String resourceType) {
+  public List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType) {
     return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs());
   }
 
@@ -145,7 +155,7 @@ public abstract class ResourceManager {
 
     processFileResources(resType1, new FileResourceProcessor() {
       @Override
-      public boolean process(@NotNull final VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
+      public boolean process(@NotNull final VirtualFile resFile, @NotNull String resName) {
         final String extension = resFile.getExtension();
 
         if ((extensions.length == 0 || extensionSet.contains(extension)) &&
@@ -159,10 +169,6 @@ public abstract class ResourceManager {
       }
     }, withDependencies);
     return result;
-  }
-
-  public List<PsiFile> findResourceFiles(@NotNull String resType, @NotNull String resName, @NotNull String... extensions) {
-    return findResourceFiles(resType, resName, true, extensions);
   }
 
   @NotNull
@@ -192,7 +198,7 @@ public abstract class ResourceManager {
   protected Set<VirtualFile> getAllValueResourceFiles() {
     final Set<VirtualFile> files = new HashSet<VirtualFile>();
 
-    for (VirtualFile valueResourceDir : getResourceSubdirs("values")) {
+    for (VirtualFile valueResourceDir : getResourceSubdirs(ResourceFolderType.VALUES)) {
       for (VirtualFile valueResourceFile : valueResourceDir.getChildren()) {
         if (!valueResourceFile.isDirectory() && valueResourceFile.getFileType().equals(StdFileTypes.XML)) {
           files.add(valueResourceFile);
@@ -202,7 +208,7 @@ public abstract class ResourceManager {
     return files;
   }
 
-  protected List<ResourceElement> getValueResources(@NotNull final String resourceType, @Nullable Set<VirtualFile> files) {
+  protected List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType, @Nullable Set<VirtualFile> files) {
     final List<ResourceElement> result = new ArrayList<ResourceElement>();
     List<Pair<Resources, VirtualFile>> resourceFiles = getResourceElements(files);
     for (final Pair<Resources, VirtualFile> pair : resourceFiles) {
@@ -217,7 +223,7 @@ public abstract class ResourceManager {
           for (ResourceElement valueResource : valueResources) {
             final String resName = valueResource.getName().getValue();
 
-            if (resName != null && isResourcePublic(resourceType, resName)) {
+            if (resName != null && isResourcePublic(resourceType.getName(), resName)) {
               result.add(valueResource);
             }
           }
@@ -229,8 +235,8 @@ public abstract class ResourceManager {
 
   @Nullable
   public String getValueResourceType(@NotNull XmlTag tag) {
-    String fileResType = getFileResourceType(tag.getContainingFile());
-    if ("values".equals(fileResType)) {
+    ResourceFolderType fileResType = getFileResourceFolderType(tag.getContainingFile());
+    if (ResourceFolderType.VALUES == fileResType) {
       return tag.getName();
     }
     return null;
@@ -262,13 +268,15 @@ public abstract class ResourceManager {
     return folderType == null ? null : folderType.getName();
   }
 
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
   @NotNull
-  public Set<String> getFileResourcesNames(@NotNull final String resourceType) {
+  private Set<String> getFileResourcesNames(@NotNull final String resourceType) {
     final Set<String> result = new HashSet<String>();
 
     processFileResources(resourceType, new FileResourceProcessor() {
       @Override
-      public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
+      public boolean process(@NotNull VirtualFile resFile, @NotNull String resName) {
         result.add(resName);
         return true;
       }
@@ -277,9 +285,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Collection<String> getValueResourceNames(@NotNull final String resourceType) {
+  public Collection<String> getValueResourceNames(@NotNull final ResourceType resourceType) {
     final Set<String> result = new HashSet<String>();
-    final boolean attr = ResourceType.ATTR.getName().equals(resourceType);
+    final boolean attr = ResourceType.ATTR == resourceType;
 
     for (ResourceEntry entry : getValueResourceEntries(resourceType)) {
       final String name = entry.getName();
@@ -292,14 +300,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Collection<ResourceEntry> getValueResourceEntries(@NotNull final String resourceType) {
-    final ResourceType type = ResourceType.getEnum(resourceType);
-
-    if (type == null) {
-      return Collections.emptyList();
-    }
+  public Collection<ResourceEntry> getValueResourceEntries(@NotNull final ResourceType resourceType) {
     final FileBasedIndex index = FileBasedIndex.getInstance();
-    final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType);
+    final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
     final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
     final Map<VirtualFile, Set<ResourceEntry>> file2resourceSet = new HashMap<VirtualFile, Set<ResourceEntry>>();
@@ -336,17 +339,30 @@ public abstract class ResourceManager {
     return result;
   }
 
+  /**
+   * Get the collection of resource names that match the given type.
+   * @param type the type of resource
+   * @return resource names
+   */
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type) {
+  public Collection<String> getResourceNames(@NotNull ResourceType type) {
     return getResourceNames(type, false);
   }
 
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
+  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
     final Set<String> result = new HashSet<String>();
-    result.addAll(getValueResourceNames(type));
-    result.addAll(getFileResourcesNames(type));
-    if (type.equals(ResourceType.ID.getName())) {
+    result.addAll(getValueResourceNames(resourceType));
+
+    List<ResourceFolderType> folders = FolderTypeRelationship.getRelatedFolders(resourceType);
+    if (!folders.isEmpty()) {
+      for (ResourceFolderType folderType : folders) {
+        if (folderType != ResourceFolderType.VALUES) {
+          result.addAll(getFileResourcesNames(folderType.getName()));
+        }
+      }
+    }
+    if (resourceType == ResourceType.ID) {
       result.addAll(getIds(true));
     }
     return result;
@@ -439,8 +455,8 @@ public abstract class ResourceManager {
   @NotNull
   public List<VirtualFile> getResourceSubdirsToSearchIds() {
     final List<VirtualFile> resSubdirs = new ArrayList<VirtualFile>();
-    for (ResourceType type : AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES) {
-      resSubdirs.addAll(getResourceSubdirs(type.getName()));
+    for (ResourceFolderType type : FolderTypeRelationship.getIdGeneratingFolderTypes()) {
+      resSubdirs.addAll(getResourceSubdirs(type));
     }
     return resSubdirs;
   }

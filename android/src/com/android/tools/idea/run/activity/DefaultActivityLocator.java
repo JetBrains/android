@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.run.activity;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Condition;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -31,8 +33,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 public class DefaultActivityLocator extends ActivityLocator {
   @NotNull
@@ -65,36 +72,35 @@ public class DefaultActivityLocator extends ActivityLocator {
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-    final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), ActivityLocatorUtils.shouldUseMergedManifest(facet));
+    final MergedManifest mergedManifest = MergedManifest.get(facet);
 
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(new Computable<String>() {
-      @Override
-      public String compute() {
-        return computeDefaultActivity(manifestInfo.getActivities(), manifestInfo.getActivityAliases(), device);
-      }
-    });
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
+      () -> computeDefaultActivity(ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases()), device));
   }
 
   @Nullable
   public static String getDefaultLauncherActivityName(@NotNull Project project, @NotNull final Manifest manifest) {
-    return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<String>() {
-      @Override
-      public String compute() {
-        Application application = manifest.getApplication();
-        if (application == null) {
-          return null;
-        }
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      // this method needs both read access and indexing support
+      return DumbService.getInstance(project).runReadActionInSmartMode(() -> getDefaultLauncherActivityName(project, manifest));
+    }
 
-        return computeDefaultActivity(application.getActivities(), application.getActivityAliass(), null);
-      }
-    });
+    Application application = manifest.getApplication();
+    if (application == null) {
+      return null;
+    }
+
+    if (!ApplicationManager.getApplication().isUnitTestMode() && DumbService.isDumb(project)) {
+      Logger.getInstance(DefaultActivityLocator.class).warn("Cannot locate default activity when indices are not available");
+      return null;
+    }
+
+    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
   }
 
   @Nullable
-  private static String computeDefaultActivity(@NotNull List<Activity> activities,
-                                              @NotNull List<ActivityAlias> activityAliases,
-                                              @Nullable IDevice device) {
-    List<ActivityWrapper> launchableActivities = getLaunchableActivities(merge(activities, activityAliases));
+  private static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities, @Nullable IDevice device) {
+    List<ActivityWrapper> launchableActivities = getLaunchableActivities(activities);
     if (launchableActivities.isEmpty()) {
       return null;
     }
@@ -119,7 +125,7 @@ public class DefaultActivityLocator extends ActivityLocator {
     }
 
     // Just return the first one we find
-    return launchableActivities.get(0).getQualifiedName();
+    return launchableActivities.isEmpty() ? null : launchableActivities.get(0).getQualifiedName();
   }
 
   /** Returns a launchable activity specific to the given device. */
@@ -137,10 +143,8 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Nullable
   private static ActivityWrapper findLeanbackLauncher(@NotNull List<ActivityWrapper> launcherActivities) {
     for (ActivityWrapper activity : launcherActivities) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsCategory(filter, AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME)) {
-          return activity;
-        }
+      if (activity.hasCategory(AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME)) {
+        return activity;
       }
     }
 
@@ -150,10 +154,8 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Nullable
   private static ActivityWrapper findDefaultLauncher(@NotNull List<ActivityWrapper> launcherActivities) {
     for (ActivityWrapper activity : launcherActivities) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsCategory(filter, AndroidUtils.DEFAULT_CATEGORY_NAME)) {
-          return activity;
-        }
+      if (activity.hasCategory(AndroidUtils.DEFAULT_CATEGORY_NAME)) {
+        return activity;
       }
     }
 
@@ -162,12 +164,10 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
-    return ContainerUtil.filter(allActivities, new Condition<ActivityWrapper>() {
-      @Override
-      public boolean value(ActivityWrapper activity) {
-        return ActivityLocatorUtils.containsLauncherIntent(activity.getIntentFilters());
-      }
-    });
+    return allActivities
+      .stream()
+      .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
+      .collect(Collectors.toList());
   }
 
   private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {
@@ -183,8 +183,21 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   /** {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}. */
   public static abstract class ActivityWrapper {
-    @NotNull
-    public abstract List<IntentFilter> getIntentFilters();
+    public abstract boolean hasCategory(@NotNull String name);
+    public abstract boolean hasAction(@NotNull String name);
+    public abstract boolean isEnabled();
+
+    /**
+     * @return the value of android:exported attribute for the activity, null if not specified.
+     * Note that when the attribute is not explicitly set, it is considered exported if it has an intent filter.
+     */
+    @Nullable
+    public abstract Boolean getExported();
+
+    /**
+     * @return whether there is at least 1 intent filter specified for this activity.
+     */
+    public abstract boolean hasIntentFilter();
 
     @Nullable
     public abstract String getQualifiedName();
@@ -196,6 +209,21 @@ public class DefaultActivityLocator extends ActivityLocator {
     public static ActivityWrapper get(@NotNull ActivityAlias activityAlias) {
       return new ActivityAliasWrapper(activityAlias);
     }
+
+    public static ActivityWrapper get(@NotNull Element activityOrAlias) {
+      return new ElementActivityWrapper(activityOrAlias);
+    }
+
+    public static List<ActivityWrapper> get(@NotNull List<Element> activities, @NotNull List<Element> aliases) {
+      List<ActivityWrapper> list = Lists.newArrayListWithCapacity(activities.size() + aliases.size());
+      for (Element element : activities) {
+        list.add(new ElementActivityWrapper(element));
+      }
+      for (Element element : aliases) {
+        list.add(new ElementActivityWrapper(element));
+      }
+      return list;
+    }
   }
 
   private static class RealActivityWrapper extends ActivityWrapper {
@@ -205,10 +233,49 @@ public class DefaultActivityLocator extends ActivityLocator {
       myActivity = activity;
     }
 
-    @NotNull
     @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myActivity.getIntentFilters();
+    public boolean hasCategory(@NotNull String name) {
+      for (IntentFilter filter : myActivity.getIntentFilters()) {
+        if (AndroidDomUtil.containsCategory(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      for (IntentFilter filter : myActivity.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      AndroidAttributeValue<String> enabled = myActivity.getEnabled();
+      return enabled == null || enabled.getValue() == null // true if not specified
+             || Boolean.valueOf(enabled.getValue());
+    }
+
+    @Nullable
+    @Override
+    public Boolean getExported() {
+      AndroidAttributeValue<String> exported = myActivity.getExported();
+      if (exported == null || exported.getValue() == null || exported.getValue().isEmpty()) {
+        return null;
+      }
+
+      return Boolean.valueOf(exported.getValue());
+    }
+
+    @Override
+    public boolean hasIntentFilter() {
+      return !myActivity.getIntentFilters().isEmpty();
     }
 
     @Nullable
@@ -225,16 +292,128 @@ public class DefaultActivityLocator extends ActivityLocator {
       myAlias = activityAlias;
     }
 
-    @NotNull
     @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myAlias.getIntentFilters();
+    public boolean hasCategory(@NotNull String name) {
+      for (IntentFilter filter : myAlias.getIntentFilters()) {
+        if (AndroidDomUtil.containsCategory(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      for (IntentFilter filter : myAlias.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      AndroidAttributeValue<String> enabled = myAlias.getEnabled();
+      return enabled == null || enabled.getValue() == null // true if not specified
+             || Boolean.valueOf(enabled.getValue());
+    }
+
+    @Nullable
+    @Override
+    public Boolean getExported() {
+      AndroidAttributeValue<String> exported = myAlias.getExported();
+      if (exported == null || exported.getValue() == null || exported.getValue().isEmpty()) {
+        return null;
+      }
+
+      return Boolean.valueOf(exported.getValue());
+    }
+
+    @Override
+    public boolean hasIntentFilter() {
+      return !myAlias.getIntentFilters().isEmpty();
     }
 
     @Nullable
     @Override
     public String getQualifiedName() {
       return ActivityLocatorUtils.getQualifiedName(myAlias);
+    }
+  }
+
+  private static class ElementActivityWrapper extends ActivityWrapper {
+    private final Element myActivity;
+
+    public ElementActivityWrapper(Element activity) {
+      myActivity = activity;
+    }
+
+    @Override
+    public boolean hasCategory(@NotNull String name) {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          Element filter = (Element) node;
+          if (ActivityLocatorUtils.containsCategory(filter, name)) {
+            return true;
+          }
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          Element filter = (Element) node;
+          if (ActivityLocatorUtils.containsAction(filter, name)) {
+            return true;
+          }
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      String enabledAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ENABLED);
+      return StringUtil.isEmpty(enabledAttr) // true if not specified
+             || Boolean.valueOf(enabledAttr);
+    }
+
+    @Nullable
+    @Override
+    public Boolean getExported() {
+      String exportedAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_EXPORTED);
+      return StringUtil.isEmpty(exportedAttr) ? null : Boolean.valueOf(exportedAttr);
+    }
+
+    @Override
+    public boolean hasIntentFilter() {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          return true;
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public String getQualifiedName() {
+      return ActivityLocatorUtils.getQualifiedName(myActivity);
     }
   }
 }

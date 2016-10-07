@@ -20,9 +20,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -36,8 +35,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
@@ -45,29 +42,29 @@ public class TargetMenuAction extends FlatComboAction {
   // We don't show ancient rendering targets, they're pretty broken
   private static final int SHOW_FROM_API_LEVEL = 7;
 
-  private final RenderContext myRenderContext;
+  private final ConfigurationHolder myRenderContext;
   private final boolean myUseCompatibilityTarget;
 
   /**
    * Creates a {@code TargetMenuAction}
-   * @param renderContext A {@link RenderContext} instance
+   * @param renderContext A {@link ConfigurationHolder} instance
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
    * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
    */
-  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget, boolean classicStyle) {
+  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget, boolean classicStyle) {
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Android version to use when rendering layouts in the IDE");
+    presentation.setDescription("API Version in Editor");
     presentation.setIcon(classicStyle ? AndroidIcons.Targets : AndroidIcons.NeleIcons.Api);
     updatePresentation(presentation);
   }
 
-  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
+  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
     this(renderContext, useCompatibilityTarget, !RenderService.NELE_ENABLED);
   }
 
-  public TargetMenuAction(RenderContext renderContext) {
+  public TargetMenuAction(ConfigurationHolder renderContext) {
     this(renderContext, false);
   }
 
@@ -94,11 +91,14 @@ public class TargetMenuAction extends FlatComboAction {
    * @return Minimum Sdk Version if defined in the module, otherwise -1
    */
   private int getMinSdkVersion() {
-    Module module = myRenderContext.getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        return facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration != null) {
+      Module module = configuration.getModule();
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          return facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
+        }
       }
     }
     return -1;
@@ -164,7 +164,7 @@ public class TargetMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
@@ -178,14 +178,6 @@ public class TargetMenuAction extends FlatComboAction {
       addCompatibilityTargets(group);
     } else {
       addRealTargets(group);
-    }
-
-    group.addSeparator();
-    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
-    if (currentMode != RenderPreviewMode.API_LEVELS) {
-      ConfigurationMenuAction.addApiLevelPreviewAction(myRenderContext, group);
-    } else {
-      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
 
     return group;
@@ -282,8 +274,8 @@ public class TargetMenuAction extends FlatComboAction {
   private static class SetTargetAction extends ConfigurationAction {
     private final IAndroidTarget myTarget;
 
-    public SetTargetAction(@NotNull RenderContext renderContext, @NotNull final String title, @NotNull final IAndroidTarget target,
-                           final boolean select) {
+    public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
+                           @NotNull final IAndroidTarget target, final boolean select) {
       super(renderContext, title);
       myTarget = target;
       if (select) {
@@ -315,7 +307,6 @@ public class TargetMenuAction extends FlatComboAction {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         configuration.getConfigurationManager().setTarget(myTarget);
-        myRenderContext.requestRender();
       }
     }
   }

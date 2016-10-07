@@ -26,9 +26,9 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -94,7 +94,7 @@ import static java.io.File.separatorChar;
 public class GradleImport {
   public static final String NL = SdkUtils.getLineSeparator();
   public static final int CURRENT_COMPILE_VERSION = 23;
-  public static final String CURRENT_BUILD_TOOLS_VERSION = MIN_BUILD_TOOLS_VERSION;
+  public static final String CURRENT_BUILD_TOOLS_VERSION = "23.0.2";
   public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + GRADLE_PLUGIN_RECOMMENDED_VERSION;
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
@@ -1147,8 +1147,12 @@ public class GradleImport {
   }
 
   String getBuildToolsVersion() {
-    BuildToolInfo buildTool =
-      AndroidSdkHandler.getInstance(mySdkLocation).getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(mySdkLocation);
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
+    if (buildTool == null) {
+      buildTool = sdkHandler.getLatestBuildTool(progress, true);
+    }
     if (buildTool != null) {
       return buildTool.getRevision().toString();
     }

@@ -2,7 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.rendering.PsiProjectListener;
+import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
@@ -93,7 +93,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     final FileType fileType = file.getFileType();
 
     if (fileType == StdFileTypes.XML) {
-      if (facet == null || facet.getLocalResourceManager().getFileResourceType(file) == null &&
+      if (facet == null || facet.getLocalResourceManager().getFileResourceFolderType(file) == null &&
           !SdkConstants.ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }

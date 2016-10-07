@@ -19,29 +19,17 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
-import com.android.ide.common.rendering.RenderSecurityManager;
-import com.android.ide.common.rendering.api.ActionBarCallback;
-import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.RenderParams;
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.AssetRepositoryImpl;
-import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderSecurityManagerFactory;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -50,25 +38,16 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -128,7 +107,6 @@ public class GraphicsLayoutRenderer {
   @NotNull
   protected static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
                                                  @NotNull AndroidPlatform platform,
-                                                 @NotNull IAndroidTarget target,
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
                                                  @NotNull ILayoutPullParser parser,
@@ -160,14 +138,14 @@ public class GraphicsLayoutRenderer {
 
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
 
-    Module module = facet.getModule();
+    final Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
     Object credential = new Object();
     RenderLogger logger = new RenderLogger("theme_editor", module, credential);
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallbackImpl layoutlibCallback =
+    final LayoutlibCallbackImpl layoutlibCallback =
       new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null) {
         @Override
         public ActionBarCallback getActionBarCallback() {
@@ -176,7 +154,26 @@ public class GraphicsLayoutRenderer {
       };
 
     // Load the local project R identifiers.
-    layoutlibCallback.loadAndParseRClass();
+    boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
+        // half way.
+        if (module.isDisposed()) {
+          return false;
+        }
+        layoutlibCallback.loadAndParseRClass();
+        return true;
+      }
+    });
+    if (!loadRResult) {
+      throw new AlreadyDisposedException("Module was already disposed");
+    }
+
+    IAndroidTarget target = configuration.getTarget();
+    if (target == null) {
+      throw new InitializationException("Unable to get IAndroidTarget");
+    }
 
     Device device = configuration.getDevice();
     assert device != null;
@@ -209,7 +206,9 @@ public class GraphicsLayoutRenderer {
    * @param configuration The configuration to use when rendering.
    * @param parser A layout pull-parser.
    * @param backgroundColor If not null, this will be use to set the global Android window background
+   * @throws AlreadyDisposedException if the module is disposed while create is running
    * @throws InitializationException if layoutlib fails to initialize.
+   * @throws UnsupportedLayoutlibException if the used layoutlib version is too old to run with this class
    */
   @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
@@ -217,21 +216,19 @@ public class GraphicsLayoutRenderer {
                                               @Nullable Color backgroundColor,
                                               boolean hasHorizontalScroll,
                                               boolean hasVerticalScroll) throws InitializationException {
+    Module module = configuration.getModule();
+    if (module.isDisposed()) {
+      throw new AlreadyDisposedException("Module was already disposed");
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       throw new InitializationException("Unable to get AndroidFacet");
     }
 
-    Module module = facet.getModule();
-    IAndroidTarget target = configuration.getTarget();
-
-    if (target == null) {
-      throw new InitializationException("Unable to get IAndroidTarget");
-    }
-
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
-      throw new InitializationException("Unable to get AndroidPlatform");
+      throw new UnsupportedLayoutlibException("No Android SDK found.");
     }
 
     SessionParams.RenderingMode renderingMode;
@@ -245,7 +242,7 @@ public class GraphicsLayoutRenderer {
       renderingMode = SessionParams.RenderingMode.NORMAL;
     }
 
-    return create(facet, platform, target, module.getProject(), configuration, parser, backgroundColor, renderingMode);
+    return create(facet, platform, module.getProject(), configuration, parser, backgroundColor, renderingMode);
   }
 
   /**
@@ -368,12 +365,11 @@ public class GraphicsLayoutRenderer {
    * Returns the initialised render session. This method is called only once during the {@link GraphicsLayoutRenderer} initialization and
    * will also do the an initial render of the layout.
    */
-  private static
   @Nullable
-  RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
-                                  @NotNull final SessionParams sessionParams,
-                                  @NotNull final RenderSecurityManager securityManager,
-                                  final @NotNull Object credential) {
+  private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
+                                                 @NotNull final SessionParams sessionParams,
+                                                 @NotNull final RenderSecurityManager securityManager,
+                                                 final @NotNull Object credential) {
     try {
       RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
         @Override
@@ -401,6 +397,9 @@ public class GraphicsLayoutRenderer {
         return null;
       }
 
+      if (layoutLibrary.supports(Features.SYSTEM_TIME)) {
+        session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
+      }
       Result result = session.getResult();
       if (result != null && result.getStatus() != Result.Status.SUCCESS) {
         //noinspection ThrowableResultOfMethodCallIgnored
@@ -508,9 +507,12 @@ public class GraphicsLayoutRenderer {
     try {
       if (myRenderSession != null) {
         myImageFactory.setGraphics(null);
-        myRenderSession.dispose();
+        RenderService.runRenderAction(myRenderSession::dispose);
         myRenderSession = null;
       }
+    }
+    catch (Exception e) {
+      LOG.error("Error while disposing the session", e);
     }
     finally {
       myRenderSessionLock.writeLock().unlock();

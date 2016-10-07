@@ -20,9 +20,11 @@ import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.Convert;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
+@Styleable({"Include", "ViewGroup_Layout"})
 public interface Include extends LayoutElement {
   /*@Required*/
   @AndroidResourceType("id")

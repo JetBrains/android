@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -31,18 +31,17 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
-import org.jetbrains.annotations.NotNull;
 
 public class NlLintHighlightingPass implements HighlightingPass {
   private final DesignSurface mySurface;
   private LintAnnotationsModel myLintAnnotationsModel;
 
-  public NlLintHighlightingPass(@NonNull DesignSurface surface) {
+  public NlLintHighlightingPass(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
   @Override
-  public void collectInformation(@NonNull ProgressIndicator progress) {
+  public void collectInformation(@NotNull ProgressIndicator progress) {
     ScreenView screenView = mySurface.getCurrentScreenView();
     if (screenView == null) {
       return;
@@ -59,10 +58,14 @@ public class NlLintHighlightingPass implements HighlightingPass {
     }
 
     screenView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
+    // Ensure that the layers are repainted to reflect the latest model
+    // (updating the lint annotations associated with a model doesn't actually rev the model
+    // version.)
+    screenView.getSurface().repaint();
   }
 
-  @NonNull
-  private static LintAnnotationsModel getAnnotations(@NonNull NlModel model, @NonNull ProgressIndicator progress) {
+  @NotNull
+  private static LintAnnotationsModel getAnnotations(@NotNull NlModel model, @NotNull ProgressIndicator progress) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     LintAnnotationsModel lintModel = new LintAnnotationsModel();
 
@@ -70,7 +73,11 @@ public class NlLintHighlightingPass implements HighlightingPass {
 
     AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
     State state = annotator.collectInformation(xmlFile);
-    state = annotator.doAnnotate(state);
+
+    if (state != null) {
+      state = annotator.doAnnotate(state);
+    }
+
     if (state == null) {
       return lintModel;
     }
@@ -110,7 +117,8 @@ public class NlLintHighlightingPass implements HighlightingPass {
         continue;
       }
 
-      lintModel.addIssue(component, inspection, level);
+      lintModel.addIssue(component, issue, problemData.getMessage(), inspection, level,
+                         startElement, endElement);
     }
 
     return lintModel;

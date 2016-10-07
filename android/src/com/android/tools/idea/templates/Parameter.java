@@ -22,10 +22,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.ResourceFolderRegistry;
-import com.android.tools.idea.rendering.ResourceFolderRepository;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceFolderRegistry;
+import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -313,7 +313,7 @@ public final class Parameter {
     } else if (violations.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.ID)) {
@@ -322,13 +322,13 @@ public final class Parameter {
     } else if (violations.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.VALUES)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
       }
     }
 

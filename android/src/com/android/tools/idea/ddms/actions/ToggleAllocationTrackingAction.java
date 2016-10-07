@@ -19,7 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.chartlib.EventData;
+import com.android.tools.adtui.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.allocations.AllocationCaptureType;
@@ -105,7 +105,7 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
 
                 final CaptureService service = CaptureService.getInstance(myProject);
                 String name = service.getSuggestedName(listeningClient);
-                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class, name);
+                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class, name, true);
                 service.appendDataCopy(handle, data);
                 service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                   @Override

@@ -17,8 +17,8 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
-import com.android.tools.idea.rendering.DataBindingInfo;
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -178,7 +178,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
 
     final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
 
-    List<PsiReference> result = new ArrayList<PsiReference>();
+    List<PsiReference> result = new ArrayList<>();
     final String[] nameParts = strValue.split("[$.]");
     Module module = context.getModule();
     if (nameParts.length == 0 || module == null) {

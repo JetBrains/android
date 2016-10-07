@@ -27,4 +27,15 @@ public interface StringElement extends ResourceElement, StyledText {
   @Convert(AndroidBooleanValueConverter.class)
   @Attribute("translatable")
   GenericAttributeValue<Boolean> isTranslatable();
+
+  /**
+   * An attribute is used by AAPT to suppress an error about string resources having
+   * '%' character.
+   * <p/>
+   * Source: hasSubstitutionErrors in XMLNode.cpp,
+   * https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt/XMLNode.cpp
+   */
+  @Convert(AndroidBooleanValueConverter.class)
+  @Attribute("formatted")
+  GenericAttributeValue<Boolean> isFormatted();
 }

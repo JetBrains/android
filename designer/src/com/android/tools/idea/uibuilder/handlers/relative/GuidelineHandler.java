@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -221,7 +221,7 @@ public class GuidelineHandler {
    * @param viewEditor the editor performing this editing operation
    * @param layout     the RelativeLayout to handle
    */
-  GuidelineHandler(@NonNull ViewEditor viewEditor, @NonNull NlComponent layout) {
+  GuidelineHandler(@NotNull ViewEditor viewEditor, @NotNull NlComponent layout) {
     this.layout = layout;
     myViewEditor = viewEditor;
 

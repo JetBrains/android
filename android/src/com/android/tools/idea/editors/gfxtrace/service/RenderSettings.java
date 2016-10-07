@@ -20,6 +20,7 @@ package com.android.tools.idea.editors.gfxtrace.service;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 
 import java.io.IOException;
 
@@ -91,7 +92,7 @@ public final class RenderSettings implements BinaryObject {
       RenderSettings o = (RenderSettings)obj;
       e.uint32(o.myMaxWidth);
       e.uint32(o.myMaxHeight);
-      o.myWireframeMode.encode(e);
+      e.int32(o.myWireframeMode.getNumber());
     }
 
     @Override
@@ -99,7 +100,7 @@ public final class RenderSettings implements BinaryObject {
       RenderSettings o = (RenderSettings)obj;
       o.myMaxWidth = d.uint32();
       o.myMaxHeight = d.uint32();
-      o.myWireframeMode = WireframeMode.decode(d);
+      o.myWireframeMode = WireframeMode.valueOf(d.int32());
     }
     //<<<End:Java.KlassBody:2>>>
   }

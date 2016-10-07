@@ -48,7 +48,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public List<UsageInfo> findCodeUsages(String path, String pathInProject) throws Throwable {
     Collection<UsageInfo> usages = findUsages(path, myFixture, pathInProject);
-    List<UsageInfo> result = new ArrayList<UsageInfo>();
+    List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
       if (!usage.isNonCodeUsage) {
         result.add(usage);
@@ -201,6 +201,27 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
+  /**
+   * Test that usages are found if searching for a reference value in an resource file.
+   */
+  public void testValueResource9() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
+    Collection<UsageInfo> references = findCodeUsages("fu13_values.xml", "res/values/f13_values.xml");
+    assertEquals(3, references.size());
+    assertEquals("Class.java:6:\n" +
+                 "  int id2 = R.string.hello;\n" +
+                 "                     |~~~~~\n" +
+                 "values/f13_values.xml:9:\n" +
+                 "  <item>@string/hello</item>\n" +
+                 "        |~~~~~~~~~~~~~      \n" +
+                 "layout/layout.xml:5:\n" +
+                 "  <TextView android:text=\"@string/hello\"/>\n" +
+                 "                          |~~~~~~~~~~~~~  \n",
+                 describeUsages(references));
+  }
+
+
   public void testStyleInheritance() throws Throwable {
     Collection<UsageInfo> references = findCodeUsages("fu10_values.xml", "res/values/f10_values.xml");
     assertEquals(3, references.size());
@@ -226,6 +247,21 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  "  <style name=\"style1\" parent=\"myStyle\">\n" +
                  "                               |~~~~~~~ \n" +
                  "values/f11_values.xml:14:\n" +
+                 "  <style name=\"myStyle.s.a\">\n" +
+                 "               |~~~~~~~     \n",
+                 describeUsages(references));
+  }
+
+  public void testStyleInheritance2() throws Throwable {
+    Collection<UsageInfo> references = findCodeUsages("fu14_values.xml", "res/values/f14_values.xml");
+    assertEquals(3, references.size());
+    assertEquals("values/f14_values.xml:6:\n" +
+                 "  <style name=\"myStyle.s\">\n" +
+                 "               |~~~~~~~   \n" +
+                 "values/f14_values.xml:10:\n" +
+                 "  <style name=\"style1\" parent=\"myStyle\">\n" +
+                 "                               |~~~~~~~ \n" +
+                 "values/f14_values.xml:14:\n" +
                  "  <style name=\"myStyle.s.a\">\n" +
                  "               |~~~~~~~     \n",
                  describeUsages(references));
@@ -442,7 +478,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   private static String describeUsages(Collection<UsageInfo> collection) {
     assertNotNull(collection);
     // Ensure stable output: sort in a predictable order
-    List<UsageInfo> usages = new ArrayList<UsageInfo>(collection);
+    List<UsageInfo> usages = new ArrayList<>(collection);
     Collections.sort(usages, new Comparator<UsageInfo>() {
       @Override
       public int compare(UsageInfo usageInfo1, UsageInfo usageInfo2) {

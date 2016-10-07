@@ -28,10 +28,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static java.util.Collections.singletonList;
@@ -47,7 +44,7 @@ import static java.util.Collections.singletonList;
  */
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
-    new ResourceReferenceConverter(Collections.singleton(ResourceType.LAYOUT.getName()));
+    new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
   private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
 
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
@@ -71,6 +68,8 @@ public class ToolsAttributeUtil {
     .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
+    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
+    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.String))
     .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
     .put(ATTR_TARGET_API, NO_FORMATS)
     // Manifest merger attributes
@@ -79,10 +78,15 @@ public class ToolsAttributeUtil {
     .put(ATTR_REMOVE, NO_FORMATS)
     .put(ATTR_REPLACE, NO_FORMATS)
     .put(ATTR_OVERRIDE_LIBRARY, NO_FORMATS)
+    // Raw files attributes
+    .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_KEEP, NO_FORMATS)
+    .put(ATTR_DISCARD, NO_FORMATS)
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
     .put(ATTR_ACTION_BAR_NAV_MODE, new StaticEnumConverter("standard", "list", "tabs"))
+    .put(ATTR_OPEN_DRAWER, new StaticEnumConverter("start", "end", "left", "right"))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
     .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
@@ -91,6 +95,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
     .put(ATTR_TARGET_API, new TargetApiConverter())
+    .put(ATTR_SHRINK_MODE, new StaticEnumConverter(VALUE_STRICT, VALUE_SAFE))
     .build();
 
   /**

@@ -19,7 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.rendering.LayoutPullParserFactory;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -83,11 +83,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     myChooseTagName = chooseTagName;
   }
 
-  @Deprecated // Switch to using the typed enum instead
-  public String getResourceType() {
-    return myResourceType.getName();
-  }
-
+  @NotNull
   public ResourceFolderType getResourceFolderType() {
     return myResourceType;
   }
@@ -181,7 +177,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   @NotNull
-  protected final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
+  public final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
     final List<String> result = new ArrayList<String>(getAllowedTagNames(facet));
     Collections.sort(result);
     return result;

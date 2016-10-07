@@ -17,9 +17,9 @@ package com.android.tools.idea.sdk;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 public class SdkMerger {
   private static final Logger LOG = Logger.getInstance(SdkMerger.class);
@@ -60,8 +59,7 @@ public class SdkMerger {
       }
       try {
         FileUtil.copyDir(pkg.srcPkg.getLocation(),
-                         new File(pkg.destLocation, pkg.srcPkg.getPath().replaceAll(RepoPackage.PATH_SEPARATOR + "",
-                                                                                    Matcher.quoteReplacement(File.separator))));
+                         new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {
         LOG.error("Unable to copy package " + pkg.srcPkg.getPath(), e);

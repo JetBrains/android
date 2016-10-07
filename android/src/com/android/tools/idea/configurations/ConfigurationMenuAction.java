@@ -20,14 +20,15 @@ import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -42,35 +43,42 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
-import static com.android.tools.idea.rendering.multi.RenderPreviewManager.SUPPORTS_MANUAL_PREVIEWS;
 
 public class ConfigurationMenuAction extends FlatComboAction {
-  private final RenderContext myRenderContext;
+  private final DesignSurface mySurface;
 
-  public ConfigurationMenuAction(RenderContext renderContext) {
-    myRenderContext = renderContext;
+  public ConfigurationMenuAction(DesignSurface surface) {
+    mySurface = surface;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Configuration to render this layout with inside the IDE");
+    presentation.setDescription("Layout Variants");
+    /* TODO: We'll have a preview action here later;
     if (RenderService.NELE_ENABLED) {
-      presentation.setText("Preview");
-      presentation.setIcon(AndroidIcons.NeleIcons.Preview);
+      presentation.setText("Variations");
+      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     } else {
-      presentation.setIcon(AndroidIcons.AndroidFile);
-    }
+
+    ... but for now this is just for variations
+    */
+    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
+    //presentation.setIcon(AndroidIcons.AndroidFile);
   }
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup("Configuration", true);
 
-    VirtualFile virtualFile = myRenderContext.getVirtualFile();
+    Configuration configuration = mySurface.getConfiguration();
+    if (configuration == null) {
+      return group;
+    }
+
+    VirtualFile virtualFile = configuration.getFile();
     if (virtualFile != null) {
-      Module module = myRenderContext.getModule();
+      Module module = configuration.getModule();
       if (module == null) {
         return group;
       }
@@ -85,130 +93,124 @@ public class ConfigurationMenuAction extends FlatComboAction {
         group.addSeparator();
       }
 
-      boolean haveLandscape = false;
-      boolean haveLarge = false;
-      for (VirtualFile file : variations) {
-        String name = file.getParent().getName();
-        if (name.startsWith(FD_RES_LAYOUT)) {
-          FolderConfiguration config = FolderConfiguration.getConfigForFolder(name);
-          if (config != null) {
-            ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
-            if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
-              haveLandscape = true;
-              if (haveLarge) {
-                break;
+      ResourceFolderType folderType = ResourceHelper.getFolderType(configuration.getFile());
+      if (folderType == ResourceFolderType.LAYOUT) {
+        boolean haveLandscape = false;
+        boolean haveLarge = false;
+        for (VirtualFile file : variations) {
+          String name = file.getParent().getName();
+          if (name.startsWith(FD_RES_LAYOUT)) {
+            FolderConfiguration config = FolderConfiguration.getConfigForFolder(name);
+            if (config != null) {
+              ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
+              if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
+                haveLandscape = true;
+                if (haveLarge) {
+                  break;
+                }
               }
-            }
-            ScreenSizeQualifier size = config.getScreenSizeQualifier();
-            if (size != null && size.getValue() == ScreenSize.XLARGE) {
-              haveLarge = true;
-              if (haveLandscape) {
-                break;
+              ScreenSizeQualifier size = config.getScreenSizeQualifier();
+              if (size != null && size.getValue() == ScreenSize.XLARGE) {
+                haveLarge = true;
+                if (haveLandscape) {
+                  break;
+                }
               }
             }
           }
         }
+
+        // Create actions for creating "common" versions of a layout (that don't exist),
+        // e.g. Create Landscape Version, Create RTL Version, Create XLarge version
+        // Do statistics on what is needed!
+        if (!haveLandscape) {
+          group.add(new CreateVariationAction(mySurface, "Create Landscape Variation", "layout-land"));
+        }
+        if (!haveLarge) {
+          group.add(new CreateVariationAction(mySurface, "Create layout-xlarge Variation", "layout-xlarge"));
+          //group.add(new CreateVariationAction(mySurface, "Create layout-sw600dp Variation...", "layout-sw600dp"));
+        }
+        group.add(new CreateVariationAction(mySurface, "Create Other...", null));
+      } else {
+        group.add(new CreateVariationAction(mySurface, "Create Alternative...", null));
       }
 
-      // Create actions for creating "common" versions of a layout (that don't exist),
-      // e.g. Create Landscape Version, Create RTL Version, Create XLarge version
-      // Do statistics on what is needed!
-      if (!haveLandscape) {
-        group.add(new CreateVariationAction(myRenderContext, "Create Landscape Variation", "layout-land"));
-      }
-      if (!haveLarge) {
-        group.add(new CreateVariationAction(myRenderContext, "Create layout-xlarge Variation", "layout-xlarge"));
-        //group.add(new CreateVariationAction(myRenderContext, "Create layout-sw600dp Variation...", "layout-sw600dp"));
-      }
-      group.add(new CreateVariationAction(myRenderContext, "Create Other...", null));
-
-      if (myRenderContext.supportsPreviews()) {
+      /* TODO: Restore multi-configuration editing
+      if (mySurface.supportsPreviews()) {
         addMultiConfigActions(group);
       }
+      */
     }
 
     return group;
   }
 
   private void addMultiConfigActions(DefaultActionGroup group) {
-    VirtualFile file = myRenderContext.getVirtualFile();
-    if (file == null) {
+    Configuration configuration = mySurface.getConfiguration();
+    if (configuration == null) {
       return;
     }
-    Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration == null) {
+    VirtualFile file = configuration.getFile();
+    if (file == null) {
       return;
     }
     ConfigurationManager configurationManager = configuration.getConfigurationManager();
 
     group.addSeparator();
 
-    // Configuration Previews
-    if (SUPPORTS_MANUAL_PREVIEWS) {
-      group.add(new PreviewAction(myRenderContext, "Add As Thumbnail...", ACTION_ADD, null, true));
-      RenderPreviewMode mode = RenderPreviewMode.getCurrent();
-      if (mode == RenderPreviewMode.CUSTOM) {
-        RenderPreviewManager previewManager = myRenderContext.getPreviewManager(false);
-        boolean hasPreviews = previewManager != null && previewManager.hasManualPreviews();
-        group.add(new PreviewAction(myRenderContext, "Delete All Thumbnails", ACTION_DELETE_ALL, null, hasPreviews));
-      }
-      group.addSeparator();
-    }
 
-    group.add(new PreviewAction(myRenderContext, "Preview Representative Sample", ACTION_PREVIEW_MODE, RenderPreviewMode.DEFAULT, true));
+    group.add(new PreviewAction(mySurface, "Preview Representative Sample", ACTION_PREVIEW_MODE, RenderPreviewMode.DEFAULT, true));
 
-    addScreenSizeAction(myRenderContext, group);
+    addScreenSizeAction(mySurface, group);
 
     boolean haveMultipleLocales = configurationManager.getLocales().size() > 1;
-    addLocalePreviewAction(myRenderContext, group, haveMultipleLocales);
-    addRtlPreviewAction(myRenderContext, group);
-    addApiLevelPreviewAction(myRenderContext, group);
+    addLocalePreviewAction(mySurface, group, haveMultipleLocales);
+    addRtlPreviewAction(mySurface, group);
+    addApiLevelPreviewAction(mySurface, group);
 
     // TODO: Support included layouts
     boolean DISABLE_RENDER_INCLUDED = true;
 
-    boolean canPreviewIncluded = !DISABLE_RENDER_INCLUDED && hasCapability(myRenderContext, Features.EMBEDDED_LAYOUT);
-    group.add(new PreviewAction(myRenderContext, "Preview Included", ACTION_PREVIEW_MODE, RenderPreviewMode.INCLUDES, canPreviewIncluded));
+    boolean canPreviewIncluded = !DISABLE_RENDER_INCLUDED && hasCapability(mySurface, Features.EMBEDDED_LAYOUT);
+    group.add(new PreviewAction(mySurface, "Preview Included", ACTION_PREVIEW_MODE, RenderPreviewMode.INCLUDES, canPreviewIncluded));
     List<VirtualFile> variations = ResourceHelper.getResourceVariations(file, true);
-    group.add(new PreviewAction(myRenderContext, "Preview Layout Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.VARIATIONS,
+    group.add(new PreviewAction(mySurface, "Preview Layout Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.VARIATIONS,
                                 variations.size() > 1));
-    if (SUPPORTS_MANUAL_PREVIEWS) {
-      group.add(new PreviewAction(myRenderContext, "Manual Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.CUSTOM, true));
-    }
 
-    group.add(new PreviewAction(myRenderContext, "None", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
+    group.add(new PreviewAction(mySurface, "None", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
 
     // Debugging only
     group.addSeparator();
     group.add(new AnAction("Toggle Layout Mode") {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        RenderPreviewManager.toggleLayoutMode(myRenderContext);
       }
     });
   }
 
-  static void addLocalePreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group, boolean enabled) {
+  static void addLocalePreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group, boolean enabled) {
     group.add(new PreviewAction(context, "Preview All Locales", ACTION_PREVIEW_MODE, RenderPreviewMode.LOCALES, enabled));
   }
 
-  static void addRtlPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+  static void addRtlPreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = hasCapability(context, Features.RTL);
     group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_PREVIEW_MODE, RenderPreviewMode.RTL, enabled));
   }
 
-  static void addApiLevelPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+  static void addApiLevelPreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = hasCapability(context, Features.SIMULATE_PLATFORM);
     group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, enabled));
   }
 
-  private static boolean hasCapability(RenderContext context, int capability) {
-    boolean enabled = false;
+  private static boolean hasCapability(DesignSurface context, int capability) {
     Configuration configuration = context.getConfiguration();
-    Module module = context.getModule();
-    if (configuration != null && module != null) {
-      ConfigurationManager configurationManager = configuration.getConfigurationManager();
-      IAndroidTarget target = configurationManager.getTarget();
+    if (configuration == null) {
+      return false;
+    }
+    boolean enabled = false;
+    Module module = configuration.getModule();
+    if (module != null) {
+      IAndroidTarget target = configuration.getTarget();
       if (target != null) {
         LayoutLibrary library = RenderService.getLayoutLibrary(module, target);
         enabled = library != null && library.supports(capability);
@@ -217,13 +219,13 @@ public class ConfigurationMenuAction extends FlatComboAction {
     return enabled;
   }
 
-  static void addScreenSizeAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    boolean enabled = context.supportsPreviews();
+  static void addScreenSizeAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+    boolean enabled = false;
     group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, enabled));
   }
 
-  static void addRemovePreviewsAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    boolean enabled = context.supportsPreviews();
+  static void addRemovePreviewsAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+    boolean enabled = false;
     group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, enabled));
   }
 
@@ -234,12 +236,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
   private static class PreviewAction extends AnAction {
     private final int myAction;
     private final RenderPreviewMode myMode;
-    private final RenderContext myRenderContext;
+    private final DesignSurface mySurface;
 
-    public PreviewAction(@NotNull RenderContext renderContext, @NotNull String title, int action,
+    public PreviewAction(@NotNull DesignSurface surface, @NotNull String title, int action,
                          @Nullable RenderPreviewMode mode, boolean enabled) {
       super(title, null, null);
-      myRenderContext = renderContext;
+      mySurface = surface;
       myAction = action;
       myMode = mode;
 
@@ -257,27 +259,8 @@ public class ConfigurationMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      RenderPreviewManager previewManager = myRenderContext.getPreviewManager(true);
-      assert previewManager != null;
-      switch (myAction) {
-        case ACTION_ADD: {
-          previewManager.addAsThumbnail();
-          break;
-        }
-        case ACTION_PREVIEW_MODE: {
-          assert myMode != null;
-          previewManager.selectMode(myMode);
-          break;
-        }
-        case ACTION_DELETE_ALL: {
-          previewManager.deleteManualPreviews();
-          break;
-        }
-        default: assert false : myAction;
-      }
-
-      myRenderContext.updateLayout();
-      //myRenderContext.zoomFit(true /*onlyZoomOut*/, false /*allowZoomIn*/);
+      //mySurface.updateLayout();
+      //mySurface.zoomFit(true /*onlyZoomOut*/, false /*allowZoomIn*/);
     }
   }
 
@@ -304,18 +287,18 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   private static class CreateVariationAction extends AnAction {
-    @NotNull private RenderContext myRenderContext;
+    @NotNull private DesignSurface mySurface;
     @Nullable private String myNewFolder;
 
-    public CreateVariationAction(@NotNull RenderContext renderContext, @NotNull String title, @Nullable String newFolder) {
+    public CreateVariationAction(@NotNull DesignSurface surface, @NotNull String title, @Nullable String newFolder) {
       super(title, null, null);
-      myRenderContext = renderContext;
+      mySurface = surface;
       myNewFolder = newFolder;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      OverrideResourceAction.forkResourceFile(myRenderContext, myNewFolder, true);
+      OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true);
     }
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.HighlightingPass;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class NlBackgroundEditorHighlighter implements BackgroundEditorHighlighter {
   private final HighlightingPass[] myHighlightingPasses;
 
-  public NlBackgroundEditorHighlighter(@NonNull NlEditorPanel editorPanel) {
+  public NlBackgroundEditorHighlighter(@NotNull NlEditorPanel editorPanel) {
     myHighlightingPasses = new HighlightingPass[]{new NlLintHighlightingPass(editorPanel.getSurface())};
   }
 

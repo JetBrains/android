@@ -201,12 +201,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
-      return new GradleApkProvider(facet, true);
+      return new GradleApkProvider(facet, applicationIdProvider, true);
     }
-    return new NonGradleApkProvider(facet, null);
+    return new NonGradleApkProvider(facet, applicationIdProvider, null);
   }
 
   private static int getTestSourceRootCount(@NotNull Module module) {
@@ -294,16 +293,28 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return false;
   }
 
+  @Override
+  public boolean monitorRemoteProcess() {
+    // Tests are run using the "am instrument" command. The output from the shell command is processed by AndroidTestListener,
+    // which sends events over to the test UI via GeneralToSMTRunnerEventsConvertor.
+    // If the process handler detects that the test process has terminated before all of the output from that shell process
+    // makes its way through the AndroidTestListener, the test UI marks the test run as having "Terminated" instead of terminating
+    // gracefully once all the test results have been parsed.
+    // As a result, we don't want the process handler monitoring the test process at all in this case..
+    // See https://code.google.com/p/android/issues/detail?id=201968
+    return false;
+  }
+
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
     String testPackage;
     try {
-      testPackage = apkProvider.getTestPackageName();
+      testPackage = applicationIdProvider.getTestPackageName();
       if (testPackage == null) {
         launchStatus.terminateLaunch("Unable to determine test package name");
         return null;

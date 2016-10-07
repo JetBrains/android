@@ -19,7 +19,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class RunAndroidAvdManagerAction extends DumbAwareAction {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidAvdManagerAction");
   private AvdListDialog myDialog;
 
   public RunAndroidAvdManagerAction() {
@@ -53,7 +52,8 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    openAvdManager(e.getProject());
+    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    openAvdManager(project);
   }
 
   public void openAvdManager(@Nullable Project project) {

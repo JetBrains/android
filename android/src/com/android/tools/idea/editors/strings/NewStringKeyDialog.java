@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VfsUtilCore;

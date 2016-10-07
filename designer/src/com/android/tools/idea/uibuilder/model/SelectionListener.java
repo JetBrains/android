@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -23,5 +23,5 @@ import java.util.List;
  * Interface implemented by listeners on selection changes
  */
 public interface SelectionListener {
-  void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection);
+  void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection);
 }

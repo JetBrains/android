@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.util.Ref;
@@ -22,25 +23,21 @@ import com.intellij.ui.components.labels.ActionLink;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, ActionLink> {
   @NotNull
   public static ActionLinkFixture findByActionId(@NotNull final String actionId,
                                                  @NotNull final Robot robot,
                                                  @NotNull final Container container) {
-    final Ref<ActionLink> actionLinkRef = new Ref<ActionLink>();
-    pause(new Condition("Find ActionLink with ID '" + actionId + "'") {
-      @Override
-      public boolean test() {
+    final Ref<ActionLink> actionLinkRef = new Ref<>();
+    Wait.minutes(2).expecting("ActionLink with ID '" + actionId + "' to be visible")
+      .until(() -> {
         Collection<ActionLink> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionLink>(ActionLink.class) {
           @Override
           protected boolean isMatching(@NotNull ActionLink actionLink) {
@@ -57,8 +54,7 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
           return true;
         }
         return false;
-      }
-    }, SHORT_TIMEOUT);
+      });
 
     ActionLink actionLink = actionLinkRef.get();
     if (actionLink == null) {

@@ -18,7 +18,7 @@ package com.android.tools.idea.monitor.memory;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import org.jetbrains.annotations.NotNull;
 

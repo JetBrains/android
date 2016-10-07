@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
@@ -51,11 +51,11 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     return AndroidTestBase.getAndroidPluginHome();
   }
 
-  protected ModelBuilder model(@NonNull String name, @NonNull ComponentDescriptor root) {
+  protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     return new ModelBuilder(myFacet, myFixture, name, root);
   }
 
-  protected ComponentDescriptor component(@NonNull String tag) {
+  protected ComponentDescriptor component(@NotNull String tag) {
     return new ComponentDescriptor(tag);
   }
 

@@ -15,41 +15,41 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.util.AndroidBundle;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-@Ignore("Cause of IDE fatal errors")
-public class RenameTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class RenameTest {
 
-  @Test @IdeGuiTest
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void sourceRoot() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    final Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    final Project project = guiTest.ideFrame().getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
@@ -63,20 +63,14 @@ public class RenameTest extends GuiTestCase {
         assertNotNull(directory);
         for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
-            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, myRobot);
+            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());
             assertFalse(renameDialog.warningExists(null));
             renameDialog.setNewName(renameDialog.getNewName() + 1);
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
-            final Ref<Boolean> ok = new Ref<Boolean>();
-            pause(new Condition("Wait until error text appears") {
-              @Override
-              public boolean test() {
-                ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
-                return ok.get();
-              }
-            }, SHORT_TIMEOUT);
-            assertTrue(ok.get());
+            Wait.seconds(30).expecting("error text to appear")
+              .until(() -> renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
+            renameDialog.clickCancel();
             return;
           }
         }

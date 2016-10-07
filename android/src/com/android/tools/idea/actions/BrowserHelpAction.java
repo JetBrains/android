@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Opens a help link in a browser window.
  */
-public final class BrowserHelpAction extends AnAction {
+public class BrowserHelpAction extends AnAction {
   @NotNull private final String myDocUrl;
 
   public BrowserHelpAction(@NotNull String topic, @NotNull String docUrl) {

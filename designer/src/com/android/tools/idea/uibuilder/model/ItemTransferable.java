@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -26,7 +26,7 @@ public class ItemTransferable implements Transferable {
 
   private final DnDTransferItem myItem;
 
-  public ItemTransferable(@NonNull DnDTransferItem item) {
+  public ItemTransferable(@NotNull DnDTransferItem item) {
     myItem = item;
   }
 

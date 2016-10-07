@@ -51,8 +51,8 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
       "\n<category %1$s:name=\"android.intent.category.DEFAULT\" />" +
       "\n<category %1$s:name=\"android.intent.category.BROWSABLE\" />" +
       "\n<data " +
-      "\n%1$s:host=\"%2$s\"" +
-      "\n%1$s:pathPrefix=\"%3$s\"" +
+      "\n%1$s:host=\"[ENTER-YOUR-HTTP-HOST-HERE]\"" +
+      "\n%1$s:pathPrefix=\"%2$s\"" +
       "\n%1$s:scheme=\"http\"/>";
   private static final String IF_COMMENT_TEXT =
       "<!-- ATTENTION: This intent was auto-generated. Follow instructions at\n" +
@@ -150,13 +150,11 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
       XmlTag manifest = ((XmlFile)file).getRootTag();
       if (activity != null && manifest != null) {
         String prefix = manifest.getPrefixByNamespace(SdkConstants.ANDROID_URI);
-        String packageName = manifest.getAttributeValue(SdkConstants.ATTR_PACKAGE);
-        String host = packageName == null ? "" : reversePackageName(packageName).toLowerCase(Locale.US);
         String activityName =
             activity.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
         String pathPrefix = activityName == null ? "/" : "/" + generatePathPrefix(activityName);
         String tagContent =
-            String.format(IF_CONTENT_FORMAT, prefix != null ? prefix : SdkConstants.ANDROID_NS_NAME, host, pathPrefix);
+            String.format(IF_CONTENT_FORMAT, prefix != null ? prefix : SdkConstants.ANDROID_NS_NAME, pathPrefix);
 
         XmlTag intentFilter = activity.createChildTag(SdkConstants.TAG_INTENT_FILTER, null, tagContent, false);
         XmlTag tagAdded = activity.addSubTag(intentFilter, false);

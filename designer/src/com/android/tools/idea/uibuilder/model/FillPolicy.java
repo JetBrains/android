@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -92,8 +92,8 @@ public enum FillPolicy {
    * @param component the component to look up a resize policy for
    * @return a suitable {@linkplain com.android.tools.idea.designer.ResizePolicy}
    */
-  @NonNull
-  public static FillPolicy getFillPreference(@NonNull NlComponent component) {
+  @NotNull
+  public static FillPolicy getFillPreference(@NotNull NlComponent component) {
     return BOTH;
   }
 }

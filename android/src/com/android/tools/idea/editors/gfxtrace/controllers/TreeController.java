@@ -16,12 +16,16 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.widgets.CopyEnabledTree;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
+import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
+import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -29,14 +33,17 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class TreeController extends Controller {
-  public static final int TREE_ROW_HEIGHT = 19;
 
-  @NotNull protected final JBLoadingPanel myLoadingPanel;
+public abstract class TreeController extends Controller implements CopyEnabledTree.ColumnTextProvider {
+  public static final int TREE_ROW_HEIGHT = JBUI.scale(19);
+
+  @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final Tree myTree = new Tree(new DefaultTreeModel(new DefaultMutableTreeNode()));
+  @NotNull protected final Tree myTree = new CopyEnabledTree(new DefaultTreeModel(new DefaultMutableTreeNode()), this);
 
   public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);
@@ -46,17 +53,15 @@ public abstract class TreeController extends Controller {
     myTree.setLineStyleAngled();
     myTree.setCellRenderer(getRenderer());
     myTree.getEmptyText().setText(emptyText);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
+    myLoadingPanel = new LoadablePanel(new BorderLayout());
+    myLoadingPanel.getContentLayer().add(myTree);
     myScrollPane.setViewportView(myLoadingPanel);
     myScrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
   }
 
   @NotNull
-  protected TreeCellRenderer getRenderer() {
-    return new TreeRenderer();
-  }
+  protected abstract TreeCellRenderer getRenderer();
 
   @Override
   public void clear() {
@@ -71,7 +76,47 @@ public abstract class TreeController extends Controller {
     assert (ApplicationManager.getApplication().isDispatchThread());
     myTree.setModel(model);
     myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
+  }
+
+  public TreeModel getModel() {
+    return myTree.getModel();
+  }
+
+  public static void hoverHand(@NotNull Component component, @Nullable Path root, @Nullable Path followPath) {
+    boolean validPath = followPath != null && followPath != Path.EMPTY;
+    ActionMenu.showDescriptionInStatusBar(true, component, validPath ? getDisplayTextFor(root, followPath) : null);
+    component.setCursor(validPath ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+  }
+
+  public static @NotNull String getDisplayTextFor(@Nullable Path root, @NotNull Path path) {
+    List<Path> pathParts = new ArrayList<>();
+    while (path != null) {
+      pathParts.add(path);
+      path = path.getParent();
+    }
+
+    List<Path> rootParts = new ArrayList<>();
+    while (root != null) {
+      rootParts.add(root);
+      root = root.getParent();
+    }
+
+    // If our path starts with status or atoms root, then we want to trim that from the start.
+    for (int i = rootParts.size() - 1; i >= 0; i--) {
+      if (pathParts.get(pathParts.size() - 1).equals(rootParts.get(i))) {
+        pathParts.remove(pathParts.size() - 1);
+      }
+      else {
+        break;
+      }
+    }
+
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append(pathParts.get(pathParts.size() - 1).getSegmentString());
+    for (int i = pathParts.size() - 2; i >= 0; i--) {
+      pathParts.get(i).appendSegmentToPath(stringBuilder);
+    }
+    return stringBuilder.toString();
   }
 
   public TreeModel getModel() {

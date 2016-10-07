@@ -19,7 +19,7 @@
  * for some final, accumulated purpose. As the user proceeds along, they can choose to go forward
  * (once the step allows it), backwards, or, at any time, may cancel the wizard.
  * <p/>
- * In this framework, a wizard owns one or more
+ * In this framework, a {@link com.android.tools.idea.wizard.model.ModelWizard} owns one or more
  * {@link com.android.tools.idea.wizard.model.ModelWizardStep}s, and each step is
  * associated with exactly one {@link com.android.tools.idea.wizard.model.WizardModel}. Multiple
  * steps may (and often should) reference the same model.
@@ -27,7 +27,8 @@
  * The model is responsible for storing all data collected by relevant steps and, upon the wizard's
  * completion, executing that data in some useful way. For example, an installer might collect
  * which components a user wants to install and various target paths. Then, when the user hits
- * 'finish', it unzips and copies all data over to some final location.
+ * 'finish', the model would be responsible for unzipping and copying all data over to some final
+ * location.
  * <p/>
  * Most wizards are simple enough that they can be represented by a bunch of steps which all
  * reference the same, single model. However, more complex wizards may benefit by breaking up their
@@ -39,7 +40,7 @@
  * only the latter.
  * <p/>
  * Finally, this wizard code makes heavy use of the various
- * {@link com.android.tools.idea.ui.properties.ObservableProperty} classes, in order to bind data
+ * {@link com.android.tools.idea.ui.properties.AbstractProperty} classes, in order to bind data
  * values to UI components. It's recommended you take a moment and read the package level
  * documentation for properties before using this wizard framework.
  */

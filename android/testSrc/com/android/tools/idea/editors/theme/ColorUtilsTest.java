@@ -24,7 +24,7 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 @SuppressWarnings("InspectionUsingGrayColors")
 public class ColorUtilsTest extends AndroidTestCase {
@@ -67,7 +67,7 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
 
-    LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<String, Color>();
+    LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<>();
     colorsWithDescription.put("color very transparent", new Color(0, 0, 0, 50));
     colorsWithDescription.put("color a little transparent", new Color(0, 0, 0, 200));
     assertEquals("<html>Not enough contrast with color very transparent",
@@ -88,11 +88,9 @@ public class ColorUtilsTest extends AndroidTestCase {
 
     Collection<Color>
       color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
-    assertThat(color)
-      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
     color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
-    assertThat(color)
-      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
 
     color = ColorUtils.getContrastColorsWithDescription(context, "").values();
     assertThat(color).isEmpty();

@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface PsiDbClassExtractionExpr extends PsiDbExpr {
 
-  @Nullable
+  @NotNull
   PsiDbType getType();
 
 }

@@ -1,5 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.location.GnssMeasurement int getConstellationType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssStatus.CONSTELLATION_UNKNOWN, android.location.GnssStatus.CONSTELLATION_GPS, android.location.GnssStatus.CONSTELLATION_SBAS, android.location.GnssStatus.CONSTELLATION_GLONASS, android.location.GnssStatus.CONSTELLATION_QZSS, android.location.GnssStatus.CONSTELLATION_BEIDOU, android.location.GnssStatus.CONSTELLATION_GALILEO}" />
+    </annotation>
+  </item>
+  <item name="android.location.GnssMeasurement int getMultipathIndicator()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssMeasurement.MULTIPATH_INDICATOR_UNKNOWN, android.location.GnssMeasurement.MULTIPATH_INDICATOR_DETECTED}" />
+    </annotation>
+  </item>
+  <item name="android.location.GnssMeasurementsEvent android.location.GnssClock getClock()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.location.GnssMeasurementsEvent java.util.Collection&lt;android.location.GnssMeasurement&gt; getMeasurements()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.location.GnssMeasurementsEvent.Callback void onStatusChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssMeasurementsEvent.Callback.STATUS_NOT_SUPPORTED, android.location.GnssMeasurementsEvent.Callback.STATUS_READY, android.location.GnssMeasurementsEvent.Callback.STATUS_LOCATION_DISABLED}" />
+    </annotation>
+  </item>
+  <item name="android.location.GnssNavigationMessage byte[] getData()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.location.GnssNavigationMessage int getType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssNavigationMessage.TYPE_UNKNOWN, android.location.GnssNavigationMessage.TYPE_GPS_L1CA, android.location.GnssNavigationMessage.TYPE_GPS_L2CNAV, android.location.GnssNavigationMessage.TYPE_GPS_L5CNAV, android.location.GnssNavigationMessage.TYPE_GPS_CNAV2, android.location.GnssNavigationMessage.TYPE_GLO_L1CA, android.location.GnssNavigationMessage.TYPE_BDS_D1, android.location.GnssNavigationMessage.TYPE_BDS_D2, android.location.GnssNavigationMessage.TYPE_GAL_I, android.location.GnssNavigationMessage.TYPE_GAL_F}" />
+    </annotation>
+  </item>
+  <item name="android.location.GnssNavigationMessage.Callback void onStatusChanged(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssNavigationMessage.Callback.STATUS_NOT_SUPPORTED, android.location.GnssNavigationMessage.Callback.STATUS_READY, android.location.GnssNavigationMessage.Callback.STATUS_LOCATION_DISABLED}" />
+    </annotation>
+  </item>
+  <item name="android.location.GnssStatus int getConstellationType(int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssStatus.CONSTELLATION_UNKNOWN, android.location.GnssStatus.CONSTELLATION_GPS, android.location.GnssStatus.CONSTELLATION_SBAS, android.location.GnssStatus.CONSTELLATION_GLONASS, android.location.GnssStatus.CONSTELLATION_QZSS, android.location.GnssStatus.CONSTELLATION_BEIDOU, android.location.GnssStatus.CONSTELLATION_GALILEO}" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager android.location.GpsStatus getGpsStatus(android.location.GpsStatus)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
   <item name="android.location.LocationManager android.location.Location getLastKnownLocation(java.lang.String)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="anyOf" val="{&quot;android.permission.ACCESS_COARSE_LOCATION&quot;, &quot;android.permission.ACCESS_FINE_LOCATION&quot;}" />
@@ -11,6 +55,41 @@
     </annotation>
   </item>
   <item name="android.location.LocationManager boolean addNmeaListener(android.location.GpsStatus.NmeaListener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean addNmeaListener(android.location.OnNmeaMessageListener)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean addNmeaListener(android.location.OnNmeaMessageListener, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean registerGnssMeasurementsCallback(android.location.GnssMeasurementsEvent.Callback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean registerGnssMeasurementsCallback(android.location.GnssMeasurementsEvent.Callback, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean registerGnssNavigationMessageCallback(android.location.GnssNavigationMessage.Callback, android.os.Handler)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean registerGnssStatusCallback(android.location.GnssStatus.Callback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
+    </annotation>
+  </item>
+  <item name="android.location.LocationManager boolean registerGnssStatusCallback(android.location.GnssStatus.Callback, android.os.Handler)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
     </annotation>

@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,18 +85,38 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
   }
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiCallback<FetchedImage, BufferedImage>() {
+    Rpc.listen(Futures.transform(FetchedImage.load(client, imagePath), new AsyncFunction<FetchedImage, BufferedImage>() {
       @Override
-      protected BufferedImage onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
-        return result.get().image;
+      public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
+        return getLevelToShow(image);
+      }
+    }), LOG, cell.controller, new UiErrorCallback<BufferedImage, BufferedImage, String>() {
+      @Override
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
+        try {
+          return success(result.get());
+        } catch (ErrDataUnavailable e) {
+          return error(e.getMessage());
+        }
       }
 
       @Override
-      protected void onUiThread(BufferedImage image) {
-        cell.icon = new ImageIcon(image);
+      protected void onUiThreadSuccess(BufferedImage image) {
+        cell.stopLoading(new ImageIcon(image));
         onLoad.run();
         myList.repaint();
       }
+
+      @Override
+      protected void onUiThreadError(String message) {
+        cell.stopLoading(null);
+        myList.repaint();
+      }
     });
+  }
+
+  /** @return the level to show for the image (0 by default). Subclasses can override this to pick a diferent level. */
+  protected ListenableFuture<BufferedImage> getLevelToShow(FetchedImage image) {
+    return image.getLevel(0);
   }
 }

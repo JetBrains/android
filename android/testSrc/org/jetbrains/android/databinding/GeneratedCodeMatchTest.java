@@ -21,7 +21,6 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
@@ -32,7 +31,6 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.FieldVisitor;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
-import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,11 +71,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testGeneratedCodeMatch() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidGradleProjectDataTest.testEndToEnd temporarily disabled");
-      return;
-    }
+  public void ignore_testGeneratedCodeMatch() throws Exception {
     File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
     createGradlePropertiesFile(projectFolder);
     loadProject("projects/projectWithDataBinding");
@@ -94,10 +88,10 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     Collection<File> classes = FileUtils.listFiles(classesOut, new String[]{"class"}, true);
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
     ClassReader viewDataBindingClass = findViewDataBindingClass();
-    Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<String>());
+    Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<>());
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myAndroidFacet.getModule().getProject());
-    Set<String> missingClasses = new HashSet<String>();
+    Set<String> missingClasses = new HashSet<>();
     boolean foundOne = false;
     for (File classFile : classes) {
       ClassReader classReader = new ClassReader(FileUtils.readFileToByteArray(classFile));
@@ -133,14 +127,14 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   }
 
   private void compile() throws Exception {
-    String javaHome = System.getenv().get("JAVA7_HOME");
-    assertTrue("this test requires java 7+", StringUtil.isNotEmpty(javaHome));
+    String javaHome = System.getenv().get("JAVA_HOME");
+    assertTrue("this test requires java 8", StringUtil.isNotEmpty(javaHome));
     assertBuildsCleanly(getProject(), true, "-Dorg.gradle.java.home=" + javaHome);
   }
 
   @NotNull
   private static TreeSet<String> collectDescriptionSet(@NotNull ClassReader classReader, @NotNull final Set<String> exclude) {
-    final TreeSet<String> set = new TreeSet<String>();
+    final TreeSet<String> set = new TreeSet<>();
     classReader.accept(new ClassVisitor(Opcodes.ASM5) {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -170,7 +164,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
   @NotNull
   private static String collectDescriptions(@NotNull PsiClass psiClass) {
-    final TreeSet<String> set = new TreeSet<String>();
+    final TreeSet<String> set = new TreeSet<>();
     for (PsiMethod method : psiClass.getMethods()) {
       if (method.getModifierList() != null && method.getModifierList().hasModifierProperty(PsiModifier.PUBLIC)) {
         set.add(modifierDescription(method) + " " + method.getName() + " : " + createMethodDescription(method));

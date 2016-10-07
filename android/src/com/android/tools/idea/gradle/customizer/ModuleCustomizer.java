@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public interface ModuleCustomizer<T> {
   /**
    * Customizes the given module (e.g. add facets, SDKs, etc.)
+   *
    * @param project              project that owns the module to customize.
    * @param module               the module to customize.
    * @param modelsProvider       modifiable IDE models provider to customize. The caller is responsible to commit the changes to models

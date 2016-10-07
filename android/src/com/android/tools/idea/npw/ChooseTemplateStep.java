@@ -47,7 +47,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * ChooseTemplateStep is a wizard page that shows the user a list of templates of a given type and lets the user choose one.
  *
- * Deprecated. Use {@link TemplateGalleryStep} instead.
+ * Deprecated. Needs porting to Model Wizard framework
  */
 @Deprecated
 public class ChooseTemplateStep extends TemplateWizardStep implements ListSelectionListener {
@@ -100,7 +100,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
    */
   protected static List<MetadataListItem> getTemplateList(TemplateWizardState state, List<File> templateFiles, @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
-    List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templateFiles.size());
+    List<MetadataListItem> metadataList = new ArrayList<>(templateFiles.size());
     for (File template : templateFiles) {
       TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {

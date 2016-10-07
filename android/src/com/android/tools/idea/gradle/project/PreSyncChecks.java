@@ -17,11 +17,14 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -37,8 +40,10 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -50,6 +55,7 @@ import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -57,7 +63,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 final class PreSyncChecks {
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
-  private static final String PROJECT_SYNCING_ERROR_GROUP = "Project syncing error";
+  private static final String PROJECT_SYNC_ERROR_GROUP = "Project sync error";
 
   private PreSyncChecks() {
   }
@@ -69,6 +75,9 @@ final class PreSyncChecks {
       // Unlikely to happen because it would mean this is the default project.
       return PreSyncCheckResult.success();
     }
+
+    ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
+    syncMessages.removeMessages(PROJECT_SYNC_ERROR_GROUP);
 
     if (isAndroidStudio()) {
       try {
@@ -92,10 +101,15 @@ final class PreSyncChecks {
       // We only check proxy settings for Studio, because Studio does not pass the IDE's proxy settings to Gradle.
       // See https://code.google.com/p/android/issues/detail?id=169743
       checkHttpProxySettings(project);
-    }
 
-    ProjectSyncMessages syncMessages = ProjectSyncMessages.getInstance(project);
-    syncMessages.removeMessages(PROJECT_SYNCING_ERROR_GROUP);
+      if (!Jdks.isApplicableJdk(jdk, JDK_1_8)) {
+        Message message = new Message(PROJECT_SYNC_ERROR_GROUP, Message.Type.ERROR, "Please use JDK 8 or newer.");
+
+        List<NotificationHyperlink> quickFixes = getJdkQuickFixes(project);
+        syncMessages.add(message, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
+        return PreSyncCheckResult.failure("Invalid Project Jdk");
+      }
+    }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       attemptToUseEmbeddedGradle(project);

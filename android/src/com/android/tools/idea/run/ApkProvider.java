@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,18 +31,6 @@ public interface ApkProvider {
    */
   @NotNull
   Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
-
-  /**
-   * @return The package name of the main APK - the app to launch, or the app under test.
-   */
-  @NotNull
-  String getPackageName() throws ApkProvisionException;
-
-  /**
-   * @return The package name of the test APK, or null if none.
-   */
-  @Nullable
-  String getTestPackageName() throws ApkProvisionException;
 
   @NotNull
   List<ValidationError> validate();

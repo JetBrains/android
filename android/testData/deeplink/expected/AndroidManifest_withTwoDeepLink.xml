@@ -23,7 +23,7 @@
         <!-- ATTENTION: This data URL was auto-generated. We recommend that you use the HTTP scheme.
           TODO: Change the host or pathPrefix as necessary. -->
         <data
-            android:host="p2.p1"
+            android:host="[ENTER-YOUR-HTTP-HOST-HERE]"
             android:pathPrefix="/main"
             android:scheme="http"/>
       </intent-filter>

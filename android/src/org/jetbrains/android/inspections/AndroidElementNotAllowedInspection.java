@@ -1,7 +1,7 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.codeInsight.daemon.XmlErrorMessages;
 import com.intellij.codeInspection.*;
 import com.intellij.psi.PsiFile;

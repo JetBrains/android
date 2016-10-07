@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
@@ -26,23 +27,27 @@ import com.intellij.notification.NotificationType;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-@BelongsToTestGroups({THEME})
-public class MultiModuleThemeEditorTest extends GuiTestCase {
+@RunIn(TestGroup.THEME)
+@RunWith(GuiTestRunner.class)
+public class MultiModuleThemeEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
-  @IdeGuiTest
   public void testMultipleModules() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3", "nothemeslibrary"));
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
@@ -70,10 +75,9 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   }
 
   @Test
-  @IdeGuiTest
   public void testModuleWithoutThemes() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 
@@ -82,9 +86,9 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     themeEditor.waitForThemeSelection("AppTheme");
 
     modulesComboBox.selectItem("nothemeslibrary");
-    myRobot.waitForIdle();
+    guiTest.robot().waitForIdle();
 
-    final LogModel logModel = EventLog.getLogModel(myProjectFrame.getProject());
+    final LogModel logModel = EventLog.getLogModel(guiTest.ideFrame().getProject());
     assertThat(logModel.getNotifications(), everyItem(new BaseMatcher<Notification>() {
       @Override
       public void describeTo(Description description) {

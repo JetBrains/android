@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-final public class FmtRGBA extends Format {
+final class FmtRGBA extends Format {
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtRGBA}.

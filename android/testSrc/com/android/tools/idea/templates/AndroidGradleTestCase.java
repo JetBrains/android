@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -44,6 +45,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -53,17 +55,18 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
-import com.intellij.util.SystemProperties;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -84,13 +87,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
+import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.google.common.io.Files.write;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
@@ -100,19 +111,10 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
-  /** Indicates whether the test is being run by the presubmit runner. */
-  public static final boolean IS_PRESUBMIT_RUNNER = Boolean.parseBoolean(System.getenv("STUDIO_PRESUBMIT_RUNNER"));
-
   /**
    * The name of the gradle wrapper executable associated with the current OS.
    */
   @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
-
-  /**
-   * Flag to control whether gradle projects can be synced in tests. This was
-   * disabled earlier since it resulted in _LastInSuiteTest.testProjectLeak
-   */
-  protected static final boolean CAN_SYNC_PROJECTS = true;
 
   private static AndroidSdkData ourPreviousSdkData;
 
@@ -137,47 +139,44 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    if (CAN_SYNC_PROJECTS) {
-      GradleProjectImporter.ourSkipSetupFromTest = true;
-    }
+    GradleProjectImporter.ourSkipSetupFromTest = true;
 
     if (createDefaultProject()) {
-      final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
         IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
       myFixture.setTestDataPath(getTestDataPath());
+      ensureSdkManagerAvailable();
+      setUpSdks();
     }
+    else {
+      // This is necessary when we don't create a default project,
+      // to ensure that the LocalFileSystemHolder is initialized.
+      IdeaTestApplication.getInstance();
 
-    String javaHome = SystemProperties.getJavaHome();
-    if (javaHome.endsWith("jre")) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), new File(javaHome).getParent());
+      ensureSdkManagerAvailable();
     }
-    ensureSdkManagerAvailable();
+  }
 
+  private void setUpSdks() {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
-    AndroidSdkData sdkData = tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      final File location = sdkData.getLocation();
-      LOG.info("sdk @ " + location);
-      File ideSdkPath = IdeSdks.getAndroidSdkPath();
-      if (ideSdkPath == null) {
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            runWriteCommandAction(getProject(), new Runnable() {
-              @Override
-              public void run() {
-                IdeSdks.setAndroidSdkPath(location, getProject());
-                LOG.info("Set IDE Sdk Path to " + location);
-              }
-            });
-          }
-        });
-      }
-    }
+    File androidSdkPath = getAndroidSdkPath();
+    File jdkPath = getJdkPath();
+
+    runWriteCommandAction(getProject(), () -> {
+      IdeSdks.setJdkPath(jdkPath);
+      LOG.info("Set JDK to " + jdkPath);
+
+      IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
+      LOG.info("Set IDE Sdk Path to " + androidSdkPath);
+    });
+
+    Sdk currentJdk = IdeSdks.getJdk();
+    assertNotNull(currentJdk);
+    assertTrue("JDK 8 is required. Found: " + currentJdk.getHomePath(), isApplicableJdk(currentJdk, JDK_1_8));
   }
 
   @Override
@@ -185,31 +184,38 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     try {
       if (myFixture != null) {
         try {
-          if (CAN_SYNC_PROJECTS) {
-            Project project = myFixture.getProject();
-            // Since we don't really open the project, but we manually register listeners in the gradle importer
-            // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-            // that here, otherwise the testsuite will leak
-            if (requiresAndroidModel(project)) {
-              AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-              projectComponent.projectClosed();
-            }
+          Project project = myFixture.getProject();
+          // Since we don't really open the project, but we manually register listeners in the gradle importer
+          // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+          // that here, otherwise the testsuite will leak
+          if (requiresAndroidModel(project)) {
+            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
+            projectComponent.projectClosed();
           }
         }
         finally {
-          myFixture.tearDown();
+          try {
+            myFixture.tearDown();
+          }
+          catch (Exception e) {
+            LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
+          }
           myFixture = null;
         }
       }
 
-      if (CAN_SYNC_PROJECTS) {
-        GradleProjectImporter.ourSkipSetupFromTest = false;
-      }
+      GradleProjectImporter.ourSkipSetupFromTest = false;
 
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], new SmartList<>());
+        List<Throwable> exceptions = new SmartList<>();
+        try {
+          PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], exceptions);
+        }
+        finally {
+          throwIfNotEmpty(exceptions);
+        }
       }
     }
     finally {
@@ -217,6 +223,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
       }
       finally {
+        //noinspection ThrowFromFinallyBlock
         super.tearDown();
       }
 
@@ -246,15 +253,28 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     super.ensureSdkManagerAvailable();
   }
 
-  protected void loadProject(String relativePath) throws IOException, ConfigurationException, InterruptedException {
+  protected void loadProject(@NotNull String relativePath) throws IOException, ConfigurationException, InterruptedException {
     loadProject(relativePath, false);
   }
 
-  protected void loadProject(String relativePath, boolean buildProject) throws IOException, ConfigurationException, InterruptedException {
+  protected void loadProject(@NotNull String relativePath, boolean buildProject)
+    throws IOException, ConfigurationException, InterruptedException {
     loadProject(relativePath, buildProject, null);
   }
 
+  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName)
+    throws IOException, ConfigurationException, InterruptedException {
+
+    loadProject(relativePath, false, null, chosenModuleName);
+  }
+
   protected void loadProject(String relativePath, boolean buildProject, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException, InterruptedException {
+    loadProject(relativePath, buildProject, listener, null);
+  }
+
+  protected void loadProject(
+    String relativePath, boolean buildProject, @Nullable GradleSyncListener listener, @Nullable String chosenModuleName)
     throws IOException, ConfigurationException, InterruptedException {
     File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
     assertTrue(root.getPath(), root.exists());
@@ -288,10 +308,36 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertFalse(isLegacyIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      myAndroidFacet = AndroidFacet.getInstance(module);
-      if (myAndroidFacet != null) {
-        break;
+    Module[] modules = moduleManager.getModules();
+
+    // if module name is specified, find it
+    if (chosenModuleName != null) {
+      for (Module module : modules) {
+        if (chosenModuleName.equals(module.getName())) {
+          myAndroidFacet = AndroidFacet.getInstance(module);
+          break;
+        }
+      }
+    }
+
+    if (myAndroidFacet == null) {
+      // then try and find a non-lib facet
+      for (Module module : modules) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && !androidFacet.isLibraryProject()) {
+          myAndroidFacet = androidFacet;
+          break;
+        }
+      }
+    }
+
+    // then try and find ANY android facet
+    if (myAndroidFacet == null) {
+      for (Module module : modules) {
+        myAndroidFacet = AndroidFacet.getInstance(module);
+        if (myAndroidFacet != null) {
+          break;
+        }
       }
     }
 
@@ -299,6 +345,32 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // is the cause of the issue, but not all files inside a project are seen while running unit tests.
     // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
     LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
+  }
+
+  @NotNull
+  protected GradleInvocationResult generateSources(boolean cleanProject) throws InterruptedException {
+    Ref<GradleInvocationResult> resultRef = new Ref<>();
+    CountDownLatch latch = new CountDownLatch(1);
+    GradleInvoker gradleInvoker = GradleInvoker.getInstance(getProject());
+
+    GradleInvoker.AfterGradleInvocationTask task = result -> {
+      resultRef.set(result);
+      latch.countDown();
+    };
+
+    gradleInvoker.addAfterGradleInvocationTask(task);
+
+    try {
+      gradleInvoker.generateSources(cleanProject);
+    }
+    finally {
+      gradleInvoker.removeAfterGradleInvocationTask(task);
+    }
+
+    latch.await();
+    GradleInvocationResult result = resultRef.get();
+    assert result != null;
+    return result;
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
@@ -317,7 +389,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
       Matcher matcher = pattern.matcher(contents);
       if (matcher.find()) {
-        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION +
+        contents = contents.substring(0, matcher.start(1)) + GRADLE_PLUGIN_RECOMMENDED_VERSION +
                    contents.substring(matcher.end(1));
         changed = true;
       }
@@ -325,8 +397,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       pattern = Pattern.compile("buildToolsVersion ['\"](.+)['\"]");
       matcher = pattern.matcher(contents);
       if (matcher.find()) {
-        contents = contents.substring(0, matcher.start(1)) + GradleImport.CURRENT_BUILD_TOOLS_VERSION +
-                   contents.substring(matcher.end(1));
+        contents = contents.substring(0, matcher.start(1)) + CURRENT_BUILD_TOOLS_VERSION + contents.substring(matcher.end(1));
         changed = true;
       }
 
@@ -349,13 +420,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
 
       if (changed) {
-        Files.write(contents, file, Charsets.UTF_8);
+        write(contents, file, Charsets.UTF_8);
       }
     }
   }
 
   public void createProject(String activityName, boolean syncModel) throws Exception {
-    final NewProjectWizardState projectWizardState = new NewProjectWizardState();
+    NewProjectWizardState projectWizardState = new NewProjectWizardState();
 
     configureProjectState(projectWizardState);
     TemplateWizardState activityWizardState = projectWizardState.getActivityTemplateState();
@@ -401,7 +472,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void configureProjectState(NewProjectWizardState projectWizardState) {
-    final Project project = myFixture.getProject();
+    Project project = myFixture.getProject();
     AndroidSdkData sdkData = tryToChooseAndroidSdk();
     assert sdkData != null;
 
@@ -412,7 +483,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
-    BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    BuildToolInfo buildTool = sdkData.getLatestBuildTool(false);
     assertNotNull(buildTool);
     projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
@@ -421,20 +492,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
   }
 
-  public void createProject(final NewProjectWizardState projectWizardState, boolean syncModel) throws Exception {
+  public void createProject(NewProjectWizardState projectWizardState, boolean syncModel) throws Exception {
     createProject(myFixture, projectWizardState, syncModel);
   }
 
-  public static void createProject(final IdeaProjectTestFixture myFixture,
-                                   final NewProjectWizardState projectWizardState,
+  public static void createProject(IdeaProjectTestFixture myFixture,
+                                   NewProjectWizardState projectWizardState,
                                    boolean syncModel) throws Exception {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
-        NewProjectWizard.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
-        FileDocumentManager.getInstance().saveAllDocuments();
-      }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
+      WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
+      FileDocumentManager.getInstance().saveAllDocuments();
     });
 
     // Sync model
@@ -456,7 +524,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     args.add(gradlew.getPath());
     args.add("assembleDebug");
     Collections.addAll(args, extraArgs);
-    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
+    addLocalMavenRepoInitScriptCommandLineOption(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
@@ -511,16 +579,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
               continue;
             }
             if (issue.getDefaultSeverity().compareTo(maxSeverity) < 0) {
-              fail("Found lint issue " +
-                   issue.getId() +
-                   " with severity " +
-                   issue.getDefaultSeverity() +
-                   " in " +
-                   file +
-                   " at " +
-                   problem.getTextRange() +
-                   ": " +
-                   problem.getMessage());
+              fail("Found lint issue " + issue.getId() + " with severity " + issue.getDefaultSeverity() + " in " + file + " at " +
+                   problem.getTextRange() + ": " + problem.getMessage());
             }
           }
         }
@@ -528,12 +588,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static void importProject(final @NotNull Project project, final @NotNull String projectName, final File projectRoot,
-                                    final @Nullable GradleSyncListener listener)
+  protected static void importProject(@NotNull Project project, @NotNull String projectName, @NotNull File projectRoot,
+                                      @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException, InterruptedException {
 
-    final Ref<Throwable> throwableRef = new Ref<Throwable>();
-    final CountDownLatch latch = new CountDownLatch(1);
+    Ref<Throwable> throwableRef = new Ref<>();
+    CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
@@ -551,18 +611,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     GradleSyncState.subscribe(project, postSetupListener);
 
-    runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
-          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-          GradleProjectImporter.getInstance().importProject(projectName, projectRoot, false /* do not generate sources */, listener,
-                                                            project, null);
-        }
-        catch (Throwable e) {
-          throwableRef.set(e);
-        }
+    runWriteCommandAction(project, () -> {
+      try {
+        // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
+        // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, false /* do not generate sources */, listener,
+                                                          project, null);
+      }
+      catch (Throwable e) {
+        throwableRef.set(e);
       }
     });
 
@@ -570,13 +627,36 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (throwable != null) {
       if (throwable instanceof IOException) {
         throw (IOException)throwable;
-      } else if (throwable instanceof ConfigurationException) {
+      }
+      else if (throwable instanceof ConfigurationException) {
         throw (ConfigurationException)throwable;
-      } else {
+      }
+      else {
         throw new RuntimeException(throwable);
       }
     }
 
     latch.await();
+  }
+
+  @NotNull
+  protected AndroidGradleModel getModel() {
+    AndroidGradleModel model = AndroidGradleModel.get(myAndroidFacet);
+    assert model != null;
+    return model;
+  }
+
+  @NotNull
+  protected String getTextForFile(@NotNull String relativePath) {
+    Project project = getProject();
+    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    if (file != null) {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      if (psiFile != null) {
+        return psiFile.getText();
+      }
+    }
+
+    return "";
   }
 }

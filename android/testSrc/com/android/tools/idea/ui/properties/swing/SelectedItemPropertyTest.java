@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class SelectedItemPropertyTest {
   @Test
@@ -33,7 +33,7 @@ public final class SelectedItemPropertyTest {
     model.addElement(b);
 
     JComboBox comboBox = new JComboBox(model);
-    SelectedItemProperty<TestString> selectedItemProperty = new SelectedItemProperty<TestString>(comboBox);
+    SelectedItemProperty<TestString> selectedItemProperty = new SelectedItemProperty<>(comboBox);
     CountListener listener = new CountListener();
     selectedItemProperty.addListener(listener);
 

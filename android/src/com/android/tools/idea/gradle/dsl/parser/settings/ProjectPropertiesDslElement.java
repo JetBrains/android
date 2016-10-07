@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
   @NonNls private static final String PROJECT_DIR = "projectDir";
@@ -37,29 +35,10 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
   @Nullable
   public File projectDir() {
     GradleDslNewExpression projectDir = getProperty(PROJECT_DIR, GradleDslNewExpression.class);
-    if (projectDir == null || !projectDir.getName().equals("File")) {
-      return null;
+    if (projectDir != null) {
+      return projectDir.getValue(File.class);
     }
-
-    List<GradleDslExpression> arguments = projectDir.getArguments();
-    if (arguments.isEmpty()) {
-      return null;
-    }
-
-    String firstArgumentValue = arguments.get(0).getValue(String.class);
-    if (firstArgumentValue == null) {
-      return null;
-    }
-
-    File result = new File(firstArgumentValue);
-    for (int i = 1; i < arguments.size(); i++) {
-      String value = arguments.get(i).getValue(String.class);
-      if (value == null) {
-        return null;
-      }
-      result = new File(result, value);
-    }
-    return result;
+    return null;
   }
 
   @Nullable

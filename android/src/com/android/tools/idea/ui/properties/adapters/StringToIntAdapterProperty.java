@@ -15,26 +15,30 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Adapter property that wraps a String type which represents a Integer value.
+ *
+ * If a string is passed in that isn't properly formatted, this adapter returns the last known
+ * good value.
  */
 public final class StringToIntAdapterProperty extends AdapterProperty<String, Integer> {
 
-  public StringToIntAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty) {
-    super(wrappedProperty);
+  public StringToIntAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty) {
+    super(wrappedProperty, 0);
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected Integer convertFromSourceType(@NotNull String value) {
     try {
       return Integer.parseInt(value);
     }
     catch (NumberFormatException e) {
-      return 0;
+      return null;
     }
   }
 

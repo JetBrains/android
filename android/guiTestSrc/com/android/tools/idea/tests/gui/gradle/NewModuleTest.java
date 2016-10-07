@@ -15,80 +15,126 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.npw.ModuleTemplate;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.ui.ASGallery;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.DialogFixture;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.awt.*;
+import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.*;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
-@BelongsToTestGroups({TestGroup.TEST_SUPPORT})
-public class NewModuleTest extends GuiTestCase {
+@RunIn(TestGroup.TEST_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class NewModuleTest {
 
-  @Test @IdeGuiTest
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testNewModuleOldGradle() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    // That's the oldest combination we support:
-    myProjectFrame.updateAndroidGradlePluginVersion("1.0.0");
-    myProjectFrame.updateGradleWrapperVersion("2.2.1");
-
-    EditorFixture editor = myProjectFrame.getEditor();
-    editor.open("app/build.gradle");
-    editor.moveTo(editor.findOffset("use", "Library", false));
-    editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
-
-    myProjectFrame.requestProjectSync();
-    myProjectFrame.waitForGradleProjectSyncToFinish();
-
-    myProjectFrame.invokeMenuPath("File", "New", "New Module...");
-    Dialog dialog = myRobot.finder().find(DialogMatcher.withTitle("Create New Module"));
-    DialogFixture dialogFixture = new DialogFixture(myRobot, dialog);
-
-    selectItemInGallery(dialog, 1, "Android Library");
-    findAndClickButton(dialogFixture, "Next");
-    myProjectFrame.waitForBackgroundTasksToFinish();
-    findAndClickButtonWhenEnabled(dialogFixture, "Finish");
-
-    myProjectFrame.waitForGradleProjectSyncToFinish();
-
-    // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
-    editor.open("mylibrary/build.gradle");
-    assertEquals(-1, editor.findOffset("test", "Compile", true));
-
-    VirtualFile projectDir = myProjectFrame.getProject().getBaseDir();
-    assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));
-    assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
+    String gradleFileContents = guiTest.importSimpleApplication()
+      // the oldest combination we support:
+      .updateAndroidGradlePluginVersion("1.0.0")
+      .updateGradleWrapperVersion("2.2.1")
+      .getEditor()
+      .open("app/build.gradle")
+      // delete lines using DSL features added after Android Gradle 1.0.0
+      .moveBetween("use", "Library")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .moveBetween("test", "Compile")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("somelibrary")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("somelibrary/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents).doesNotContain("testCompile");
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/main")).isDirectory();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
   }
 
-  private void selectItemInGallery(@NotNull Dialog dialog,
-                                   final int selectedIndex,
-                                   @NotNull final String expectedName) {
-    final ASGallery gallery = myRobot.finder().findByType(dialog, ASGallery.class);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        gallery.setSelectedIndex(selectedIndex);
-        ModuleTemplate selected = (ModuleTemplate)gallery.getSelectedElement();
-        assertNotNull(selected);
-        assertEquals(expectedName, selected.getName());
-      }
-    });
+  /**
+   * Verifies addition of new application module to application.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * </p>
+   * <p>
+   * TR ID: C14578813
+   * </p>
+   * <p>
+   * <pre>
+   *   This is run to qualify releases. Please involve the test team in substantial changes.
+   *   Test Steps
+   *   1. File -> new module
+   *   2. Select Phone & Tablet module
+   *   3. Choose no activity
+   *   3. Wait for build to complete
+   *   Verification
+   *   a new folder matching the module name should have been created.
+   * </pre>
+   * </p>
+   */
+  @Test
+  public void createNewAppModuleWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Phone & Tablet Module")
+      .clickNextToStep("Phone & Tablet Module")
+      .setModuleName("application-module")
+      .clickNextToStep("Add an Activity to Mobile")
+      .chooseActivity("Add No Activity")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "application-module")).isDirectory();
+  }
+
+  /**
+   * Verifies addition of new library module to application.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * </p>
+   * <p>
+   * TR ID: C14578813
+   * </p>
+   * <p>
+   * <pre>
+   *   This is run to qualify releases. Please involve the test team in substantial changes.
+   *   Test Steps
+   *   Create a new project
+   *   1. File > New Module
+   *   2. Choose Android Library
+   *   3. Click Finish
+   *   Verification
+   *   a new folder matching the module name should have been created
+   * </pre>
+   * </p>
+   */
+  @Test
+  public void createNewLibraryModuleWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("library-module")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
   }
 }

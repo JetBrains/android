@@ -51,7 +51,7 @@ public class TypedVariableTest extends AndroidTestCase {
   }
 
   public void testParseGlobal() throws Exception {
-    final Map<String, Object> paramMap = new HashMap<String, Object>();
+    final Map<String, Object> paramMap = new HashMap<>();
 
     File xmlFile = new File(FileUtil.join(getTestDataPath(), "templates", "globals.xml"));
     String xml = TemplateUtils.readTextFromDisk(xmlFile);

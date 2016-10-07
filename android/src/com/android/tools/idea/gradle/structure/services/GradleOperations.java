@@ -57,7 +57,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-          String name = dependency.name();
+          String name = dependency.name().value();
           moduleDependencyNames.add(name);
         }
       }
@@ -87,7 +87,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-          ArtifactDependencySpec spec = dependency.getSpec();
+          ArtifactDependencySpec spec = ArtifactDependencySpec.create(dependency);
           for (String dependencyValue : metadata.getDependencies()) {
             if (spec.equals(ArtifactDependencySpec.create(dependencyValue))) {
               return true;
@@ -108,7 +108,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-          ArtifactDependencySpec spec = dependency.getSpec();
+          ArtifactDependencySpec spec = ArtifactDependencySpec.create(dependency);
           for (String dependencyValue : metadata.getDependencies()) {
             if (spec.equals(ArtifactDependencySpec.create(dependencyValue))) {
               dependenciesModel.remove(dependency);

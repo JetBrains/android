@@ -33,7 +33,6 @@ import java.util.List;
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
-
   @Override
   public boolean executeTasks(@NotNull ExternalSystemTaskId id,
                               @NotNull List<String> taskNames,
@@ -49,7 +48,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
       return false;
     }
-    invoker.executeTasks(taskNames, vmOptions, scriptParameters, id, listener, true);
+    invoker.executeTasks(taskNames, vmOptions, scriptParameters, id, listener, null, true, false);
     return true;
   }
 

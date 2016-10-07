@@ -15,60 +15,67 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertTrue;
 
-public class LaunchAndroidApplicationTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class LaunchAndroidApplicationTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String APP_NAME = "app";
   private static final String PROCESS_NAME = "com.android.simple.application";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
 
-  @Ignore
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
+  @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    myProjectFrame = importSimpleApplication();
-
-    myProjectFrame.runApp(APP_NAME);
-    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
-                                         .clickOk();
+    guiTest.importSimpleApplication()
+      .runApp(APP_NAME)
+      .selectFirstAvailableDevice()
+      .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    myProjectFrame.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
 
-    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
+    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }
 
-  @Ignore
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
+  @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    myProjectFrame = importSimpleApplication();
-    final EditorFixture editor = myProjectFrame.getEditor();
-    final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
-      "setContentView", "(R.layout.activity_my);", true);
-    assertTrue(offset >= 0);
+    guiTest.importSimpleApplication();
+    String contents = guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+    assertThat(contents).contains("setContentView(R.layout.activity_my);");
 
-    myProjectFrame.debugApp(APP_NAME);
-    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
-                                         .clickOk();
+    guiTest.ideFrame()
+      .debugApp(APP_NAME)
+      .selectEmulator("Nexus7")
+      .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    myProjectFrame.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    guiTest.ideFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
 
-    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
+    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }

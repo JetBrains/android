@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.project.GradleModuleImportTest;
-import com.android.tools.idea.npw.ImportSourceLocationStep;
-import com.android.tools.idea.npw.NewModuleWizardState;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +49,7 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = GradleModuleImportTest.createGradleProjectToImport(new File(Files.createTempDir(), "project"), "gradleProject");
-    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), null, new NewModuleWizardState(), null, null);
+    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), new NewModuleWizardState(), null, null);
   }
 
   @Override

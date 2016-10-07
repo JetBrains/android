@@ -23,6 +23,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class ThemeEditorTestUtils {
     return Collections2
       .filter(ThemeAttributeResolver.resolveAll(style, style.getConfiguration().getConfigurationManager()), new Predicate<EditedStyleItem>() {
         @Override
-        public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
+        public boolean apply(@Nullable EditedStyleItem input) {
           assert input != null;
           return localAttributes.contains(input.getQualifiedName());
         }

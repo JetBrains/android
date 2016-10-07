@@ -64,7 +64,7 @@ public class AndroidXmlPolicy extends XmlPolicy {
       }
 
       if (hasNamespace) {
-        return false;
+        return myCustomSettings.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION;
       }
 
       if (!attribute.isNamespaceDeclaration()) {

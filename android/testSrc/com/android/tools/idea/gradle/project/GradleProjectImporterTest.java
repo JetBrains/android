@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.JavaProject;
@@ -34,19 +35,20 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
-import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
 
 /**
  * Tests for {@link GradleProjectImporter}.
@@ -104,11 +106,6 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testImportNewlyCreatedProject() throws Exception {
     MyGradleSyncListener callback = new MyGradleSyncListener();
     myImporter.importNewlyCreatedProject(myProjectName, myProjectRootDir, callback, null, null);
@@ -134,7 +131,12 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
-    myCachedModule.createChild(ANDROID_MODEL, createMock(AndroidGradleModel.class));
+
+    AndroidGradleModel mockAndroidModel = createMock(AndroidGradleModel.class);
+    expect(mockAndroidModel.getAndroidProject()).andReturn(createMock(AndroidProject.class));
+    replay(mockAndroidModel);
+    myCachedModule.createChild(ANDROID_MODEL, mockAndroidModel);
+
     assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
@@ -183,17 +185,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private static void commitModelChanges(final ModifiableFacetModel model) {
     // Committing the model in a write action as the test is not running in a write action.
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            model.commit();
-          }
-        });
-      }
-    });
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> ApplicationManager.getApplication().runWriteAction(model::commit));
   }
 
   private class MyGradleSyncListener extends GradleSyncListener.Adapter {
@@ -202,15 +194,23 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());
-      assertEquals(myProjectRootDir.getPath(), project.getBasePath());
+      assertEquals(PathUtil.toSystemIndependentName(myProjectRootDir.getPath()), project.getBasePath());
 
       // Verify that '.idea' directory was created.
-      assertTrue(new File(ProjectKt.getStateStore(project).getDirectoryStorePath()).isDirectory());
+      File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);
+      assertTrue(ideaProjectDir.isDirectory());
     }
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       fail(errorMessage);
     }
+  }
+
+  @Override
+  protected boolean isRunInWriteAction() {
+    return false;
+    // Android Studio: Tests that perform project setup are failing due to CLion indexing in
+    // OCSymbolTablesBuildingActivity#buildSymbolsInternal is triggered in write action.
   }
 }

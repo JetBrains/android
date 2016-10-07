@@ -15,44 +15,50 @@
  */
 package com.android.tools.idea.tests.gui.editors.hprof;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class HprofEditorTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class HprofEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String SAMPLE_SNAPSHOT_NAME = "snapshot.hprof";
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
 
   private CapturesToolWindowFixture myCapturesToolWindowFixture;
   private HprofEditorFixture myDefaultEditor;
 
-  // TODO: Change this method to use the @Before annotation when it is fixed to work with GUI tests.
+  @Before
   public void init() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+    guiTest.importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
-    myCapturesToolWindowFixture = myProjectFrame.getCapturesToolWindow();
+    myCapturesToolWindowFixture = guiTest.ideFrame().getCapturesToolWindow();
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, myProjectFrame, SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(guiTest.robot(), guiTest.ideFrame(), SAMPLE_SNAPSHOT_NAME);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/72")
   @Test
-  @IdeGuiTest
   public void testInitialState() throws IOException {
-    init();
-
     myDefaultEditor.assertCurrentHeapName("App heap");
     myDefaultEditor.assertCurrentClassesViewMode("Class List View");
     JTreeFixture classesTree = myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection();

@@ -15,32 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.lint.checks.RtlDetector;
+import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
+import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class LintAnnotationsModel {
   /** A map from a component to a list of issues for that component. */
   private ListMultimap<NlComponent, IssueData> myIssues;
+  private List<IssueData> myIssueList;
 
-  @NonNull
+  @NotNull
   public Collection<NlComponent> getComponentsWithIssues() {
     return myIssues == null ? Collections.<NlComponent>emptyList() : myIssues.keySet();
   }
 
   @Nullable
-  public Icon getIssueIcon(@NonNull NlComponent component) {
+  public Icon getIssueIcon(@NotNull NlComponent component) {
+    if (myIssues == null) {
+      return null;
+    }
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
@@ -50,42 +57,76 @@ public class LintAnnotationsModel {
     return HighlightDisplayLevel.ERROR.equals(max.level) ? AndroidIcons.ErrorBadge : AndroidIcons.WarningBadge;
   }
 
-  public String getIssueMessage(@NonNull NlComponent component) {
+  public String getIssueMessage(@NotNull NlComponent component) {
+    if (myIssues == null) {
+      return null;
+    }
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
     }
 
     IssueData max = findHighestSeverityIssue(issueData);
-    return max.inspection.getStaticDescription();
+    return max.message + "<br><br>\n" + max.inspection.getStaticDescription();
   }
 
   private static IssueData findHighestSeverityIssue(List<IssueData> issueData) {
-    return Collections.max(issueData, new Comparator<IssueData>() {
-      @Override
-      public int compare(IssueData o1, IssueData o2) {
-        return o1.level.getSeverity().compareTo(o2.level.getSeverity());
-      }
-    });
+    return Collections.max(issueData, (o1, o2) -> o1.level.getSeverity().compareTo(o2.level.getSeverity()));
   }
 
-  public void addIssue(@NonNull NlComponent component,
-                       @NonNull AndroidLintInspectionBase inspection,
-                       @NonNull HighlightDisplayLevel level) {
+  public void addIssue(@NotNull NlComponent component,
+                       @NotNull Issue issue,
+                       @NotNull String message,
+                       @NotNull AndroidLintInspectionBase inspection,
+                       @NotNull HighlightDisplayLevel level,
+                       @NotNull PsiElement startElement,
+                       @NotNull PsiElement endElement) {
+    // Constraint layout doesn't handle RTL issues yet; don't highlight these
+    if (issue == RtlDetector.COMPAT) {
+      return;
+    }
     if (myIssues == null) {
       myIssues = ArrayListMultimap.create();
+      myIssueList = Lists.newArrayList();
     }
 
-    myIssues.put(component, new IssueData(inspection, level));
+    IssueData data = new IssueData(component, inspection, issue, message, level, startElement, endElement);
+    myIssues.put(component, data);
+    myIssueList.add(data); // TODO: Derive from myIssues map when needed?
   }
 
-  private static class IssueData {
-    @NonNull public final AndroidLintInspectionBase inspection;
-    @NonNull public final HighlightDisplayLevel level;
+  public int getIssueCount() {
+    return myIssueList == null ? 0 : myIssueList.size();
+  }
 
-    private IssueData(@NonNull AndroidLintInspectionBase inspection, @NonNull HighlightDisplayLevel level) {
+  @NotNull
+  public List<IssueData> getIssues() {
+    return myIssueList != null ? myIssueList : Collections.emptyList();
+  }
+
+  static class IssueData {
+    @NotNull public final AndroidLintInspectionBase inspection;
+    @NotNull public final HighlightDisplayLevel level;
+    @NotNull public final String message;
+    @NotNull public final Issue issue;
+    @NotNull public final PsiElement endElement;
+    @NotNull public final PsiElement startElement;
+    @NotNull public final NlComponent component;
+
+    private IssueData(@NotNull NlComponent component,
+                      @NotNull AndroidLintInspectionBase inspection,
+                      @NotNull Issue issue,
+                      @NotNull String message,
+                      @NotNull HighlightDisplayLevel level,
+                      @NotNull PsiElement startElement,
+                      @NotNull PsiElement endElement) {
+      this.component = component;
       this.inspection = inspection;
+      this.issue = issue;
+      this.message = message;
       this.level = level;
+      this.startElement = startElement;
+      this.endElement = endElement;
     }
   }
 }

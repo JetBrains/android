@@ -4,7 +4,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.templates.TemplateManager;
@@ -497,7 +497,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
         if (name.startsWith("android-")) {
           try {
             int version = Integer.parseInt(name.substring("android-".length()));
-            if (version > GradleImport.CURRENT_COMPILE_VERSION) {
+            if (version > CURRENT_COMPILE_VERSION) {
               // skip versions higher than the default compileSdkVersion since it's not specified in the ApiDemos
               // project and we'll pick up the default
               continue;
@@ -642,7 +642,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
 
     new File(projectDir, FN_PROJECT_PROPERTIES).delete();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir, ""
                                              + MSG_HEADER
                                              + MSG_FOLDER_STRUCTURE
@@ -810,7 +810,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n",
@@ -824,7 +824,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -833,7 +833,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "\n"
                     + "allprojects {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : ""),
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
@@ -844,7 +844,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -854,7 +854,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -887,7 +887,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -897,7 +897,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -1341,7 +1341,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
-                 + "    buildToolsVersion \"" + MIN_BUILD_TOOLS_VERSION + "\"\n"
+                 + "    buildToolsVersion \"" + CURRENT_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
@@ -2143,7 +2143,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    guava-13.0.1.jar\n",
                  fileTree(root, true));
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2234,7 +2234,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2249,7 +2249,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2259,7 +2259,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -2291,7 +2291,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2301,7 +2301,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -2333,7 +2333,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2348,7 +2348,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2377,7 +2377,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2386,7 +2386,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "\n"
                     + "allprojects {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : ""),
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
@@ -2406,7 +2406,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     final File root = pair.getFirst();
     File app = pair.getSecond();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2455,7 +2455,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     libs.mkdirs();
     new File(libs, "unknown-lib.jar").createNewFile();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2616,7 +2616,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     File propertyFile = new File(app, ".project");
     propertyFile.delete();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2703,7 +2703,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                    "\000blahblahblah").getBytes(Charsets.UTF_8);
     Files.write(data, location);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2768,7 +2768,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                    "\000blahblahblah").getBytes(Charsets.UTF_8);
     Files.write(data, location);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2823,7 +2823,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                 + "        <classpathentry kind=\"output\" path=\"bin/classes\"/>\n"
                 + "</classpath>", classPath, UTF_8);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
                                  ""
                                  + MSG_HEADER
@@ -2866,7 +2866,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                 + "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<x>\n", manifest, UTF_8);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
                                  ""
                                  + MSG_HEADER
@@ -4068,15 +4068,16 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     return null;
   }
 
+  /** Latest build tools version */
   private static final String BUILD_TOOLS_VERSION;
+
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     String sdkLocation = getTestSdkPathLocal();
     if (sdkLocation != null) {
       FakeProgressIndicator progress = new FakeProgressIndicator();
       AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdkLocation));
-      final BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress);
-      progress.assertNoErrorsOrWarnings();
+      BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
       if (buildTool != null) {
         candidate = buildTool.getRevision().toString();
       }

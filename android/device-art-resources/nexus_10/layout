@@ -1,8 +1,8 @@
 parts {
   device {
     display {
-      width 800
-      height 1280
+      width 1600
+      height 2560
       x 0
       y 0
     }
@@ -26,8 +26,8 @@ parts {
 }
 layouts {
   portrait {
-    width 1165
-    height 1568
+    width 2330
+    height 3136
     event EV_SW:0:1
     part1 {
       name portrait
@@ -36,13 +36,13 @@ layouts {
     }
     part2 {
       name device
-      x 183
-      y 133
+      x 366
+      y 266
     }
   }
   landscape {
-    width 1670
-    height 1088
+    width 3340
+    height 2176
     event EV_SW:0:0
     part1 {
       name landscape
@@ -51,8 +51,8 @@ layouts {
     }
     part2 {
       name device
-      x 194
-      y 933
+      x 388
+      y 1866
       rotation 3
     }
   }

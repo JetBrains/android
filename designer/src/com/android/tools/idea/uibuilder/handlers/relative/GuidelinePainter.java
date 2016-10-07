@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.Constraint;
@@ -37,7 +37,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlDrawingStyle.*;
 public final class GuidelinePainter {
   private static final AlphaComposite ALPHA_COMPOSITE = AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.5f);
 
-  public static void paint(@NonNull NlGraphics g, GuidelineHandler myState) {
+  public static void paint(@NotNull NlGraphics g, GuidelineHandler myState) {
     g.useStyle(DRAGGED);
     for (NlComponent dragged : myState.myDraggedNodes) {
       if (dragged.w > 0 && dragged.h > 0) {

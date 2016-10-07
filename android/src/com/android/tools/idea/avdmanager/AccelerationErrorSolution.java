@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdkv2.HaxmWizard;
+import com.android.tools.idea.sdk.wizard.HaxmWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;

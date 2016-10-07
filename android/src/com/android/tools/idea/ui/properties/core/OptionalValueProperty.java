@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An {@link ObservableProperty} backed by an optional value.
+ * An {@link AbstractProperty} backed by an optional value.
  */
 public final class OptionalValueProperty<T> extends OptionalProperty<T> {
 
@@ -36,7 +36,7 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   }
 
   public static <T> OptionalValueProperty<T> of(@NotNull T value) {
-    return new OptionalValueProperty<T>(value);
+    return new OptionalValueProperty<>(value);
   }
 
   public static <T> OptionalValueProperty<T> fromNullable(@Nullable T value) {
@@ -49,7 +49,7 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   }
 
   public static <T> OptionalValueProperty<T> absent() {
-    return new OptionalValueProperty<T>();
+    return new OptionalValueProperty<>();
   }
 
   @NotNull

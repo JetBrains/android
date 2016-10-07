@@ -53,6 +53,12 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
+  public void append(@NotNull File from, @NotNull File to) {
+    addSourceFile(from);
+    addTargetFile(to);
+  }
+
+  @Override
   public void mkDir(@NotNull File at) {
   }
 
@@ -62,8 +68,18 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
-  public void addDependency(@NotNull String mavenUrl) {
-    myContext.getDependencies().add(mavenUrl);
+  public void applyPlugin(@NotNull String plugin) {
+    myContext.getPlugins().add(plugin);
+  }
+
+  @Override
+  public void addClasspath(@NotNull String mavenUrl) {
+    myContext.getClasspathEntries().add(mavenUrl);
+  }
+
+  @Override
+  public void addDependency(@NotNull String configuration, @NotNull String mavenUrl) {
+    myContext.getDependencies().put(configuration, mavenUrl);
   }
 
   @Override

@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
@@ -55,9 +55,9 @@ public class DeletionHandler {
    * @param moved   nodes that were moved (e.g. deleted, but also inserted elsewhere)
    * @param layout  the parent layout of the deleted nodes
    */
-  public DeletionHandler(@NonNull List<NlComponent> deleted,
-                         @NonNull List<NlComponent> moved,
-                         @NonNull NlComponent layout) {
+  public DeletionHandler(@NotNull List<NlComponent> deleted,
+                         @NotNull List<NlComponent> moved,
+                         @NotNull NlComponent layout) {
     myDeleted = deleted;
     myChildren = Lists.newArrayList(layout.getChildren());
     myNodeMap = Maps.newHashMapWithExpectedSize(myChildren.size());
@@ -87,7 +87,7 @@ public class DeletionHandler {
   }
 
   @Nullable
-  private static String getId(@NonNull XmlAttribute attribute) {
+  private static String getId(@NotNull XmlAttribute attribute) {
     if (attribute.getLocalName().startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) &&
         ANDROID_URI.equals(attribute.getNamespace()) &&
         !attribute.getLocalName().startsWith(ATTR_LAYOUT_MARGIN)) {
@@ -204,7 +204,7 @@ public class DeletionHandler {
    * in parent, then the constraint is turned into center horizontal.
    */
   @Nullable
-  private static ConstraintType getCompatibleConstraint(@NonNull ConstraintType first, @NonNull ConstraintType second) {
+  private static ConstraintType getCompatibleConstraint(@NotNull ConstraintType first, @NotNull ConstraintType second) {
     if (first == second) {
       return first;
     }

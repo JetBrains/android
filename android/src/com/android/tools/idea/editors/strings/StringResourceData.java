@@ -18,12 +18,14 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.PsiResourceItem;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -82,27 +84,37 @@ public class StringResourceData {
   }
 
   @NotNull
-  public static String resourceToString(@NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      XmlTag tag = ((PsiResourceItem)item).getTag();
-      return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
-    }
-    else {
-      // TODO This is a hack to prevent ClassCastExceptions from ResourceItems that aren't PsiResourceItems (like resources defined in
-      // Gradle files). This disables apostrophe unescaping for those resources and reverts to the old behavior. Undo this hack when the
-      // final escaping solution is in place.
-      ResourceValue value = item.getResourceValue(false);
-      return value == null ? "" : value.getRawXmlValue().trim();
-    }
+  public String resourceToString(@NotNull String key) {
+    ResourceItem item = myDefaultValues.get(key);
+    return item == null ? "" : resourceToString(item);
   }
 
-  @Nullable
-  public static XmlTag resourceToXmlTag(@NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      XmlTag tag = ((PsiResourceItem)item).getTag();
-      return tag != null && tag.isValid() ? tag : null;
+  @NotNull
+  public String resourceToString(@NotNull String key, @NotNull Locale locale) {
+    ResourceItem item = myTranslations.get(key, locale);
+    return item == null ? "" : resourceToString(item);
+  }
+
+  @NotNull
+  private String resourceToString(@NotNull ResourceItem item) {
+    XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
+    String string;
+
+    if (tag == null) {
+      // TODO Make item.getResourceValue(false).getRawXmlValue() work in all cases so we can avoid the LocalResourceRepository
+      ResourceValue value = item.getResourceValue(false);
+
+      if (value == null) {
+        return "";
+      }
+
+      string = value.getRawXmlValue();
     }
-    return null;
+    else {
+      string = tag.getValue().getText();
+    }
+
+    return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(string, false, false));
   }
 
   public void changeKeyName(int index, String name) {
@@ -156,9 +168,11 @@ public class StringResourceData {
   public boolean setTranslation(@NotNull String key, @Nullable Locale locale, @NotNull String value) {
     ResourceItem currentItem = locale == null ? myDefaultValues.get(key) : myTranslations.get(key, locale);
     if (currentItem != null) { // modify existing item
-      String oldText = resourceToString(currentItem);
+      CharSequence oldText = resourceToString(currentItem);
+
       if (!StringUtil.equals(oldText, value)) {
         boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
+
         if (changed && value.isEmpty()) {
           if (locale == null) {
             myDefaultValues.remove(key);
@@ -258,6 +272,7 @@ public class StringResourceData {
   @VisibleForTesting
   boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
     ResourceItem item = myTranslations.get(key, locale);
+
     if (isTranslationMissing(item) && locale.hasRegion()) {
       locale = Locale.create(locale.qualifier.getLanguage());
       item = myTranslations.get(key, locale);
@@ -266,7 +281,7 @@ public class StringResourceData {
     return isTranslationMissing(item);
   }
 
-  private static boolean isTranslationMissing(@Nullable ResourceItem item) {
+  private boolean isTranslationMissing(@Nullable ResourceItem item) {
     return item == null || resourceToString(item).isEmpty();
   }
 

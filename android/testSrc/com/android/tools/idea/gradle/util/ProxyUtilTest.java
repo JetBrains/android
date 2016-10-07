@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.util.ProxyUtil.WrapperInvocationHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 
 /**
@@ -45,6 +47,7 @@ public class ProxyUtilTest extends TestCase {
 
   public void testSupportedTypes() throws Exception {
     assertTypeIsSupported(AndroidProject.class.getPackage(), AndroidProject.class);
+    assertTypeIsSupported(NativeAndroidProject.class.getPackage(), NativeAndroidProject.class);
   }
 
   private static void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
@@ -79,10 +82,10 @@ public class ProxyUtilTest extends TestCase {
     assertFalse(reproxy.hashCode() == myProxy.hashCode());
     assertTrue(reproxy.equals(reproxy));
     assertTrue(reproxy.hashCode() == reproxy.hashCode());
-    assertFalse(reproxy.equals(reproxy2));
-    assertFalse(reproxy.hashCode() == reproxy2.hashCode());
-    assertFalse(reproxy2.equals(reproxy));
-    assertFalse(reproxy2.hashCode() == reproxy.hashCode());
+    assertTrue(reproxy.equals(reproxy2));
+    assertTrue(reproxy.hashCode() == reproxy2.hashCode());
+    assertTrue(reproxy2.equals(reproxy));
+    assertTrue(reproxy2.hashCode() == reproxy.hashCode());
   }
 
   public void testToString() throws Exception {
@@ -111,17 +114,59 @@ public class ProxyUtilTest extends TestCase {
     }
   }
 
+  public void testValidityPositive() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxy);
+
+    assertTrue(isValidProxyObject(reproxy));
+  }
+
+  public void testValidityNegative() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxy);
+    InvocationHandler handler = Proxy.getInvocationHandler(reproxy);
+    assertTrue(handler instanceof WrapperInvocationHandler);
+    WrapperInvocationHandler wrapper = (WrapperInvocationHandler)handler;
+    Method m = MyInterface.class.getMethod("getString");
+    wrapper.values.remove(m.toGenericString());
+
+    assertFalse(isValidProxyObject(reproxy)); // Removed method should result in validity check failure
+  }
+
+  public void testReproxyUnsupportedMethods() throws NoSuchMethodException {
+    MyInterface reproxyA = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxyA);
+    MyInterface reproxyB = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxyB);
+
+    UnsupportedMethodException expected = null;
+    try {
+      reproxyA.doesNotExist();
+      fail("Reproxy method should throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      // Expected.
+      expected = e;
+    }
+
+    try {
+      reproxyB.doesNotExist();
+      fail("Reproxy method should throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      // For reproxied objects, the UnsupportedMethodExceptions should be the same.
+      assertEquals(expected, e);
+    }
+  }
+
   private static MyInterface createProxyInstance(boolean recurse) {
     final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
-    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
-      @Override
-      public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-        try {
-          return method.invoke(delegate, objects);
-        }
-        catch (InvocationTargetException e) {
-          throw e.getCause();
-        }
+    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, (o, method, objects) -> {
+      try {
+        return method.invoke(delegate, objects);
+      }
+      catch (InvocationTargetException e) {
+        throw e.getCause();
       }
     });
   }
@@ -267,8 +312,8 @@ public class ProxyUtilTest extends TestCase {
     public Map<String, Collection<MyInterface>> getMapToProxy() {
       if (!recurse) return null;
 
-      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two",
-                                                              Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
+      return ImmutableMap.of("one", Sets.newHashSet(new MyInterfaceImpl(false)), "two",
+                             Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
     }
 
     @Override

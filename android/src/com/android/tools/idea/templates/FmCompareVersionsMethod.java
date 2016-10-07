@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.repository.Revision;
-import freemarker.template.*;
+import com.android.ide.common.repository.GradleVersion;
+import freemarker.template.SimpleNumber;
+import freemarker.template.TemplateMethodModelEx;
+import freemarker.template.TemplateModel;
+import freemarker.template.TemplateModelException;
 
 import java.util.List;
 
 /**
- * Method invoked by FreeMarker to compare two version strings.
+ * Method invoked by FreeMarker to compare two Maven artifact version strings.
  */
 public class FmCompareVersionsMethod implements TemplateMethodModelEx {
 
@@ -31,8 +34,8 @@ public class FmCompareVersionsMethod implements TemplateMethodModelEx {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        Revision lhs = Revision.parseRevision(args.get(0).toString());
-        Revision rhs = Revision.parseRevision(args.get(1).toString());
+        GradleVersion lhs = GradleVersion.parse(args.get(0).toString());
+        GradleVersion rhs = GradleVersion.parse(args.get(1).toString());
 
         return new SimpleNumber(lhs.compareTo(rhs));
     }

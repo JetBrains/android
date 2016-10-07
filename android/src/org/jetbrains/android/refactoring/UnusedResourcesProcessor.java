@@ -15,8 +15,9 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -33,6 +34,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -53,6 +55,14 @@ import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.util.GroovyConstantExpressionEvaluator;
 
 import java.io.File;
 import java.util.Arrays;
@@ -119,7 +129,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
 
   @NotNull
   private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<ProblemData>>> map) {
-    List<PsiElement> elements = Lists.newArrayList();
+    final List<PsiElement> elements = Lists.newArrayList();
 
     // Make sure lint didn't put extra issues into the map
     for (Issue issue : Lists.newArrayList(map.keySet())) {
@@ -169,6 +179,46 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
             }
             else {
               ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+              if (folderType == null) {
+                // Not found in a resource folder. This happens for example for
+                // matches in build.gradle.
+                //
+                // Attempt to find the resource in the build file. If we can't,
+                // we'll ignore this resource (it would be dangerous to just delete the
+                // file; see for example http://b.android.com/220069.)
+                if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE &&
+                    psiFile instanceof GroovyFile) {
+                  ((GroovyFile)psiFile).accept(new GroovyRecursiveElementVisitor() {
+                    @Override
+                    public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+                      super.visitApplicationStatement(applicationStatement);
+                      PsiMethod method = applicationStatement.resolveMethod();
+                      if (method != null && method.getName().equals("resValue")) {
+                        GrExpression[] args = applicationStatement.getArgumentList().getExpressionArguments();
+                        if (args.length >= 3) {
+                          Object typeString = GroovyConstantExpressionEvaluator.evaluate(args[0]);
+                          Object nameString = GroovyConstantExpressionEvaluator.evaluate(args[1]);
+                          // See if this is one of the unused resources
+                          if (typeString != null && nameString != null) {
+                            List<ProblemData> problems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
+                            if (problems != null) {
+                              for (ProblemData problem : problems) {
+                                String unusedResource = UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW);
+                                if (unusedResource != null &&
+                                    unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
+                                  elements.add(applicationStatement);
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  });
+                }
+
+                continue;
+              }
               if (folderType != ResourceFolderType.VALUES) {
                 // Make sure it's not an unused id declaration in a layout/menu/etc file that's
                 // also being deleted as unused

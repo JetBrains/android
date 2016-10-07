@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+  // TODO: Include *.aar once it's supported in the plugin
   compile fileTree(dir: 'libs', include: ['*.jar'])
   compile('com.google.maps.android:android-maps-utils:0.3.+') {
     exclude group: 'com.google.android.gms'

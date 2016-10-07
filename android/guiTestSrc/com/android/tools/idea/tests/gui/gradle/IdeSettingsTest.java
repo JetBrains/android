@@ -15,31 +15,42 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class IdeSettingsTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class IdeSettingsTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private IdeSettingsDialogFixture mySettingsDialog;
 
-  @Test @IdeGuiTest
+  @Before
+  public void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  @Test
   public void testSettingsRemovalForGradleProjects() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    mySettingsDialog = myProjectFrame.openIdeSettings();
+    guiTest.importSimpleApplication();
+    mySettingsDialog = guiTest.ideFrame().openIdeSettings();
     List<String> settingsNames = mySettingsDialog.getProjectSettingsNames();
-    assertThat(settingsNames).excludes("Gant", "GUI Designer");
+    assertThat(settingsNames).containsNoneOf("Gant", "GUI Designer");
   }
 
   @After

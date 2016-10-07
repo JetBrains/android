@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.util.Lists.newArrayList;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertNotNull;
 
 class MenuFixture {
@@ -49,24 +50,14 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
    */
   void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(false, path);
-    myRobot.click(menuItem);
-  }
-
-  /**
-   * Invokes an action by menu path (where each segment is a regular expression). This is particularly
-   * useful when the menu items can change dynamically, such as the labels of Undo actions, Run actions,
-   * etc.
-   *
-   * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
-   */
-  void invokeMenuPathRegex(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(true, path);
+    JMenuItem menuItem = findActionMenuItem(path);
+    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
     myRobot.click(menuItem);
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
+  private JMenuItem findActionMenuItem(@NotNull String... path) {
+    myRobot.waitForIdle(); // UI events can trigger modifications of the menu contents
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
 
@@ -80,7 +71,7 @@ class MenuFixture {
       JMenuItem found = myRobot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
         protected boolean isMatching(@NotNull JMenuItem menuItem) {
-          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
+          return segment.equals(menuItem.getText());
         }
       });
       if (root instanceof JPopupMenu) {
@@ -101,11 +92,10 @@ class MenuFixture {
 
   @NotNull
   private List<JPopupMenu> findShowingPopupMenus(final int expectedCount) {
-    final Ref<List<JPopupMenu>> ref = new Ref<List<JPopupMenu>>();
-    Pause.pause(new Condition("waiting for " + expectedCount + " JPopupMenus to show up") {
-      @Override
-      public boolean test() {
-        List<JPopupMenu> popupMenus = newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
+    final Ref<List<JPopupMenu>> ref = new Ref<>();
+    Wait.seconds(30).expecting(expectedCount + " JPopupMenus to show up")
+      .until(() -> {
+        List<JPopupMenu> popupMenus = Lists.newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
           @Override
           protected boolean isMatching(@NotNull JPopupMenu popupMenu) {
             return popupMenu.isShowing();
@@ -116,10 +106,21 @@ class MenuFixture {
           ref.set(popupMenus);
         }
         return allFound;
-      }
-    });
+      });
     List<JPopupMenu> popupMenus = ref.get();
-    assertThat(popupMenus).isNotNull().hasSize(expectedCount);
+    assertThat(popupMenus).hasSize(expectedCount);
     return popupMenus;
+  }
+
+  /**
+   * Returns whether a menu path is enabled
+   *
+   * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
+   */
+  public boolean isMenuPathEnabled(String... path) {
+    boolean isEnabled = findActionMenuItem(path).isEnabled();
+    myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE); // Close the menu before continuing.
+
+    return isEnabled;
   }
 }

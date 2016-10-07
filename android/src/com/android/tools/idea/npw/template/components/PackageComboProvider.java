@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.editor.Document;
@@ -70,7 +70,7 @@ public final class PackageComboProvider extends ParameterComponentProvider<Edito
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull final EditorComboBox classComboBox) {
+  public AbstractProperty<?> createProperty(@NotNull final EditorComboBox classComboBox) {
     return new TextProperty(classComboBox);
   }
 

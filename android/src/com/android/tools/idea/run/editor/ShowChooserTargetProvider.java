@@ -50,7 +50,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Show Device Chooser Dialog";
+    return "Open Select Deployment Target Dialog";
   }
 
   @NotNull
@@ -67,12 +67,13 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   @Override
   @Nullable
   public DeployTarget showPrompt(@NotNull Executor executor,
-                            @NotNull ExecutionEnvironment env,
-                            @NotNull AndroidFacet facet,
-                            @NotNull DeviceCount deviceCount,
-                            boolean androidTests,
-                            @NotNull Map<String, DeployTargetState> deployTargetStates,
-                            int runConfigId) {
+                                 @NotNull ExecutionEnvironment env,
+                                 @NotNull AndroidFacet facet,
+                                 @NotNull DeviceCount deviceCount,
+                                 boolean androidTests,
+                                 @NotNull Map<String, DeployTargetState> deployTargetStates,
+                                 int runConfigId,
+                                 @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     State showChooserState = (State)deployTargetStates.get(getId());
     Project project = facet.getModule().getProject();
 
@@ -95,7 +96,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
 
     // show the dialog and get the state
     DeployTargetPickerDialog dialog =
-      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates);
+      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, compatibilityChecker);
     if (dialog.showAndGet()) {
       DeployTarget result = dialog.getSelectedDeployTarget();
       if (result == null) {
@@ -140,7 +141,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     List<DeployTargetProvider> targets = Lists.newArrayList();
 
     for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
-      if (target.showInDevicePicker() && target.isApplicable(androidTests)) {
+      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests)) {
         targets.add(target);
       }
     }

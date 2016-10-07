@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -30,16 +31,29 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
+/**
+ * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
+ */
 public class CoordinatorLayoutHandler extends FrameLayoutHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_CONTEXT,
+      ATTR_FITS_SYSTEM_WINDOWS);
+  }
+
   @Nullable
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
-    // The {@link CoordinatorDragHandler} handles the logic for anchoring a single component to an existing component in
-    // the CoordinatorLayout. If we are moving several components we probably dont want them to be anchored to the same place,
-    // so instead we use the FrameLayoutHandler in this case.
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
+    // The {@link CoordinatorDragHandler} handles the logic for anchoring a
+    // single component to an existing component in the CoordinatorLayout.
+    // If we are moving several components we probably don't want them to be
+    // anchored to the same place, so instead we use the FrameLayoutHandler in
+    // this case.
     if (components.size() == 1 && components.get(0) != null) {
       return new CoordinatorDragHandler(editor, layout, components, type);
     } else {
@@ -57,10 +71,10 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     @AndroidCoordinate
     private int myPreviewY;
 
-    public CoordinatorDragHandler(@NonNull ViewEditor editor,
-                                  @NonNull NlComponent layout,
-                                  @NonNull List<NlComponent> components,
-                                  @NonNull DragType type) {
+    public CoordinatorDragHandler(@NotNull ViewEditor editor,
+                                  @NotNull NlComponent layout,
+                                  @NotNull List<NlComponent> components,
+                                  @NotNull DragType type) {
       super(editor, CoordinatorLayoutHandler.this, layout, components, type);
       assert components.size() == 1;
       myDragged = components.get(0);
@@ -101,7 +115,7 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     }
 
     @Override
-    public void paint(@NonNull NlGraphics gc) {
+    public void paint(@NotNull NlGraphics gc) {
       if (myAnchor == null) {
         super.paint(gc);
       } else {

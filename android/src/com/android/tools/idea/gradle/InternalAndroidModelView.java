@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;
@@ -44,6 +45,8 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.ProxyUtil.getAndroidModelProxyValues;
 import static com.android.tools.idea.gradle.util.ProxyUtil.isAndroidModelProxyObject;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 /**
  * "Android Model (Internal)" tool window to visualize the Android-Gradle model data. This is an internal only view and visible only when
@@ -102,35 +105,37 @@ public class InternalAndroidModelView {
       myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Loading ...")));
     }
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
-        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-          AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-          if (androidModel != null) {
-            DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(module.getName());
-            AndroidProject androidProject = androidModel.waitForAndGetProxyAndroidProject();
-            addProxyObject(moduleNode, androidProject);
-            rootNode.add(moduleNode);
-          }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        if (androidModel != null) {
+          DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(module.getName());
+          AndroidProject androidProject = androidModel.waitForAndGetProxyAndroidProject();
+          addProxyObject(moduleNode, androidProject);
+          rootNode.add(moduleNode);
         }
-
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-            renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
-            renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
-            renderer.setLeafIcon(AllIcons.ObjectBrowser.ShowModules);
-            myTree.setCellRenderer(renderer);
-
-            DefaultTreeModel model = new DefaultTreeModel(rootNode);
-            myTree.setRootVisible(false);
-            myTree.setModel(model);
-          }
-        });
+        NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+        if (nativeAndroidModel != null) {
+          String nodeName = androidModel == null ? module.getName() : module.getName() + " (native)";
+          DefaultMutableTreeNode nativeModuleNode = new DefaultMutableTreeNode(nodeName);
+          NativeAndroidProject nativeAndroidProject = nativeAndroidModel.waitForAndGetProxyAndroidProject();
+          addProxyObject(nativeModuleNode, nativeAndroidProject);
+          rootNode.add(nativeModuleNode);
+        }
       }
+
+      UIUtil.invokeLaterIfNeeded(() -> {
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
+        renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
+        renderer.setLeafIcon(AllIcons.ObjectBrowser.ShowModules);
+        myTree.setCellRenderer(renderer);
+
+        DefaultTreeModel model = new DefaultTreeModel(rootNode);
+        myTree.setRootVisible(false);
+        myTree.setModel(model);
+      });
     });
   }
 
@@ -148,9 +153,7 @@ public class InternalAndroidModelView {
       property = property.substring(0, property.lastIndexOf('('));
       property = property.substring(property.lastIndexOf('.') + 1, property.length());
 
-      if (property.startsWith("get")) {
-        property = property.substring(3);
-      }
+      property = trimStart(property, "get");
       Object value = entry.getValue();
       if (value != null && property.equals("Name")) {
         name = value.toString();
@@ -197,6 +200,7 @@ public class InternalAndroidModelView {
       String filePath = ((File)value).getPath();
       String basePath = myProject.getBasePath();
       if (basePath != null) {
+        basePath = toSystemDependentName(basePath);
         if (!basePath.endsWith(File.separator)) {
           basePath += File.separator;
         }
@@ -209,7 +213,7 @@ public class InternalAndroidModelView {
   }
 
   @NotNull
-  private static String getNodeValue(@NotNull String property, @Nullable String value) {
+  private static String getNodeValue(@NotNull String property, @NotNull String value) {
     return property.isEmpty() ? value : property + " -> " + value;
   }
 

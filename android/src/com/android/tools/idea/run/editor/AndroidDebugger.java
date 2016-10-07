@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -24,6 +26,7 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Set;
@@ -41,10 +44,11 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   S createState();
 
   @NotNull
-  AndroidDebuggerConfigurable<S> createConfigurable(@NotNull Project project);
+  AndroidDebuggerConfigurable<S> createConfigurable(@NotNull AndroidRunConfigurationBase runConfiguration);
 
   @NotNull
   DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                            @Nullable AndroidVersion version,
                                             @NotNull Set<String> applicationIds,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
@@ -55,12 +59,21 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   void attachToClient(@NotNull Project project, @NotNull Client client);
 
   @NotNull
-  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes();
+  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version);
+
+  /**
+   * Indicates whether this debugger should be the default.
+   * @return true if it should be the default.
+   */
+  boolean shouldBeDefault();
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
-    protected void customizeCellRenderer(@NotNull JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
       append(debugger.getDisplayName());
     }
   }
+
+  @NotNull
+  String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version);
 }

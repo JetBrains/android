@@ -16,14 +16,16 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
+import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
+import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -53,6 +55,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.ESPRESSO_VERSION_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
@@ -96,17 +99,18 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   /**
    * Add the steps for this wizard
    */
-  protected void addPaths() {
+  private void addPaths() {
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }
+    addPath(new ConfigureCppSupportPath(getDisposable()));
   }
 
   /**
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
-  protected void initState() {
+  private void initState() {
     initState(getState(), SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION);
   }
 
@@ -115,8 +119,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(WizardConstants.GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
     state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
     state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
-    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<File>());
+    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<>());
+    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<>());
     state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
 
     try {
@@ -136,7 +140,16 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
 
     if (data != null) {
-      state.put(WizardConstants.SDK_DIR_KEY, data.getLocation().getPath());
+      File sdkLocation = data.getLocation();
+      state.put(WizardConstants.SDK_DIR_KEY, sdkLocation.getPath());
+
+      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
+                                                                             SupportLibrary.ESPRESSO_CORE.getArtifactId(),
+                                                                             null, false, sdkLocation, FileOpUtils.create());
+
+      if (espressoVersion != null) {
+        state.put(ESPRESSO_VERSION_KEY, espressoVersion);
+      }
     }
   }
 
@@ -147,12 +160,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        runFinish();
-      }
-    });
+    ApplicationManager.getApplication().invokeLater(this::runFinish);
   }
 
   private void runFinish() {
@@ -212,13 +220,20 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       }
     }
     try {
-      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-      assert targetFiles != null;
+      GradleSyncListener listener = new PostStartupGradleSyncListener(new Runnable() {
+        @Override
+        public void run() {
+          Iterable<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
+          assert targetFiles != null;
 
-      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-      assert filesToOpen != null;
+          TemplateUtils.reformatAndRearrange(myProject, targetFiles);
 
-      GradleSyncListener listener = new ReformattingGradleSyncListener(targetFiles, filesToOpen);
+          Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+          assert filesToOpen != null;
+
+          TemplateUtils.openEditors(myProject, filesToOpen, true);
+        }
+      });
 
       projectImporter.importNewlyCreatedProject(projectName, rootLocation, listener, myProject, initialLanguageLevel);
     }

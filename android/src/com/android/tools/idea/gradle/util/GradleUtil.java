@@ -27,10 +27,10 @@ import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -61,6 +61,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -74,14 +75,12 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -89,7 +88,7 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStr
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -104,6 +103,8 @@ import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -131,11 +132,11 @@ public final class GradleUtil {
 
   @NonNls private static final String ANDROID_PLUGIN_GROUP_ID = "com.android.tools.build";
   @NonNls private static final String ANDROID_PLUGIN_ARTIFACT_ID = "gradle";
+  @NonNls private static final String ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID = "gradle-experimental";
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
-  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-([^-]*)-(.*)\\.jar");
-  private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(.*)\\.jar");
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -149,46 +150,130 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
+  public static boolean updateGradleVersion(@NotNull Project project, @NotNull GradleVersion gradleVersion) throws IOException {
+    // The project is using a version of Gradle with security issue. Prompt user to upgrade.
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    if (gradleSettings != null) {
+      DistributionType distributionType = gradleSettings.getDistributionType();
+
+      if (distributionType == DEFAULT_WRAPPED) {
+        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+        if (wrapperPropertiesFile != null) {
+          return updateGradleDistributionUrl(gradleVersion.toString(), wrapperPropertiesFile);
+        }
+      }
+      else if (distributionType == LOCAL) {
+        String title = "Update Gradle Version";
+
+        String msg = "Would you like the project to use the Gradle wrapper?\n" +
+                     "(The wrapper will automatically download version " + gradleVersion.toString() + ").\n\n" +
+                     "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+        int answer = showOkCancelDialog(project, msg, title, getQuestionIcon());
+        if (answer == Messages.OK) {
+          // Create wrapper.
+          return createGradleWrapper(project, gradleVersion.toString(), gradleSettings);
+        }
+        ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(title, gradleVersion.toString());
+        if (dialog.showAndGet()) {
+          String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
+          gradleSettings.setGradleHome(enteredGradleHomePath);
+          gradleSettings.setDistributionType(LOCAL);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean createGradleWrapper(@NotNull Project project,
+                                            @NotNull String gradleVersion,
+                                            @NotNull GradleProjectSettings gradleSettings) throws IOException {
+    File projectDirPath = getBaseDirPath(project);
+
+    // attempt to delete the whole gradle wrapper folder.
+    File gradleDirPath = new File(projectDirPath, FD_GRADLE);
+    if (!delete(gradleDirPath)) {
+      // deletion failed. Let sync continue.
+      return false;
+    }
+
+    createGradleWrapper(projectDirPath, gradleVersion);
+    gradleSettings.setDistributionType(DEFAULT_WRAPPED);
+    return true;
+  }
+
+  @NotNull
+  public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
+    try {
+      Collection<File> folders = artifact.getGeneratedSourceFolders();
+      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
+      // See https://code.google.com/p/android/issues/detail?id=216236
+      return folders != null ? folders : Collections.emptyList();
+    }
+    catch (UnsupportedMethodException e) {
+      // Model older than 1.2.
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
+    // TODO: enable once we fix memory and dependency setup issues.
+    //if (modelVersion != null && androidModelSupportsDependencyGraph(modelVersion)) {
+    //  return artifact.getCompileDependencies();
+    //}
+    //noinspection deprecation
+    return artifact.getDependencies();
+  }
+
+  public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
+    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
+    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
+  }
+
+  public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
+    return false;
+    // TODO: enable once we fix memory and dependency setup issues.
+    // return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
+  }
+
+  public static void clearStoredGradleJvmArgs(@NotNull Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
-    final String existingJvmArgs = settings.getGradleVmOptions();
+    String existingJvmArgs = settings.getGradleVmOptions();
     settings.setGradleVmOptions(null);
     if (!isEmptyOrSpaces(existingJvmArgs)) {
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          String jvmArgs = existingJvmArgs.trim();
-          final String msg =
-            String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
-                          "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
-                          "Would you like to copy these JVM arguments:\n%1$s\n" +
-                          "to the project's gradle.properties file?\n\n" +
-                          "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
+      invokeAndWaitIfNeeded((Runnable)() -> {
+        String jvmArgs = existingJvmArgs.trim();
+        String msg =
+          String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
+                        "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
+                        "Would you like to copy these JVM arguments:\n%1$s\n" +
+                        "to the project's gradle.properties file?\n\n" +
+                        "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
 
-          int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
-          if (result == Messages.YES) {
-            try {
-              GradleProperties gradleProperties = new GradleProperties(project);
-              gradleProperties.setJvmArgs(jvmArgs);
-              gradleProperties.save();
-            }
-            catch (IOException e) {
-              String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
-              LOG.info(err, e);
-
-              String cause = e.getMessage();
-              if (isNotEmpty(cause)) {
-                err += String.format("<br>\nCause: %1$s", cause);
-              }
-
-              AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
-            }
+        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", getQuestionIcon());
+        if (result == Messages.YES) {
+          try {
+            GradleProperties gradleProperties = new GradleProperties(project);
+            gradleProperties.setJvmArgs(jvmArgs);
+            gradleProperties.save();
           }
-          else {
-            String text =
-              String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          catch (IOException e) {
+            String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
+            LOG.info(err, e);
+
+            String cause = e.getMessage();
+            if (isNotEmpty(cause)) {
+              err += String.format("<br>\nCause: %1$s", cause);
+            }
+
+            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
           }
+        }
+        else {
+          String text =
+            String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
+          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
         }
       });
     }
@@ -269,10 +354,17 @@ public final class GradleUtil {
   @NotNull
   public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidGradleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
-    libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
+
+    GradleVersion modelVersion = androidModel.getModelVersion();
+
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
+    libraries.addAll(dependencies.getLibraries());
+
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
     if (testArtifact != null) {
-      libraries.addAll(testArtifact.getDependencies().getLibraries());
+      dependencies = getDependencies(testArtifact, modelVersion);
+      libraries.addAll(dependencies.getLibraries());
     }
     return libraries;
   }
@@ -658,7 +750,7 @@ public final class GradleUtil {
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      String version = matcher.group(2);
+      String version = matcher.group(1);
       return GradleVersion.tryParse(removeTimestampFromGradleVersion(version));
     }
     return null;
@@ -781,29 +873,54 @@ public final class GradleUtil {
    * @see #getAndroidGradleModelVersionInUse(Project)
    */
   @Nullable
-  public static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
-    final Ref<GradleVersion> modelVersionRef = new Ref<GradleVersion>();
+  public static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull Project project) {
+    return getAndroidGradlePluginVersionFromBuildFile(project, false);
+  }
 
-    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
-      @Override
-      public boolean process(GradleBuildModel buildModel) {
-        DependenciesModel dependencies = buildModel.buildscript().dependencies();
-        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          ArtifactDependencySpec spec = dependency.getSpec();
-          if (isAndroidPlugin(spec)) {
-            String versionValue = spec.version;
-            if (versionValue != null) {
-              GradleVersion version = GradleVersion.tryParse(versionValue);
-              if (version != null) {
-                modelVersionRef.set(version);
-                return false; // we found the model version. Stop.
-              }
+  /**
+   * Tries to find the version of the Android Gradle Experimental plug-in declared in build.gradle files. If the project contains
+   * complicated build logic, this may be incorrect.
+   * <p/>
+   * <p>
+   * The version is returned as it is specified in build files if it does not use "+" notation.
+   * </p>
+   * <p>
+   * If the version is using "+" notation for the "micro" portion, this method replaces the "+" with a zero. For example: "0.13.+" will be
+   * returned as "0.13.0". In practice, the micro portion of the version is not used.
+   * </p>
+   * <p>
+   * If the version in build files is "+" or uses "+" for the major or minor portions, this method will find the latest version in the local
+   * Gradle cache.
+   * </p>
+   *
+   * @param project the given project.
+   * @return the version of the Android Gradle Experimental plug-in being used in the given project. (or an approximation.)
+   */
+  @Nullable
+  public static GradleVersion getAndroidGradleExperimentalPluginVersionFromBuildFile(@NotNull Project project) {
+    return getAndroidGradlePluginVersionFromBuildFile(project, true);
+  }
+
+  @Nullable
+  private static GradleVersion getAndroidGradlePluginVersionFromBuildFile(@NotNull Project project, boolean usingExperimentalPlugin) {
+    Ref<GradleVersion> modelVersionRef = new Ref<>();
+
+    processBuildModelsRecursively(project, buildModel -> {
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        if (isAndroidPlugin(dependency, usingExperimentalPlugin)) {
+          String versionValue = dependency.version().value();
+          if (versionValue != null) {
+            GradleVersion version = GradleVersion.tryParse(versionValue);
+            if (version != null) {
+              modelVersionRef.set(version);
+              return false; // we found the model version. Stop.
             }
-            break;
           }
+          break;
         }
-        return true;
       }
+      return true;
     });
 
     GradleVersion gradleVersion = modelVersionRef.get();
@@ -813,8 +930,9 @@ public final class GradleUtil {
       VersionSegment minorSegment = gradleVersion.getMinorSegment();
       // For the Android plug-in we don't care about the micro version. Major and minor only matter.
       if (majorSegment.acceptsGreaterValue() || (minorSegment != null && minorSegment.acceptsGreaterValue())) {
+        String pluginArtifactId = usingExperimentalPlugin ? ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID : ANDROID_PLUGIN_ARTIFACT_ID;
         GradleCoordinate foundInCache =
-          findLatestVersionInGradleCache(ANDROID_PLUGIN_GROUP_ID, ANDROID_PLUGIN_GROUP_ID, null, project);
+          findLatestVersionInGradleCache(ANDROID_PLUGIN_GROUP_ID, pluginArtifactId, null, project);
         if (foundInCache != null) {
           String revision = foundInCache.getRevision();
           return GradleVersion.tryParse(revision);
@@ -901,30 +1019,50 @@ public final class GradleUtil {
 
   public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
     if (isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
-      File repoPath = findAndroidStudioLocalMavenRepoPath();
-      if (repoPath != null && repoPath.isDirectory()) {
-        addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
-      }
+      List<File> repoPaths = findAndroidStudioLocalMavenRepoPaths();
+      addLocalMavenRepoInitScriptCommandLineOption(args, repoPaths);
     }
+  }
+
+  public static void addProfilerClassPathInitScriptCommandLineOption(@NotNull List<String> args) {
+    String contents = "allprojects {\n" +
+                      "  buildscript {\n" +
+                      "    dependencies {\n" +
+                      "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}\n";
+
+    addInitScriptCommandLineOption("asPerfClassPath", contents, args);
+  }
+
+  private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull List<File> repoPaths) {
+    if (repoPaths.isEmpty()) {
+      return;
+    }
+
+    String paths = "";
+    for (File file : repoPaths) {
+      String path = escapeGroovyStringLiteral(file.getPath());
+      paths += "      maven { url '" + path + "'}\n";
+    }
+    String contents = "allprojects {\n" +
+                      "  buildscript {\n" +
+                      "    repositories {\n" + paths +
+                      "    }\n" +
+                      "  }\n" +
+                      "  repositories {\n" + paths +
+                      "  }\n" +
+                      "}\n";
+    addInitScriptCommandLineOption("asLocalRepo", contents, args);
   }
 
   @VisibleForTesting
   @Nullable
-  static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+  static File addInitScriptCommandLineOption(@NotNull String name, @NotNull String contents, @NotNull List<String> args) {
     try {
-      File file = createTempFile("asLocalRepo", DOT_GRADLE);
+      File file = createTempFile(name, DOT_GRADLE);
       file.deleteOnExit();
-      String path = escapeGroovyStringLiteral(repoPath.getPath());
-      String contents = "allprojects {\n" +
-                        "  buildscript {\n" +
-                        "    repositories {\n" +
-                        "      maven { url '" + path + "'}\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "  repositories {\n" +
-                        "    maven { url '" + path + "'}\n" +
-                        "  }\n" +
-                        "}\n";
       writeToFile(file, contents);
       addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
 
@@ -1047,15 +1185,43 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns {@code true} if the given Android model depends on the given artifact, which consists of a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   * Returns {@code true} if the main artifact of the given Android model depends on the given artifact, which consists of a group id and an
+   * artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param androidModel the Android model to check
    * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getMainArtifact().getDependencies();
+    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
+    return dependsOn(dependencies, artifact);
+  }
+
+  @Nullable
+  public static GradleVersion getModuleDependencyVersion(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      String version = getDependencyVersion(library, artifact, true);
+      if (version != null) {
+        return GradleVersion.tryParse(version);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
+   * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   *
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
+   * @return {@code true} if the project depends on the given artifact (including transitively)
+   */
+  public static boolean dependsOnAndroidTest(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
+    if (dependencies == null) {
+      return false;
+    }
     return dependsOn(dependencies, artifact);
   }
 
@@ -1086,23 +1252,27 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact
    */
   public static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
+    return getDependencyVersion(library, artifact, transitively) != null;
+  }
+
+  private static String getDependencyVersion(@NonNull AndroidLibrary library, @NonNull String artifact, boolean transitively) {
     MavenCoordinates resolvedCoordinates = library.getResolvedCoordinates();
     if (resolvedCoordinates != null) {
-      String s = resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId();
-      if (artifact.equals(s)) {
-        return true;
+      if (artifact.endsWith(resolvedCoordinates.getArtifactId()) &&
+          artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
+        return resolvedCoordinates.getVersion();
       }
     }
 
     if (transitively) {
       for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-        if (dependsOn(dependency, artifact, true)) {
-          return true;
+        String version = getDependencyVersion(dependency, artifact, true);
+        if (version != null) {
+          return version;
         }
       }
     }
-
-    return false;
+    return null;
   }
 
   public static boolean hasCause(@NotNull Throwable e, @NotNull Class<?> causeClass) {
@@ -1146,6 +1316,18 @@ public final class GradleUtil {
 
   @Nullable
   public static VirtualFile findSourceJarForLibrary(@NotNull File libraryFilePath) {
+    return findArtifactFileInRepository(libraryFilePath, "-sources.jar", true);
+  }
+
+  @Nullable
+  public static VirtualFile findPomForLibrary(@NotNull File libraryFilePath) {
+    return findArtifactFileInRepository(libraryFilePath, ".pom", false);
+  }
+
+  @Nullable
+  private static VirtualFile findArtifactFileInRepository(@NotNull File libraryFilePath,
+                                                          @NotNull String fileNameSuffix,
+                                                          boolean searchInIdeCache) {
     VirtualFile realJarFile = findFileByIoFile(libraryFilePath, true);
 
     if (realJarFile == null) {
@@ -1155,7 +1337,7 @@ public final class GradleUtil {
 
     VirtualFile parent = realJarFile.getParent();
     String name = getNameWithoutExtension(libraryFilePath);
-    String sourceFileName = name + SOURCES_JAR_NAME_SUFFIX;
+    String sourceFileName = name + fileNameSuffix;
     if (parent != null) {
 
       // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
@@ -1179,10 +1361,13 @@ public final class GradleUtil {
       }
     }
 
-    // Try IDEA's own cache.
-    File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
-    File sourceJar = new File(librarySourceDirPath, sourceFileName);
-    return findFileByIoFile(sourceJar, true);
+    if (searchInIdeCache) {
+      // Try IDEA's own cache.
+      File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
+      File sourceJar = new File(librarySourceDirPath, sourceFileName);
+      return findFileByIoFile(sourceJar, true);
+    }
+    return null;
   }
 
   /**
@@ -1199,7 +1384,76 @@ public final class GradleUtil {
                                                                   @NotNull String pluginVersion,
                                                                   @Nullable String gradleVersion,
                                                                   boolean invalidateSyncOnFailure) {
-    if (updateGradlePluginVersion(project, pluginVersion, gradleVersion)) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, false, invalidateSyncOnFailure);
+  }
+
+  /**
+   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
+   * the version update failed.
+   *
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
+   */
+  public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                  @NotNull GradleVersion pluginVersion,
+                                                                  @Nullable String gradleVersion,
+                                                                  boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, false, invalidateSyncOnFailure);
+  }
+
+  /**
+   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
+   * the user if the version update failed.
+   *
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
+   */
+  public static boolean updateGradleExperimentalPluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                              @NotNull String pluginVersion,
+                                                                              @Nullable String gradleVersion,
+                                                                              boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
+  }
+
+  /**
+   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
+   * the user if the version update failed.
+   *
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
+   */
+  public static boolean updateGradleExperimentalPluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                              @NotNull GradleVersion pluginVersion,
+                                                                              @Nullable String gradleVersion,
+                                                                              boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
+  }
+
+  private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                   @NotNull String pluginVersion,
+                                                                   @Nullable String gradleVersion,
+                                                                   boolean usingExperimentalPlugin,
+                                                                   boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin,
+                                                     invalidateSyncOnFailure);
+  }
+
+  private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                   @NotNull GradleVersion pluginVersion,
+                                                                   @Nullable String gradleVersion,
+                                                                   boolean usingExperimentalPlugin,
+                                                                   boolean invalidateSyncOnFailure) {
+    if (updateGradlePluginVersion(project, pluginVersion, gradleVersion, usingExperimentalPlugin)) {
+      invalidateLastSync(project, "Recommended upgrade");
       GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
       return true;
     }
@@ -1208,10 +1462,15 @@ public final class GradleUtil {
       invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
     }
 
-    String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
+    String msg = "Failed to update the version of the Android Gradle " + (usingExperimentalPlugin ? "Experimental " : "") + "plugin.\n\n" +
                  "Please click 'OK' to perform a textual search and then update the build files manually.";
     Messages.showErrorDialog(project, msg, UNHANDLED_SYNC_ISSUE_TYPE);
-    searchInBuildFiles(GRADLE_PLUGIN_NAME, project);
+    if (usingExperimentalPlugin) {
+      searchInBuildFiles(GRADLE_EXPERIMENTAL_PLUGIN_NAME, project);
+    }
+    else {
+      searchInBuildFiles(GRADLE_PLUGIN_NAME, project);
+    }
 
     return false;
   }
@@ -1234,58 +1493,61 @@ public final class GradleUtil {
    * @param gradleVersion the Gradle version to update to.
    * @return {@code true} if the update of the plugin version succeeded.
    */
-  public static boolean updateGradlePluginVersion(@NotNull final Project project,
+  public static boolean updateGradlePluginVersion(@NotNull Project project,
                                                   @NotNull String pluginVersion,
                                                   @Nullable String gradleVersion) {
-    final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
-    final GradleVersion parsedPluginVersion = GradleVersion.parse(pluginVersion);
-    final Ref<Boolean> alreadyInCorrectVersion = new Ref<Boolean>(false);
+    return updateGradlePluginVersion(project, pluginVersion, gradleVersion, false);
+  }
 
-    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
-      @Override
-      public boolean process(GradleBuildModel buildModel) {
-        DependenciesModel dependencies = buildModel.buildscript().dependencies();
-        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          ArtifactDependencySpec spec = dependency.getSpec();
-          if (isAndroidPlugin(spec)) {
-            if (spec.version != null && parsedPluginVersion.compareTo(spec.version) == 0) {
-              alreadyInCorrectVersion.set(true);
-            }
-            else {
-              dependency.setVersion(parsedPluginVersion.toString());
-              modelsToUpdate.add(buildModel);
-            }
-            break;
+  public static boolean updateGradlePluginVersion(@NotNull Project project,
+                                                   @NotNull String pluginVersion,
+                                                   @Nullable String gradleVersion,
+                                                   boolean usingExperimentalPlugin) {
+    return updateGradlePluginVersion(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin);
+  }
+
+  private static boolean updateGradlePluginVersion(@NotNull Project project,
+                                                   @NotNull GradleVersion pluginVersion,
+                                                   @Nullable String gradleVersion,
+                                                   boolean usingExperimentalPlugin) {
+    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    Ref<Boolean> alreadyInCorrectVersion = new Ref<>(false);
+
+    processBuildModelsRecursively(project, buildModel -> {
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        if (isAndroidPlugin(dependency, usingExperimentalPlugin)) {
+          String versionValue = dependency.version().value();
+          if (versionValue != null && pluginVersion.compareTo(versionValue) == 0) {
+            alreadyInCorrectVersion.set(true);
           }
+          else {
+            dependency.setVersion(pluginVersion.toString());
+            modelsToUpdate.add(buildModel);
+          }
+          break;
         }
-        return true;
       }
+      return true;
     });
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
+      runWriteCommandAction(project, () -> {
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
         }
       });
     }
-    else if (alreadyInCorrectVersion.get()) {
-      // No version was updated because the correct version is already applied.
-      return true;
-    }
-
-    if (updateModels && isNotEmpty(gradleVersion)) {
+    boolean gradleUpdated = false;
+    if (isNotEmpty(gradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
         GradleVersion current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
-            updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
+            gradleUpdated = updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
           }
           catch (IOException e) {
             LOG.warn("Failed to update Gradle version in wrapper", e);
@@ -1293,34 +1555,29 @@ public final class GradleUtil {
         }
       }
     }
-    return updateModels;
+    return updateModels || alreadyInCorrectVersion.get() || gradleUpdated;
   }
 
-  private static boolean isAndroidPlugin(@NotNull ArtifactDependencySpec spec) {
-    return ANDROID_PLUGIN_GROUP_ID.equals(spec.group) && ANDROID_PLUGIN_ARTIFACT_ID.equals(spec.name);
+  private static boolean isAndroidPlugin(@NotNull ArtifactDependencyModel dependency, boolean checkForExperimentalPlugin) {
+    String pluginArtifactId = checkForExperimentalPlugin ? ANDROID_EXPERIMENTAL_PLUGIN_ARTIFACT_ID : ANDROID_PLUGIN_ARTIFACT_ID;
+    return ANDROID_PLUGIN_GROUP_ID.equals(dependency.group().value()) && pluginArtifactId.equals(dependency.name().value());
   }
 
-  public static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        VirtualFile baseDir = project.getBaseDir();
-        if (baseDir == null) {
-          // Unlikely to happen: this is default project.
-          return;
-        }
-
-        processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
-          @Override
-          public boolean process(VirtualFile virtualFile) {
-            if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-              GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
-              return processor.process(buildModel);
-            }
-            return true;
-          }
-        });
+  public static void processBuildModelsRecursively(@NotNull Project project, @NotNull Processor<GradleBuildModel> processor) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      VirtualFile baseDir = project.getBaseDir();
+      if (baseDir == null) {
+        // Unlikely to happen: this is default project.
+        return;
       }
+
+      processFileRecursivelyWithoutIgnored(baseDir, virtualFile -> {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
+          return processor.process(buildModel);
+        }
+        return true;
+      });
     });
   }
 
@@ -1340,7 +1597,7 @@ public final class GradleUtil {
   }
 
   public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
-    final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -1357,14 +1614,64 @@ public final class GradleUtil {
     }
 
     if (!modelsToUpdate.isEmpty()) {
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
+      runWriteCommandAction(project, () -> {
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
         }
       });
     }
+  }
+
+  public static boolean isUsingExperimentalPlugin(@NotNull Module module) {
+    // First query the model
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+    if (androidGradleModel != null) {
+      try {
+        // only true for experimental plugin 0.6.0-betaX (or whenever the getPluginGeneration() was added) or later.
+        return androidGradleModel.getAndroidProject().getPluginGeneration() == GENERATION_COMPONENT;
+      }
+      catch (UnsupportedMethodException t) {
+        // happens for 2.0.0-alphaX or earlier stable version plugins and 0.6.0-alphax or earlier experimental plugin versions.
+      }
+    }
+
+    // Now look at the applied plugins in the build.gradle file.
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel == null) {
+      return false;
+    }
+
+    List<String> appliedPlugins = buildModel.appliedPlugins();
+    return appliedPlugins.contains("com.android.model.application") || appliedPlugins.contains("com.android.model.library");
+  }
+
+  @Nullable
+  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant, @Nullable GradleVersion modelVersion) {
+    AndroidArtifact artifact = variant.getMainArtifact();
+    Dependencies dependencies = getDependencies(artifact, modelVersion);
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      AndroidLibrary result = findLibrary(library, bundleDir);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static AndroidLibrary findLibrary(@NotNull AndroidLibrary library, @NotNull File bundleDir) {
+    if (filesEqual(bundleDir, library.getFolder())) {
+      return library;
+    }
+
+    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+      AndroidLibrary result = findLibrary(dependency, bundleDir);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
   }
 }

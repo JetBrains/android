@@ -112,6 +112,12 @@ public class VariantStub implements Variant {
     return new ProductFlavorStub("merged");
   }
 
+  @Override
+  @NotNull
+  public Collection<TestedTargetVariant> getTestedTargetVariants() {
+    throw new UnsupportedOperationException();
+  }
+
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }

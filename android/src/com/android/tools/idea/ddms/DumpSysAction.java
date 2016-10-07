@@ -80,7 +80,7 @@ public class DumpSysAction {
                   try {
                     final CaptureService service = CaptureService.getInstance(myProject);
                     String name = service.getSuggestedName(myClient);
-                    CaptureHandle handle = service.startCaptureFile(SystemInfoCaptureType.class, name);
+                    CaptureHandle handle = service.startCaptureFile(SystemInfoCaptureType.class, name, false);
                     service.appendData(handle, receiver.getOutput().getBytes());
                     service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                       @Override
@@ -92,7 +92,7 @@ public class DumpSysAction {
                       }
 
                       @Override
-                      public void onFailure(Throwable t) {
+                      public void onFailure(@NotNull Throwable t) {
                         showError(myProject, "Unexpected error while saving system information", t);
                       }
                     }, EdtExecutor.INSTANCE);

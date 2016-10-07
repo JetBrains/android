@@ -22,9 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.RenderService;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,43 +33,13 @@ import javax.swing.*;
 import java.util.List;
 
 public class OrientationMenuAction extends FlatComboAction {
-  private final RenderContext myRenderContext;
-  private final boolean myClassicStyle;
+  private final ConfigurationHolder myRenderContext;
 
-  public OrientationMenuAction(RenderContext renderContext) {
-    this(renderContext, !RenderService.NELE_ENABLED);
-  }
-
-  public OrientationMenuAction(RenderContext renderContext, boolean classicStyle) {
+  public OrientationMenuAction(ConfigurationHolder renderContext) {
     myRenderContext = renderContext;
-    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
-    updatePresentation(presentation);
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    super.update(e);
-    updatePresentation(e.getPresentation());
-  }
-
-  private void updatePresentation(Presentation presentation) {
-    if (!myClassicStyle) {
-      presentation.setIcon(AndroidIcons.NeleIcons.Rotate);
-      return;
-    }
-    Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null) {
-      State current = configuration.getDeviceState();
-      if (current != null) {
-        State flip = configuration.getNextDeviceState(current);
-        if (flip != null) {
-          ScreenOrientation orientation = getOrientation(flip);
-          presentation.setIcon(getOrientationIcon(orientation, true));
-          presentation.setDescription(getPresentationDescription(flip));
-        }
-      }
-    }
+    presentation.setDescription("Orientation in Editor");
+    presentation.setIcon(AndroidIcons.NeleIcons.Rotate);
   }
 
   @NotNull
@@ -96,7 +64,7 @@ public class OrientationMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
     Configuration configuration = myRenderContext.getConfiguration();
@@ -184,7 +152,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
-    private SetDeviceStateAction(@NotNull RenderContext renderContext,
+    private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
                                  @NotNull String title,
                                  @NotNull State state,
                                  boolean checked,
@@ -198,7 +166,6 @@ public class OrientationMenuAction extends FlatComboAction {
     public void perform() {
       tryUpdateConfiguration();
       updatePresentation();
-      myRenderContext.requestRender();
     }
 
     @Override
@@ -210,7 +177,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetUiModeAction extends ConfigurationAction {
     @NotNull private final UiMode myUiMode;
 
-    private SetUiModeAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
+    private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
       super(renderContext, title);
       myUiMode = uiMode;
       if (checked) {
@@ -227,7 +194,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetNightModeAction extends ConfigurationAction {
     @NotNull private final NightMode myNightMode;
 
-    private SetNightModeAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull NightMode nightMode, boolean checked) {
+    private SetNightModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull NightMode nightMode, boolean checked) {
       super(renderContext, title);
       myNightMode = nightMode;
       if (checked) {

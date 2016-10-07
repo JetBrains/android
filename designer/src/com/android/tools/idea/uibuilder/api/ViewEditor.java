@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -24,12 +22,15 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.resources.Density.DEFAULT_DENSITY;
@@ -70,30 +71,44 @@ public abstract class ViewEditor {
    * @param px the pixel dimension
    * @return the corresponding dp dimension string
    */
-  @NonNull
+  @NotNull
   public String pxToDpWithUnits(int px) {
     return String.format(Locale.US, VALUE_N_DP, pxToDp(px));
   }
 
-  /** Returns the version used to compile the module containing this editor with */
+  /**
+   * Returns the version used to compile the module containing this editor with
+   */
   @Nullable
   public abstract AndroidVersion getCompileSdkVersion();
 
-  /** Returns the minSdkVersion for the module containing this editor */
-  @NonNull
+  /**
+   * Returns the minSdkVersion for the module containing this editor
+   */
+  @NotNull
   public abstract AndroidVersion getMinSdkVersion();
 
-  /** Returns the targetSdkVersion for the module containing this editor */
-  @NonNull
+  /**
+   * Returns the targetSdkVersion for the module containing this editor
+   */
+  @NotNull
   public abstract AndroidVersion getTargetSdkVersion();
 
-  /** Returns the configuration for the editor */
-  @NonNull
+  /**
+   * Returns the configuration for the editor
+   */
+  @NotNull
   public abstract Configuration getConfiguration();
 
-  /** Returns the model for the editor */
-  @NonNull
+  /**
+   * Returns the model for the editor
+   */
+  @NotNull
   public abstract NlModel getModel();
+
+  public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
+
+  public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.
@@ -103,19 +118,18 @@ public abstract class ViewEditor {
    * @return a map from child to bounds information, if possible
    */
   @Nullable
-  public abstract Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
-
-  /**
-   * Displays an input dialog where the user can enter an Android resource name of the
-   * given resource type ("id", "string", "drawable", and so on.)
-   *
-   * @param types        the types of resource to input
-   * @param currentValue the current reference to select
-   * @return the resource value edited by the user, or null
-   */
-  @Nullable
-  public abstract String displayResourceInput(@NonNull EnumSet<ResourceType> types, @Nullable String currentValue);
+  public abstract Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
-  public abstract String displayClassInput(@NonNull Set<String> superTypes, @Nullable String currentValue);
+  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types) {
+    return displayResourceInput("", types);
+  }
+
+  @Nullable
+  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
+
+  @Nullable
+  public abstract String displayClassInput(@NotNull Set<String> superTypes,
+                                           @Nullable Predicate<String> filter,
+                                           @Nullable String currentValue);
 }

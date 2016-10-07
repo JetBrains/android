@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.ConfigureAndroidModuleStepDynamic;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
-import junit.framework.Assert;
 
 import java.io.File;
-
-import static junit.framework.Assert.*;
 
 public class ConfigureAndroidModuleStepDynamicTest extends AndroidGradleTestCase {
 

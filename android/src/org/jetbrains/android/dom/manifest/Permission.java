@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-/**
- * @author coyote
- */
+import org.jetbrains.android.dom.Styleable;
+
+@Styleable("AndroidManifestPermission")
 public interface Permission extends ManifestElementWithRequiredName {
 }

@@ -15,54 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.EnumSet;
+import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <ImageButton>} widget */
-public class ImageButtonHandler extends ViewHandler {
+/**
+ * Handler for the {@code <ImageButton>} widget
+ */
+public class ImageButtonHandler extends ImageViewHandler {
+
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
-      if (src != null) {
-        newChild.setAttribute(ANDROID_URI, ATTR_SRC, src);
-        return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
-    }
-
-    // Fallback if dismissed or during previews etc
-    if (insertType.isCreate()) {
-      newChild.setAttribute(ANDROID_URI, ATTR_SRC, getSampleImageSrc());
-    }
-
-    return true;
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SRC,
+      ATTR_CONTENT_DESCRIPTION,
+      ATTR_STYLE,
+      ATTR_TINT,
+      ATTR_BACKGROUND,
+      ATTR_BACKGROUND_TINT,
+      ATTR_SCALE_TYPE,
+      ATTR_ELEVATION,
+      ATTR_ON_CLICK,
+      ATTR_ADJUST_VIEW_BOUNDS,
+      ATTR_CROP_TO_PADDING,
+      ATTR_VISIBILITY);
   }
 
-  /**
-   * Returns a source attribute value which points to a sample image. This is typically
-   * used to provide an initial image shown on ImageButtons, etc. There is no guarantee
-   * that the source pointed to by this method actually exists.
-   *
-   * @return a source attribute to use for sample images, never null
-   */
-  public static String getSampleImageSrc() {
+  @Override
+  @NotNull
+  public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_star"; //$NON-NLS-1$
   }

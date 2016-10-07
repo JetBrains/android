@@ -38,8 +38,8 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
+import com.intellij.openapi.fileChooser.impl.FileChooserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -47,7 +47,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -80,6 +79,8 @@ import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAnd
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
+import static com.android.tools.idea.project.NewProjects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -88,13 +89,16 @@ import static com.intellij.openapi.externalSystem.service.execution.ProgressExec
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
@@ -154,8 +158,6 @@ public class GradleProjectImporter {
       return;
     }
 
-    // Set up Gradle settings. Otherwise we get an "already disposed project" error.
-    new GradleSettings(ProjectManager.getInstance().getDefaultProject());
     createProjectFileForGradleProject(selectedFile, null);
   }
 
@@ -172,6 +174,7 @@ public class GradleProjectImporter {
       importProject(projectDir.getName(), projectDirPath, true, new NewProjectImportGradleSyncListener() {
         @Override
         public void syncSucceeded(@NotNull Project project) {
+          FileChooserUtil.setLastOpenedFile(project, projectDir);
           activateProjectView(project);
         }
       }, project, null);
@@ -244,30 +247,27 @@ public class GradleProjectImporter {
       return;
     }
     Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, false, listener);
-    ApplicationManager.getApplication().invokeAndWait(syncRequest);
+    invokeAndWaitIfNeeded(syncRequest);
   }
 
   @NotNull
-  private Runnable createSyncRequest(@NotNull final Project project,
-                                     @NotNull final ProgressExecutionMode executionMode,
-                                     final boolean generateSourcesOnSuccess,
-                                     final boolean cleanProject,
-                                     final boolean useCachedProjectData,
-                                     @Nullable final GradleSyncListener listener) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        if (isBuildInProgress(project)) {
-          setSyncRequestedDuringBuild(project, true);
-          return;
-        }
-        try {
-          ImportOptions options = new ImportOptions(generateSourcesOnSuccess, cleanProject, false, useCachedProjectData);
-          doRequestSync(project, executionMode, options, listener);
-        }
-        catch (ConfigurationException e) {
-          showErrorDialog(project, e.getMessage(), e.getTitle());
-        }
+  private Runnable createSyncRequest(@NotNull Project project,
+                                     @NotNull ProgressExecutionMode executionMode,
+                                     boolean generateSourcesOnSuccess,
+                                     boolean cleanProject,
+                                     boolean useCachedProjectData,
+                                     @Nullable GradleSyncListener listener) {
+    return () -> {
+      if (isBuildInProgress(project)) {
+        setSyncRequestedDuringBuild(project, true);
+        return;
+      }
+      try {
+        ImportOptions options = new ImportOptions(generateSourcesOnSuccess, cleanProject, false, useCachedProjectData);
+        doRequestSync(project, executionMode, options, listener);
+      }
+      catch (ConfigurationException e) {
+        showErrorDialog(project, e.getMessage(), e.getTitle());
       }
     };
   }
@@ -290,27 +290,24 @@ public class GradleProjectImporter {
     return false;
   }
 
-  private void doRequestSync(@NotNull final Project project,
+  private void doRequestSync(@NotNull Project project,
                              @NotNull ProgressExecutionMode progressExecutionMode,
                              @NotNull ImportOptions options,
-                             @Nullable final GradleSyncListener listener) throws ConfigurationException {
+                             @Nullable GradleSyncListener listener) throws ConfigurationException {
     if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
       setGradleVersionUsed(project, null);
-      doImport(project, false /* existing project */, progressExecutionMode, options, listener);
+      doImport(project, progressExecutionMode, options, false /* existing project */, listener);
     }
     else {
-      Runnable notificationTask = new Runnable() {
-        @Override
-        public void run() {
-          String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
-          AndroidGradleNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
+      Runnable notificationTask = () -> {
+        String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
+        AndroidGradleNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
 
-          if (listener != null) {
-            listener.syncFailed(project, msg);
-          }
+        if (listener != null) {
+          listener.syncFailed(project, msg);
         }
       };
       Application application = ApplicationManager.getApplication();
@@ -330,20 +327,17 @@ public class GradleProjectImporter {
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void resetProject(@NotNull final Project project) {
-    executeProjectChanges(project, new Runnable() {
-      @Override
-      public void run() {
-        removeLibrariesAndStoreAttachments(project);
+  private static void resetProject(@NotNull Project project) {
+    executeProjectChanges(project, () -> {
+      removeLibrariesAndStoreAttachments(project);
 
-        // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
-        // failure.
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null) {
-            facet.setAndroidModel(null);
-          }
+      // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+      // failure.
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          facet.setAndroidModel(null);
         }
       }
     });
@@ -415,7 +409,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, MODAL_SYNC /* synchronous import */, options, listener);
+    doImport(newProject, MODAL_SYNC, options, true /* new project */,  /* synchronous import */  listener);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDirPath) throws IOException {
@@ -429,63 +423,26 @@ public class GradleProjectImporter {
     writeToFile(projectFile, contents);
   }
 
-  private static void createIdeaProjectDir(@NotNull File projectRootDirPath) throws IOException {
-    File ideaDirPath = new File(projectRootDirPath, Project.DIRECTORY_STORE_FOLDER);
-    if (ideaDirPath.isDirectory()) {
-      // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
-      File librariesDir = new File(ideaDirPath, "libraries");
-      if (librariesDir.exists()) {
-        // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
-        // created with Studio 0.4.3 or earlier.)
-        boolean librariesDirDeleted = delete(librariesDir);
-        if (!librariesDirDeleted) {
-          LOG.info(String.format("Failed to delete %1$s'", librariesDir.getPath()));
+  private static void setUpProject(@NotNull Project newProject, @Nullable LanguageLevel initialLanguageLevel) {
+    CommandProcessor.getInstance().executeCommand(newProject, () -> ApplicationManager.getApplication().runWriteAction(() -> {
+      if (initialLanguageLevel != null) {
+        LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
+        if (extension != null) {
+          extension.setLanguageLevel(initialLanguageLevel);
         }
       }
-    }
-    else {
-      ensureExists(ideaDirPath);
-    }
-  }
 
-  @NotNull
-  private static Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectPath);
-    if (newProject == null) {
-      throw new NullPointerException("Failed to create a new IDEA project");
-    }
-    return newProject;
-  }
-
-  private static void setUpProject(@NotNull final Project newProject, @Nullable final LanguageLevel initialLanguageLevel) {
-    CommandProcessor.getInstance().executeCommand(newProject, new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            if (initialLanguageLevel != null) {
-              final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
-              if (extension != null) {
-                extension.setLanguageLevel(initialLanguageLevel);
-              }
-            }
-
-            // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
-            // IDEA.
-            File compilerOutputDirPath = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
-            String compilerOutputDirUrl = pathToIdeaUrl(compilerOutputDirPath);
-            CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
-            assert compilerProjectExt != null;
-            compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
-            setUpGradleSettings(newProject);
-            // This allows to customize UI when android project is opened inside IDEA with android plugin.
-            setProjectType(newProject, AndroidModuleBuilder.ANDROID_PROJECT_TYPE);
-          }
-        });
-      }
-    }, null, null);
+      // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
+      // IDEA.
+      File compilerOutputDirPath = new File(getBaseDirPath(newProject), join(BUILD_DIR_DEFAULT_NAME, "classes"));
+      String compilerOutputDirUrl = pathToIdeaUrl(compilerOutputDirPath);
+      CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
+      assert compilerProjectExt != null;
+      compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
+      setUpGradleSettings(newProject);
+      // This allows to customize UI when android project is opened inside IDEA with android plugin.
+      setProjectType(newProject, AndroidModuleBuilder.ANDROID_PROJECT_TYPE);
+    }), null, null);
   }
 
   private static void setUpGradleSettings(@NotNull Project project) {
@@ -511,15 +468,16 @@ public class GradleProjectImporter {
 
     String basePath = project.getBasePath();
     if (basePath != null) {
-      settings.setExternalProjectPath(toCanonicalPath(basePath));
+      settings.setExternalProjectPath(basePath);
     }
   }
 
-  private void doImport(@NotNull final Project project,
-                        final boolean newProject,
-                        @NotNull final ProgressExecutionMode progressExecutionMode,
+  private void doImport(@NotNull Project project,
+                        @NotNull ProgressExecutionMode progressExecutionMode,
                         @NotNull ImportOptions options,
-                        @Nullable final GradleSyncListener listener) throws ConfigurationException {
+                        boolean newProject,
+                        @Nullable GradleSyncListener listener) throws ConfigurationException {
+    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID));
     if (isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
       clearStoredGradleJvmArgs(project);
@@ -638,7 +596,7 @@ public class GradleProjectImporter {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
         DataNode<AndroidGradleModel> androidDataNode = find(cache, ANDROID_MODEL);
-        if (androidDataNode == null) {
+        if (androidDataNode == null || !isValidProxyObject(androidDataNode.getData().getAndroidProject())) {
           return true;
         }
       }
@@ -655,7 +613,7 @@ public class GradleProjectImporter {
     NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
     if (nativeAndroidFacet != null) {
       DataNode<NativeAndroidGradleModel> nativeAndroidGradleDataNode = find(cache, NATIVE_ANDROID_MODEL);
-      if (nativeAndroidGradleDataNode == null) {
+      if (nativeAndroidGradleDataNode == null || !isValidProxyObject(nativeAndroidGradleDataNode.getData().getNativeAndroidProject())) {
         return true;
       }
     }
@@ -666,9 +624,9 @@ public class GradleProjectImporter {
   static class ImporterDelegate {
     void importProject(@NotNull Project project,
                        @NotNull ExternalProjectRefreshCallback callback,
-                       @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
+                       @NotNull ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        final String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+        String externalProjectPath = getBaseDirPath(project).getPath();
         refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
@@ -680,10 +638,10 @@ public class GradleProjectImporter {
   }
 
   private static class ImportOptions {
-    public final boolean generateSourcesOnSuccess;
-    public final boolean cleanProject;
-    public final boolean importingExistingProject;
-    public final boolean useCachedProjectData;
+    final boolean generateSourcesOnSuccess;
+    final boolean cleanProject;
+    final boolean importingExistingProject;
+    final boolean useCachedProjectData;
 
     ImportOptions(boolean generateSourcesOnSuccess,
                   boolean cleanProject,

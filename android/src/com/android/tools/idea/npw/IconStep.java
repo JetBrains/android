@@ -92,7 +92,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<String> ATTR_IMAGE_PATH = createKey(AssetStudioAssetGenerator.ATTR_IMAGE_PATH, PATH, String.class);
   public static final Key<String> ATTR_ICON_RESOURCE = createKey("icon_resource", PATH, String.class);
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
-  public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
+  public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(CommonAssetSetStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
   public static final Key<String> ATTR_ERROR_LOG = createKey(AssetStudioAssetGenerator.ATTR_ERROR_LOG, PATH, String.class);
   public static final Key<String> ATTR_VECTOR_DRAWBLE_WIDTH =
     createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_WIDTH, STEP, String.class);
@@ -112,10 +112,11 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private static final int DIALOG_HEADER = JBUI.scale(20);
   private static final String V11 = "V11";
   private static final String V9 = "V9";
+  private static final String IMAGES_CLIPART_BIG = "images/clipart/big/";
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
   private final MergingUpdateQueue myUpdateQueue;
-  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
+  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<>();
   private final Key<TemplateEntry> myTemplateKey;
   private final Key<SourceProvider> mySourceProviderKey;
   private AssetStudioAssetGenerator myAssetGenerator;
@@ -373,7 +374,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   private <E> void register(Key<E> key, Map<JRadioButton, E> buttonsToValues) {
-    RadioButtonGroupBinding<E> binding = new RadioButtonGroupBinding<E>(buttonsToValues);
+    RadioButtonGroupBinding<E> binding = new RadioButtonGroupBinding<>(buttonsToValues);
     for (JRadioButton button : buttonsToValues.keySet()) {
       register(key, button, binding);
     }
@@ -478,12 +479,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
           }
           myAssetGenerator.generateImages(myImageMap, true, true);
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updatePreviewImages();
-            }
-          });
+          ApplicationManager.getApplication().invokeLater(IconStep.this::updatePreviewImages);
         }
         catch (final ImageGeneratorException exception) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -547,7 +543,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
          iter.hasNext(); ) {
       final String name = iter.next();
       try {

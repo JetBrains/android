@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
@@ -63,8 +64,9 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
       registrar
         .register(new CreateValueResourceQuickFix(facet, resourceType, resFieldName, contextFile, true));
     }
-    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceType)) {
-      registrar.register(new CreateFileResourceQuickFix(facet, resourceType, resFieldName, contextFile, true));
+    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resourceType);
+    if (folderType != null) {
+      registrar.register(new CreateFileResourceQuickFix(facet, folderType, resFieldName, contextFile, true));
     }
   }
 

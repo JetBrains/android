@@ -52,7 +52,21 @@
  * <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">this page</a> is a good
  * starting point for searching for relevant docs. Of course, when relevant documentation is
  * found you should consider adding a link to file description class as well.
+ * <p/>
+ * See Javadoc on <code>AndroidDomTest</code> class (and check its subclasses) to get an idea how to test changes to files in this package.
+ * <p/>
+ * Useful annotation facts:
+ * <ul>
+ *   <li>To disable spellchecking inside a tag's value, use {@link com.intellij.spellchecker.xml.NoSpellchecking} annotation.
+ *   Look {@link com.intellij.spellchecker.xml.XmlSpellcheckingStrategy#isSuppressedFor(com.intellij.psi.PsiElement, java.lang.String)}
+ *   for the code that implements that.</li>
+ * </ul>
  *
- * TODO write about {@link AndroidDomExtender} and {@link Styleable} annotation
+ * {@link org.jetbrains.android.dom.AndroidDomExtender} contains code that adds information about file schema that isn't encoded in
+ * DOM element interfaces. For example, one of the things this code does is loading information about attribute from Android framework
+ * attribute definition files (attrs.xml and attrs_manifest.xml in the framework res/values folder). For a part of the tags, information
+ * about which styleable definitions correspond to which tags is hard-coded, but there is a better mechanism for that -
+ * {@link org.jetbrains.android.dom.Styleable} annotation. To provide information about styleable, which attributes should be used inside
+ * an XML element, annotate its interface with @Styleable annotation, passing a list of names of styleable definitions.
  */
 package org.jetbrains.android.dom;

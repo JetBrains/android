@@ -16,13 +16,20 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.editors.AndroidFakeFileSystem;
+import com.intellij.openapi.fileEditor.impl.EditorHistoryManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
+import com.intellij.openapi.vfs.ex.temp.TempFileSystem;
+import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
+import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.io.URLUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,40 +43,65 @@ import javax.swing.*;
 public class ThemeEditorVirtualFile extends LightVirtualFile {
   public static final String FILENAME = "Theme Editor";
   private static final Key<ThemeEditorVirtualFile> KEY = Key.create(ThemeEditorVirtualFile.class.getName());
+  private static final Key<Boolean> CACHE_LOOKUP_KEY = Key.create("cache_lookup_key");
 
-  private final @NotNull Project myProject;
+  private VirtualFile myParent;
+  private final String myPath;
 
   private ThemeEditorVirtualFile(final @NotNull Project project) {
     super(FILENAME);
-    myProject = project;
+    myPath = AndroidFakeFileSystem.constructPathForFile(FILENAME, project);
   }
 
   @NotNull
   public static ThemeEditorVirtualFile getThemeEditorFile(@NotNull Project project) {
-    ThemeEditorVirtualFile vfile = project.getUserData(KEY);
-    if (vfile == null) {
-      vfile = new ThemeEditorVirtualFile(project);
-      project.putUserData(KEY, vfile);
+    ThemeEditorVirtualFile vFile = project.getUserData(KEY);
+    if (vFile == null) {
+      vFile = getThemeEditorVirtualFileFromCache(project);
+
+      if (vFile == null) {
+        vFile = new ThemeEditorVirtualFile(project);
+      }
+
+      // If the ThemeEditorVirtualFile comes from the cache, it might have been created by another project,
+      // since the cache is indexed by the file url. So we know that myPath will be accurate, but we need to
+      // get the correct parent virtual file.
+      vFile.myParent = project.getBaseDir();
+      project.putUserData(KEY, vFile);
     }
 
-    return vfile;
+    return vFile;
+  }
+
+  /**
+   * This looks at the cache inside VirtualFilePointerManager (used for example too keep recent opened files)
+   * to see if there already is a ThemeEditorVirtualFile that was created for this project. If there is one, return it.
+   * Otherwise return null.
+   */
+  @Nullable
+  private static ThemeEditorVirtualFile getThemeEditorVirtualFileFromCache(@NotNull Project project) {
+    if (project.getUserData(CACHE_LOOKUP_KEY) == null) {
+      // Needed to avoid infinite loops since VirtualFilePointerManager.create calls getThemeEditorFile
+      project.putUserData(CACHE_LOOKUP_KEY, true);
+      String url = AndroidFakeFileSystem.INSTANCE.getProtocol() + URLUtil.SCHEME_SEPARATOR
+                   + AndroidFakeFileSystem.constructPathForFile(FILENAME, project);
+      // VirtualFilePointerManager does not have a get method, but the create method is equivalent to a get when the pointer exists
+      VirtualFilePointer pointer = VirtualFilePointerManager.getInstance().create(url, project, null);
+      return (ThemeEditorVirtualFile)pointer.getFile();
+    }
+    return null;
   }
 
   @Nullable
   @Override
   public VirtualFile getParent() {
-    return myProject.getBaseDir();
+    return myParent;
   }
 
   @NotNull
   @Override
   public FileType getFileType() {
     return ThemeEditorFileType.INSTANCE;
-  }
-
-  @NotNull
-  public Project getProject() {
-    return myProject;
   }
 
   @NotNull
@@ -81,7 +113,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @NotNull
   @Override
   public String getPath() {
-    return AndroidFakeFileSystem.constructPathForFile(FILENAME, myProject);
+    return myPath;
   }
 
   private static class ThemeEditorFileType extends FakeFileType {

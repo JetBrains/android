@@ -15,35 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx;
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 
 public class FileFixture {
@@ -58,65 +52,20 @@ public class FileFixture {
   }
 
   @NotNull
-  public FileFixture requireOpenAndSelected() {
-    requireVirtualFile();
-    pause(new Condition("File " + quote(myPath.getPath()) + " to be opened") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return isOpenAndSelected();
-          }
-        });
-      }
-    }, SHORT_TIMEOUT);
-    return this;
-  }
-
-  private boolean isOpenAndSelected() {
-    FileEditorManager editorManager = FileEditorManager.getInstance(myProject);
-    FileEditor selectedEditor = editorManager.getSelectedEditor(myVirtualFile);
-    if (selectedEditor != null) {
-      JComponent component = selectedEditor.getComponent();
-      if (component.isVisible() && component.isShowing()) {
-        Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
-        if (document != null) {
-          PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-          if (psiFile != null) {
-            DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
-            //noinspection ConstantConditions
-            boolean isRunning = method("isRunning").withReturnType(boolean.class).in(codeAnalyzer).invoke();
-            return !isRunning;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @NotNull
   public FileFixture waitUntilErrorAnalysisFinishes() {
-    pause(new Condition("error analysis finishes") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("error analysis to finish").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
-            return DaemonCodeAnalyzerEx.getInstanceEx(myProject).isErrorAnalyzingFinished(getPsiFile());
+            // isRunningOrPending() should be enough, but tests fail. During code analysis, DaemonCodeAnalyzerImpl, keeps calling
+            // cancelUpdateProgress(), and then restarting again, but the restart is queued on the UI Thread, so for some moments,
+            // isRunningOrPending() returns false, while technically there is in an event, on the UI queue, waiting.
+            // isErrorAnalyzingFinished() checks a dirty flag, and the flag is not clean until the analysis is done.
+            DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzerEx.getInstanceEx(myProject);
+            return !codeAnalyzer.isRunningOrPending() && codeAnalyzer.isErrorAnalyzingFinished(getPsiFile());
           }
-        });
-      }
-    }, SHORT_TIMEOUT);
-    return this;
-  }
-
-  @NotNull
-  public FileFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
-    Collection<HighlightInfo> highlightInfos = getHighlightInfos(severity);
-    assertThat(highlightInfos).hasSize(expected);
+        }));
     return this;
   }
 
@@ -128,7 +77,7 @@ public class FileFixture {
     Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
       @Override
       protected Collection<HighlightInfo> executeInEDT() throws Throwable {
-        CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
+        CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<>();
         DaemonCodeAnalyzerEx.processHighlights(document, myProject, severity, 0, document.getTextLength(), processor);
         return processor.getResults();
       }
@@ -150,24 +99,9 @@ public class FileFixture {
   }
 
   @NotNull
-  public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
-    final Document document = getNotNullDocument();
-    pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
-      @Override
-      public boolean test() {
-        Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
-          @Override
-          protected Collection<HighlightInfo> executeInEDT() throws Throwable {
-            CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
-            DaemonCodeAnalyzerEx.processHighlights(document, myProject, severity, 0, document.getTextLength(), processor);
-            return processor.getResults();
-          }
-        });
-        assertNotNull(highlightInfos);
-        return highlightInfos.size() == expected;
-      }
-    }, SHORT_TIMEOUT);
-
+  public FileFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
+    waitUntilErrorAnalysisFinishes();
+    assertThat(getHighlightInfos(severity)).hasSize(expected);
     return this;
   }
 
@@ -176,12 +110,6 @@ public class FileFixture {
     Document document = getDocument(myVirtualFile);
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
     return document;
-  }
-
-  @NotNull
-  public FileFixture requireVirtualFile() {
-    assertNotNull("No VirtualFile found for path " + quote(myPath.getPath()), myVirtualFile);
-    return this;
   }
 
   @Nullable

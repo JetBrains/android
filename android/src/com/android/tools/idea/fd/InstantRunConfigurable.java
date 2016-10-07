@@ -18,14 +18,13 @@ package com.android.tools.idea.fd;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.google.common.base.Objects;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -52,7 +51,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION;
 import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
-import static com.android.tools.idea.fd.InstantRunSettings.SHOW_EXPERT_OPTIONS;
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
@@ -64,30 +62,22 @@ public class InstantRunConfigurable
   private HyperlinkLabel myOldVersionLabel;
   private JBCheckBox myShowToastCheckBox;
   private JBCheckBox myShowIrStatusNotifications;
-  private JBCheckBox myColdSwapCheckBox;
-  private JComboBox myColdSwapMode;
-  private JPanel myColdSwapPanel;
 
   public InstantRunConfigurable() {
     myBuildConfiguration = InstantRunConfiguration.getInstance();
     updateLinkState();
-
-    if (SHOW_EXPERT_OPTIONS) {
-      DefaultComboBoxModel model = new DefaultComboBoxModel();
-      for (ColdSwapMode mode : ColdSwapMode.values()) {
-        model.addElement(mode);
-      }
-      myColdSwapMode.setModel(model);
-    } else {
-      myColdSwapCheckBox.setVisible(false);
-      myColdSwapPanel.setVisible(false);
-    }
   }
 
   @NotNull
   @Override
   public String getId() {
     return "instant.run";
+  }
+
+  @Nullable
+  @Override
+  public Runnable enableSearch(String option) {
+    return null;
   }
 
   @Nls
@@ -113,19 +103,13 @@ public class InstantRunConfigurable
     return myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
            myBuildConfiguration.SHOW_TOAST != isShowToast() ||
-           myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications() ||
-           SHOW_EXPERT_OPTIONS && (myBuildConfiguration.COLD_SWAP != isColdSwapEnabled() ||
-             !Objects.equal(myBuildConfiguration.COLD_SWAP_MODE, getColdSwapMode().value));
+           myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications();
   }
 
   @Override
   public void apply() throws ConfigurationException {
     myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
-    if (SHOW_EXPERT_OPTIONS) {
-      myBuildConfiguration.COLD_SWAP = isColdSwapEnabled();
-      myBuildConfiguration.COLD_SWAP_MODE = getColdSwapMode().value;
-    }
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
 
@@ -143,10 +127,6 @@ public class InstantRunConfigurable
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
-    if (SHOW_EXPERT_OPTIONS) {
-      myColdSwapCheckBox.setSelected(myBuildConfiguration.COLD_SWAP);
-      myColdSwapMode.setSelectedItem(ColdSwapMode.fromValue(myBuildConfiguration.COLD_SWAP_MODE, ColdSwapMode.DEFAULT));
-    }
   }
 
   @Override
@@ -159,17 +139,6 @@ public class InstantRunConfigurable
 
   private boolean isRestartActivity() {
     return myRestartActivityCheckBox.isSelected();
-  }
-
-  private boolean isColdSwapEnabled() {
-    return myColdSwapCheckBox.isSelected();
-  }
-
-  private ColdSwapMode getColdSwapMode() {
-    if (!SHOW_EXPERT_OPTIONS) {
-      return ColdSwapMode.DEFAULT;
-    }
-    return (ColdSwapMode)myColdSwapMode.getSelectedItem();
   }
 
   private boolean isShowToast() {
@@ -247,7 +216,7 @@ public class InstantRunConfigurable
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
       AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
-      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class));
+      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class), false);
       if (latestBuildTool != null) {
         Revision revision = latestBuildTool.getRevision();
         if (revision.compareTo(Revision.parseRevision(buildToolsVersion)) > 0) {

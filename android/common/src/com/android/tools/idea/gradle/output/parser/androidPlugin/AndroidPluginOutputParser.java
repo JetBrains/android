@@ -27,13 +27,25 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class AndroidPluginOutputParser implements PatternAwareOutputParser {
   private static final int SEGMENT_COUNT = 3;
 
+  // Sample: 128            android:configChanges="orientation|keyboardHidden|keyboard|screenSize"
+  private static final Pattern IGNORED_MESSAGE_PATTERN = Pattern.compile("[\\d]+[\\s]+[\\w]+:[\\w]+=[\"|'].*[\"|']");
+
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
     throws ParsingFailedException {
+    if (line.contains("[DEBUG] ") || line.contains("[INFO] ")) {
+      // Ignore 'debug' and 'info' messages.
+      return false;
+    }
+    if (IGNORED_MESSAGE_PATTERN.matcher(line).matches()) {
+      return false;
+    }
+
     // pattern is type|path|message
     String[] segments = line.split("\\|", SEGMENT_COUNT);
     if (segments.length == SEGMENT_COUNT) {

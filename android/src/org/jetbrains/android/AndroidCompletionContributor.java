@@ -36,6 +36,7 @@ import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -49,13 +50,13 @@ import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
       final Map<String,PsiClass> classMap = facet.getClassMap(
-        AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+        AndroidUtils.VIEW_CLASS_NAME);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
@@ -128,6 +129,10 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (ColorDomFileDescription.isColorResourceFile(xmlFile)) {
       resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.TAG_NAME));
+      return false;
+    }
+    else if (RawDomFileDescription.isRawFile(xmlFile)) {
+      resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
       return false;
     }
     return true;
@@ -185,11 +190,55 @@ public class AndroidCompletionContributor extends CompletionContributor {
         return;
       }
       addAndroidPrefixElement(position, parent, resultSet);
-      customizeAddedAttributes(facet, parameters, (XmlAttribute)parent, resultSet);
+      final XmlAttribute attribute = (XmlAttribute)parent;
+      final String namespace = attribute.getNamespace();
+
+      // We want to show completion variants for designtime attributes only if "tools:" prefix
+      // has already been typed
+      if (SdkConstants.TOOLS_URI.equals(namespace)) {
+        addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
+      }
+      customizeAddedAttributes(facet, parameters, attribute, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
       completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
+    }
+  }
+
+  /**
+   * For every regular layout element attribute, add it with "tools:" prefix
+   * (or whatever user uses for tools namespace)
+   * <p/>
+   * <a href="http://tools.android.com/tips/layout-designtime-attributes">Designtime attributes docs</a>
+   */
+  private static void addDesignTimeAttributes(@NotNull final String namespacePrefix,
+                                              @NotNull final PsiElement psiElement,
+                                              @NotNull final AndroidFacet facet,
+                                              @NotNull final XmlAttribute attribute,
+                                              @NotNull final CompletionResultSet resultSet) {
+    final XmlTag tag = attribute.getParent();
+    final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+
+    final Set<XmlName> registeredAttributes = new HashSet<>();
+
+    if (element instanceof LayoutElement) {
+      AttributeProcessingUtil.processLayoutAttributes(facet, tag, (LayoutElement)element, registeredAttributes,
+                                                      (xmlName, attrDef, parentStyleableName) -> {
+        if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
+          final String localName = xmlName.getLocalName();
+
+          // Lookup string is something that would be inserted when attribute is completed, so we want to use
+          // local name as an argument of .create(), otherwise we'll end up with getting completions like
+          // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
+          // .withPresentableText is used
+          final LookupElementBuilder lookupElement =
+            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
+              .withPresentableText(namespacePrefix + ":" + localName);
+          resultSet.addElement(lookupElement);
+        }
+        return null;
+      });
     }
   }
 

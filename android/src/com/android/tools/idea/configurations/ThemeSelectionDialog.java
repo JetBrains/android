@@ -17,11 +17,13 @@ package com.android.tools.idea.configurations;
 
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.DoubleClickListener;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Set;
 
@@ -49,6 +51,13 @@ public class ThemeSelectionDialog extends DialogWrapper {
   protected JComponent createCenterPanel() {
     JPanel contentPanel = myPanel.getContentPanel();
     contentPanel.setPreferredSize(JBUI.size(800, 500));
+    myPanel.installDoubleClickListener(new DoubleClickListener() {
+      @Override
+      protected boolean onDoubleClick(MouseEvent event) {
+        close(OK_EXIT_CODE);
+        return true;
+      }
+    });
     return contentPanel;
   }
 

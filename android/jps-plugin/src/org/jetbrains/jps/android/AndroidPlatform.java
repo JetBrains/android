@@ -1,8 +1,9 @@
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
+import com.android.repository.Revision;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -22,8 +23,11 @@ public class AndroidPlatform {
     mySdk = sdk;
     myTarget = target;
     final String homePath = sdk.getHomePath();
-    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_TOOLS);
+    Revision rev;
+    rev = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_PLATFORM_TOOLS);
+    myPlatformToolsRevision = rev == null ? -1 : rev.getMajor();
+    rev = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_TOOLS);
+    mySdkToolsRevision = rev == null ? -1 : rev.getMajor();
     mySdkHandler = sdkHandler;
   }
 

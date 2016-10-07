@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.assetstudiolib.AssetStudio;
+import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -25,25 +25,40 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.DRAWABLE_FOLDER;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -52,7 +67,7 @@ import java.util.Set;
 public class ViewEditorImpl extends ViewEditor {
   private final ScreenView myScreen;
 
-  public ViewEditorImpl(@NonNull ScreenView screen) {
+  public ViewEditorImpl(@NotNull ScreenView screen) {
     myScreen = screen;
   }
 
@@ -67,33 +82,79 @@ public class ViewEditorImpl extends ViewEditor {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getBuildSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getMinSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getTargetSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public Configuration getConfiguration() {
     return myScreen.getConfiguration();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public NlModel getModel() {
     return myScreen.getModel();
   }
 
+  @Override
+  public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
+    return myScreen.getModel().getFacet().getModuleResources(true).hasResourceItem(type, name);
+  }
+
+  @Override
+  public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
+    Project project = myScreen.getModel().getProject();
+    String message = "Do you want to copy vector asset " + asset + " to your main module source set?";
+
+    if (Messages.showYesNoDialog(project, message, "Copy Vector Asset", Messages.getQuestionIcon()) == Messages.NO) {
+      return;
+    }
+
+    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(AssetStudio.getPathForBasename(asset))) {
+      VirtualFile drawableDirectory = getDrawableDirectory();
+
+      if (drawableDirectory == null) {
+        return;
+      }
+
+      drawableDirectory.createChildData(this, asset + DOT_XML).setBinaryContent(ByteStreams.toByteArray(in));
+    }
+    catch (IOException exception) {
+      Logger.getInstance(ViewEditorImpl.class).warn(exception);
+    }
+  }
+
+  @Nullable
+  private VirtualFile getDrawableDirectory() throws IOException {
+    VirtualFile resourceDirectory = myScreen.getModel().getFacet().getPrimaryResourceDir();
+
+    if (resourceDirectory == null) {
+      Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
+      return null;
+    }
+
+    VirtualFile drawableDirectory = resourceDirectory.findChild(DRAWABLE_FOLDER);
+
+    if (drawableDirectory == null) {
+      return resourceDirectory.createChildDirectory(this, DRAWABLE_FOLDER);
+    }
+
+    return drawableDirectory;
+  }
+
   @Nullable
   @Override
-  public Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
+  public Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
     Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
     XmlTag parentTag = parent.getTag();
@@ -118,6 +179,7 @@ public class ViewEditorImpl extends ViewEditor {
 
       // Measure unweighted bounds
       Map<XmlTag, ViewInfo> map = task.measureChildren(parentTag, filter);
+      task.dispose();
       if (map != null) {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           ViewInfo viewInfo = entry.getValue();
@@ -136,15 +198,25 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NonNull EnumSet<ResourceType> types, @Nullable String currentValue) {
-    Module module = myScreen.getModel().getModule();
-    ResourceType[] typeArray = types.toArray(new ResourceType[types.size()]);
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, typeArray, currentValue, null);
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+    NlModel model = myScreen.getModel();
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(model.getModule())
+      .setTypes(types)
+      .setConfiguration(model.getConfiguration())
+      .build();
+
+    if (!title.isEmpty()) {
+      dialog.setTitle(title);
+    }
+
     dialog.show();
+
     if (dialog.isOK()) {
-      String value = dialog.getResourceName();
-      if (value != null && !value.isEmpty()) {
-        return value;
+      String resource = dialog.getResourceName();
+
+      if (resource != null && !resource.isEmpty()) {
+        return resource;
       }
     }
 
@@ -153,14 +225,27 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayClassInput(@NonNull Set<String> superTypes, @Nullable String currentValue) {
+  public String displayClassInput(@NotNull Set<String> superTypes,
+                                  @Nullable final Predicate<String> filter,
+                                  @Nullable String currentValue) {
     Module module = myScreen.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    return ChooseClassDialog.openDialog(module, "Classes", true, superTypesArray);
+    Condition<PsiClass> psiFilter = null;
+    if (filter != null) {
+      psiFilter = psiClass -> {
+        String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+          return false;
+        }
+        return filter.test(qualifiedName);
+      };
+    }
+
+    return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
-  @NonNull
+  @NotNull
   public ScreenView getScreenView() {
     return myScreen;
   }

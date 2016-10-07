@@ -1,27 +1,29 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.Consumer;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +35,13 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.CreateFileResourceQuickFix");
 
   private final AndroidFacet myFacet;
-  private final ResourceType myResourceType;
+  private final ResourceFolderType myResourceType;
   private final String myResourceName;
   private final PsiFile myFile;
   private final boolean myChooseResName;
 
   public CreateFileResourceQuickFix(@NotNull AndroidFacet facet,
-                                    @NotNull ResourceType resourceType,
+                                    @NotNull ResourceFolderType resourceType,
                                     @NotNull String resourceName,
                                     @NotNull PsiFile file,
                                     boolean chooseResName) {
@@ -60,7 +62,8 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
   @NotNull
   @Override
   public String getText() {
-    return AndroidBundle.message("create.file.resource.intention.name", myResourceType, myResourceName + ".xml");
+    return AndroidBundle.message("create.file.resource.intention.name", myResourceType.getName(),
+                                 myResourceName + ".xml");
   }
 
   @Override
@@ -76,11 +79,15 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
 
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    final XmlFile newFile =
-      CreateResourceFileAction.createFileResource(myFacet, myResourceType, myResourceName + ".xml", null, null, myChooseResName, null);
-    if (newFile != null) {
-      UndoUtil.markPsiFileForUndo(myFile);
-    }
+    AsyncResult<DataContext> dataContextAsyncResult = DataManager.getInstance().getDataContextFromFocus();
+    dataContextAsyncResult.doWhenDone((Consumer<DataContext>)dataContext -> {
+      final XmlFile newFile =
+        CreateResourceFileAction.createFileResource(myFacet, myResourceType, myResourceName + ".xml", null, null, myChooseResName, null,
+                                                    null, dataContext);
+      if (newFile != null) {
+        UndoUtil.markPsiFileForUndo(myFile);
+      }
+    });
   }
 
   @Override
@@ -111,10 +118,9 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     }
 
     try {
-      AndroidResourceUtil.createFileResource(myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(
-        ResourceFolderType.getFolderType(resDirName)), resDirName, false);
+      AndroidResourceUtil.createFileResource(
+        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myResourceType), resDirName, false);
       UndoUtil.markPsiFileForUndo(myFile);
-      AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
     }
     catch (Exception e) {
       LOG.error(e);

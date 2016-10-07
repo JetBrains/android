@@ -23,12 +23,15 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.dependency.Dependency;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -38,11 +41,10 @@ import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -60,7 +62,6 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
@@ -78,9 +79,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.ui.GuiUtils;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -91,8 +90,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
+import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
@@ -116,6 +115,8 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
+  private static final GradleVersion GRADLE_VERSION_WITH_SECURITY_FIX = GradleVersion.parse("2.14.1");
+
   /**
    * Whether a message indicating that "a new SDK Tools version is available" is already shown.
    */
@@ -151,6 +152,15 @@ public class PostProjectSetupTasksExecutor {
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
+    if (lastGradleSyncFailed(myProject) && myUsingCachedProjectData) {
+      // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
+      // version of such interfaces.
+      myUsingCachedProjectData = false;
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      reset();
+      return;
+    }
+
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
     messages.reportComponentIncompatibilities();
@@ -165,34 +175,59 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (hasErrors(myProject)) {
+    if (hasErrors(myProject) || lastGradleSyncFailed(myProject)) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
       return;
     }
 
-    if (shouldForcePluginVersionUpgrade() || myProject.isDisposed()) {
+    AndroidGradleModelVersions modelVersions = AndroidGradleModelVersions.find(myProject);
+    if (modelVersions == null) {
+      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+    }
+    else {
+      log(modelVersions);
+    }
+
+    if ((modelVersions != null && previewForcedToUpgrade(modelVersions)) || myProject.isDisposed()) {
       return;
+    }
+
+    GradleVersion currentModelVersion = null;
+    GradleVersion latestModelVersion = null;
+    if (modelVersions != null) {
+      currentModelVersion = modelVersions.getCurrent();
+      latestModelVersion = modelVersions.getLatest();
+    }
+    GradleVersion gradleVersion = getGradleVersion(myProject);
+
+    if (modelVersions != null && shouldRecommendUpgrade(latestModelVersion, currentModelVersion, gradleVersion)) {
+      boolean userAcceptsUpgrade =
+        new PluginVersionRecommendedUpdateDialog(myProject, currentModelVersion, latestModelVersion).showAndGet();
+
+      if (userAcceptsUpgrade) {
+        if (updateGradlePluginVersion(modelVersions.getLatest(), modelVersions.isExperimentalPlugin())) {
+          // plugin version updated and a project sync was requested. No need to continue.
+          return;
+        }
+      }
     }
 
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
-    executeProjectChanges(myProject, new Runnable() {
-      @Override
-      public void run() {
-        IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-        try {
-          attachSourcesToLibraries(modelsProvider);
-          adjustModuleStructures(modelsProvider);
-          modelsProvider.commit();
-        }
-        catch (Throwable t) {
-          modelsProvider.dispose();
-          rethrowAllAsUnchecked(t);
-        }
-        ensureValidSdks();
+    executeProjectChanges(myProject, () -> {
+      IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+      try {
+        attachSourcesToLibraries(modelsProvider);
+        adjustModuleStructures(modelsProvider);
+        modelsProvider.commit();
       }
+      catch (Throwable t) {
+        modelsProvider.dispose();
+        rethrowAllAsUnchecked(t);
+      }
+      ensureValidSdks();
     });
     enforceExternalBuild(myProject);
 
@@ -202,15 +237,7 @@ public class PostProjectSetupTasksExecutor {
     checkSdkToolsVersion(myProject);
     addSdkLinkIfNecessary();
 
-    ProjectResourceRepository.moduleRootsChanged(myProject);
-
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      TestArtifactSearchScopes.initializeScopes(myProject);
-      //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
-      // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
-      // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
-      //UISettings.getInstance().fireUISettingsChanged();
-    }
+    TestArtifactSearchScopes.initializeScopes(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
@@ -218,106 +245,104 @@ public class PostProjectSetupTasksExecutor {
     setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
-    if (shouldRecommendPluginVersionUpgrade()) {
-      boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject).showAndGet();
-      if (upgrade) {
-        if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
-          // plugin version updated and a project sync was requested. No need to continue.
-          return;
+    if (myGenerateSourcesAfterSync) {
+      if (!myCleanProjectAfterSync) {
+        // Figure out if the plugin version changed. If it did, force a clean.
+        // See: https://code.google.com/p/android/issues/detail?id=216616
+        Map<String, GradleVersion> previousPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
+        storePluginVersionsPerModule(myProject);
+        if (previousPluginVersionsPerModule != null && !previousPluginVersionsPerModule.isEmpty()) {
+
+          Map<String, GradleVersion> currentPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
+          assert currentPluginVersionsPerModule != null;
+
+          for (Map.Entry<String, GradleVersion> entry : currentPluginVersionsPerModule.entrySet()) {
+            String modulePath = entry.getKey();
+            GradleVersion previous = previousPluginVersionsPerModule.get(modulePath);
+            if (previous == null || entry.getValue().compareTo(previous) != 0) {
+              myCleanProjectAfterSync = true;
+              break;
+            }
+          }
         }
       }
-    }
-
-    if (myGenerateSourcesAfterSync) {
       GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
 
-    // set default value back.
-    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
+    reset();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     disposeModulesMarkedForRemoval();
   }
 
-  private boolean shouldForcePluginVersionUpgrade() {
-    AndroidProject androidProject = getAppAndroidProject(myProject);
-    if (androidProject != null) {
-      logProjectVersion(androidProject);
-      GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
-      String latest = GRADLE_PLUGIN_LATEST_VERSION;
-      if (isNonExperimentalPlugin(androidProject) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
-        updateGradleSyncState(); // Update the sync state before starting a new one.
+  static boolean shouldRecommendUpgrade(@Nullable GradleVersion latestModelVersion,
+                                        @Nullable GradleVersion currentModelVersion,
+                                        @Nullable GradleVersion gradleVersion) {
+    return shouldRecommendUpgradeBasedOnModelVersion(latestModelVersion, currentModelVersion) ||
+           shouldRecommendUpgradeBasedOnGradleVersion(gradleVersion);
+  }
 
-        boolean update = new PluginVersionForcedUpdateDialog(myProject).showAndGet();
-        if (update) {
-          updateGradlePluginVersionAndNotifyFailure(myProject, latest, null, true);
-          return true;
-        }
-        else {
-          String[] text = {
-            "The project is using an incompatible version of the Android Gradle plugin.",
-            "Please update your project to use version " + GRADLE_PLUGIN_LATEST_VERSION + "."
-          };
-          Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
-          NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
-          ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
-          invalidateLastSync(myProject, "Failed");
-          return true;
-        }
-      }
+  private static boolean shouldRecommendUpgradeBasedOnGradleVersion(@Nullable GradleVersion gradleVersion) {
+    return gradleVersion != null && gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) < 0;
+  }
+
+  private static boolean shouldRecommendUpgradeBasedOnModelVersion(@Nullable GradleVersion latestModelVersion,
+                                                                   @Nullable GradleVersion currentModelVersion) {
+    return currentModelVersion != null && latestModelVersion != null && currentModelVersion.compareTo(latestModelVersion) < 0;
+  }
+
+  private void reset() {
+    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
+  }
+
+  private boolean previewForcedToUpgrade(@NotNull AndroidGradleModelVersions modelVersions) {
+    if (!shouldPreviewBeForcedToUpgradePluginVersion(modelVersions)) {
+      return false;
+    }
+
+    updateGradleSyncState(); // Update the sync state before starting a new one.
+
+    boolean experimentalPlugin = modelVersions.isExperimentalPlugin();
+    boolean userAcceptsForcedUpgrade = new PluginVersionForcedUpdateDialog(myProject, experimentalPlugin).showAndGet();
+    GradleVersion latest = modelVersions.getLatest();
+    if (userAcceptsForcedUpgrade) {
+      updateGradlePluginVersion(latest, experimentalPlugin);
     }
     else {
-      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+      // User did not accept the forced upgrade.
+      String[] text = {
+        "The project is using an incompatible version of the Android Gradle " + (experimentalPlugin ? "Experimental " : "") +
+        "plugin.",
+        "Please update your project to use version " +
+        (experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION : GRADLE_PLUGIN_LATEST_VERSION) + "."
+      };
+      Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+      String pluginName = experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_NAME : GRADLE_PLUGIN_NAME;
+      NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(pluginName);
+      ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
+      invalidateLastSync(myProject, "Failed");
     }
-    return false;
+
+    return true;
+  }
+
+  private boolean updateGradlePluginVersion(@NotNull GradleVersion latest, boolean experimentalPlugin) {
+    if (experimentalPlugin) {
+      return updateGradleExperimentalPluginVersionAndNotifyFailure(myProject, latest, GRADLE_LATEST_VERSION, true);
+    }
+    return updateGradlePluginVersionAndNotifyFailure(myProject, latest, GRADLE_LATEST_VERSION, true);
   }
 
   @VisibleForTesting
-  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+  static boolean shouldPreviewBeForcedToUpgradePluginVersion(@NotNull AndroidGradleModelVersions modelVersions) {
+    GradleVersion current = modelVersions.getCurrent();
     if (current.getPreviewType() != null) {
       // current is a "preview" (alpha, beta, etc.)
-      return current.compareTo(latest) < 0;
+      return current.compareTo(modelVersions.getLatest()) < 0;
     }
     return false;
-  }
-
-  private boolean shouldRecommendPluginVersionUpgrade() {
-    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode() || ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      return false;
-    }
-    AndroidProject androidProject = getAppAndroidProject(myProject);
-    if (androidProject != null) {
-      logProjectVersion(androidProject);
-      if (isNonExperimentalPlugin(androidProject)) {
-        GradleVersion latest = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
-        String current = androidProject.getModelVersion();
-        return latest.compareTo(current) > 0;
-      }
-    }
-    return false;
-  }
-
-  private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
-    try {
-      // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
-      return androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
-    } catch (Throwable t) {
-      // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
-      return true;
-    }
-  }
-
-  @Nullable
-  private static AndroidProject getAppAndroidProject(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject != null && !androidProject.isLibrary()) {
-        return androidProject;
-      }
-    }
-    return null;
   }
 
   private void disposeModulesMarkedForRemoval() {
@@ -325,27 +350,24 @@ public class PostProjectSetupTasksExecutor {
     if (modulesToDispose == null || modulesToDispose.isEmpty()) {
       return;
     }
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        List<File> imlFilesToRemove = Lists.newArrayList();
-        ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
-        try {
-          for (Module module : modulesToDispose) {
-            File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
-            imlFilesToRemove.add(imlFile);
-            moduleModel.disposeModule(module);
-          }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      List<File> imlFilesToRemove = Lists.newArrayList();
+      ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
+      try {
+        for (Module module : modulesToDispose) {
+          File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
+          imlFilesToRemove.add(imlFile);
+          moduleModel.disposeModule(module);
         }
-        finally {
-          setModulesToDisposePostSync(myProject, null);
-          moduleModel.commit();
-        }
-        for (File imlFile : imlFilesToRemove) {
-          if (imlFile.isFile()) {
-            delete(imlFile);
-          }
+      }
+      finally {
+        setModulesToDisposePostSync(myProject, null);
+        moduleModel.commit();
+      }
+      for (File imlFile : imlFilesToRemove) {
+        if (imlFile.isFile()) {
+          delete(imlFile);
         }
       }
     });
@@ -393,14 +415,56 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
+    updateAarDependencies(module, modelsProvider, androidProject);
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=163888
+  private static void updateAarDependencies(@NotNull Module module,
+                                            @NotNull IdeModifiableModelsProvider modelsProvider,
+                                            @NotNull AndroidProject androidProject) {
     ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
     for (Module dependency : modifiableModel.getModuleDependencies()) {
-      AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
-      if (dependencyAndroidProject == null) {
-        LibraryDependency backup = getModuleCompiledArtifact(dependency);
-        if (backup != null) {
-          DependenciesModuleCustomizer.updateLibraryDependency(module, modelsProvider, backup, androidProject);
+      updateTransitiveDependencies(module, modelsProvider, androidProject, dependency);
+    }
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=213627
+  private static void updateTransitiveDependencies(@NotNull Module module,
+                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
+                                                   @NotNull AndroidProject androidProject,
+                                                   @Nullable Module dependency) {
+    if (dependency == null) {
+      return;
+    }
+
+    JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
+    if (javaGradleFacet != null
+        // BUILDABLE == false -> means this is an AAR-based module, not a regular Java lib module
+        && javaGradleFacet.getConfiguration().BUILDABLE) {
+      // Ignore Java lib modules. They are already set up properly.
+      return;
+    }
+    AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
+    if (dependencyAndroidProject != null) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(dependency);
+      if (androidModel != null) {
+        DependencySet dependencies = Dependency.extractFrom(androidModel);
+
+        for (LibraryDependency libraryDependency : dependencies.onLibraries()) {
+          updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
         }
+
+        Project project = module.getProject();
+        for (ModuleDependency moduleDependency : dependencies.onModules()) {
+          Module module1 = moduleDependency.getModule(project);
+          updateTransitiveDependencies(module, modelsProvider, androidProject, module1);
+        }
+      }
+    }
+    else {
+      LibraryDependency backup = getModuleCompiledArtifact(dependency);
+      if (backup != null) {
+        updateLibraryDependency(module, modelsProvider, backup, androidProject);
       }
     }
   }
@@ -508,7 +572,7 @@ public class PostProjectSetupTasksExecutor {
     File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
-      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
+      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " or later is required.";
       AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       ourNewSdkVersionToolsInfoAlreadyShown = true;
     }
@@ -539,9 +603,8 @@ public class PostProjectSetupTasksExecutor {
     ourCheckedExpiration = true;
   }
 
-  private static void logProjectVersion(@NotNull AndroidProject androidProject) {
-    String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s",
-                                   androidProject.getModelVersion(), GRADLE_PLUGIN_LATEST_VERSION);
+  private static void log(@NotNull AndroidGradleModelVersions versions) {
+    String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s", versions.getCurrent(), versions.getLatest());
     Logger.getInstance(PostProjectSetupTasksExecutor.class).info(message);
   }
 
@@ -726,43 +789,9 @@ public class PostProjectSetupTasksExecutor {
       GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
     }
 
-    persistAndroidGradleModelData(myUsingCachedProjectData);
-
     // set default value back.
     myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
-  }
-
-  private void persistAndroidGradleModelData(final boolean usingCachedProjectData) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return;
-    }
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        if (!usingCachedProjectData) {
-          // Wait for the proxy operations to complete in a pooled thread (to avoid the UI freeze) and
-          // then save the project to persist the model data.
-          // See https://code.google.com/p/android/issues/detail?id=196206 for more details.
-          for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-            AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-            if (androidGradleModel != null) {
-              androidGradleModel.waitForProxyAndroidProject();
-            }
-          }
-        }
-
-        GuiUtils.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            // The model data is not persisted if the project.save() was already executed between the sync completion and now.
-            // TODO: Investigate it further and update it to always persist the model data here.
-            myProject.save();
-          }
-        }, ModalityState.defaultModalityState());
-      }
-    });
   }
 
   /**
@@ -789,7 +818,7 @@ public class PostProjectSetupTasksExecutor {
     @NotNull private final Revision myVersion;
 
     InstallSdkToolsHyperlink(@NotNull Revision version) {
-      super("install.build.tools", "Install Tools " + version);
+      super("install.sdk.tools", "Install latest SDK Tools");
       myVersion = version;
     }
 

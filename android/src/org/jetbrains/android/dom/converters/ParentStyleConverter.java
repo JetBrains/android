@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class ParentStyleConverter extends ResourceReferenceConverter {
   public ParentStyleConverter() {
-    super(ResourceType.STYLE.getName(), false, false);
+    super(ResourceType.STYLE, false, false);
     setAllowAttributeReferences(false);
   }
 
@@ -89,7 +89,7 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
     if (ids.length < 2) {
       return PsiReference.EMPTY_ARRAY;
     }
-    final List<PsiReference> result = new ArrayList<PsiReference>(ids.length - 1);
+    final List<PsiReference> result = new ArrayList<>(ids.length - 1);
     int offset = s.length();
 
     for (int i = ids.length - 1; i >= 0; i--) {

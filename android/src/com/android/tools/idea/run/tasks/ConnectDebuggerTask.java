@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
@@ -76,7 +77,7 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
                                 @NotNull IDevice device,
                                 @NotNull final ProcessHandlerLaunchStatus state,
                                 @NotNull final ProcessHandlerConsolePrinter printer) {
-    logUnsupportedBreakpoints(printer);
+    logUnsupportedBreakpoints(device.getVersion(), printer);
 
     final Client client = waitForClient(device, state, printer);
     if (client == null) {
@@ -91,13 +92,13 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
     });
   }
 
-  private void logUnsupportedBreakpoints(@NotNull final ConsolePrinter printer) {
+  private void logUnsupportedBreakpoints(@NotNull AndroidVersion version, @NotNull final ConsolePrinter printer) {
     final Set<XBreakpointType<?, ?>> allBpTypes = Sets.newHashSet();
-    for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
-      allBpTypes.addAll(androidDebugger.getSupportedBreakpointTypes());
+    for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
+      allBpTypes.addAll(androidDebugger.getSupportedBreakpointTypes(myProject, version));
     }
 
-    allBpTypes.removeAll(myDebugger.getSupportedBreakpointTypes());
+    allBpTypes.removeAll(myDebugger.getSupportedBreakpointTypes(myProject, version));
     if (allBpTypes.isEmpty()) {
       return;
     }
@@ -108,10 +109,13 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
         XBreakpointManager bpManager = XDebuggerManager.getInstance(myProject).getBreakpointManager();
 
         // Try to find breakpoints which are using unsupported breakpoint types.
-        for (XBreakpointType<?, ?> bpType: allBpTypes) {
+        for (XBreakpointType<?, ?> bpType : allBpTypes) {
           Collection bps = bpManager.getBreakpoints(bpType);
           if (!bps.isEmpty()) {
-            String warnMsg = String.format("The currently selected %1$s debugger doesn't support breakpoints of type '%2$s'. As a result, these breakpoints will not be hit.\nThe debugger selection can be modified in the run configuration dialog.", myDebugger.getDisplayName(), bpType.getTitle());
+            String warnMsg = String.format(
+              "The currently selected %1$s debugger doesn't support breakpoints of type '%2$s'. As a result, these breakpoints will " +
+              "not be hit.\nThe debugger selection can be modified in the run configuration dialog.",
+              myDebugger.getDisplayName(), bpType.getTitle());
             printer.stderr(warnMsg);
             Logger.getInstance(ConnectDebuggerTask.class).info(warnMsg);
             return;

@@ -27,17 +27,19 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.*;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -63,13 +65,14 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Processor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +126,10 @@ public class ThemeEditorUtils {
       return cachedTooltip;
     }
 
-    String tooltipContents = AndroidJavaDocRenderer.renderItemResourceWithDoc(module, configuration, resValue);
+    ResourceUrl url = ResourceUrl.parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemName(resValue), SdkConstants.TAG_ATTR));
+    assert url != null;
+    String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, url);
+    assert tooltipContents != null;
     ourTooltipCache.put(tooltipKey, tooltipContents);
 
     return tooltipContents;
@@ -151,29 +157,9 @@ public class ThemeEditorUtils {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ThemeEditorVirtualFile file = null;
-        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-
-        for (final FileEditor editor : fileEditorManager.getAllEditors()) {
-          if (!(editor instanceof ThemeEditor)) {
-            continue;
-          }
-
-          ThemeEditor themeEditor = (ThemeEditor)editor;
-          if (themeEditor.getVirtualFile().getProject() == project) {
-            file = themeEditor.getVirtualFile();
-            break;
-          }
-        }
-
-        // If existing virtual file is found, openEditor with created descriptor is going to
-        // show existing editor (without creating a new tab). If we haven't found any existing
-        // virtual file, we're creating one here (new tab with theme editor will be opened).
-        if (file == null) {
-          file = ThemeEditorVirtualFile.getThemeEditorFile(project);
-        }
-        final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
-        fileEditorManager.openEditor(descriptor, true);
+        ThemeEditorVirtualFile file = ThemeEditorVirtualFile.getThemeEditorFile(project);
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
+        FileEditorManager.getInstance(project).openEditor(descriptor, true);
       }
     });
   }
@@ -313,20 +299,26 @@ public class ThemeEditorUtils {
 
   /**
    * Creates a new style
-   * @param module the module where the new style is being created
+   * @param project the project where the new style is being created
+   * @param resourceDir the res/ directory where the new style is being created
    * @param newStyleName the new style name
    * @param parentStyleName the name of the new style parent
    * @param fileName name of the xml file where the style will be added (usually "styles.xml")
    * @param folderNames folder names where the style will be added
    * @return true if the style was created or false otherwise
    */
-  public static boolean createNewStyle(@NotNull final Module module, final @NotNull String newStyleName, final @Nullable String parentStyleName, final @NotNull String fileName, final @NotNull List<String> folderNames) {
-    return new WriteCommandAction<Boolean>(module.getProject(), "Create new style " + newStyleName) {
+  public static boolean createNewStyle(@NotNull final Project project,
+                                       @NotNull final VirtualFile resourceDir,
+                                       final @NotNull String newStyleName,
+                                       final @Nullable String parentStyleName,
+                                       final @NotNull String fileName,
+                                       final @NotNull List<String> folderNames) {
+    return new WriteCommandAction<Boolean>(project, "Create new style " + newStyleName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(module.getProject());
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
         result.setResult(AndroidResourceUtil.
-          createValueResource(module, newStyleName, null,
+          createValueResource(project, resourceDir, newStyleName, null,
                               ResourceType.STYLE, fileName, folderNames, new Processor<ResourceElement>() {
               @Override
               public boolean process(ResourceElement element) {
@@ -362,7 +354,8 @@ public class ThemeEditorUtils {
     // if isTheme is true, defaultParentStyle shouldn't be null
     String defaultParentStyleName = null;
     if (isTheme && defaultParentStyle == null) {
-      defaultParentStyleName = getDefaultThemeNames(themeEditorContext.getThemeResolver()).get(0);
+      ImmutableList<String> defaultThemes = getDefaultThemeNames(themeEditorContext.getThemeResolver());
+      defaultParentStyleName = !defaultThemes.isEmpty() ? defaultThemes.get(0) : null;
     }
     else if (defaultParentStyle != null) {
       defaultParentStyleName = defaultParentStyle.getQualifiedName();
@@ -397,8 +390,20 @@ public class ThemeEditorUtils {
 
     final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
     String parentStyleName = dialog.getStyleParentName();
-    boolean isCreated = createNewStyle(
-      themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
+
+    Module module = themeEditorContext.getCurrentContextModule();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      LOG.error("Create new style for non-Android module " + module.getName());
+      return null;
+    }
+    Project project = module.getProject();
+    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    if (resourceDir == null) {
+      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+      return null;
+    }
+    boolean isCreated = createNewStyle(project, resourceDir, dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
     return isCreated ? dialog.getStyleName() : null;
   }
@@ -453,21 +458,18 @@ public class ThemeEditorUtils {
     else {
       XmlTag tag = OverrideResourceAction.getValueTag(PsiTreeUtil.getParentOfType(toBeCopied, XmlTag.class, false));
       if (tag != null) {
-        AndroidFacet facet = AndroidFacet.getInstance(toBeCopied);
-        if (facet != null) {
-          PsiDirectory dir = null;
-          PsiDirectory resFolder = file.getParent();
-          if (resFolder != null) {
-            resFolder = resFolder.getParent();
-          }
-          if (resFolder != null) {
-            dir = resFolder.findSubdirectory(folder);
-            if (dir == null) {
-              dir = resFolder.createSubdirectory(folder);
-            }
-          }
-          OverrideResourceAction.forkResourceValue(toBeCopied.getProject(), tag, file, facet, dir, false);
+        PsiDirectory dir = null;
+        PsiDirectory resFolder = file.getParent();
+        if (resFolder != null) {
+          resFolder = resFolder.getParent();
         }
+        if (resFolder != null) {
+          dir = resFolder.findSubdirectory(folder);
+          if (dir == null) {
+            dir = resFolder.createSubdirectory(folder);
+          }
+        }
+        OverrideResourceAction.forkResourceValue(toBeCopied.getProject(), tag, file, dir, false);
       }
     }
   }
@@ -538,6 +540,28 @@ public class ThemeEditorUtils {
     }
 
     return folders;
+  }
+
+  /**
+   * Returns the color that should be used for the background of the preview panel depending on the background color
+   * of the theme being displayed, so as to always keep some contrast between the two.
+   */
+  public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
+    ItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
+    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue(themeColorBackgroundItem);
+    if (backgroundResourceValue != null) {
+      String colorBackgroundValue = backgroundResourceValue.getValue();
+      Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
+      if (colorBackground != null) {
+        float backgroundDistance = MaterialColorUtils.colorDistance(colorBackground, ThemeEditorComponent.PREVIEW_BACKGROUND);
+        if (backgroundDistance < ThemeEditorComponent.COLOR_DISTANCE_THRESHOLD &&
+            backgroundDistance < MaterialColorUtils.colorDistance(colorBackground, ThemeEditorComponent.ALT_PREVIEW_BACKGROUND)) {
+          return ThemeEditorComponent.ALT_PREVIEW_BACKGROUND;
+        }
+      }
+    }
+
+    return ThemeEditorComponent.PREVIEW_BACKGROUND;
   }
 
   /**
@@ -642,7 +666,7 @@ public class ThemeEditorUtils {
   @NotNull
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
-                                                       ResourceType[] allowedTypes) {
+                                                       EnumSet<ResourceType> allowedTypes) {
     Module module = context.getModuleForResources();
     ItemResourceValue itemSelectedValue = item.getSelectedValue();
 
@@ -662,7 +686,15 @@ public class ThemeEditorUtils {
       resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
     }
 
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, allowedTypes, value, isFrameworkValue, resourceNameVisibility, nameSuggestion);
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(allowedTypes)
+      .setCurrentValue(value)
+      .setIsFrameworkValue(isFrameworkValue)
+      .setResourceNameVisibility(resourceNameVisibility)
+      .setResourceNameSuggestion(nameSuggestion)
+      .build();
+
     dialog.setUseGlobalUndo(true);
 
     return dialog;
@@ -733,24 +765,11 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Returns a StringBuilder with the words concatenated into an enumeration w1, w2, ..., w(n-1) and  wn
+   * Returns a string with the words concatenated into an enumeration w1, w2, ..., w(n-1) and wn
    */
   @NotNull
   public static String generateWordEnumeration(@NotNull Collection<String> words) {
-    StringBuilder sentenceBuilder = new StringBuilder();
-    int nWords = words.size();
-    int i = 0;
-    for (String word : words) {
-      sentenceBuilder.append(word);
-      if (i < nWords - 2) {
-        sentenceBuilder.append(", ");
-      }
-      else if (i == nWords - 2) {
-        sentenceBuilder.append(" and ");
-      }
-      i++;
-    }
-    return sentenceBuilder.toString();
+    return AndroidTextUtils.generateCommaSeparatedList(words, "and");
   }
 
   @NotNull

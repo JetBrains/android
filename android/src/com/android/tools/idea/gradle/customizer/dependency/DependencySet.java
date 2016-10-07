@@ -29,6 +29,8 @@ import static com.android.tools.idea.gradle.customizer.dependency.Dependency.SUP
  * Collection of an IDEA module's dependencies.
  */
 public class DependencySet {
+  @NotNull public static DependencySet EMPTY = new DependencySet();
+
   private final Multimap<String, LibraryDependency> myLibrariesByName = ArrayListMultimap.create();
   private final Map<String, ModuleDependency> myModulesByPath = Maps.newHashMap();
 

@@ -36,9 +36,13 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 
 /**
  * Functions for dealing with singing configurations and keystore files.
@@ -145,24 +149,26 @@ public class KeystoreUtils {
   /**
    * Get the SHA1 hash of the first signing certificate inside a keystore, encoded as base16 (each byte separated by ':').
    *
-   * @param keystoreFile the keystore file. Must be readable.
+   * @param keyStoreFile the keystore file. Must be readable.
    * @throws Exception when the sha1 couldn't be computed for any reason.
    */
-  public static String sha1(File keystoreFile) throws Exception {
-    Certificate signingCert;
+  @NotNull
+  public static String sha1(@NotNull File keyStoreFile) throws Exception {
+    return sha1(keyStoreFile, null, null);
+  }
 
-    try {
-      KeyStore keyStore = KeyStore.getInstance("JKS");
-      keyStore.load(new FileInputStream(keystoreFile), "android".toCharArray());
-      String keyAlias = keyStore.aliases().nextElement();
-      signingCert = keyStore.getCertificate(keyAlias);
-    }
-    catch (Exception e) {
-      throw new Exception("Could not extract certificate from file.", e);
-    }
-
-    // Produce SHA1 fingerprint.
-
+  /**
+   * Get the SHA1 hash of a signing certificate inside a keystore, encoded as base16 (each byte separated by ':').
+   *
+   * @param keyStoreFile the keystore file. Must be readable.
+   * @param keyAlias     the certificate alias to digest or null to indicate the first certificate in the keyStore
+   * @throws Exception when the sha1 couldn't be computed for any reason.
+   */
+  @NotNull
+  public static String sha1(@NotNull File keyStoreFile,
+                            @Nullable("When requesting the first certificate sha1") String keyAlias,
+                            @Nullable("When default android keystore password should be used") String keyStorePassword) throws Exception {
+    Certificate signingCert = getCertificate(keyStoreFile, keyAlias, keyStorePassword);
     try {
       byte[] certBytes = MessageDigest.getInstance("SHA1").digest(signingCert.getEncoded());
       // Add a separator every 2 characters (i.e. every byte from hash)
@@ -170,6 +176,32 @@ public class KeystoreUtils {
     }
     catch (Exception e) {
       throw new Exception("Could not compute SHA1 hash from certificate", e);
+    }
+  }
+
+  /**
+   * Returns the {@link Certificate} specified by the {@code certificateAlias} in the specified {@code keystoreFile}. When a null
+   * {@code certificateAlias} is supplied then the first certificate read from the file is returned.
+   */
+  @NotNull
+  private static Certificate getCertificate(@NotNull File keyStoreFile,
+                                            @Nullable("When requesting the first certificate sha1") String certificateAlias,
+                                            @Nullable("When default android keystore password should be used") String keyStorePassword)
+    throws Exception {
+    try {
+      KeyStore keyStore = KeyStore.getInstance("JKS");
+      if (keyStorePassword == null) {
+        keyStorePassword = "android";
+      }
+      keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
+
+      if (certificateAlias == null) {
+        certificateAlias = keyStore.aliases().nextElement();
+      }
+      return keyStore.getCertificate(certificateAlias);
+    }
+    catch (CertificateException | NoSuchAlgorithmException | IOException | KeyStoreException exception) {
+      throw new Exception("Could not extract certificate from file.", exception);
     }
   }
 }

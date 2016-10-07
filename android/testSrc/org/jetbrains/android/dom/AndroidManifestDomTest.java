@@ -15,9 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * @author coyote
- */
 public class AndroidManifestDomTest extends AndroidDomTest {
   public AndroidManifestDomTest() {
     super(false, "dom/manifest");
@@ -347,6 +344,20 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion();
   }
 
+  /**
+   * Test that "data" tag is completed as a subtag of "intent-filter"
+   */
+  public void testDataTagCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that "path" attribute prefix inside "data" tag leads to correct completion results
+   */
+  public void testDataAttributeCompletion() throws Throwable {
+    doTestCompletionVariants("dataAttributeCompletion.xml", "android:path", "android:pathPrefix", "android:pathPattern");
+  }
+
   public void testCompletionInManifestTag() throws Throwable {
     doTestCompletion();
   }
@@ -452,23 +463,13 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     final Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        projectJdkTable.addJdk(sdk);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24");
     }
     finally {
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          projectJdkTable.removeJdk(sdk);
-        }
-      });
+      ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
     }
   }
 }

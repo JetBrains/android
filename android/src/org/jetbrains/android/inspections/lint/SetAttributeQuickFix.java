@@ -14,14 +14,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.jetbrains.android.inspections.lint.SuppressLintIntentionAction.ensureNamespaceImported;
-
-/**
- * @author Eugene.Kudelevsky
- */
 class SetAttributeQuickFix implements AndroidLintQuickFix {
 
   private final String myName;
@@ -67,7 +63,7 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
     if (myNamespace != null) {
       XmlFile file = PsiTreeUtil.getParentOfType(tag, XmlFile.class);
       if (file != null) {
-        ensureNamespaceImported(startElement.getProject(), file, myNamespace);
+        AndroidResourceUtil.ensureNamespaceImported(file, myNamespace, null);
       }
     }
 
@@ -84,7 +80,7 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
         final XmlAttributeValue valueElement = attribute.getValueElement();
         final TextRange valueTextRange = attribute.getValueTextRange();
 
-        if (valueElement != null && valueTextRange != null) {
+        if (valueElement != null) {
           final int valueElementStart = valueElement.getTextRange().getStartOffset();
           editor.getCaretModel().moveToOffset(valueElementStart + valueTextRange.getStartOffset());
 

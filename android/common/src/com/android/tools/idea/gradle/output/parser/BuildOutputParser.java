@@ -19,6 +19,7 @@ import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.ToolOutputParser;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -28,11 +29,17 @@ import java.util.List;
 public class BuildOutputParser{
   private final ToolOutputParser parser;
 
-  public BuildOutputParser(Iterable<PatternAwareOutputParser> parsers) {
+  public BuildOutputParser(@NotNull Iterable<PatternAwareOutputParser> parsers) {
     parser = new ToolOutputParser(parsers, new MessageBuildingSdkLog());
   }
 
-  public List<Message> parseGradleOutput(String output) {
+  @NotNull
+  public List<Message> parseGradleOutput(@NotNull String output) {
     return parser.parseToolOutput(output);
+  }
+
+  @NotNull
+  public List<Message> parseGradleOutput(@NotNull String output, boolean ignoreUnrecognizedText) {
+    return parser.parseToolOutput(output, ignoreUnrecognizedText);
   }
 }

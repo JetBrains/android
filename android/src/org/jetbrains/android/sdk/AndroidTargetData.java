@@ -41,8 +41,8 @@ import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import org.jetbrains.android.uipreview.LayoutLibraryLoader;
-import org.jetbrains.android.uipreview.RenderingException;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -224,7 +224,7 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized FrameworkResources getFrameworkResources(boolean withLocale) throws IOException {
-    // if the framework resources that we got was created by someone else who didnt need locale data
+    // if the framework resources that we got was created by someone else who didn't need locale data
     if (withLocale && myFrameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources && ((FrameworkResourceLoader.IdeFrameworkResources)myFrameworkResources).getSkippedLocales()) {
       myFrameworkResources = null;
     }

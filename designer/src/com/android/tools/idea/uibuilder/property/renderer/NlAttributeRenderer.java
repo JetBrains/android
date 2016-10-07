@@ -16,30 +16,31 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
+import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Set;
 
-public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCellRenderer {
+public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePanel.Context {
   private final JPanel myPanel;
-  private final FixedSizeButton myBrowseButton;
+  private final BrowsePanel myBrowsePanel;
+  private JTable myTable;
+  private int myRow;
 
   public NlAttributeRenderer() {
+    myBrowsePanel = new BrowsePanel(this);
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
-
-    myBrowseButton = new FixedSizeButton(new JBCheckBox());
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+    myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
   }
 
   public JPanel getContentPanel() {
@@ -50,6 +51,8 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
     assert value instanceof NlProperty;
     assert table instanceof PTable;
+    myTable = table;
+    myRow = row;
 
     Color fg, bg;
     if (isSelected) {
@@ -71,7 +74,7 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
     }
 
     boolean hover = ((PTable)table).isHover(row, col);
-    myBrowseButton.setVisible(hover);
+    myBrowsePanel.setVisible(hover);
 
     customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
 
@@ -85,6 +88,39 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
                                               int row,
                                               int col);
 
-  @Override
   public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
+
+  @Nullable
+  @Override
+  public NlProperty getProperty() {
+    return NlTableCellEditor.getPropertyAt(myTable, myRow);
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getDesignProperty() {
+    return NlTableCellEditor.getDesignProperty(myTable, myRow);
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getRuntimeProperty() {
+    return NlTableCellEditor.getRuntimeProperty(myTable, myRow);
+  }
+
+  @Override
+  public void addDesignProperty() {
+    cancelEditing();
+    NlTableCellEditor.addDesignProperty(myTable, myRow);
+  }
+
+  @Override
+  public void removeDesignProperty() {
+    cancelEditing();
+    NlTableCellEditor.removeDesignProperty(myTable, myRow);
+  }
+
+  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    myBrowsePanel.mousePressed(event, rectRightColumn);
+  }
 }

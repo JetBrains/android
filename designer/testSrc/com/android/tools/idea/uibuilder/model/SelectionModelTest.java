@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.Ref;
 
@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class SelectionModelTest extends LayoutTestCase {
@@ -33,7 +34,7 @@ public class SelectionModelTest extends LayoutTestCase {
 
     SelectionListener listener = new SelectionListener() {
       @Override
-      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
         assertFalse(called.get());
         called.set(true);
       }
@@ -50,7 +51,7 @@ public class SelectionModelTest extends LayoutTestCase {
     assertTrue(called.get());
     called.set(false);
     assertEquals(Collections.singletonList(component1), model.getSelection());
-    assertNull(model.getPrimary());
+    assertEquals(component1, model.getPrimary());
 
     // Check multi-selection
     model.setSelection(Arrays.asList(component1, component2), component2);
@@ -70,7 +71,7 @@ public class SelectionModelTest extends LayoutTestCase {
     called.set(false);
     assertNull(model.getPrimary());
     assertTrue(model.isEmpty());
-    assertEquals(Collections.emptyList(), model.getSelection());
+    assertThat(model.getSelection()).isEmpty();
 
     model.toggle(component1);
     assertTrue(called.get());

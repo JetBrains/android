@@ -41,7 +41,7 @@ public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandle
     String msg = error.getMessage();
     if (msg.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       boolean openMigrationGuide = msg.contains(READ_MIGRATION_GUIDE_MSG);
-      updateNotification(notification, project, msg, new FixAndroidGradlePluginVersionHyperlink(openMigrationGuide));
+      updateNotification(notification, project, msg, new FixAndroidGradlePluginVersionHyperlink(false));
       return true;
     }
     return false;

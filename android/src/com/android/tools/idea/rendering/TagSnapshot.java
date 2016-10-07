@@ -16,12 +16,17 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Lists;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.common.base.Charsets.UTF_8;
 
 /**
  * A snapshot of the state of an {@link XmlTag}.
@@ -68,7 +73,7 @@ public class TagSnapshot {
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
       TagSnapshot last = null;
-      children = Lists.newArrayListWithExpectedSize(subTags.length);
+      children = Lists.newArrayListWithCapacity(subTags.length);
       for (XmlTag subTag : subTags) {
         TagSnapshot child = createTagSnapshot(subTag);
         children.add(child);
@@ -84,6 +89,13 @@ public class TagSnapshot {
     return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
   }
 
+  @NotNull
+  public static TagSnapshot createTagSnapshotWithoutChildren(@NotNull XmlTag tag) {
+    List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(tag);
+    List<TagSnapshot> children = Collections.emptyList();
+    return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
+  }
+
   @Nullable
   public String getAttribute(@NotNull String name) {
     return getAttribute(name, null);
@@ -93,7 +105,10 @@ public class TagSnapshot {
   public String getAttribute(@NotNull String name, @Nullable String namespace) {
     // We just use a list rather than a map since in layouts the number of attributes is
     // typically very small so map overhead isn't worthwhile
-    for (AttributeSnapshot attribute : attributes) {
+
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, n = attributes.size(); i < n; i++) {
+      AttributeSnapshot attribute = attributes.get(i);
       if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
         return attribute.value;
       }
@@ -109,9 +124,10 @@ public class TagSnapshot {
    * snapshot value will be out of date unless it is updated via this API.
    */
   public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
-    for (AttributeSnapshot attribute : attributes) {
+    for (int i = 0, n = attributes.size(); i < n; i++) {
+      AttributeSnapshot attribute = attributes.get(i);
       if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-        attributes.remove(attribute);
+        attributes.remove(i);
         break;
       }
     }
@@ -132,5 +148,23 @@ public class TagSnapshot {
   @Override
   public String toString() {
     return "TagSnapshot{" + tagName + ", attributes=" + attributes + ", children=\n" + children + "\n}";
+  }
+
+  /** Creates a signature/fingerprint of this tag snapshot (which encapsulates the tag name and attributes */
+  public long getSignature() {
+    HashFunction hashFunction = Hashing.goodFastHash(64);
+    Hasher hasher = hashFunction.newHasher();
+    hasher.putString(tagName, UTF_8);
+    for (AttributeSnapshot attribute : attributes) {
+      if (attribute.prefix != null) {
+        hasher.putString(attribute.prefix, UTF_8);
+      }
+      hasher.putString(attribute.name, UTF_8);
+      if (attribute.value != null) {
+        hasher.putString(attribute.value, UTF_8);
+      }
+      // Note that we're not bothering with namespaces here; the prefix will identify it uniquely
+    }
+    return hasher.hash().asLong();
   }
 }

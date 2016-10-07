@@ -15,24 +15,35 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ConfigureAvdOptionsStepFixture;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class AvdListDialogTest extends GuiTestCase {
-  @Test @IdeGuiTest
+@RunWith(GuiTestRunner.class)
+public class AvdListDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @Test
   public void testCreateAvd() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
+    guiTest.importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
-    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
-    chooseDeviceDefinitionStep.enterSearchTerm("Nexus").selectDeviceByName("Nexus 7");
+    avdEditWizard.selectHardware().enterSearchTerm("Nexus").selectHardwareProfile("Nexus 7");
     avdEditWizard.clickNext();
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
-    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4.2");
+    chooseSystemImageStep.selectTab("x86 Images");
+    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4");
     avdEditWizard.clickNext();
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
@@ -40,9 +51,8 @@ public class AvdListDialogTest extends GuiTestCase {
     configureAvdOptionsStep.requireAvdName("Nexus 7 API 19"); // check default
     configureAvdOptionsStep.setAvdName("Testsuite AVD");
     configureAvdOptionsStep.setFrontCamera("Emulated");
-    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     // Ensure the AVD was created
     avdManagerDialog.selectAvdByName("Testsuite AVD");
@@ -52,19 +62,20 @@ public class AvdListDialogTest extends GuiTestCase {
     avdManagerDialog.close();
   }
 
-  @Test @IdeGuiTest
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @Test
   public void testEditAvd() throws Exception {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     makeNexus5();
 
-    AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
     configureAvdOptionsStep.showAdvancedSettings();
-    configureAvdOptionsStep.selectUseHostGpu(true);
-    
+    configureAvdOptionsStep.selectGraphicsHardware();
+
     avdEditWizardFixture.clickFinish();
     avdManagerDialog.close();
 
@@ -72,22 +83,22 @@ public class AvdListDialogTest extends GuiTestCase {
   }
 
   private void makeNexus5() throws Exception {
-    AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
-    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
-    chooseDeviceDefinitionStep.selectDeviceByName("Nexus 5");
+    avdEditWizard.selectHardware().selectHardwareProfile("Nexus 5");
     avdEditWizard.clickNext();
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
-    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4.2");
+    chooseSystemImageStep.selectTab("x86 Images");
+    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4");
     avdEditWizard.clickNext();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
   }
 
   private void removeNexus5() {
-    AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     avdManagerDialog.deleteAvdByName("Nexus 5 API 19");
   }
 }

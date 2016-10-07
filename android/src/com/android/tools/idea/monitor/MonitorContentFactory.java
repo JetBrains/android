@@ -21,8 +21,6 @@ import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.intellij.execution.ui.RunnerLayoutUi;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;

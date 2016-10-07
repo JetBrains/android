@@ -21,12 +21,12 @@ import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
@@ -39,7 +39,7 @@ public class NativeAndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File rootDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
+    File rootDir = getBaseDirPath(myProject);
     myNativeAndroidProject = TestProjects.createNativeProject(rootDir);
     myCustomizer = new NativeAndroidGradleFacetModuleCustomizer();
   }
@@ -48,16 +48,14 @@ public class NativeAndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
     File rootDir = myNativeAndroidProject.getRootDir();
     NativeAndroidGradleModel model = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), rootDir, myNativeAndroidProject);
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        myCustomizer.customizeModule(myProject, myModule, modelsProvider, model);
-        modelsProvider.commit();
-      }
-      catch (Throwable t) {
-        modelsProvider.dispose();
-        ExceptionUtil.rethrowAllAsUnchecked(t);
-      }
-    });
+    try {
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, model);
+      ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
+    }
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      rethrowAllAsUnchecked(t);
+    }
 
     // Verify that NativeAndroidGradleFacet was added and configured.
     NativeAndroidGradleFacet facet = NativeAndroidGradleFacet.getInstance(myModule);

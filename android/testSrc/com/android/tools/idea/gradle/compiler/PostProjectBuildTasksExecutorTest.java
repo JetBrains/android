@@ -25,9 +25,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-import static org.easymock.EasyMock.*;
+import static org.easymock.classextension.EasyMock.*;
 
 /**
  * Tests for {@link PostProjectBuildTasksExecutor}.
@@ -56,11 +54,6 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
     myAndroidModel2 = createMock(AndroidGradleModel.class); // addMockAndroidProject(module);
 
     myExecutor = new PostProjectBuildTasksExecutor(myProject);
-  }
-
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
   }
 
   public void testGetMaxJavaLangLevel() {

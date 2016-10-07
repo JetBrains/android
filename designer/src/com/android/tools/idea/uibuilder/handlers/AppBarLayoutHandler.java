@@ -15,26 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.psi.xml.XmlFile;
 
+import java.util.List;
+
+import static com.android.SdkConstants.*;
+
 public class AppBarLayoutHandler extends LinearLayoutHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_THEME,
+      ATTR_FITS_SYSTEM_WINDOWS,
+      ATTR_EXPANDED);
+  }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
       XmlFile file = editor.getModel().getFile();
       AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor);
-      dialog.open(file);
+      ApplicationManager.getApplication().invokeLater(() -> dialog.open(file));
       return false;
     }
     return true;

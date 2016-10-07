@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering.multi;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.*;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,12 +43,26 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   private final IAndroidTarget myDelegate;
   private final AndroidVersion myVersion;
   private final IAndroidTarget myRealTarget;
+  private final String myHashString;
 
   public CompatibilityRenderTarget(@NotNull IAndroidTarget delegate, int apiLevel, @Nullable IAndroidTarget realTarget) {
     myDelegate = delegate;
     myApiLevel = apiLevel;
     myRealTarget = realTarget;
     myVersion = realTarget != null ? realTarget.getVersion() : new AndroidVersion(apiLevel, null);
+    // Don't *just* name it say android-15 since that can clash with the REAL key used for android-15
+    // (if the user has it installed) and in particular for maps like AndroidSdkData#getTargetData
+    // can end up accidentally using compatibility targets instead of real android platform targets,
+    // resulting in bugs like b.android.com/213075
+    myHashString = "compat-" + AndroidTargetHash.getPlatformHashString(myVersion);
+  }
+
+  /**
+   * Copies an existing {@link CompatibilityRenderTarget} but updates the the render delegate. It will keep the API level and
+   * the real target.
+   */
+  public static IAndroidTarget copyWithNewDelegate(@NotNull CompatibilityRenderTarget original, @NotNull IAndroidTarget newDelegate) {
+    return new CompatibilityRenderTarget(newDelegate, original.myApiLevel, original.myRealTarget);
   }
 
   /** The {@link com.android.sdklib.IAndroidTarget} we're using for actual rendering */
@@ -90,7 +102,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   public String hashString() {
-    return AndroidTargetHash.getPlatformHashString(myVersion);
+    return myHashString;
   }
 
   @Override

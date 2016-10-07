@@ -31,7 +31,7 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -42,7 +42,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,9 +58,9 @@ import java.util.*;
  * and styles on the {@link ResourceComponent}.
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
-  public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
-  public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
-  public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
+  public static final EnumSet<ResourceType> COLORS_ONLY = EnumSet.of(ResourceType.COLOR);
+  public static final EnumSet<ResourceType> DRAWABLES_ONLY = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP);
+  public static final EnumSet<ResourceType> COLORS_AND_DRAWABLES = EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP);
   static final String DUMB_MODE_MESSAGE = "Editing theme is not possible - indexing is in progress";
 
   private static final Logger LOG = Logger.getInstance(GraphicalResourceRendererEditor.class);
@@ -119,7 +119,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
           stopCellEditing();
         }
       });
-      myComponent.addTextFocusListener(new FocusAdapter() {
+      myComponent.addTextFocusListener(new FocusListener() {
         @Override
         public void focusGained(FocusEvent e) {
           DumbService dumbService = DumbService.getInstance(myContext.getProject());
@@ -132,6 +132,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
             assert facet != null;
             myComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, getAllowedResourceTypes()));
           }
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+          cancelCellEditing();
         }
       });
     }
@@ -177,7 +182,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
       .add(selectedItem)
       .addAll(notSelectedItems)
       .build();
-    component.setVariantsModel(new CollectionComboBoxModel(variantList, selectedItem));
+    component.setVariantsModel(new CollectionComboBoxModel<VariantsComboItem>(variantList, selectedItem));
   }
 
   protected abstract void updateComponent(@NotNull ThemeEditorContext context,
@@ -220,7 +225,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
    * Returns the allowed resource types for the attribute being edited
    */
   @NotNull
-  protected abstract ResourceType[] getAllowedResourceTypes();
+  protected abstract EnumSet<ResourceType> getAllowedResourceTypes();
 
   private class EditorClickListener extends DumbAwareActionListener {
     public EditorClickListener() {

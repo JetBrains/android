@@ -31,8 +31,8 @@ import java.io.IOException;
 
 public final class AsPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myObject.stringPath(builder).append(".As<").append(myType).append(">");
+  public String getSegmentString() {
+    return "As<" + myType + '>';
   }
 
   @Override

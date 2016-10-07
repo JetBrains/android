@@ -19,27 +19,23 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;
-import com.intellij.execution.*;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
-import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.JBDefaultTreeCellRenderer;
-import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashSet;
@@ -57,30 +53,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
   @NonNls private static final String SHOW_ALL_PROCESSES_PROPERTY = "SHOW_ALL_PROCESSES";
   @NonNls private static final String DEBUGGABLE_DEVICE_PROPERTY = "DEBUGGABLE_DEVICE";
+  @NonNls private static final String DEBUGGER_ID_PROPERTY = "DEBUGGER_ID";
 
   private final Project myProject;
+  private final boolean myShowDebuggerSelection;
   private JPanel myContentPanel;
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
+
   private JComboBox myDebuggerTypeCombo;
+  private JLabel myDebuggerLabel;
 
   private String myLastSelectedDevice;
   private String myLastSelectedProcess;
@@ -89,76 +86,65 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private final AndroidDebugBridge.IClientChangeListener myClientChangeListener;
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceChangeListener;
 
-  protected AndroidProcessChooserDialog(@NotNull Project project) {
+  private Client mySelectedClient;
+  private AndroidDebugger myAndroidDebugger;
+
+  public AndroidProcessChooserDialog(@NotNull Project project, boolean showDebuggerSelection) {
     super(project);
     setTitle("Choose Process");
 
+    myShowDebuggerSelection = showDebuggerSelection;
+
     myProject = project;
     myUpdatesQueue =
-      new MergingUpdateQueue("AndroidProcessChooserDialogUpdatingQueue", 500, true, MergingUpdateQueue.ANY_COMPONENT, myProject);
+      new MergingUpdateQueue("AndroidProcessChooserDialogUpdatingQueue", 500, true, MergingUpdateQueue.ANY_COMPONENT, getDisposable());
 
-    final String showAllProcessesStr = PropertiesComponent.getInstance(project).getValue(SHOW_ALL_PROCESSES_PROPERTY);
-    final boolean showAllProcesses = Boolean.parseBoolean(showAllProcessesStr);
+    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+    myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
+    myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
+    String lastSelectedDebuggerId = properties.getValue(DEBUGGER_ID_PROPERTY);
+
+    final boolean showAllProcesses = Boolean.parseBoolean(properties.getValue(SHOW_ALL_PROCESSES_PROPERTY));
+
     myShowAllProcessesCheckBox.setSelected(showAllProcesses);
-
     doUpdateTree(showAllProcesses);
 
-    myClientChangeListener = new AndroidDebugBridge.IClientChangeListener() {
-      @Override
-      public void clientChanged(Client client, int changeMask) {
-        updateTree();
-      }
-    };
+    myClientChangeListener = (client, changeMask) -> updateTree();
     AndroidDebugBridge.addClientChangeListener(myClientChangeListener);
 
     myDeviceChangeListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override
-      public void deviceConnected(IDevice device) {
+      public void deviceConnected(@NotNull IDevice device) {
         updateTree();
       }
 
       @Override
-      public void deviceDisconnected(IDevice device) {
+      public void deviceDisconnected(@NotNull IDevice device) {
         updateTree();
       }
 
       @Override
-      public void deviceChanged(IDevice device, int changeMask) {
+      public void deviceChanged(@NotNull IDevice device, int changeMask) {
         updateTree();
       }
     };
     AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
-    myShowAllProcessesCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateTree();
-      }
+    myShowAllProcessesCheckBox.addActionListener(e -> updateTree());
+
+    setupDebuggerSelection(showDebuggerSelection, lastSelectedDebuggerId);
+
+    myProcessTree.addTreeSelectionListener(e -> {
+      IDevice selectedDevice = getSelectedDevice();
+      Client selectedClient = getSelectedClient();
+
+      myLastSelectedDevice = getPersistableName(selectedDevice);
+      myLastSelectedProcess = getPersistableName(selectedClient);
+
+      getOKAction().setEnabled(selectedDevice != null && selectedClient != null);
     });
 
-    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
-    for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
-      if (androidDebugger.supportsProject(myProject)) {
-        androidDebuggers.add(androidDebugger);
-      }
-    }
-
-    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
-    myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
-
-    myProcessTree.addTreeSelectionListener(new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        IDevice selectedDevice = getSelectedDevice();
-        Client selectedClient = getSelectedClient();
-
-        myLastSelectedDevice = getPersistableName(selectedDevice);
-        myLastSelectedProcess = getPersistableName(selectedClient);
-
-        getOKAction().setEnabled(selectedDevice != null && selectedClient != null);
-      }
-    });
-    new TreeSpeedSearch(myProcessTree) {
+    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myProcessTree) {
       @Override
       protected boolean isMatchingElement(Object element, String pattern) {
         if (element instanceof TreePath) {
@@ -175,48 +161,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    myProcessTree.setCellRenderer(new JBDefaultTreeCellRenderer(myProcessTree) {
-      @Override
-      public Component getTreeCellRendererComponent(JTree tree,
-                                                    Object value,
-                                                    boolean sel,
-                                                    boolean expanded,
-                                                    boolean leaf,
-                                                    int row,
-                                                    boolean hasFocus) {
-        if (value instanceof DefaultMutableTreeNode) {
-          final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-          if (userObject instanceof IDevice) {
-            value = ((IDevice)userObject).getName();
-          }
-          else if (userObject instanceof Client) {
-            final ClientData clientData = ((Client)userObject).getClientData();
-            String description = clientData.getClientDescription();
-            if (clientData.isValidUserId() && clientData.getUserId() != 0) {
-              description += " (user " + Integer.toString(clientData.getUserId()) + ")";
-            }
-            value = description;
-          }
-        }
-
-        return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-      }
-
-      @Override
-      public Icon getLeafIcon() {
-        return null;
-      }
-
-      @Override
-      public Icon getOpenIcon() {
-        return null;
-      }
-
-      @Override
-      public Icon getClosedIcon() {
-        return null;
-      }
-    });
+    myProcessTree.setCellRenderer(new MyProcessTreeCellRenderer(treeSpeedSearch));
 
     new DoubleClickListener() {
       @Override
@@ -238,11 +183,43 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     });
 
-    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-    myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
-    myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
-
     init();
+  }
+
+  private void setupDebuggerSelection(boolean showDebuggerSelection, @Nullable String lastSelectedDebuggerId) {
+    if (!showDebuggerSelection) {
+      myDebuggerLabel.setVisible(false);
+      myDebuggerTypeCombo.setVisible(false);
+      return;
+    }
+
+    AndroidDebugger selectedDebugger = null;
+    AndroidDebugger defaultDebugger = null;
+    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
+    for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
+      if (androidDebugger.supportsProject(myProject)) {
+        androidDebuggers.add(androidDebugger);
+        if (selectedDebugger == null &&
+            lastSelectedDebuggerId != null &&
+            androidDebugger.getId().equals(lastSelectedDebuggerId)) {
+          selectedDebugger = androidDebugger;
+        }
+        else if (androidDebugger.shouldBeDefault()) {
+          defaultDebugger = androidDebugger;
+        }
+      }
+    }
+
+    if (selectedDebugger == null) {
+      selectedDebugger = defaultDebugger;
+    }
+
+    androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
+    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
+    myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
+    if (selectedDebugger != null) {
+      myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
+    }
   }
 
   @NotNull
@@ -276,12 +253,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       public void run() {
         final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
         if (debugBridge != null && AdbService.isDdmsCorrupted(debugBridge)) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(myContentPanel, AndroidBundle.message("ddms.corrupted.error"));
-              AndroidProcessChooserDialog.this.close(1);
-            }
+          ApplicationManager.getApplication().invokeLater(() -> {
+            Messages.showErrorDialog(myContentPanel, AndroidBundle.message("ddms.corrupted.error"));
+            AndroidProcessChooserDialog.this.close(1);
           });
           return;
         }
@@ -324,7 +298,14 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         selectedDeviceNode = deviceNode;
       }
 
-      for (Client client : device.getClients()) {
+      List<Client> clients = Lists.newArrayList(device.getClients());
+      Collections.sort(clients, (c1, c2) -> {
+        String n1 = StringUtil.notNullize(c1.getClientData().getClientDescription());
+        String n2 = StringUtil.notNullize(c2.getClientData().getClientDescription());
+        return n1.compareTo(n2);
+      });
+
+      for (Client client : clients) {
         final String clientDescription = client.getClientData().getClientDescription();
 
         if (clientDescription != null && (showAllProcesses || isRelatedProcess(processNames, clientDescription))) {
@@ -354,20 +335,17 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       pathToSelect = firstTreePath;
     }
 
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        myProcessTree.setModel(model);
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myProcessTree.setModel(model);
 
-        if (pathToSelect != null) {
-          myProcessTree.getSelectionModel().setSelectionPath(new TreePath(pathToSelect));
-        }
-        else {
-          getOKAction().setEnabled(false);
-        }
-
-        TreeUtil.expandAll(myProcessTree);
+      if (pathToSelect != null) {
+        myProcessTree.getSelectionModel().setSelectionPath(new TreePath(pathToSelect));
       }
+      else {
+        getOKAction().setEnabled(false);
+      }
+
+      TreeUtil.expandAll(myProcessTree);
     });
   }
 
@@ -440,51 +418,39 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       return;
     }
 
-    final Client selectedClient = getSelectedClient();
-    if (selectedClient == null) {
+    mySelectedClient = getSelectedClient();
+    if (mySelectedClient == null) {
       return;
     }
 
-    super.doOKAction();
+    myAndroidDebugger = (AndroidDebugger)myDebuggerTypeCombo.getSelectedItem();
 
     properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPersistableName(selectedDevice));
-    properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(selectedClient));
+    properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(mySelectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
 
-    closeOldSessionAndRun(selectedClient);
+    if (myAndroidDebugger != null) {
+      properties.setValue(DEBUGGER_ID_PROPERTY, myAndroidDebugger.getId());
+    }
+
+    super.doOKAction();
+  }
+
+  /** Returns the client that was selected if OK was pressed, null otherwise. */
+  @Nullable
+  public Client getClient() {
+    return mySelectedClient;
+  }
+
+  @NotNull
+  public AndroidDebugger getAndroidDebugger() {
+    assert myShowDebuggerSelection : "Cannot obtain debugger after constructing dialog w/o debugger selection combo";
+    return myAndroidDebugger;
   }
 
   @Override
   protected String getDimensionServiceKey() {
     return "AndroidProcessChooserDialog";
-  }
-
-  private void closeOldSessionAndRun(@NotNull Client client) {
-    // Disconnect any active run sessions to the same client
-    terminateRunSessions(client);
-    runSession(client);
-  }
-
-  private void terminateRunSessions(@NotNull Client selectedClient) {
-    int pid = selectedClient.getClientData().getPid();
-
-    // find if there are any active run sessions to the same client, and terminate them if so
-    for (ProcessHandler handler : ExecutionManager.getInstance(myProject).getRunningProcesses()) {
-      if (handler instanceof AndroidProcessHandler) {
-        Client client = ((AndroidProcessHandler)handler).getClient(selectedClient.getDevice());
-        if (client != null && client.getClientData().getPid() == pid) {
-          ((AndroidProcessHandler)handler).setNoKill();
-          handler.detachProcess();
-          handler.notifyTextAvailable("Disconnecting run session: a new debug session will be established.\n", ProcessOutputTypes.STDOUT);
-          break;
-        }
-      }
-    }
-  }
-
-  private void runSession(@NotNull Client client) {
-    AndroidDebugger androidDebugger = (AndroidDebugger)myDebuggerTypeCombo.getSelectedItem();
-    androidDebugger.attachToClient(myProject, client);
   }
 
   @Nullable
@@ -509,5 +475,42 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)selectionPath.getPathComponent(2);
     final Object obj = selectedNode.getUserObject();
     return obj instanceof Client ? (Client)obj : null;
+  }
+
+  private static class MyProcessTreeCellRenderer extends ColoredTreeCellRenderer {
+    private final TreeSpeedSearch mySpeedSearch;
+
+    public MyProcessTreeCellRenderer(@NotNull TreeSpeedSearch treeSpeedSearch) {
+      mySpeedSearch = treeSpeedSearch;
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (!(value instanceof DefaultMutableTreeNode)) {
+        return;
+      }
+
+      final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
+      if (userObject instanceof IDevice) {
+        DeviceRenderer.renderDeviceName((IDevice)userObject, this);
+      }
+      else if (userObject instanceof Client) {
+        final ClientData clientData = ((Client)userObject).getClientData();
+
+        SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+        SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), clientData.getClientDescription(), attr.getStyle(), attr.getFgColor(),
+                                   attr.getBgColor(), this);
+
+        if (clientData.isValidUserId() && clientData.getUserId() != 0) {
+          append(" (user " + Integer.toString(clientData.getUserId()) + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        }
+      }
+    }
   }
 }

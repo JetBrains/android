@@ -21,10 +21,10 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -562,19 +563,12 @@ public class ConfigurationMatcher {
     // already taken over so getSelectedTextEditor() returns self. Perhaps we
     // need to fish in the open editors instead.
 
-    //Editor activeEditor = ApplicationManager.getApplication().runReadAction(new Computable<Editor>() {
-    //  @Override
-    //  public Editor compute() {
-    //    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-    //    return editorManager.getSelectedTextEditor();
-    //  }
-    //});
-
-    // TODO: How do I redispatch without risking lock?
-    //Editor activeEditor = AndroidUtils.getSelectedEditor(myManager.getProject());
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-      Editor activeEditor = editorManager.getSelectedTextEditor();
+    // We use FileEditorManagerImpl instead of FileEditorManager to get access to the lock-free version
+    // (also used by DebuggerContextUtil) since the normal method only works from the dispatch thread
+    // (grabbing a read lock is not enough).
+    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
+    if (editorManager instanceof FileEditorManagerImpl) { // not the case under test fixtures apparently
+      Editor activeEditor = ((FileEditorManagerImpl)editorManager).getSelectedTextEditor(true);
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());

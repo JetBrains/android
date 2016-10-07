@@ -36,6 +36,16 @@ public abstract class ImageCellList<T extends ImageCellList.Data> extends CellLi
     }
 
     @Override
+    public void stopLoading() {
+      // Wait for the icon before finishing.
+    }
+
+    public void stopLoading(ImageIcon icon) {
+      this.icon = icon;
+      super.stopLoading();
+    }
+
+    @Override
     public boolean isLoaded() {
       return super.isLoaded() && icon != null;
     }

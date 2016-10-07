@@ -34,8 +34,8 @@ import java.awt.*;
 public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
 
   private final ObjectProperty<ActionBarIconGenerator.Theme> myTheme =
-    new ObjectValueProperty<ActionBarIconGenerator.Theme>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
-  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<Color>(new Color(51, 181, 229));
+    new ObjectValueProperty<>(ActionBarIconGenerator.Theme.HOLO_LIGHT);
+  private final ObjectProperty<Color> myCustomColor = new ObjectValueProperty<>(new Color(51, 181, 229));
 
   /**
    * The theme for this icon, which influences its foreground/background colors.

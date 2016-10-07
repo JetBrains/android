@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
@@ -98,7 +99,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     if (platform == null) {
       return null;
     }
-    final IAndroidTarget target = platform.getTarget();
+    IAndroidTarget target = platform.getTarget();
     final AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     DomElement element = context.getInvocationElement().getParent();
 
@@ -178,8 +179,8 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     @NotNull
     @Override
     public Object[] getVariants() {
-      final List<Object> result = new ArrayList<Object>();
-      final Set<String> added = new HashSet<String>();
+      final List<Object> result = new ArrayList<>();
+      final Set<String> added = new HashSet<>();
 
       processFields(new Processor<Pair<PsiField, String>>() {
         @Override

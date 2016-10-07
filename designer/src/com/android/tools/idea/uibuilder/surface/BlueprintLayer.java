@@ -15,116 +15,214 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 import static com.android.tools.idea.uibuilder.model.Coordinates.*;
 
 public class BlueprintLayer extends Layer {
-  private final ScreenView myScreenView;
+  private static final int BACKGROUND_LINE_SPACE_PX = 2;
 
-  public BlueprintLayer(@NonNull ScreenView screenView) {
+  private static final float[] COMPONENT_BACKGROUND_GRADIENT_FRACTIONS = {0, .1f, .1001f};
+  private static final Color[] COMPONENT_BACKGROUND_GRADIENT_COLORS =
+    {BLUEPRINT_COMPONENT_FG_COLOR, BLUEPRINT_COMPONENT_FG_COLOR, BLUEPRINT_COMPONENT_BG_COLOR};
+
+  private final ScreenView myScreenView;
+  private Dimension myScreenViewSize = new Dimension();
+  private Rectangle mySizeRectangle = new Rectangle();
+
+  public BlueprintLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
+  /**
+   * Base paint method. Draw the blueprint background.
+   * TODO: We might want to simplify the stack of layers and not keep this one.
+   *
+   * @param gc The Graphics object to draw into
+   */
   @Override
-  public void paint(@NonNull Graphics2D gc) {
-    int tlx = myScreenView.getX();
-    int tly = myScreenView.getY();
+  public void paint(@NotNull Graphics2D gc) {
+    myScreenView.getSize(myScreenViewSize);
 
-    NlModel myModel = myScreenView.getModel();
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(myModel.getFacet());
-
-    RenderResult renderResult = myModel.getRenderResult();
-    if (renderResult == null || renderResult.getImage() == null) {
+    mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(), myScreenViewSize.width, myScreenViewSize.height);
+    Rectangle2D.intersect(mySizeRectangle, gc.getClipBounds(), mySizeRectangle);
+    if (mySizeRectangle.isEmpty()) {
       return;
     }
-    BufferedImage originalImage = renderResult.getImage().getOriginalImage();
-    gc.setColor(BLUEPRINT_BG_COLOR);
-    double scale = myScreenView.getScale();
-    int width = (int)(originalImage.getWidth() * scale);
-    int height = (int)(originalImage.getHeight() * scale);
-    gc.fillRect(tlx, tly, width, height);
 
-    gc.setColor(BLUEPRINT_GRID_COLOR);
-    int gridSize = 16;
-    for (int x = gridSize; x < width - 1; x += gridSize) {
-      gc.drawLine(tlx + x, tly, tlx + x, tly + height - 1);
+    // Draw the background
+    Graphics2D g = (Graphics2D) gc.create();
 
-    }
-    for (int y = gridSize; y < height - 1; y += gridSize) {
-      gc.drawLine(tlx, tly + y, tlx + width - 1, tly + y);
+    Shape prevClip = null;
+    Shape screenShape = myScreenView.getScreenShape();
+    if (screenShape != null) {
+      prevClip = g.getClip();
+      g.clip(screenShape);
     }
 
-    for (NlComponent component : myScreenView.getModel().getComponents()) {
-      drawComponent(gc, component, viewHandlerManager);
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(BLUEPRINT_BG_COLOR);
+    g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+
+    if (prevClip != null) {
+      g.setClip(prevClip);
     }
+
+    // Draw the components
+    NlModel model = myScreenView.getModel();
+    if (model.getComponents().size() == 0) {
+      return;
+    }
+
+    NlComponent component = model.getComponents().get(0);
+    component = component.getRoot();
+
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(model.getFacet());
+    // Draw the components
+    if (drawComponent(g, component, viewHandlerManager, false)) {
+      Dimension size = myScreenView.getSize();
+      DesignSurface surface = myScreenView.getSurface();
+      if (size.width != 0 && size.height != 0) {
+        surface.repaint(myScreenView.getX(), myScreenView.getY(), size.width, size.height);
+      } else {
+        surface.repaint();
+      }
+    }
+
+    g.dispose();
   }
 
-  private void drawComponent(@NonNull Graphics2D gc, @NonNull NlComponent component, @NonNull ViewHandlerManager viewHandlerManager) {
-    if (component.viewInfo != null) {
-      String className = component.viewInfo.getClassName();
+  /**
+   * Draw the given component and its children
+   *
+   * @param gc                 the graphics context
+   * @param component          the component we want to draw
+   * @param viewHandlerManager the view handler
+   */
+  private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
+                             @NotNull ViewHandlerManager viewHandlerManager,
+                             boolean parentHandlesPainting) {
+    boolean needsRepaint = false;
+    boolean handlesPainting = false;
 
+    if (component.viewInfo != null) {
+
+      ViewHandler handler = component.getViewHandler();
+
+      // Check if the view handler handles the painting
+      if (handler != null && handler instanceof ViewGroupHandler) {
+        ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
+        if (viewGroupHandler.handlesPainting()) {
+          if (handler.paintConstraints(myScreenView, gc, component)) {
+            return needsRepaint;
+          }
+          needsRepaint |= viewGroupHandler.drawGroup(gc, myScreenView, component);
+          handlesPainting = true;
+        }
+      }
+
+      if (!handlesPainting && !parentHandlesPainting) {
+        // If not, paint the component ourselves
+        Graphics2D g = (Graphics2D)gc.create();
+
+        int x = getSwingX(myScreenView, component.x);
+        int y = getSwingY(myScreenView, component.y);
+        int w = getSwingDimension(myScreenView, component.w);
+        int h = getSwingDimension(myScreenView, component.h);
+
+        drawComponentBackground(g, component);
+        String name = component.getTagName();
+        name = name.substring(name.lastIndexOf('.') + 1);
+
+        Font font = BLUEPRINT_TEXT_FONT;
+        g.setFont(font);
+        g.setColor(BLUEPRINT_FG_COLOR);
+        String id = component.getId();
+        int lineHeight = g.getFontMetrics().getHeight();
+        FontRenderContext fontRenderContext = g.getFontRenderContext();
+        if (id != null && h > lineHeight * 2) {
+          // Can fit both
+          Rectangle2D classBounds = font.getStringBounds(name, fontRenderContext);
+          Rectangle2D idBounds = font.getStringBounds(id, fontRenderContext);
+          int textY = y + h / 2;
+          int textX = x + w / 2 - ((int)classBounds.getWidth()) / 2;
+          if (component.isRoot()) {
+            textX = x + lineHeight;
+            textY = y - (int)(classBounds.getHeight() + idBounds.getHeight());
+          }
+          g.drawString(name, textX, textY);
+
+          if (component.isRoot()) {
+            textX = x + lineHeight;
+            textY = y - (int)(idBounds.getHeight());
+          }
+          else {
+            textX = x + w / 2 - ((int)idBounds.getWidth()) / 2;
+            textY += (int)(idBounds.getHeight());
+          }
+          g.drawString(id, textX, textY);
+        }
+        else {
+          // Only room for a single line: prioritize the id if it's available, otherwise the class name
+          String text = id != null ? id : name;
+          Rectangle2D stringBounds = font.getStringBounds(text, fontRenderContext);
+          int textX = x + w / 2 - ((int)stringBounds.getWidth()) / 2;
+          int textY = y + h / 2 + ((int)stringBounds.getHeight()) / 2;
+          g.drawString(text, textX, textY);
+        }
+
+        g.dispose();
+      }
+    }
+    // Draw the children of the component...
+    for (NlComponent child : component.getChildren()) {
+      needsRepaint |= drawComponent(gc, child, viewHandlerManager, handlesPainting);
+    }
+    return needsRepaint;
+  }
+
+  /**
+   * Utility function to draw a component's background
+   *
+   * @param gc        the graphics context
+   * @param component the component
+   */
+  private void drawComponentBackground(@NotNull Graphics2D gc, @NotNull NlComponent component) {
+    if (component.viewInfo != null) {
       int x = getSwingX(myScreenView, component.x);
       int y = getSwingY(myScreenView, component.y);
       int w = getSwingDimension(myScreenView, component.w);
       int h = getSwingDimension(myScreenView, component.h);
 
-      gc.setColor(BLUEPRINT_FG_COLOR);
-      Stroke prevStroke = gc.getStroke();
-      gc.setStroke(BLUEPRINT_COMPONENT_STROKE);
-      gc.drawRect(x, y, w - 1, h - 1);
-      gc.setStroke(prevStroke);
-      className = className.substring(className.lastIndexOf('.') + 1);
-      if (className.equals("FloatingActionButton")) {
-        className = "FAB";
-      }
-      Font font = BLUEPRINT_TEXT_FONT;
-      gc.setFont(font);
-      String id = component.getId();
-      int lineHeight = gc.getFontMetrics().getHeight();
-      FontRenderContext fontRenderContext = gc.getFontRenderContext();
-      if (id != null && h > lineHeight * 2) {
-        // Can fit both
-        Rectangle2D classBounds = font.getStringBounds(className, fontRenderContext);
-        Rectangle2D idBounds = font.getStringBounds(id, fontRenderContext);
-        int textY = y + h / 2;
-        int textX = x + w / 2 - ((int)classBounds.getWidth()) / 2;
-        gc.drawString(className, textX, textY);
+      Graphics2D g = (Graphics2D)gc.create();
 
-        textX = x + w / 2 - ((int)idBounds.getWidth()) / 2;
-        textY += (int)(idBounds.getHeight());
-        gc.drawString(id, textX, textY);
+      if (!component.isRoot()) {
+        g.setPaint(new LinearGradientPaint((float)x, (float)y, (float)(x + BACKGROUND_LINE_SPACE_PX),
+                                           (float)(y + BACKGROUND_LINE_SPACE_PX),
+                                           COMPONENT_BACKGROUND_GRADIENT_FRACTIONS, COMPONENT_BACKGROUND_GRADIENT_COLORS,
+                                           MultipleGradientPaint.CycleMethod.REFLECT));
+        g.fillRect(x, y, w, h);
       }
-      else {
-        // Only room for a single line: prioritize the id if it's available, otherwise the class name
-        String text = id != null ? id : className;
-        Rectangle2D stringBounds = font.getStringBounds(text, fontRenderContext);
-        int textX = x + w / 2 - ((int)stringBounds.getWidth()) / 2;
-        int textY = y + h / 2 + ((int)stringBounds.getHeight()) / 2;
-        gc.drawString(text, textX, textY);
-      }
+      g.setColor(BLUEPRINT_FG_COLOR);
+      Stroke prevStroke = g.getStroke();
+      g.setStroke(BLUEPRINT_COMPONENT_STROKE);
+      g.drawRect(x, y, w, h);
+      g.setStroke(prevStroke);
 
-      ViewHandler handler = viewHandlerManager.getHandler(className);
-      if (handler != null) {
-        if (handler.paintConstraints(myScreenView, gc, component)) {
-          return;
-        }
-      }
+      g.dispose();
     }
 
-    for (NlComponent child : component.getChildren()) {
-      drawComponent(gc, child, viewHandlerManager);
-    }
   }
 }

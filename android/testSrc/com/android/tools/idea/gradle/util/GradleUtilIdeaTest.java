@@ -78,7 +78,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     expect(tasks.isEmpty()).andReturn(true);
     replay(project, tasks);
 
-    final GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
+    GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
 
     final FacetManager facetManager = FacetManager.getInstance(myModule);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -95,7 +95,6 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
         }
       }
     });
-
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);

@@ -17,8 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -37,9 +36,9 @@ import com.intellij.xml.XmlSchemaProvider;
 import gnu.trove.THashMap;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -94,8 +93,8 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        if (isXmlResourceFile(originalFile) ||
-            ManifestDomFileDescription.isManifestFile(originalFile)) {
+        if (isXmlResourceFile(originalFile) || ManifestDomFileDescription.isManifestFile(originalFile) ||
+            RawDomFileDescription.isRawFile(originalFile)) {
           return AndroidFacet.getInstance(originalFile) != null;
         }
         return false;
@@ -113,14 +112,14 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
       return false;
     }
 
-    final String resType = AndroidCommonUtils.getResourceTypeByDirName(parent.getName());
+    final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
     if (resType == null) {
       return false;
     }
-    if (resType.equals(ResourceType.XML.getName())) {
+    if (resType == ResourceFolderType.XML) {
       return XmlResourceDomFileDescription.isXmlResourceFile(file);
     }
-    return !resType.equals("raw");
+    return resType != ResourceFolderType.RAW;
   }
 
   @NotNull

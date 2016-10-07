@@ -46,8 +46,11 @@ import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
+import org.jetbrains.plugins.gradle.settings.GradleRunnerConfigurable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -64,6 +67,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncState {
+  public static final Key<Boolean> PROJECT_EXTERNAL_BUILD_FILES_CHANGED = Key.create("android.gradle.project.external.build.files.changed");
+
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
@@ -74,8 +79,7 @@ public class GradleSyncState {
     "com.intellij.compiler.options.CompilerConfigurable"
   );
 
-  private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
-    new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
+  private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
@@ -95,7 +99,9 @@ public class GradleSyncState {
   }
 
   @NotNull
-  public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener, @NotNull Disposable parentDisposable) {
+  public static MessageBusConnection subscribe(@NotNull Project project,
+                                               @NotNull GradleSyncListener listener,
+                                               @NotNull Disposable parentDisposable) {
     MessageBusConnection connection = project.getMessageBus().connect(parentDisposable);
     connection.subscribe(GRADLE_SYNC_TOPIC, listener);
     return connection;
@@ -122,12 +128,7 @@ public class GradleSyncState {
 
     cleanUpProjectPreferences();
     setLastGradleSyncTimestamp(lastSyncTimestamp);
-    syncPublisher(new Runnable() {
-      @Override
-      public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject);
-      }
-    });
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
     enableNotifications();
     trackSyncEvent(ACTION_GRADLE_SYNC_SKIPPED);
@@ -156,12 +157,7 @@ public class GradleSyncState {
     if (notifyUser) {
       notifyUser();
     }
-    syncPublisher(new Runnable() {
-      @Override
-      public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
-      }
-    });
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject));
 
     trackSyncEvent(ACTION_GRADLE_SYNC_STARTED);
 
@@ -178,12 +174,7 @@ public class GradleSyncState {
     addToEventLog(logMsg, ERROR);
 
     syncFinished();
-    syncPublisher(new Runnable() {
-      @Override
-      public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
-      }
-    });
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
     trackSyncEvent(ACTION_GRADLE_SYNC_FAILED);
   }
@@ -199,12 +190,7 @@ public class GradleSyncState {
     LintUtils.sTryPrefixLookup = true;
 
     syncFinished();
-    syncPublisher(new Runnable() {
-      @Override
-      public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject);
-      }
-    });
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
     GradleVersion gradleVersion = getGradleVersion(myProject);
     if (gradleVersion != null) {
@@ -250,24 +236,21 @@ public class GradleSyncState {
   }
 
   public void notifyUser() {
-    invokeLaterIfProjectAlive(myProject, new Runnable() {
-      @Override
-      public void run() {
-        EditorNotifications notifications = EditorNotifications.getInstance(myProject);
-        VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
-        for (VirtualFile file : files) {
-          try {
-            notifications.updateNotifications(file);
-          }
-          catch (Throwable e) {
-            String filePath = toSystemDependentName(file.getPath());
-            String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
-            LOG.info(msg, e);
-          }
+    invokeLaterIfProjectAlive(myProject, () -> {
+      EditorNotifications notifications = EditorNotifications.getInstance(myProject);
+      VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
+      for (VirtualFile file : files) {
+        try {
+          notifications.updateNotifications(file);
         }
-
-        BuildVariantView.getInstance(myProject).updateContents();
+        catch (Throwable e) {
+          String filePath = toSystemDependentName(file.getPath());
+          String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
+          LOG.info(msg, e);
+        }
       }
+
+      BuildVariantView.getInstance(myProject).updateContents();
     });
   }
 
@@ -312,6 +295,8 @@ public class GradleSyncState {
    * @throws AssertionError if the given time is less than or equal to zero.
    */
   private boolean isSyncNeeded(long referenceTimeInMillis) {
+    myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, null);
+
     assert referenceTimeInMillis > 0;
     if (isSyncInProgress()) {
       return false;
@@ -342,7 +327,20 @@ public class GradleSyncState {
           return true;
         }
       }
+
+      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+      if (nativeAndroidModel != null) {
+        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+          VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
+          if ((virtualFile != null && fileDocumentManager.isFileModified(virtualFile)) ||
+              externalBuildFile.lastModified() > referenceTimeInMillis) {
+            myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, true);
+            return true;
+          }
+        }
+      }
     }
+
     return false;
   }
 
@@ -359,6 +357,34 @@ public class GradleSyncState {
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
       LOG.info(msg, e);
+    }
+
+    try {
+      cleanUpGradleRunnerPreference(myProject);
+    }
+    catch (Throwable e) {
+      String msg = String.format("Failed to clean up Gradle Runner preferences for project '%1$s'",
+                                 myProject.getName());
+      LOG.info(msg, e);
+    }
+  }
+
+  private static void cleanUpGradleRunnerPreference(@NotNull Project project) {
+    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
+      Extensions.getArea(project).getExtensionPoint(PROJECT_CONFIGURABLE);
+
+    // https://code.google.com/p/android/issues/detail?id=213178
+    // Disable the Gradle -> Runner settings.
+    for (ConfigurableEP<Configurable> configurableEP : projectConfigurable.getExtensions()) {
+      if (GradleConfigurable.class.getName().equals(configurableEP.instanceClass)) {
+        List<ConfigurableEP> children = new ArrayList<>();
+        for (ConfigurableEP child : configurableEP.children) {
+          if (!GradleRunnerConfigurable.class.getName().equals(child.instanceClass)) {
+            children.add(child);
+          }
+        }
+        configurableEP.children = children.toArray(new ConfigurableEP[children.size()]);
+      }
     }
   }
 }

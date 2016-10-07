@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValueProvider;
 import org.jetbrains.android.facet.AndroidFacet;

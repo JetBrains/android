@@ -15,55 +15,46 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
-import org.fest.swing.timing.Condition;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.fest.swing.timing.Pause.pause;
+@RunWith(GuiTestRunner.class)
+public class NewComponentTest {
 
-public class NewComponentTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testNewValueWizard() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.getProjectView().selectAndroidPane();
-    myProjectFrame.invokeMenuPath("File", "New", "XML", "Values XML File");
+    guiTest.ideFrame().getProjectView().selectAndroidPane();
+    guiTest.ideFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
 
-    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(myRobot);
+    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(guiTest.robot());
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
     finishFixture.requireEnabled();
     wizardFixture.getFileNameField().enterText("strings");
     final JLabelFixture errorLabel = wizardFixture.findLabel("Values File Name must be unique");
 
-    pause(new Condition("Waiting for Finish to be disabled") {
-      @Override
-      public boolean test() {
-        return !finishFixture.isEnabled();
-      }
-    }, SHORT_TIMEOUT);
+    Wait.minutes(2).expecting("Finish to be disabled").until(() -> !finishFixture.isEnabled());
     wizardFixture.getFileNameField().enterText("2");
-    pause(new Condition("Waiting for Finish to be enabled") {
-      @Override
-      public boolean test() {
-        return finishFixture.isEnabled();
-      }
-    }, SHORT_TIMEOUT);
+    Wait.minutes(2).expecting("Finish to be enabled").until(finishFixture::isEnabled);
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");
-    pause(new Condition("Waiting for Finish to be disabled") {
-      @Override
-      public boolean test() {
-        return !finishFixture.isEnabled();
-      }
-    }, SHORT_TIMEOUT);
-    errorLabel.requireText("<html>Values File Name is not a valid resource name. ' ' is not a valid resource name character</html>");
+    Wait.minutes(2).expecting("Finish to be disabled").until(() -> !finishFixture.isEnabled());
+    errorLabel.requireText("Values File Name is not set to a valid resource name: ' ' is not a valid resource name character");
+
+    // UI tests should close all dialogs before finishing
+    wizardFixture.findWizardButton("Cancel").click();
   }
 }

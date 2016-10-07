@@ -2,7 +2,7 @@ package org.jetbrains.android;
 
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResult;

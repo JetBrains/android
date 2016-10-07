@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -42,8 +41,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
@@ -59,15 +58,10 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private AndroidProjectStub myAndroidProject;
   private String myRoot;
 
-  private boolean myOriginalLoadAllTestArtifactsValue;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     setUpIdeaAndroidProject();
-
-    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
 
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
@@ -88,12 +82,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
         }
       }
     });
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
   private List<String> getExampleClasspath() {
@@ -138,6 +126,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
                                                              myAndroidProject.getRootDir(), myAndroidProject, variant.getName(),
                                                              AndroidProject.ARTIFACT_UNIT_TEST);
     myFacet.setAndroidModel(androidModel);
+    TestArtifactSearchScopes.initializeScopes(getProject());
   }
 
   public void testPathChanges() throws Exception {
@@ -173,7 +162,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
     List<String> result = myJavaParameters.getClassPath().getPathList();
-    assertThat(result).excludes(alsoRealAndroidJar, myRealAndroidJar);
+    assertThat(result).containsNoneOf(alsoRealAndroidJar, myRealAndroidJar);
   }
 
   public void testMultipleMockableJars_oldModel() throws Exception {
@@ -187,7 +176,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
     List<String> pathList = classPath.getPathList();
     assertEquals(myMockableAndroidJar, Iterables.getLast(pathList));
-    assertThat(pathList).excludes(jar15, jar22);
+    assertThat(pathList).containsNoneOf(jar15, jar22);
   }
 
   @SuppressWarnings("ConstantConditions") // No risk of NPEs.

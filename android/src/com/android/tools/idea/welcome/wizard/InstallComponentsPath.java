@@ -15,44 +15,51 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.SdkConstants;
 import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -61,7 +68,6 @@ import java.util.Set;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  @NotNull private final Map<String, RemotePackage> myRemotePackages;
   private final FileOp myFileOp;
   @NotNull private final FirstRunWizardMode myMode;
 
@@ -73,12 +79,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private ComponentInstaller myComponentInstaller;
   private final boolean myInstallUpdates;
 
-  public InstallComponentsPath(@NotNull Map<String, RemotePackage> remotePackages,
-                               @NotNull FirstRunWizardMode mode,
+  public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
                                @NotNull ProgressStep progressStep,
                                boolean installUpdates) {
-    myRemotePackages = remotePackages;
     myFileOp = FileOpUtils.create();
     myMode = mode;
 
@@ -86,7 +90,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
 
     myProgressStep = progressStep;
-    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates, myLocalHandler);
+    myComponentInstaller = new ComponentInstaller(myLocalHandler);
     myInstallUpdates = installUpdates;
   }
 
@@ -94,16 +98,29 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                                 @NotNull ScopedStateStore stateStore,
                                                 boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
-    components.add(new AndroidSdk(stateStore));
-    ComponentTreeNode platforms = Platform.createSubtree(stateStore, myRemotePackages);
+    components.add(new AndroidSdk(stateStore, myInstallUpdates));
+
+    DynamicWizard wizard = getWizard();
+    ProgressWindow progressWindow = new ProgressWindow(false, false, null);
+
+    if (wizard != null) {
+      Disposer.register(wizard.getDisposable(), progressWindow);
+    }
+
+    com.android.repository.api.ProgressIndicator progress = new RepoProgressIndicatorAdapter(progressWindow);
+    RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress,
+                                 new StudioDownloader(progressWindow), StudioSettingsController.getInstance());
+    Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
+    ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {
       components.add(platforms);
     }
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL, myInstallUpdates));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(stateStore, myRemotePackages, myFileOp));
+      components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -117,62 +134,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       throw new WizardException("Unable to create temporary folder: " + e.getMessage(), e);
     }
     return tempDirectory;
-  }
-
-  private static boolean hasPlatformsDir(@Nullable File[] files) {
-    if (files == null) {
-      return false;
-    }
-    for (File file : files) {
-      if (isPlatformsDir(file)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private static boolean isPlatformsDir(File file) {
-    return file.isDirectory() && file.getName().equalsIgnoreCase(SdkConstants.FD_PLATFORMS);
-  }
-
-  /**
-   * This is an attempt to isolate from SDK packaging peculiarities.
-   */
-  @NotNull
-  private static File getSdkRoot(@NotNull File expandedLocation) {
-    File[] files = expandedLocation.listFiles();
-    // Breadth-first scan - to lower chance of false positive
-    if (hasPlatformsDir(files)) {
-      return expandedLocation;
-    }
-    // Only scan one level down (no recursion) - avoid false positives
-    if (files != null) {
-      for (File file : files) {
-        if (hasPlatformsDir(file.listFiles())) {
-          return file;
-        }
-      }
-    }
-    return expandedLocation;
-  }
-
-  /**
-   * @return null if the user cancels from the UI
-   */
-  @NotNull
-  private static InstallOperation<File, File> downloadAndUnzipSdkSeed(@NotNull InstallContext context,
-                                                                      @NotNull final File destination,
-                                                                      double progressShare) {
-    final double DOWNLOAD_OPERATION_PROGRESS_SHARE = progressShare * 0.8;
-    final double UNZIP_OPERATION_PROGRESS_SHARE = progressShare * 0.15;
-    final double MOVE_OPERATION_PROGRESS_SHARE = progressShare - DOWNLOAD_OPERATION_PROGRESS_SHARE - UNZIP_OPERATION_PROGRESS_SHARE;
-
-    DownloadOperation download =
-      new DownloadOperation(context, FirstRunWizardDefaults.getSdkDownloadUrl(), DOWNLOAD_OPERATION_PROGRESS_SHARE);
-    UnpackOperation unpack = new UnpackOperation(context, UNZIP_OPERATION_PROGRESS_SHARE);
-    MoveSdkOperation move = new MoveSdkOperation(context, destination, MOVE_OPERATION_PROGRESS_SHARE);
-
-    return download.then(unpack).then(move);
   }
 
   @Nullable
@@ -198,28 +159,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
    *
    * @return install operation object that will perform the setup
    */
-  private InstallOperation<File, File> createInitSdkOperation(InstallContext installContext, File destination, double progressRatio) {
+  private InstallOperation<File, File> createInitSdkOperation(InstallContext installContext, double progressRatio) {
     File handoffSource = getHandoffAndroidSdkSource();
     if (handoffSource != null) {
       return new MergeOperation(handoffSource, installContext, progressRatio);
     }
-    if (isNonEmptyDirectory(destination)) {
-      if (AndroidSdkData.getSdkData(destination) != null) {
-        // We have SDK, first operation simply passes path through
-        return InstallOperation.wrap(installContext, new ReturnValue(), 0);
-      }
-    }
-    return downloadAndUnzipSdkSeed(installContext, destination, progressRatio);
-  }
-
-  private static boolean isNonEmptyDirectory(File file) {
-    String[] contents = !file.isDirectory() ? null : file.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return !(name.equalsIgnoreCase(".DS_Store") || name.equalsIgnoreCase("thumbs.db") || name.equalsIgnoreCase("desktop.ini"));
-      }
-    });
-    return contents != null && contents.length > 0;
+    // Nothing to merge, first operation simply passes path through
+    return InstallOperation.wrap(installContext, new ReturnValue(), 0);
   }
 
   @Override
@@ -240,11 +186,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       addStep(step);
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      Supplier<Collection<RemotePackage>> supplier = new Supplier<Collection<RemotePackage>>() {
-        @Override
-        public Collection<RemotePackage> get() {
-          Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+      Supplier<Collection<RemotePackage>> supplier = () -> {
+        Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+        try {
           return myComponentInstaller.getPackagesToInstall(components);
+        }
+        catch (SdkQuickfixUtils.PackageResolutionException e) {
+          Logger.getInstance(InstallComponentsPath.class).warn(e);
+          return null;
         }
       };
 
@@ -261,7 +210,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
-          myComponentInstaller = new ComponentInstaller(myRemotePackages, myInstallUpdates, myLocalHandler);
+          StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+          myLocalHandler.getSdkManager(progress).loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+                                                                   progress, new StudioDownloader(),
+                                                                   StudioSettingsController.getInstance());
+          myComponentInstaller = new ComponentInstaller(myLocalHandler);
 
           myComponentTree.updateState(myLocalHandler);
         }
@@ -282,7 +235,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     final InstallContext installContext = new InstallContext(createTempDir(), myProgressStep);
     final File destination = getDestination();
-    final InstallOperation<File, File> initialize = createInitSdkOperation(installContext, destination, INIT_SDK_OPERATION_PROGRESS_SHARE);
+    final InstallOperation<File, File> initialize = createInitSdkOperation(installContext, INIT_SDK_OPERATION_PROGRESS_SHARE);
 
     final Collection<? extends InstallableComponent> selectedComponents = myComponentTree.getChildrenToInstall();
     CheckSdkOperation checkSdk = new CheckSdkOperation(installContext);
@@ -291,8 +244,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
     try {
-      initialize.then(checkSdk).then(install).then(setPreference)
-        .then(new ConfigureComponents(installContext, selectedComponents, myLocalHandler)).execute(destination);
+      initialize.then(install).then(setPreference)
+        .then(new ConfigureComponents(installContext, selectedComponents, myLocalHandler)).then(checkSdk).execute(destination);
     }
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
@@ -312,7 +265,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         continue;
       }
       DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)details;
-      AndroidVersion version = DetailsTypes.getAndroidVersion(platformDetails);
+      AndroidVersion version = platformDetails.getAndroidVersion();
+      if (version.isPreview()) {
+        // We only want stable platforms
+        continue;
+      }
       if (max == null || version.compareTo(max) > 0) {
         latest = pkg;
         max = version;
@@ -391,44 +348,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  private static class MoveSdkOperation extends InstallOperation<File, File> {
-    @NotNull private final File myDestination;
-
-    public MoveSdkOperation(@NotNull InstallContext context, @NotNull File destination, double progressShare) {
-      super(context, progressShare);
-      myDestination = destination;
-    }
-
-    @NotNull
-    @Override
-    protected File perform(@NotNull ProgressIndicator indicator, @NotNull File file) throws WizardException {
-      indicator.setText("Moving downloaded SDK");
-      indicator.start();
-      try {
-        File root = getSdkRoot(file);
-        if (!root.renameTo(myDestination)) {
-          FileUtil.copyDir(root, myDestination);
-          FileUtil.delete(root); // Failure to delete it is not critical, the source is in temp folder.
-          // No need to abort installation.
-        }
-        return myDestination;
-      }
-      catch (IOException e) {
-        throw new WizardException("Unable to move Android SDK", e);
-      }
-      finally {
-        indicator.setFraction(1.0);
-        indicator.stop();
-      }
-    }
-
-
-    @Override
-    public void cleanup(@NotNull File result) {
-      // Do nothing
-    }
-  }
-
   private static class ReturnValue implements Function<File, File> {
     @Override
     public File apply(@Nullable File input) {
@@ -448,12 +367,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     public File apply(@Nullable final File input) {
       assert input != null;
 
-      ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), new Runnable() {
-        @Override
-        public void run() {
-          IdeSdks.setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
-          AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
-        }
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
+        IdeSdks.setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
+        AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });
 
       return input;

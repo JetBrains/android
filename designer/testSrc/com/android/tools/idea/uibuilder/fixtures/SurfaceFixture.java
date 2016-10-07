@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -30,7 +30,7 @@ public class SurfaceFixture {
     return mySurface;
   }
 
-  public ScreenFixture screen(@NonNull NlModel model) {
+  public ScreenFixture screen(@NotNull NlModel model) {
     return new ScreenFixture(this, model);
   }
 }

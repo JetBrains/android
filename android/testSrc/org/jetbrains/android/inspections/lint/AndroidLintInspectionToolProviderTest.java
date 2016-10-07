@@ -39,16 +39,18 @@ import static com.android.utils.SdkUtils.escapePropertyValue;
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
   public void testAllLintChecksRegistered() throws Exception {
-    assertTrue(checkAllLintChecksRegistered(getProject()));
+    assertTrue(
+      "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
+      checkAllLintChecksRegistered(getProject()));
   }
 
-  private static boolean sDone;
+  private static boolean ourDone;
   @SuppressWarnings("deprecation")
   public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
-    if (sDone) {
+    if (ourDone) {
       return true;
     }
-    sDone = true;
+    ourDone = true;
 
     // For some reason, I can't just use
     //   AndroidLintInspectionBase.getInspectionShortNameByIssue
@@ -80,7 +82,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       }
     }
 
-    final List<Issue> missing = new ArrayList<Issue>();
+    final List<Issue> missing = new ArrayList<>();
     final IntellijLintIssueRegistry fullRegistry = new IntellijLintIssueRegistry();
 
     List<Issue> allIssues = fullRegistry.getIssues();

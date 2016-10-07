@@ -16,27 +16,21 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
-import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.ActivityAlias;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import org.w3c.dom.Element;
 
 public class SpecificActivityLocator extends ActivityLocator {
   @NotNull
@@ -62,6 +56,10 @@ public class SpecificActivityLocator extends ActivityLocator {
       throw new ActivityLocatorException(AndroidBundle.message("activity.class.not.specified.error"));
     }
 
+    if (doesPackageContainMavenProperty(myFacet)) {
+      return;
+    }
+
     Module module = myFacet.getModule();
     Project project = module.getProject();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
@@ -71,58 +69,28 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, GlobalSearchScope.projectScope(project));
-
+    Element element;
     if (c == null || !c.isInheritor(activityClass, true)) {
-      final ActivityAlias activityAlias = findActivityAlias(myFacet, myActivityName);
-      if (activityAlias == null) {
+      element = MergedManifest.get(module).findActivityAlias(myActivityName);
+      if (element == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
-
-      if (!ActivityLocatorUtils.containsLauncherIntent(activityAlias.getIntentFilters())) {
-        throw new ActivityLocatorException(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
+    }
+    else {
+      // check whether activity is declared in the manifest
+      element = MergedManifest.get(module).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
+      if (element == null) {
+        throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
       }
-
-      // valid activity alias
-      return;
     }
 
-    if (doesPackageContainMavenProperty(myFacet)) {
-      return;
-    }
+    DefaultActivityLocator.ActivityWrapper activity = DefaultActivityLocator.ActivityWrapper.get(element);
+    Boolean exported = activity.getExported();
 
-    // check whether activity is declared in the manifest
-    List<Activity> activities = ManifestInfo.get(module, false).getActivities();
-    Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
-    if (activity != null) {
-      return;
+    // if the activity is not explicitly exported, and it doesn't have an intent filter, then it cannot be launched
+    if (!Boolean.TRUE.equals(exported) && !activity.hasIntentFilter()) {
+      throw new ActivityLocatorException(AndroidBundle.message("specific.activity.not.launchable.error"));
     }
-
-    activities = ManifestInfo.get(module, true).getActivities();
-    activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
-    if (activity == null) {
-      throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
-    }
-    else if (!ActivityLocatorUtils.shouldUseMergedManifest(myFacet)) {
-      throw new ActivityLocatorException(
-        AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(), module.getName()));
-    }
-  }
-
-  @Nullable
-  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
-    final List<ActivityAlias> aliases = ManifestInfo.get(facet.getModule(), true).getActivityAliases();
-
-    return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
-      @Override
-      public ActivityAlias compute() {
-        for (ActivityAlias alias : aliases) {
-          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(alias))) {
-            return alias;
-          }
-        }
-        return null;
-      }
-    });
   }
 
   private static boolean doesPackageContainMavenProperty(@NotNull AndroidFacet facet) {

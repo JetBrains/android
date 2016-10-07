@@ -38,7 +38,7 @@ public abstract class AbstractClientAction extends AnAction {
   }
 
   @Override
-  public final void update(AnActionEvent e) {
+  public void update(AnActionEvent e) {
     e.getPresentation().setEnabled(isEnabled());
   }
 

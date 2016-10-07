@@ -2,6 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
 import com.intellij.lang.Language;
@@ -17,7 +18,6 @@ import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
-import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -26,7 +26,6 @@ import com.intellij.psi.xml.XmlToken;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
-import com.intellij.util.xml.reflect.DomExtension;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -170,12 +169,24 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return generateDoc(element, url);
     } else {
       XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
+      XmlTag tag = null;
+      // True if getting the documentation of the XML value (not the value of the name attribute)
+      boolean isXmlValue = false;
+
+      // If the XmlToken under the cursor is within the value of the XmlTag (XML_DATA_CHARACTERS),
+      // get the XmlAttribute using the containing tag
+      if (element instanceof XmlToken && XML_DATA_CHARACTERS.equals(((XmlToken)element).getTokenType())) {
+        tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+        attribute = tag == null ? null : tag.getAttribute(ATTR_NAME);
+        isXmlValue = true;
+      }
+
       if (attribute == null) {
         return null;
       }
 
       if (ATTR_NAME.equals(attribute.getName())) {
-        XmlTag tag = attribute.getParent();
+        tag = tag != null ? tag : attribute.getParent();
         XmlTag parentTag = tag.getParentTag();
         if (parentTag == null) {
           return null;
@@ -193,33 +204,32 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
         }
         else if (TAG_STYLE.equals(parentTag.getName())) {
+          // String used to get attribute definitions
+          String targetValue = value;
+
+          if (isXmlValue && attribute.getValue() != null) {
+            // In this case, the target is the name attribute of the <item> tag, which contains the key of the attr enum
+            targetValue = attribute.getValue();
+          }
+
+          if (targetValue.startsWith(ANDROID_NS_NAME_PREFIX)) {
+            targetValue = targetValue.substring(ANDROID_NS_NAME_PREFIX.length());
+          }
+
           // Handle style item definitions, http://developer.android.com/guide/topics/resources/style-resource.html
-          AttributeDefinitions definitions = getAttributeDefinitionsForElement(element);
-          if (definitions == null) {
-            return null;
-          }
-
-          if (!value.startsWith(ANDROID_NS_NAME_PREFIX)) {
-            return null;
-          }
-          value = value.substring(ANDROID_NS_NAME_PREFIX.length());
-          AttributeDefinition attributeDefinition = definitions.getAttrDefByName(value);
-
+          AttributeDefinition attributeDefinition = getAttributeDefinitionForElement(element, targetValue);
           if (attributeDefinition == null) {
             return null;
           }
 
-          return StringUtil.trim(attributeDefinition.getDocValue(null));
+          // Return the doc of the value if searching for an enum value, otherwise return the doc of the enum itself
+          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDoc(value) : attributeDefinition.getDocValue(null));
         }
       }
 
       // Display documentation for enum values defined in attrs.xml file, if it's present
       if (ANDROID_URI.equals(attribute.getNamespace())) {
-        AttributeDefinitions definitions = getAttributeDefinitionsForElement(element);
-        if (definitions == null) {
-          return null;
-        }
-        AttributeDefinition attributeDefinition = definitions.getAttrDefByName(attribute.getLocalName());
+        AttributeDefinition attributeDefinition = getAttributeDefinitionForElement(element, attribute.getLocalName());
         if (attributeDefinition == null) {
           return null;
         }
@@ -229,17 +239,35 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     return null;
   }
 
+  /**
+   * Try to get the attribute definition for an element using first the system resource manager and then the local one.
+   * Return null if can't find definition in any resource manager.
+   */
   @Nullable
-  private static AttributeDefinitions getAttributeDefinitionsForElement(@NotNull PsiElement element) {
+  private static AttributeDefinition getAttributeDefinitionForElement(@NotNull PsiElement element, @NotNull String name) {
     AndroidFacet facet = AndroidFacet.getInstance(element);
     if (facet == null) {
       return null;
     }
-    ResourceManager manager = facet.getSystemResourceManager();
-    if (manager == null) {
+    AttributeDefinitions definitions = getAttributeDefinitions(facet.getSystemResourceManager());
+    if (definitions == null) {
       return null;
     }
-    return manager.getAttributeDefinitions();
+    AttributeDefinition attributeDefinition = definitions.getAttrDefByName(name);
+    if (attributeDefinition == null) {
+      // Try to get the attribute definition using the local resource manager instead
+      definitions = getAttributeDefinitions(facet.getLocalResourceManager());
+      if (definitions == null) {
+        return null;
+      }
+      attributeDefinition = definitions.getAttrDefByName(name);
+    }
+    return attributeDefinition;
+  }
+
+  @Nullable
+  private static AttributeDefinitions getAttributeDefinitions(@Nullable ResourceManager manager) {
+    return manager == null ? null : manager.getAttributeDefinitions();
   }
 
   @Nullable
@@ -285,9 +313,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
         }, false);
       if (cachedDocsMap == null) {
-        cachedDocsMap = new HashMap<XmlName, CachedValue<String>>();
+        cachedDocsMap = new HashMap<>();
         originalElement.putUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY,
-                                    new SoftReference<Map<XmlName, CachedValue<String>>>(cachedDocsMap));
+                                    new SoftReference<>(cachedDocsMap));
       }
       cachedDocsMap.put(xmlName, cachedValue);
       return cachedValue.getValue();
@@ -315,17 +343,13 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     final Ref<Pair<AttributeDefinition, String>> result = Ref.create();
     try {
-      AndroidDomExtender.processAttrsAndSubtags((AndroidDomElement)parentDomElement, new AndroidDomExtender.MyCallback() {
-        @Nullable
-        @Override
-        DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
-          if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
-            result.set(Pair.of(attrDef, parentStyleableName));
-            throw new MyStopException();
-          }
-          return null;
+      AttributeProcessingUtil.processAttributes((AndroidDomElement)parentDomElement, facet, false, (xn, attrDef, parentStyleableName) -> {
+        if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
+          result.set(Pair.of(attrDef, parentStyleableName));
+          throw new MyStopException();
         }
-      }, facet, false, true);
+        return null;
+      });
     }
     catch (MyStopException e) {
       // ignore
@@ -371,7 +395,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
     if (formats.size() > 0) {
       builder.append("Formats: ");
-      final List<String> formatLabels = new ArrayList<String>(formats.size());
+      final List<String> formatLabels = new ArrayList<>(formats.size());
 
       for (AttributeFormat format : formats) {
         formatLabels.add(format.name().toLowerCase(Locale.US));
@@ -437,41 +461,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     return AndroidJavaDocRenderer.render(module, url);
   }
 
-  /**
-   * Fake PSI element to provide used to provide documentation on autocompletion,
-   * as described in https://devnet.jetbrains.com/thread/436977
-   */
-  static class ProvidedDocumentationPsiElement extends LightElement {
-    private final @NotNull String myValue;
-    private final @NotNull String myDocumentation;
-
-    public ProvidedDocumentationPsiElement(@NotNull PsiManager manager,
-                                           @NotNull Language language,
-                                           @NotNull String value,
-                                           @NotNull String documentation) {
-      super(manager, language);
-      myValue = value;
-      myDocumentation = documentation;
-    }
-
-    public @NotNull String getDocumentation() {
-      return myDocumentation;
-    }
-
-    @Override
-    public String toString() {
-      return myDocumentation;
-    }
-
-    /**
-     * {@link #getText()} is overridden to modify title of documentation popup
-     */
-    @Override
-    public String getText() {
-      return myValue;
-    }
-  }
-
   @Override
   public PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Object object, PsiElement element) {
     if (object instanceof ResourceReferenceConverter.DocumentationHolder) {
@@ -503,7 +492,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       }
     }
 
-    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !value.startsWith(PREFIX_BINDING_EXPR)) {
+    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(value)) {
       return new MyResourceElement(element, value);
     }
 

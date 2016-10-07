@@ -34,7 +34,7 @@ import java.util.Map;
  * some target icons.
  */
 public abstract class AndroidIconGenerator {
-  private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<BaseAsset>();
+  private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myName = new StringValueProperty();
 
   @NotNull

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,13 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class ActivityLaunchTask implements LaunchTask {
   @NotNull private final String myApplicationId;
-  private final boolean myWaitForDebugger;
-  @NotNull private final String myExtraAmOptions;
+  @NotNull private final StartActivityFlagsProvider myStartActivityFlagsProvider;
 
-  public ActivityLaunchTask(@NotNull String applicationId, boolean waitForDebugger, @NotNull String extraAmOptions) {
+  public ActivityLaunchTask(@NotNull String applicationId,
+                            @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
     myApplicationId = applicationId;
-    myWaitForDebugger = waitForDebugger;
-    myExtraAmOptions = extraAmOptions;
+    myStartActivityFlagsProvider = startActivityFlagsProvider;
   }
 
   @NotNull
@@ -54,8 +54,10 @@ public abstract class ActivityLaunchTask implements LaunchTask {
     }
 
     final String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
-    String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myWaitForDebugger, myExtraAmOptions);
-    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
+    String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myStartActivityFlagsProvider.getFlags(device));
+
+    // The timeout is quite large to accomodate ARM emulators.
+    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 15, TimeUnit.SECONDS);
   }
 
   @Nullable

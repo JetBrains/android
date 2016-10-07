@@ -72,6 +72,11 @@ public class BufferingFolderWrapper implements IAbstractFolder {
   }
 
   @Override
+  public String getPath() {
+    return myFile.getPath();
+  }
+
+  @Override
   public boolean exists() {
     return myFile.isDirectory();
   }

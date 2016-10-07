@@ -43,6 +43,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.project.NewProjects.activateProjectView;
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 

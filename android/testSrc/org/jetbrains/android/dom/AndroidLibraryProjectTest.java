@@ -10,7 +10,6 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
@@ -279,7 +278,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     String newFilePath = dir + path;
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + path, newFilePath);
     Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
-    List<UsageInfo> result = new ArrayList<UsageInfo>();
+    List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
       if (!usage.isNonCodeUsage) {
         result.add(usage);

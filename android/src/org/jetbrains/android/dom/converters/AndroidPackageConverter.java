@@ -78,7 +78,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
       AndroidFacet facet = AndroidFacet.getInstance(getElement());
       if (facet != null) {
         AndroidModel androidModel = facet.getAndroidModel();
-        if (androidModel != null && androidModel.overridesManifestPackage()) {
+        if (androidModel != null && androidModel.overridesManifestPackage() || facet.isLibraryProject()) {
           return new PsiPackageReference(this, range, index);
         }
       }

@@ -75,6 +75,9 @@
   <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setAlgorithmParameterSpec(java.security.spec.AlgorithmParameterSpec) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setAttestationChallenge(byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setBlockModes(java.lang.String...)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -123,6 +126,9 @@
       <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
     </annotation>
   </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setInvalidatedByBiometricEnrollment(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setKeySize(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -150,6 +156,9 @@
     </annotation>
   </item>
   <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationValidWhileOnBody(boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.security.keystore.KeyGenParameterSpec.Builder android.security.keystore.KeyGenParameterSpec.Builder setUserAuthenticationValidityDurationSeconds(int)">
@@ -276,6 +285,9 @@
       <val name="value" val="{android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1, android.security.keystore.KeyProperties.ENCRYPTION_PADDING_RSA_OAEP}" />
     </annotation>
   </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setInvalidatedByBiometricEnrollment(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setKeyValidityEnd(java.util.Date)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -300,6 +312,9 @@
     </annotation>
   </item>
   <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationRequired(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationValidWhileOnBody(boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.security.keystore.KeyProtection.Builder android.security.keystore.KeyProtection.Builder setUserAuthenticationValidityDurationSeconds(int)">

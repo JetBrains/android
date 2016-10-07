@@ -35,6 +35,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+
 /**
  * Tests for {@link ConflictSet}
  */
@@ -65,7 +67,7 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   private void setUpApp() {
-    File rootDirPath = new File(myProject.getBasePath());
+    File rootDirPath = getBaseDirPath(myProject);
 
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");

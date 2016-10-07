@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.InjectedLanguagePlaces;
 import com.intellij.psi.LanguageInjector;
@@ -29,6 +30,7 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
+import static com.android.SdkConstants.PREFIX_TWOWAY_BINDING_EXPR;
 
 public class DbLanguageInjector implements LanguageInjector {
   @Override
@@ -37,9 +39,11 @@ public class DbLanguageInjector implements LanguageInjector {
       return;
     }
     String valueText = ((XmlAttributeValue)host).getValue();
-    if (valueText.length() <= PREFIX_BINDING_EXPR.length() || !valueText.startsWith(PREFIX_BINDING_EXPR)) {
+    if (!DataBindingUtil.isBindingExpression(valueText)) {
       return;
     }
+
+    String prefix = valueText.startsWith(PREFIX_TWOWAY_BINDING_EXPR) ? PREFIX_TWOWAY_BINDING_EXPR : PREFIX_BINDING_EXPR;
 
     PsiElement parent = host.getParent();
     if (!(parent instanceof XmlAttribute)) return;
@@ -48,7 +52,7 @@ public class DbLanguageInjector implements LanguageInjector {
 
     // Parser only parses the expression, not the prefix '@{' or the suffix '}'. Extract the start/end index of the expression.
     String unescapedValue = host.getText();
-    int startIndex = unescapedValue.indexOf(PREFIX_BINDING_EXPR.charAt(0)) + PREFIX_BINDING_EXPR.length();
+    int startIndex = unescapedValue.indexOf(prefix.charAt(0)) + prefix.length();
     int endIndex;
     if (valueText.endsWith("}")) {
       endIndex = unescapedValue.lastIndexOf('}');
@@ -58,6 +62,10 @@ public class DbLanguageInjector implements LanguageInjector {
       } else {
         endIndex = unescapedValue.length();
       }
+    }
+    if (endIndex == startIndex) {
+      // No expression found.
+      return;
     }
     injectionPlacesRegistrar.addPlace(DbLanguage.INSTANCE, TextRange.from(startIndex, endIndex-startIndex), null, null);
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
@@ -23,20 +24,19 @@ import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.THIRTY_SEC_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 
 public abstract class ToolWindowFixture {
+
+  private static final int SECONDS_TO_WAIT = 120;
+
   @NotNull protected final String myToolWindowId;
   @NotNull protected final Project myProject;
   @NotNull protected final Robot myRobot;
@@ -45,15 +45,13 @@ public abstract class ToolWindowFixture {
   protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
     myToolWindowId = toolWindowId;
     myProject = project;
-    final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
-    pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
-      @Override
-      public boolean test() {
+    final Ref<ToolWindow> toolWindowRef = new Ref<>();
+    Wait.seconds(SECONDS_TO_WAIT).expecting("tool window with ID '" + toolWindowId + "' to be found")
+      .until(() -> {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
         toolWindowRef.set(toolWindow);
         return toolWindow != null;
-      }
-    }, SHORT_TIMEOUT);
+      });
     myRobot = robot;
     myToolWindow = toolWindowRef.get();
   }
@@ -61,10 +59,9 @@ public abstract class ToolWindowFixture {
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
     activateAndWaitUntilIsVisible();
-    final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content '" + displayName + "'") {
-      @Override
-      public boolean test() {
+    final Ref<Content> contentRef = new Ref<>();
+    Wait.seconds(SECONDS_TO_WAIT).expecting("content '" + displayName + "' to be found")
+      .until(() -> {
         Content[] contents = getContents();
         for (Content content : contents) {
           if (displayName.equals(content.getDisplayName())) {
@@ -73,52 +70,18 @@ public abstract class ToolWindowFixture {
           }
         }
         return false;
-      }
-    }, SHORT_TIMEOUT);
-    return contentRef.get();
-  }
-
-  @Nullable
-  protected Content getContent(@NotNull final String displayName, @NotNull Timeout timeout) {
-    long now = System.currentTimeMillis();
-    long budget = timeout.duration();
-    activateAndWaitUntilIsVisible(Timeout.timeout(budget));
-    long revisedNow = System.currentTimeMillis();
-    budget -= (revisedNow - now);
-    final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content with display name " + displayName) {
-      @Override
-      public boolean test() {
-        Content[] contents = getContents();
-        for (Content content : contents) {
-          if (displayName.equals(content.getDisplayName())) {
-            contentRef.set(content);
-            return true;
-          }
-        }
-        return false;
-      }
-    }, Timeout.timeout(budget));
+      });
     return contentRef.get();
   }
 
   @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
-    return getContent(displayNameMatcher, SHORT_TIMEOUT);
-  }
-
-  @Nullable
-  protected Content getContent(@NotNull final TextMatcher displayNameMatcher, @NotNull Timeout timeout) {
-    long now = System.currentTimeMillis();
-    long budget = timeout.duration();
-    activateAndWaitUntilIsVisible(Timeout.timeout(budget));
-    long revisedNow = System.currentTimeMillis();
-    budget -= (revisedNow - now);
-    now = revisedNow;
-    final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content matching " + displayNameMatcher.formattedValues()) {
-      @Override
-      public boolean test() {
+    long startTime = System.currentTimeMillis();
+    activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
+    long secondsRemaining = SECONDS_TO_WAIT - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
+    final Ref<Content> contentRef = new Ref<>();
+    Wait.seconds(secondsRemaining).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
+      .until(() -> {
         Content[] contents = getContents();
         for (Content content : contents) {
           String displayName = content.getDisplayName();
@@ -128,21 +91,19 @@ public abstract class ToolWindowFixture {
           }
         }
         return false;
-      }
-    }, Timeout.timeout(budget));
+      });
     return contentRef.get();
   }
 
   private void activateAndWaitUntilIsVisible() {
-    activateAndWaitUntilIsVisible(SHORT_TIMEOUT);
+    activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
   }
 
-  private void activateAndWaitUntilIsVisible(@NotNull Timeout timeout) {
-    long now = System.currentTimeMillis();
-    long budget = timeout.duration();
+  private void activateAndWaitUntilIsVisible(long secondsToWait) {
+    long startTime = System.currentTimeMillis();
     activate();
-    budget -= System.currentTimeMillis() - now;
-    waitUntilIsVisible(Timeout.timeout(budget));
+    long secondsRemaining = secondsToWait - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
+    waitUntilIsVisible(secondsRemaining);
   }
 
   @NotNull
@@ -165,36 +126,28 @@ public abstract class ToolWindowFixture {
       return;
     }
 
-    final Callback callback = new Callback();
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        myToolWindow.activate(callback);
+        myToolWindow.activate(null);
       }
     });
 
-    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be activated") {
-      @Override
-      public boolean test() {
-        return callback.finished;
-      }
-    }, SHORT_TIMEOUT);
+    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(this::isActive);
   }
 
   protected void waitUntilIsVisible() {
-    waitUntilIsVisible(THIRTY_SEC_TIMEOUT);
+    waitUntilIsVisible(30);
   }
 
-  protected void waitUntilIsVisible(@NotNull Timeout timeout) {
-    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be visible") {
-      @Override
-      public boolean test() {
+  protected void waitUntilIsVisible(long secondsToWait) {
+    Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
+      .until(() -> {
         if (!isActive()) {
           activate();
         }
         return isVisible();
-      }
-    }, timeout);
+      });
   }
 
   private boolean isVisible() {
@@ -209,14 +162,5 @@ public abstract class ToolWindowFixture {
         return component.isVisible() && component.isShowing();
       }
     });
-  }
-
-  private static class Callback implements Runnable {
-    volatile boolean finished;
-
-    @Override
-    public void run() {
-      finished = true;
-    }
   }
 }

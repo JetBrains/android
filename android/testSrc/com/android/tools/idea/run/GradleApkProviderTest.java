@@ -16,131 +16,90 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link GradleApkProvider}.
  */
-@RunWith(Parameterized.class)
-public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
-  @Parameterized.Parameter
-  public boolean myLoadAllTestArtifacts;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      { false }, { true }
-    });
-  }
-
-  @Rule public TestName testName = new TestName();
-
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return myLoadAllTestArtifacts;
-  }
-
-  @Override
-  public String getName() {
-    return testName.getMethodName();
-  }
-
-  @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
-  @After
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
-  @Test
-  public void testGetPackageName() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetPackageName temporarily disabled");
-      return;
-    }
-
-    loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
-    // See testData/Projects/runConfig/activity/build.gradle
-    assertEquals("from.gradle.debug", provider.getPackageName());
-    // Without a specific test package name from the Gradle file, we just get a test prefix.
-    assertEquals("from.gradle.debug.test", provider.getTestPackageName());
-  }
-
-  @Test
+public class GradleApkProviderTest extends AndroidGradleTestCase {
   public void testGetApks() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetApks temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
-    IDevice device = Mockito.mock(IDevice.class);
-    Collection<ApkInfo> apks = provider.getApks(device);
-    assertNotNull(apks);
-    assertEquals(1, apks.size());
-    ApkInfo apk = apks.iterator().next();
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertThat(apks).hasSize(1);
+
+    ApkInfo apk = getFirstItem(apks);
+    assertNotNull(apk);
     assertEquals("from.gradle.debug", apk.getApplicationId());
-    assertTrue(apk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
+    String path = apk.getFile().getPath();
+    assertThat(path).endsWith(getName() + "-debug.apk");
   }
 
-  @Test
-  public void testGetPackageNameForTest() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetPackageNameForTest temporarily disabled");
-      return;
-    }
-
-    loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
-    // See testData/Projects/runConfig/activity/build.gradle
-    assertEquals("from.gradle.debug", provider.getPackageName());
-    // Without a specific test package name from the Gradle file, we just get a test prefix.
-    assertEquals("from.gradle.debug.test", provider.getTestPackageName());
-  }
-
-  @Test
   public void testGetApksForTest() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetApksForTest temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
-    IDevice device = Mockito.mock(IDevice.class);
-    Collection<ApkInfo> apks = provider.getApks(device);
-    assertNotNull(apks);
-    assertEquals(2, apks.size());
-    // Sort the apks to keep test consistent.
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>(apks);
-    Collections.sort(apkList, new Comparator<ApkInfo>() {
-      @Override
-      public int compare(ApkInfo a, ApkInfo b) {
-        return a.getApplicationId().compareTo(b.getApplicationId());
-      }
-    });
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
+
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertThat(apks).hasSize(2);
+
+    // Sort the APKs to keep test consistent.
+    List<ApkInfo> apkList = new ArrayList<>(apks);
+    Collections.sort(apkList, (a, b) -> a.getApplicationId().compareTo(b.getApplicationId()));
     ApkInfo mainApk = apkList.get(0);
     ApkInfo testApk = apkList.get(1);
+
     assertEquals("from.gradle.debug", mainApk.getApplicationId());
-    assertTrue(mainApk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
+    String path = mainApk.getFile().getPath();
+    assertThat(path).endsWith(getName() + "-debug.apk");
+
     assertEquals(testApk.getApplicationId(), "from.gradle.debug.test");
-    assertTrue(testApk.getFile().getPath().endsWith(getName() + "0-debug-androidTest-unaligned.apk"));
+    path = testApk.getFile().getPath();
+
+    GradleVersion modelVersion = getModel().getModelVersion();
+    if (modelVersion != null) {
+      if (modelVersion.compareIgnoringQualifiers("2.2.0") < 0
+          // Packaging reverted in alpha4?
+          || modelVersion.compareTo("2.2.0-alpha4") >= 0) {
+        assertThat(path).endsWith(getName() + "-debug-androidTest-unaligned.apk");
+      }
+      else {
+        assertThat(path).endsWith(getName() + "-debug-androidTest.apk");
+      }
+    }
+  }
+
+  public void testGetApksForTestOnlyModule() throws Exception {
+    loadProject("projects/testOnlyModule", "test");
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
+
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.test"))
+      .findFirst().orElse(null);
+    assertThat(testApk).isNotNull();
+
+    GradleVersion modelVersion = getModel().getModelVersion();
+    if (modelVersion != null) {
+      if (modelVersion.compareIgnoringQualifiers("2.2.0") < 0) {
+        // only the test-module apk should be there
+        assertThat(apks).hasSize(1);
+      } else {
+        // both test-module apk and main apk should be there
+        assertThat(apks).hasSize(2);
+        ApkInfo mainApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app"))
+          .findFirst().orElse(null);
+
+        assertThat(mainApk).isNotNull();
+      }
+    }
   }
 }

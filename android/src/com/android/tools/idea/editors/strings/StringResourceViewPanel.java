@@ -16,14 +16,11 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.xml.AndroidManifestParser;
-import com.android.ide.common.xml.ManifestData;
-import com.android.io.FileWrapper;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -39,7 +36,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
@@ -47,7 +43,6 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -58,7 +53,6 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -190,24 +184,21 @@ public class StringResourceViewPanel implements HyperlinkListener {
         JBPopupFactory.getInstance().createListPopupBuilder(list).setItemChoosenCallback(new Runnable() {
           @Override
           public void run() {
-            // pick some value to add to this locale
-            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
-            String key = "app_name";
-            ResourceItem defaultValue = defaultValues.get(key);
-
-            if (defaultValue == null) {
-              Map.Entry<String, ResourceItem> firstEntry = defaultValues.entrySet().iterator().next();
-              key = firstEntry.getKey();
-              defaultValue = firstEntry.getValue();
-            }
-
             // TODO(juancnuno) Ask the user to pick a source set instead of defaulting to the primary resource directory
             VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
             assert primaryResourceDir != null;
 
-            Locale l = (Locale)list.getSelectedValue();
+            // Pick a value to add to this locale
+            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
+            String key = "app_name";
 
-            StringsWriteUtils.createItem(myFacet, primaryResourceDir, l, key, StringResourceData.resourceToString(defaultValue), true);
+            if (!defaultValues.containsKey(key)) {
+              key = defaultValues.keySet().iterator().next();
+            }
+
+            String string = myData.resourceToString(key);
+
+            StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), key, string, true);
             reloadData();
           }
         }).createPopup().showUnderneathOf(toolbar.getComponent());
@@ -386,7 +377,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
     // @formatter:on
 
     // Package name
-    String pkg = ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    MergedManifest manifest = MergedManifest.get(myFacet);
+    String pkg = manifest.getPackage();
     if (pkg != null) {
       sb.append("&pkgName=");
       sb.append(pkg.replace('.', '_'));
@@ -401,30 +393,10 @@ public class StringResourceViewPanel implements HyperlinkListener {
     }
 
     // Version code
-    String versionCode = null;
-    if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-      Integer code = myFacet.getAndroidModel().getVersionCode();
-      if (code != null) {
-        versionCode = code.toString();
-      }
-    }
-    if (versionCode == null) {
-      VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
-      if (manifestFile != null) {
-        File file = VfsUtilCore.virtualToIoFile(manifestFile);
-        try {
-          ManifestData manifest = AndroidManifestParser.parse(new FileWrapper(file));
-          if (manifest.getVersionCode() != null) {
-            versionCode = manifest.getVersionCode().toString();
-          }
-        }
-        catch (Exception ignore) {
-        }
-      }
-    }
+    Integer versionCode = manifest.getVersionCode();
     if (versionCode != null) {
       sb.append("&apkVer=");
-      sb.append(versionCode);
+      sb.append(versionCode.toString());
     }
 
     // If we support additional IDE languages, we can send the language used in the IDE here

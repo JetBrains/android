@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +39,15 @@ public final class ProxyUtil {
    */
   @SuppressWarnings("unchecked") private static final Set<Class<?>> SUPPORTED_TYPES =
     ImmutableSet.of(File.class, Boolean.class, String.class, Integer.class, Collection.class, Set.class, List.class, Map.class);
+
+  private static final Map<String, InvocationErrorValue> THROWABLE_CACHE = ContainerUtil.createConcurrentSoftValueMap();
+
+  /*
+   * Map from de-serialized object to reproxied object, in order to avoid reproxying the same object multiple times.
+   * The values are soft references, such that when the holding AndroidGradleModel is disposed, the reproxied objects become eligible for
+   * GC and this in turn will remove the keys from the map.
+   */
+  private static final Map<Object, Object> proxyCache = ContainerUtil.createConcurrentSoftValueMap();
 
   private ProxyUtil() {
   }
@@ -127,6 +138,13 @@ public final class ProxyUtil {
     }
     Class<?> clazz = interfaces[0];
 
+    // Before reproxying, try to find it in the proxyCache. The degree of deduplication we achieve depends on hashCode() and equals() being
+    // properly implemented in the various model classes.
+    Object cached = proxyCache.get(object);
+    if (cached != null) {
+      return (T) cached;
+    }
+
     final Map<String, Object> values = Maps.newHashMap();
     for (Method m : clazz.getMethods()) {
       try {
@@ -135,16 +153,30 @@ public final class ProxyUtil {
           try {
             value = m.invoke(object);
           } catch (InvocationTargetException e) {
-            value = new InvocationErrorValue(e.getCause());
+            Throwable cause = e.getCause();
+            // Sometimes we end up with a null cause, which shouldn't happen (the Tooling API will construct a proper
+            // InvocationTargetException for non-existent methods), but might be caused by a more serious mismatch in the model.
+            if (cause != null && cause.getMessage() != null) {
+              value = THROWABLE_CACHE.get(cause.getMessage());
+              if (value == null) {
+                value = new InvocationErrorValue(cause);
+                THROWABLE_CACHE.put(cause.getMessage(), (InvocationErrorValue)value);
+              }
+            } else {
+              value = new InvocationErrorValue(cause);
+              Logger.getInstance(ProxyUtil.class).error(String.format("Calling %s on %s unexpectedly threw %s", m, object, cause));
+            }
           }
-          values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
+          values.put(m.toGenericString().intern(), reproxy(m.getGenericReturnType(), value));
         }
       }
       catch (IllegalAccessException e) {
         throw new IllegalStateException("A non public method shouldn't have been called.", e);
       }
     }
-    return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new WrapperInvocationHandler(values));
+    Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new WrapperInvocationHandler(values));
+    proxyCache.put(object, proxy);
+    return (T)proxy;
   }
 
   static class WrapperInvocationHandler implements InvocationHandler, Serializable {
@@ -213,5 +245,47 @@ public final class ProxyUtil {
       return handler.values;
     }
     return ImmutableMap.of();
+  }
+
+  public static boolean isValidProxyObject(@NotNull Object obj) {
+    if (!isAndroidModelProxyObject(obj)) {
+      if (obj instanceof Collection && (!((Collection)obj).isEmpty())) {
+        for (Object valueObj : (Collection)obj) {
+          if (valueObj != null && !isValidProxyObject(valueObj)) {
+            return false;
+          }
+        }
+      }
+      else if (obj instanceof Map && (!((Map)obj).isEmpty())) {
+        Map map = (Map)obj;
+        for (Object valueObj : map.values()) {
+          if (valueObj != null && !isValidProxyObject(valueObj)) {
+            return false;
+          }
+        }
+      }
+      return true; // It's not our proxy object and we won't be able to verify it's validity, so lets assume it's valid.
+    }
+
+    Class<?>[] interfaces = obj.getClass().getInterfaces();
+    if (interfaces.length != 1) {
+      return false; // This should never happen because we support only proxying classes with a single interface.
+    }
+    Class<?> clazz = interfaces[0];
+
+    Map<String, Object> androidModelProxyValues = getAndroidModelProxyValues(obj);
+    for (Method m : clazz.getMethods()) {
+      if (Modifier.isPublic(m.getModifiers()) && !androidModelProxyValues.containsKey(m.toGenericString())) {
+        return false;
+      }
+    }
+
+    for (Object valueObj : androidModelProxyValues.values()) {
+      if (valueObj != null && !isValidProxyObject(valueObj)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

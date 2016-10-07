@@ -15,7 +15,7 @@
  */
 
 /**
- * Classes which wrap fields in Swing classes, exposing them as {@link com.android.tools.idea.ui.properties.ObservableProperty}s.
+ * Classes which wrap fields in Swing classes, exposing them as {@link com.android.tools.idea.ui.properties.AbstractProperty}s.
  * <p/>
  * This extra structure layered on top of Swing lets the developer specify relationships between various GUI fields, enjoying the same
  * concise, powerful bindings syntax that properties use. This often results in many fewer lines of code than using the traditional Swing

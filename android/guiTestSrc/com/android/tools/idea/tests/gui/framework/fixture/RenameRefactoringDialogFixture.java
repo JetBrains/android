@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.ui.ConflictsDialog;
@@ -28,11 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;
 import java.awt.event.KeyEvent;
-import java.util.regex.Pattern;
+import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDialog> {
   @NotNull
@@ -55,6 +54,7 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
     });
     robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
     robot().enterText(newName);
+    Wait.minutes(2).expecting("EditorTextField to show new name").until(() -> newName.equals(field.getText()));
     return this;
   }
 
@@ -92,19 +92,8 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
 
     public String getText() {
       String html = getHtml();
-      return TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();
-    }
-
-    public void requireMessageText(@NotNull String text) {
-      assertEquals(text, getText());
-    }
-
-    public void requireMessageTextContains(@NotNull String text) {
-      assertTrue(getText() + " does not contain expected message fragment " + text, getText().contains(text));
-    }
-
-    public void requireMessageTextMatches(@NotNull String regexp) {
-      assertTrue(getText() + " does not match " + regexp, Pattern.matches(regexp, getText()));
+      String text = TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();
+      return text.replace(File.separatorChar, '/');
     }
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceParser;
-import com.android.tools.idea.rendering.ModuleResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.table.JBTable;

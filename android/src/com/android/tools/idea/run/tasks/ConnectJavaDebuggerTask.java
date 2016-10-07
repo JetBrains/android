@@ -18,7 +18,10 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.logcat.AndroidLogcatFormatter;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -35,6 +38,7 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -61,7 +65,13 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
     // detach old process handler
-    RunContentDescriptor descriptor = ((AndroidProgramRunner)currentLaunchInfo.runner).getDescriptor();
+    RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
+
+    // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
+    // a pooled thread to do all the launch tasks, which finally ends up in the connect debugger task. Is it possible that we
+    // reach here before the EDT gets around to creating the descriptor?
+    assert descriptor != null : "ConnectJavaDebuggerTask expects an existing descriptor that will be reused";
+
     final ProcessHandler processHandler = descriptor.getProcessHandler();
     assert processHandler != null;
 
@@ -113,16 +123,34 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
                                                       InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
-    debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT, client);
-    debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
+    debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);
+    debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
     final String pkgName = client.getClientData().getClientDescription();
     final IDevice device = client.getDevice();
+
+    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
+      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+
+      @NotNull
+      @Override
+      public String formatLogLine(@NotNull LogCatMessage line) {
+        return AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+      }
+
+      @Override
+      public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        debugProcessHandler.notifyTextAvailable(message, key);
+      }
+    };
+    AndroidLogcatService.getInstance().addListener(device, logListener, true);
+
 
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void processTerminated(ProcessEvent event) {
+        AndroidLogcatService.getInstance().removeListener(device, logListener);
         debugProcessHandler.removeProcessListener(this);
 
         Client currentClient = device.getClient(pkgName);

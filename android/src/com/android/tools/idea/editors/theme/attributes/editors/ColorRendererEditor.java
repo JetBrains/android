@@ -21,7 +21,7 @@ import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -30,7 +30,9 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -46,13 +48,15 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     assert resourceResolver != null;
 
     final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, item.getSelectedValue(), context.getProject());
+    SwatchComponent.SwatchIcon icon;
     if (colors.isEmpty()) {
-      component.setSwatchIcon(SwatchComponent.WARNING_ICON);
+      icon = SwatchComponent.WARNING_ICON;
     }
     else {
-      component.setSwatchIcon(new SwatchComponent.ColorIcon(Iterables.getLast(colors)));
+      icon = new SwatchComponent.ColorIcon(Iterables.getLast(colors));
+      icon.setIsStack(colors.size() > 1);
     }
-    component.showStack(colors.size() > 1);
+    component.setSwatchIcon(icon);
     component.setNameText(item.getQualifiedName());
     component.setValueText(item.getValue());
 
@@ -70,10 +74,10 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
   @NotNull
   @Override
-  protected ResourceType[] getAllowedResourceTypes() {
+  protected EnumSet<ResourceType> getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
-    String attributeName = myItem.getName().toLowerCase();
+    String attributeName = myItem.getName().toLowerCase(Locale.ENGLISH);
     if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
       return COLORS_ONLY;
     }

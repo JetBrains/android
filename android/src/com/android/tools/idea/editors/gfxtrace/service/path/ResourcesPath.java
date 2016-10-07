@@ -30,8 +30,8 @@ import java.io.IOException;
 
 public final class ResourcesPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myCapture.stringPath(builder).append(".Resources");
+  public String getSegmentString() {
+    return "Resources";
   }
 
   @Override

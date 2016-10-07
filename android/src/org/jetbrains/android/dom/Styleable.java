@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import org.jetbrains.android.facet.AndroidFacet;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,7 +26,13 @@ import java.lang.annotation.Target;
  * Used to annotate XML model interfaces with styleable name which should be used to
  * get attributes from.
  *
- * @see AndroidDomExtender
+ * For XML tags whose attributes are described in a styleable definition, which name is known statically,
+ * {@link Styleable} annotation can be used with corresponding interface extending {@link com.intellij.util.xml.DomElement}.
+ * For example, interface corresponding to "include" tag is {@link org.jetbrains.android.dom.layout.Include},
+ * and its attributes are coming from "Include" and "ViewGroup_Layout" styleable definitions. Thus, Include
+ * interface is annotated with {@code @Styleable({"Include", "ViewGroup_Layout"})}
+ *
+ * @see AttributeProcessingUtil#processAttributes(AndroidDomElement, AndroidFacet, boolean, AttributeProcessingUtil.AttributeProcessor)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})

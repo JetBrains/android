@@ -20,7 +20,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -30,10 +29,7 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
@@ -54,6 +50,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -66,15 +63,12 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
-import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JCheckBoxFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -82,19 +76,21 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
@@ -104,10 +100,13 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -121,25 +120,31 @@ import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
-import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class GradleSyncTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class GradleSyncTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
   private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
 
   private File myAndroidRepoPath;
   private File myAndroidRepoTempPath;
+
+  @Before
+  public void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
 
   @Before
   public void restoreAndroidRepository() throws IOException {
@@ -152,19 +157,18 @@ public class GradleSyncTest extends GuiTestCase {
     }
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
+  @Test
   public void testMissingInterModuleDependencies() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = importProject("ModuleDependencies");
+    guiTest.importProject("ModuleDependencies");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(guiTest.robot());
     projectSubsetDialog.selectModule("javalib1", false).clickOk();
 
-    myProjectFrame = findIdeFrame(projectPath);
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    ContentFixture messages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture messages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Unable to find module with Gradle path ':javalib1' (needed by modules: 'androidlib1', 'app'.)";
     messages.findMessageContainingText(ERROR, expectedError);
 
@@ -173,20 +177,20 @@ public class GradleSyncTest extends GuiTestCase {
     HyperlinkFixture quickFix = quickFixMsg.findHyperlink("Find and include missing modules");
     quickFix.click();
 
-    myProjectFrame.waitForBackgroundTasksToFinish();
-    myProjectFrame.getModule("javalib1"); // Fails if the module is not found.
+    guiTest.waitForBackgroundTasks();
+    guiTest.ideFrame().getModule("javalib1"); // Fails if the module is not found.
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=183368
   public void testTestOnlyInterModuleDependencies() throws IOException {
-    myProjectFrame = importMultiModule();
+    guiTest.importMultiModule();
 
-    EditorFixture editor = myProjectFrame.getEditor();
-    editor.open("app/build.gradle").moveTo(editor.findOffset("^compile fileTree")).enterText("androidTestCompile project(':library3')\n");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/build.gradle").moveBetween("", "compile fileTree").enterText("androidTestCompile project(':library3')\n");
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    Module appModule = myProjectFrame.getModule("app");
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+    Module appModule = guiTest.ideFrame().getModule("app");
 
     for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
@@ -200,40 +204,38 @@ public class GradleSyncTest extends GuiTestCase {
     fail("No dependency for library3 found");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testNonExistingInterModuleDependencies() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    final Module appModule = myProjectFrame.getModule("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
 
     // Set a dependency on a module that does not exist.
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(myProjectFrame.getProject(), new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          guiTest.ideFrame().getProject(), () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
             assertNotNull(buildModel);
             buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
             buildModel.applyChanges();
-          }
-        });
+          });
       }
     });
 
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
 
-    ContentFixture messages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture messages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Project with path ':fakeLibrary' could not be found";
     MessageFixture msg = messages.findMessageContainingText(ERROR, expectedError);
     msg.findHyperlink("Open File"); // Now it is possible to open the build.gradle where the missing dependency is declared.
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testUserDefinedLibrarySources() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
     String libraryName = "guava-18.0";
 
@@ -244,33 +246,28 @@ public class GradleSyncTest extends GuiTestCase {
     String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
 
     // add an extra source path.
-    final Library.ModifiableModel libraryModel = library.getModifiableModel();
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
     libraryModel.addRoot(url, SOURCES);
 
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            libraryModel.commit();
-          }
-        });
+        ApplicationManager.getApplication().runWriteAction(libraryModel::commit);
       }
     });
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     libraryTable = ProjectLibraryTable.getInstance(project);
     library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
 
     String[] urls = library.getUrls(SOURCES);
-    assertThat(urls).contains(url);
+    assertThat(urls).asList().contains(url);
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
+  @Test
   public void testSyncMissingAppCompat() throws IOException {
     if (myAndroidRepoPath.isDirectory()) {
       // Instead of deleting the Android repo folder, we rename it and later on restore it in a @SetUp method, so if this fails, the SDK
@@ -278,14 +275,15 @@ public class GradleSyncTest extends GuiTestCase {
       delete(myAndroidRepoTempPath);
       rename(myAndroidRepoPath, myAndroidRepoTempPath);
     }
-    assertThat(myAndroidRepoPath).doesNotExist();
+    assertAbout(file()).that(myAndroidRepoPath).doesNotExist();
 
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    MessageFixture message =
-      myProjectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+    MessagesToolWindowFixture messagesToolWindow = ideFrame.getMessagesToolWindow();
+    MessageFixture message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     HyperlinkFixture hyperlink = message.findHyperlink("Install Repository and sync project");
     hyperlink.clickAndContinue();
@@ -296,50 +294,40 @@ public class GradleSyncTest extends GuiTestCase {
       protected boolean isMatching(@NotNull Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
       }
-    }).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
-    final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
+    JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    pause(new Condition("Android Support Repository is installed") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() {
-            return finish.target().isEnabled();
-          }
-        });
-      }
-    }, LONG_TIMEOUT);
+    Wait.minutes(2).expecting("Android Support Repository to be installed").until(finish::isEnabled);
 
     // Installation finished. Click finish to resync project.
     finish.click();
 
-    myProjectFrame.waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
+    ideFrame.waitForGradleProjectSyncToFinish();
 
-    assertThat(myAndroidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
+    assertWithMessage("Android Support Repository must have been reinstalled").about(file()).that(myAndroidRepoPath).isDirectory();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
-    myProjectFrame = importMultiModule();
-    File appBuildFilePath = new File(myProjectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(appBuildFilePath).isFile();
+    guiTest.importMultiModule();
+    File appBuildFilePath = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertAbout(file()).that(appBuildFilePath).isFile();
     long lastModified = appBuildFilePath.lastModified();
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
     // See https://code.google.com/p/android/issues/detail?id=78628
     assertEquals(lastModified, appBuildFilePath.lastModified());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testJdkNodeModificationInProjectView() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
+    Project project = guiTest.ideFrame().getProject();
     AndroidTreeStructureProvider treeStructureProvider = null;
-    TreeStructureProvider[] treeStructureProviders = Extensions.getExtensions(TreeStructureProvider.EP_NAME, myProjectFrame.getProject());
+    TreeStructureProvider[] treeStructureProviders = Extensions.getExtensions(TreeStructureProvider.EP_NAME, project);
     for (TreeStructureProvider current : treeStructureProviders) {
       if (current instanceof AndroidTreeStructureProvider) {
         treeStructureProvider = (AndroidTreeStructureProvider)current;
@@ -347,27 +335,17 @@ public class GradleSyncTest extends GuiTestCase {
     }
 
     assertNotNull(treeStructureProvider);
-    final List<AbstractTreeNode> changedNodes = Lists.newArrayList();
-    treeStructureProvider.addChangeListener(new AndroidTreeStructureProvider.ChangeListener() {
-      @Override
-      public void nodeChanged(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode> newChildren) {
-        changedNodes.add(parent);
-      }
-    });
+    List<AbstractTreeNode> changedNodes = Lists.newArrayList();
+    treeStructureProvider.addChangeListener((parent, newChildren) -> changedNodes.add(parent));
 
-    ProjectViewFixture projectView = myProjectFrame.getProjectView();
+    ProjectViewFixture projectView = guiTest.ideFrame().getProjectView();
     ProjectViewFixture.PaneFixture projectPane = projectView.selectProjectPane();
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    pause(new Condition("Wait for 'Project View' to be customized") {
-      @Override
-      public boolean test() {
-        // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
-        // 'javax'.
-        return changedNodes.size() == 2;
-      }
-    }, LONG_TIMEOUT);
+    // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
+    // 'javax'.
+    Wait.minutes(2).expecting("'Project View' to be customized").until(() -> changedNodes.size() == 2);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
@@ -381,14 +359,8 @@ public class GradleSyncTest extends GuiTestCase {
     }
     assertNotNull(jdkNode);
 
-    final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    pause(new Condition("JDK node is customized") {
-      @Override
-      public boolean test() {
-        List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
-        return jdkChildren.size() == 1;
-      }
-    });
+    ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
+    Wait.seconds(30).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
 
     // Now we verify that the JDK node has only these children:
     // - jdk
@@ -409,20 +381,20 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=75060
-  @Test @IdeGuiTest
-  @Ignore // Works only when executed individually
+  @Test
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and when run individually from IDEA, Windows OK")
   public void testHandlingOfOutOfMemoryErrors() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // Force a sync failure by allocating not enough memory for the Gradle daemon.
     Properties gradleProperties = new Properties();
     gradleProperties.setProperty("org.gradle.jvmargs", "-XX:MaxHeapSize=8m");
-    File gradlePropertiesFilePath = new File(myProjectFrame.getProjectPath(), FN_GRADLE_PROPERTIES);
+    File gradlePropertiesFilePath = new File(guiTest.ideFrame().getProjectPath(), FN_GRADLE_PROPERTIES);
     savePropertiesToFile(gradleProperties, gradlePropertiesFilePath, null);
 
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
 
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Out of memory"));
 
     // Verify that at least we offer some sort of hint.
@@ -431,239 +403,236 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73872
-  @Test @IdeGuiTest
+  @Test
   public void testHandlingOfClassLoadingErrors() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.requestProjectSyncAndSimulateFailure("Unable to load class 'com.android.utils.ILogger'");
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure("Unable to load class 'com.android.utils.ILogger'");
 
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
     message.findHyperlink("Open Gradle Daemon documentation");
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=72556
   public void testHandlingOfUnexpectedEndOfBlockData() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.requestProjectSyncAndSimulateFailure("unexpected end of block data");
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure("unexpected end of block data");
 
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("An unexpected I/O error occurred."));
 
     message.findHyperlink("Build Project");
     message.findHyperlink("Open Android SDK Manager");
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    myProjectFrame.deleteGradleWrapper().requestProjectSync().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    guiTest.importSimpleApplication();
+    guiTest.ideFrame().deleteGradleWrapper().requestProjectSync().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest
+  @Test
+  @Ignore("http://b.android.com/203384")
   // See https://code.google.com/p/android/issues/detail?id=72294
   public void testSyncWithEmptyGradleSettingsFileInMultiModuleProject() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    createEmptyGradleSettingsFile(myProjectFrame.getProjectPath());
+    createEmptyGradleSettingsFile(guiTest.ideFrame().getProjectPath());
 
     // Sync should be successful for multi-module projects with an empty settings.gradle file.
-    myProjectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().requestProjectSync();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=76444
   public void testSyncWithEmptyGradleSettingsFileInSingleModuleProject() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("Basic");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("Basic");
 
-    createEmptyGradleSettingsFile(myProjectFrame.getProjectPath());
+    createEmptyGradleSettingsFile(guiTest.ideFrame().getProjectPath());
 
     // Sync should be successful for single-module projects with an empty settings.gradle file.
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 
   private static void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
     File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
     delete(settingsFilePath);
     writeToFile(settingsFilePath, " ");
-    assertThat(settingsFilePath).isFile();
+    assertAbout(file()).that(settingsFilePath).isFile();
+
+    // Refresh file content
+    findFileByIoFile(settingsFilePath, true);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testGradleDslMethodNotFoundInBuildFile() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    File topLevelBuildFile = new File(myProjectFrame.getProjectPath(), FN_BUILD_GRADLE);
-    assertThat(topLevelBuildFile).isFile();
+    File topLevelBuildFile = new File(guiTest.ideFrame().getProjectPath(), FN_BUILD_GRADLE);
+    assertAbout(file()).that(topLevelBuildFile).isFile();
     String content = "asdf()" + getLineSeparator() + loadFile(topLevelBuildFile);
     writeToFile(topLevelBuildFile, content);
 
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
 
-    ContentFixture gradleSyncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture gradleSyncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'asdf()'"));
 
-    final EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.close();
 
     // Verify that at least we offer some sort of hint.
     message.findHyperlink("Open Gradle wrapper file");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testGradleDslMethodNotFoundInSettingsFile() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    File settingsFile = new File(myProjectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
-    assertThat(settingsFile).isFile();
+    File settingsFile = new File(guiTest.ideFrame().getProjectPath(), FN_SETTINGS_GRADLE);
+    assertAbout(file()).that(settingsFile).isFile();
     writeToFile(settingsFile, "incude ':app'");
 
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
 
-    ContentFixture gradleSyncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture gradleSyncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = gradleSyncMessages.findMessage(ERROR, firstLineStartingWith("Gradle DSL method not found: 'incude()'"));
 
     // Ensure the error message contains the location of the error.
     message.requireLocation(settingsFile, 1);
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=76797
   public void testHandlingOfZipFileOpeningError() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.requestProjectSyncAndSimulateFailure("error in opening zip file");
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure("error in opening zip file");
 
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to open zip file."));
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=75520
   public void testConnectionPermissionDeniedError() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     String failure = "Connection to the Internet denied.";
-    myProjectFrame.requestProjectSyncAndSimulateFailure(failure);
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure(failure);
 
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(failure));
 
     HyperlinkFixture hyperlink = message.findHyperlink("More details (and potential fix)");
     hyperlink.requireUrl("http://tools.android.com/tech-docs/project-sync-issues-android-studio");
   }
 
-  @Test @IdeGuiTest
+  @Test
   // See https://code.google.com/p/android/issues/detail?id=76984
   public void testDaemonContextMismatchError() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     String failure = "The newly created daemon process has a different context than expected.\n" +
                      "It won't be possible to reconnect to this daemon. Context mismatch: \n" +
                      "Java home is different.\n" +
                      "javaHome=c:\\Program Files\\Java\\jdk,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=7868,idleTimeout=null]\n" +
                      "javaHome=C:\\Program Files\\Java\\jdk\\jre,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=4792,idleTimeout=10800000]";
-    myProjectFrame.requestProjectSyncAndSimulateFailure(failure);
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure(failure);
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
 
     message.findHyperlink("Open JDK Settings");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
-    File unsupportedGradleHome = getUnsupportedGradleHome();
-    File gradleHomePath = getGradleHomePath();
-    if (unsupportedGradleHome == null || gradleHomePath == null) {
-      skip("testUpdateGradleVersionWithLocalDistribution");
-      return;
-    }
+    File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
+    File gradleHomePath = getGradleHomePathOrSkipTest();
 
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    guiTest.ideFrame().deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    myProjectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
+    guiTest.ideFrame().findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
 
-    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(guiTest.robot());
     chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk().requireNotShowing();
 
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
-    File unsupportedGradleHome = getUnsupportedGradleHome();
-    if (unsupportedGradleHome == null) {
-      skip("testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle");
-      return;
-    }
+    File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
 
-    myProjectFrame = importMultiModule();
-    myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
+    guiTest.importMultiModule();
+    guiTest.ideFrame().deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    myProjectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
+    guiTest.ideFrame().findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    myProjectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution("").requestProjectSync();
+    guiTest.importSimpleApplication();
+    guiTest.ideFrame().deleteGradleWrapper().useLocalGradleDistribution("").requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    myProjectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-    myProjectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    guiTest.ideFrame().findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testCreateWrapperWhenLocalDistributionPathDoesNotExist() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
-    myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution(nonExistingDirPath).requestProjectSync();
+    guiTest.ideFrame().deleteGradleWrapper().useLocalGradleDistribution(nonExistingDirPath).requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    myProjectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
+    guiTest.ideFrame().findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    myProjectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74842
-  @Test @IdeGuiTest
+  @Test
   public void testPrematureEndOfContentLength() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // Simulate this Gradle error.
-    final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
-    myProjectFrame.requestProjectSyncAndSimulateFailure(failure);
+    String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
+    guiTest.ideFrame().requestProjectSyncAndSimulateFailure(failure);
 
-    final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
-    MessagesToolWindowFixture messages = myProjectFrame.getMessagesToolWindow();
+    String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
+    MessagesToolWindowFixture messages = guiTest.ideFrame().getMessagesToolWindow();
 
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
     HyperlinkFixture quickFix = message.findHyperlink("Re-download dependencies and sync project (requires network)");
     quickFix.click();
 
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // This is the only way we can at least know that we pass the right command-line option.
     String[] commandLineOptions = ApplicationManager.getApplication().getUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY);
-    assertThat(commandLineOptions).contains("--refresh-dependencies");
+    assertThat(commandLineOptions).asList().contains("--refresh-dependencies");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259
-  @Test @IdeGuiTest
+  @Test
   public void testImportProjectWithCentralBuildDirectoryInRootModule() throws IOException {
     // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
     // outside the content root of the "app" module.
@@ -671,16 +640,16 @@ public class GradleSyncTest extends GuiTestCase {
     File projectPath = new File(getProjectCreationDirPath(), projectDirName);
 
     // The bug appears only when the central build folder does not exist.
-    final File centralBuildDirPath = new File(projectPath, join("central", "build"));
+    File centralBuildDirPath = new File(projectPath, join("central", "build"));
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish(projectDirName);
-    final Module app = myProjectFrame.getModule("app");
+    guiTest.importProjectAndWaitForProjectSyncToFinish(projectDirName);
+    Module app = guiTest.ideFrame().getModule("app");
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
     // prevent unnecessary file indexing, which decreases performance.)
-    final File[] excludeFolderPaths = execute(new GuiQuery<File[]>() {
+    File[] excludeFolderPaths = execute(new GuiQuery<File[]>() {
       @Override
       protected File[] executeInEDT() throws Throwable {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
@@ -719,15 +688,15 @@ public class GradleSyncTest extends GuiTestCase {
     assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testSyncWithUnresolvedDependencies() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final VirtualFile appBuildFile = myProjectFrame.findFileByRelativePath("app/build.gradle", true);
+    guiTest.importSimpleApplication();
+    VirtualFile appBuildFile = guiTest.ideFrame().findFileByRelativePath("app/build.gradle", true);
 
     boolean versionChanged = false;
 
-    final Project project = myProjectFrame.getProject();
-    final GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
+    Project project = guiTest.ideFrame().getProject();
+    GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
       @Override
       @Nullable
       protected GradleBuildModel executeInEDT() throws Throwable {
@@ -738,8 +707,7 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(buildModel);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
-      ArtifactDependencySpec spec = artifact.getSpec();
-      if ("com.android.support".equals(spec.group) && "appcompat-v7".equals(spec.name)) {
+      if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {
         artifact.setVersion("100.0.0");
         versionChanged = true;
         break;
@@ -748,83 +716,74 @@ public class GradleSyncTest extends GuiTestCase {
 
     assertTrue(versionChanged);
 
-    runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(project, buildModel::applyChanges);
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/592")
+  @Test
   public void testImportProjectWithoutWrapper() throws IOException {
     GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 
-    File projectDirPath = copyProjectBeforeOpening("AarDependency");
+    guiTest.copyProjectBeforeOpening("AarDependency");
 
-    IdeFrameFixture.deleteWrapper(projectDirPath);
+    IdeFrameFixture.deleteWrapper(guiTest.getProjectPath());
 
-    cleanUpProjectForImport(projectDirPath);
+    guiTest.cleanUpProjectForImport(guiTest.getProjectPath());
 
-    // Import project
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.importProject();
-    FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
-
-    VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
+    VirtualFile toSelect = findFileByIoFile(guiTest.getProjectPath(), true);
     assertNotNull(toSelect);
 
+    // Import project
+    WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(guiTest.robot());
+    welcomeFrame.importProject();
+    FileChooserDialogFixture importProjectDialog = findImportProjectDialog(guiTest.robot());
     importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     welcomeFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    myProjectFrame = findIdeFrame(projectDirPath);
-    myProjectFrame.waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74341
-  @Test @IdeGuiTest
+  @Test
   public void testEditorFindsAppCompatStyle() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("AarDependency");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("AarDependency");
 
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    myProjectFrame.getEditor().open(stringsXmlPath, Tab.EDITOR);
-
-    FileFixture file = myProjectFrame.findExistingFileByRelativePath(stringsXmlPath);
-    file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+    guiTest.ideFrame().getEditor().open(stringsXmlPath, Tab.EDITOR);
+    guiTest.ideFrame().getEditor().waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testModuleSelectionOnImport() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = importProject("Flavoredlib");
+    guiTest.importProject("Flavoredlib");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(guiTest.robot());
     projectSubsetDialog.selectModule("lib", false).clickOk();
 
-    myProjectFrame = findIdeFrame(projectPath);
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
-    assertThat(myProjectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
+    assertThat(guiTest.ideFrame().getModuleNames()).containsExactly("Flavoredlib", "app");
 
     // subsequent project syncs should respect module selection
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertThat(myProjectFrame.getModuleNames()).containsOnly("Flavoredlib", "app");
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+    assertThat(guiTest.ideFrame().getModuleNames()).containsExactly("Flavoredlib", "app");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testLocalJarsAsModules() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LocalJarsAsModules");
-    Module localJarModule = myProjectFrame.getModule("localJarAsModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LocalJarsAsModules");
+    Module localJarModule = guiTest.ideFrame().getModule("localJarAsModule");
 
     // Module should be a Java module, not buildable (since it doesn't have source code).
     JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(localJarModule);
@@ -847,10 +806,11 @@ public class GradleSyncTest extends GuiTestCase {
     assertTrue(libraryDependency.isExported());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testLocalAarsAsModules() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LocalAarsAsModules");
-    Module localAarModule = myProjectFrame.getModule("library-debug");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LocalAarsAsModules");
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    Module localAarModule = ideFrame.getModule("library-debug");
 
     // When AAR files are exposed as artifacts, they don't have an AndroidProject model.
     AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
@@ -867,7 +827,7 @@ public class GradleSyncTest extends GuiTestCase {
     }
     assertNull(libraryDependency); // Should not expose the AAR as library, instead it should use the "exploded AAR".
 
-    Module appModule = myProjectFrame.getModule("app");
+    Module appModule = ideFrame.getModule("app");
     moduleRootManager = ModuleRootManager.getInstance(appModule);
     // Verify that the module depends on the AAR that it contains (in "exploded-aar".)
     libraryDependency = null;
@@ -883,11 +843,11 @@ public class GradleSyncTest extends GuiTestCase {
     assertTrue(libraryDependency.isExported());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testInterModuleDependencies() throws IOException {
-    myProjectFrame = importMultiModule();
+    guiTest.importMultiModule();
 
-    Module appModule = myProjectFrame.getModule("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(appModule);
 
     // Verify that the module "app" depends on module "library"
@@ -906,40 +866,45 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(found.getModuleName()).isEqualTo("library");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testAndroidPluginAndGradleVersionCompatibility() throws IOException {
-    myProjectFrame = importMultiModule();
+    guiTest.importMultiModule();
 
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.0.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    // @formatter:off
+    ideFrame.updateGradleWrapperVersion("2.4")
+            .updateAndroidGradlePluginVersion("1.0.0")
+            .requestProjectSync()
+            .waitForGradleProjectSyncToFinish();
+    // @formatter:on
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.2.0 (or newer)"));
   }
 
   // See https://code.google.com/p/android/issues/detail?id=165576
-  @Test @IdeGuiTest
+  @Test
   public void testJavaModelSerialization() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish().closeProject();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish().closeProject();
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProjectFrame.getProject());
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(guiTest.ideFrame().getProject());
     // When serialization of Java model fails, libraries are not set up.
     // Here we confirm that serialization works, because the Java module has the dependency declared in its build.gradle file.
-    assertThat(libraryTable.getLibraries()).hasSize(1);
+    assertThat(libraryTable.getLibraries()).asList().hasSize(1);
   }
 
   // See https://code.google.com/p/android/issues/detail?id=167378
-  @Test @IdeGuiTest
+  @Test
   public void testInterJavaModuleDependencies() throws IOException {
-    myProjectFrame = importMultiModule();
+    guiTest.importMultiModule();
 
-    Module library = myProjectFrame.getModule("library");
+    Module library = guiTest.ideFrame().getModule("library");
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library);
 
     // Verify that the module "library" depends on module "library2"
@@ -956,17 +921,17 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=169778
-  @Test @IdeGuiTest
+  @Test
   public void testJavaToAndroidModuleDependencies() throws IOException {
-    myProjectFrame = importMultiModule();
-    Module library3 = myProjectFrame.getModule("library3");
+    guiTest.importMultiModule();
+    Module library3 = guiTest.ideFrame().getModule("library3");
     assertNull(AndroidFacet.getInstance(library3));
 
-    File library3BuildFile = new File(myProjectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
-    assertThat(library3BuildFile).isFile();
+    File library3BuildFile = new File(guiTest.ideFrame().getProjectPath(), join("library3", FN_BUILD_GRADLE));
+    assertAbout(file()).that(library3BuildFile).isFile();
     appendToFile(library3BuildFile, "dependencies { compile project(':app') }");
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library3);
     // Verify that the module "library3" doesn't depend on module "app"
@@ -980,7 +945,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     assertNull(moduleDependency);
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
       syncMessages.findMessage(WARNING, firstLineStartingWith("Ignoring dependency of module 'app' on module 'library3'."));
 
@@ -991,21 +956,21 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
-  @Test @IdeGuiTest
+  @Test
   public void testUserDefinedLibraryAttachments() throws IOException {
-    File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
-    if (javadocJarPath == null) {
-      skip("testUserDefinedLibraryAttachments");
-      return;
-    }
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    LibraryPropertiesDialogFixture propertiesDialog = myProjectFrame.showPropertiesForLibrary("guava");
+    File javadocJarPath = new File(guiTest.getProjectPath(), "fake-javadoc.jar");
+    try (ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(javadocJarPath)))) {
+      zos.putNextEntry(new ZipEntry("allclasses-frame.html"));
+      zos.putNextEntry(new ZipEntry("allclasses-noframe.html"));
+    }
+    refreshFiles();
+
+    LibraryPropertiesDialogFixture propertiesDialog = guiTest.ideFrame().showPropertiesForLibrary("guava");
     propertiesDialog.addAttachment(javadocJarPath).clickOk();
 
-    myProjectFrame.waitForBackgroundTasksToFinish();
-
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     String javadocJarUrl = pathToUrl(javadocJarPath.getPath());
 
@@ -1013,7 +978,7 @@ public class GradleSyncTest extends GuiTestCase {
     LibraryFixture library = propertiesDialog.getLibrary();
     library.requireJavadocUrls(javadocJarUrl);
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     // Verify that the library still has the Javadoc attachment after sync.
     library = propertiesDialog.getLibrary();
@@ -1022,11 +987,10 @@ public class GradleSyncTest extends GuiTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=169743
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
-  @Ignore
-  @Test @IdeGuiTest
+  @Test
   public void testClearJvmArgsOnSyncAndBuild() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
     GradleProperties gradleProperties = new GradleProperties(project);
     gradleProperties.clear();
@@ -1034,18 +998,18 @@ public class GradleSyncTest extends GuiTestCase {
 
     VirtualFile gradlePropertiesFile = findFileByIoFile(gradleProperties.getPath(), true);
     assertNotNull(gradlePropertiesFile);
-    myProjectFrame.getEditor().open(gradlePropertiesFile, Tab.DEFAULT);
+    guiTest.ideFrame().getEditor().open(gradlePropertiesFile, Tab.DEFAULT);
 
     String jvmArgs = "-Xmx2048m";
-    myProjectFrame.setGradleJvmArgs(jvmArgs);
+    guiTest.ideFrame().setGradleJvmArgs(jvmArgs);
 
-    myProjectFrame.requestProjectSync();
+    guiTest.ideFrame().requestProjectSync();
 
     // Copy JVM args to gradle.properties file.
-    myProjectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
+    guiTest.ideFrame().findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
 
     // Verify JVM args were removed from IDE's Gradle settings.
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
 
     // Verify JVM args were copied to gradle.properties file
@@ -1057,13 +1021,12 @@ public class GradleSyncTest extends GuiTestCase {
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
   // See https://code.google.com/p/android/issues/detail?id=65325
-  @Test @IdeGuiTest
-  @Ignore("This test only passes when executed individually")
+  @Test
   public void testWithIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
 
-    myProjectFrame = importSimpleApplication();
-    File gradlePropertiesPath = new File(myProjectFrame.getProjectPath(), "gradle.properties");
+    guiTest.importSimpleApplication();
+    File gradlePropertiesPath = new File(guiTest.ideFrame().getProjectPath(), "gradle.properties");
     createIfNotExists(gradlePropertiesPath);
 
     String host = "myproxy.test.com";
@@ -1074,39 +1037,30 @@ public class GradleSyncTest extends GuiTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
 
-    myProjectFrame.requestProjectSync();
+    guiTest.ideFrame().requestProjectSync();
 
     // Expect IDE to ask user to copy proxy settings.
-    MessagesFixture message = myProjectFrame.findMessageDialog("Proxy Settings");
-    JCheckBox checkBox = message.find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox c) {
-        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
-      }
-    });
-    assertNotNull(checkBox);
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
-    checkBoxFixture.setSelected(true);
+    ProxySettingsDialogFixture proxyDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+    proxyDialog.setDoNotShowThisDialog(true);
+    proxyDialog.clickOk();
 
-    message.clickYes();
-
-    myProjectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
 
     // Verify gradle.properties has proxy settings.
-    assertThat(gradlePropertiesPath).isFile();
+    assertAbout(file()).that(gradlePropertiesPath).isFile();
 
     Properties gradleProperties = getProperties(gradlePropertiesPath);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
 
     // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testMismatchingEncodings() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
     execute(new GuiTask() {
       @Override
@@ -1116,70 +1070,66 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     String expectedMessage =
       "The project encoding (ISO-8859-1) has been reset to the encoding specified in the Gradle build files (UTF-8).";
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(INFO, firstLineStartingWith(expectedMessage));
 
     assertEquals("UTF-8", EncodingProjectManager.getInstance(project).getDefaultCharsetName());
   }
 
   // Verifies that the IDE switches SDKs if the IDE and project SDKs are not the same.
-  @Test @IdeGuiTest
+  @Test
   public void testSdkSwitch() throws IOException {
-    File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
-    if (secondSdkPath == null) {
-      skip("testSdkSwitch");
-      return;
-    }
+    File secondSdkPath = getFilePathPropertyOrSkipTest("second.android.sdk.path", "the path of a secondary Android SDK", true);
 
     getGuiTestSuiteState().setSkipSdkMerge(true);
 
     File originalSdkPath = IdeSdks.getAndroidSdkPath();
     assertNotNull(originalSdkPath);
 
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
-    LocalProperties localProperties = new LocalProperties(myProjectFrame.getProject());
+    LocalProperties localProperties = new LocalProperties(guiTest.ideFrame().getProject());
     localProperties.setAndroidSdkPath(secondSdkPath);
     localProperties.save();
 
-    myProjectFrame.requestProjectSync();
+    guiTest.ideFrame().requestProjectSync();
 
-    MessagesFixture messages = myProjectFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
+    MessagesFixture messages = guiTest.ideFrame().findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
     messages.click("Use Project's SDK");
 
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     assertThat(IdeSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
 
     // Set the project's SDK to be the original one. Now we will choose the IDE's SDK.
-    localProperties = new LocalProperties(myProjectFrame.getProject());
+    localProperties = new LocalProperties(guiTest.ideFrame().getProject());
     localProperties.setAndroidSdkPath(originalSdkPath);
     localProperties.save();
 
-    myProjectFrame.requestProjectSync();
+    guiTest.ideFrame().requestProjectSync();
 
-    messages = myProjectFrame.findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
+    messages = guiTest.ideFrame().findMessageDialog(ANDROID_SDK_MANAGER_DIALOG_TITLE);
     messages.click("Use Android Studio's SDK");
 
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    localProperties = new LocalProperties(myProjectFrame.getProject());
+    localProperties = new LocalProperties(guiTest.ideFrame().getProject());
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
   }
 
   // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.
   // See: https://code.google.com/p/android/issues/detail?id=160899
-  @Test @IdeGuiTest
+  @Test
   public void testWithCacheMissingModules() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // Remove a module from the cache.
-    Project project = myProjectFrame.getProject();
+    Project project = guiTest.ideFrame().getProject();
     DataNode<ProjectData> cache = getCachedProjectData(project);
     assertNotNull(cache);
 
@@ -1205,121 +1155,140 @@ public class GradleSyncTest extends GuiTestCase {
     // Sync again, and a full sync should occur, since the cache is missing modules.
     // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
     // finished.
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 
   // Verify that the IDE warns users about rendering issue when using plugin 1.2.0 to 1.2.2.
   // See https://code.google.com/p/android/issues/detail?id=170841
-  @Test @IdeGuiTest
+  @Test
   public void testModelWithLayoutRenderingIssue() throws IOException {
-    myProjectFrame = importMultiModule();
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.2.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
+    guiTest.importMultiModule();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    // @formatter:off
+    ideFrame.updateGradleWrapperVersion("2.4")
+            .updateAndroidGradlePluginVersion("1.2.0")
+            .requestProjectSync()
+            .waitForGradleProjectSyncToFinish();
+    // @formatter:on
+
+    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
   }
 
   // Verifies that after making a change in a build.gradle file, the editor notification saying that sync is needed shows up. This wasn't
   // the case after a project import.
   // See https://code.google.com/p/android/issues/detail?id=171370
-  @Test @IdeGuiTest
+  @Test
   public void testEditorNotificationsWhenSyncNeededAfterProjectImport() throws IOException {
-    myProjectFrame = importSimpleApplication();
-
-    EditorFixture editor = myProjectFrame.getEditor();
-    editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes().enterText("Hello World");
-
-    myProjectFrame.requireEditorNotification(
-      "Gradle files have changed since last project sync. " + "A project sync may be necessary for the IDE to work properly.");
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    // @formatter:off
+   ideFrame.getEditor()
+            .open("app/build.gradle")
+            .waitUntilErrorAnalysisFinishes()
+            .enterText("Hello World")
+            .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+    // @formatter:on
   }
 
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
   // See https://code.google.com/p/android/issues/detail?id=170722
-  @Test @IdeGuiTest
+  @Test
   public void testWithAndroidProjectWithoutVariants() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    Module appModule = myProjectFrame.getModule("app");
+    guiTest.importSimpleApplication();
+    Module appModule = guiTest.ideFrame().getModule("app");
     assertNotNull(AndroidFacet.getInstance(appModule));
 
-    File appBuildFile = new File(myProjectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(appBuildFile).isFile();
+    File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertAbout(file()).that(appBuildFile).isFile();
 
     // Remove all variants.
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     // Verify user was warned.
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("The module 'app' is an Android project without build variants"));
 
     // Verify AndroidFacet was removed.
-    appModule = myProjectFrame.getModule("app");
+    appModule = guiTest.ideFrame().getModule("app");
     assertNull(AndroidFacet.getInstance(appModule));
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testModuleLanguageLevel() throws IOException {
-    myProjectFrame = importMultiModule();
+    guiTest.importMultiModule();
 
-    Module library = myProjectFrame.getModule("library");
-    Module library2 = myProjectFrame.getModule("library2");
-    Module app = myProjectFrame.getModule("app");
+    Module library = guiTest.ideFrame().getModule("library");
+    Module library2 = guiTest.ideFrame().getModule("library2");
+    Module app = guiTest.ideFrame().getModule("app");
 
     assertEquals(JDK_1_6, getJavaLanguageLevel(library));
     assertEquals(JDK_1_5, getJavaLanguageLevel(library2));
     assertEquals(JDK_1_7, getJavaLanguageLevel(app));
   }
 
-  @Test @IdeGuiTest(runWithMinimumJdkVersion = JavaSdkVersion.JDK_1_8)
+  @Test
   public void testModuleLanguageLevelWithJdk8() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    Module javaLib = myProjectFrame.getModule("javaLib");
+    Sdk jdk = IdeSdks.getJdk();
+    if (jdk == null) {
+      skipTest("JDK is null");
+    }
+
+    assume().that(JavaSdk.getInstance().getVersion(jdk)).isAtLeast(JavaSdkVersion.JDK_1_8);
+
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    Module javaLib = guiTest.ideFrame().getModule("javaLib");
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testWithPreReleasePlugin() throws IOException {
-    myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidGradlePluginVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFail();
+    guiTest.importMultiModule();
+    guiTest.ideFrame().updateAndroidGradlePluginVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFail();
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
       syncMessages.findMessage(ERROR, firstLineStartingWith("Plugin is too old, please update to a more recent version"));
     // Verify that the "quick fix" is added.
     message.findHyperlink("Fix plugin version and sync project");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testSyncDuringOfflineMode() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    String hyperlinkText = "Disable offline mode and Sync";
 
-    File buildFile = new File(myProjectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(buildFile).isFile();
+    guiTest.importSimpleApplication();
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    File buildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertAbout(file()).that(buildFile).isFile();
     appendToFile(buildFile, "dependencies { compile 'something:not:exists' }");
 
-    GradleSettings gradleSettings = GradleSettings.getInstance(myProjectFrame.getProject());
+    GradleSettings gradleSettings = GradleSettings.getInstance(ideFrame.getProject());
     gradleSettings.setOfflineWork(true);
 
-    myProjectFrame.requestProjectSync();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    MessagesToolWindowFixture messagesToolWindow = ideFrame.getMessagesToolWindow();
+    MessageFixture message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
-    MessageFixture message =
-      myProjectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
-
-    HyperlinkFixture hyperlink = message.findHyperlink("Disable offline mode and Sync");
+    HyperlinkFixture hyperlink = message.findHyperlink(hyperlinkText);
     hyperlink.click();
 
     assertFalse(gradleSettings.isOfflineWork());
-
-    message = myProjectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+    ideFrame.waitForGradleProjectSyncToFinish();
+    messagesToolWindow = ideFrame.getMessagesToolWindow();
+    message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     try {
-      message.findHyperlink("Disable offline mode and Sync");
-      fail("Expecting AssertionFailedError");
+      message.findHyperlink(hyperlinkText);
+      fail(hyperlinkText + " link still present");
     }
-    catch (AssertionFailedError expected) {
+    catch (NullPointerException e) {
       // After offline mode is disable, the previous hyperlink will disappear after next sync
+      assertThat(e.getMessage()).contains("Failed to find URL");
+      assertThat(e.getMessage()).contains(hyperlinkText);
     }
   }
 
@@ -1328,136 +1297,135 @@ public class GradleSyncTest extends GuiTestCase {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void suggestUpgradingAndroidPlugin() throws IOException {
-    final String hyperlinkText = "Fix plugin version and sync project";
+    String hyperlinkText = "Fix plugin version and sync project";
 
-    myProjectFrame = importMultiModule();
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.2.0");
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.importMultiModule();
+    guiTest.ideFrame().updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.2.0");
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/build.gradle");
-    editor.moveTo(editor.findOffset("android {", "\n", true));
+    editor.moveBetween("android {", "\n");
     editor.enterText("\nlatestDsl()");
 
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
 
-    ContentFixture messages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture messages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     String expectedError = "Gradle DSL method not found: 'latestDsl()'";
     MessageFixture message = messages.findMessageContainingText(ERROR, expectedError);
     HyperlinkFixture quickFix = message.findHyperlink(hyperlinkText);
     quickFix.clickAndContinue();
 
     // Sync still fails, because latestDsl() is made up, but the plugin version should have changed.
-    myProjectFrame.waitForGradleProjectSyncToFail();
+    guiTest.ideFrame().waitForGradleProjectSyncToFail();
 
     // Check the top-level build.gradle got updated.
-    GradleVersion newVersion = getAndroidGradleModelVersionFromBuildFile(myProjectFrame.getProject());
+    GradleVersion newVersion = getAndroidGradleModelVersionFromBuildFile(guiTest.ideFrame().getProject());
     assertNotNull(newVersion);
     assertThat(newVersion.toString()).isEqualTo(GRADLE_PLUGIN_RECOMMENDED_VERSION);
 
-    messages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    messages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     expectedError = "Gradle DSL method not found: 'latestDsl()'";
     message = messages.findMessageContainingText(ERROR, expectedError);
     try {
       message.findHyperlink(hyperlinkText);
       fail("There should be no link, now that the plugin is up to date.");
     }
-    catch (AssertionFailedError e) {
+    catch (NullPointerException e) {
       assertThat(e.getMessage()).contains("Failed to find URL");
       assertThat(e.getMessage()).contains(hyperlinkText);
     }
   }
 
-  @Test @IdeGuiTest
-  @Ignore
+  @Test
   public void testSyncWithInvalidJdk() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    final File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
+    File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
     assert jdkHome != null;
     copyDir(new File(jdkHome), tempJdkDirectory);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            IdeSdks.setJdkPath(tempJdkDirectory);
-          }
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          IdeSdks.setJdkPath(tempJdkDirectory);
         });
       }
     });
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFail();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFail();
 
     delete(tempJdkDirectory);
-    myProjectFrame.requestProjectSyncAndExpectFailure();
+    guiTest.ideFrame().requestProjectSyncAndExpectFailure();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testUseLibrary() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
     // Make sure the library was added.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    final String libraryName = "org.apache.http.legacy-android-23";
-    final Library library = libraryTable.getLibraryByName(libraryName);
+    String libraryName = "org.apache.http.legacy-android-23";
+    Library library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
 
     // Verify that the library has the right j
     VirtualFile[] jarFiles = library.getFiles(CLASSES);
-    assertThat(jarFiles).hasSize(1);
+    assertThat(jarFiles).asList().hasSize(1);
     VirtualFile jarFile = jarFiles[0];
     assertEquals("org.apache.http.legacy.jar", jarFile.getName());
 
     // Verify that the module depends on the library
-    final Module appModule = myProjectFrame.getModule("app");
-    final AtomicBoolean dependencyFound = new AtomicBoolean();
+    Module appModule = guiTest.ideFrame().getModule("app");
+    AtomicBoolean dependencyFound = new AtomicBoolean();
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
-        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
-          if (orderEntry instanceof LibraryOrderEntry) {
-            LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
-            if (libraryDependency.getLibrary() == library) {
-              dependencyFound.set(true);
+        try {
+          for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+            if (orderEntry instanceof LibraryOrderEntry) {
+              LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
+              if (libraryDependency.getLibrary() == library) {
+                dependencyFound.set(true);
+              }
             }
           }
+        }
+        finally {
+          modifiableModel.dispose();
         }
       }
     }.execute();
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testAarSourceAttachments() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
-    final Module appModule = myProjectFrame.getModule("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
 
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(project, new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          project, () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
             assertNotNull(buildModel);
 
             String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
             buildModel.dependencies().addArtifact(COMPILE, newDependency);
             buildModel.applyChanges();
-          }
-        });
+          });
       }
     });
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     // Verify that the library has sources.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
@@ -1465,32 +1433,30 @@ public class GradleSyncTest extends GuiTestCase {
     Library library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
     VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).hasSize(1);
+    assertThat(files).asList().hasSize(1);
   }
 
   // https://code.google.com/p/android/issues/detail?id=185313
-  @Test @IdeGuiTest
+  @Test
   public void testSdkCreationForAddons() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final Project project = myProjectFrame.getProject();
+    guiTest.importSimpleApplication();
+    Project project = guiTest.ideFrame().getProject();
 
-    final Module appModule = myProjectFrame.getModule("app");
-    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    Module appModule = guiTest.ideFrame().getModule("app");
+    GradleBuildFile buildFile = GradleBuildFile.get(appModule);
     assertNotNull(buildFile);
 
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(project, new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          project, () -> {
             buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23");
-          }
-        });
+          });
       }
     });
 
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
     assertNotNull(sdk);
@@ -1510,13 +1476,13 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testGradleModelCache() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final File projectPath = myProjectFrame.getProjectPath();
-    myProjectFrame.closeProject();
+    guiTest.importSimpleApplication();
+    File projectPath = guiTest.ideFrame().getProjectPath();
+    guiTest.ideFrame().closeProject();
 
-    final AtomicBoolean syncSkipped = new AtomicBoolean(false);
+    AtomicBoolean syncSkipped = new AtomicBoolean(false);
 
     // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
     execute(new GuiTask() {
@@ -1535,11 +1501,34 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    pause(new Condition("Sync to be skipped") {
-      @Override
-      public boolean test() {
-        return syncSkipped.get();
-      }
-    }, SHORT_TIMEOUT);
+    Wait.minutes(2).expecting("sync to be skipped").until(syncSkipped::get);
+  }
+
+  /**
+   * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * <pre>
+   *   Steps:
+   *   1. Import a project.
+   *   2. Open build.gradle file for the project and update the min sdk value to 23.
+   *   3. Sync the project.
+   *   Verify:
+   *   Project syncs and minSdk version is updated.
+   *   </pre>
+   */
+  @Test
+  public void modifyMinSdk() throws Exception {
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    // @formatter:off
+    ideFrame.getEditor()
+            .open("app/build.gradle")
+            .select("minSdkVersion (19)")
+            .enterText("23")
+            .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+            .performAction("Sync Now")
+            .waitForGradleProjectSyncToFinish();
+    // @formatter:on
   }
 }

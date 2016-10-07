@@ -29,6 +29,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,6 +73,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   private void initializeDeviceCombo() {
+    AccessibleContextUtil.setName(myDeviceCombo, "Devices");
     myDeviceCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
@@ -90,6 +92,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   private void initializeClientCombo() {
+    AccessibleContextUtil.setName(myClientCombo, "Processes");
     myClientCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {

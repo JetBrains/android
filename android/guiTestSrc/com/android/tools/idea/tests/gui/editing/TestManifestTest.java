@@ -15,36 +15,45 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
 /**
  * Checks that a manifest in the test source set can access an activity defined in the same source set.
  */
-public class TestManifestTest extends GuiTestCase {
+@RunIn(TestGroup.EDITING)
+@RunWith(GuiTestRunner.class)
+public class TestManifestTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  @IdeGuiTest
   public void testManifest() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
-    EditorFixture editor = myProjectFrame.getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    editor.open("app/src/main/AndroidManifest.xml");
+    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
-    editor.select(editor.findOffset("^.MainActivity"), editor.findOffset(".MainActivity^"));
+    editor.select("(\\.MainActivity)");
     // TestActivity shouldn't be accessible from the main AndroidManifest.xml
     editor.enterText(".TestActivity");
+    // Close the auto-completion window
+    editor.invokeAction(EditorFixture.EditorAction.ESCAPE);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
 
     // but it should be from the test manifest
     editor.open("app/src/test/AndroidManifest.xml");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
-    editor.select(editor.findOffset("^.TestActivity"), editor.findOffset(".TestActivity^"));
+    editor.select("(\\.TestActivity)");
     editor.enterText(".MainActivity2");
     // Make sure we trigger the highlighting error
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);

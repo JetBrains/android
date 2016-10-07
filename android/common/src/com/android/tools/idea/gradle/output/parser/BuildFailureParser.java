@@ -74,12 +74,17 @@ public class BuildFailureParser implements PatternAwareOutputParser {
   private static final Pattern COMMAND_LINE_PARSER = Pattern.compile("^\\s+/([^/ ]+/)+([^/ ]+) (.*)");
   private static final Pattern COMMAND_LINE_ERROR_OUTPUT = Pattern.compile("^  Output:$");
 
+  // This is a compiler message from clang or gcc.
+  private static final Pattern COMPILE_FAILURE_MESSAGE = Pattern.compile("^> Build command failed.");
+  private static final Pattern COMPILE_LINE_PARSER = Pattern.compile("^\\s*(.+):(\\d+):(\\d+): (([^:]+): .*)$");
+
   private enum State {
     BEGINNING,
     WHERE,
     MESSAGE,
     COMMAND_FAILURE_COMMAND_LINE,
     COMMAND_FAILURE_OUTPUT,
+    COMPILE_FAILURE_OUTPUT,
     ENDING
   }
 
@@ -128,6 +133,12 @@ public class BuildFailureParser implements PatternAwareOutputParser {
           }
           else if (COMMAND_FAILURE_MESSAGE.matcher(currentLine).matches()) {
             state = State.COMMAND_FAILURE_COMMAND_LINE;
+          }
+          else if (COMPILE_FAILURE_MESSAGE.matcher(currentLine).matches()) {
+            state = State.COMPILE_FAILURE_OUTPUT;
+            // We don't need errorMessage anymore.
+            // Individual errors will be reported.
+            errorMessage.setLength(0);
           }
           else {
             // Determine whether the string starts with ">" (possibly indented by whitespace), and if so, where
@@ -210,6 +221,32 @@ public class BuildFailureParser implements PatternAwareOutputParser {
             if (!myAaptParser.parse(currentLine, reader, messages, logger)) {
               // The AAPT parser punted on it. Just create a message with the unparsed error.
               messages.add(new Message(Message.Kind.ERROR, currentLine, SourceFilePosition.UNKNOWN));
+            }
+          }
+          break;
+        case COMPILE_FAILURE_OUTPUT:
+          if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
+            state = State.ENDING;
+            pos = 1;
+          }
+          else {
+            matcher = COMPILE_LINE_PARSER.matcher(currentLine);
+            if (matcher.matches()) {
+              file = new SourceFile(new File(matcher.group(1)));
+              position = new SourcePosition(Integer.parseInt(matcher.group(2)) - 1, Integer.parseInt(matcher.group(3)) - 1, 0);
+              String text = matcher.group(4);
+              String type = matcher.group(5);
+              Message.Kind kind = Message.Kind.UNKNOWN;
+              if (type.endsWith("error")) {
+                kind = Message.Kind.ERROR;
+              }
+              else if (type.equals("warning")) {
+                kind = Message.Kind.WARNING;
+              }
+              else if (type.equals("note")) {
+                kind = Message.Kind.INFO;
+              }
+              messages.add(new Message(kind, text, new SourceFilePosition(file, position)));
             }
           }
           break;

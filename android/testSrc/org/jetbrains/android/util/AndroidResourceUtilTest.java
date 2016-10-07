@@ -15,7 +15,8 @@
  */
 package org.jetbrains.android.util;
 
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,10 +39,13 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
   }
 
   public void testCaseSensitivityInChangeColorResource() {
-    myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
+    VirtualFile xmlFile = myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
+    VirtualFile resDir = xmlFile.getParent().getParent();
     List<String> dirNames = ImmutableList.of("values");
-    assertTrue(AndroidResourceUtil.changeColorResource(myFacet, "myColor", "#000000", "colors.xml", dirNames, false));
-    assertFalse(AndroidResourceUtil.changeColorResource(myFacet, "mycolor", "#FFFFFF", "colors.xml", dirNames, false));
+    assertTrue(AndroidResourceUtil.changeValueResource(getProject(), resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
+                                                       dirNames, false));
+    assertFalse(AndroidResourceUtil.changeValueResource(getProject(), resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
+                                                        dirNames, false));
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 
@@ -197,5 +201,9 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     PsiFile libRClassFile = psiManager.findFile(libRFile);
     assertNotNull(libRClassFile);
     assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
+  }
+
+  public void testValidResourceFileName() {
+    assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
   }
 }

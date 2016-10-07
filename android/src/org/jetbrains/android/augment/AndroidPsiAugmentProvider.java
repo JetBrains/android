@@ -64,12 +64,12 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
       if (AndroidUtils.R_CLASS_NAME.equals(className) &&
           AndroidResourceUtil.isRJavaFile(facet, containingFile)) {
         final Set<String> existingInnerClasses = getOwnInnerClasses(aClass);
-        final Set<String> types = ResourceReferenceConverter.getResourceTypesInCurrentModule(facet);
+        final Set<ResourceType> types = ResourceReferenceConverter.getResourceTypesInCurrentModule(facet);
         final List<Psi> result = new ArrayList<Psi>();
 
-        for (String resType : types) {
-          if (!existingInnerClasses.contains(resType)) {
-            final AndroidLightClass resClass = new ResourceTypeClass(facet, resType, aClass);
+        for (ResourceType resType : types) {
+          if (!existingInnerClasses.contains(resType.getName())) {
+            final AndroidLightClass resClass = new ResourceTypeClass(facet, resType.getName(), aClass);
             result.add((Psi)resClass);
           }
         }

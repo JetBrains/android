@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -27,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
@@ -38,6 +41,9 @@ import java.net.URL;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -49,19 +55,9 @@ import static com.android.tools.idea.structure.services.BuildSystemOperationsLoo
 public abstract class DeveloperServiceCreator {
 
   /**
-   * Simple interface for a callback that runs on the dispatch thread.
-   *
-   * @see #runInBackground(Callable, Dispatchable)
-   */
-  protected interface Dispatchable<T> {
-    void dispatch(@NotNull T input);
-  }
-
-  /**
    * Reserved filename for the xml file which defines a service.
    */
   private static final String SERVICE_XML = "service.xml";
-
   /**
    * Plugins return resources via InputStreams. We create a temporary directory and create Files
    * for each of the InputStreams, which is important because the template parsing APIs we work
@@ -97,6 +93,70 @@ public abstract class DeveloperServiceCreator {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @NotNull
+  private static ServiceContext createContext(@NotNull Module module) {
+    String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
+    ServiceContext context = new ServiceContext(buildSystemId);
+
+    String packageName = MergedManifest.get(module).getPackage();
+
+    if (packageName != null) {
+      context.putValue("packageName", new StringValueProperty(packageName));
+    }
+
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    if (platform != null) {
+      // Add the compileSdkVersion (or buildApiVersion) such that compatible dependencies are chosen
+      AndroidVersion version = platform.getApiVersion();
+      context.putValue(ATTR_BUILD_API, new IntValueProperty(version.getFeatureLevel()));
+      context.putValue(ATTR_BUILD_API_STRING, new StringValueProperty(getBuildApiString(version)));
+    }
+
+    return context;
+  }
+
+  /**
+   * Useful method child classes can call to run code asynchronously. A followup callback,
+   * if provided, will be run on the dispatch thread on successful completion of the initial
+   * callback, as long as the initial callback doesn't throw an exception or return null.
+   * The output of the initial callback will be fed as an argument into the dispatch callback.
+   */
+  protected static <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
+    final Application application = ApplicationManager.getApplication();
+    application.executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          T result = backgroundAction.call();
+          if (result != null && dispatchAfter != null) {
+            dispatchAfter.dispatch(result);
+          }
+        }
+        catch (Exception e) {
+          // We currently don't care about failure, and treat it same as returning a null result
+          // TODO: If necessary, add a param for handling failure
+        }
+      }
+    });
+  }
+
+  /**
+   * Convenience method to open a target URL in a browser window.
+   */
+  protected static void browse(@NotNull String url) {
+    BrowserUtil.browse(url);
+  }
+
+  /**
+   * Given a dependency group ID and artifact ID, e.g. "com.google.android.gms" and "play-services", returns the highest version we know
+   * about, or {@code null} if we can't resolve the passed in IDs.
+   */
+  @Nullable
+  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId, @NotNull ServiceContext serviceContext) {
+    DeveloperServiceBuildSystemOperations operations = getBuildSystemOperations(serviceContext.getBuildSystemId());
+    return operations.getHighestVersion(groupId, artifactId);
   }
 
   /**
@@ -149,62 +209,6 @@ public abstract class DeveloperServiceCreator {
     return new DeveloperService(serviceParser);
   }
 
-  @NotNull
-  private static ServiceContext createContext(@NotNull Module module) {
-    String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
-    ServiceContext context = new ServiceContext(buildSystemId);
-
-    String packageName = ManifestInfo.get(module, false).getPackage();
-
-    if (packageName != null) {
-      context.putValue("packageName", new StringValueProperty(packageName));
-    }
-
-    return context;
-  }
-
-  /**
-   * Useful method child classes can call to run code asynchronously. A followup callback,
-   * if provided, will be run on the dispatch thread on successful completion of the initial
-   * callback, as long as the initial callback doesn't throw an exception or return null.
-   * The output of the initial callback will be fed as an argument into the dispatch callback.
-   */
-  protected static <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
-    final Application application = ApplicationManager.getApplication();
-    application.executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          T result = backgroundAction.call();
-          if (result != null && dispatchAfter != null) {
-            dispatchAfter.dispatch(result);
-          }
-        }
-        catch (Exception e) {
-          // We currently don't care about failure, and treat it same as returning a null result
-          // TODO: If necessary, add a param for handling failure
-        }
-      }
-    });
-  }
-
-  /**
-   * Convenience method to open a target URL in a browser window.
-   */
-  protected static void browse(@NotNull String url) {
-    BrowserUtil.browse(url);
-  }
-
-  /**
-   * Given a dependency group ID and artifact ID, e.g. "com.google.android.gms" and "play-services", returns the highest version we know
-   * about, or {@code null} if we can't resolve the passed in IDs.
-   */
-  @Nullable
-  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId, @NotNull ServiceContext serviceContext) {
-    DeveloperServiceBuildSystemOperations operations = getBuildSystemOperations(serviceContext.getBuildSystemId());
-    return operations.getHighestVersion(groupId, artifactId);
-  }
-
   /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
    * <p/>
@@ -226,5 +230,15 @@ public abstract class DeveloperServiceCreator {
   /**
    * Given a fresh context, initialize it with values used by this service.
    */
-  protected void initializeContext(@NotNull ServiceContext serviceContext) {}
+  protected void initializeContext(@NotNull ServiceContext serviceContext) {
+  }
+
+  /**
+   * Simple interface for a callback that runs on the dispatch thread.
+   *
+   * @see #runInBackground(Callable, Dispatchable)
+   */
+  protected interface Dispatchable<T> {
+    void dispatch(@NotNull T input);
+  }
 }

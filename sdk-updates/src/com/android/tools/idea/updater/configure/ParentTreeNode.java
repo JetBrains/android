@@ -25,54 +25,70 @@ import java.util.Enumeration;
  * A tree node used in {@link SdkUpdaterConfigurable}. Represents a summary view of several packages.
  */
 class ParentTreeNode extends UpdaterTreeNode {
-  private AndroidVersion myVersion;
+  private final AndroidVersion myVersion;
+  private final String myTitle;
+  private PackageNodeModel.SelectedState myInitialState;
 
   public ParentTreeNode(AndroidVersion version) {
     myVersion = version;
+    myTitle = null;
+  }
+
+  public ParentTreeNode(String title) {
+    myTitle = title;
+    myVersion = null;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getInitialState() {
-    boolean hasInstalled = false;
-    boolean hasNotInstalled = false;
-    for (Enumeration children = children(); children.hasMoreElements(); ) {
-      UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
-      if (child.getInitialState() == NodeStateHolder.SelectedState.MIXED) {
-        return NodeStateHolder.SelectedState.MIXED;
+  public PackageNodeModel.SelectedState getInitialState() {
+    if (myInitialState == null) {
+      boolean hasInstalled = false;
+      boolean hasNotInstalled = false;
+      for (Enumeration children = children(); children.hasMoreElements(); ) {
+        UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
+        if (child.getInitialState() == PackageNodeModel.SelectedState.MIXED) {
+          return PackageNodeModel.SelectedState.MIXED;
+        }
+        else if (child.getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
+          hasInstalled = true;
+        }
+        else {
+          hasNotInstalled = true;
+        }
       }
-      else if (child.getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
-        hasInstalled = true;
-      }
-      else {
-        hasNotInstalled = true;
-      }
+      myInitialState = hasInstalled
+                       ? (hasNotInstalled ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED)
+                       : PackageNodeModel.SelectedState.NOT_INSTALLED;
     }
-    return hasInstalled
-           ? (hasNotInstalled ? NodeStateHolder.SelectedState.MIXED : NodeStateHolder.SelectedState.INSTALLED)
-           : NodeStateHolder.SelectedState.NOT_INSTALLED;
+    return myInitialState;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getCurrentState() {
+  protected boolean canHaveMixedState() {
+    return getInitialState() == PackageNodeModel.SelectedState.MIXED;
+  }
+
+  @Override
+  public PackageNodeModel.SelectedState getCurrentState() {
     boolean foundInstalled = false;
     boolean foundNotInstalled = false;
     for (Enumeration children = children(); children.hasMoreElements(); ) {
       UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
-      if (child.getCurrentState() != NodeStateHolder.SelectedState.INSTALLED) {
+      if (child.getCurrentState() != PackageNodeModel.SelectedState.INSTALLED) {
         foundNotInstalled = true;
       }
-      if (child.getCurrentState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
+      if (child.getCurrentState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
         foundInstalled = true;
       }
     }
     if (foundInstalled && foundNotInstalled) {
-      return NodeStateHolder.SelectedState.MIXED;
+      return PackageNodeModel.SelectedState.MIXED;
     }
     else if (foundInstalled) {
-      return NodeStateHolder.SelectedState.INSTALLED;
+      return PackageNodeModel.SelectedState.INSTALLED;
     }
     else {
-      return NodeStateHolder.SelectedState.NOT_INSTALLED;
+      return PackageNodeModel.SelectedState.NOT_INSTALLED;
     }
   }
 
@@ -103,15 +119,19 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
+    String title = myTitle;
+    if (title == null) {
+      title = SummaryTreeNode.getDescription(myVersion);
+    }
     renderer.getTextRenderer()
-      .append(SummaryTreeNode.getDescription(myVersion), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      .append(title, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   @Override
-  protected void setState(NodeStateHolder.SelectedState state) {
+  protected void setState(PackageNodeModel.SelectedState state) {
     for (Enumeration children = children(); children.hasMoreElements(); ) {
       UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
-      child.setState(state);
+      child.setState(state == PackageNodeModel.SelectedState.MIXED ? child.getInitialState() : state);
     }
   }
 }

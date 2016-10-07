@@ -58,9 +58,19 @@ public interface RecipeExecutor {
   void addFilesToOpen(@NotNull File file);
 
   /**
+   * Adds "apply plugin: '{@code plugin}'" statement to the module build.gradle file.
+   */
+  void applyPlugin(@NotNull String plugin);
+
+  /**
+   * Record a classpath dependency.
+   */
+  void addClasspath(@NotNull String mavenUrl);
+
+  /**
    * Record a library dependency.
    */
-  void addDependency(@NotNull String mavenUrl);
+  void addDependency(@NotNull String configuration, @NotNull String mavenUrl);
 
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
@@ -77,4 +87,9 @@ public interface RecipeExecutor {
    * Restore the previous folder that relative paths will be resolved against.
    */
   void popFolder();
+
+  /**
+   * Append contents of the first file to the second one.
+   */
+  void append(@NotNull File from, @NotNull File to);
 }

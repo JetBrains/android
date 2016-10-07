@@ -47,7 +47,7 @@
     <action
         id="WelcomeScreen.RunAndroidSdkManager"
         class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-        icon="AndroidIcons.SdkManagerLarge" >
+        icon="AndroidIcons.SdkManager" >
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
@@ -63,8 +63,8 @@
                         overrides="true"/>
 
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
-                    serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
-                    overrides="true"/>
+                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
+                        overrides="true"/>
   </extensions>
 
 </idea-plugin>

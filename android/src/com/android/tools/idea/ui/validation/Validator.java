@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.ui.validation;
 
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * A class which is used to validate some input.
@@ -34,10 +38,22 @@ public interface Validator<T> {
    * violation has occurred.
    */
   enum Severity {
-    OK,
-    INFO,
-    WARNING,
-    ERROR
+    OK(null),
+    INFO(AllIcons.General.BalloonInformation),
+    WARNING(AllIcons.General.BalloonWarning),
+    ERROR(AllIcons.General.BalloonError);
+
+    @Nullable
+    private final Icon myIcon;
+
+    Severity(@Nullable Icon icon) {
+      myIcon = icon;
+    }
+
+    @Nullable
+    public Icon getIcon() {
+      return myIcon;
+    }
   }
 
   /**
@@ -64,6 +80,18 @@ public interface Validator<T> {
     @NotNull
     public String getMessage() {
       return myMessage;
+    }
+
+    /**
+     * Returns an error result, if given an error message, or an OK result if given a null message.
+     *
+     * There are a plenty of legacy validation methods that return error message or null if the validation succeeded.
+     * Instead of migrating all these methods this helper function allows to convert result of such a validation method
+     * to return proper {@link Result}.
+     */
+    @NotNull
+    public static Result fromNullableMessage(@Nullable("if no error") String errorMessage) {
+      return (errorMessage == null) ? OK : new Result(Severity.ERROR, errorMessage);
     }
   }
 }

@@ -19,7 +19,6 @@ package org.jetbrains.android.intentions;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -37,6 +36,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.InheritanceUtil;
@@ -51,13 +51,14 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
+import org.jetbrains.android.actions.NewResourceCreationHandler;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,11 +123,10 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             final ResourceValue value = (ResourceValue)domAttribute.getValue();
 
             if (value != null && !value.isReference()) {
-              final Set<String> types = ((ResourceReferenceConverter)converter).getResourceTypes(domAttribute);
+              final Set<ResourceType> types = ((ResourceReferenceConverter)converter).getResourceTypes(domAttribute);
 
-              String typeName = resourceType.getName();
-              for (String type : types) {
-                if (typeName.equals(type)) {
+              for (ResourceType type : types) {
+                if (resourceType == type) {
                   // This returns the XML attribute text, except for the surrounding quotes
                   String attributeText = ((XmlAttributeValue)element).getValue();
                   if (attributeText != null) {
@@ -196,26 +196,29 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
       String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert fileName != null;
-      AndroidResourceUtil.createValueResource(facet.getModule(), resName, type, fileName,
+      VirtualFile resourceDir = facet.getPrimaryResourceDir();
+      assert resourceDir != null;
+      AndroidResourceUtil.createValueResource(project, resourceDir, resName, type, fileName,
                                               Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
     }
     else {
       Module facetModule = facet.getModule();
-      boolean chooseName = resName != null || ResourceHelper.prependResourcePrefix(facetModule, null) != null;
-      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, resName, value, chooseName);
+      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, resName, value, true,
+                                                                         null, file.getVirtualFile());
       dialog.setTitle("Extract Resource");
       if (!dialog.showAndGet()) {
         return;
       }
 
-      final Module module = dialog.getModule();
-      if (module == null) {
+      VirtualFile resourceDir = dialog.getResourceDirectory();
+      if (resourceDir == null) {
+        AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", facetModule));
         return;
       }
 
       resName = dialog.getResourceName();
       if (!AndroidResourceUtil
-        .createValueResource(module, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
+        .createValueResource(project, resourceDir, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
         return;
       }
     }
@@ -232,7 +235,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(file);
-    AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
   }
 
   private static final String STRING_RES_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "StringRes";
@@ -319,6 +321,9 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final String resName,
                                                   final ResourceType resType) {
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
+    final boolean extendsFragment =
+      getContainingInheritorOf(element, CLASS_FRAGMENT) != null || getContainingInheritorOf(element, CLASS_V4_FRAGMENT) != null;
+
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
@@ -327,7 +332,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final boolean inStaticContext = RefactoringUtil.isInStaticContext(element, null);
     final Project project = module.getProject();
 
-    if (extendsContext && !inStaticContext) {
+    if ((extendsContext || extendsFragment) && !inStaticContext) {
       if (ResourceType.STRING == resType) {
         if (useGetStringMethodForStringRes(element)) {
           template = new TemplateImpl("", methodName + '(' + field + ')', "");

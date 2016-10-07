@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,6 +57,11 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Nullable
   public String getProject() {
     return myProject;
+  }
+
+  @Override
+  public String getName() {
+    return null;
   }
 
   @Override
@@ -101,6 +108,12 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull
   public List<File> getLocalJars() {
     return myLocalJars;
+  }
+
+  @Override
+  @NotNull
+  public Collection<? extends JavaLibrary> getJavaDependencies() {
+    return Collections.emptyList();
   }
 
   @Override
@@ -158,6 +171,17 @@ public class AndroidLibraryStub implements AndroidLibrary {
   }
 
   @Override
+  @NotNull
+  public File getSymbolFile() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isProvided() {
+    return false;
+  }
+
+  @Override
   public boolean isOptional() {
     return false;
   }
@@ -172,5 +196,10 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Nullable
   public MavenCoordinates getResolvedCoordinates() {
     return null;
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return false;
   }
 }

@@ -5,3 +5,4 @@ Thumbs.db
 *.class
 *.DS_Store
 tools-base
+.knownPackages

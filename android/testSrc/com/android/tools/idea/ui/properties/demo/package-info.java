@@ -16,7 +16,7 @@
 
 
 /**
- * Demos which showcase all major {@link com.android.tools.idea.ui.properties.ObservableProperty}
+ * Demos which showcase all major {@link com.android.tools.idea.ui.properties.AbstractProperty}
  * and {@link com.android.tools.idea.ui.properties.BindingsManager} features.
  */
 package com.android.tools.idea.ui.properties.demo;

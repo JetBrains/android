@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.repository.api.RemotePackage;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 
@@ -77,8 +77,8 @@ public class WizardConstants {
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
-  @SuppressWarnings("unchecked") public static final Key<List<String>> DEPENDENCIES_KEY =
-    createKey(ATTR_DEPENDENCIES_LIST, WIZARD, (Class<List<String>>)(Class)String.class);
+  @SuppressWarnings("unchecked") public static final Key<SetMultimap<String, String>> DEPENDENCIES_KEY =
+    createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class) SetMultimap.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_VERSION_KEY = createKey(ATTR_GRADLE_VERSION, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =
@@ -90,13 +90,17 @@ public class WizardConstants {
   public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
+  public static final Key<String> ESPRESSO_VERSION_KEY = createKey("espressoVersion", WIZARD, String.class);
   public static final Key<ModuleTemplate> SELECTED_MODULE_TYPE_KEY = createKey("selectedModuleType", WIZARD, ModuleTemplate.class);
   @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> SKIPPED_INSTALL_REQUESTS_KEY =
     createKey("packagesSkipped", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+
+  // Native support configuration in new project wizard, see ConfigureCppSupportStep for usages
+  public static final Key<Boolean> INCLUDE_CPP_SUPPORT_KEY = createKey(ATTR_CPP_SUPPORT, WIZARD, Boolean.class);
+  public static final Key<String> CPP_FLAGS_KEY = createKey(ATTR_CPP_FLAGS, WIZARD, String.class);
 
   /**
    * Files to open in the editor window after the Wizard is finished.

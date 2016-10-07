@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -138,7 +138,7 @@ public class Insets {
     return top + bottom;
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String toString() {
     return "Margins [left=" + left + ", right=" + right + ", top=" + top + ", bottom=" + bottom + "]";

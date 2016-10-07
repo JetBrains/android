@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
@@ -63,6 +65,26 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     return null;
   }
 
+  @Nullable
+  protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
+    if (designer instanceof NlEditorPanel) {
+      NlEditorPanel editor = (NlEditorPanel)designer;
+      return editor.getSurface();
+    } else if (designer instanceof NlPreviewForm) {
+      NlPreviewForm form = (NlPreviewForm)designer;
+      return form.getFile() != null ? form.getSurface() : null;
+    }
+
+    // Unexpected facade
+    throw new RuntimeException(designer.getClass().getName());
+  }
+
+  @NotNull
+  protected static NlLayoutType getLayoutType(@NotNull DesignerEditorPanelFacade designer) {
+    DesignSurface designSurface = getDesignSurface(designer);
+    return designSurface != null ? designSurface.getLayoutType() : NlLayoutType.UNKNOWN;
+  }
+
   protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {
     ContentManager contentManager = myToolWindow.getContentManager();
     Content content = contentManager.getFactory().createContent(contentPane, null, false);
@@ -81,9 +103,9 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     return new ToggleEditorModeAction(this, myProject, anchor) {
       @Override
       protected LightToolWindowManager getOppositeManager() {
-        LightToolWindowManager designerManager = NlStructureManager.get(myProject);
+        LightToolWindowManager propertiesManager = NlPropertiesWindowManager.get(myProject);
         LightToolWindowManager paletteManager = NlPaletteManager.get(myProject);
-        return myManager == designerManager ? paletteManager : designerManager;
+        return myManager == propertiesManager ? paletteManager : propertiesManager;
       }
     };
   }

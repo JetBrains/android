@@ -21,13 +21,13 @@ import org.junit.Test;
 
 import java.util.Locale;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ListExpressionsTest {
 
   @Test
   public void testMapExpression() {
-    ObservableList<String> strings = new ObservableList<String>();
+    ObservableList<String> strings = new ObservableList<>();
     strings.add("First");
     strings.add("seconD");
     strings.add("thIrd");
@@ -49,7 +49,7 @@ public final class ListExpressionsTest {
 
   @Test
   public void testSizeExpression() {
-    ObservableList<Integer> numbers = new ObservableList<Integer>();
+    ObservableList<Integer> numbers = new ObservableList<>();
     SizeExpression count = new SizeExpression(numbers);
 
     assertThat(count.get()).isEqualTo(0);

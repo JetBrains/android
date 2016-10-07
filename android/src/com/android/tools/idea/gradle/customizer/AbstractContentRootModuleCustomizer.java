@@ -46,8 +46,10 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     }
 
     final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
-    for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
-      moduleModel.removeContentEntry(contentEntry);
+    if (shouldRemoveContentEntries(module, modelsProvider)) {
+      for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
+        moduleModel.removeContentEntry(contentEntry);
+      }
     }
 
     Collection<ContentEntry> contentEntries = findOrCreateContentEntries(moduleModel, externalProjectModel);
@@ -59,6 +61,10 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
       ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
+  }
+
+  protected boolean shouldRemoveContentEntries(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    return true;
   }
 
   @NotNull

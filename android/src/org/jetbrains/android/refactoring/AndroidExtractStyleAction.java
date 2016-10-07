@@ -11,6 +11,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -30,10 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -52,7 +50,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
   }
 
   @TestOnly
-  public AndroidExtractStyleAction(@Nullable MyTestConfig testConfig) {
+  public AndroidExtractStyleAction(@NotNull MyTestConfig testConfig) {
     myTestConfig = testConfig;
   }
 
@@ -77,7 +75,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     final String dialogTitle = AndroidBundle.message("android.extract.style.title");
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     assert fileName != null;
-    final List<String> dirNames = Arrays.asList(ResourceFolderType.VALUES.getName());
+    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
     final List<XmlAttribute> extractableAttributes = getExtractableAttributes(viewTag);
     final Project project = module.getProject();
 
@@ -106,7 +104,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
     final String styleName;
     final List<XmlAttribute> styledAttributes;
-    final Module chosenModule;
+    final VirtualFile chosenDirectory;
     final boolean searchStyleApplications;
 
     if (testConfig == null) {
@@ -117,8 +115,11 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
         return null;
       }
       searchStyleApplications = dialog.isToSearchStyleApplications();
-      chosenModule = dialog.getChosenModule();
-      assert chosenModule != null;
+      chosenDirectory = dialog.getResourceDirectory();
+      if (chosenDirectory == null) {
+        AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+        return null;
+      }
 
       styledAttributes = dialog.getStyledAttributes();
       styleName = dialog.getStyleName();
@@ -126,7 +127,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     else {
       testConfig.validate(extractableAttributes);
 
-      chosenModule = testConfig.getModule();
+      chosenDirectory = testConfig.getResourceDirectory();
       styleName = testConfig.getStyleName();
       final Set<String> attrsToExtract = new HashSet<String>(Arrays.asList(testConfig.getAttributesToExtract()));
       styledAttributes = new ArrayList<XmlAttribute>();
@@ -148,7 +149,8 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!AndroidResourceUtil
-          .createValueResource(chosenModule, styleName, null, ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
+          .createValueResource(project, chosenDirectory, styleName, null, ResourceType.STYLE, fileName, dirNames,
+                               new Processor<ResourceElement>() {
             @Override
             public boolean process(ResourceElement element) {
               assert element instanceof Style;
@@ -257,21 +259,16 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
   }
 
   static class MyTestConfig {
-    private final Module myModule;
     private final String myStyleName;
     private final String[] myAttributesToExtract;
+    private VirtualFile myResourceDirectory;
 
-    MyTestConfig(@NotNull Module module,
+    MyTestConfig(@NotNull VirtualFile resourceDirectory,
                  @NotNull String styleName,
                  @NotNull String[] attributesToExtract) {
-      myModule = module;
+      myResourceDirectory = resourceDirectory;
       myStyleName = styleName;
       myAttributesToExtract = attributesToExtract;
-    }
-
-    @NotNull
-    public Module getModule() {
-      return myModule;
     }
 
     @NotNull
@@ -285,6 +282,10 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     }
 
     public void validate(@NotNull List<XmlAttribute> extractableAttributes) {
+    }
+
+    public VirtualFile getResourceDirectory() {
+      return myResourceDirectory;
     }
   }
 }

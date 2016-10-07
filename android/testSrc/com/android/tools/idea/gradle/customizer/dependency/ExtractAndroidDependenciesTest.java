@@ -55,10 +55,14 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myAndroidProject != null) {
-      myAndroidProject.dispose();
+    try {
+      if (myAndroidProject != null) {
+        myAndroidProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testExtractFromWithJar() {

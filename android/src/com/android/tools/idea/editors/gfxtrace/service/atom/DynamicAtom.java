@@ -88,4 +88,39 @@ public class DynamicAtom extends Atom {
   public boolean isDrawCall() {
     return myMetadata.getDrawCall();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    DynamicAtom that = (DynamicAtom)o;
+    if (!myValue.equals(that.myValue)) return false;
+    if (!myMetadata.equals(that.myMetadata)) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myValue.hashCode();
+    result = 31 * result + myMetadata.hashCode();
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getName());
+    sb.append('(');
+    boolean needComma = false;
+    for (int i = 0, c = getFieldCount(); i < c; i++) {
+      if (!isParameter(i)) { continue; }
+      if (needComma) { sb.append(", "); }
+      needComma = true;
+      sb.append(getFieldInfo(i).getName());
+      sb.append(": ");
+      sb.append(getFieldValue(i));
+    }
+    sb.append(')');
+    return sb.toString();
+  }
 }

@@ -16,33 +16,83 @@
 package com.android.tools.idea.run.activity;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.apk.ApkProjects.isApkProject;
+import static com.android.xml.AndroidManifest.NODE_ACTION;
+import static com.android.xml.AndroidManifest.NODE_CATEGORY;
+
 public class ActivityLocatorUtils {
-  public static boolean shouldUseMergedManifest(@NotNull AndroidFacet facet) {
-    return facet.requiresAndroidModel() || facet.getProperties().ENABLE_MANIFEST_MERGING;
+  public static boolean containsAction(@NotNull Element filter, @NotNull String name) {
+    Node action = filter.getFirstChild();
+    while (action != null) {
+      if (action.getNodeType() == Node.ELEMENT_NODE && NODE_ACTION.equals(action.getNodeName())) {
+        if (name.equals(((Element)action).getAttributeNS(ANDROID_URI, ATTR_NAME))) {
+          return true;
+        }
+      }
+      action = action.getNextSibling();
+    }
+    return false;
   }
 
-  public static boolean containsLauncherIntent(@NotNull List<IntentFilter> intentFilters) {
-    for (IntentFilter filter : intentFilters) {
-      if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME) &&
-          (AndroidDomUtil.containsCategory(filter, AndroidUtils.LAUNCH_CATEGORY_NAME) ||
-           AndroidDomUtil.containsCategory(filter, AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME))) {
-        return true;
+  public static boolean containsCategory(@NotNull Element filter, @NotNull String name) {
+    Node action = filter.getFirstChild();
+    while (action != null) {
+      if (action.getNodeType() == Node.ELEMENT_NODE && NODE_CATEGORY.equals(action.getNodeName())) {
+        if (name.equals(((Element)action).getAttributeNS(ANDROID_URI, ATTR_NAME))) {
+          return true;
+        }
       }
+      action = action.getNextSibling();
+    }
+    return false;
+  }
+
+  public static boolean containsLauncherIntent(@NotNull DefaultActivityLocator.ActivityWrapper activity) {
+    return activity.hasAction(AndroidUtils.LAUNCH_ACTION_NAME) &&
+           (activity.hasCategory(AndroidUtils.LAUNCH_CATEGORY_NAME) || activity.hasCategory(AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME));
+  }
+
+  @Nullable
+  public static String getQualifiedName(@NotNull Element component) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    Attr nameNode = component.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
+    if (nameNode == null) {
+      return null;
+    }
+    String name = nameNode.getValue();
+
+    int dotIndex = name.indexOf('.');
+    if (dotIndex > 0) { // fully qualified
+      return name;
     }
 
-    return false;
+    // attempt to retrieve the package name from the manifest in which this alias was defined
+    Element root = component.getOwnerDocument().getDocumentElement();
+    Attr pkgNode = root.getAttributeNode(ATTR_PACKAGE);
+    if (pkgNode != null) {
+      // if we have a package name, prepend that to the activity alias
+      String pkg = pkgNode.getValue();
+      return pkg + (dotIndex == -1 ? "." : "") + name;
+    }
+
+    return name;
   }
 
   @Nullable
@@ -79,7 +129,13 @@ public class ActivityLocatorUtils {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     PsiClass c = activity.getActivityClass().getValue();
+
     if (c == null) {
+      Module module = activity.getModule();
+      if (module != null && isApkProject(module)) {
+        // In APK project we doesn't necessarily have the source/class file of the activity.
+        return activity.getActivityClass().getStringValue();
+      }
       return null;
     }
 

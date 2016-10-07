@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.gradle.JavaModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.*;
@@ -47,7 +47,7 @@ import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
 public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance(JavaGradleFacet.class);
 
-  @NotNull public static FacetTypeId<JavaGradleFacet> TYPE_ID = new FacetTypeId<JavaGradleFacet>("java-gradle");
+  @NotNull public static FacetTypeId<JavaGradleFacet> TYPE_ID = new FacetTypeId<>("java-gradle");
 
   @NonNls public static final String TEST_CLASSES_TASK_NAME = "testClasses";
   @NonNls public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
@@ -55,7 +55,7 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   @NonNls public static final String ID = "java-gradle";
   @NonNls public static final String NAME = "Java-Gradle";
 
-  private JavaModel myJavaModel;
+  private JavaProject myJavaProject;
 
   @Nullable
   public static JavaGradleFacet getInstance(@NotNull Module module) {
@@ -82,13 +82,10 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
     connection.subscribe(PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (!isDisposed()) {
-              PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-              updateConfiguration();
-            }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (!isDisposed()) {
+            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
+            updateConfiguration();
           }
         });
       }
@@ -107,15 +104,6 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   }
 
   @Nullable
-  public JavaModel getJavaModel() {
-    return myJavaModel;
-  }
-
-  public void setJavaModel(@NotNull JavaModel javaModel) {
-    myJavaModel = javaModel;
-  }
-
-  @Nullable
   public String getGradleTaskName(@NotNull BuildMode buildMode) {
     if (!getConfiguration().BUILDABLE) {
       return null;
@@ -128,5 +116,14 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
       default:
         return null;
     }
+  }
+
+  public void setJavaProject(@NotNull JavaProject javaProject) {
+    myJavaProject = javaProject;
+  }
+
+  @Nullable
+  public JavaProject getJavaProject() {
+    return myJavaProject;
   }
 }

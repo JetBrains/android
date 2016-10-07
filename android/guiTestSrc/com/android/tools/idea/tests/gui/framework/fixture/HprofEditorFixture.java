@@ -20,9 +20,7 @@ import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -30,23 +28,17 @@ import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.fileEditor.impl.EditorWithProviderComposite;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
-import com.intellij.ui.table.JBTable;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class HprofEditorFixture extends EditorFixture {
   @NotNull private HprofEditor myHprofEditor;
@@ -111,17 +103,9 @@ public class HprofEditorFixture extends EditorFixture {
     return true;
   }
 
-  public void selectHeap(@NotNull String oldHeapName, @NotNull String newHeapName) {
-    myToolbarFixture.findComboBoxActionWithText(oldHeapName).selectItem(newHeapName);
-  }
-
   public boolean assertCurrentClassesViewMode(@NotNull String viewModeText) {
     myToolbarFixture.findComboBoxActionWithText(viewModeText);
     return true;
-  }
-
-  public void selectClassViewMode(@NotNull String oldViewModeName, @NotNull String newViewModeName) {
-    myToolbarFixture.findComboBoxActionWithText(oldViewModeName).selectItem(newViewModeName);
   }
 
   @NotNull
@@ -130,20 +114,8 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   @NotNull
-  public JTableFixture getClassesTreeHeader() {
-    JTreeFixture tree = getClassesTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
-  }
-
-  @NotNull
   public JTreeFixture getInstancesTree() {
     return new JTreeFixture(robot, InstancesTreeView.TREE_NAME);
-  }
-
-  @NotNull
-  public JTableFixture getInstancesTreeHeader() {
-    JTreeFixture tree = getInstancesTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
   }
 
   @NotNull
@@ -151,16 +123,9 @@ public class HprofEditorFixture extends EditorFixture {
     return new JTreeFixture(robot, InstanceReferenceTreeView.TREE_NAME);
   }
 
-  @NotNull
-  public JTableFixture getInstanceReferenceTreeHeader() {
-    JTreeFixture tree = getInstanceReferenceTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
-  }
-
   private void waitForHprofEditor() {
-    pause(new Condition("Wait for editor to be ready") {
-      @Override
-      public boolean test() {
+    Wait.minutes(2).expecting("editor to be ready")
+      .until(() -> {
         try {
           robot.finder().findByName(myHprofEditor.getComponent(), "HprofClassesTree", true);
           return true;
@@ -168,8 +133,7 @@ public class HprofEditorFixture extends EditorFixture {
         catch (ComponentLookupException e) {
           return false;
         }
-      }
-    }, GuiTests.LONG_TIMEOUT);
+      });
   }
 
   protected static class ActionToolbarFixture extends JComponentFixture<ActionToolbarFixture, ActionToolbarImpl> {
@@ -183,26 +147,6 @@ public class HprofEditorFixture extends EditorFixture {
     @NotNull
     public ComboBoxActionFixture findComboBoxActionWithText(@NotNull String text) {
       return ComboBoxActionFixture.findComboBoxByText(robot(), target(), text);
-    }
-
-    @NotNull
-    public ComboBoxActionFixture getComboBoxActionAt(int index) {
-      java.util.List<AnAction> actions = target().getActions(true);
-      if (index >= actions.size()) {
-        throw new ArrayIndexOutOfBoundsException("Index '" + index + "' is out of bounds (size: " + actions.size() + ")");
-      }
-      assertTrue(actions.get(index) instanceof ComboBoxAction);
-      Component buttonPanel = target().getComponent().getComponent(index);
-      assertTrue(buttonPanel instanceof Container);
-
-      final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      pause(new Condition("Wait for button to be visible.") {
-        @Override
-        public boolean test() {
-          return button.isShowing();
-        }
-      }, GuiTests.SHORT_TIMEOUT);
-      return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 
     private ActionToolbarFixture(@NotNull Robot robot, @NotNull ActionToolbarImpl target) {

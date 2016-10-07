@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 public class DnDTransferComponent {
   private final String myTag;
@@ -23,8 +23,8 @@ public class DnDTransferComponent {
   @AndroidCoordinate private final int myWidth;
   @AndroidCoordinate private final int myHeight;
 
-  public DnDTransferComponent(@NonNull String tag,
-                              @NonNull String representation,
+  public DnDTransferComponent(@NotNull String tag,
+                              @NotNull String representation,
                               @AndroidCoordinate int width,
                               @AndroidCoordinate int height) {
     myTag = tag;
@@ -33,12 +33,12 @@ public class DnDTransferComponent {
     myHeight = height;
   }
 
-  @NonNull
+  @NotNull
   public String getTag() {
     return myTag;
   }
 
-  @NonNull
+  @NotNull
   public String getRepresentation() {
     return myRepresentation;
   }

@@ -17,6 +17,8 @@ package com.android.tools.idea.updater.configure;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -33,7 +35,7 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
 
   @Override
   public int getWidth(JTable table) {
-    return 30;
+    return JBUI.scale(30);
   }
 
   @Nullable
@@ -44,27 +46,54 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
       public void setText(String text) {
       }
     };
-    renderer.setIcon(valueOf(node));
+    IconInfo info = getIconInfo(node);
+    renderer.setIcon(info.getIcon());
+    renderer.getAccessibleContext().setAccessibleName(info.getName());
     return renderer;
+  }
+
+  private static class IconInfo {
+    private final Icon myIcon;
+    private final String myName;
+
+    public static IconInfo Empty = new IconInfo(null, "Action: no change");
+
+    public IconInfo(Icon icon, String name) {
+      myIcon = icon;
+      myName = name;
+    }
+
+    public Icon getIcon() {
+      return myIcon;
+    }
+
+    public String getName() {
+      return myName;
+    }
   }
 
   @Override
   @Nullable
   public Icon valueOf(UpdaterTreeNode node) {
-    if (!node.isLeaf()) {
-      return null;
+    return getIconInfo(node).getIcon();
+  }
+
+  @NotNull
+  public IconInfo getIconInfo(UpdaterTreeNode node) {
+    if (node == null || !node.isLeaf()) {
+      return IconInfo.Empty;
     }
     if (node.getCurrentState() != node.getInitialState()) {
-      if (node.getCurrentState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        return AllIcons.Actions.Delete;
+      if (node.getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return new IconInfo(AllIcons.Actions.Delete, "Action: delete local files");
       }
-      else if (node.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
-        return AllIcons.Actions.Download;
+      else if (node.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
+        return new IconInfo(AllIcons.Actions.Download, "Action: download files locally");
       }
       else {
         assert false : "Invalid state selected: " + node.getCurrentState();
       }
     }
-    return null;
+    return IconInfo.Empty;
   }
 }

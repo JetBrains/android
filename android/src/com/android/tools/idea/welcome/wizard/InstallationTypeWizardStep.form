@@ -16,11 +16,6 @@
           <text value="Choose the type of setup you want for Android Studio:"/>
         </properties>
       </component>
-      <vspacer id="d3f10">
-        <constraints>
-          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </vspacer>
       <vspacer id="585b8">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
@@ -44,6 +39,14 @@
           <text value="Android Studio will be installed with the most common settings and options."/>
         </properties>
       </component>
+      <component id="ac841" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Recommended for most users."/>
+        </properties>
+      </component>
       <component id="61425" class="javax.swing.JRadioButton" binding="myCustomRadioButton" default-binding="true">
         <constraints>
           <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -60,14 +63,11 @@
           <text value="You can customize installation settings and components installed."/>
         </properties>
       </component>
-      <component id="ac841" class="javax.swing.JLabel">
+      <vspacer id="d3f10">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <text value="Recommended for most users."/>
-        </properties>
-      </component>
+      </vspacer>
     </children>
   </grid>
   <buttonGroups>

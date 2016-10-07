@@ -89,6 +89,11 @@ public class VirtualFolderWrapper implements IAbstractFolder {
   }
 
   @Override
+  public String getPath() {
+    return myFolder.getPath();
+  }
+
+  @Override
   public boolean exists() {
     return myFolder.exists();
   }

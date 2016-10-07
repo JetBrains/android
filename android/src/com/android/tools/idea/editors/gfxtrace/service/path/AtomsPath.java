@@ -25,17 +25,21 @@ import java.io.IOException;
 
 public final class AtomsPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myCapture.stringPath(builder).append(".Atoms");
+  public String getSegmentString() {
+    return "Atoms";
   }
 
   @Override
-  public Path getParent() {
+  public CapturePath getParent() {
     return myCapture;
   }
 
   public AtomPath index(long i) {
     return new AtomPath().setAtoms(this).setIndex(i);
+  }
+
+  public AtomRangePath range(long i, long count) {
+    return new AtomRangePath().setAtoms(this).setFirst(i).setCount(count);
   }
 
   //<<<Start:Java.ClassBody:1>>>

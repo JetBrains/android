@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.tools.idea.editors.theme.StateListPicker;
+import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;

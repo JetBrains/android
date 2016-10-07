@@ -15,54 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 public class NlPropertiesModel extends PTableModel {
-  @Nullable private NlComponent myComponent;
   private boolean myShowingExpertProperties;
-
-  public void update(@NotNull List<NlComponent> selection, @Nullable final Runnable postUpdateRunnable) {
-    // TODO: handle multiple selections: show properties common to all selections
-    final NlComponent first = selection.isEmpty() ? null : selection.get(0);
-    myComponent = first;
-    if (first == null) {
-      setItems(Collections.<PTableItem>emptyList());
-      if (postUpdateRunnable != null) {
-        postUpdateRunnable.run();
-      }
-      return;
-    }
-
-    // Obtaining the properties, especially the first time around on a big project
-    // can take close to a second, so we do it on a separate thread..
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final List<NlProperty> properties = NlProperties.getInstance().getProperties(first);
-        final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties, myComponent);
-        final List<PTableItem> sortedProperties = new NlPropertiesSorter().sort(groupedProperties, myComponent);
-
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            setItems(sortedProperties);
-            if (postUpdateRunnable != null) {
-              postUpdateRunnable.run();
-            }
-          }
-        });
-      }
-    });
-  }
 
   public boolean isShowingExpertProperties() {
     return myShowingExpertProperties;

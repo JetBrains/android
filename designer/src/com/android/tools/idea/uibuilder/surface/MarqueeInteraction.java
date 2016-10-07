@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.google.common.collect.Lists;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -47,7 +50,7 @@ public class MarqueeInteraction extends Interaction {
    * @param toggle If true, toggle the membership of contained elements
    *            instead of adding it.
    */
-  public MarqueeInteraction(@NonNull ScreenView surface, boolean toggle) {
+  public MarqueeInteraction(@NotNull ScreenView surface, boolean toggle) {
     myScreenView = surface;
 
     if (toggle) {
@@ -58,7 +61,7 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     if (myOverlay == null) {
       return;
     }
@@ -141,7 +144,7 @@ public class MarqueeInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NonNull Graphics2D gc) {
+    public void paint(@NotNull Graphics2D gc) {
       NlGraphics.drawFilledRect(NlDrawingStyle.SELECTION, gc, x, y, w, h);
     }
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,10 +45,14 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "copy", type = CopyInstruction.class),
     @XmlElement(name = "instantiate", type = InstantiateInstruction.class),
     @XmlElement(name = "merge", type = MergeInstruction.class),
+    @XmlElement(name = "append", type = AppendInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
-    @XmlElement(name = "dependency", type = DependencyInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
-    @XmlElement(name = "recipe", type = Recipe.class)
+    @XmlElement(name = "recipe", type = Recipe.class),
+    // Gradle specific recipes
+    @XmlElement(name = "apply", type = ApplyInstruction.class),
+    @XmlElement(name = "classpath", type = ClasspathInstruction.class),
+    @XmlElement(name = "dependency", type = DependencyInstruction.class),
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
   // @formatter:on
@@ -167,6 +172,24 @@ public class Recipe implements RecipeInstruction {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class AppendInstruction implements RecipeInstruction {
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute(required = true)
+    @NotNull
+    private File from;
+
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute
+    @NotNull
+    private File to;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+      executor.append(from, to);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
   private static final class MergeInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
@@ -218,14 +241,42 @@ public class Recipe implements RecipeInstruction {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class DependencyInstruction implements RecipeInstruction {
+  private static final class ApplyInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String plugin;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.applyPlugin(plugin);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class ClasspathInstruction implements RecipeInstruction {
     @XmlAttribute(required = true)
     @NotNull
     private String mavenUrl;
 
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
-      executor.addDependency(mavenUrl);
+      executor.addClasspath(mavenUrl);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class DependencyInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String mavenUrl;
+
+    @XmlAttribute
+    private String gradleConfiguration;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      String configuration = Objects.firstNonNull(this.gradleConfiguration, "compile");
+      executor.addDependency(configuration, mavenUrl);
     }
   }
 

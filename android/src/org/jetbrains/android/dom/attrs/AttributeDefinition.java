@@ -30,9 +30,9 @@ public class AttributeDefinition {
   private final String myName;
   private final List<String> myParentStyleables = ContainerUtil.newSmartList();
   private final Set<AttributeFormat> myFormats = EnumSet.noneOf(AttributeFormat.class);
-  private final List<String> myValues = new ArrayList<String>();
-  private final Map<String, String> myStyleable2DocValue = new HashMap<String, String>();
-  private final Map<String, String> myValueDoc = new HashMap<String, String>();
+  private final List<String> myValues = new ArrayList<>();
+  private final Map<String, String> myStyleable2DocValue = new HashMap<>();
+  private final Map<String, String> myValueDoc = new HashMap<>();
   private String myGlobalDocValue;
   private String myAttrGroup;
 

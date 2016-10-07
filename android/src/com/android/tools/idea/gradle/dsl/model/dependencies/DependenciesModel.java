@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class DependenciesModel extends GradleDslBlockModel {
@@ -43,6 +44,10 @@ public class DependenciesModel extends GradleDslBlockModel {
       if (list != null) {
         for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
           dependencies.addAll(ArtifactDependencyModel.create(element));
+          if (element instanceof GradleDslMethodCall) {
+            GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
+            dependencies.addAll(ModuleDependencyModel.create(configurationName, methodCall));
+          }
         }
       }
     }
@@ -74,6 +79,15 @@ public class DependenciesModel extends GradleDslBlockModel {
     }
   }
 
+  public boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
+    for (ArtifactDependencyModel artifactDependencyModel : artifacts(configurationName)) {
+      if (ArtifactDependencySpec.create(artifactDependencyModel).equals(dependency)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @NotNull
   public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
     ArtifactDependencySpec dependency = ArtifactDependencySpec.create(compactNotation);
@@ -87,8 +101,15 @@ public class DependenciesModel extends GradleDslBlockModel {
 
   @NotNull
   public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
+    return addArtifact(configurationName, dependency, Collections.emptyList());
+  }
+
+  @NotNull
+  public DependenciesModel addArtifact(@NotNull String configurationName,
+                                       @NotNull ArtifactDependencySpec dependency,
+                                       @NotNull List<ArtifactDependencySpec> excludes) {
     GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
-    ArtifactDependencyModel.createAndAddToList(list, configurationName, dependency);
+    ArtifactDependencyModel.createAndAddToList(list, configurationName, dependency, excludes);
     return this;
   }
 
