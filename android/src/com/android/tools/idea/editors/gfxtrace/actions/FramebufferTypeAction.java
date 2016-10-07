@@ -17,43 +17,104 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.FrameBufferController;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.awt.RelativePoint;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
-public class FramebufferTypeAction extends ToggleAction {
-  @NotNull private final FramebufferAttachment myBufferType;
+public class FramebufferTypeAction extends AnAction {
+  @NotNull private static final Action[] MRT_SUPPORTED_ACTIONS = {
+    new Action("Color Buffer 0", "Display the first color framebuffer", AndroidIcons.GfxTrace.ColorBuffer0, FramebufferAttachment.Color0),
+    new Action("Color Buffer 1", "Display the second color framebuffer", AndroidIcons.GfxTrace.ColorBuffer1, FramebufferAttachment.Color1),
+    new Action("Color Buffer 2", "Display the third color framebuffer", AndroidIcons.GfxTrace.ColorBuffer2, FramebufferAttachment.Color2),
+    new Action("Color Buffer 3", "Display the fourth color framebuffer", AndroidIcons.GfxTrace.ColorBuffer3, FramebufferAttachment.Color3),
+    new Action("Depth Buffer", "Display the depth framebuffer", AndroidIcons.GfxTrace.DepthBuffer, FramebufferAttachment.Depth)
+  };
+  @NotNull private static final Action[] MRT_UNSUPPORTED_ACTIONS = {
+    new Action("Color Buffer", "Display the color framebuffer", AndroidIcons.GfxTrace.ColorBuffer, FramebufferAttachment.Color0),
+    new Action("Depth Buffer", "Display the depth framebuffer", AndroidIcons.GfxTrace.DepthBuffer, FramebufferAttachment.Depth)
+  };
+
   @NotNull private final FrameBufferController myFrameBufferController;
-  private boolean myIsVisible = true;
+  private Action myAction = MRT_UNSUPPORTED_ACTIONS[0];
+  private boolean myMultiRenderTargetSupport = false;
+  private ActionToolbar myToolbar;
 
-  public FramebufferTypeAction(@NotNull FrameBufferController controller,
-                               @NotNull FramebufferAttachment bufferType,
-                               @Nullable final String text, @Nullable final String description, @Nullable final Icon icon) {
-    super(text, description, icon);
+  public FramebufferTypeAction(@NotNull FrameBufferController controller) {
+    super("Select Render Target", "Select the render target to display", AndroidIcons.GfxTrace.ColorBuffer);
     myFrameBufferController = controller;
-    myBufferType = bufferType;
+  }
+
+  public void setMultiRenderTargetSupport(boolean multiRenderTargetSupport) {
+    myMultiRenderTargetSupport = multiRenderTargetSupport;
+    myToolbar = null;
+    myAction = (myMultiRenderTargetSupport ? MRT_SUPPORTED_ACTIONS : MRT_UNSUPPORTED_ACTIONS)[0];
+    getToolbar().updateActionsImmediately();
+  }
+
+  private ActionToolbar getToolbar() {
+    if (myToolbar == null) {
+      DefaultActionGroup actions = new DefaultActionGroup();
+      for (final Action action : myMultiRenderTargetSupport ? MRT_SUPPORTED_ACTIONS : MRT_UNSUPPORTED_ACTIONS) {
+        actions.add(new ToggleAction(action.text, action.description, action.icon) {
+          @Override
+          public boolean isSelected(AnActionEvent e) {
+            return myAction.attachment == action.attachment;
+          }
+
+          @Override
+          public void setSelected(AnActionEvent e, boolean state) {
+            myAction = action;
+            myFrameBufferController.setFramebufferAttachment(action.attachment);
+            getToolbar().updateActionsImmediately();
+            FramebufferTypeAction.this.getToolbar().updateActionsImmediately();
+          }
+        });
+      }
+      myToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actions, true);
+      myToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    }
+    return myToolbar;
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
-    return myFrameBufferController.getFramebufferAttachment().equals(myBufferType);
+  public void actionPerformed(AnActionEvent e) {
+    JPanel contents = new JPanel();
+    contents.add(getToolbar().getComponent());
+
+    JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(contents, contents)
+      .setCancelOnClickOutside(true)
+      .setResizable(false)
+      .setMovable(false)
+      .createPopup();
+
+    Component source = e.getInputEvent().getComponent();
+    popup.setMinimumSize(new Dimension(0, source.getHeight()));
+    popup.show(new RelativePoint(source, new Point(source.getWidth(), 0)));
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
-    myFrameBufferController.setFramebufferAttachment(myBufferType);
-  }
-
-  public void setVisible(boolean visible) {
-    myIsVisible = visible;
-  }
-
-  @Override
-  public void update(@NotNull final AnActionEvent e){
+  public void update(AnActionEvent e) {
     super.update(e);
-    e.getPresentation().setVisible(myIsVisible);
+    e.getPresentation().setIcon(myAction.icon);
+  }
+
+  private static class Action {
+    public final String text;
+    public final String description;
+    public final Icon icon;
+    public final FramebufferAttachment attachment;
+
+    public Action(String text, String description, Icon icon, FramebufferAttachment attachment) {
+      this.text = text;
+      this.description = description;
+      this.icon = icon;
+      this.attachment = attachment;
+    }
   }
 }
