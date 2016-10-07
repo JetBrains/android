@@ -40,7 +40,7 @@ public class SingleWidgetView extends JPanel {
   public static final int RATIO_LOCK_WIDTH = 3;
 
   WidgetConstraintPanel mWidgetConstraintPanel;
-  public final static int ANY = 1;
+  public final static int MATCH_CONSTRAINT = 1;
   public final static int WRAP_CONTENT = 2;
   public final static int FIXED = 0;
   public static final int UNCONNECTED = -1;
@@ -204,7 +204,6 @@ public class SingleWidgetView extends JPanel {
       sideRatioString = mRatioString.substring(0, mRatioString.indexOf(',') + 1);
     }
     mRatioString = sideRatioString + mAspectText.getText();
-
     mWidgetConstraintPanel.setAspect(mRatioString);
     update();
   }
@@ -221,21 +220,37 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void toggleAspect() {
+    int[] order = new int[4];
+    int count = 0;
+    order[count++] = RATIO_UNLOCK;
+
+    if (mCacheHeight == MATCH_CONSTRAINT) {
+      order[count++] = RATIO_LOCK_HEIGHT;
+    }
+    if (mCacheWidth == MATCH_CONSTRAINT) {
+      order[count++] = RATIO_LOCK_WIDTH;
+    }
+
+    int lock = RATIO_UNLOCK;
+    for (int i = 0; i < count; i++) {
+      if (mRatioLock == order[i]) {
+        lock = order[(i + 1) % count];
+        break;
+      }
+    }
+    mRatioLock = lock;
+
     switch (mRatioLock) {
-      case RATIO_UNLOCK:
-        mRatioLock = RATIO_LOCK_WIDTH;
+      case RATIO_LOCK_WIDTH:
         mRatioString = "w," + getRatioPart(mRatioString);
         break;
-      case RATIO_LOCK_HEIGHT:
-        mRatioLock = RATIO_LOCK;
+      case RATIO_LOCK:
         mRatioString = getRatioPart(mRatioString);
         break;
-      case RATIO_LOCK_WIDTH:
-        mRatioLock = RATIO_LOCK_HEIGHT;
+      case RATIO_LOCK_HEIGHT:
         mRatioString = "h," + getRatioPart(mRatioString);
         break;
-      case RATIO_LOCK:
-        mRatioLock = RATIO_UNLOCK;
+      case RATIO_UNLOCK:
         mRatioString = null;
         break;
     }
@@ -302,10 +317,6 @@ public class SingleWidgetView extends JPanel {
     return (9 * height) / 10;
   }
 
-  private void update() {
-    configureUi(mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight, mRatioString);
-  }
-
   void resize() {
     mWidth = getWidth();
     mHeight = getHeight();
@@ -335,7 +346,8 @@ public class SingleWidgetView extends JPanel {
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
     mBaselineKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
     mAspectButton.setBounds(boxLeft, boxTop, mBoxSize / 6, mBoxSize / 6);
-    mAspectText.setBounds(boxLeft + mBoxSize + 4, tmpy = boxTop + mBoxSize + 10, 70, tmph = mAspectText.getPreferredSize().height);
+    tmpx = boxLeft + mBoxSize + 4;
+    mAspectText.setBounds(tmpx, tmpy = boxTop + mBoxSize + 10, Math.min(70, mWidth - tmpx), tmph = mAspectText.getPreferredSize().height);
     Dimension labelSize = mAspectLabel.getPreferredSize();
     mAspectLabel.setBounds(boxLeft + mBoxSize + 4, tmpy - labelSize.height, labelSize.width, labelSize.height);
     int barSize = 10;
@@ -560,6 +572,10 @@ public class SingleWidgetView extends JPanel {
     }
   }
 
+  private void update() {
+    configureUi(mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight, mRatioString);
+  }
+
   /**
    * @param name
    * @param bottom      sets the margin -1 = no margin
@@ -654,12 +670,20 @@ public class SingleWidgetView extends JPanel {
     mBottomKill.setVisible(bottom != UNCONNECTED);
     mBaselineKill.setVisible(baseline);
     mAspectButton.setVisible(true);
-    mAspectText.setVisible(true);
+    mAspectText.setVisible(mRatioString != null);
+    mAspectLabel.setVisible(mRatioString != null);
 
     mHbar1.setState(width);
     mHbar2.setState(width);
     mVbar1.setState(height);
     mVbar2.setState(height);
+
+    mHbar1.setVisible(mDimensionRatioSide != ConstraintWidget.HORIZONTAL);
+    mHbar2.setVisible(mDimensionRatioSide != ConstraintWidget.HORIZONTAL);
+    mVbar1.setVisible(mDimensionRatioSide != ConstraintWidget.VERTICAL);
+    mVbar2.setVisible(mDimensionRatioSide != ConstraintWidget.VERTICAL);
+
+
     mVbar1.setToolTipText(statusString[height]);
     mVbar2.setToolTipText(statusString[height]);
     mHbar1.setToolTipText(statusString[width]);
@@ -882,7 +906,6 @@ public class SingleWidgetView extends JPanel {
       }
       return false;
     }
-
   }
 
   static class AspectLock implements Graphic {
@@ -933,9 +956,15 @@ public class SingleWidgetView extends JPanel {
       g.setStroke(mStroke);
       if (mLock == RATIO_LOCK_WIDTH) {
         g.drawLine(mX, mY + 1, mX, mY + mHeight - 1);
+        g.drawLine(mX + mWidth, mY + 1, mX + mWidth, mY + mHeight - 1);
+        g.drawLine(mX + 1, mY + mHeight / 2, mX + mWidth - 1, mY + mHeight / 2);
+
+
       }
       else if (mLock == RATIO_LOCK_HEIGHT) {
         g.drawLine(mX + 1, mY, mX + mWidth - 1, mY);
+        g.drawLine(mX + 1, mY + mHeight, mX + mWidth - 1, mY + mHeight);
+        g.drawLine(mX + mWidth / 2, mY + 1, mX + mWidth / 2, mY + mHeight - 1);
       }
       g.setStroke(prevStroke);
       return false;
@@ -1220,7 +1249,7 @@ public class SingleWidgetView extends JPanel {
         case FIXED:
           drawFixedHorizontalConstraint(g, start, pos, end);
           break;
-        case ANY:
+        case MATCH_CONSTRAINT:
           drawSpringHorizontalConstraint(g, start, pos, end);
           break;
         case WRAP_CONTENT:
@@ -1326,7 +1355,7 @@ public class SingleWidgetView extends JPanel {
         case FIXED:
           drawFixedVerticalConstraint(g, start, pos, end);
           break;
-        case ANY:
+        case MATCH_CONSTRAINT:
           drawSpringVerticalConstraint(g, start, pos, end);
           break;
         case WRAP_CONTENT:
