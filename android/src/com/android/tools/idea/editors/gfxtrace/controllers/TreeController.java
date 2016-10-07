@@ -118,8 +118,4 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
     }
     return stringBuilder.toString();
   }
-
-  public TreeModel getModel() {
-    return myTree.getModel();
-  }
 }

@@ -63,7 +63,7 @@ public class ViewTextAction extends AbstractAction {
       setCancelButtonText("Close");
       setCrossClosesWindow(true);
 
-      myTextViewer = new TextViewer(project, true, true);
+      myTextViewer = new TextViewer("", project, true);
       init();
     }
 

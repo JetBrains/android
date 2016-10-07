@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The type of final asset which {@link AssetStudioAssetGenerator} should create.
+ * Categories of Android icon purposes - each type has its own rules for generating a final look
+ * and feel.
  */
 public enum AndroidIconType {
   /**

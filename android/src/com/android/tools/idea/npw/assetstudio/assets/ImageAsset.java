@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
-import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.ui.properties.core.ObjectProperty;
@@ -62,7 +62,7 @@ public final class ImageAsset extends BaseAsset {
     }
 
     if (image == null) {
-      image = AssetStudioAssetGenerator.createDummyImage();
+      image = AssetStudioUtils.createDummyImage();
     }
 
     return image;

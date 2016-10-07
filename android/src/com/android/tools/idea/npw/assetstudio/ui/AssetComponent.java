@@ -25,9 +25,9 @@ import java.awt.event.ActionListener;
  * Simple interface for UI elements that provide a reference to some {@link BaseAsset}, allow its
  * modification, and can notify listeners when it has changed.
  */
-public interface AssetComponent extends Disposable {
+public interface AssetComponent<T extends BaseAsset> extends Disposable {
   @NotNull
-  BaseAsset getAsset();
+  T getAsset();
 
   /**
    * Register a listener which will be fired anytime the underlying asset has changed.

@@ -114,7 +114,4 @@ public class IdeaProjectStub implements IdeaProject {
   public File getBuildFile() {
     return myBuildFile;
   }
-
-  @Override
-  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException { throw new UnsupportedOperationException(); }
 }

@@ -113,6 +113,11 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     myWizard.doFinishAction();
   }
 
+  @Override
+  public boolean canProceed() {
+    return ((WizardDelegate)myWizard).canProceed();
+  }
+
   private static class WizardHostDelegate implements DynamicWizardHost {
 
     private final AbstractWizard myWizard;
@@ -149,7 +154,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     public void shakeWindow() {
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        DialogEarthquakeShaker.shake((JDialog)myWizard.getPeer().getWindow());
+        DialogEarthquakeShaker.shake(myWizard.getPeer().getWindow());
       }
     }
 
@@ -179,7 +184,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     }
   }
 
-  private static class ProjectWizard extends NewProjectWizardDynamic {
+  private static class ProjectWizard extends NewProjectWizardDynamic implements WizardDelegate {
     public ProjectWizard(@Nullable Project project, DynamicWizardHost host) {
       super(project, null, host);
     }
@@ -196,9 +201,14 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     protected void checkSdk() {
     }
+
+    @Override
+    public boolean canProceed() {
+      return canGoNext();
+    }
   }
-  
-  private static class ModuleWizard extends NewModuleWizardDynamic {
+
+  private static class ModuleWizard extends NewModuleWizardDynamic implements WizardDelegate {
     public ModuleWizard(@Nullable Project project, @NotNull DynamicWizardHost host) {
       super(project, null, host);
     }
@@ -215,6 +225,11 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     protected boolean checkSdk() {
       return true;
+    }
+
+    @Override
+    public boolean canProceed() {
+      return canGoNext();
     }
   }
 }

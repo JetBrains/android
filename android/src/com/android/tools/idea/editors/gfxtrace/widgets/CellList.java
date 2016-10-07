@@ -25,6 +25,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
 /**
@@ -47,11 +49,13 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
 
         // We will handle mouse wheel scrolling ourselves.
         setWheelScrollingEnabled(false);
-        addMouseWheelListener(event -> {
-          int scrollAmount = event.getUnitsToScroll() * scrollBar.getBlockIncrement();
-          if (scrollAmount == 0) return;
-          int position = Math.max(scrollBar.getMinimum(), Math.min(scrollBar.getMaximum(), scrollBar.getValue() + scrollAmount));
-          scrollBar.setValue(position);
+        addMouseWheelListener(new MouseAdapter() {
+          @Override
+          public void mouseWheelMoved(MouseWheelEvent evt) {
+            int scrollAmount = evt.getScrollAmount() * evt.getWheelRotation() * scrollBar.getBlockIncrement();
+            int position = Math.max(scrollBar.getMinimum(), Math.min(scrollBar.getMaximum(), scrollBar.getValue() + scrollAmount));
+            scrollBar.setValue(position);
+          }
         });
       }};
     }

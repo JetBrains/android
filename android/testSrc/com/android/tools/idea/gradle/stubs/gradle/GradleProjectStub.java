@@ -101,7 +101,4 @@ public class GradleProjectStub implements GradleProject {
   public File getProjectDirectory() {
     return null;
   }
-
-  @Override
-  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
 }
