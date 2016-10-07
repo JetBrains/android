@@ -229,7 +229,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     if (isEmpty(appName)) {
       setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
       return false;
-    } else if (Character.isLowerCase(appName.charAt(0))) {
+    } else if (!myState.getNotNull(IS_LIBRARY_KEY, false) && Character.isLowerCase(appName.charAt(0))) {
       setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
     return true;
