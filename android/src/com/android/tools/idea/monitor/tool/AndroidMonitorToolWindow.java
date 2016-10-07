@@ -26,14 +26,14 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatService;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.profilerclient.ProfilerService;
+import com.android.tools.datastore.Poller;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataStoreImpl;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
+import com.android.tools.datastore.profilerclient.ProfilerService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
 import com.android.tools.idea.monitor.ui.energy.view.EnergyProfilerUiManager;
@@ -341,7 +341,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySplitter.setFirstComponent(gridBagPanel);
     myComponent.add(mySplitter);
 
-    myEventDispatcher.addListener(new ProfilerEventListener() {
+    myEventDispatcher.addListener(new ProfilerEventListener<BaseProfilerUiManager.ProfilerType>() {
       @Override
       public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
         // No other profiler should request expansion if a profiler is already expanded

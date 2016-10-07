@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.profilerclient;
+package com.android.tools.datastore.profilerclient;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.*;

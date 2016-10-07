@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.datastore;
+package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

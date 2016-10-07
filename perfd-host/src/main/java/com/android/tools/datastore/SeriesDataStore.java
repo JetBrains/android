@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.datastore;
+package com.android.tools.datastore;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
 
 /**
