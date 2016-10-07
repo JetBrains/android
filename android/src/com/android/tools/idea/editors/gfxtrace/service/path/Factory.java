@@ -25,14 +25,21 @@ public final class Factory {
     CapturePath.register();
     AtomsPath.register();
     AtomPath.register();
+    AtomRangePath.register();
     BlobPath.register();
+    ContextsPath.register();
+    ContextPath.register();
     DevicePath.register();
     ErrPathNotFollowable.register();
     FieldPath.register();
+    HierarchiesPath.register();
     HierarchyPath.register();
     ImageInfoPath.register();
     MapIndexPath.register();
     MemoryRangePath.register();
+    MemoryType.register();
+    MeshPathOptions.register();
+    MeshPath.register();
     ReportPath.register();
     ResourcePath.register();
     ResourcesPath.register();
@@ -40,6 +47,8 @@ public final class Factory {
     StatePath.register();
     ThumbnailPath.register();
     TimingInfoPath.register();
+    TypedMemoryPath.register();
+    VertexStreamDataPath.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }

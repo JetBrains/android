@@ -17,30 +17,41 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
+import static com.android.builder.model.NativeAndroidProject.BUILD_SYSTEM_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
  */
-class ProjectStructureUsageTracker {
+public class ProjectStructureUsageTracker {
+  private static final Logger LOG = Logger.getInstance(ProjectStructureUsageTracker.class);
+
   @NotNull private final Project myProject;
 
   ProjectStructureUsageTracker(@NotNull Project project) {
@@ -48,11 +59,14 @@ class ProjectStructureUsageTracker {
   }
 
   void trackProjectStructure() {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      try {
         trackProjectStructure(moduleManager.getModules());
+      }
+      catch (Throwable e) {
+        // Any errors in project tracking should not be displayed to the user.
+        LOG.warn("Failed to track project structure", e);
       }
     });
   }
@@ -75,7 +89,7 @@ class ProjectStructureUsageTracker {
         }
         appModel = androidModel;
         appCount++;
-        trackExternalDependenciesInAndroidApp(androidProject);
+        trackExternalDependenciesInAndroidApp(androidModel);
       }
     }
 
@@ -107,14 +121,60 @@ class ProjectStructureUsageTracker {
                                                         androidModel.getAndroidProject().getSigningConfigs().size(),
                                                         androidModel.getBuildTypeNames().size(),
                                                         androidModel.getProductFlavorNames().size(),
-                                                        androidModel.getAndroidProject().getFlavorDimensions().size());
+                                                        getFlavorDimensions(androidModel).size());
+        }
+
+        NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+        if (nativeAndroidModel != null) {
+          if (nativeAndroidModel.modelVersionIsAtLeast("2.2.0")) {
+            for (String buildSystem : nativeAndroidModel.getNativeAndroidProject().getBuildSystems()) {
+              UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), buildSystem);
+            }
+          }
+          else {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), BUILD_SYSTEM_GRADLE);
+          }
+        }
+        else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
+          if (isUsingExperimentalPlugin(module)) {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), BUILD_SYSTEM_GRADLE);
+          }
+          else {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), "ndkCompile");
+          }
         }
       }
     }
   }
 
-  private static void trackExternalDependenciesInAndroidApp(@NotNull AndroidProject model) {
-    Collection<Variant> variants = model.getVariants();
+  private static boolean areNativeLibrariesPresent(@NotNull AndroidProject androidProject) {
+    String modelVersion = androidProject.getModelVersion();
+    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
+    if (modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1") || androidProject.getApiVersion() < 3) {
+      return false;
+    }
+    for (Variant variant : androidProject.getVariants()) {
+      if (!variant.getMainArtifact().getNativeLibraries().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  private static Collection<String> getFlavorDimensions(@NotNull AndroidGradleModel androidModel) {
+    AndroidProject androidProject = androidModel.getAndroidProject();
+    try {
+      return androidProject.getFlavorDimensions();
+    }
+    catch (UnsupportedMethodException e) {
+      LOG.warn("Invoking 'getFlavorDimensions' on old Gradle model", e);
+    }
+    return Collections.emptyList();
+  }
+
+  private static void trackExternalDependenciesInAndroidApp(@NotNull AndroidGradleModel model) {
+    Collection<Variant> variants = model.getAndroidProject().getVariants();
     if (variants.isEmpty()) {
       return;
     }
@@ -134,17 +194,17 @@ class ProjectStructureUsageTracker {
     }
 
     if (chosen != null) {
-      trackLibraryCount(chosen);
+      trackLibraryCount(chosen, model);
     }
   }
 
-  private static void trackLibraryCount(@NotNull Variant variant) {
+  private static void trackLibraryCount(@NotNull Variant variant, @NotNull AndroidGradleModel model) {
     DependencyFiles files = new DependencyFiles();
 
     AndroidArtifact artifact = variant.getMainArtifact();
     String applicationId = artifact.getApplicationId();
 
-    Dependencies dependencies = artifact.getDependencies();
+    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
     for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
       addJarLibraryAndDependencies(javaLibrary, files);
     }
@@ -187,5 +247,20 @@ class ProjectStructureUsageTracker {
   private static class DependencyFiles {
     final Set<File> aars = Sets.newHashSet();
     final Set<File> jars = Sets.newHashSet();
+  }
+
+  @Nullable
+  public static String getApplicationId(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      if (androidModel != null) {
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        if (!androidProject.isLibrary()) {
+          return androidModel.getApplicationId();
+        }
+      }
+    }
+    return null;
   }
 }

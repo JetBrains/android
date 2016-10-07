@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -32,8 +33,8 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
     @Override
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
-                                    boolean waitForDebugger,
-                                    @NotNull String extraAmOptions) {
+                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
+                                    @NotNull ProfilerState profilerState) {
       return null;
     }
   }

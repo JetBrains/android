@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 
 import javax.swing.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
@@ -42,7 +39,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Open File or Project".equals(dialog.getTitle());
+        return "Open File or Project".equals(dialog.getTitle());
       }
     });
   }
@@ -53,7 +50,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
-        return dialog.isShowing() && title != null && title.startsWith("Select") && title.endsWith("Project to Import");
+        return title != null && title.startsWith("Select") && title.endsWith("Project to Import");
       }
     });
   }
@@ -69,40 +66,25 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
-    sleepWithTimeBomb();
     final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
                                                                        .in(getDialogWrapper())
                                                                        .get();
     assertNotNull(fileSystemTree);
+    fileSystemTree.showHiddens(true); // Windows: Default temporary folder (../AppData/..) is hidden.
+
     final AtomicBoolean fileSelected = new AtomicBoolean();
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        fileSystemTree.select(file, new Runnable() {
-          @Override
-          public void run() {
-            fileSelected.set(true);
-          }
+        fileSystemTree.select(file, () -> {
+          fileSelected.set(true);
         });
       }
     });
 
-    pause(new Condition("File " + quote(file.getPath()) + " is selected") {
-      @Override
-      public boolean test() {
-        return fileSelected.get();
-      }
-    }, SHORT_TIMEOUT);
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be selected").until(fileSelected::get);
 
     return this;
-  }
-
-  private void sleepWithTimeBomb() {
-    assert System.currentTimeMillis() < 1452600000000L;  // 2016-01-12 12:00
-    try {
-      Thread.sleep(5000);
-    }
-    catch (InterruptedException e) {}
   }
 
   @NotNull

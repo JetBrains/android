@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repositoryv2.IdDisplay;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -33,7 +32,7 @@ import javax.swing.text.View;
 import java.awt.*;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.TAGS_WITH_GOOGLE_API;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TAGS_WITH_GOOGLE_API;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.

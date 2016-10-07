@@ -25,19 +25,14 @@ import java.io.IOException;
 
 public final class ImageInfoPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    if (isNoImage()) {
-      return builder.append("NoImage");
-    }
-    return builder.append("ImageInfo(").append(myID).append(")");
+  public String getSegmentString() {
+    return "ImageInfo(" + myID + ')';
   }
 
   @Override
   public Path getParent() {
     return null;
   }
-
-  public boolean isNoImage() { return myID.equals(BinaryID.INVALID); }
 
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
@@ -63,7 +58,7 @@ public final class ImageInfoPath extends Path {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("ID", new Array("id.ID", new Primitive("byte", Method.Uint8), 20)),
     });
     Namespace.register(Klass.INSTANCE);
   }

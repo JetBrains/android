@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -32,7 +33,6 @@ import javax.swing.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -57,23 +57,21 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     assertNotNull("Failed to find library with name '" + libraryName + "'", found);
 
     final Library library = found;
-    final Ref<LibraryPropertiesDialog> wrapperRef = new Ref<LibraryPropertiesDialog>();
+    final Ref<LibraryPropertiesDialog> wrapperRef = new Ref<>();
 
     // Using invokeLater because the dialog is modal. Using GuiActionRunner will make the test block forever.
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    SwingUtilities.invokeLater(
+      () -> {
         LibraryPropertiesDialog wrapper = new LibraryPropertiesDialog(project, library);
         wrapperRef.set(wrapper);
         wrapper.showAndGet();
-      }
-    });
+      });
 
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!"Library Properties".equals(dialog.getTitle()) || !dialog.isShowing()) {
+        if (!"Library Properties".equals(dialog.getTitle())) {
           return false;
         }
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
@@ -105,19 +103,14 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     });
     robot().moveMouse(addButton);
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        addButton.click();
-      }
-    });
+    SwingUtilities.invokeLater(addButton::click);
 
     VirtualFile attachment = findFileByIoFile(path, true);
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
-        return dialog.isShowing() && isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
+        return isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
       }
     });
     assertNotNull("Failed to find VirtualFile with path " + quote(path.getPath()), attachment);

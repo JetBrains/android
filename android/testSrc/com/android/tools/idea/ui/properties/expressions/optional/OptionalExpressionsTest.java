@@ -17,19 +17,16 @@ package com.android.tools.idea.ui.properties.expressions.optional;
 
 import com.android.tools.idea.ui.properties.core.IntProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
-import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class OptionalExpressionsTest {
   @Test
   public void testAsOptionalExpression() {
     IntProperty intProperty = new IntValueProperty(42);
 
-    AsOptionalExpression<Integer> asOptionalExpr = new AsOptionalExpression<Integer>(intProperty);
+    AsOptionalExpression<Integer> asOptionalExpr = new AsOptionalExpression<>(intProperty);
 
     assertThat(asOptionalExpr.get().get()).isEqualTo(42);
 

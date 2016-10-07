@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -31,10 +32,13 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
+import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsDependencyGraph;
 import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -52,7 +56,8 @@ public abstract class Dependency {
   // IDEA thinks it can be null, contradicting '@NotNull'. In reality, the field is set in the constructor by calling 'setScope'. To avoid
   // this warning we can either use '@SuppressWarnings' or duplicate, in the constructor, what 'setScope' is doing.
   @SuppressWarnings("NullableProblems")
-  @NotNull private DependencyScope myScope;
+  @NotNull
+  private DependencyScope myScope;
 
   /**
    * Creates a new {@link Dependency} with {@link DependencyScope#COMPILE} scope.
@@ -93,57 +98,49 @@ public abstract class Dependency {
   @NotNull
   public static DependencySet extractFrom(@NotNull AndroidGradleModel androidModel) {
     DependencySet dependencies = new DependencySet();
+    GradleVersion modelVersion = androidModel.getModelVersion();
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
-        populate(dependencies, testArtifact, TEST);
-      }
-    } else {
-      BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
-      if (testArtifact != null) {
-        populate(dependencies, testArtifact, TEST);
-      }
+    for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
+      populate(dependencies, testArtifact, TEST, modelVersion);
     }
 
     AndroidArtifact mainArtifact = androidModel.getMainArtifact();
-    populate(dependencies, mainArtifact, COMPILE);
+    populate(dependencies, mainArtifact, COMPILE, modelVersion);
 
     return dependencies;
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
+  public static DependencySet extractFrom(@NotNull BaseArtifact artifact,
+                                          @NotNull DependencyScope scope,
+                                          @Nullable GradleVersion modelVersion) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, scope);
+    populate(dependencies, artifact, scope, modelVersion);
     return dependencies;
   }
 
-  private static void populate(@NotNull DependencySet dependencies, @NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
-    addJavaLibraries(dependencies, artifact.getDependencies().getJavaLibraries(), scope);
+  private static void populate(@NotNull DependencySet dependencies,
+                               @NotNull BaseArtifact artifact,
+                               @NotNull DependencyScope scope,
+                               @Nullable GradleVersion modelVersion) {
+    Dependencies artifactDependencies = getDependencies(artifact, modelVersion);
+    boolean supportsDependencyGraph = modelVersion != null && androidModelSupportsDependencyGraph(modelVersion);
+
+    addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope, supportsDependencyGraph);
 
     Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary lib : artifact.getDependencies().getLibraries()) {
-      ModuleDependency mainDependency = null;
-      String gradleProjectPath = lib.getProject();
-      if (isNotEmpty(gradleProjectPath)) {
-        mainDependency = new ModuleDependency(gradleProjectPath, scope);
-        dependencies.add(mainDependency);
-      }
-      if (mainDependency == null) {
-        addLibrary(lib, dependencies, scope, unique);
-      }
-      else {
-        // add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
-        // project.) If we cannot set the module dependency, we set a library dependency instead.
-        LibraryDependency backup = createLibraryDependency(lib, scope);
-        mainDependency.setBackupDependency(backup);
-      }
+    for (AndroidLibrary library : artifactDependencies.getLibraries()) {
+      addAndroidLibrary(library, dependencies, scope, unique, supportsDependencyGraph);
     }
 
-    for (String gradleProjectPath : artifact.getDependencies().getProjects()) {
-      if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
-        ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
-        dependencies.add(dependency);
+    if (!supportsDependencyGraph) {
+      // If the Android model is pre 2.2.0, invoke Dependencies.getProjects. In 2.2.0+, this method returns an empty collection.
+      //noinspection deprecation
+      for (String gradleProjectPath : artifactDependencies.getProjects()) {
+        if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
+          ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
+          dependencies.add(dependency);
+        }
       }
     }
   }
@@ -159,12 +156,29 @@ public abstract class Dependency {
   }
 
   /**
-   * Add a library, along with any recursive library dependencies
+   * Add an Android module, along with any recursive library dependencies
    */
-  private static void addLibrary(@NotNull AndroidLibrary library,
-                                 @NotNull DependencySet dependencies,
-                                 @NotNull DependencyScope scope,
-                                 @NotNull Set<File> unique) {
+  @NotNull
+  private static ModuleDependency addAndroidModule(@NotNull AndroidLibrary library,
+                                                   @NotNull String gradleProjectPath,
+                                                   @NotNull DependencySet dependencies,
+                                                   @NotNull DependencyScope scope,
+                                                   @NotNull Set<File> unique,
+                                                   boolean supportsDependencyGraph) {
+    ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
+    dependencies.add(dependency);
+    addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+    return dependency;
+  }
+
+  /**
+   * Add an Android library, along with any recursive library dependencies
+   */
+  private static void addAndroidLibrary(@NotNull AndroidLibrary library,
+                                        @NotNull DependencySet dependencies,
+                                        @NotNull DependencyScope scope,
+                                        @NotNull Set<File> unique,
+                                        boolean supportsDependencyGraph) {
     // We're using the library location as a unique handle rather than the AndroidLibrary instance itself, in case
     // the model just blindly manufactures library instances as it's following dependencies
     File folder = library.getFolder();
@@ -173,11 +187,36 @@ public abstract class Dependency {
     }
     unique.add(folder);
 
-    LibraryDependency dependency = createLibraryDependency(library, scope);
-    dependencies.add(dependency);
+    ModuleDependency mainDependency = null;
 
+    String gradleProjectPath = library.getProject();
+    if (isNotEmpty(gradleProjectPath)) {
+      // This is a module.
+      mainDependency = addAndroidModule(library, gradleProjectPath, dependencies, scope, unique, supportsDependencyGraph);
+    }
+    if (mainDependency == null) {
+      // This is a library, not a module.
+      dependencies.add(createLibraryDependency(library, scope));
+      addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+    }
+    else {
+      // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
+      // project.) If we cannot set the module dependency, we set a library dependency instead.
+      LibraryDependency backup = createLibraryDependency(library, scope);
+      mainDependency.setBackupDependency(backup);
+    }
+  }
+
+  private static void addTransitiveDependencies(@NotNull AndroidLibrary library,
+                                                @NotNull DependencySet dependencies,
+                                                @NotNull DependencyScope scope,
+                                                @NotNull Set<File> unique,
+                                                boolean supportsDependencyGraph) {
     for (AndroidLibrary dependentLibrary : library.getLibraryDependencies()) {
-      addLibrary(dependentLibrary, dependencies, scope, unique);
+      addAndroidLibrary(dependentLibrary, dependencies, scope, unique, supportsDependencyGraph);
+    }
+    if (supportsDependencyGraph) {
+      addJavaLibraries(dependencies, library.getJavaDependencies(), scope, true);
     }
   }
 
@@ -201,11 +240,53 @@ public abstract class Dependency {
   }
 
   private static void addJavaLibraries(@NotNull DependencySet dependencies,
-                                       @NotNull Collection<JavaLibrary> libraries,
-                                       @NotNull DependencyScope scope) {
+                                       @NotNull Collection<? extends JavaLibrary> libraries,
+                                       @NotNull DependencyScope scope,
+                                       boolean supportsDependencyGraph) {
     for (JavaLibrary library : libraries) {
-      File jar = library.getJarFile();
-      dependencies.add(new LibraryDependency(jar, scope));
+      if (supportsDependencyGraph) {
+        ModuleDependency mainDependency = null;
+
+        String gradleProjectPath = library.getProject();
+        MavenCoordinates coordinates = library.getResolvedCoordinates();
+        String classifier = coordinates.getClassifier();
+        // If there is a classifier, set up the dependency as a 'library' dependency.
+        // See https://code.google.com/p/android/issues/detail?id=215490
+        if (isNotEmpty(gradleProjectPath) && isEmpty(classifier)) {
+          // This is a module.
+          mainDependency = new ModuleDependency(gradleProjectPath, scope);
+          dependencies.add(mainDependency);
+          // Add the dependencies of the module as well.
+          // See https://code.google.com/p/android/issues/detail?id=210172
+          addJavaLibraries(dependencies, library.getDependencies(), scope, true);
+        }
+        if (mainDependency == null) {
+          // This is a library, not a module.
+          addJavaLibrary(library, dependencies, scope, true);
+        }
+        else {
+          // Add the jar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
+          // project.) If we cannot set the module dependency, we set a library dependency instead.
+          LibraryDependency backup = createLibraryDependency(library, scope);
+          mainDependency.setBackupDependency(backup);
+        }
+      }
+      else {
+        addJavaLibrary(library, dependencies, scope, false);
+      }
     }
+  }
+
+  private static void addJavaLibrary(@NotNull JavaLibrary library,
+                                     @NotNull DependencySet dependencies,
+                                     @NotNull DependencyScope scope,
+                                     boolean supportsDependencyGraph) {
+    dependencies.add(createLibraryDependency(library, scope));
+    addJavaLibraries(dependencies, library.getDependencies(), scope, supportsDependencyGraph);
+  }
+
+  @NotNull
+  private static LibraryDependency createLibraryDependency(@NotNull JavaLibrary library, @NotNull DependencyScope scope) {
+    return new LibraryDependency(library.getJarFile(), scope);
   }
 }

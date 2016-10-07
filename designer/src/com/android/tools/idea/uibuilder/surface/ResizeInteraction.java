@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -27,6 +26,8 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class ResizeInteraction extends Interaction {
   /** The resize handler for the layout view */
   private ResizeHandler myResizeHandler;
 
-  public ResizeInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component, @NonNull SelectionHandle handle) {
+  public ResizeInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component, @NotNull SelectionHandle handle) {
     myScreenView = screenView;
     myComponent = component;
     myHorizontalEdge = handle.getHorizontalEdge();
@@ -58,7 +59,7 @@ public class ResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     super.begin(x, y, startMask);
     NlComponent parent = myComponent.getParent();
 
@@ -80,21 +81,21 @@ public class ResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     if (!canceled) {
-      myScreenView.getModel().renderImmediately();
+      myScreenView.getModel().notifyModified(NlModel.ChangeType.RESIZE_END);
     }
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
     if (myResizeHandler == null) {
       return;
     }
@@ -113,12 +114,12 @@ public class ResizeInteraction extends Interaction {
       String label = "Resize";
       WriteCommandAction action = new WriteCommandAction(project, label, file) {
         @Override
-        protected void run(@NonNull Result result) throws Throwable {
+        protected void run(@NotNull Result result) throws Throwable {
           myResizeHandler.commit(ax, ay, modifiers, newBounds);
         }
       };
       action.execute();
-      model.notifyModified();
+      model.notifyModified(NlModel.ChangeType.RESIZE_COMMIT);
     }
     myScreenView.getSurface().repaint();
   }
@@ -234,7 +235,7 @@ public class ResizeInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NonNull Graphics2D gc) {
+    public void paint(@NotNull Graphics2D gc) {
       if (myResizeHandler != null) {
         myResizeHandler.paint(new NlGraphics(gc, myScreenView));
       }

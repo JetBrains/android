@@ -27,7 +27,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -35,14 +34,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
-import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.dom.menu.Group;
-import org.jetbrains.android.dom.menu.Menu;
 import org.jetbrains.android.dom.menu.MenuItem;
-import org.jetbrains.android.dom.resources.*;
-import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -64,7 +59,8 @@ public class AndroidDomUtil {
 
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  public static final Map<String, String> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
+  // TODO: Make SPECIAL_RESOURCE_TYPES into an immutable map
+  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(40);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -80,35 +76,40 @@ public class AndroidDomUtil {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
     // example, attrs_manifest.xml tells us that the android:icon attribute can be a reference, but not
     // that it's a reference to a drawable.
-    addSpecialResourceType(ResourceType.STRING.getName(), ATTR_LABEL, "description", ATTR_TITLE);
-    addSpecialResourceType(ResourceType.DRAWABLE.getName(), ATTR_ICON);
-    addSpecialResourceType(ResourceType.STYLE.getName(), ATTR_THEME);
-    addSpecialResourceType(ResourceType.ANIM.getName(), "animation");
-    addSpecialResourceType(ResourceType.ID.getName(), ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
+    addSpecialResourceType(ResourceType.STRING, ATTR_LABEL, "description", ATTR_TITLE);
+    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON);
+    addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
+    addSpecialResourceType(ResourceType.ANIM, "animation");
+    addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
-                           ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF);
+                           ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF, ATTR_CHECKED_BUTTON, ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE,
+                           ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, ATTR_LABEL_FOR,
+                           ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+                           ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+                           ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
   }
 
   private AndroidDomUtil() {
   }
 
   @Nullable
-  public static String getResourceType(@NotNull AttributeFormat format) {
+  public static ResourceType getResourceType(@NotNull AttributeFormat format) {
     switch (format) {
       case Color:
-        return ResourceType.COLOR.getName();
+        return ResourceType.COLOR;
       case Dimension:
-        return ResourceType.DIMEN.getName();
+        return ResourceType.DIMEN;
       case String:
-        return ResourceType.STRING.getName();
+        return ResourceType.STRING;
       case Float:
       case Integer:
-        return ResourceType.INTEGER.getName();
+        return ResourceType.INTEGER;
       case Fraction:
-        return ResourceType.FRACTION.getName();
+        return ResourceType.FRACTION;
       case Boolean:
-        return ResourceType.BOOL.getName();
+        return ResourceType.BOOL;
       default:
         return null;
     }
@@ -134,7 +135,7 @@ public class AndroidDomUtil {
   public static ResourceReferenceConverter getResourceReferenceConverter(@NotNull AttributeDefinition attr) {
     boolean containsReference = false;
     boolean containsNotReference = false;
-    Set<String> resourceTypes = new HashSet<String>();
+    Set<ResourceType> resourceTypes = EnumSet.noneOf(ResourceType.class);
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.Reference) {
@@ -143,24 +144,24 @@ public class AndroidDomUtil {
       else {
         containsNotReference = true;
       }
-      String type = getResourceType(format);
+      ResourceType type = getResourceType(format);
       if (type != null) {
         resourceTypes.add(type);
       }
     }
-    String specialResourceType = getSpecialResourceType(attr.getName());
+    ResourceType specialResourceType = getSpecialResourceType(attr.getName());
     if (specialResourceType != null) {
       resourceTypes.add(specialResourceType);
     }
     if (containsReference) {
-      if (resourceTypes.contains(ResourceType.COLOR.getName())) {
-        resourceTypes.add(ResourceType.DRAWABLE.getName());
+      if (resourceTypes.contains(ResourceType.COLOR)) {
+        resourceTypes.add(ResourceType.DRAWABLE);
       }
-      if (resourceTypes.contains(ResourceType.DRAWABLE.getName())) {
-        resourceTypes.add(ResourceType.MIPMAP.getName());
+      if (resourceTypes.contains(ResourceType.DRAWABLE)) {
+        resourceTypes.add(ResourceType.MIPMAP);
       }
       if (resourceTypes.size() == 0) {
-        resourceTypes.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
+        resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
       }
     }
     if (resourceTypes.size() > 0) {
@@ -230,14 +231,11 @@ public class AndroidDomUtil {
     }
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
-      if (resConverter != null) {
-        compositeBuilder.addConverter(new LightFlagConverter(values));
-      }
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
-      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()), attr);
+      resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);
     }
     ResolvingConverter<String> stringConverter = compositeBuilder.build();
@@ -251,15 +249,15 @@ public class AndroidDomUtil {
   /** A "special" resource type is just additional information we've manually added about an attribute
    * name that augments what attrs.xml and attrs_manifest.xml tell us about the attributes */
   @Nullable
-  public static String getSpecialResourceType(String attrName) {
-    String type = SPECIAL_RESOURCE_TYPES.get(attrName);
+  public static ResourceType getSpecialResourceType(String attrName) {
+    ResourceType type = SPECIAL_RESOURCE_TYPES.get(attrName);
     if (type != null) return type;
-    if (attrName.endsWith("Animation")) return "anim";
+    if (attrName.endsWith("Animation")) return ResourceType.ANIM;
     return null;
   }
 
   // for special cases
-  static void addSpecialResourceType(String type, String... attrs) {
+  static void addSpecialResourceType(ResourceType type, String... attrs) {
     for (String attr : attrs) {
       SPECIAL_RESOURCE_TYPES.put(attr, type);
     }
@@ -294,51 +292,6 @@ public class AndroidDomUtil {
     return null;
   }
 
-  public static String[] getStaticallyDefinedSubtags(@NotNull AndroidDomElement element) {
-    if (element instanceof ManifestElement) {
-      return AndroidManifestUtils.getStaticallyDefinedSubtags((ManifestElement)element);
-    }
-    if (element instanceof LayoutViewElement) {
-      return new String[] {VIEW_INCLUDE, REQUEST_FOCUS, TAG};
-    }
-    if (element instanceof LayoutElement) {
-      return new String[]{REQUEST_FOCUS};
-    }
-    if (element instanceof Group || element instanceof StringArray || element instanceof IntegerArray || element instanceof Style) {
-      return new String[]{TAG_ITEM};
-    }
-    if (element instanceof MenuItem) {
-      return new String[]{TAG_MENU};
-    }
-    if (element instanceof Menu) {
-      return new String[]{TAG_ITEM, TAG_GROUP};
-    }
-    if (element instanceof Attr) {
-      return new String[]{TAG_ENUM, TAG_FLAG};
-    }
-    if (element instanceof DeclareStyleable) {
-      return new String[]{TAG_ATTR};
-    }
-    if (element instanceof Resources) {
-      return new String[]{"string", "drawable", "dimen", "color", "style", "string-array", "integer-array", "array", "plurals",
-        "declare-styleable", "integer", "bool", "attr", "item", "eat-comment"};
-    }
-    if (element instanceof StyledText) {
-      // TODO: The documentation suggests that the allowed tags are <u>, <b> and <i>:
-      //   http://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
-      // However, the full set of tags accepted by Html.fromHtml is much larger. Therefore,
-      // instead consider *any* element nested inside a <string> definition to be a markup
-      // element. See frameworks/base/core/java/android/text/Html.java and look for
-      // HtmlToSpannedConverter#handleStartTag.
-      return new String[]{"b", "i", "u"};
-    }
-    if (element instanceof PreferenceElement) {
-      return new String[]{"intent", "extra"};
-    }
-
-    return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
     String localName = attribute.getLocalName();
@@ -368,7 +321,7 @@ public class AndroidDomUtil {
 
   @NotNull
   public static Collection<String> removeUnambiguousNames(@NotNull Map<String, PsiClass> viewClassMap) {
-    final Map<String, String> class2Name = new HashMap<String, String>();
+    final Map<String, String> class2Name = new HashMap<>();
 
     for (String tagName : viewClassMap.keySet()) {
       final PsiClass viewClass = viewClassMap.get(tagName);

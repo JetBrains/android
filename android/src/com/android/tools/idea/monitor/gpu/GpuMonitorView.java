@@ -16,8 +16,9 @@
 package com.android.tools.idea.monitor.gpu;
 
 import com.android.ddmlib.Client;
-import com.android.tools.chartlib.TimelineComponent;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.TimelineComponent;
+import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
@@ -87,8 +88,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     group.add(new RecordingAction(this));
     if (GfxTraceEditor.isEnabled()) {
       group.add(new Separator());
-      group.add(new GfxTraceCaptureAction.Listen(this));
-      group.add(new GfxTraceCaptureAction.Launch(this));
+      group.add(new GfxTraceCaptureAction(this));
       group.add(new Separator());
       group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
     }
@@ -160,6 +160,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       myTimelineComponent =
         new TimelineComponent(data, myEvents, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
+      Choreographer.animate(myTimelineComponent);
+
 
       myTimelineComponent.configureUnits("ms");
       myTimelineComponent.configureStream(0, "VSync Delay", new JBColor(0x007c6d, 0x00695c));
@@ -181,6 +183,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       myTimelineComponent =
         new TimelineComponent(data, myEvents, PRE_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, PRE_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
+      Choreographer.animate(myTimelineComponent);
 
       if (myApiLevel >= LHandler.MIN_API_LEVEL) {
         myTimelineComponent.configureUnits("ms");

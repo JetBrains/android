@@ -70,6 +70,15 @@
   <item name="android.hardware.camera2.CameraCaptureSession void prepare(android.view.Surface) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.hardware.camera2.CameraCaptureSession.CaptureCallback void onCaptureBufferLost(android.hardware.camera2.CameraCaptureSession, android.hardware.camera2.CaptureRequest, android.view.Surface, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession.CaptureCallback void onCaptureBufferLost(android.hardware.camera2.CameraCaptureSession, android.hardware.camera2.CaptureRequest, android.view.Surface, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraCaptureSession.CaptureCallback void onCaptureBufferLost(android.hardware.camera2.CameraCaptureSession, android.hardware.camera2.CaptureRequest, android.view.Surface, long) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.hardware.camera2.CameraCaptureSession.CaptureCallback void onCaptureCompleted(android.hardware.camera2.CameraCaptureSession, android.hardware.camera2.CaptureRequest, android.hardware.camera2.TotalCaptureResult) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -196,6 +205,18 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.CameraDevice void createReprocessableCaptureSession(android.hardware.camera2.params.InputConfiguration, java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.camera2.CameraDevice void createReprocessableCaptureSessionByConfigurations(android.hardware.camera2.params.InputConfiguration, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraDevice void createReprocessableCaptureSessionByConfigurations(android.hardware.camera2.params.InputConfiguration, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraDevice void createReprocessableCaptureSessionByConfigurations(android.hardware.camera2.params.InputConfiguration, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.CameraDevice void createReprocessableCaptureSessionByConfigurations(android.hardware.camera2.params.InputConfiguration, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.hardware.camera2.CameraDevice.StateCallback void onClosed(android.hardware.camera2.CameraDevice) 0">

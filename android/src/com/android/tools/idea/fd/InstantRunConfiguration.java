@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.repository.api.SettingsController;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -23,9 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 @State(
   name = "InstantRunConfiguration",
-  storages = {
-    @Storage(file = StoragePathMacros.APP_CONFIG + "/instant-run.xml", roamingType = RoamingType.DISABLED)
-  }
+  storages = @Storage(value = "instant-run.xml", roamingType = RoamingType.DISABLED)
 )
 public class InstantRunConfiguration implements PersistentStateComponent<InstantRunConfiguration> {
   public boolean INSTANT_RUN = true;

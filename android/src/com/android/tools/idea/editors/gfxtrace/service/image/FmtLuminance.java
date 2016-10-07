@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-final public class FmtLuminance extends Format {
+final class FmtLuminance extends Format {
   @Override
   public String getDisplayName() {
     return "LUMINANCE";

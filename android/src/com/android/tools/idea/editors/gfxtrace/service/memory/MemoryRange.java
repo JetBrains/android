@@ -29,6 +29,29 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class MemoryRange implements BinaryObject {
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    MemoryRange that = (MemoryRange)o;
+    if (myBase != that.myBase) return false;
+    if (mySize != that.mySize) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int)(myBase ^ (myBase >>> 32));
+    result = 31 * result + (int)(mySize ^ (mySize >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "MemoryRange{base=" + myBase + ", size=" + mySize + '}';
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private long myBase;
   private long mySize;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.intellij.openapi.Disposable;
 
@@ -61,7 +61,7 @@ public abstract class Layer implements Disposable {
    *
    * @param gc The Graphics object to draw into
    */
-  public void paint(@NonNull Graphics2D gc) {
+  public void paint(@NotNull Graphics2D gc) {
     assert false; // probably using wrong paint signature in overlay
   }
 

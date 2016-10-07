@@ -70,7 +70,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
   private PsiElement[] myCreatedElements;
 
-  public NewAndroidComponentDialog(@NotNull final Module module, final PsiDirectory directory) {
+  public NewAndroidComponentDialog(@NotNull final Module module, @NotNull PsiDirectory directory) {
     super(module.getProject());
     myKindLabel.setLabelFor(myKindCombo);
     myKindCombo.registerUpDownHint(myNameField);
@@ -133,7 +133,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
   }
 
   @Nullable
-  private PsiElement create(String newName, PsiDirectory directory, Project project) throws Exception {
+  private PsiElement create(String newName, final PsiDirectory directory, Project project) throws Exception {
     return doCreate(myKindCombo.getSelectedName(), directory, project, newName, myLabelField.getText(),
                     myMarkAsStartupActivityCheckBox.isSelected(), myCreateLayoutFile.isSelected());
   }
@@ -160,7 +160,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
         if ((AndroidFileTemplateProvider.ACTIVITY.equals(templateName) || AndroidFileTemplateProvider.FRAGMENT.equals(templateName)) &&
             createLayoutFile) {
-          final boolean activity = AndroidFileTemplateProvider.ACTIVITY.equals(templateName);
+          final boolean isActivity = AndroidFileTemplateProvider.ACTIVITY.equals(templateName);
           final Manifest manifest = facet.getManifest();
           final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
@@ -168,7 +168,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
-                createLayoutFileForActivityOrFragment(facet, (PsiClass)element, appPackage, activity);
+                createLayoutFileForActivityOrFragment(facet, (PsiClass)element, appPackage, directory, isActivity);
               }
             });
           }
@@ -181,6 +181,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
   private static void createLayoutFileForActivityOrFragment(@NotNull final AndroidFacet facet,
                                                             @NotNull PsiClass activityClass,
                                                             @NotNull final String appPackage,
+                                                            @NotNull PsiDirectory resDirectory,
                                                             boolean activity) {
     if (facet.isDisposed() || !activityClass.isValid()) {
       return;
@@ -191,7 +192,8 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       return;
     }
     final XmlFile layoutFile = CreateResourceFileAction.createFileResource(facet, ResourceFolderType.LAYOUT, null, null, null, true,
-                                                                           "Create Layout For '" + className + "'", false);
+                                                                           "Create Layout For '" + className + "'",
+                                                                           resDirectory, null, false);
     final String layoutFileName = layoutFile != null ? layoutFile.getName() : null;
 
     if (layoutFileName != null) {
@@ -202,7 +204,6 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       }
       final PsiMethod onCreateMethod = onCreateMethods[0];
       final PsiCodeBlock body = onCreateMethod.getBody();
-      final Project project = facet.getModule().getProject();
 
       if (body != null) {
         final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));

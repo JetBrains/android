@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -37,9 +39,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
+import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
+import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK;
+import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -58,7 +63,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
   private final Project myProject;
   private final String myName;
-  private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
+  private final List<ModuleConfigurationEditor> myEditors = new ArrayList<>();
   private JBTabbedPane myTabbedPane;
   private JComponent myGenericSettingsPanel;
 
@@ -78,48 +83,37 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.requiresAndroidModel() && isBuildWithGradle(module)) {
-        myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
-          @Override
-          public SingleObjectPanel call() {
+      if (isUsingExperimentalPlugin(module)) {
+        myEditors.add(new GenericEditor<>("Information", DslNotSupportedPanel::new));
+      }
+      else {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null && facet.requiresAndroidModel() && isBuildWithGradle(module)) {
+          myEditors.add(new GenericEditor<>("Properties", () -> {
             SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILD_FILE_GENERIC_PROPERTIES);
             panel.init();
             return panel;
-          }
-        }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>(SIGNING_TAB_TITLE, new Callable<NamedObjectPanel>() {
-          @Override
-          public NamedObjectPanel call() {
+          }));
+          myEditors.add(new GenericEditor<>(SIGNING_TAB_TITLE, () -> {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
             panel.init();
             return panel;
-          }
-        }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>(FLAVORS_TAB_TITLE, new Callable<NamedObjectPanel>() {
-          @Override
-          public NamedObjectPanel call() {
+          }));
+          myEditors.add(new GenericEditor<>(FLAVORS_TAB_TITLE, () -> {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
             panel.init();
             return panel;
-          }
-        }));
-        myEditors.add(new GenericEditor<NamedObjectPanel>(BUILD_TYPES_TAB_TITLE, new Callable<NamedObjectPanel>() {
-          @Override
-          public NamedObjectPanel call() {
+          }));
+          myEditors.add(new GenericEditor<>(BUILD_TYPES_TAB_TITLE, () -> {
             NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
             panel.init();
             return panel;
-          }
-        }));
-      }
-      myEditors.add(new GenericEditor<ModuleDependenciesPanel>(ProjectBundle.message("modules.classpath.title"),
-                                                               new Callable<ModuleDependenciesPanel>() {
-        @Override
-        public ModuleDependenciesPanel call() {
-          return new ModuleDependenciesPanel(myProject, myName);
+          }));
         }
-      }));
+      }
+
+      myEditors.add(new GenericEditor<>(ProjectBundle.message("modules.classpath.title"),
+                                        () -> new ModuleDependenciesPanel(myProject, myName)));
 
       myTabbedPane = new JBTabbedPane(TOP);
       for (ModuleConfigurationEditor editor : myEditors) {
@@ -129,6 +123,15 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           editor.reset();
         }
       }
+      myTabbedPane.addChangeListener(e -> {
+        String tabName = myEditors.get(myTabbedPane.getSelectedIndex()).getDisplayName();
+
+        String appId = getApplicationId(myProject);
+        if (appId != null) {
+          UsageTracker.getInstance().trackPSDEvent(ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK, tabName, null);
+        }
+      });
+
       myGenericSettingsPanel = myTabbedPane;
     }
     return myGenericSettingsPanel;
@@ -153,7 +156,11 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   }
 
   public void apply() throws ConfigurationException {
+    String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
+      if (appId != null) {
+        UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE, editor.getDisplayName());
+      }
       editor.saveData();
       editor.apply();
     }

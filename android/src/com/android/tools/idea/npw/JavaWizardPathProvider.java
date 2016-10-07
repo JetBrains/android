@@ -29,6 +29,6 @@ import java.util.Collection;
 public class JavaWizardPathProvider implements NewModuleDynamicPathFactory {
   @Override
   public Collection<NewModuleDynamicPath> createWizardPaths(@Nullable Project project, @NotNull Disposable disposable) {
-    return ImmutableSet.<NewModuleDynamicPath>of(new JavaModuleDynamicPath(disposable));
+    return ImmutableSet.of(new JavaModuleDynamicPath(disposable));
   }
 }

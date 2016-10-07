@@ -16,138 +16,369 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
-import com.google.common.collect.Lists;
-import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
-import com.intellij.openapi.editor.impl.EditorComponentImpl;
-import com.intellij.openapi.editor.impl.EditorImpl;
-import com.intellij.openapi.module.Module;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
+import com.intellij.openapi.command.undo.UndoConstants;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.FixedSizeButton;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.EditorTextField;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
-import java.util.List;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Objects;
 
-public class NlReferenceEditor extends PTableCellEditor implements ActionListener {
+public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
+  private static final int MIN_TEXT_WIDTH = 50;
+
+  private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
-  private final JBLabel myLabel;
-  private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
+  private final JLabel myIconLabel;
+  private final JSlider mySlider;
+  private final TextEditor myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
-  private final FixedSizeButton myBrowseButton;
+  private final BrowsePanel myBrowsePanel;
 
   private NlProperty myProperty;
-  private String myValue;
+  private boolean myPropertyHasSlider;
+  private String myLastReadValue;
+  private Object myLastWriteValue;
+  private boolean myUpdatingProperty;
+  private boolean myCompletionsUpdated;
 
-  public NlReferenceEditor(@NotNull Project project) {
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
-
-    myLabel = new JBLabel();
-    myPanel.add(myLabel, BorderLayout.LINE_START);
-
-    myCompletionProvider = new CompletionProvider();
-    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<String>(project, myCompletionProvider, false, null);
-    myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
-
-    myBrowseButton = new FixedSizeButton(new JBCheckBox());
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
-
-    myTextFieldWithAutoCompletion
-      .registerKeyboardAction(this, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    selectTextOnFocusGain(myTextFieldWithAutoCompletion);
-
-    myBrowseButton.addActionListener(this);
+  public static NlTableCellEditor createForTable(@NotNull Project project) {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, false, true));
+    return cellEditor;
   }
 
-  public static void selectTextOnFocusGain(EditorTextField textField) {
-    textField.addFocusListener(new FocusAdapter() {
+  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
+    return new NlReferenceEditor(project, listener, null, true, false);
+  }
+
+  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
+    return new NlReferenceEditor(project, listener, null, true, true);
+  }
+
+  private NlReferenceEditor(@NotNull Project project,
+                            @NotNull NlEditingListener listener,
+                            @Nullable BrowsePanel.Context context,
+                            boolean includeBorder,
+                            boolean includeBrowseButton) {
+    super(listener);
+    myIncludeBrowseButton = includeBrowseButton;
+    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+
+    myIconLabel = new JBLabel();
+    myPanel.add(myIconLabel, BorderLayout.LINE_START);
+    myIconLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        displayResourcePicker();
+      }
+    });
+
+    mySlider = new JSlider();
+    myPanel.add(mySlider, BorderLayout.LINE_START);
+    mySlider.addChangeListener(event -> sliderChange());
+    Dimension size = mySlider.getMinimumSize();
+    size.setSize(size.width * 2, size.height);
+    mySlider.setPreferredSize(size);
+
+    myCompletionProvider = new CompletionProvider();
+    myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
+    if (includeBorder) {
+      myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+    }
+    myBrowsePanel = createBrowsePanel(context);
+    myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
+    myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
+    myPanel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        updateSliderVisibility();
+      }
+    });
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
+                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myProperty.getValue()),
+                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent focusEvent) {
-        Object source = focusEvent.getSource();
-        if (source instanceof EditorComponentImpl) {
-          EditorImpl editor = ((EditorComponentImpl)source).getEditor();
-          editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
+        if (!myCompletionsUpdated) {
+          myCompletionProvider.updateCompletions(myProperty);
+          myCompletionsUpdated = true;
         }
+        myTextFieldWithAutoCompletion.selectAll();
+      }
+
+      @Override
+      public void focusLost(FocusEvent event) {
+        stopEditing(getText());
+        // Remove the selection after we lose focus for feedback on which editor is the active editor
+        myTextFieldWithAutoCompletion.removeSelection();
       }
     });
   }
 
-  @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlProperty;
-    myProperty = (NlProperty)value;
-
-    Icon icon = NlDefaultRenderer.getIcon(myProperty);
-    myLabel.setIcon(icon);
-    myLabel.setVisible(icon != null);
-
-    String propValue = StringUtil.notNullize(myProperty.getValue());
-    myValue = propValue;
-    myTextFieldWithAutoCompletion.setText(propValue);
-    myCompletionProvider.updateCompletions(myProperty);
-
-    return myPanel;
+  @NotNull
+  private String getText() {
+    String text = myTextFieldWithAutoCompletion.getDocument().getText();
+    return Quantity.addUnit(myProperty, text);
   }
 
   @Override
-  public Object getCellEditorValue() {
-    return myValue;
+  public void setEnabled(boolean enabled) {
+    myTextFieldWithAutoCompletion.setEnabled(enabled);
+    myBrowsePanel.setVisible(enabled && myIncludeBrowseButton);
   }
 
   @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == myBrowseButton) {
-      ChooseResourceDialog dialog = showResourceChooser(myProperty);
-      if (dialog.showAndGet()) {
-        myValue = dialog.getResourceName();
-        stopCellEditing();
-      } else {
-        cancelCellEditing();
+  public NlProperty getProperty() {
+    return myProperty;
+  }
+
+  @Override
+  public void setProperty(@NotNull NlProperty property) {
+    if (myProperty != property) {
+      myProperty = property;
+      myLastReadValue = null;
+      if (myIncludeBrowseButton) {
+        myBrowsePanel.setProperty(property);
       }
+      myCompletionsUpdated = false;
     }
-    else if (e.getSource() == myTextFieldWithAutoCompletion) {
-      myValue = myTextFieldWithAutoCompletion.getDocument().getText();
-      stopCellEditing();
+
+    myUpdatingProperty = true;
+    try {
+      myPropertyHasSlider = configureSlider();
+      if (myPropertyHasSlider) {
+        myPanel.remove(myIconLabel);
+        myPanel.add(mySlider, BorderLayout.LINE_START);
+      }
+      else {
+        myPanel.remove(mySlider);
+        myPanel.add(myIconLabel, BorderLayout.LINE_START);
+        Icon icon = NlDefaultRenderer.getIcon(myProperty);
+        myIconLabel.setIcon(icon);
+        myIconLabel.setVisible(icon != null);
+      }
+
+      String propValue = StringUtil.notNullize(myProperty.getValue());
+      if (!propValue.equals(myLastReadValue)) {
+        myLastReadValue = propValue;
+        myLastWriteValue = propValue;
+        myTextFieldWithAutoCompletion.setText(propValue);
+      }
+      Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
+      myTextFieldWithAutoCompletion.setTextColor(color);
+    }
+    finally {
+      myUpdatingProperty = false;
     }
   }
 
-  public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty p) {
-    Module m = p.getComponent().getModel().getModule();
-    AttributeDefinition definition = p.getDefinition();
-    ResourceType[] types = getResourceTypes(definition);
-    return new ChooseResourceDialog(m, types, p.getValue(), p.getComponent().getTag());
+  private void updateSliderVisibility() {
+    if (myPropertyHasSlider) {
+      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
+      mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+    }
+  }
+
+  private boolean configureSlider() {
+    if (myProperty == null) {
+      return false;
+    }
+    AttributeDefinition definition = myProperty.getDefinition();
+    if (definition == null || Collections.disjoint(definition.getFormats(),
+                                                   ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Float))) {
+      return false;
+    }
+
+    int maximum;
+    int value;
+    switch (myProperty.getName()) {
+      case SdkConstants.ATTR_ELEVATION:
+      case SdkConstants.ATTR_CARD_ELEVATION:
+        // Range: [0, 24] integer (dp)
+        maximum = 24;
+        value = getValueInDp(0);
+        break;
+      case SdkConstants.ATTR_MIN_HEIGHT:
+        // Range: [0, 250] integer (dp)
+        maximum = 250;
+        value = getValueInDp(180);
+        break;
+      case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
+        // Range: [0.0, 1.0] float (no unit)
+        maximum = 10;
+        value = (int)(getValueAsFloat(1.0) * 10 + 0.5);
+        break;
+      default:
+        return false;
+    }
+    mySlider.setMinimum(0);
+    mySlider.setMaximum(maximum);
+    mySlider.setValue(value);
+    return true;
+  }
+
+  private int getValueInDp(int defaultValue) {
+    String valueAsString = myProperty.getValue();
+    if (valueAsString == null) {
+      return defaultValue;
+    }
+    Configuration configuration = myProperty.getModel().getConfiguration();
+    Integer value = ResourceHelper.resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
+    if (value == null) {
+      return defaultValue;
+    }
+
+    return value * Density.DEFAULT_DENSITY / configuration.getDensity().getDpiValue();
+  }
+
+  private double getValueAsFloat(double defaultValue) {
+    String valueAsString = myProperty.getValue();
+    if (valueAsString == null) {
+      return defaultValue;
+    }
+    try {
+      return Float.parseFloat(valueAsString);
+    }
+    catch (NumberFormatException ignore) {
+      return defaultValue;
+    }
+  }
+
+  private String getSliderValue() {
+    int value = mySlider.getValue();
+    switch (myProperty.getName()) {
+      case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
+        if (value == 10) {
+          return "1.0";
+        }
+        return "0." + value;
+      default:
+        return Quantity.addUnit(myProperty, String.valueOf(value));
+    }
+  }
+
+  private void sliderChange() {
+    if (myUpdatingProperty) {
+      return;
+    }
+    myTextFieldWithAutoCompletion.setText(getSliderValue());
+    if (!mySlider.getValueIsAdjusting()) {
+      stopEditing(getText());
+    }
+  }
+
+  @Override
+  public void requestFocus() {
+    myTextFieldWithAutoCompletion.requestFocus();
+    myTextFieldWithAutoCompletion.selectAll();
+    myTextFieldWithAutoCompletion.scrollRectToVisible(myTextFieldWithAutoCompletion.getBounds());
   }
 
   @NotNull
-  private static ResourceType[] getResourceTypes(@Nullable AttributeDefinition definition) {
-    Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
-    // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    String type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
-    return type == null ? ResourceEditor.convertTypes(formats) : new ResourceType[]{ResourceType.getEnum(type)};
+  @Override
+  public JComponent getComponent() {
+    return myPanel;
+  }
+
+  @NotNull
+  @Override
+  public Object getValue() {
+    return getText();
+  }
+
+  @Override
+  public void stopEditing(@Nullable Object newValue) {
+    // Update the selected value for immediate feedback from resource editor.
+    myTextFieldWithAutoCompletion.setText((String)newValue);
+    // Select all the text to give visual confirmation that the value has been applied.
+    if (hasFocus()) {
+      myTextFieldWithAutoCompletion.selectAll();
+    }
+
+    if (!Objects.equals(newValue, myLastWriteValue)) {
+      myLastWriteValue = newValue;
+      myLastReadValue = null;
+      super.stopEditing(newValue);
+    }
+  }
+
+  private boolean hasFocus() {
+    if (myTextFieldWithAutoCompletion.hasFocus()) {
+      return true;
+    }
+    Editor editor = myTextFieldWithAutoCompletion.getEditor();
+    return editor != null && editor.getContentComponent().hasFocus();
+  }
+
+  private static class TextEditor extends TextFieldWithAutoCompletion<String> {
+    private final TextAttributes myTextAttributes;
+
+    public TextEditor(@NotNull Project project, @NotNull CompletionProvider provider) {
+      super(project, provider, true, null);
+      myTextAttributes = new TextAttributes(DEFAULT_VALUE_TEXT_COLOR, null, null, null, Font.PLAIN);
+    }
+
+    @Override
+    public void addNotify() {
+      super.addNotify();
+      EditorEx editor = (EditorEx)getEditor();
+      assert editor != null;
+      editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
+      editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
+      editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
+      editor.setBorder(new DarculaEditorTextFieldBorder() {
+        @Override
+        public Insets getBorderInsets(Component c) {
+          return new InsetsUIResource(VERTICAL_SPACING + VERTICAL_PADDING,
+                                      HORIZONTAL_PADDING,
+                                      VERTICAL_SPACING + VERTICAL_PADDING,
+                                      HORIZONTAL_PADDING);
+        }
+      });
+    }
+
+    public void setTextColor(@NotNull Color color) {
+      myTextAttributes.setForegroundColor(color);
+      EditorEx editor = (EditorEx)getEditor();
+      if (editor != null) {
+        editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
+        editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
+      }
+    }
   }
 
   private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {
@@ -187,43 +418,36 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
 
     @Override
     public int compare(String item1, String item2) {
-      return StringUtil.compare(item1, item2, false);
+      return ResourceHelper.compareResourceReferences(item1, item2);
     }
 
-    public void updateCompletions(@NotNull NlProperty p) {
-      AttributeDefinition definition = p.getDefinition();
+    public void updateCompletions(@NotNull NlProperty property) {
+      AttributeDefinition definition = property.getDefinition();
       if (definition == null) {
         setItems(null);
         return;
       }
 
-      ResourceType[] types = getResourceTypes(definition);
-      List<String> items = Lists.newArrayList();
+      EnumSet<ResourceType> types = BrowsePanel.getResourceTypes(property.getName(), definition);
 
-      AndroidFacet facet = p.getComponent().getModel().getFacet();
-
-      for (ResourceType type : types) {
-        List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(null, type, facet.getLocalResourceManager(), true).getItems();
-        items.addAll(getResNames(resItems));
+      // We include mipmap directly in the drawable maps
+      if (types.contains(ResourceType.MIPMAP)) {
+        types = types.clone();
+        types.remove(ResourceType.MIPMAP);
+        types.add(ResourceType.DRAWABLE);
       }
 
-      for (ResourceType type : types) {
-        List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, facet.getSystemResourceManager(), true).getItems();
-        items.addAll(getResNames(resItems));
+      if (types.contains(ResourceType.ID) && SdkConstants.ATTR_ID.equals(property.getName())) {
+        // Don't offer code completion on id's; you typically want to specify a new, unique
+        // one here, not reference an existing one
+        setItems(null);
+        return;
       }
 
-      setItems(items);
-    }
-
-    @NotNull
-    private static List<String> getResNames(List<ChooseResourceDialog.ResourceItem> resItems) {
-      List<String> result = Lists.newArrayListWithExpectedSize(resItems.size());
-      for (ChooseResourceDialog.ResourceItem item : resItems) {
-        result.add(item.getResourceUrl());
-      }
-      return result;
+      AndroidFacet facet = property.getModel().getFacet();
+      // No point sorting: TextFieldWithAutoCompletionListProvider performs its
+      // own sorting afterwards (by calling compare() above)
+      setItems(ResourceHelper.getCompletionFromTypes(facet, types, false));
     }
   }
 }

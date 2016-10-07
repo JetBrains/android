@@ -25,19 +25,23 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 
 /** Fix which adds a {@code @TargetApi} annotation at the nearest surrounding method or class */
-class AddTargetApiQuickFix implements AndroidLintQuickFix {
+public class AddTargetApiQuickFix implements AndroidLintQuickFix {
+  private final boolean myRequiresApi;
   private int myApi;
   private PsiElement myElement;
 
-  AddTargetApiQuickFix(int api, PsiElement element) {
+  public AddTargetApiQuickFix(int api, boolean requiresApi, PsiElement element) {
     myApi = api;
+    myRequiresApi = requiresApi;
     myElement = element;
   }
 
@@ -59,7 +63,11 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
       return "Suppress With tools:targetApi Attribute";
     }
 
-    return AndroidBundle.message("android.lint.fix.add.target.api", key);
+    if (myRequiresApi) {
+      return AndroidBundle.message("android.lint.fix.add.requires.api", key);
+    } else {
+      return AndroidBundle.message("android.lint.fix.add.target.api", key);
+    }
   }
 
   @Override
@@ -83,7 +91,7 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
       if (element != null) {
         XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class, false);
         if (file != null) {
-          SuppressLintIntentionAction.ensureNamespaceImported(element.getProject(), file, TOOLS_URI);
+          AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
           String codeName = SdkVersionInfo.getBuildCode(myApi);
           if (codeName == null) {
             codeName = Integer.toString(myApi);
@@ -110,14 +118,20 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
     if (modifierList != null) {
       Project project = startElement.getProject();
       PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
-      String annotationText = "@" + FQCN_TARGET_API + "(" + getAnnotationValue(true) + ")";
+      String fqcn = myRequiresApi ? REQUIRES_API_ANNOTATION : FQCN_TARGET_API;
+      String annotationText;
+      if (myRequiresApi) {
+        annotationText = "@" + fqcn + "(api=" + getAnnotationValue(true) + ")";
+      } else {
+        annotationText = "@" + fqcn + "(" + getAnnotationValue(true) + ")";
+      }
       PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, container);
       PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, FQCN_TARGET_API);
       if (annotation != null && annotation.isPhysical()) {
         annotation.replace(newAnnotation);
       } else {
         PsiNameValuePair[] attributes = newAnnotation.getParameterList().getAttributes();
-        AddAnnotationFix fix = new AddAnnotationFix(FQCN_TARGET_API, container, attributes);
+        AddAnnotationFix fix = new AddAnnotationFix(fqcn, container, attributes);
         fix.invoke(project, null /*editor*/, container.getContainingFile());
       }
     }

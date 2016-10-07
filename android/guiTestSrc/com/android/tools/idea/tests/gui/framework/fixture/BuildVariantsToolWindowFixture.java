@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.content.Content;
 import org.fest.swing.cell.JTableCellReader;
 import org.fest.swing.data.TableCell;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 
 public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
@@ -45,7 +46,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull final String module, @NotNull String variant) {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isGreaterThanOrEqualTo(1);
+    assertThat(contents.length).isAtLeast(1);
 
     Content content = contents[0];
     JTable variantsTable = myRobot.finder().findByType(content.getComponent(), JTable.class, true);
@@ -53,21 +54,18 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     final String moduleColumnText = "Module: '" + module + "'";
 
     JTableFixture table = new JTableFixture(myRobot, variantsTable);
-    JTableCellFixture moduleCell = table.cell(new TableCellFinder() {
-      @Override
-      @NotNull
-      public TableCell findCell(@NotNull JTable table, @NotNull JTableCellReader cellReader) {
-        int rowCount = table.getRowCount();
+    JTableCellFixture moduleCell = table.cell(
+      (jTable, cellReader) -> {
+        int rowCount = jTable.getRowCount();
         for (int i = 0; i < rowCount; i++) {
           int moduleColumnIndex = 0;
-          String currentModule = cellReader.valueAt(table, i, moduleColumnIndex);
+          String currentModule = cellReader.valueAt(jTable, i, moduleColumnIndex);
           if (moduleColumnText.equals(currentModule)) {
             return row(i).column(moduleColumnIndex);
           }
         }
         throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
-      }
-    });
+      });
 
     TableCell variantCellCoordinates = row(moduleCell.row()).column(1);
     String selectedVariant = table.valueAt(variantCellCoordinates);
@@ -89,7 +87,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
       myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
     }
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    GuiTests.waitForBackgroundTasks(myRobot);
     return this;
   }
 
@@ -97,7 +95,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   private JComboBoxFixture getTestArtifactComboBox() {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isGreaterThanOrEqualTo(1);
+    assertThat(contents.length).isAtLeast(1);
 
     Content content = contents[0];
     JComboBox comboBox = myRobot.finder().findByType(content.getComponent(), JComboBox.class, true);

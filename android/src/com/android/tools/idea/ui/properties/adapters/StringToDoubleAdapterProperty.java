@@ -15,42 +15,64 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParsePosition;
 
 /**
  * Adapter property that wraps a String type which represents a Double value.
+
+ * If a string is passed in that isn't properly formatted, this adapter returns the last known
+ * good value.
  */
 public final class StringToDoubleAdapterProperty extends AdapterProperty<String, Double> {
-  @NotNull private final String myFormatString;
+
+  @NotNull private final DecimalFormat myFormat;
 
   /**
    * Defaults to 1 decimal point of precision.
    */
-  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty) {
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty) {
     this(wrappedProperty, 1);
   }
 
-  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals) {
-    super(wrappedProperty);
-    myFormatString = "%1$." + numDecimals + "f";
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, int numDecimals) {
+    this(wrappedProperty, numDecimals, numDecimals);
   }
 
-  @NotNull
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
+    super(wrappedProperty, 0d);
+    if (maxDecimals < numDecimals) {
+      throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");
+    }
+    myFormat = new DecimalFormat("0." + StringUtil.repeat("0", numDecimals) + StringUtil.repeat("#", maxDecimals - numDecimals),
+                                 new DecimalFormatSymbols());
+  }
+
+  @Nullable
   @Override
   protected Double convertFromSourceType(@NotNull String value) {
     try {
-      return Double.parseDouble(value);
+      ParsePosition pos = new ParsePosition(0);
+      Number number = myFormat.parse(value, pos);
+      if (number != null && pos.getIndex() == value.length()) {
+        return number.doubleValue();
+      }
     }
-    catch (NumberFormatException e) {
-      return 0.0;
+    catch (NumberFormatException ignored) {
     }
+    return null;
   }
 
   @NotNull
   @Override
   protected String convertFromDestType(@NotNull Double value) {
-    return String.format(myFormatString, value);
+    return myFormat.format(value);
   }
 }
 

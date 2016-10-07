@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.SdkConstants;
 import com.android.repository.api.*;
 import com.android.repository.api.RepoManager.RepoLoadedCallback;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.ui.ApplicationUtils;
-import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -44,6 +42,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -57,6 +56,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -186,11 +186,11 @@ public class SdkUpdaterConfigPanel {
   /**
    * Construct a new SdkUpdaterConfigPanel.
    *
-   * @param handler                The AndroidSdkHandler from which to get our package information.
    * @param channelChangedCallback Callback to allow us to notify the channel picker panel if we change the selected channel.
    * @param downloader             {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
    *                               only show local packages.
    * @param settings               {@link SettingsController} for e.g. proxy settings.
+   * @param configurable           The {@link SdkUpdaterConfigurable} that created this.
    */
   public SdkUpdaterConfigPanel(@NotNull final Runnable channelChangedCallback,
                                @Nullable Downloader downloader,
@@ -241,8 +241,7 @@ public class SdkUpdaterConfigPanel {
             }
 
             InstallComponentsPath path =
-              new InstallComponentsPath(myConfigurable.getRepoManager().getPackages().getRemotePackages(), FirstRunWizardMode.MISSING_SDK,
-                                        location, progressStep, false);
+              new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, false);
 
             progressStep.setInstallComponentsPath(path);
 
@@ -298,6 +297,8 @@ public class SdkUpdaterConfigPanel {
       }
     });
     mySdkLocation.setEditable(false);
+    myToolComponentsPanel.setConfigurable(myConfigurable);
+    myPlatformComponentsPanel.setConfigurable(myConfigurable);
   }
 
   private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
@@ -371,8 +372,13 @@ public class SdkUpdaterConfigPanel {
     ActionMap am = table.getActionMap();
     final CycleAction forwardAction = new CycleAction(false);
     final CycleAction backwardAction = new CycleAction(true);
-    am.put("selectPreviousColumnCell", backwardAction);
-    am.put("selectNextColumnCell", forwardAction);
+
+    // With a screen reader, we need to let the user navigate through all the
+    // cells so that they can be read, so don't override the prev/next cell actions.
+    if (!ScreenReader.isActive()) {
+      am.put("selectPreviousColumnCell", backwardAction);
+      am.put("selectNextColumnCell", forwardAction);
+    }
 
     table.addKeyListener(new KeyAdapter() {
       @Override
@@ -468,9 +474,6 @@ public class SdkUpdaterConfigPanel {
 
         break;
       case WARN:
-        mySdkLocationLabel.setForeground(Colors.WARNING);
-
-        mySdkErrorLabel.setForeground(Colors.WARNING);
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonWarning);
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
@@ -480,9 +483,6 @@ public class SdkUpdaterConfigPanel {
 
         break;
       case ERROR:
-        mySdkLocationLabel.setForeground(Colors.ERROR);
-
-        mySdkErrorLabel.setForeground(Colors.ERROR);
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
@@ -496,16 +496,12 @@ public class SdkUpdaterConfigPanel {
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
-    Set<UpdatablePackage> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();
       if (details instanceof DetailsTypes.ApiDetailsType) {
-        platformPackages.put(DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details), info);
-      }
-      else if (p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
-        buildToolsPackages.add(info);
+        platformPackages.put(((DetailsTypes.ApiDetailsType)details).getAndroidVersion(), info);
       }
       else {
         toolsPackages.add(info);
@@ -514,16 +510,16 @@ public class SdkUpdaterConfigPanel {
     // TODO: when should we show this?
     //myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setPackages(platformPackages);
-    myToolComponentsPanel.setPackages(toolsPackages, buildToolsPackages);
+    myToolComponentsPanel.setPackages(toolsPackages);
   }
 
   /**
-   * Gets the consolidated list of {@link NodeStateHolder}s from our children so they can be applied.
+   * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
    *
    * @return
    */
-  public Collection<NodeStateHolder> getStates() {
-    List<NodeStateHolder> result = Lists.newArrayList();
+  public Collection<PackageNodeModel> getStates() {
+    List<PackageNodeModel> result = Lists.newArrayList();
     result.addAll(myPlatformComponentsPanel.myStates);
     result.addAll(myToolComponentsPanel.myStates);
     return result;

@@ -16,12 +16,13 @@
 
 package org.jetbrains.android.sdk;
 
+import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -47,7 +48,7 @@ import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision
  * @author Eugene.Kudelevsky
  */
 public class AndroidSdkData {
-  private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
+  private final Map<String, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 
   private final DeviceManager myDeviceManager;
 
@@ -122,7 +123,8 @@ public class AndroidSdkData {
     mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
     File location = getLocation();
     String locationPath = location.getPath();
-    myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
+    Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
+    myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
     myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
   }
 
@@ -141,9 +143,16 @@ public class AndroidSdkData {
     return getLocation().getPath();
   }
 
+  /** @link Use {#getLatestBuildTool(boolean)} */
+  @Deprecated
   @Nullable
   public BuildToolInfo getLatestBuildTool() {
-    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
+    return getLatestBuildTool(false);
+  }
+
+  @Nullable
+  public BuildToolInfo getLatestBuildTool(boolean allowPreview) {
+    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), allowPreview);
   }
 
   @NotNull
@@ -227,11 +236,12 @@ public class AndroidSdkData {
 
   @NotNull
   public AndroidTargetData getTargetData(@NotNull IAndroidTarget target) {
-    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(target);
+    String key = target.hashString();
+    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(key);
     AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
     if (targetData == null) {
       targetData = new AndroidTargetData(this, target);
-      myTargetDataByTarget.put(target, new SoftReference<AndroidTargetData>(targetData));
+      myTargetDataByTarget.put(key, new SoftReference<>(targetData));
     }
     return targetData;
   }

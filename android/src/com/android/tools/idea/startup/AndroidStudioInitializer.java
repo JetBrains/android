@@ -16,8 +16,11 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.androidstudio.actions.CreateClassAction;
+import com.intellij.concurrency.JobScheduler;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -34,13 +37,18 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.SystemProperties;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
@@ -61,6 +69,7 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
  * </p>
  */
 public class AndroidStudioInitializer implements Runnable {
+
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
 
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
@@ -83,12 +92,16 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
+    setUpNewProjectActions();
+    setUpExperimentalFeatures();
+    setupAnalytics();
+    disableGradleOrderEnumeratorHandler();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
     EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
 
     /* Causes IDE startup failure (from the command line)
@@ -98,6 +111,18 @@ public class AndroidStudioInitializer implements Runnable {
           at com.android.tools.idea.startup.AndroidStudioInitializer.run(AndroidStudioInitializer.java:90)
     FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
      */
+  }
+
+  /*
+   * sets up collection of Android Studio specific analytics.
+   * Delayed by 1 minute, not to add to load time of Android Studio.
+   */
+  private static void setupAnalytics() {
+    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
+    scheduler.schedule(() -> AndroidStudioUsageTracker.setup(scheduler), 1, TimeUnit.MINUTES);
+  }
+
+  private static void setUpExperimentalFeatures() {
   }
 
   private static void checkInstallation() {
@@ -123,7 +148,8 @@ public class AndroidStudioInitializer implements Runnable {
     File[] children = notNullize(androidPluginLibFolderPath.listFiles());
     if (hasMoreThanOneBuilderModelFile(children)) {
       cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    } else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
+    }
+    else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
       cause = "(Found plugins/android-designer which should not be present.)";
     }
     if (cause != null) {
@@ -201,7 +227,8 @@ public class AndroidStudioInitializer implements Runnable {
     ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
       @Override
       public void projectOpened(@NotNull Project project) {
-        ExtensionPoint<MultiHostInjector> extensionPoint = Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
+        ExtensionPoint<MultiHostInjector> extensionPoint =
+          Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
 
         for (MultiHostInjector injector : extensionPoint.getExtensions()) {
           if (injector instanceof GrConcatenationInjector) {
@@ -212,6 +239,23 @@ public class AndroidStudioInitializer implements Runnable {
 
         LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
+
     });
+  }
+
+  // GradleOrderEnumeratorHandler turns off the "exported" dependency mechanism in IDE for Gradle projects.
+  private static void disableGradleOrderEnumeratorHandler() {
+    ExtensionPoint<OrderEnumerationHandler.Factory> extensionPoint =
+      Extensions.getRootArea().getExtensionPoint(OrderEnumerationHandler.EP_NAME);
+    for (OrderEnumerationHandler.Factory factory : extensionPoint.getExtensions()) {
+      if (factory instanceof GradleOrderEnumeratorHandler.FactoryImpl) {
+        extensionPoint.unregisterExtension(factory);
+        return;
+      }
+    }
+  }
+
+  private static void setUpNewProjectActions() {
+    replaceAction("NewClass", new CreateClassAction());
   }
 }

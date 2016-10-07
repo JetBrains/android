@@ -72,7 +72,33 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
       locator.validate();
       fail("Validation succeeded for activity alias that isn't launchable.");
     } catch (ActivityLocator.ActivityLocatorException e) {
-      assertEquals("The intent-filter of the activity must contain android.intent.action.MAIN action", e.getMessage());
+      assertEquals("The activity must be exported or contain an intent-filter", e.getMessage());
     }
+  }
+
+  public void testActivityWithoutLauncherIntent() {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
+    try {
+      locator.validate();
+      fail("Validation succeeded for activity that isn't launchable.");
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      assertEquals("The activity must be exported or contain an intent-filter", e.getMessage());
+    }
+  }
+
+  public void testActivityWithSomeLauncherIntent() throws ActivityLocator.ActivityLocatorException {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "SendHandler");
+    locator.validate();
+  }
+
+  public void testExportedActivity() throws ActivityLocator.ActivityLocatorException {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/ExportedActivity.java", "src/com/example/unittest/ExportedActivity.java");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.ExportedActivity");
+    locator.validate();
   }
 }

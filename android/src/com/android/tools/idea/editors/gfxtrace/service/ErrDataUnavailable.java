@@ -17,7 +17,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.rpccore.RpcException;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +71,7 @@ public final class ErrDataUnavailable extends RpcException implements BinaryObje
 
   @Override
   public String getMessage() {
-    return myReason.getString();
+    return myReason.toString();
   }
 
   public enum Klass implements BinaryClass {

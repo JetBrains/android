@@ -430,55 +430,40 @@ public class GradleBuildFileTest extends IdeaTestCase {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
       file.getClosure("/");
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testGetValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
       file.getValue(BuildFileKey.TARGET_SDK_VERSION);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testGetNestedValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
       file.getValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testSetValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
       file.setValue(BuildFileKey.TARGET_SDK_VERSION, 2);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testSetNestedValueChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
       file.setValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION, 2);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
+      fail("expected IllegalStateException");
+    } catch (IllegalStateException expected) {}
   }
 
   public void testGetsPropertyFromRedundantBlock() throws Exception {

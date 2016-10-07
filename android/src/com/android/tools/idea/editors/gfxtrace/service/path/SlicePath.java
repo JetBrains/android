@@ -25,8 +25,13 @@ import java.io.IOException;
 
 public final class SlicePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myArray.stringPath(builder).append("[").append(myStart).append(":").append(myEnd).append("]");
+  public String getSegmentString() {
+    return '[' + String.valueOf(myStart) + ':' + String.valueOf(myEnd) + ']';
+  }
+
+  @Override
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append(getSegmentString());
   }
 
   @Override

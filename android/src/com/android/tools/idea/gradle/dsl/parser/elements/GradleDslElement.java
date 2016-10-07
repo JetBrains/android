@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
@@ -34,23 +38,51 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
  */
 public abstract class GradleDslElement {
+  @NotNull protected final String myName;
+
   @Nullable protected GradleDslElement myParent;
 
-  @NotNull protected final String myName;
+  @NotNull private final String myQualifiedName;
+  @NotNull private final GradleDslFile myDslFile;
 
   @Nullable private GroovyPsiElement myPsiElement;
 
   private volatile boolean myModified;
 
+  /**
+   * Creates an in stance of a {@link GradleDslElement}
+   *
+   * @param parent the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if this
+   *               element is the root element, i.e a {@link GradleDslFile}.
+   * @param psiElement the {@link GroovyPsiElement} of this dsl element.
+   * @param name the name of this element.
+   */
   protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+    assert parent != null || this instanceof GradleDslFile;
+
     myParent = parent;
     myPsiElement = psiElement;
     myName = name;
+
+    if (parent == null || parent instanceof GradleDslFile) {
+      myQualifiedName = name;
+    }
+    else {
+      myQualifiedName = parent.myQualifiedName + "." + name;
+    }
+
+    if (parent == null) {
+      myDslFile = (GradleDslFile)this;
+    }
+    else {
+      myDslFile = parent.myDslFile;
+    }
   }
 
   @NotNull
@@ -70,6 +102,25 @@ public abstract class GradleDslElement {
 
   public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
     myPsiElement = psiElement;
+  }
+
+  @NotNull
+  public String getQualifiedName() {
+    return myQualifiedName;
+  }
+
+  @NotNull
+  public GradleDslFile getDslFile() {
+    return myDslFile;
+  }
+
+  @NotNull
+  public List<GradleResolvedVariable> getResolvedVariables() {
+    ImmutableList.Builder<GradleResolvedVariable> resultBuilder = ImmutableList.builder();
+    for (GradleDslElement child : getChildren()) {
+      resultBuilder.addAll(child.getResolvedVariables());
+    }
+    return resultBuilder.build();
   }
 
   /**
@@ -102,13 +153,22 @@ public abstract class GradleDslElement {
       return null; // Avoid creation of an empty block statement.
     }
 
-    String statementText = isBlockElement() ? myName + " {\n}\n" : myName + " \"abc\", \"xyz\"";
+    String statementText = myName + (isBlockElement() ? " {\n}\n" : " \"abc\", \"xyz\"");
     GrStatement statement = factory.createStatementFromText(statementText);
     if (statement instanceof GrApplicationStatement) {
       // Workaround to create an application statement.
       ((GrApplicationStatement)statement).getArgumentList().delete();
     }
-    PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+    PsiElement lineTerminator = factory.createLineTerminator(1);
+    PsiElement addedElement;
+    if (parentPsiElement instanceof GroovyFile) {
+      addedElement = parentPsiElement.addAfter(statement, parentPsiElement.getLastChild());
+      parentPsiElement.addBefore(lineTerminator, addedElement);
+    }
+    else {
+      addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+      parentPsiElement.addAfter(lineTerminator, addedElement);
+    }
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
       if (closableBlock != null) {
@@ -119,8 +179,6 @@ public abstract class GradleDslElement {
         setPsiElement((GrApplicationStatement)addedElement);
       }
     }
-    PsiElement lineTerminator = factory.createLineTerminator(1);
-    parentPsiElement.addAfter(lineTerminator, addedElement);
     return getPsiElement();
   }
 

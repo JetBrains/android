@@ -22,9 +22,8 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -44,18 +43,18 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
 public class DeviceMenuAction extends FlatComboAction {
   private static final boolean LIST_RECENT_DEVICES = false;
-  private final RenderContext myRenderContext;
+  private final ConfigurationHolder myRenderContext;
   private final boolean myClassicStyle;
 
-  public DeviceMenuAction(@NotNull RenderContext renderContext) {
+  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
     this(renderContext, !RenderService.NELE_ENABLED);
   }
 
-  public DeviceMenuAction(@NotNull RenderContext renderContext, boolean classicStyle) {
+  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("The virtual device to render the layout with");
+    presentation.setDescription("Device in Editor");
     if (classicStyle) {
       presentation.setIcon(AndroidIcons.Display);
     }
@@ -155,68 +154,9 @@ public class DeviceMenuAction extends FlatComboAction {
     return AndroidIcons.NeleIcons.Phone;
   }
 
-  /** TODO: Combine with {@link FormFactorUtils.FormFactor} */
-  public enum FormFactor {
-    MOBILE, WEAR, GLASS, TV, CAR;
-    private Icon myIcon64;
-
-    public static FormFactor getFormFactor(@NotNull Device device) {
-      if (HardwareConfigHelper.isWear(device)) {
-        return WEAR;
-      } else if (HardwareConfigHelper.isTv(device)) {
-        return TV;
-      }
-      // Glass, Car not yet in the device list
-
-      return MOBILE;
-    }
-
-    @NotNull
-    public Icon getIcon() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_16;
-        case WEAR: return AndroidIcons.FormFactors.Wear_16;
-        case TV: return AndroidIcons.FormFactors.Tv_16;
-        case GLASS: return AndroidIcons.FormFactors.Glass_16;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_16;
-      }
-    }
-
-    @NotNull
-    public Icon getLargeIcon() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_128;
-        case WEAR: return AndroidIcons.FormFactors.Wear_128;
-        case TV: return AndroidIcons.FormFactors.Tv_128;
-        case GLASS: return AndroidIcons.FormFactors.Glass_128;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_128;
-      }
-    }
-
-    public boolean hasEmulator() {
-      return this != GLASS;
-    }
-
-    public Icon getIcon64() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_64;
-        case WEAR: return AndroidIcons.FormFactors.Wear_64;
-        case TV: return AndroidIcons.FormFactors.Tv_64;
-        case GLASS: return AndroidIcons.FormFactors.Glass_64;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_64;
-      }
-    }
-  }
-
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
@@ -308,12 +248,6 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
-    group.addSeparator();
-    if (RenderPreviewMode.getCurrent() != RenderPreviewMode.SCREENS) {
-      ConfigurationMenuAction.addScreenSizeAction(myRenderContext, group);
-    } else {
-      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
-    }
 
     return group;
   }
@@ -358,7 +292,7 @@ public class DeviceMenuAction extends FlatComboAction {
   private class SetDeviceAction extends ConfigurationAction {
     private final Device myDevice;
 
-    public SetDeviceAction(@NotNull RenderContext renderContext,
+    public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,

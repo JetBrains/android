@@ -17,40 +17,38 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 
 public class DeployApkTask implements LaunchTask {
   private static final Logger LOG = Logger.getInstance(DeployApkTask.class);
 
-  private final AndroidFacet myFacet;
-  private final ApkProvider myApkProvider;
+  private final Project myProject;
+  private final Collection<ApkInfo> myApks;
   private final LaunchOptions myLaunchOptions;
-  private final boolean myInstantRunAware;
+  private final InstantRunContext myInstantRunContext;
 
-  public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider) {
-    this(facet, launchOptions, apkProvider, false);
+  public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks) {
+    this(project, launchOptions, apks, null);
   }
 
-  public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider,
-                       boolean instantRunAware) {
-    myFacet = facet;
+  public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks,
+                       @Nullable InstantRunContext instantRunContext) {
+    myProject = project;
     myLaunchOptions = launchOptions;
-    myApkProvider = apkProvider;
-    myInstantRunAware = instantRunAware;
+    myApks = apks;
+    myInstantRunContext = instantRunContext;
   }
 
   @NotNull
@@ -66,30 +64,12 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    Collection<ApkInfo> apks;
-    try {
-      apks = myApkProvider.getApks(device);
-    }
-    catch (ApkProvisionException e) {
-      printer.stderr(e.getMessage());
-      LOG.warn(e);
-      return false;
-    }
-
-    if (myInstantRunAware) {
-      try {
-        InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      } catch (Exception e) {
-        printer.stderr(e.toString());
-      }
-    }
-
-    ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
-    for (ApkInfo apk : apks) {
+    ApkInstaller installer = new ApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
+    for (ApkInfo apk : myApks) {
       if (!apk.getFile().exists()) {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
         printer.stderr(message);
-        LOG.error(message);
+        LOG.warn(message);
         return false;
       }
 
@@ -98,10 +78,7 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      if (myInstantRunAware) {
-        cacheManifestInstallationData(device, myFacet, pkgName);
-      }
-      else {
+      if (myInstantRunContext == null) {
         // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
         // will not somehow see a stale build id on the device.
         try {
@@ -112,20 +89,19 @@ public class DeployApkTask implements LaunchTask {
       }
     }
 
+    if (myInstantRunContext == null) {
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.LEGACY, BuildCause.NO_INSTANT_RUN, device);
+    } else {
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why, device);
+    }
     trackInstallation(device);
-    InstantRunStatsService.get(myFacet.getModule().getProject())
-      .notifyDeployType(myInstantRunAware ? InstantRunStatsService.DeployType.FULLAPK : InstantRunStatsService.DeployType.LEGACY);
 
     return true;
   }
 
-  public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+  public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-
-    patchCache.setInstalledManifestTimestamp(device, pkgName, InstantRunManager.getManifestLastModified(facet));
-
-    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-    patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
+    patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
   private static int ourInstallationCount = 0;

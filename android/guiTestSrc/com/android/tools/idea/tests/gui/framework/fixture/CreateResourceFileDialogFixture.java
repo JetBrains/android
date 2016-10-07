@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
-import org.jetbrains.android.actions.CreateResourceFileDialog;
+import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -26,13 +26,13 @@ import java.awt.event.KeyEvent;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertEquals;
 
-public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialog> {
+public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialogBase> {
   @NotNull
   public static CreateResourceFileDialogFixture find(@NotNull Robot robot) {
-    return new CreateResourceFileDialogFixture(robot, find(robot, CreateResourceFileDialog.class));
+    return new CreateResourceFileDialogFixture(robot, find(robot, CreateResourceFileDialogBase.class));
   }
 
-  private CreateResourceFileDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<CreateResourceFileDialog> dialogAndWrapper) {
+  private CreateResourceFileDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<CreateResourceFileDialogBase> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
 

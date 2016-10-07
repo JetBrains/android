@@ -44,13 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 25, 2009
- * Time: 6:45:58 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidValueResourcesTest extends AndroidDomTest {
   public AndroidValueResourcesTest() {
     super(false, "dom/resources");
@@ -268,12 +261,18 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testDrawableResourceReference() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".xml", "res/layout/main.xml");
+    VirtualFile file = copyFileToProject(getTestName(true) + ".xml", "res/layout/main.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElements = myFixture.getLookupElementStrings();
+    assertContainsElements(lookupElements, "@android:", "@color/color1", "@color/color2", "@drawable/picture1");
     // mipmap won't be offered as an option since there are not mipmap resources
-    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/");
+    assertDoesntContain(lookupElements, "@mipmap/icon");
 
+    // Add a mipmap to resources and expect for it to be listed
     myFixture.copyFileToProject(testFolder + "/icon.png", "res/mipmap/icon.png");
-    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/", "@mipmap/");
+    myFixture.complete(CompletionType.BASIC);
+    assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
   public void testParentStyleReference() throws Throwable {
@@ -345,6 +344,14 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testTranslatableTrueCompletion() throws Throwable {
     toTestCompletion("strings_translatable_true.xml", "strings_translatable_true_after.xml");
+  }
+
+  public void testFormattedAttributeCompletion() throws Throwable {
+    toTestCompletion("strings_formatted_attr.xml", "strings_formatted_attr_after.xml");
+  }
+
+  public void testFormattedFalseCompletion() throws Throwable {
+    toTestCompletion("strings_formatted_false.xml", "strings_formatted_false_after.xml");
   }
 
   public void testInlineResourceField() throws Exception {
@@ -510,7 +517,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

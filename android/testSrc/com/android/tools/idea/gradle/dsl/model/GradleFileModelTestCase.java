@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -28,14 +30,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static org.fest.assertions.Assertions.assertThat;
 
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
@@ -44,7 +45,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected File mySettingsFile;
   protected File myBuildFile;
+  protected File myPropertiesFile;
   protected File mySubModuleBuildFile;
+  protected File mySubModulePropertiesFile;
 
   @Override
   protected void setUp() throws Exception {
@@ -53,20 +56,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     String basePath = myProject.getBasePath();
     assertNotNull(basePath);
     File projectBasePath = new File(basePath);
-    assertThat(projectBasePath).isDirectory();
+    assertAbout(file()).that(projectBasePath).isDirectory();
     mySettingsFile = new File(projectBasePath, FN_SETTINGS_GRADLE);
     assertTrue(ensureCanCreateFile(mySettingsFile));
 
     File moduleFilePath = new File(myModule.getModuleFilePath());
     File moduleDirPath = moduleFilePath.getParentFile();
-    assertThat(moduleDirPath).isDirectory();
+    assertAbout(file()).that(moduleDirPath).isDirectory();
     myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
+    myPropertiesFile = new File(moduleDirPath, FN_GRADLE_PROPERTIES);
+    assertTrue(ensureCanCreateFile(myPropertiesFile));
 
     File subModuleFilePath = new File(mySubModule.getModuleFilePath());
     File subModuleDirPath = subModuleFilePath.getParentFile();
-    assertThat(subModuleDirPath).isDirectory();
+    assertAbout(file()).that(subModuleDirPath).isDirectory();
     mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
+    assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
+    mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
   }
 
@@ -95,11 +102,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return mainModule;
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
     writeToFile(mySettingsFile, text);
   }
@@ -108,8 +110,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(myBuildFile, text);
   }
 
+  protected void writeToPropertiesFile(@NotNull String text) throws IOException {
+    writeToFile(myPropertiesFile, text);
+  }
+
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
     writeToFile(mySubModuleBuildFile, text);
+  }
+
+  protected void writeToSubModulePropertiesFile(@NotNull String text) throws IOException {
+    writeToFile(mySubModulePropertiesFile, text);
   }
 
   @NotNull
@@ -146,5 +156,21 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
     applyChanges(buildModel);
     buildModel.reparse();
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+    assertEquals(message, expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+    assertEquals(expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
+    assertEquals(message, expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
+    assertEquals(expected, actual.value());
   }
 }

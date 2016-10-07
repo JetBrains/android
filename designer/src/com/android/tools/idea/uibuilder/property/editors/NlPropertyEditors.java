@@ -17,64 +17,178 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.table.TableCellEditor;
+import java.util.Collections;
 import java.util.Set;
 
-public class NlPropertyEditors {
-  private static NlBooleanEditor ourBooleanEditor;
-  private static NlEnumEditor ourComboEditor;
-  private static NlReferenceEditor ourDefaultEditor;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-  public static PTableCellEditor get(@NotNull NlProperty property) {
+public class NlPropertyEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
+  private Project myProject;
+  private NlTableCellEditor myBooleanEditor;
+  private NlTableCellEditor myFlagEditor;
+  private NlTableCellEditor myComboEditor;
+  private NlTableCellEditor myDefaultEditor;
+
+  public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO, COMBO_WITH_BROWSE}
+
+  @NotNull
+  public static NlPropertyEditors getInstance(@NotNull Project project) {
+    return project.getComponent(NlPropertyEditors.class);
+  }
+
+  private NlPropertyEditors(@NotNull Project project) {
+    myProject = project;
+  }
+
+  @NotNull
+  @Override
+  public PTableCellEditor getCellEditor(@NotNull PTableItem item) {
+    switch (getEditorType((NlProperty)item)) {
+      case BOOLEAN:
+        return getBooleanEditor();
+      case FLAG:
+        return getMyFlagEditor();
+      case COMBO:
+      case COMBO_WITH_BROWSE:
+        return getMyComboEditor();
+      default:
+        return getDefaultEditor();
+    }
+  }
+
+  public NlComponentEditor create(@NotNull NlProperty property) {
+    switch (getEditorType(property)) {
+      case BOOLEAN:
+        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
+      case FLAG:
+        return NlFlagsEditor.create();
+      case COMBO:
+        return NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      case COMBO_WITH_BROWSE:
+        return NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
+      default:
+        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
+    }
+  }
+
+  private void resetCachedEditors() {
+    myBooleanEditor = null;
+    myFlagEditor = null;
+    myComboEditor = null;
+    myDefaultEditor = null;
+  }
+
+  @NotNull
+  private static EditorType getEditorType(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
-    if (definition == null) {
-      // TODO: default to text editor
-      return null;
+    Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
+    Boolean isBoolean = null;
+    for (AttributeFormat format : formats) {
+      switch (format) {
+        case Boolean:
+          if (isBoolean == null) {
+            isBoolean = Boolean.TRUE;
+          }
+          break;
+        case String:
+        case Color:
+        case Dimension:
+        case Integer:
+        case Float:
+        case Fraction:
+          if (isBoolean == null) {
+            isBoolean = Boolean.FALSE;
+          }
+          break;
+        case Enum:
+          return EditorType.COMBO;
+        case Flag:
+          return EditorType.FLAG;
+        default:
+          break;
+      }
     }
-
-    Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.isEmpty()) {
-      // either we don't know the format or we support multiple formats
-      // TODO: default to text editor
-      return null;
+    if (isBoolean == Boolean.TRUE) {
+      return EditorType.BOOLEAN;
     }
-
-    // TODO: there can be more than one format, we need to make this more customizable
-    if (formats.contains(AttributeFormat.Boolean)) {
-      return getBooleanEditor();
-    } else if (formats.contains(AttributeFormat.Enum)) {
-      return getComboEditor();
+    else if (NlEnumEditor.supportsProperty(property)) {
+      if (property.getName().equals(ATTR_STYLE)) {
+        return EditorType.COMBO_WITH_BROWSE;
+      }
+      return EditorType.COMBO;
     }
-
-    return getDefaultEditor(property.getComponent().getModel().getProject());
+    return EditorType.DEFAULT;
   }
 
-  private static PTableCellEditor getBooleanEditor() {
-    if (ourBooleanEditor == null) {
-      ourBooleanEditor = new NlBooleanEditor();
+  private PTableCellEditor getBooleanEditor() {
+    if (myBooleanEditor == null) {
+      myBooleanEditor = NlBooleanEditor.createForTable();
     }
 
-    return ourBooleanEditor;
+    return myBooleanEditor;
   }
 
-  private static PTableCellEditor getComboEditor() {
-    if (ourComboEditor == null) {
-      ourComboEditor = new NlEnumEditor();
+  public PTableCellEditor getMyFlagEditor() {
+    if (myFlagEditor == null) {
+      myFlagEditor = NlFlagEditor.createForTable();
     }
 
-    return ourComboEditor;
+    return myFlagEditor;
   }
 
-  private static PTableCellEditor getDefaultEditor(Project project) {
-    if (ourDefaultEditor == null) {
-      ourDefaultEditor = new NlReferenceEditor(project);
+  private PTableCellEditor getMyComboEditor() {
+    if (myComboEditor == null) {
+      myComboEditor = NlEnumEditor.createForTable();
     }
 
-    return ourDefaultEditor;
+    return myComboEditor;
+  }
+
+  private PTableCellEditor getDefaultEditor() {
+    if (myDefaultEditor == null) {
+      myDefaultEditor = NlReferenceEditor.createForTable(myProject);
+    }
+
+    return myDefaultEditor;
+  }
+
+  @Override
+  public void projectOpened() {
+  }
+
+  @Override
+  public void projectClosed() {
+  }
+
+  @Override
+  public void initComponent() {
+    LafManager.getInstance().addLafManagerListener(this);
+  }
+
+  @Override
+  public void disposeComponent() {
+    LafManager.getInstance().removeLafManagerListener(this);
+  }
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    resetCachedEditors();
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return NlPropertyEditors.class.getSimpleName();
   }
 }

@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class BlobPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("Blob(").append(myID).append(")");
+  public String getSegmentString() {
+    return "Blob(" + myID + ')';
   }
 
   @Override
@@ -58,7 +58,7 @@ public final class BlobPath extends Path {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("ID", new Array("id.ID", new Primitive("byte", Method.Uint8), 20)),
     });
     Namespace.register(Klass.INSTANCE);
   }

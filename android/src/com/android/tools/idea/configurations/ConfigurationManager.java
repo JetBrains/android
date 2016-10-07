@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -23,12 +24,14 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repositoryv2.targets.PlatformTarget;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
-import com.android.tools.idea.rendering.*;
+import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -40,15 +43,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
+import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
@@ -300,7 +301,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    ManifestInfo manifest = ManifestInfo.get(myModule, false);
+    MergedManifest manifest = MergedManifest.get(myModule);
 
     // TODO: If we are rendering a layout in included context, pick the theme
     // from the outer layout instead
@@ -309,17 +310,15 @@ public class ConfigurationManager implements Disposable {
     if (activity != null) {
       String activityFqcn = activity;
       if (activity.startsWith(".")) {
-        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
-        if (moduleInfo != null) {
-          String pkg = StringUtil.notNullize(ManifestInfo.get(myModule, false).getPackage());
-          activityFqcn = pkg + activity;
-        }
+        String pkg = StringUtil.notNullize(manifest.getPackage());
+        activityFqcn = pkg + activity;
       }
 
       ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        if (theme != null) {
+        // Check that the theme looks like a reference
+        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
       }
@@ -328,7 +327,8 @@ public class ConfigurationManager implements Disposable {
       attributes = manifest.getActivityAttributes(activity);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        if (theme != null) {
+        // Check that the theme looks like a reference
+        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
       }

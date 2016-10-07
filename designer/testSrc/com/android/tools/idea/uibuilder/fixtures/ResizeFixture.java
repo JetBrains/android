@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
@@ -29,14 +29,14 @@ import java.awt.event.KeyEvent;
 import static org.junit.Assert.*;
 
 public class ResizeFixture {
-  @NonNull private final ComponentFixture myComponentFixture;
-  @NonNull private final ResizeInteraction myInteraction;
+  @NotNull private final ComponentFixture myComponentFixture;
+  @NotNull private final ResizeInteraction myInteraction;
   @SwingCoordinate private int myCurrentX;
   @SwingCoordinate private int myCurrentY;
   private final ScreenView myScreen;
   private int myModifiers;
 
-  public ResizeFixture(@NonNull ComponentFixture componentFixture,
+  public ResizeFixture(@NotNull ComponentFixture componentFixture,
                        @Nullable SegmentType horizontalEdge,
                        @Nullable SegmentType verticalEdge) {
     myComponentFixture = componentFixture;

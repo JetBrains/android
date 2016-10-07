@@ -116,9 +116,9 @@ public class PostProjectBuildTasksExecutor {
     onBuildCompletion(errors, errorMessages.length);
   }
 
-  public long getLastBuildTimestamp() {
-    Long timestamp = myProject.getUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY);
-    return timestamp != null ? timestamp : -1L;
+  @Nullable
+  public Long getLastBuildTimestamp() {
+    return myProject.getUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY);
   }
 
   private static class CompilerMessageIterator extends AbstractIterator<String> {
@@ -198,10 +198,6 @@ public class PostProjectBuildTasksExecutor {
       notifyBuildFinished(buildMode);
 
       syncJavaLangLevel();
-
-      if (isSyncNeeded(buildMode, errorCount)) {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
-      }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);

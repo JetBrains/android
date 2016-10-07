@@ -15,126 +15,95 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.palette.NlPaletteItem;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
-import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.SdkConstants.*;
-
+/**
+ * Decorator for the structure pane tree control.
+ */
 public class StructureTreeDecorator {
-  private final NlPaletteModel myPaletteModel;
-
-  private static StructureTreeDecorator ourInstance;
-
-  @NonNull
-  public static StructureTreeDecorator get() {
-    if (ourInstance == null) {
-      ourInstance = new StructureTreeDecorator();
-    }
-    return ourInstance;
-  }
-
   private StructureTreeDecorator() {
-    myPaletteModel = NlPaletteModel.get();
   }
 
-  public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
-    String id = component.getId();
-    id = LintUtils.stripIdPrefix(id);
-    id = StringUtil.nullize(id);
+  /**
+   * Decorate a tree node with ID, title, and attributes of the current component.
+   */
+  static void decorate(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
+    append(container, component);
+    container.setIcon(getViewHandler(component).getIcon(component));
+  }
 
-    String tagName = component.getTagName();
-    NlPaletteItem item = myPaletteModel.getItemByTagName(component.getTagName());
-    if (item == null) {
-      item = myPaletteModel.getItemByTagName(VIEW_TAG);
-    }
-    String type = null;
-    if (item != null) {
-      type = item.getStructureTitle();
+  @NotNull
+  static String toString(@NotNull NlComponent component) {
+    ColoredTextContainer container = new StringBuilderContainer();
+    append(container, component);
 
-      // Don't display <Fragment> etc for special XML tags like <requestFocus>
-      if (tagName.equals(VIEW_INCLUDE) ||
-          tagName.equals(VIEW_MERGE) ||
-          tagName.equals(VIEW_FRAGMENT) ||
-          tagName.equals(REQUEST_FOCUS)) {
-        type = null;
-      }
-    }
+    return container.toString();
+  }
 
-    if (id != null) {
-      renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  private static final class StringBuilderContainer implements ColoredTextContainer {
+    private final StringBuilder myBuilder = new StringBuilder();
+
+    @Override
+    public void append(@NotNull String fragment, @NotNull SimpleTextAttributes attributes) {
+      myBuilder.append(fragment);
     }
 
-    if (id == null && type == null)  {
-      type = tagName;
+    @Override
+    public void append(@NotNull String fragment, @NotNull SimpleTextAttributes attributes, @NotNull Object tag) {
+      throw new UnsupportedOperationException();
     }
 
-    //todo: Add this special case later:
-    // For the root node, show the including layout when rendering in included contexts
-    //if (ROOT_NODE_TAG.equals(tagName)) {
-    //  IncludeReference includeContext = component.getClientProperty(ATTR_RENDER_IN);
-    //  if (includeContext != null && includeContext != IncludeReference.NONE) {
-    //    type = "Shown in " + includeContext.getFromResourceUrl();
-    //  }
-    //}
-
-    // Don't display the type if it's obvious from the id (e.g.
-    // if the id is button1, don't display (Button) as the type)
-    if (type != null && (id == null || !StringUtil.startsWithIgnoreCase(id, type))) {
-      renderer.append(id != null ? String.format(" (%1$s)", type) : type, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    @Override
+    public void setIcon(@Nullable Icon icon) {
+      throw new UnsupportedOperationException();
     }
 
-    // Display typical arguments
-    StringBuilder fullTitle = new StringBuilder();
-    if (item != null && item.getStructureFormat() != null) {
-      String format = item.getStructureFormat();
-      int start = format.indexOf('%');
-      if (start != -1) {
-        int end = format.indexOf('%', start + 1);
-        if (end != -1) {
-          String variable = format.substring(start + 1, end);
-
-          String value = component.getAttribute(ANDROID_URI, variable);
-          if (!StringUtil.isEmpty(value)) {
-            value = StringUtil.shortenTextWithEllipsis(value, 30, 5);
-          }
-
-          if (!StringUtil.isEmpty(value)) {
-            String prefix = format.substring(0, start);
-            String suffix = format.substring(end + 1);
-            if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))
-                && prefix.length() > 0 && suffix.length() > 0 &&
-                prefix.charAt(prefix.length() - 1) == '"' &&
-                suffix.charAt(0) == '"') {
-              // If the value is a resource, don't surround it with quotes
-              prefix = prefix.substring(0, prefix.length() - 1);
-              suffix = suffix.substring(1);
-            }
-            fullTitle.append(prefix).append(value).append(suffix);
-          }
-        }
-      }
+    @Override
+    public void setToolTipText(@Nullable String text) {
+      throw new UnsupportedOperationException();
     }
 
-    if (fullTitle.length() > 0) {
-      renderer.append(fullTitle.toString(), SimpleTextAttributes.GRAY_ATTRIBUTES);
+    @NotNull
+    @Override
+    public String toString() {
+      return myBuilder.toString();
+    }
+  }
+
+  private static void append(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
+    String id = LintUtils.stripIdPrefix(component.getId());
+
+    if (!id.isEmpty()) {
+      container.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     }
 
-    if (full && item != null) {
-      //todo: Annotate icons with lint warnings or errors, if applicable
-      Icon icon = item.getIcon();
-      if (tagName.equals(LINEAR_LAYOUT) && VALUE_VERTICAL.equals(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION))) {
-        icon = AndroidIcons.Views.VerticalLinearLayout;
-      }
-      renderer.setIcon(icon);
+    StructurePaneComponentHandler handler = getViewHandler(component);
+    String title = handler.getTitle(component);
+
+    if (!StringUtil.startsWithIgnoreCase(id, title)) {
+      container.append(id.isEmpty() ? title : " (" + title + ')', SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
+
+    String attributes = handler.getTitleAttributes(component);
+
+    if (!attributes.isEmpty()) {
+      container.append(' ' + attributes, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    }
+  }
+
+  @NotNull
+  private static StructurePaneComponentHandler getViewHandler(@NotNull NlComponent component) {
+    StructurePaneComponentHandler handler = component.getViewHandler();
+    return handler == null ? ViewHandlerManager.NONE : handler;
   }
 }

@@ -33,8 +33,8 @@ class RevisionColumnInfo extends ColumnInfo<UpdaterTreeNode, Revision> {
     if (node instanceof SummaryTreeNode) {
       node = ((SummaryTreeNode)node).getPrimaryChild();
     }
-    if (node instanceof PlatformDetailsTreeNode) {
-      return ((PlatformDetailsTreeNode)node).getPackage().getVersion();
+    if (node instanceof DetailsTreeNode) {
+      return ((DetailsTreeNode)node).getPackage().getVersion();
     }
     return null;
   }

@@ -18,10 +18,9 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
-import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
@@ -98,7 +97,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     ConnectionState result = null;
     while (result == null) {
       try {
-        HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(SdkAddonsListConstants.URL_ADDON_LIST);
+        HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection("http://developer.android.com");
         connection.connect();
         connection.disconnect();
         result = ConnectionState.OK;
@@ -159,12 +158,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Map<String, RemotePackage> remotePackages = fetchPackages();
+    checkInternetConnection();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourWasShown = true;
-    return new FirstRunWizardHost(wizardMode, remotePackages);
+    return new FirstRunWizardHost(wizardMode);
   }
 
   @NotNull

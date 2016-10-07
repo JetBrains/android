@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ public final class TextFieldProvider extends ParameterComponentProvider<JTextFie
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull JTextField textField) {
+  public AbstractProperty<?> createProperty(@NotNull JTextField textField) {
     return new TextProperty(textField);
   }
 }

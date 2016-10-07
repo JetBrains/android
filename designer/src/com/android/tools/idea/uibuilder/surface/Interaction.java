@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.KeyEvent;
 import java.util.Collections;
@@ -72,7 +73,7 @@ public class Interaction {
   @SwingCoordinate protected int myStartY;
 
   /** Initial AWT mask when the interaction started. */
-  protected int myStartMask;
+  @InputEventMask protected int myStartMask;
 
   /**
    * Returns a list of overlays, from bottom to top (where the later overlays
@@ -96,10 +97,10 @@ public class Interaction {
    * @param startMask The initial AWT mask for the interaction, if known, or
    *                  otherwise 0.
    */
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     myStartX = x;
     myStartY = y;
-    myStartMask = modifiers;
+    myStartMask = startMask;
   }
 
   /**
@@ -111,7 +112,18 @@ public class Interaction {
    *                  interaction
    * @param modifiers current modifier key mask
    */
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+  }
+
+  /**
+   * Handles scrolling interactions.
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param scrollAmount Number of units to scroll.
+   */
+  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
   }
 
   /**
@@ -126,7 +138,7 @@ public class Interaction {
    * @param modifiers current modifier key mask
    * @param canceled  True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
   }
 
   /**
@@ -136,7 +148,7 @@ public class Interaction {
    * @param event The AWT event for the key press,
    * @return true if this interaction consumed the key press, otherwise return false
    */
-  public boolean keyPressed(@NonNull KeyEvent event) {
+  public boolean keyPressed(@NotNull KeyEvent event) {
     return false;
   }
 
@@ -146,7 +158,7 @@ public class Interaction {
    * @param event The AWT event for the key release,
    * @return true if this interaction consumed the key press, otherwise return false
    */
-  public boolean keyReleased(@NonNull KeyEvent event) {
+  public boolean keyReleased(@NotNull KeyEvent event) {
     return false;
   }
 }

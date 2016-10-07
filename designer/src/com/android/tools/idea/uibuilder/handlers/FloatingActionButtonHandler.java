@@ -15,23 +15,73 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import java.util.List;
 
+import static com.android.SdkConstants.*;
+
+/**
+ * Handler for the {@code <android.support.design.widget.FloatingActionButton>} widget.
+ */
 public class FloatingActionButtonHandler extends ImageViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SRC,
+      ATTR_BACKGROUND_TINT,
+      ATTR_RIPPLE_COLOR,
+      ATTR_TINT,
+      ATTR_FAB_SIZE,
+      ATTR_LAYOUT_ANCHOR,
+      ATTR_LAYOUT_ANCHOR_GRAVITY,
+      ATTR_ELEVATION);
+  }
 
   @Override
+  @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    XmlBuilder builder = new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_SRC, getSampleImageSrc())
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .androidAttribute("clickable", true);
+
+    if (xmlType.equals(XmlType.PREVIEW_ON_PALETTE)) {
+      builder.attribute(APP_PREFIX, "elevation", "0dp");
+    }
+    else {
+      builder.attribute(APP_PREFIX, "fabSize", "mini");
+    }
+
+    return builder
+      .endTag(tagName)
+      .toString();
+  }
+
+  @Override
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/ic_input_add"; //$NON-NLS-1$
   }
 
   @Override
-  public boolean acceptsParent(@NonNull NlComponent layout, @NonNull NlComponent newChild) {
+  public double getPreviewScale(@NotNull String tagName) {
+    return 0.8;
+  }
+
+  @Override
+  public boolean acceptsParent(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
     NlComponent appBar = getAppBar(layout);
     if (appBar == null) {
       return super.acceptsParent(layout, newChild);
@@ -40,7 +90,7 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   }
 
   @Nullable
-  private static NlComponent getAppBar(@NonNull NlComponent component) {
+  private static NlComponent getAppBar(@NotNull NlComponent component) {
     NlComponent parent = component.getParent();
     while (parent != null) {
       component = parent;
@@ -50,7 +100,7 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
       return null;
     }
     for (NlComponent child : component.getChildren()) {
-      if (child.getTagName().equals(SdkConstants.APP_BAR_LAYOUT)) {
+      if (child.getTagName().equals(APP_BAR_LAYOUT)) {
         return child;
       }
     }

@@ -15,18 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.repository.Revision;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -35,13 +27,10 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
@@ -255,14 +244,14 @@ public class RenderLogger extends LayoutLog {
         // See if it looks like the known issue with CalendarView; if so, add a more intuitive message
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         if (stackTrace.length >= 2 &&
-          stackTrace[0].getClassName().equals("android.text.format.DateUtils") &&
-          stackTrace[1].getClassName().equals("android.widget.CalendarView")) {
+            stackTrace[0].getClassName().equals("android.text.format.DateUtils") &&
+            stackTrace[1].getClassName().equals("android.widget.CalendarView")) {
           RenderProblem.Html problem = RenderProblem.create(WARNING);
           problem.tag("59732");
           problem.throwable(throwable);
           HtmlBuilder builder = problem.getHtmlBuilder();
           builder.add("<CalendarView> and <DatePicker> are broken in this version of the rendering library. " +
-                          "Try updating your SDK in the SDK Manager when issue 59732 is fixed.");
+                      "Try updating your SDK in the SDK Manager when issue 59732 is fixed.");
           builder.add(" (");
           builder.addLink("Open Issue 59732", "http://b.android.com/59732");
           builder.add(", ");
@@ -271,11 +260,12 @@ public class RenderLogger extends LayoutLog {
           builder.add(")");
           addMessage(problem);
           return;
-        } else if (stackTrace.length >= 2 &&
-                   stackTrace[0].getClassName().equals("android.support.v7.widget.RecyclerView") &&
-                   stackTrace[0].getMethodName().equals("onMeasure") &&
-                   stackTrace[1].getClassName().equals("android.view.View") &&
-                   throwable.toString().equals("java.lang.NullPointerException")) {
+        }
+        else if (stackTrace.length >= 2 &&
+                 stackTrace[0].getClassName().equals("android.support.v7.widget.RecyclerView") &&
+                 stackTrace[0].getMethodName().equals("onMeasure") &&
+                 stackTrace[1].getClassName().equals("android.view.View") &&
+                 throwable.toString().equals("java.lang.NullPointerException")) {
           RenderProblem.Html problem = RenderProblem.create(WARNING);
           String issue = "72117";
           problem.tag(issue);
@@ -293,6 +283,24 @@ public class RenderLogger extends LayoutLog {
           addMessage(problem);
           return;
         }
+      } else if (message.equals("onMeasure error") &&
+                 throwable.toString()
+                   .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
+        RenderProblem.Html problem = RenderProblem.create(WARNING);
+        String issue = "214853";
+        problem.tag(issue);
+        problem.throwable(throwable);
+        HtmlBuilder builder = problem.getHtmlBuilder();
+        builder.add("You appear to be using constraint layout version alpha3 or earlier; you must use version alpha4 or later " +
+                    "with this version of the layout editor (because the API for guidelines changed incompatibly as of alpha4.)");
+        builder.add(" (");
+        builder.addLink("Update Library", getLinkManager().createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
+        builder.add(", ");
+        ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
+        builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
+        builder.add(")");
+        addMessage(problem);
+        return;
       } else if (message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
         StackTraceElement[] frames = throwable.getStackTrace();

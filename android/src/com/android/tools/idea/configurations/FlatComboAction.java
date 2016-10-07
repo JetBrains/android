@@ -31,6 +31,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,7 +119,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
   }
 
   @NotNull
-  protected abstract DefaultActionGroup createPopupActionGroup(JComponent button);
+  protected abstract DefaultActionGroup createPopupActionGroup();
 
   protected int getMaxRows() {
     return 30;
@@ -132,6 +133,15 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     return 1;
   }
 
+  protected JBPopup createPopup(Runnable onDispose, DataContext context) {
+    DefaultActionGroup group = createPopupActionGroup();
+    JBPopupFactory factory = JBPopupFactory.getInstance();
+    ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, onDispose,
+                                                     getMaxRows());
+    popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
+    return popup;
+  }
+
   protected class FlatComboButton extends JButton {
     private final Presentation myPresentation;
     private boolean myForcePressed = false;
@@ -143,7 +153,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       myPresentation = presentation;
       setModel(new MyButtonModel());
       setHorizontalAlignment(LEFT);
-      setFocusable(false);
+      setFocusable(ScreenReader.isActive());
       Insets margins = getMargin();
       setMargin(new Insets(margins.top, 2, margins.bottom, 2));
       setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
@@ -267,14 +277,9 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     }
 
     protected JBPopup createPopup(Runnable onDispose) {
-      DefaultActionGroup group = createPopupActionGroup(this);
-
       DataContext context = getDataContext();
       myDataContext = null;
-      final ListPopup popup = JBPopupFactory.getInstance()
-        .createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, onDispose, getMaxRows());
-      popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
-      return popup;
+      return FlatComboAction.this.createPopup(onDispose, context);
     }
 
     protected DataContext getDataContext() {

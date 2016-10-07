@@ -18,8 +18,13 @@ package com.android.tools.idea.updater.configure;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.accessibility.AccessibleAction;
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleRole;
+import javax.accessibility.AccessibleStateSet;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
@@ -32,18 +37,18 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
   /**
    * @return The initial state of this node (representing the current state of the SDK).
    */
-  abstract public NodeStateHolder.SelectedState getInitialState();
+  abstract public PackageNodeModel.SelectedState getInitialState();
 
   /**
    * @return The current selected state of this node.
    */
-  abstract public NodeStateHolder.SelectedState getCurrentState();
+  abstract public PackageNodeModel.SelectedState getCurrentState();
 
   /**
    * Set the state of the node to the given state. For parent nodes this will also set the state of the children.
    * @param state
    */
-  abstract protected void setState(NodeStateHolder.SelectedState state);
+  abstract protected void setState(PackageNodeModel.SelectedState state);
 
   /**
    * Set the state of this node back to its initial state.
@@ -77,19 +82,19 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
     if (getCurrentState() == null) {
       return;
     }
-    if (getCurrentState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+    if (getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
       if (canHaveMixedState()) {
-        setState(NodeStateHolder.SelectedState.MIXED);
+        setState(PackageNodeModel.SelectedState.MIXED);
       }
       else {
-        setState(NodeStateHolder.SelectedState.INSTALLED);
+        setState(PackageNodeModel.SelectedState.INSTALLED);
       }
     }
-    else if (getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
-      setState(NodeStateHolder.SelectedState.NOT_INSTALLED);
+    else if (getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
+      setState(PackageNodeModel.SelectedState.NOT_INSTALLED);
     }
     else {
-      setState(NodeStateHolder.SelectedState.INSTALLED);
+      setState(PackageNodeModel.SelectedState.INSTALLED);
     }
   }
 
@@ -150,11 +155,11 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
       UpdaterTreeNode node = (UpdaterTreeNode)value;
       invalidate();
       myCheckbox.setVisible(true);
-      if (node.getCurrentState() == NodeStateHolder.SelectedState.MIXED) {
+      if (node.getCurrentState() == PackageNodeModel.SelectedState.MIXED) {
         myCheckbox.setState(ThreeStateCheckBox.State.DONT_CARE);
       }
       else {
-        myCheckbox.setSelected(node.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED);
+        myCheckbox.setSelected(node.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED);
       }
       myCheckbox.setOpaque(false);
       myCheckbox.setBackground(null);
@@ -176,6 +181,53 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
 
     public ColoredTreeCellRenderer getTextRenderer() {
       return myTextRenderer;
+    }
+
+    @Override
+    public AccessibleContext getAccessibleContext() {
+      if (accessibleContext == null) {
+        accessibleContext = new AccessibleRenderer();
+      }
+      return accessibleContext;
+    }
+
+    /**
+     * Expose accessible properties as a mix of the underlying {@link #myCheckbox} and {@link #myTextRenderer}
+     * so that {@link Renderer} behaves like a regular checkbox with an associated label.
+     */
+    protected class AccessibleRenderer extends AccessibleJPanel {
+
+      @Override
+      public AccessibleRole getAccessibleRole() {
+        return myCheckbox.getAccessibleContext().getAccessibleRole();
+      }
+
+      @Override
+      public String getAccessibleName() {
+        return AccessibleContextUtil.combineAccessibleStrings(
+          myTextRenderer.getAccessibleContext().getAccessibleName(), " ",
+          myCheckbox.getAccessibleContext().getAccessibleName());
+      }
+
+      @Override
+      public String getAccessibleDescription() {
+        return AccessibleContextUtil.combineAccessibleStrings(
+          myTextRenderer.getAccessibleContext().getAccessibleDescription(), " ",
+          myCheckbox.getAccessibleContext().getAccessibleDescription());
+      }
+
+      @Override
+      public AccessibleStateSet getAccessibleStateSet() {
+        AccessibleStateSet set = new AccessibleStateSet();
+        set.addAll(myCheckbox.getAccessibleContext().getAccessibleStateSet().toArray());
+        set.addAll(myTextRenderer.getAccessibleContext().getAccessibleStateSet().toArray());
+        return set;
+      }
+
+      @Override
+      public AccessibleAction getAccessibleAction() {
+        return myCheckbox.getAccessibleContext().getAccessibleAction();
+      }
     }
   }
 

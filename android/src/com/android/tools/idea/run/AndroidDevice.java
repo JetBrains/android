@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An {@link AndroidDevice} represents either a connected {@link IDevice}, or the
@@ -79,5 +80,6 @@ public interface AndroidDevice {
   @NotNull
   LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                              @NotNull IAndroidTarget projectTarget,
-                             @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures);
+                             @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                             @Nullable Set<String> supportedAbis);
 }

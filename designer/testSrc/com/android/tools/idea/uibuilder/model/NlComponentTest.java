@@ -15,29 +15,45 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.intellij.psi.xml.XmlTag;
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NlComponentTest extends TestCase {
+public final class NlComponentTest {
+  private NlModel myModel;
+
+  @Before
+  public void mockModel() {
+    myModel = mock(NlModel.class);
+  }
+
   private static XmlTag createTag(String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
     return tag;
   }
 
-  public void test() {
-    NlModel model = mock(NlModel.class);
-    NlComponent linearLayout = new NlComponent(model, createTag("LinearLayout"));
-    NlComponent textView = new NlComponent(model, createTag("TextView"));
-    NlComponent button = new NlComponent(model, createTag("Button"));
+  @Test
+  public void needsDefaultId() {
+    assertFalse(new NlComponent(myModel, createTag("SwitchPreference")).needsDefaultId());
+  }
 
-    assertEquals(Collections.emptyList(), linearLayout.getChildren());
+  @Test
+  public void test() {
+    NlComponent linearLayout = new NlComponent(myModel, createTag("LinearLayout"));
+    NlComponent textView = new NlComponent(myModel, createTag("TextView"));
+    NlComponent button = new NlComponent(myModel, createTag("Button"));
+
+    assertThat(linearLayout.getChildren()).isEmpty();
 
     linearLayout.addChild(textView);
     linearLayout.addChild(button);
@@ -62,6 +78,6 @@ public class NlComponentTest extends TestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[10,110:400x100}",
-                 NlComponent.toTree(Collections.singletonList(linearLayout)));
+                 LayoutTestUtilities.toTree(Collections.singletonList(linearLayout)));
   }
 }

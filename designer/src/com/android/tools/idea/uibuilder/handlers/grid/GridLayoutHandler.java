@@ -15,25 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
 import java.util.List;
 
-public final class GridLayoutHandler extends ViewGroupHandler {
+public class GridLayoutHandler extends ViewGroupHandler {
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new GridDragHandler(editor, this, layout, components, type);
   }
 
   @Override
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent child,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent child,
                                            SegmentType horizontalEdgeType,
                                            SegmentType verticalEdgeType) {
     return new DefaultResizeHandler(editor, this, child, horizontalEdgeType, verticalEdgeType);

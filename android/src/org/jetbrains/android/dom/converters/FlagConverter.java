@@ -32,7 +32,7 @@ import java.util.*;
  * @author coyote
  */
 public class FlagConverter extends DelimitedListConverter<String> {
-  private final Set<String> myValues = new HashSet<String>();
+  private final Set<String> myValues = new HashSet<>();
   private final ResolvingConverter<String> additionalConverter;
 
   public FlagConverter(@Nullable ResolvingConverter<String> additionalConverter, @NotNull String... values) {
@@ -48,7 +48,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
       return super.getVariants(context);
     }
     Collection<? extends String> variants = additionalConverter.getVariants(context);
-    List<List<String>> result = new ArrayList<List<String>>();
+    List<List<String>> result = new ArrayList<>();
     for (String variant : variants) {
       result.add(Arrays.asList(variant));
     }
@@ -68,7 +68,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
 
   @Override
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<String>> value) {
-    List<String> variants = new ArrayList<String>(myValues);
+    List<String> variants = new ArrayList<>(myValues);
     filterVariants(variants, value);
     return ArrayUtil.toStringArray(variants);
   }

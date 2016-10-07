@@ -17,7 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressManager;

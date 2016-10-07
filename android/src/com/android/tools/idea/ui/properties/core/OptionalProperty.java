@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * <p/>
  * Designed with an interface that emulates Guava's {@link Optional}.
  */
-public abstract class OptionalProperty<T> extends ObservableProperty<Optional<T>> implements ObservableOptional<T> {
+public abstract class OptionalProperty<T> extends AbstractProperty<Optional<T>> implements ObservableOptional<T> {
 
   public final void setValue(@NotNull T value) {
     Optional<T> opt = get();
@@ -38,7 +38,7 @@ public abstract class OptionalProperty<T> extends ObservableProperty<Optional<T>
 
   public final void clear() {
     if (get().isPresent()) {
-      set(Optional.<T>absent());
+      set(Optional.absent());
     }
   }
 

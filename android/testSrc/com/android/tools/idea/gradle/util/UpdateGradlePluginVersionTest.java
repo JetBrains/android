@@ -58,7 +58,7 @@ public class UpdateGradlePluginVersionTest extends AndroidGradleTestCase {
     androidPluginDependency = findGradlePlugin(buildModel);
     assertNotNull(androidPluginDependency);
 
-    assertEquals("2.0.0", androidPluginDependency.version());
+    assertEquals("2.0.0", androidPluginDependency.version().value());
   }
 
   public void testUpdateGradlePluginVersionWhenPluginHasAlreadyUpdatedVersion() throws Throwable {
@@ -86,7 +86,7 @@ public class UpdateGradlePluginVersionTest extends AndroidGradleTestCase {
     androidPluginDependency = findGradlePlugin(buildModel);
     assertNotNull(androidPluginDependency);
 
-    assertEquals("2.0.0", androidPluginDependency.version());
+    assertEquals("2.0.0", androidPluginDependency.version().value());
   }
 
   @NotNull
@@ -101,7 +101,7 @@ public class UpdateGradlePluginVersionTest extends AndroidGradleTestCase {
   private static ArtifactDependencyModel findGradlePlugin(@NotNull GradleBuildModel buildModel) {
     List<ArtifactDependencyModel> dependencies = buildModel.buildscript().dependencies().artifacts(CLASSPATH);
     for (ArtifactDependencyModel dependency : dependencies) {
-      if ("com.android.tools.build".equals(dependency.group()) && "gradle".equals(dependency.name())) {
+      if ("com.android.tools.build".equals(dependency.group().value()) && "gradle".equals(dependency.name().value())) {
         return dependency;
       }
     }

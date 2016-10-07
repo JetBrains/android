@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.tests.gui.framework.Wait;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.annotation.RunsInCurrentThread;
 import org.fest.swing.core.Robot;
@@ -32,8 +34,8 @@ import javax.swing.*;
 import java.awt.Component;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertTrue;
 
 public class ThemeEditorTableFixture extends JTableFixture {
   private ThemeEditorTableFixture(Robot robot, ThemeEditorTable target) {
@@ -84,8 +86,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
     return execute(new GuiQuery<List<String>>() {
       @Override
       protected List<String> executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof JComponent);
+        Component renderer = checkNotNull(rendererComponentAt(cell));
         JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
         return ImmutableList.copyOf(comboBox.contents());
       }
@@ -97,8 +98,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
     return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof JComponent);
+        Component renderer = checkNotNull(rendererComponentAt(cell));
         JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
         return comboBox.selectedItem();
       }
@@ -109,5 +109,9 @@ public class ThemeEditorTableFixture extends JTableFixture {
   @Nullable
   private Component rendererComponentAt(@NotNull final TableCell cell) {
     return target().prepareRenderer(target().getCellRenderer(cell.row, cell.column), cell.row, cell.column);
+  }
+
+  public void requireValueAt(@NotNull final TableCell cell, @Nullable final String value) {
+    Wait.minutes(2).expecting("theme editor update").until(() -> Objects.equal(valueAt(cell), value));
   }
 }

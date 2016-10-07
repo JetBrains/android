@@ -65,12 +65,7 @@ public abstract class AsyncValidator<V> {
     myResultReporter.setDirty();
     if (!myIsScheduled) {
       myIsScheduled = true;
-      myApplication.executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          revalidateUntilClean();
-        }
-      });
+      myApplication.executeOnPooledThread(this::revalidateUntilClean);
     }
   }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.structure.services;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.Collection;
 
 /**
@@ -27,6 +28,31 @@ public interface DeveloperServiceCreators {
   ExtensionPointName<DeveloperServiceCreators> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.structure.services.developerServiceCreators");
 
+  /**
+   * Retrieves {@code DeveloperServiceCreator} configurations for this
+   * grouping.  There is no strict requirement between what is included in this
+   * collection and the content rendered from {@code getPanel()}.
+   *
+   * @return Service creators.
+   */
   @NotNull
   Collection<? extends DeveloperServiceCreator> getCreators();
+
+  /**
+   * Get's the unique id of the bundle.
+   */
+  @NotNull
+  String getBundleId();
+
+  /**
+   * Accessor to a custom root panel for the {@code DeveloperServiceSidePanel}.
+   *
+   * The component should typically use {@code BorderLayout}, filling the
+   * entire panel and try to match pre-existing patterns and styles as much as
+   * is possible.
+   *
+   * Note that this method will go away in favor of a more structured type. Designs pending refactor.
+   */
+  @NotNull
+  Component getPanel(@NotNull DeveloperServiceMap serviceMap);
 }

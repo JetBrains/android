@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.intellij.lang.annotations.MagicConstant;
 
 import java.awt.*;
@@ -106,7 +106,7 @@ public class SelectionHandle {
   }
 
   /** The associated component */
-  @NonNull
+  @NotNull
   public final NlComponent component;
 
   /**
@@ -137,8 +137,8 @@ public class SelectionHandle {
    * @param component the associated component
    * @param position  the position of the handle in the selection rectangle
    */
-  public SelectionHandle(@NonNull NlComponent component,
-                         @NonNull Position position) {
+  public SelectionHandle(@NotNull NlComponent component,
+                         @NotNull Position position) {
     this.component = component;
     myPosition = position;
   }
@@ -188,7 +188,7 @@ public class SelectionHandle {
    *
    * @return the cursor to use for this selection handle
    */
-  @NonNull
+  @NotNull
   public Cursor getCursor() {
     return Cursor.getPredefinedCursor(getAwtCursorType());
   }

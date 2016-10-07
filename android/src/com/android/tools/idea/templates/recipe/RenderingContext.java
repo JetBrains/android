@@ -18,7 +18,9 @@ package com.android.tools.idea.templates.recipe;
 import com.android.tools.idea.templates.FreemarkerConfiguration;
 import com.android.tools.idea.templates.StudioTemplateLoader;
 import com.android.tools.idea.templates.Template;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -60,7 +62,9 @@ public class RenderingContext {
   private final Collection<File> mySourceFiles;
   private final Collection<File> myTargetFiles;
   private final Collection<File> myFilesToOpen;
-  private final Collection<String> myDependencies;
+  private final Collection<String> myPlugins;
+  private final Collection<String> myClasspathEntries;
+  private final SetMultimap<String, String> myDependencies;
   private final Collection<String> myWarnings;
   private final boolean myDryRun;
   private final boolean myShowErrors;
@@ -78,7 +82,9 @@ public class RenderingContext {
                            @Nullable Collection<File> outSourceFiles,
                            @Nullable Collection<File> outTargetFiles,
                            @Nullable Collection<File> outOpenFiles,
-                           @Nullable Collection<String> outDependencies) {
+                           @Nullable Collection<String> outPlugins,
+                           @Nullable Collection<String> outClasspathEntries,
+                           @Nullable SetMultimap<String, String> outDependencies) {
     myProject = useDefaultProjectIfNeeded(project);
     myTitle = commandName;
     myParamMap = Template.createParameterMap(paramMap);
@@ -91,10 +97,12 @@ public class RenderingContext {
     myLoader = new StudioTemplateLoader(initialTemplatePath);
     myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(myLoader);
-    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.<File>newArrayList();
-    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.<File>newArrayList();
-    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.<File>newArrayList();
-    myDependencies = outDependencies != null ? outDependencies : Lists.<String>newArrayList();
+    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.newArrayList();
+    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.newArrayList();
+    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.newArrayList();
+    myPlugins = outPlugins != null ? outPlugins : Lists.newArrayList();
+    myClasspathEntries = outClasspathEntries != null ? outClasspathEntries : Lists.newArrayList();
+    myDependencies = outDependencies != null ? outDependencies : LinkedHashMultimap.create();
     myWarnings = Lists.newArrayList();
   }
 
@@ -195,10 +203,26 @@ public class RenderingContext {
   }
 
   /**
+   * List of "apply plugin" entries added by a previous template rendering.
+   */
+  @NotNull
+  public Collection<String> getPlugins() {
+    return myPlugins;
+  }
+
+  /**
+   * List of classpath entries added by a previous template rendering.
+   */
+  @NotNull
+  public Collection<String> getClasspathEntries() {
+    return myClasspathEntries;
+  }
+
+  /**
    * List of dependencies added by a previous template rendering.
    */
   @NotNull
-  public Collection<String> getDependencies() {
+  public SetMultimap<String, String> getDependencies() {
     return myDependencies;
   }
 
@@ -231,6 +255,13 @@ public class RenderingContext {
   }
 
   /**
+   * @return true if the target files should be reformatted after the template is rendered
+   */
+  public boolean shouldReformat() {
+    return !myDryRun && myProject.isInitialized();
+  }
+
+  /**
    * If there is an error, can it cause a project that is partially rendered?
    */
   public boolean canCausePartialRendering() {
@@ -257,7 +288,9 @@ public class RenderingContext {
     private Collection<File> mySourceFiles;
     private Collection<File> myTargetFiles;
     private Collection<File> myOpenFiles;
-    private Collection<String> myDependencies;
+    private Collection<String> myPlugins;
+    private Collection<String> myClasspathEntries;
+    private SetMultimap<String, String> myDependencies;
 
     private Builder(@NotNull File initialTemplatePath, @NotNull Project project) {
       myInitialTemplatePath = initialTemplatePath;
@@ -400,9 +433,25 @@ public class RenderingContext {
     }
 
     /**
+     * Collect all "apply plugin" entries required for the template in the specified collection.
+     */
+    public Builder intoPlugins(@Nullable Collection<String> plugins) {
+      myPlugins = plugins;
+      return this;
+    }
+
+    /**
+     * Collect all classpath entries required for the template in the specified collection.
+     */
+    public Builder intoClasspathEntries(@Nullable Collection<String> classpathEntries) {
+      myClasspathEntries = classpathEntries;
+      return this;
+    }
+
+    /**
      * Collect all dependencies required for the template in the specified collection.
      */
-    public Builder intoDependencies(@Nullable Collection<String> dependencies) {
+    public Builder intoDependencies(@Nullable SetMultimap<String, String> dependencies) {
       myDependencies = dependencies;
       return this;
     }
@@ -416,10 +465,12 @@ public class RenderingContext {
         mySourceFiles = null;
         myTargetFiles = null;
         myOpenFiles = null;
+        myClasspathEntries = null;
         myDependencies = null;
       }
       return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
-                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles, myDependencies);
+                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
+                                  myPlugins, myClasspathEntries, myDependencies);
     }
   }
 }

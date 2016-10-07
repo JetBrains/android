@@ -16,35 +16,34 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType;
-import com.intellij.execution.*;
+import com.intellij.execution.ExecutionHelper;
+import com.intellij.execution.ProgramRunnerUtil;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.content.Content;
 import com.intellij.util.NotNullFunction;
+import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -60,7 +59,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       JavaLineBreakpointType.class,
       JavaMethodBreakpointType.class,
       JavaFieldBreakpointType.class
-  );
+    );
 
   public AndroidJavaDebugger() {
     super(JAVA_BREAKPOINT_TYPES);
@@ -86,13 +85,14 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @NotNull
   @Override
-  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull Project project) {
-    return new AndroidDebuggerConfigurable<AndroidDebuggerState>();
+  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull AndroidRunConfigurationBase runConfiguration) {
+    return new AndroidDebuggerConfigurable<>();
   }
 
   @NotNull
   @Override
   public DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                                   @Nullable AndroidVersion version,
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
@@ -107,11 +107,11 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client) {
-    String debugPort = Integer.toString(client.getDebuggerListenPort());
+    String debugPort = getClientDebugPort(client);
     String runConfigName = String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
 
     // Try to find existing debug session
-    if (findExistingDebugSession(project, debugPort, runConfigName)) {
+    if (hasExistingDebugSession(project, debugPort, runConfigName)) {
       return;
     }
 
@@ -129,7 +129,21 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ProgramRunnerUtil.executeConfiguration(project, runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
   }
 
-  private static boolean findExistingDebugSession(@NotNull Project project, @NotNull final String debugPort, @NotNull final String runConfigName) {
+  public DebuggerSession getDebuggerSession(@NotNull Client client) {
+    String debugPort = getClientDebugPort(client);
+
+    for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+      DebuggerSession debuggerSession = findJdwpDebuggerSession(openProject, debugPort);
+      if (debuggerSession != null) {
+        return debuggerSession;
+      }
+  }
+    return null;
+  }
+
+  private static boolean hasExistingDebugSession(@NotNull Project project,
+                                                 @NotNull final String debugPort,
+                                                 @NotNull final String runConfigName) {
     Collection<RunContentDescriptor> descriptors = null;
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     Project targetProject = null;
@@ -149,10 +163,15 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
       // If it can't find a matching title, check the debugger sessions.
       if (descriptors.isEmpty()) {
-        for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(targetProject).getSessions()) {
-          if (debugPort.trim().equals(session.getProcess().getConnection().getAddress().trim()) && session.getXDebugSession() != null) {
-            descriptors = Collections.singletonList(session.getXDebugSession().getRunContentDescriptor());
-            break;
+        DebuggerSession debuggerSession = findJdwpDebuggerSession(targetProject, debugPort);
+        if (debuggerSession != null) {
+          XDebugSession session = debuggerSession.getXDebugSession();
+          if (session != null) {
+            descriptors = Collections.singletonList(session.getRunContentDescriptor());
+          }
+          else {
+            // Detach existing session.
+            debuggerSession.getProcess().stop(false);
           }
         }
       }
@@ -163,34 +182,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     }
 
     if (descriptors != null && !descriptors.isEmpty()) {
-      final RunContentDescriptor descriptor = descriptors.iterator().next();
-      final ProcessHandler processHandler = descriptor.getProcessHandler();
-      final Content content = descriptor.getAttachedContent();
-
-      if (processHandler != null && content != null) {
-        final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
-
-        if (processHandler.isProcessTerminated()) {
-          ExecutionManager.getInstance(targetProject).getContentManager().removeRunContent(executor, descriptor);
-        }
-        else {
-          if (targetProject != project) {
-            // Bring window frame to front if the found tool window is not for the active project.
-            JFrame targetFrame = WindowManager.getInstance().getFrame(targetProject);
-            boolean alwaysOnTop = targetFrame.isAlwaysOnTop();
-
-            targetFrame.setExtendedState(Frame.NORMAL);
-            targetFrame.setAlwaysOnTop(true);
-            targetFrame.toFront();
-            targetFrame.requestFocus();
-            targetFrame.setAlwaysOnTop(alwaysOnTop);
-          }
-          content.getManager().setSelectedContent(content);
-          ToolWindow window = ToolWindowManager.getInstance(targetProject).getToolWindow(executor.getToolWindowId());
-          window.activate(null, false, true);
-          return true;
-        }
-      }
+      return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
   }

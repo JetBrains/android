@@ -79,12 +79,9 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
         // <menu> tags means that we are adding a sub-menu. Since we don't show the submenu, we
         // return the enclosing tag.
         if (element.tagName.equals(FD_RES_MENU)) {
-          TagSnapshot previousElement = getPreviousNode();
-          if (previousElement != null) {
-            return previousElement.tag;
-          }
+          return getPreviousNode();
         }
-        return element.tag;
+        return element;
       }
     }
 

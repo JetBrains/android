@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,40 +17,50 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
-import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.ASGallery;
-import com.android.tools.idea.wizard.dynamic.*;
+import com.android.tools.idea.ui.properties.*;
+import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
+import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
+import com.android.tools.idea.ui.properties.swing.SelectedProperty;
+import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.Consumer;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
@@ -58,280 +68,160 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-
-import static com.android.sdklib.devices.Storage.Unit;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
  * Help and error messaging appears on the right hand side.
  */
-public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
-  private JBLabel myDeviceName;
-  private JBLabel myDeviceDetails;
-  private JButton myChangeDeviceButton;
-  private JBLabel mySystemImageName;
-  private JBLabel mySystemImageDetails;
-  private JButton myChangeSystemImageButton;
-  private TextFieldWithBrowseButton myExistingSdCard;
-  private JComboBox myScalingComboBox;
-  private ASGallery<ScreenOrientation> myOrientationToggle;
-  private JPanel myRoot;
-  private JComboBox myFrontCameraCombo;
-  private JComboBox myBackCameraCombo;
-  private JComboBox mySpeedCombo;
-  private JComboBox myLatencyCombo;
-  private JButton myShowAdvancedSettingsButton;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myRamStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myVmHeapStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myInternalStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myNewSdCardStorage;
-  private JBLabel myMemoryAndStorageLabel;
-  private JBLabel myRamLabel;
-  private JBLabel myVmHeapLabel;
-  private JBLabel myInternalStorageLabel;
-  private JBLabel mySdCardLabel;
-  private HyperlinkLabel myHardwareSkinHelpLabel;
-  private JTextField myAvdDisplayName;
-  private JBLabel mySkinDefinitionLabel;
-  private JBLabel myAvdId;
-  private JLabel myAvdIdLabel;
-  private com.android.tools.idea.avdmanager.legacy.SkinChooser mySkinComboBox;
-  private JPanel myAvdDisplayNamePanel;
-  private JBLabel myAvdNameLabel;
-  private JCheckBox myEnableComputerKeyboard;
-  private JRadioButton myBuiltInRadioButton;
-  private JRadioButton myExternalRadioButton;
-  private JCheckBox myDeviceFrameCheckbox;
-  private JBLabel myDeviceFrameLabel;
-  private Iterable<JComponent> myAdvancedOptionsComponents;
-  private String myOriginalName;
-  private JSeparator myStorageSeparator;
-  private JBLabel myCameraLabel;
-  private JBLabel myFrontCameraLabel;
-  private JBLabel myBackCameraLabel;
-  private JSeparator myCameraSeparator;
-  private JBLabel myNetworkLabel;
-  private JBLabel mySpeedLabel;
-  private JBLabel myLatencyLabel;
-  private JBLabel myKeyboardLabel;
-  private JSeparator myKeyboardSeparator;
-  private JSeparator myNetworkSeparator;
-  private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
-  private JBScrollPane myScrollPane;
-  private JCheckBox myRanchuCheckBox;
-  private JComboBox myCoreCount;
-  private JSeparator myMultiCoreDivider;
-  private JLabel myMultiCoreExperimentalLabel;
-  private JComboBox myHostGraphics;
-  private JBLabel myHostGraphicProblem;
-
-  private PropertyChangeListener myFocusListener;
-  private int myMaxCores;
-  private int mySelectedCoreCount;
+public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // Labels used for the advanced settings toggle button
   private static final String ADVANCED_SETTINGS = "Advanced Settings";
   private static final String SHOW = "Show " + ADVANCED_SETTINGS;
   private static final String HIDE = "Hide " + ADVANCED_SETTINGS;
+  private static final String FOCUS_OWNER = "focusOwner";
 
-  private Set<JComponent> myErrorStateComponents = Sets.newHashSet();
+  // @formatter:off
+  private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap.of(
+    ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", AndroidIcons.Portrait),
+    ScreenOrientation.LANDSCAPE, new NamedIcon("Landscape", AndroidIcons.Landscape));
+  // @formatter:on
 
-  private class MyActionListener<T> implements ActionListener {
-    DynamicWizardStep myStep;
-    String myDescription;
-    Key<T> myResultKey;
+  final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
 
-    public MyActionListener(DynamicWizardStep step, String description, Key<T> resultKey) {
-      myStep = step;
-      myDescription = description;
-      myResultKey = resultKey;
-    }
+  private JPanel myRoot;
+  private ValidatorPanel myValidatorPanel;
+  private StudioWizardStepPanel myStudioWizardStepPanel;
+  private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      DynamicWizard wizard = new SingleStepWizard(getProject(), getModule(), myStep, new SingleStepDialogWrapperHost(getProject())) {
-        @NotNull
-        @Override
-        protected String getProgressTitle() {
-          return "Updating AVD...";
-        }
+  private JBScrollPane myScrollPane;
+  private JBLabel myAvdId;
+  private JBLabel myRamLabel;
+  private JLabel myAvdIdLabel;
+  private JBLabel mySpeedLabel;
+  private JBLabel myDeviceName;
+  private JBLabel myVmHeapLabel;
+  private JBLabel mySdCardLabel;
+  private JBLabel myCameraLabel;
+  private JBLabel myNetworkLabel;
+  private JBLabel myLatencyLabel;
+  private JBLabel myKeyboardLabel;
+  private JBLabel myDeviceDetails;
+  private JBLabel myBackCameraLabel;
+  private JBLabel mySystemImageName;
+  private JBLabel myFrontCameraLabel;
+  private JBLabel mySystemImageDetails;
+  private JBLabel mySkinDefinitionLabel;
+  private JBLabel myInternalStorageLabel;
+  private JBLabel myMemoryAndStorageLabel;
+  private JLabel myMultiCoreExperimentalLabel;
+  private HyperlinkLabel myHardwareSkinHelpLabel;
+  private JComboBox myCoreCount;
+  private JComboBox mySpeedCombo;
+  private JComboBox myLatencyCombo;
+  private SkinChooser mySkinComboBox;
+  private JComboBox myBackCameraCombo;
+  private JComboBox myFrontCameraCombo;
+  private JCheckBox myQemu2CheckBox;
+  private JCheckBox myDeviceFrameCheckbox;
+  private JCheckBox myEnableComputerKeyboard;
+  private StorageField myRamStorage;
+  private StorageField myVmHeapStorage;
+  private StorageField myInternalStorage;
+  private StorageField myBuiltInSdCardStorage;
+  private JRadioButton myBuiltInRadioButton;
+  private JRadioButton myExternalRadioButton;
+  private ASGallery<ScreenOrientation> myOrientationToggle;
+  private JButton myChangeDeviceButton;
+  private JButton myChangeSystemImageButton;
+  private JButton myShowAdvancedSettingsButton;
+  private TextFieldWithBrowseButton myExternalSdCard;
+  private JTextField myAvdDisplayName;
+  private JBLabel myOrientationLabel;
+  private JBLabel myHostGraphicProblem;
+  private JComboBox myHostGraphics;
+  private JPanel myDevicePanel;
+  private JPanel myAvdNamePanel;
+  private JPanel myImagePanel;
+  private JPanel myOrientationPanel;
+  private JPanel myCameraPanel;
+  private JPanel myNetworkPanel;
+  private JPanel myPerformancePanel;
+  private JPanel myStoragePanel;
+  private JPanel myFramePanel;
+  private JPanel myKeyboardPanel;
+  private JPanel myQemu2Panel;
+  private JPanel myAvdIdRow;
+  private JPanel myCustomSkinPanel;
+  private JPanel myScrollRootPane;
+  private Iterable<JComponent> myAdvancedOptionsComponents;
 
-        @Override
-        protected String getWizardActionDescription() {
-          return myDescription;
-        }
-      };
-      ScopedStateStore subState = wizard.getState();
-      subState.putAllInWizardScope(myState);
-      subState.put(IS_IN_EDIT_MODE_KEY, false);
-      wizard.init();
-      if (wizard.showAndGet()) {
-        myState.put(myResultKey, subState.get(myResultKey));
-      }
-    }
-  }
+  private Project myProject;
+  private BindingsManager myBindings = new BindingsManager();
+  private ListenerManager myListeners = new ListenerManager();
 
-  public <T> MyActionListener<T> createListener(DynamicWizardStep step, String description, Key<T> resultKey) {
-    return new MyActionListener<T>(step, description, resultKey);
-  }
+  /**
+   * String used as a placeholder to verify that we are not using a repeated name.
+   */
+  private String myOriginalName;
+  /**
+   * Boolean used to control if we should warn the user about how changing the size of the SD will erase it.
+   */
+  private boolean myCheckSdForChanges;
+  /**
+   * Device's original Sd card
+   */
+  private Storage myOriginalSdCard;
+  /**
+   * The selected core count while enabled
+   */
+  private int mySelectedCoreCount;
 
 
-  public ConfigureAvdOptionsStep(@Nullable final Disposable parentDisposable) {
-    super(parentDisposable);
-    setBodyComponent(myRoot);
-    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
+  public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
+    super(model, "Android Virtual Device (AVD)");
+    myValidatorPanel = new ValidatorPanel(this, myRoot);
+    myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
+
+    FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
+    myOrientationToggle.setOpaque(false);
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
+
+    myProject = project;
 
     registerAdvancedOptionsVisibility();
     myShowAdvancedSettingsButton.setText(SHOW);
-
-    ActionListener toggleAdvancedSettingsListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (!isAdvancedPanel()) {
-          myShowAdvancedSettingsButton.setText(HIDE);
-          toggleAdvancedSettings(true);
-        }
-        else {
-          myShowAdvancedSettingsButton.setText(SHOW);
-          toggleAdvancedSettings(false);
-        }
-      }
-    };
-    myShowAdvancedSettingsButton.addActionListener(toggleAdvancedSettingsListener);
-
-    myChangeDeviceButton.addActionListener(
-      createListener(new ChooseDeviceDefinitionStep(parentDisposable), "Select a device", DEVICE_DEFINITION_KEY));
-    myChangeSystemImageButton.addActionListener(
-      createListener(new ChooseSystemImageStep(getProject(), parentDisposable), "Select a system image", SYSTEM_IMAGE_KEY));
-
-    ActionListener sdActionListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateSdCardSettings();
-      }
-    };
-    myExternalRadioButton.addActionListener(sdActionListener);
-    myBuiltInRadioButton.addActionListener(sdActionListener);
-
-    myOrientationToggle.setOpaque(false);
-
-    myFocusListener = new PropertyChangeListener() {
-      @Override
-      public void propertyChange(PropertyChangeEvent evt) {
-        Object value = evt.getNewValue();
-        if (evt.getNewValue() instanceof JComponent) {
-          JComponent component = (JComponent)value;
-          Component parent = component.getParent();
-          if (parent instanceof JComponent) {
-            ((JComponent)parent).scrollRectToVisible(component.getBounds());
-          }
-        }
-      }
-    };
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myFocusListener);
+    setAdvanceSettingsVisible(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
-
     initCpuCoreDropDown();
-  }
 
-  @Override
-  public void dispose() {
-    if (myFocusListener != null) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myFocusListener);
-    }
-  }
-
-
-  /**
-   * Toggle the SD card between using an existing file and creating a new file.
-   */
-  private void updateSdCardSettings() {
-    boolean useExisting = myState.getNotNull(DISPLAY_USE_EXTERNAL_SD_KEY, true);
-    if (useExisting) {
-      myExistingSdCard.setEnabled(true);
-      myNewSdCardStorage.setEnabled(false);
-    }
-    else {
-      myExistingSdCard.setEnabled(false);
-      myNewSdCardStorage.setEnabled(true);
-    }
-  }
-
-  @Override
-  public void init() {
-    super.init();
-    registerComponents();
-    deregister(getDescriptionLabel());
-    getDescriptionLabel().setVisible(false);
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
-
-    Boolean editMode = myState.get(IS_IN_EDIT_MODE_KEY);
-    editMode = editMode == null ? Boolean.FALSE : editMode;
-    myOriginalName = editMode ? myState.get(DISPLAY_NAME_KEY) : "";
-
-    myAvdId.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent mouseEvent) {
-        myAvdId.requestFocusInWindow();
-      }
-    });
-
-    myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
-
-    toggleAdvancedSettings(false);
+    myFrontCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    myBackCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
+    myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
   }
 
   private void initCpuCoreDropDown() {
-    myMaxCores = Math.max(1, getMaxCpuCores());
-    for (int core = 1; core <= myMaxCores; core++) {
-      //noinspection unchecked
+    for (int core = 1; core <= AvdOptionsModel.MAX_NUMBER_OF_CORES; core++) {
       myCoreCount.addItem(core);
     }
   }
 
-  private void setInitialGpuMode() {
-    GpuMode mode = myState.getNotNull(HOST_GPU_MODE_KEY, getDefaultGpuMode());
-    populateHostGraphicsDropDown();
-    switch (mode) {
-      case AUTO:
-        myHostGraphics.setSelectedIndex(0);
-        break;
-      case HOST:
-        myHostGraphics.setSelectedIndex(1);
-        break;
-      case MESA:
-      case SWIFT:
-      case OFF:
-      default:
-        myHostGraphics.setSelectedIndex(2);
-        break;
-    }
-  }
-
-  // Return our best default setting if HOST_GPU_MODE_KEY is not set yet
-  private GpuMode getDefaultGpuMode() {
-    if (!myState.containsKey(USE_HOST_GPU_KEY)) {
-      return GpuMode.AUTO;
-    }
-    return myState.getNotNull(USE_HOST_GPU_KEY, true) ? GpuMode.HOST : GpuMode.OFF;
-  }
-
   private void populateHostGraphicsDropDown() {
+    myHostGraphics.removeAllItems();
     boolean supportGuest = getSelectedApiLevel() >= 23 && isIntel() && isGoogleApiSelected();
     GpuMode otherMode = GpuMode.OFF;
     if (supportGuest) {
@@ -350,382 +240,294 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   }
 
   private void updateGpuControlsAfterSystemImageChange() {
-    int selectedIndex = myHostGraphics.getSelectedIndex();
-    myHostGraphics.removeAllItems();
+    GpuMode mode = getModel().hostGpuMode().getValueOr(GpuMode.AUTO);
     populateHostGraphicsDropDown();
-    myHostGraphics.setSelectedIndex(selectedIndex);
-  }
-
-  @Override
-  public boolean commitStep() {
-    if (!myState.getNotNull(DISPLAY_USE_EXTERNAL_SD_KEY, false)) {
-      Storage orig = myState.get(SD_CARD_STORAGE_KEY);
-      Storage current = myState.get(DISPLAY_SD_SIZE_KEY);
-      if (orig != null && !orig.equals(current)) {
-        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
-                                                             "the current contents of the card. Continue?",
-                                              "Confirm Data Wipe", AllIcons.General.QuestionDialog);
-        if (result != Messages.YES) {
-          return false;
-        }
-      }
+    switch (mode) {
+      case AUTO:
+        myHostGraphics.setSelectedIndex(0);
+        break;
+      case HOST:
+        myHostGraphics.setSelectedIndex(1);
+        break;
+      case MESA:
+      case SWIFT:
+      case OFF:
+      default:
+        myHostGraphics.setSelectedIndex(2);
+        break;
     }
-    File displayFile = myState.get(DISPLAY_SKIN_FILE_KEY);
-    boolean hasFrame = myState.getNotNull(DEVICE_FRAME_KEY, false);
-    myState.put(CUSTOM_SKIN_FILE_KEY,  hasFrame ? displayFile : NO_SKIN);
-    myState.put(BACKUP_SKIN_FILE_KEY, hasFrame ? null : displayFile);
-
-    if (!myState.getNotNull(RANCHU_KEY, false)) {
-      myState.remove(CPU_CORES_KEY);  // Do NOT use the new emulator (qemu2)
-    }
-    else if (!myState.containsKey(CPU_CORES_KEY)) {
-      myState.put(CPU_CORES_KEY, 1);  // Force the use the new emulator (qemu2)
-    }
-    if (getSelectedApiLevel() < 16 || myState.get(HOST_GPU_MODE_KEY) == GpuMode.OFF) {
-      myState.put(USE_HOST_GPU_KEY, false);
-      myState.put(HOST_GPU_MODE_KEY, GpuMode.OFF);
-    }
-    else {
-      myState.put(USE_HOST_GPU_KEY, true);
-    }
-
-    return super.commitStep();
-  }
-
-  @Override
-  public void onEnterStep() {
-    super.onEnterStep();
-    toggleOptionals(myState.get(DEVICE_DEFINITION_KEY), false);
-    updateSdCardSettings();
-    setInitialGpuMode();
-  }
-
-  @Override
-  public boolean validate() {
-    clearErrorState();
-    boolean valid = true;
-    // Check Ram
-    Storage ram = myState.get(RAM_STORAGE_KEY);
-    if (ram == null || ram.getSizeAsUnit(Unit.MiB) < 128) {
-      setErrorState("RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.", myMemoryAndStorageLabel, myRamLabel,
-                    myRamStorage);
-      valid = false;
-    }
-
-    // Check VM Heap
-    Storage vmHeap = myState.get(VM_HEAP_STORAGE_KEY);
-    if (vmHeap == null || vmHeap.getSizeAsUnit(Unit.MiB) < 16) {
-      setErrorState("VM Heap must be a numeric (integer) value of at least 16MB.", myMemoryAndStorageLabel, myVmHeapLabel, myVmHeapStorage);
-      valid = false;
-    }
-
-    // Check Internal Storage
-    Storage internal = myState.get(INTERNAL_STORAGE_KEY);
-    if (internal == null || internal.getSizeAsUnit(Unit.MiB) < 200) {
-      setErrorState("Internal storage must be a numeric (integer) value of at least 200MB.", myMemoryAndStorageLabel,
-                    myInternalStorageLabel, myInternalStorage);
-      valid = false;
-    }
-
-    // If we're using an existing SD card, make sure it exists
-    Boolean useExistingSd = myState.get(DISPLAY_USE_EXTERNAL_SD_KEY);
-    if (useExistingSd != null && useExistingSd) {
-      String path = myState.get(DISPLAY_SD_LOCATION_KEY);
-      if (path == null || !new File(path).isFile()) {
-        setErrorState("The specified SD image file must be a valid image file", myMemoryAndStorageLabel, mySdCardLabel, myExistingSdCard);
-        valid = false;
-      }
-    }
-    else {
-      Storage sdCard = myState.get(DISPLAY_SD_SIZE_KEY);
-      if (sdCard != null && (sdCard.getSizeAsUnit(Unit.MiB) < 10)) {
-        setErrorState("The SD card must be larger than 10MB", myMemoryAndStorageLabel, mySdCardLabel, myNewSdCardStorage);
-        valid = false;
-      }
-    }
-
-    File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinFile != null && !FileUtil.filesEqual(skinFile, NO_SKIN)) {
-      File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
-      if (!layoutFile.isFile()) {
-        setErrorState("The skin directory does not point to a valid skin.", myDeviceFrameLabel, mySkinComboBox);
-        valid = false;
-      }
-    }
-
-    String displayName = myState.get(DISPLAY_NAME_KEY);
-    if (displayName != null) {
-      displayName = displayName.trim();
-      if (!displayName.equals(myOriginalName) && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(displayName)) {
-        setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName), myAvdDisplayNamePanel, myAvdNameLabel);
-        valid = false;
-      }
-      if (!displayName.matches("^[0-9a-zA-Z-_. ()]+$")) {
-        setErrorState("The AVD name can only contain the characters a-z A-Z 0-9 . _ - ( )", myAvdDisplayNamePanel, myAvdNameLabel);
-        valid = false;
-      }
-    }
-
-    Device device = myState.get(DEVICE_DEFINITION_KEY);
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    if (device == null) {
-      setErrorState("A hardware profile must be selected.", myDeviceDetails);
-      valid = false;
-    }
-    else if (!ChooseSystemImageStep.systemImageMatchesDevice(systemImage, device)) {
-      setErrorState("The selected system image is incompatible with the selected device.", mySystemImageDetails);
-      valid = false;
-    }
-
-    return valid;
-  }
-
-  private boolean doesSystemImageSupportRanchu() {
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    assert systemImage != null;
-    return AvdManagerConnection.doesSystemImageSupportRanchu(systemImage);
-  }
-
-  private int getSelectedApiLevel() {
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    assert systemImage != null;
-    AndroidVersion version = systemImage.getVersion();
-    assert version != null;
-    return version.getApiLevel();
-  }
-
-  private String getSelectedApiString() {
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    assert systemImage != null;
-    AndroidVersion version = systemImage.getVersion();
-    assert version != null;
-    return version.getApiString();
   }
 
   private boolean isGoogleApiSelected() {
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    assert systemImage != null;
-    return TAGS_WITH_GOOGLE_API.contains(systemImage.getTag());
+    assert getModel().systemImage().get().isPresent();
+    SystemImageDescription systemImage = getModel().systemImage().getValue();
+    IdDisplay tag = systemImage.getTag();
+    return SystemImage.WEAR_TAG.equals(tag) || SystemImage.TV_TAG.equals(tag) || SystemImage.GOOGLE_APIS_TAG.equals(tag);
   }
 
   private boolean isIntel() {
     return supportsMultipleCpuCores();
   }
 
-  private boolean supportsMultipleCpuCores() {
-    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    assert systemImage != null;
-    Abi abi = Abi.getEnum(systemImage.getAbiType());
-    return abi != null && abi.supportsMultipleCpuCores();
+  @Override
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    addTitles();
+    addListeners();
+    addValidators();
+    bindComponents();
+    initComponents();
   }
 
-  /**
-   * Clear the error highlighting around any components that had previously been marked as errors
-   */
-  private void clearErrorState() {
-    for (JComponent c : myErrorStateComponents) {
-      if (c instanceof JLabel) {
-        c.setForeground(JBColor.foreground());
-        ((JLabel)c).setIcon(null);
-      }
-      else if (c instanceof com.android.tools.idea.avdmanager.legacy.StorageField) {
-        ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(false);
-      }
-      else if (c instanceof JCheckBox) {
-        c.setForeground(JBColor.foreground());
-      }
-      else {
-        c.setBorder(null);
-      }
-    }
-    myAvdConfigurationOptionHelpPanel.setErrorMessage("");
-    setErrorHtml(null);
-  }
-
-  /**
-   * Set an error message and mark the given components as being in error state
-   */
-  private void setErrorState(String message, JComponent... errorComponents) {
-    boolean isVisible = false;
-    for (JComponent c : errorComponents) {
-      if (c.isShowing()) {
-        isVisible = true;
-        break;
-      }
-    }
-    if (!isVisible) {
-      setErrorHtml(message);
+  @Override
+  protected void onEntering() {
+    updateComponents();
+    myShowAdvancedSettingsButton.setText(SHOW);
+    setAdvanceSettingsVisible(false);
+    toggleOptionals(getModel().device().get(), false);
+    if (getModel().useExternalSdCard().get()) {
+      myBuiltInSdCardStorage.setEnabled(false);
+      myExternalSdCard.setEnabled(true);
     }
     else {
-      myAvdConfigurationOptionHelpPanel.setErrorMessage(message);
-      for (JComponent c : errorComponents) {
-        if (c instanceof JLabel) {
-          c.setForeground(JBColor.RED);
-          ((JLabel)c).setIcon(AllIcons.General.BalloonError);
+      myBuiltInSdCardStorage.setEnabled(true);
+      myExternalSdCard.setEnabled(false);
+    }
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
+  }
+
+  /**
+   * Convenience method to add titles to be displayed in {@link AvdConfigurationOptionHelpPanel} when focus changes.
+   */
+  private void addTitles() {
+    myAvdId.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "AVD Id");
+    myRamStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Device RAM");
+    myAvdDisplayName.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "AVD Name");
+    myCoreCount.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
+    mySpeedCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Network Speed");
+    myBackCameraCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Back Camera");
+    myLatencyCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Network Latency");
+    myFrontCameraCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Front Camera");
+    myQemu2CheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
+    myInternalStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Internal Flash");
+    myHostGraphics.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Graphics Rendering");
+    mySkinComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Custom Device Frame");
+    myVmHeapStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Virtual Machine Heap");
+    myOrientationToggle.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Default Orientation");
+    myBuiltInSdCardStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Built-in SD Card Size");
+    myDeviceFrameCheckbox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable device frame");
+    myBuiltInRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Built-in SD Card Size");
+    myEnableComputerKeyboard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable keyboard input");
+    myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
+    myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
+  }
+
+  private void initComponents() {
+    myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
+    setAdvanceSettingsVisible(false);
+
+    // Add labelFor property for custom components since its not allowed from the designer
+    myAvdIdLabel.setLabelFor(myAvdId);
+    myDeviceDetails.setLabelFor(myDeviceName);
+    mySystemImageDetails.setLabelFor(mySystemImageName);
+    myOrientationLabel.setLabelFor(myOrientationToggle);
+    myRamLabel.setLabelFor(myRamStorage);
+  }
+
+  private void updateComponents() {
+    myAvdConfigurationOptionHelpPanel.setSystemImageDescription(getModel().systemImage().getValueOrNull());
+    myOrientationToggle.setSelectedElement(getModel().selectedAvdOrientation().get());
+
+    String avdDisplayName;
+    if (!getModel().isInEditMode().get() && getModel().systemImage().get().isPresent() && getModel().device().get().isPresent()) {
+      // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
+      // a display name. Ensure that the display name does not include any forbidden characters.
+      avdDisplayName = AvdNameVerifier.stripBadCharacters( getModel().device().getValue().getDisplayName() );
+
+      getModel().avdDisplayName()
+        .set(connection.uniquifyDisplayName(String.format(Locale.getDefault(), "%1$s API %2$s", avdDisplayName, getSelectedApiString())));
+    }
+
+    myOriginalName = getModel().isInEditMode().get() ? getModel().avdDisplayName().get() : "";
+
+    updateSystemImageData();
+
+    myOriginalSdCard = getModel().sdCardStorage().getValue();
+
+    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1) : AvdOptionsModel.MAX_NUMBER_OF_CORES;
+  }
+
+  private void addListeners() {
+    myAvdId.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        myAvdId.requestFocusInWindow();
+      }
+    });
+
+    myShowAdvancedSettingsButton.addActionListener(myToggleAdvancedSettingsListener);
+    myChangeDeviceButton.addActionListener(myChangeDeviceButtonListener);
+    myChangeSystemImageButton.addActionListener(myChangeSystemImageButtonListener);
+
+    myExternalRadioButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myExternalSdCard.setEnabled(true);
+        myBuiltInSdCardStorage.setEnabled(false);
+      }
+    });
+    myBuiltInRadioButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myExternalSdCard.setEnabled(false);
+        myBuiltInSdCardStorage.setEnabled(true);
+      }
+    });
+
+    myOrientationToggle.setOpaque(false);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
+
+    myListeners.receive(getModel().device(), device -> {
+      toggleOptionals(device, true);
+      if (device.isPresent()) {
+        myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
+        myDeviceName.setText(getModel().device().getValue().getDisplayName());
+        updateDeviceDetails();
+      }
+    });
+
+    List<AbstractProperty<?>> deviceProperties = AbstractProperty.getAll(getModel().getAvdDeviceData());
+    deviceProperties.add(getModel().systemImage());
+    myListeners.listenAll(deviceProperties).with(new Runnable() {
+      @Override
+      public void run() {
+        if (getModel().systemImage().get().isPresent() && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
+          File skin =
+            AvdWizardUtils.resolveSkinPath(getModel().getAvdDeviceData().customSkinFile().getValue(), getModel().systemImage().getValue(),
+                                           FileOpUtils.create());
+          if (skin != null) {
+            getModel().getAvdDeviceData().customSkinFile().setValue(skin);
+            if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
+              myDeviceFrameCheckbox.setSelected(false);
+            }
+          }
+          else {
+            getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
+          }
         }
-        else if (c instanceof StorageField) {
-          ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(true);
-        }
-        else if (c instanceof JCheckBox) {
-          c.setForeground(JBColor.RED);
+      }
+    });
+
+    myListeners.listen(getModel().systemImage(), new InvalidationListener() {
+      @Override
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        updateSystemImageData();
+      }
+    });
+
+    myListeners.receive(getModel().sdCardStorage(), storage -> {
+      if (myCheckSdForChanges && storage.isPresent() && !storage.get().equals(myOriginalSdCard)) {
+        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
+                                                             "the current contents of the card. Continue?", "Confirm Data Wipe",
+                                              AllIcons.General.QuestionDialog);
+        if (result == Messages.YES) {
+          myCheckSdForChanges = false;
         }
         else {
-          c.setBorder(new LineBorder(JBColor.RED));
+          getModel().sdCardStorage().setValue(myOriginalSdCard);
         }
-        myErrorStateComponents.add(c);
       }
+    });
+
+    myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
+      @Override
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        toggleSystemOptionals(true);
+      }
+    });
+
+    myListeners.receive(getModel().selectedAvdOrientation(),
+                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
+  }
+
+  private void updateSystemImageData() {
+    if (getModel().systemImage().get().isPresent()) {
+      SystemImageDescription image = getModel().systemImage().getValue();
+
+      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getApiLevel());
+      if (codeName != null) {
+        getModel().systemImageName().set(codeName);
+      }
+      try {
+        Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
+        mySystemImageName.setIcon(icon);
+      }
+      catch (RuntimeException ignored) {
+      }
+
+      getModel().systemImageDetails().set(image.getName() + " " + image.getAbiType());
+      myAvdConfigurationOptionHelpPanel.setSystemImageDescription(image);
+      updateGpuControlsAfterSystemImageChange();
+      toggleSystemOptionals(false);
     }
   }
 
-  /**
-   * Bind components to their specified keys and help messaging.
-   */
-  private void registerComponents() {
-    register(DISPLAY_NAME_KEY, myAvdDisplayName);
-    register(AVD_ID_KEY, myAvdId);
-    final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    registerValueDeriver(AVD_ID_KEY, new ValueDeriver<String>() {
-      @Nullable
-      @Override
-      public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DISPLAY_NAME_KEY);
+  private final ActionListener myToggleAdvancedSettingsListener = new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (isAdvancedPanel()) {
+        myShowAdvancedSettingsButton.setText(SHOW);
+        setAdvanceSettingsVisible(false);
       }
-
-      @Nullable
-      @Override
-      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
-        String displayName = state.get(DISPLAY_NAME_KEY);
-        if (displayName != null) {
-          return AvdEditWizard
-            .cleanAvdName(connection, displayName, !displayName.equals(myOriginalName));
-        }
-        return "";
+      else {
+        myShowAdvancedSettingsButton.setText(HIDE);
+        setAdvanceSettingsVisible(true);
       }
-    });
-    setControlDescription(myAvdDisplayName, myAvdConfigurationOptionHelpPanel.getDescription(DISPLAY_NAME_KEY));
-    setControlDescription(myAvdId, myAvdConfigurationOptionHelpPanel.getDescription(AVD_ID_KEY));
-    register(DEVICE_DEFINITION_KEY, myDeviceName, DEVICE_NAME_BINDING);
-    register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
-    register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
-    register(SYSTEM_IMAGE_KEY, mySystemImageDetails, SYSTEM_IMAGE_DESCRIPTION_BINDING);
-    register(RANCHU_KEY, myRanchuCheckBox);
-    setControlDescription(myRanchuCheckBox, myAvdConfigurationOptionHelpPanel.getDescription(CPU_CORES_KEY));
-    if (myState.containsKey(CPU_CORES_KEY)) {
-      mySelectedCoreCount = myState.getNotNull(CPU_CORES_KEY, 1);
     }
-    else {
-      myState.put(CPU_CORES_KEY, 1);
-      mySelectedCoreCount = myMaxCores;
-    }
-    register(CPU_CORES_KEY, myCoreCount);
-    setControlDescription(myCoreCount, myAvdConfigurationOptionHelpPanel.getDescription(CPU_CORES_KEY));
+  };
 
-    register(RAM_STORAGE_KEY, myRamStorage, myRamStorage.getBinding());
-    setControlDescription(myRamStorage, myAvdConfigurationOptionHelpPanel.getDescription(RAM_STORAGE_KEY));
-
-    register(VM_HEAP_STORAGE_KEY, myVmHeapStorage, myVmHeapStorage.getBinding());
-    setControlDescription(myVmHeapStorage, myAvdConfigurationOptionHelpPanel.getDescription(VM_HEAP_STORAGE_KEY));
-
-    register(INTERNAL_STORAGE_KEY, myInternalStorage, myInternalStorage.getBinding());
-    setControlDescription(myInternalStorage, myAvdConfigurationOptionHelpPanel.getDescription(INTERNAL_STORAGE_KEY));
-
-    register(DISPLAY_SD_SIZE_KEY, myNewSdCardStorage, myNewSdCardStorage.getBinding());
-    setControlDescription(myNewSdCardStorage, myAvdConfigurationOptionHelpPanel.getDescription(SD_CARD_STORAGE_KEY));
-
-    register(HOST_GPU_MODE_KEY, myHostGraphics);
-    setControlDescription(myHostGraphics, myAvdConfigurationOptionHelpPanel.getDescription(HOST_GPU_MODE_KEY));
-
-    if (Boolean.FALSE.equals(myState.get(IS_IN_EDIT_MODE_KEY))) {
-      registerValueDeriver(RAM_STORAGE_KEY, new MemoryValueDeriver() {
-        @Nullable
-        @Override
-        protected Storage getStorage(@NotNull Device device) {
-          return getDefaultRam(device.getDefaultHardware());
-        }
-      });
-
-      registerValueDeriver(VM_HEAP_STORAGE_KEY, new MemoryValueDeriver() {
-        @Nullable
-        @Override
-        protected Storage getStorage(@NotNull Device device) {
-          return calculateVmHeap(device);
-        }
-      });
-
-      registerValueDeriver(DISPLAY_NAME_KEY, new ValueDeriver<String>() {
-        @Nullable
-        @Override
-        public Set<Key<?>> getTriggerKeys() {
-          return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
-        }
-
-        @Nullable
-        @Override
-        public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
-          Device device = state.get(DEVICE_DEFINITION_KEY);
-          SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
-          if (device != null && systemImage != null) { // Should always be the case
-            return connection.uniquifyDisplayName(
-              String.format(Locale.getDefault(), "%1$s API %2$s", device.getDisplayName(), getSelectedApiString()));
-          }
-          return null; // Should never occur
-        }
-      });
-    }
-
-    registerValueDeriver(DISPLAY_SKIN_FILE_KEY, new ValueDeriver<File>() {
-      @Nullable
+  private void bindComponents() {
+    myBindings.bindTwoWay(new TextProperty(myAvdDisplayName), getModel().avdDisplayName());
+    myBindings.bind(new TextProperty(myAvdId), new StringExpression(getModel().avdDisplayName()) {
+      @NotNull
       @Override
-      public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DEVICE_DEFINITION_KEY, SYSTEM_IMAGE_KEY);
-      }
-
-      @Nullable
-      @Override
-      public File deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable File currentValue) {
-        // If there was a skin specified coming in, this field will be marked as user-edited, and so that needn't be
-        // taken into account here. The only case we care about is if the device is changed.
-        Device device = myState.get(DEVICE_DEFINITION_KEY);
-        File file = null;
-        if (device != null) {
-          file =
-            AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
-        }
-        return file == null ? NO_SKIN : file;
+      public String get() {
+        String displayName = getModel().avdDisplayName().get();
+        getModel().avdId().set(StringUtil.isNotEmpty(displayName) ?
+                               AvdWizardUtils.cleanAvdName(connection, displayName, !displayName.equals(myOriginalName)) : "");
+        return getModel().avdId().get();
       }
     });
 
-    registerValueDeriver(DEVICE_FRAME_KEY, new ValueDeriver<Boolean>() {
-      @Nullable
-      @Override
-      public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DISPLAY_SKIN_FILE_KEY);
-      }
+    myBindings.bindTwoWay(new TextProperty(mySystemImageName), getModel().systemImageName());
+    myBindings.bindTwoWay(new TextProperty(mySystemImageDetails), getModel().systemImageDetails());
 
-      @Override
-      public boolean respectUserEdits() {
-        // if "No skin" is selected, we always want to uncheck and disable the checkbox,
-        // regardless of whether it was modified by the user.
-        return false;
-      }
+    myBindings.bindTwoWay(new SelectedProperty(myQemu2CheckBox), getModel().useQemu2());
+    myBindings.bindTwoWay(new SelectedItemProperty<Integer>(myCoreCount), getModel().cpuCoreCount());
+    myBindings.bindTwoWay(myRamStorage.storage(), getModel().getAvdDeviceData().ramStorage());
+    myBindings.bindTwoWay(myVmHeapStorage.storage(), getModel().vmHeapStorage());
+    myBindings.bindTwoWay(myInternalStorage.storage(), getModel().internalStorage());
+    myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new OptionalToValuePropertyAdapter<Storage>(getModel().sdCardStorage()));
 
-      @Nullable
-      @Override
-      public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
-        File displaySkinPath = myState.get(DISPLAY_SKIN_FILE_KEY);
-        boolean hasSkin = displaySkinPath != null && !FileUtil.filesEqual(NO_SKIN, displaySkinPath);
-        myDeviceFrameCheckbox.setEnabled(hasSkin);
-        return hasSkin && myState.getNotNull(DEVICE_FRAME_KEY, false);
-      }
-    });
+    myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
 
-    register(DEFAULT_ORIENTATION_KEY, myOrientationToggle, ORIENTATION_BINDING);
+    myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
 
-    setControlDescription(myOrientationToggle, myAvdConfigurationOptionHelpPanel.getDescription(DEFAULT_ORIENTATION_KEY));
+    myBindings.bindTwoWay(new SelectedItemProperty<File>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        saveState(myOrientationToggle);
+        ScreenOrientation orientation = myOrientationToggle.getSelectedElement();
+        if (orientation == null) {
+          getModel().selectedAvdOrientation().set(ScreenOrientation.PORTRAIT);
+        }
+        else {
+          getModel().selectedAvdOrientation().set(orientation);
+        }
       }
     });
 
@@ -735,132 +537,281 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         return super.isFileVisible(file, true);
       }
     };
+
     fileChooserDescriptor.setHideIgnored(false);
-    myExistingSdCard.addBrowseFolderListener("Select SD Card", "Select an existing SD card image", getProject(), fileChooserDescriptor);
-    register(DISPLAY_SD_LOCATION_KEY, myExistingSdCard);
-    setControlDescription(myExistingSdCard, myAvdConfigurationOptionHelpPanel.getDescription(EXISTING_SD_LOCATION));
+    myExternalSdCard.addBrowseFolderListener("Select SD Card", "Select an existing SD card image", myProject, fileChooserDescriptor);
 
-    register(FRONT_CAMERA_KEY, myFrontCameraCombo, STRING_COMBO_BINDING);
-    setControlDescription(myFrontCameraCombo, myAvdConfigurationOptionHelpPanel.getDescription(FRONT_CAMERA_KEY));
+    myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
-    register(BACK_CAMERA_KEY, myBackCameraCombo, STRING_COMBO_BINDING);
-    setControlDescription(myBackCameraCombo, myAvdConfigurationOptionHelpPanel.getDescription(BACK_CAMERA_KEY));
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myFrontCameraCombo)),
+                          getModel().selectedFrontCamera());
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myBackCameraCombo)),
+                          getModel().selectedBackCamera());
 
-    register(SCALE_SELECTION_KEY, myScalingComboBox, new ComponentBinding<AvdScaleFactor, JComboBox>() {
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkSpeed>(new SelectedItemProperty<AvdNetworkSpeed>(mySpeedCombo)),
+                          getModel().selectedNetworkSpeed());
+    myBindings
+      .bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkLatency>(new SelectedItemProperty<AvdNetworkLatency>(myLatencyCombo)),
+                  getModel().selectedNetworkLatency());
+
+    myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
+    myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
+    myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
+
+    myCheckSdForChanges = true;
+  }
+
+  private void addValidators() {
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().ramStorage(), new Validator<Storage>() {
+      @NotNull
       @Override
-      public void addActionListener(@NotNull ActionListener listener, @NotNull JComboBox component) {
-        component.addActionListener(listener);
+      public Result validate(@NotNull Storage ram) {
+        return (ram.getSizeAsUnit(Storage.Unit.MiB) < 128)
+               ? new Result(Severity.ERROR, "RAM must be a numeric (integer) value of at least 128MB. Recommendation is 1GB.")
+               : Result.OK;
       }
+    });
 
-      @Nullable
+    myValidatorPanel.registerValidator(getModel().vmHeapStorage(), new Validator<Storage>() {
+      @NotNull
       @Override
-      public AvdScaleFactor getValue(@NotNull JComboBox component) {
-        return ((AvdScaleFactor)component.getSelectedItem());
+      public Result validate(@NotNull Storage heap) {
+        return (heap.getSizeAsUnit(Storage.Unit.MiB) < 16)
+               ? new Result(Severity.ERROR, "VM Heap must be a numeric (integer) value of at least 16MB.")
+               : Result.OK;
       }
+    });
 
+    myValidatorPanel.registerValidator(getModel().internalStorage(), new Validator<Storage>() {
+      @NotNull
       @Override
-      public void setValue(@Nullable AvdScaleFactor newValue, @NotNull JComboBox component) {
-        if (newValue != null) {
-          component.setSelectedItem(newValue);
+      public Result validate(@NotNull Storage heap) {
+        return (heap.getSizeAsUnit(Storage.Unit.MiB) < 200)
+               ? new Result(Severity.ERROR, "Internal storage must be a numeric (integer) value of at least 200MB.")
+               : Result.OK;
+      }
+    });
+
+    // If we're using an external SD card, make sure it exists
+    myValidatorPanel.registerValidator(getModel().externalSdCardLocation(), new Validator<String>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull String path) {
+        return (getModel().useExternalSdCard().get() && !new File(path).isFile())
+               ? new Result(Severity.ERROR, "The specified SD image file must be a valid image file")
+               : Result.OK;
+      }
+    });
+
+    // If we are not lets make sure it has the right amount of memory
+    myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull Optional<Storage> value) {
+        return (!getModel().useExternalSdCard().get() && getModel().sdCardStorage().get().isPresent() &&
+                getModel().sdCardStorage().getValue().getSizeAsUnit(Storage.Unit.MiB) < 10)
+               ? new Result(Severity.ERROR, "The SD card must be larger than 10MB")
+               : Result.OK;
+      }
+    });
+
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().customSkinFile(), new Validator<Optional<File>>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull Optional<File> value) {
+        Result result = Result.OK;
+        if (value.isPresent() && !FileUtil.filesEqual(value.get(), AvdWizardUtils.NO_SKIN)) {
+          File layoutFile = new File(value.get(), SdkConstants.FN_SKIN_LAYOUT);
+          if (!layoutFile.isFile()) {
+            result = new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");
+          }
         }
+        return result;
       }
     });
-    setControlDescription(myScalingComboBox, myAvdConfigurationOptionHelpPanel.getDescription(SCALE_SELECTION_KEY));
 
-    register(NETWORK_LATENCY_KEY, myLatencyCombo, STRING_COMBO_BINDING);
-    setControlDescription(myLatencyCombo, myAvdConfigurationOptionHelpPanel.getDescription(NETWORK_LATENCY_KEY));
-
-    register(NETWORK_SPEED_KEY, mySpeedCombo, STRING_COMBO_BINDING);
-    setControlDescription(mySpeedCombo, myAvdConfigurationOptionHelpPanel.getDescription(NETWORK_SPEED_KEY));
-
-    register(KEY_DESCRIPTION, myAvdConfigurationOptionHelpPanel, new ComponentBinding<String, AvdConfigurationOptionHelpPanel>() {
+    myValidatorPanel.registerValidator(getModel().avdDisplayName(), new Validator<String>() {
+      @NotNull
       @Override
-      public void setValue(@Nullable String newValue, @NotNull AvdConfigurationOptionHelpPanel component) {
-        component.setDescriptionText(newValue);
+      public Result validate(@NotNull String value) {
+        value = value.trim();
+        Severity severity = Severity.OK;
+        String errorMessage = "";
+        if (value.isEmpty()) {
+          severity = Severity.ERROR;
+          errorMessage = "The AVD name cannot be empty.";
+        }
+        else if (!AvdNameVerifier.isValid(value)) {
+          severity = Severity.ERROR;
+          errorMessage = "The AVD name can contain only the characters " + AvdNameVerifier.humanReadableAllowedCharacters();
+        }
+        else if (!getModel().isInEditMode().get() && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(value)) {
+          severity = Severity.ERROR;
+          errorMessage = String.format("An AVD with the name \"%1$s\" already exists.", getModel().avdDisplayName());
+        }
+        return new Result(severity, errorMessage);
       }
     });
 
-    register(DISPLAY_SKIN_FILE_KEY, mySkinComboBox, mySkinComboBox.getBinding());
-    setControlDescription(mySkinComboBox, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
+    myValidatorPanel.registerValidator(getModel().device().isPresent().and(getModel().systemImage().isPresent()), new Validator<Boolean>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull Boolean deviceAndImageArePresent) {
+        if (deviceAndImageArePresent) {
+          Optional<Device> device = getModel().device().get();
+          Optional<SystemImageDescription> systemImage = getModel().systemImage().get();
+          if (!ChooseSystemImagePanel.systemImageMatchesDevice(systemImage.get(), device.get())) {
+            return new Validator.Result(Validator.Severity.ERROR, "The selected system image is incompatible with the selected device.");
+          }
+        }
+        else {
+          if (!getModel().device().get().isPresent()) {
+            return new Result(Severity.ERROR, "You must select a Device to create an AVD.");
+          }
+          else if (!getModel().systemImage().get().isPresent()) {
+            return new Result(Severity.ERROR, "You must select a System Image to create an AVD.");
+          }
+        }
 
-    register(DEVICE_FRAME_KEY, myDeviceFrameCheckbox);
-    setControlDescription(myDeviceFrameCheckbox, myAvdConfigurationOptionHelpPanel.getDescription(DEVICE_FRAME_KEY));
+        return Result.OK;
+      }
+    });
 
-    if (!myState.containsKey(HAS_HARDWARE_KEYBOARD_KEY)) {
-      myState.put(HAS_HARDWARE_KEYBOARD_KEY, true);
-    }
-    register(HAS_HARDWARE_KEYBOARD_KEY, myEnableComputerKeyboard);
-    setControlDescription(myEnableComputerKeyboard, myAvdConfigurationOptionHelpPanel.getDescription(HAS_HARDWARE_KEYBOARD_KEY));
-
-    RadioButtonGroupBinding<Boolean> sdCardBinding = new RadioButtonGroupBinding<Boolean>(ImmutableMap.of(
-        myExternalRadioButton, true,
-        myBuiltInRadioButton, false));
-
-    register(DISPLAY_USE_EXTERNAL_SD_KEY, myExternalRadioButton, sdCardBinding);
-    setControlDescription(myExternalRadioButton, myAvdConfigurationOptionHelpPanel.getDescription(EXISTING_SD_LOCATION));
-    register(DISPLAY_USE_EXTERNAL_SD_KEY, myBuiltInRadioButton, sdCardBinding);
-    setControlDescription(myBuiltInRadioButton, myAvdConfigurationOptionHelpPanel.getDescription(SD_CARD_STORAGE_KEY));
-
-    invokeUpdate(null);
+    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().compatibleSkinSize(),
+      Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   @Override
-  public void deriveValues(Set<Key> modified) {
-    if (modified.contains(RANCHU_KEY) || modified.contains(SYSTEM_IMAGE_KEY)) {
-      toggleSystemOptionals(modified.contains(RANCHU_KEY));
+  protected void onProceeding() {
+    boolean hasFrame = getModel().hasDeviceFrame().get();
+    if (hasFrame && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
+      getModel().backupSkinFile().clear();
     }
-    if (modified.contains(SYSTEM_IMAGE_KEY)) {
-      updateGpuControlsAfterSystemImageChange();
+    else {
+      getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
+      getModel().backupSkinFile().set(getModel().getAvdDeviceData().customSkinFile());
     }
-    if (modified.contains(DEVICE_DEFINITION_KEY)) {
-      toggleOptionals(myState.get(DEVICE_DEFINITION_KEY), true);
-    }
-  }
 
-  private void createUIComponents() {
-    myOrientationToggle =
-      new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                                       new Function<ScreenOrientation, Image>() {
-                                         @Override
-                                         public Image apply(ScreenOrientation input) {
-                                           return IconUtil.toImage(ORIENTATIONS.get(input).myIcon);
-                                         }
-                                       }, new Function<ScreenOrientation, String>() {
-        @Override
-        public String apply(ScreenOrientation input) {
-          return ORIENTATIONS.get(input).myName;
-        }
-      }, JBUI.size(50, 50));
-    myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
-    myOrientationToggle.setBackground(JBColor.background());
-    myOrientationToggle.setForeground(JBColor.foreground());
-    myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
-    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new com.android.tools.idea.avdmanager.legacy.SkinChooser(getProject());
+    if (getSelectedApiLevel() < 16 || getModel().hostGpuMode().getValueOrNull() == GpuMode.OFF) {
+      getModel().useHostGpu().set(false);
+      getModel().hostGpuMode().setValue(GpuMode.OFF);
+    }
+    else {
+      getModel().useHostGpu().set(true);
+    }
   }
 
   @NotNull
   @Override
-  public String getStepName() {
-    return "Configure AVD Options";
-  }
-
-  @NotNull
-  @Override
-  protected String getStepTitle() {
-    return "Android Virtual Device (AVD)";
+  protected JComponent getComponent() {
+    return myStudioWizardStepPanel;
   }
 
   @Nullable
   @Override
-  protected String getStepDescription() {
-    return "Verify Configuration";
+  protected JComponent getPreferredFocusComponent() {
+    return myAvdDisplayName;
+  }
+
+  private void setAdvanceSettingsVisible(boolean show) {
+    for (JComponent c : myAdvancedOptionsComponents) {
+      c.setVisible(show);
+    }
+    toggleSystemOptionals(false);
+
+    // The following is necessary to get the scrollpane to realize that its children have been
+    // relaid out and now scrolling may or may not be needed.
+    myScrollRootPane.setPreferredSize(myScrollRootPane.getLayout().preferredLayoutSize(myScrollRootPane));
+  }
+
+  private boolean isAdvancedPanel() {
+    return myShowAdvancedSettingsButton.getText().equals(HIDE);
+  }
+
+  private void toggleSystemOptionals(boolean useQemu2Changed) {
+    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
+    myQemu2Panel.setVisible(showMultiCoreOption);
+    if (showMultiCoreOption) {
+      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && AvdOptionsModel.MAX_NUMBER_OF_CORES > 1;
+      if (useQemu2Changed) {
+        if (showCores) {
+          getModel().cpuCoreCount().setValue(mySelectedCoreCount);
+        }
+        else {
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.MAX_NUMBER_OF_CORES);
+          getModel().cpuCoreCount().setValue(1);
+        }
+      }
+      myCoreCount.setEnabled(showCores);
+    }
+  }
+
+  private boolean doesSystemImageSupportQemu2() {
+    assert getModel().systemImage().get().isPresent();
+    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue(), FileOpUtils.create());
+  }
+
+  private int getSelectedApiLevel() {
+    assert getModel().systemImage().get().isPresent();
+    AndroidVersion version = getModel().systemImage().getValue().getVersion();
+    return version.getApiLevel();
+  }
+
+  private void updateDeviceDetails() {
+    Dimension dimension = getModel().getAvdDeviceData().getDeviceScreenDimension();
+    String dimensionString = String.format(Locale.getDefault(), "%dx%d", dimension.width, dimension.height);
+    AvdDeviceData deviceData = getModel().getAvdDeviceData();
+    String densityString = AvdScreenData.getScreenDensity(deviceData.isTv().get(),
+                                                          deviceData.screenDpi().get(),
+                                                          dimension.height).getResourceValue();
+    String result = Joiner.on(' ')
+      .join(getModel().device().getValue().getDefaultHardware().getScreen().getDiagonalLength(), dimensionString, densityString);
+    myDeviceDetails.setText(result);
+  }
+
+  private String getSelectedApiString() {
+    assert getModel().systemImage().get().isPresent();
+    AndroidVersion version = getModel().systemImage().getValue().getVersion();
+    return version.getApiString();
+  }
+
+  private void registerAdvancedOptionsVisibility() {
+    myAdvancedOptionsComponents =
+      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                                     myAvdIdRow);
   }
 
   @Override
-  public JComponent getPreferredFocusedComponent() {
-    return myAvdDisplayName;
+  public void dispose() {
+    super.dispose();
+    if (myPropertyChangeListener != null) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
+    }
+  }
+
+  private void createUIComponents() {
+    Function<ScreenOrientation, Image> orientationIconFunction = new Function<ScreenOrientation, Image>() {
+      @Override
+      public Image apply(ScreenOrientation input) {
+        return IconUtil.toImage(ORIENTATIONS.get(input).myIcon);
+      }
+    };
+    Function<ScreenOrientation, String> orientationNameFunction = new Function<ScreenOrientation, String>() {
+      @Override
+      public String apply(ScreenOrientation input) {
+        return ORIENTATIONS.get(input).myName;
+      }
+    };
+    myOrientationToggle =
+      new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
+                                       orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
+
+    myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
+    myOrientationToggle.setBackground(JBColor.background());
+    myOrientationToggle.setForeground(JBColor.foreground());
+    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
+    mySkinComboBox = new SkinChooser(myProject, true);
   }
 
   private static final class NamedIcon {
@@ -875,297 +826,152 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
   }
 
-  private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap
-    .of(ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", AndroidIcons.Portrait), ScreenOrientation.LANDSCAPE,
-        new NamedIcon("Landscape", AndroidIcons.Landscape));
-
-  private static final ComponentBinding<Device, JBLabel> DEVICE_NAME_BINDING = new ComponentBinding<Device, JBLabel>() {
-    @Override
-    public void setValue(@Nullable Device newValue, @NotNull JBLabel component) {
-      if (newValue != null) {
-        component.setText(newValue.getDisplayName());
-        Icon icon = com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview.getIcon(newValue);
-
-        component.setIcon(icon);
-      }
-    }
-  };
-
-  private static final ComponentBinding<Device, JBLabel> DEVICE_DETAILS_BINDING = new ComponentBinding<Device, JBLabel>() {
-    @Override
-    public void setValue(@Nullable Device newValue, @NotNull JBLabel component) {
-      if (newValue != null) {
-        String description = Joiner.on(' ')
-          .join(DeviceDefinitionList.getDiagonalSize(newValue), DeviceDefinitionList.getDimensionString(newValue),
-                DeviceDefinitionList.getDensityString(newValue));
-        component.setText(description);
-      }
-    }
-  };
-
-  private static final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_NAME_BINDING =
-    new ComponentBinding<SystemImageDescription, JBLabel>() {
-      @Override
-      public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
-        if (newValue != null) {
-          String codeName = SystemImagePreview.getCodeName(newValue);
-          component.setText(codeName);
-          try {
-            Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
-            component.setIcon(icon);
-          }
-          catch (RuntimeException e) {
-            // Pass
-          }
-        }
-      }
-    };
-
-  private final ComponentBinding<SystemImageDescription, JBLabel> SYSTEM_IMAGE_DESCRIPTION_BINDING =
-    new ComponentBinding<SystemImageDescription, JBLabel>() {
-      @Override
-      public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
-        if (newValue != null) {
-          component.setText(newValue.getName() + " " + newValue.getAbiType());
-          myAvdConfigurationOptionHelpPanel.setSystemImageDescription(newValue);
-        }
-      }
-    };
-
-  public static final ComponentBinding<ScreenOrientation, ASGallery<ScreenOrientation>> ORIENTATION_BINDING =
-    new ComponentBinding<ScreenOrientation, ASGallery<ScreenOrientation>>() {
-      @Nullable
-      @Override
-      public ScreenOrientation getValue(@NotNull ASGallery<ScreenOrientation> component) {
-        return component.getSelectedElement();
-      }
-
-      @Override
-      public void setValue(@Nullable ScreenOrientation newValue, @NotNull ASGallery<ScreenOrientation> component) {
-        component.setSelectedElement(newValue);
-      }
-    };
-
-  private static final ComponentBinding<String, JComboBox> STRING_COMBO_BINDING = new ComponentBinding<String, JComboBox>() {
-    @Override
-    public void setValue(@Nullable String newValue, @NotNull JComboBox component) {
-      if (newValue == null) {
-        return;
-      }
-      for (int i = 0; i < component.getItemCount(); i++) {
-        if (newValue.equalsIgnoreCase((String)component.getItemAt(i))) {
-          component.setSelectedIndex(i);
-        }
-      }
-    }
-
-    @Nullable
-    @Override
-    public String getValue(@NotNull JComboBox component) {
-      //noinspection StringToUpperCaseOrToLowerCaseWithoutLocale
-      return component.getSelectedItem().toString().toLowerCase();
-    }
-
-    @Override
-    public void addItemListener(@NotNull ItemListener listener, @NotNull JComboBox component) {
-      component.addItemListener(listener);
-    }
-  };
-
-  private void registerAdvancedOptionsVisibility() {
-    // Unfortunately the use of subpanels here seems to cause layout issues, so each component must be listed separately.
-    myAdvancedOptionsComponents = Iterables.concat(
-      getMemoryAndStorageComponents(),
-      getCameraComponents(),
-      getNetworkComponents(),
-      getSkinComponents(),
-      getKeyboardComponents(),
-      getAvdNameComponents()
-      );
-  }
-
-  private List<JComponent> getAvdNameComponents() {
-    return ImmutableList.<JComponent>of( myAvdIdLabel, myAvdId);
-  }
-
-  private List<JComponent> getKeyboardComponents() {
-    return ImmutableList.<JComponent>of(myEnableComputerKeyboard, myKeyboardSeparator, myKeyboardLabel);
-  }
-
-  private List<JComponent> getSkinComponents() {
-    return ImmutableList.<JComponent>of(mySkinComboBox, mySkinDefinitionLabel, myHardwareSkinHelpLabel);
-  }
-
-  private List<JComponent> getMemoryAndStorageComponents() {
-    return ImmutableList.<JComponent>of(myMemoryAndStorageLabel, myRamLabel, myVmHeapLabel, myInternalStorageLabel, mySdCardLabel,
-                                        myRamStorage, myVmHeapStorage, myInternalStorage, myExistingSdCard, myExternalRadioButton,
-                                        myNewSdCardStorage, myBuiltInRadioButton, myStorageSeparator);
-  }
-
-  private List<JComponent> getCameraComponents() {
-    return ImmutableList.<JComponent>of(myCameraLabel, myCameraSeparator, myBackCameraLabel,
-                                        myFrontCameraLabel, myBackCameraCombo, myFrontCameraCombo);
-  }
-
-  private List<JComponent> getNetworkComponents() {
-    return ImmutableList.<JComponent>of(myNetworkLabel, mySpeedLabel, mySpeedCombo, myLatencyCombo, myLatencyLabel, myNetworkSeparator);
-  }
-
-  /**
-   * Show or hide the "advanced" control panels.
-   */
-  private void toggleAdvancedSettings(boolean show) {
-    for (JComponent c : myAdvancedOptionsComponents) {
-      c.setVisible(show);
-    }
-    toggleSystemOptionals(false);
-    validate();
-    myRoot.validate();
-  }
-
-  private boolean isAdvancedPanel() {
-    return myShowAdvancedSettingsButton.getText().equals(HIDE);
+  private boolean supportsMultipleCpuCores() {
+    assert getModel().systemImage().get().isPresent();
+    Abi abi = Abi.getEnum(getModel().systemImage().getValue().getAbiType());
+    return abi != null && abi.supportsMultipleCpuCores();
   }
 
   /**
    * Enable/Disable controls based on the capabilities of the selected device. For example, some devices may
    * not have a front facing camera.
    */
-  private void toggleOptionals(@Nullable Device device, boolean deviceChange) {
-    myChangeSystemImageButton.setEnabled(device != null);
-    myFrontCameraCombo.setEnabled(device != null && device.getDefaultHardware().getCamera(CameraLocation.FRONT) != null);
-    myBackCameraCombo.setEnabled(device != null && device.getDefaultHardware().getCamera(CameraLocation.BACK) != null);
-    myOrientationToggle.setEnabled(device != null && device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
-    myEnableComputerKeyboard.setEnabled(device != null && !device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY));
-    if (deviceChange || myState.get(DEFAULT_ORIENTATION_KEY) == null) {
-      ScreenOrientation orientation = device != null ? device.getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT;
-      myState.put(DEFAULT_ORIENTATION_KEY, orientation);
+  private void toggleOptionals(@NotNull Optional<Device> device, boolean deviceChange) {
+    boolean IsDevicePresent = device.isPresent();
+    Hardware deviceDefaultHardware = IsDevicePresent ? device.get().getDefaultHardware() : null;
+
+    myChangeSystemImageButton.setEnabled(IsDevicePresent);
+    myFrontCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.FRONT) != null);
+    myBackCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.BACK) != null);
+    myOrientationToggle.setEnabled(IsDevicePresent && device.get().getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
+    myEnableComputerKeyboard.setEnabled(IsDevicePresent && !deviceDefaultHardware.getKeyboard().equals(Keyboard.QWERTY));
+    if (deviceChange) {
+      ScreenOrientation orientation = IsDevicePresent ? device.get().getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT;
+      myOrientationToggle.setSelectedElement(orientation);
     }
-    File customSkin = myState.get(CUSTOM_SKIN_FILE_KEY);
-    File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
+
+    File customSkin = getModel().getAvdDeviceData().customSkinFile().getValueOrNull();
+    File backupSkin = getModel().backupSkinFile().getValueOrNull();
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
-    myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
-
+    if (backupSkin != null && customSkin == null) {
+      getModel().hasDeviceFrame().set(false);
+    }
     File hardwareSkin = null;
-    if (device != null) {
-      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-      hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage, FileOpUtils.create());
-    }
-    myState.put(DISPLAY_SKIN_FILE_KEY, hardwareSkin);
+    if (IsDevicePresent && getModel().systemImage().get().isPresent()) {
 
-    // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
+      hardwareSkin =
+        AvdWizardUtils.resolveSkinPath(deviceDefaultHardware.getSkinFile(), getModel().systemImage().getValue(),
+                                       FileOpUtils.create());
+
+      myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
+      myDeviceName.setText(getModel().device().getValue().getDisplayName());
+      updateDeviceDetails();
+    }
+
     if (customSkin == null) {
-      customSkin = backupSkin;
-    }
-
-    // If the skin is set and different from what would be provided by the hardware, set the value of the
-    // control directly, so it is marked as user edited and not changed when the device is changed.
-    if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
-      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
-    }
-  }
-
-  private void toggleSystemOptionals(boolean useRanchuChanged) {
-    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportRanchu();
-    myRanchuCheckBox.setVisible(showMultiCoreOption);
-    myCoreCount.setVisible(showMultiCoreOption);
-    myMultiCoreExperimentalLabel.setVisible(showMultiCoreOption);
-    myMultiCoreDivider.setVisible(showMultiCoreOption);
-    if (showMultiCoreOption) {
-      boolean showCores = supportsMultipleCpuCores() && myState.getNotNull(RANCHU_KEY, false) && myMaxCores > 1;
-      if (useRanchuChanged) {
-        if (showCores) {
-          myState.put(CPU_CORES_KEY, mySelectedCoreCount);
-        }
-        else {
-          mySelectedCoreCount = myState.getNotNull(CPU_CORES_KEY, 1);
-          myState.put(CPU_CORES_KEY, 1);
-        }
-      }
-      myCoreCount.setEnabled(showCores);
-    }
-  }
-
-  public static Storage calculateVmHeap(@NotNull Device device) {
-    // Set the default VM heap size. This is based on the Android CDD minimums for each
-    // screen size and density.
-    Screen s = device.getDefaultHardware().getScreen();
-    ScreenSize size = s.getSize();
-    Density density = s.getPixelDensity();
-    int vmHeapSize = 32;
-    if (size.equals(ScreenSize.XLARGE)) {
-      switch (density) {
-        case LOW:
-        case MEDIUM:
-          vmHeapSize = 32;
-          break;
-        case TV:
-        case HIGH:
-        case DPI_280:
-        case DPI_360:
-          vmHeapSize = 64;
-          break;
-        case XHIGH:
-        case DPI_400:
-        case DPI_420:
-        case XXHIGH:
-        case DPI_560:
-        case XXXHIGH:
-          vmHeapSize = 128;
-          break;
-        case NODPI:
-        case ANYDPI:
-          break;
-      }
-    }
-    else {
-      switch (density) {
-        case LOW:
-        case MEDIUM:
-          vmHeapSize = 16;
-          break;
-        case TV:
-        case HIGH:
-        case DPI_280:
-        case DPI_360:
-          vmHeapSize = 32;
-          break;
-        case XHIGH:
-        case DPI_400:
-        case DPI_420:
-        case XXHIGH:
-        case DPI_560:
-        case XXXHIGH:
-          vmHeapSize = 64;
-          break;
-        case NODPI:
-        case ANYDPI:
-          break;
-      }
-    }
-    return new Storage(vmHeapSize, Unit.MiB);
-  }
-
-  private abstract static class MemoryValueDeriver extends ValueDeriver<Storage> {
-    @Nullable
-    @Override
-    public Set<Key<?>> getTriggerKeys() {
-      return makeSetOf(DEVICE_DEFINITION_KEY);
-    }
-
-    @Nullable
-    @Override
-    public Storage deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Storage currentValue) {
-      Device device = state.get(DEVICE_DEFINITION_KEY);
-      if (device != null) {
-        return getStorage(device);
+      if (backupSkin != null) {
+        customSkin = backupSkin;
       }
       else {
-        return null;
+        customSkin = hardwareSkin;
       }
     }
 
-    @Nullable
-    protected abstract Storage getStorage(@NotNull Device device);
+    if (customSkin != null) {
+      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
+      getModel().getAvdDeviceData().customSkinFile().setValue(customSkin);
+    }
   }
+
+  private ActionListener myChangeSystemImageButtonListener = new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      final ChooseSystemImagePanel chooseImagePanel =
+        new ChooseSystemImagePanel(myProject, getModel().device().getValueOrNull(), getModel().systemImage().getValueOrNull());
+
+      DialogWrapper dialog = new DialogWrapper(myProject) {
+        {
+          setTitle("Select a System Image");
+          init();
+          chooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
+            @Override
+            public void consume(SystemImageDescription systemImage) {
+              setOKActionEnabled(systemImage != null);
+            }
+          });
+        }
+
+        @Nullable
+        @Override
+        protected JComponent createCenterPanel() {
+          return chooseImagePanel;
+        }
+      };
+
+      if (dialog.showAndGet()) {
+        SystemImageDescription image = chooseImagePanel.getSystemImage();
+
+        if (image != null) {
+          getModel().systemImage().setValue(image);
+        }
+      }
+    }
+  };
+
+  private ActionListener myChangeDeviceButtonListener = new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      final ChooseDeviceDefinitionPanel chooseDevicePanel = new ChooseDeviceDefinitionPanel(getModel().device().getValueOrNull());
+      DialogWrapper dialog = new DialogWrapper(myProject) {
+        {
+          setTitle("Select a Device");
+          init();
+          chooseDevicePanel.addDeviceListener(new Consumer<Device>() {
+            @Override
+            public void consume(Device device) {
+              setOKActionEnabled(device != null);
+            }
+          });
+        }
+
+        @Nullable
+        @Override
+        protected JComponent createCenterPanel() {
+          return chooseDevicePanel;
+        }
+      };
+
+      if (dialog.showAndGet()) {
+        getModel().device().setNullableValue(chooseDevicePanel.getDevice());
+      }
+    }
+  };
+
+  private PropertyChangeListener myPropertyChangeListener = new PropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+      Object value = evt.getNewValue();
+      if (evt.getNewValue() instanceof JComponent) {
+        JComponent component = (JComponent)value;
+        if (component.getToolTipText() != null) {
+          myAvdConfigurationOptionHelpPanel.setValues(component);
+        }
+        else if (component.getParent() instanceof JComponent) {
+          final JComponent parent = (JComponent)component.getParent();
+          if (parent.getToolTipText() != null) {
+            myAvdConfigurationOptionHelpPanel.setValues(parent);
+          }
+          else {
+            myAvdConfigurationOptionHelpPanel.clearValues();
+          }
+        }
+
+        if (component.getParent() instanceof JComponent) {
+          final JComponent parent = (JComponent)component.getParent();
+          parent.scrollRectToVisible(component.getBounds());
+        }
+      }
+    }
+  };
+
 }

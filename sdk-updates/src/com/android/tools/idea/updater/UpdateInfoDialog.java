@@ -69,7 +69,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
         for (RemotePackage p : myPackages) {
           paths.add(p.getPath());
         }
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myComponent, paths);
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myComponent, paths, true);
         // Can be null if there was an error, in theory. In that case createDialogForPaths shows the error itself.
         if (dialog != null) {
           dialog.show();

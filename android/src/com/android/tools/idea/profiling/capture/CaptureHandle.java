@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,11 +29,13 @@ import java.io.IOException;
 public class CaptureHandle {
   @NotNull private File myFile;
   @NotNull private CaptureType myType;
+  private boolean myWriteToTempFile;
   @Nullable private volatile FileOutputStream myFileOutputStream;
 
-  CaptureHandle(@NotNull File file, @NotNull CaptureType type) throws IOException {
+  CaptureHandle(@NotNull File file, @NotNull CaptureType type, boolean writeToTempFile) throws IOException {
     myFile = file;
     myType = type;
+    myWriteToTempFile = writeToTempFile;
     myFileOutputStream = new FileOutputStream(myFile, true);
   }
 
@@ -51,6 +54,10 @@ public class CaptureHandle {
     return myFileOutputStream;
   }
 
+  boolean getWriteToTempFile() {
+    return myWriteToTempFile;
+  }
+
   void closeFileOutputStream() {
     FileOutputStream fileOutputStream = myFileOutputStream;
     if (fileOutputStream != null) {
@@ -65,5 +72,10 @@ public class CaptureHandle {
 
   boolean isWritable() {
     return myFileOutputStream != null;
+  }
+
+  public void move(File file) throws IOException {
+    Files.move(myFile, file);
+    myFile = file;
   }
 }

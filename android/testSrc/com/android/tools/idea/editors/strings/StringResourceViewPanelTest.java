@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringsCellEditor;
-import com.android.tools.idea.rendering.ModuleResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;

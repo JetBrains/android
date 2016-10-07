@@ -22,6 +22,7 @@ import org.gradle.tooling.CancellationTokenSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -36,9 +37,11 @@ public class GradleTaskExecutionContext {
   @NotNull private final List<String> myJvmArgs;
   @NotNull private final List<String> myCommandLineArgs;
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap;
-
   @NotNull private final ExternalSystemTaskId myTaskId;
+
   @Nullable private final ExternalSystemTaskNotificationListener myTaskNotificationListener;
+  @Nullable private final File myBuildFilePath;
+  private final boolean myUseEmbeddedGradle;
 
   public GradleTaskExecutionContext(@NotNull GradleInvoker gradleInvoker,
                                     @NotNull Project project,
@@ -47,7 +50,9 @@ public class GradleTaskExecutionContext {
                                     @NotNull List<String> commandLineArgs,
                                     @NotNull Map<ExternalSystemTaskId, CancellationTokenSource> cancellationMap,
                                     @NotNull ExternalSystemTaskId taskId,
-                                    @Nullable ExternalSystemTaskNotificationListener taskNotificationListener) {
+                                    @Nullable ExternalSystemTaskNotificationListener taskNotificationListener,
+                                    @Nullable File buildFilePath,
+                                    boolean useEmbeddedGradle) {
     myGradleInvoker = gradleInvoker;
     myProject = project;
     myGradleTasks = gradleTasks;
@@ -56,6 +61,8 @@ public class GradleTaskExecutionContext {
     myCancellationMap = cancellationMap;
     myTaskId = taskId;
     myTaskNotificationListener = taskNotificationListener;
+    myBuildFilePath = buildFilePath;
+    myUseEmbeddedGradle = useEmbeddedGradle;
   }
 
   @NotNull
@@ -91,6 +98,15 @@ public class GradleTaskExecutionContext {
   @Nullable
   public ExternalSystemTaskNotificationListener getTaskNotificationListener() {
     return myTaskNotificationListener;
+  }
+
+  @Nullable
+  public File getBuildFilePath() {
+    return myBuildFilePath;
+  }
+
+  public boolean getUseEmbeddedGradle() {
+    return myUseEmbeddedGradle;
   }
 
   @Nullable

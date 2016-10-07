@@ -23,13 +23,9 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
-import com.android.tools.idea.ddms.actions.DumpSysActions;
-import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
-import com.android.tools.idea.ddms.actions.ScreenshotAction;
-import com.android.tools.idea.ddms.actions.TerminateVMAction;
+import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.run.AndroidProgramRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -90,6 +86,7 @@ import java.util.List;
  */
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.logcat.title");
+  private static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
 
   @NonNls private static final String ADBLOGS_CONTENT_ID = "AdbLogsContent";
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
@@ -217,11 +214,10 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     group.add(new ScreenshotAction(project, deviceContext));
     group.add(new ScreenRecorderAction(project, deviceContext));
     group.add(DumpSysActions.create(project, deviceContext));
-    //group.add(new MyFileExplorerAction());
     group.add(new Separator());
 
     group.add(new TerminateVMAction(deviceContext));
-    //group.add(new MyAllocationTrackerAction());
+    group.add(new HierarchyViewAction(project, deviceContext));
     group.add(new Separator());
     group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
 
@@ -264,7 +260,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     JPanel logcatContentPanel = logcatView.getContentPanel();
 
     final Content logcatContent =
-      layoutUi.createContent(AndroidProgramRunner.ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
+      layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
     logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
     logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);

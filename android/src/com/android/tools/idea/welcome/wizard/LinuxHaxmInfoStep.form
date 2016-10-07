@@ -35,6 +35,13 @@
           <text value="&lt;html&gt;Linux-based systems support virtual machine acceleration through the KVM (Kernel-mode Virtual Machine) software package.&lt;/html&gt;"/>
         </properties>
       </component>
+      <vspacer id="d6388">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="16"/>
+          </grid>
+        </constraints>
+      </vspacer>
       <component id="9d60" class="javax.swing.JEditorPane" binding="myUrlPane" custom-create="true">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
@@ -43,13 +50,6 @@
         </constraints>
         <properties/>
       </component>
-      <vspacer id="d6388">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
-          </grid>
-        </constraints>
-      </vspacer>
     </children>
   </grid>
 </form>

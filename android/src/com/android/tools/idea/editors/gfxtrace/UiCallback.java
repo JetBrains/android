@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * A {@link Rpc.Callback} that will execute part of the callback on the UI thread.
  */
-public abstract class UiCallback<T, U> extends Rpc.Callback<T> {
+public abstract class UiCallback<T, U> implements Rpc.Callback<T> {
   @Override
   public final void onFinish(Rpc.Result<T> result) throws RpcException, ExecutionException {
     final U value = onRpcThread(result);

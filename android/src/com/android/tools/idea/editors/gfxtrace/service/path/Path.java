@@ -28,8 +28,8 @@ public abstract class Path implements BinaryObject {
     }
 
     @Override
-    public StringBuilder stringPath(StringBuilder builder) {
-      return builder;
+    public String getSegmentString() {
+      return "EMPTY";
     }
 
     @NotNull
@@ -52,6 +52,18 @@ public abstract class Path implements BinaryObject {
     return myString;
   }
 
+  private StringBuilder stringPath(StringBuilder stringBuilder) {
+    Path parent = getParent();
+    if (parent != null) {
+      parent.stringPath(stringBuilder);
+      appendSegmentToPath(stringBuilder);
+    }
+    else {
+      stringBuilder.append(getSegmentString());
+    }
+    return stringBuilder;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -65,7 +77,12 @@ public abstract class Path implements BinaryObject {
     return toString().hashCode();
   }
 
-  public abstract StringBuilder stringPath(StringBuilder builder);
+  public abstract String getSegmentString();
+
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append(".");
+    builder.append(getSegmentString());
+  }
 
   @NotNull
   public static Path wrap(BinaryObject object) {

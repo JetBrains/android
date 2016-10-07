@@ -22,6 +22,8 @@ import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Static utility methods useful across wizards
@@ -55,5 +57,22 @@ public final class WizardUtils {
       return String.format("<html>%1$s</html>", text.trim());
     }
     return text;
+  }
+
+  /**
+   * Utility method used to create a URL from its String representation without throwing a {@link MalformedURLException}.
+   * Callers should use this if they're absolutely certain their URL is well formatted.
+   */
+  @NotNull
+  public static URL toUrl(@NotNull String urlAsString) {
+    URL url;
+    try {
+      url = new URL(urlAsString);
+    }
+    catch (MalformedURLException e) {
+      // Caller should guarantee this will never happen!
+      throw new RuntimeException(e);
+    }
+    return url;
   }
 }

@@ -25,8 +25,9 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture> {
 
@@ -37,7 +38,7 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   @NotNull
   public ConfigureAvdOptionsStepFixture showAdvancedSettings() {
     try {
-      JButton showAdvancedSettingsButton = robot().finder().find(new GenericTypeMatcher<JButton>(JButton.class) {
+      JButton showAdvancedSettingsButton = robot().finder().find(target(), new GenericTypeMatcher<JButton>(JButton.class) {
         @Override
         protected boolean isMatching(@NotNull JButton component) {
           return "Show Advanced Settings".equals(component.getText());
@@ -51,37 +52,15 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture hideAdvancedSettings() {
-    try {
-      JButton showAdvancedSettingsButton = robot().finder().find(new GenericTypeMatcher<JButton>(JButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull JButton component) {
-          return "Hide Advanced Settings".equals(component.getText());
-        }
-      });
-      robot().click(showAdvancedSettingsButton);
-    } catch (ComponentLookupException e) {
-      throw new RuntimeException("Hide Advanced Settings called when advanced settings are already hidden.", e);
-    }
-    return this;
-  }
-
-  @NotNull
   public ConfigureAvdOptionsStepFixture requireAvdName(@NotNull String name) {
-    String text = GuiActionRunner.execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
-        return textFieldWithLabel.getText();
-      }
-    });
-    assertThat(text).as("AVD name").isEqualTo(name);
+    String text = findTextFieldWithLabel("AVD Name").getText();
+    assertThat(text).named("AVD name").isEqualTo(name);
     return this;
   }
 
   @NotNull
   public ConfigureAvdOptionsStepFixture setAvdName(@NotNull String name) {
-    JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
+    JTextComponent textFieldWithLabel = findTextFieldWithLabel("AVD Name");
     replaceText(textFieldWithLabel, name);
     return this;
   }
@@ -94,36 +73,8 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture setBackCamera(@NotNull String selection) {
-    JComboBoxFixture backCameraFixture = findComboBoxWithLabel("Back:");
-    backCameraFixture.selectItem(selection);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureAvdOptionsStepFixture setNetworkSpeed(@NotNull String selection) {
-    JComboBoxFixture networkSpeedComboFixture = findComboBoxWithLabel("Speed:");
-    networkSpeedComboFixture.selectItem(selection);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureAvdOptionsStepFixture setNetworkLatency(@NotNull String selection) {
-    JComboBoxFixture networkLatencyComboFixture = findComboBoxWithLabel("Latency:");
-    networkLatencyComboFixture.selectItem(selection);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureAvdOptionsStepFixture setScaleFactor(@NotNull String selection) {
-    JComboBoxFixture scaleFactorCombo = findComboBoxWithLabel("Scale:");
-    scaleFactorCombo.selectItem(selection);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureAvdOptionsStepFixture selectUseHostGpu(boolean value) {
-    findCheckBoxWithLabel("Use Host GPU").setSelected(value);
+  public ConfigureAvdOptionsStepFixture selectGraphicsHardware() {
+    findComboBoxWithLabel("Graphics:").selectItem("Hardware - GLES 2.0");
     return this;
   }
 }

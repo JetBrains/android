@@ -44,7 +44,12 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
 
   @Override
   public Object exec(List arguments) throws TemplateModelException {
-    Module module = findModuleIfAny();
+    String modulePath = (String)myParamMap.get(TemplateMetadata.ATTR_PROJECT_OUT);
+    if (modulePath == null) {
+      return null;
+    }
+
+    Module module = FmUtil.findModule(modulePath);
     if (module == null) {
       return null;
     }
@@ -89,20 +94,5 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
     }
     map.put("name" + derivedThemeName, fullThemeName);
     map.put("exists" + derivedThemeName, exists);
-  }
-
-  @Nullable
-  private Module findModuleIfAny() {
-    String modulePath = (String)myParamMap.get(TemplateMetadata.ATTR_PROJECT_OUT);
-    if (modulePath != null) {
-      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(new File(modulePath.replace('/', File.separatorChar)));
-      if (file != null) {
-        Project project = ProjectLocator.getInstance().guessProjectForFile(file);
-        if (project != null) {
-          return ModuleUtilCore.findModuleForFile(file, project);
-        }
-      }
-    }
-    return null;
   }
 }

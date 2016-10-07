@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;
@@ -35,7 +36,7 @@ import java.util.*;
 class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]> {
   private final TemplateEntry[] myTemplates;
 
-  public TemplateListProvider(@Nullable String formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
+  public TemplateListProvider(@NotNull FormFactor formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
     ArrayList<TemplateEntry> templates = Lists.newArrayList();
     for (String category : categories) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, category, excluded)));
@@ -43,20 +44,17 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
 
     // Special case for Android Wear and Android Auto: These tend not to be activities; allow
     // you to create a module with for example just a watch face
-    if (FormFactorUtils.FormFactor.WEAR.id.equals(formFactor)) {
+    if (formFactor == FormFactor.WEAR) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, "Wear", excluded)));
     }
-    if (FormFactorUtils.FormFactor.CAR.id.equals(formFactor)) {
+    if (formFactor == FormFactor.CAR) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, "Android Auto", excluded)));
     }
 
-    Collections.sort(templates, new Comparator<TemplateEntry>() {
-      @Override
-      public int compare(TemplateEntry o1, TemplateEntry o2) {
-        TemplateMetadata m1 = o1.getMetadata();
-        TemplateMetadata m2 = o2.getMetadata();
-        return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
-      }
+    Collections.sort(templates, (o1, o2) -> {
+      TemplateMetadata m1 = o1.getMetadata();
+      TemplateMetadata m2 = o2.getMetadata();
+      return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
     });
     myTemplates = templates.toArray(new TemplateEntry[templates.size()]);
   }
@@ -64,11 +62,11 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
   /**
    * Search the given folder for a list of templates and populate the display list.
    */
-  private static TemplateEntry[] getTemplateList(@Nullable String formFactor, @NotNull String category,
+  private static TemplateEntry[] getTemplateList(@NotNull FormFactor formFactor, @NotNull String category,
                                                  @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplatesInCategory(category);
-    List<TemplateEntry> metadataList = new ArrayList<TemplateEntry>(templates.size());
+    List<TemplateEntry> metadataList = new ArrayList<>(templates.size());
     for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
@@ -79,7 +77,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
         continue;
       }
       // If a form factor has been specified, ensure that requirement is met.
-      if (formFactor != null && !formFactor.equalsIgnoreCase(metadata.getFormFactor())) {
+      if (!formFactor.id.equalsIgnoreCase(metadata.getFormFactor())) {
         continue;
       }
       metadataList.add(new TemplateEntry(template, metadata));
@@ -90,14 +88,29 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
   @Nullable
   @Override
   public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-    return ImmutableSet.<ScopedStateStore.Key<?>>of(AddAndroidActivityPath.KEY_IS_LAUNCHER);
+    return ImmutableSet.of(AddAndroidActivityPath.KEY_IS_LAUNCHER);
   }
 
   @NotNull
   @Override
-  public TemplateEntry[] deriveValue(ScopedStateStore state,
-                                                         ScopedStateStore.Key changedKey,
-                                                         @Nullable TemplateEntry[] currentValue) {
+  public TemplateEntry[] deriveValue(@NotNull ScopedStateStore state,
+                                     ScopedStateStore.Key changedKey,
+                                     @Nullable TemplateEntry[] currentValue) {
+    final boolean hasCppSupport = state.getNotNull(WizardConstants.INCLUDE_CPP_SUPPORT_KEY, false);
+    if (hasCppSupport) {
+      List<TemplateEntry> filtered = Lists.newArrayList();
+      for (TemplateEntry template : myTemplates) {
+        final String title = template.getTitle();
+        if ("Empty Activity".equals(title) || "Basic Activity".equals(title)) {
+          filtered.add(template);
+        }
+      }
+
+      if (!filtered.isEmpty()) {
+        return filtered.toArray(new TemplateEntry[filtered.size()]);
+      }
+    }
+
     Boolean isLauncher = state.get(AddAndroidActivityPath.KEY_IS_LAUNCHER);
     if (!Boolean.TRUE.equals(isLauncher)) {
       return myTemplates;

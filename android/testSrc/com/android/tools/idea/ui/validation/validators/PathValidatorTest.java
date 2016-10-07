@@ -19,12 +19,14 @@ import com.android.repository.io.FileOp;
 import com.android.repository.testframework.MockFileOp;
 import com.android.tools.idea.ui.validation.Validator;
 import com.google.common.base.Strings;
+import com.intellij.openapi.util.SystemInfo;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public class PathValidatorTest {
@@ -67,7 +69,12 @@ public class PathValidatorTest {
 
   // @Test this test won't pass on Windows
   public void testInvalidSlashesRuleMatches() throws Exception {
-    File file = new File("/at\\least/one\\of/these\\slashes/are\\wrong");
+    // java.io.File normalizes all the forward slashes to backslashes during construction on Windows, so it becomes virtually impossible
+    // to pass a File with an "invalid" slash. Note that this behavior isn't symmetric to Linux/MacOSX,
+    // where backslashes remain "as is", despite being not supported as path separators
+    Assume.assumeFalse(SystemInfo.isWindows);
+
+    File file = new File("at\\least/one\\of/these\\slashes/are\\wrong");
     assertRuleFails(myFileOp, PathValidator.INVALID_SLASHES, file);
   }
 
@@ -131,6 +138,7 @@ public class PathValidatorTest {
   @Test
   public void parentDirectoryNotWritableMatches() throws Exception {
     File parent = new File("/a/b/");
+    myFileOp.mkdirs(parent);
     myFileOp.setReadOnly(parent);
 
     File file = new File("/a/b/c/d/e.txt");

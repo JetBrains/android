@@ -78,6 +78,7 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.sort;
 
 /**
@@ -114,9 +115,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
    */
   @Override
   public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
-                         @Nullable final ProjectData projectData,
-                         @NotNull final Project project,
-                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
+                         @Nullable ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
         // disable 'Create separate module per source set' feature option, since android import doesn't support it
@@ -135,7 +136,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
-        LOG.error(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
+        LOG.info(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
         String msg = e.getMessage();
         if (msg == null) {
           msg = e.getClass().getCanonicalName();
@@ -145,13 +146,13 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     }
   }
 
-  private void doImport(final Collection<DataNode<AndroidGradleModel>> toImport,
-                        final Project project,
-                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(@NotNull final Collection<DataNode<AndroidGradleModel>> toImport,
+                        @NotNull final Project project,
+                        @NotNull final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
-        LanguageLevel javaLangVersion = null;
+        LanguageLevel javaLangVersion = JDK_1_8;
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
@@ -198,11 +199,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
               nonMatchingModelEncodingFound = modelEncoding.displayName();
             }
 
-            // Get the Java language version from the model.
-            if (javaLangVersion == null) {
-              javaLangVersion = androidModel.getJavaLanguageLevel();
-            }
-
             // Warn users that there are generated source folders at the wrong location.
             File[] sourceFolders = androidModel.getExtraGeneratedSourceFolders();
             if (sourceFolders.length > 0) {
@@ -239,8 +235,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         }
         if (jdk == null) {
           String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-          LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
-          String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
+          String msg = String.format("Unable to find a JDK %1$s installed.\n", javaLangVersion.getPresentableText());
           msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
           NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, PROJECT_SYNC);
           ExternalSystemNotificationManager.getInstance(project).showNotification(GRADLE_SYSTEM_ID, notification);

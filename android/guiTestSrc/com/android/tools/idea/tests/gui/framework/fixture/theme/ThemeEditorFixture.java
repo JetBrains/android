@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.google.common.collect.ImmutableList;
@@ -29,7 +26,6 @@ import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,9 +33,6 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
@@ -69,12 +62,6 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   @NotNull
-  public AndroidThemePreviewPanelFixture getThemePreviewPanel() {
-    return new AndroidThemePreviewPanelFixture(robot(), robot().finder()
-      .findByType(this.target().getFirstComponent(), AndroidThemePreviewPanel.class));
-  }
-
-  @NotNull
   public SearchTextFieldFixture getSearchTextField() {
     return new SearchTextFieldFixture(robot(), robot().finder().findByType(this.target().getFirstComponent(), SearchTextField.class));
   }
@@ -94,12 +81,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   public void waitForThemeSelection(@NotNull final String themeName) {
-    pause(new Condition("Waiting for " + themeName + " to be selected") {
-      @Override
-      public boolean test() {
-        return themeName.equals(myThemesComboBox.selectedItem());
-      }
-    }, GuiTests.SHORT_TIMEOUT);
+    Wait.minutes(2).expecting(themeName + " to be selected").until(() -> themeName.equals(myThemesComboBox.selectedItem()));
   }
 
   @NotNull
@@ -112,29 +94,16 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     });
   }
 
-  @Nullable
-  private Configuration getConfiguration() {
-    return getThemePreviewPanel().target().getConfiguration();
+  @NotNull
+  public ThemePreviewComponentFixture getPreviewComponent() {
+    return new ThemePreviewComponentFixture(robot(), robot().finder()
+      .findByType(target(), ThemePreviewComponent.class));
   }
 
-  @NotNull
-  public ThemeEditorFixture requireDevice(@NotNull String id) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    Device device = configuration.getDevice();
-    assertNotNull(device);
-    assertEquals(id, device.getId());
-    return this;
-  }
+  public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
+    com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
 
-  @NotNull
-  public ThemeEditorFixture requireApi(int apiLevel) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    IAndroidTarget androidTarget = configuration.getTarget();
-    assertNotNull(androidTarget);
-    assertEquals(apiLevel, androidTarget.getVersion().getApiLevel());
-    return this;
+    Wait.minutes(2).expecting("UI update").until(() -> expectedLabel.equals(button.getText()));
   }
 }
 

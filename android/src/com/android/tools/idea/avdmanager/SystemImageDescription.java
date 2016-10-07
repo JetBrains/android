@@ -20,12 +20,13 @@ import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.TypeDetails;
-import com.android.sdklib.*;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.sdklib.repositoryv2.targets.PlatformTarget;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,9 +64,9 @@ public final class SystemImageDescription {
     if (details instanceof DetailsTypes.PlatformDetailsType && apiLevel <= 13) {
       return true;
     }
-    // Google APIs addons up to 18 included a bundled system image
+    // Google APIs addons up to 19 included a bundled system image
     if (details instanceof DetailsTypes.AddonDetailsType && ((DetailsTypes.AddonDetailsType)details).getVendor().getId().equals("google") &&
-        ((DetailsTypes.AddonDetailsType)details).getTag().getId().equals("google_apis") && apiLevel <= 18) {
+        AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(((DetailsTypes.AddonDetailsType)details).getTag()) && apiLevel <= 19) {
       return true;
     }
 
@@ -92,12 +93,17 @@ public final class SystemImageDescription {
     return mySystemImage.getAndroidVersion();
   }
 
+  @Nullable
   public RepoPackage getRemotePackage() {
     return myRemotePackage;
   }
 
   public boolean isRemote() {
     return myRemotePackage != null;
+  }
+
+  public boolean obsolete() {
+    return mySystemImage.obsolete();
   }
 
   @NotNull
@@ -111,7 +117,8 @@ public final class SystemImageDescription {
   }
 
   public String getName() {
-    return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
+    String versionString = SdkVersionInfo.getVersionString(getVersion().getFeatureLevel());
+    return String.format("Android %s", versionString == null ? "API " + getVersion().getApiString() : versionString);
   }
 
   public String getVendor() {
@@ -150,7 +157,7 @@ public final class SystemImageDescription {
 
       TypeDetails details = myRemotePackage.getTypeDetails();
       assert details instanceof DetailsTypes.ApiDetailsType;
-      myAndroidVersion = DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details);
+      myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
 
       IdDisplay tag = null;
       IdDisplay vendor = null;
@@ -159,15 +166,18 @@ public final class SystemImageDescription {
       if (details instanceof DetailsTypes.AddonDetailsType) {
         tag = ((DetailsTypes.AddonDetailsType)details).getTag();
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
+        if (SystemImage.GOOGLE_APIS_X86_TAG.equals(tag)) {
+          abi = "x86";
+        }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
         tag = ((DetailsTypes.SysImgDetailsType)details).getTag();
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();      }
+        abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
+      }
       myTag = tag != null ? tag : SystemImage.DEFAULT_TAG;
       myVendor = vendor;
       myAbi = abi;
-
     }
 
     @NonNull
@@ -207,9 +217,15 @@ public final class SystemImageDescription {
       return myRemotePackage.getVersion();
     }
 
+    @NonNull
     @Override
     public AndroidVersion getAndroidVersion() {
       return myAndroidVersion;
+    }
+
+    @Override
+    public boolean obsolete() {
+      return myRemotePackage.obsolete();
     }
 
     @Override

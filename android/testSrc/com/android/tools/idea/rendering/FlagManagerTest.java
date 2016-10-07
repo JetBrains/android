@@ -113,7 +113,7 @@ public class FlagManagerTest extends TestCase {
         "vu", "wales", "wf", "ws", "ye", "yt", "za", "zm", "zw"
       };
 
-    Set<String> sIcons = new HashSet<String>(100);
+    Set<String> sIcons = new HashSet<>(100);
     for (String code : icons) {
       if (code.length() > 2) {
         continue;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.service.vr.VrListenerService boolean isVrModePackageEnabled(android.content.Context, android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.vr.VrListenerService boolean isVrModePackageEnabled(android.content.Context, android.content.ComponentName) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

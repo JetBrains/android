@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+
+import static com.android.SdkConstants.TOOLS_URI;
+import static icons.AndroidIcons.NeleIcons.DesignProperty;
 
 public class PNameRenderer implements TableCellRenderer {
   private final ColoredTableCellRenderer myRenderer = new Renderer();
@@ -35,26 +39,8 @@ public class PNameRenderer implements TableCellRenderer {
     myRenderer.clear();
     PTableItem item = (PTableItem)value;
 
-    Icon icon = UIUtil.getTreeNodeIcon(item.isExpanded(), isSelected, cellHasFocus);
-
     myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
     myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
-
-    int beforeIcon = getBeforeIconSpacing(getDepth(item), icon.getIconWidth());
-    int afterIcon = getAfterIconSpacing(icon.getIconWidth());
-
-    int indent;
-
-    if (item.hasChildren()) {
-      myRenderer.setIcon(icon);
-      myRenderer.setIconTextGap(afterIcon);
-      indent = beforeIcon;
-    }
-    else {
-      indent = beforeIcon + icon.getIconWidth() + afterIcon;
-    }
-
-    myRenderer.setIpad(new Insets(0, indent, 0, 0));
 
     SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
     SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), item.getName(), attr.getStyle(), attr.getFgColor(),
@@ -67,8 +53,43 @@ public class PNameRenderer implements TableCellRenderer {
   private static class Renderer extends ColoredTableCellRenderer {
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      setIcon((PTableItem)value, selected, hasFocus);
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
+    }
+
+    private void setIcon(PTableItem item, boolean selected, boolean hasFocus) {
+      Icon groupIcon = UIUtil.getTreeNodeIcon(item.isExpanded(), selected, hasFocus);
+      int beforeGroupIcon = getBeforeIconSpacing(getDepth(item), groupIcon.getIconWidth());
+      int afterGroupIcon = getAfterIconSpacing(groupIcon.getIconWidth());
+
+      Icon icon;
+      int indent;
+      int textGap;
+      if (item.hasChildren()) {
+        icon = groupIcon;
+        indent = beforeGroupIcon;
+        textGap = afterGroupIcon;
+      }
+      else {
+        icon = null;
+        indent = beforeGroupIcon + groupIcon.getIconWidth() + afterGroupIcon;
+        textGap = 0;
+      }
+      if (TOOLS_URI.equals(item.getNamespace())) {
+        if (icon == null) {
+          icon = DesignProperty;
+        }
+        else {
+          LayeredIcon layered = new LayeredIcon(icon, DesignProperty);
+          layered.setIcon(DesignProperty, 1, afterGroupIcon + icon.getIconWidth(), 0);
+          icon = layered;
+        }
+        textGap = 4;
+      }
+      setIcon(icon);
+      setIconTextGap(textGap);
+      setIpad(new Insets(0, indent, 0, 0));
     }
   }
 
@@ -95,6 +116,7 @@ public class PNameRenderer implements TableCellRenderer {
     while (item.getParent() != null) {
       result++;
       item = item.getParent();
+      assert item != null;
     }
     return result;
   }

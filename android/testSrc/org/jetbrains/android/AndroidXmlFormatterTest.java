@@ -118,6 +118,18 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout_non_first_namespace_after.xml");
   }
 
+  public void testLayout9() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=177858
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
+    xmlSettings.XML_ALIGN_ATTRIBUTES = true;
+    final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
+    androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE = true;
+    androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION = true;
+    androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = true;
+    doTestLayout("layout1.xml");
+  }
+
   public void testManifest1() throws Exception {
     deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);

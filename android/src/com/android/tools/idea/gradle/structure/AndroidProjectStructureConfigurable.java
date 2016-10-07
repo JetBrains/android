@@ -22,11 +22,12 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -86,10 +87,13 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
+import static com.android.tools.idea.stats.UsageTracker.*;
+
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
 
   private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
@@ -106,7 +110,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final UiState myUiState;
 
-  @NotNull private final DefaultSdksConfigurable mySdksConfigurable;
+  @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final List<Configurable> myConfigurables = Lists.newLinkedList();
 
   private final GradleSettingsFile mySettingsFile;
@@ -208,13 +212,17 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   private boolean doShowDialog(@Nullable Runnable advanceInit) {
+    String appId = getApplicationId(myProject);
+    if (appId != null) {
+      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_OPEN, null);
+    }
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
 
   public AndroidProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
     myUiState = new UiState(project);
-    mySdksConfigurable = new DefaultSdksConfigurable(this, project);
+    mySdksConfigurable = new IdeSdksConfigurable(this, project);
 
     myConfigurables.add(mySdksConfigurable);
     if (!project.isDefault()) {
@@ -293,6 +301,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   public void apply() throws ConfigurationException {
+    String appId = getApplicationId(myProject);
+    if (appId != null) {
+      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_SAVE, null);
+    }
+
     validateState();
     if (myErrorsPanel.hasCriticalErrors()) {
       return;
@@ -301,6 +314,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     boolean dataChanged = false;
     for (Configurable configurable: myConfigurables) {
       if (configurable.isModified()) {
+        if (appId != null) {
+          UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE, configurable.getDisplayName());
+        }
         dataChanged = true;
         configurable.apply();
       }
@@ -365,7 +381,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
             Module module = (Module)moduleList.getSelectedItem();
             Set<ServiceCategory> categories = Sets.newHashSet();
             for (DeveloperService s : DeveloperServices.getAll(module)) {
-              categories.add(s.getCategory());
+              if (!s.getContext().hiddenFromStructureDialog().get()) {
+                categories.add(s.getCategory());
+              }
             }
             ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
             Collections.sort(categoriesSorted);
@@ -456,6 +474,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   private void selectConfigurable(@NotNull Configurable configurable) {
+    String appId = getApplicationId(myProject);
+    if (appId != null) {
+      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK, configurable.getDisplayName());
+    }
     JComponent content = configurable.createComponent();
     assert content != null;
     myDetails.setContent(content);
@@ -625,7 +647,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         }
       });
 
-      add(ScrollPaneFactory.createScrollPane(myList), BorderLayout.CENTER);
+      final JScrollPane scrollPane = ScrollPaneFactory
+        .createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      add(scrollPane, BorderLayout.CENTER);
 
       if (!myProject.isDefault()) {
         DefaultActionGroup group = new DefaultActionGroup();

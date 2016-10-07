@@ -17,17 +17,26 @@ package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Android Studio Usage Tracker.
  */
 public abstract class UsageTracker {
+  /**
+   * A session id that is unique for every instance of Android Studio.
+   * Note: if you need an id that is unique per installation, use {@link UpdateChecker#getInstallationUID(PropertiesComponent)}.
+   */
+  public static final String SESSION_ID = UUID.randomUUID().toString();
+
   /**
    * Maximum length of the URL constructed when uploading data to tools.google.com. This is simply the max allowed HTTP URL length,
    * which depending on the source seems to be from 2k to 4k. We use a conservative value here.
@@ -107,14 +116,40 @@ public abstract class UsageTracker {
   public static final String ACTION_SDK_MANAGER_STANDALONE_LAUNCHED = "standaloneLaunched";
   public static final String ACTION_SDK_MANAGER_LOADED = "sdkManagerLoaded";
 
+  public static final String CATEGORY_PROJECT_STRUCTURE_DIALOG = "projectStructureDialog";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_OPEN = "open";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_SAVE = "save";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK = "topTabClick";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE = "topTabSave";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK = "leftNavClick";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE = "leftNavSave";
+
   /**
    * Tracking when a template.xml file is rendered (instantiated) into the project.
    */
   public static final String CATEGORY_TEMPLATE = "template";
   public static final String ACTION_TEMPLATE_RENDER = "render";
 
+  /**
+   * Tracking category for the Theme Editor
+   */
   public static final String CATEGORY_THEME_EDITOR = "themeEditor";
   public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
+
+  /**
+   * Tracking category for the GPU Debugger
+   */
+  public static final String CATEGORY_GFX_TRACE = "gfxTrace";
+  public static final String ACTION_GFX_TRACE_OPEN = "gfxTraceOpened";
+  public static final String ACTION_GFX_TRACE_CLOSED = "gfxTraceClosed";
+  public static final String ACTION_GFX_TRACE_STARTED = "gfxTraceStarted";
+  public static final String ACTION_GFX_TRACE_STOPPED = "gfxTraceStopped";
+  public static final String ACTION_GFX_TRACE_COMMAND_SELECTED = "gfxTraceCommandSelected";
+  public static final String ACTION_GFX_TRACE_LINK_CLICKED = "gfxTraceLinkClicked";
+  public static final String ACTION_GFX_TRACE_PARAMETER_EDITED = "gfxTraceParameterEdited";
+  public static final String ACTION_GFX_TRACE_TEXTURE_VIEWED = "gfxTraceTextureViewed";
+  public static final String ACTION_GFX_TRACE_MEMORY_VIEWED = "gfxTraceMemoryViewed";
+  public static final String ACTION_GFX_TRACE_RPC = "gfxTraceRPC";
 
   /**
    * Tracking category for AppIndexing
@@ -138,6 +173,7 @@ public abstract class UsageTracker {
   public static final String ACTION_LLDB_INSTALL_STARTED = "installStarted";
   public static final String ACTION_LLDB_INSTALL_FAILED = "installFailed";
   public static final String ACTION_LLDB_SESSION_USED_WATCHPOINTS = "sessionUsedWatchpoints";
+  public static final String ACTION_LLDB_FRONTEND_EXITED = "frontendExited";
 
   @SuppressWarnings("unused") // literal value used in AnalyticsUploader.trackException (under tools/idea)
   public static final String CATEGORY_THROWABLE_DETAIL_MESSAGE = "Throwable.detailMessage";
@@ -172,6 +208,8 @@ public abstract class UsageTracker {
   public abstract void trackAndroidModule(@NotNull String applicationId, @NotNull String moduleName, boolean isLibrary,
                                           int signingConfigCount, int buildTypeCount, int flavorCount, int flavorDimension);
 
+  public abstract void trackNativeBuildSystem(@NotNull String applicationId, @NotNull String moduleName, @NotNull String buildSystem);
+
   public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
                                                    @NotNull String androidPluginVersion,
                                                    @NotNull String gradleVersion,
@@ -181,4 +219,10 @@ public abstract class UsageTracker {
 
   public abstract void trackInstantRunStats(@NotNull Map<String,String> kv);
   public abstract void trackInstantRunTimings(@NotNull Map<String, String> kv);
+
+  public abstract void trackSystemInfo(@Nullable String hyperVState, @Nullable String cpuInfoFlags);
+
+  public abstract void trackPSDEvent(@NotNull String applicationId, @NotNull String eventAction, @Nullable String eventLabel);
+
+  public abstract void trackApkAnalyzerEvent(@NotNull String applicationId, long uncompressedSize, long compressedSize);
 }

@@ -4,7 +4,7 @@
 
         <item name="myColor">modified</item>
 
-        <item name="myStyle">?android:attr/buttonStyle</item>
+        <item name="myStyle">?android:attr/textAppearance</item>
 
         <item name="myDrawable">?android:attr/actionModePasteDrawable</item>
 

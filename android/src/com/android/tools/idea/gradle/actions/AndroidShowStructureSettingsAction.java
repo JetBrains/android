@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.ProjectStructureChangeListener;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
@@ -57,6 +63,18 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
+    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG) {
+      ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
+      AtomicBoolean needsSync = new AtomicBoolean();
+      ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
+      projectStructure.add(changeListener);
+      projectStructure.showDialog();
+      projectStructure.remove(changeListener);
+      if (needsSync.get()) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
+      return;
+    }
     AndroidProjectStructureConfigurable.getInstance(project).showDialog();
   }
 }

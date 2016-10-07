@@ -24,8 +24,8 @@ import org.w3c.dom.Document;
 
 import java.util.Map;
 
-import static org.fest.assertions.Fail.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public final class ParameterValueResolverTest {
   private static final String NORMAL_TEMPLATE = "<?xml version=\"1.0\"?>\n" +

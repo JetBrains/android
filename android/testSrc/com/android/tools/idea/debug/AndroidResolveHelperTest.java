@@ -16,7 +16,7 @@
 package com.android.tools.idea.debug;
 
 import com.android.SdkConstants;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -48,11 +48,11 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "c");
     assertNotNull(annotation);
-    assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
 
     annotation = AndroidResolveHelper.getAnnotationForField(element, "p1.p2.Foo", "mColor");
     assertNotNull(annotation);
-    assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
   }
 
   public void testIntDefResolution() {
@@ -181,7 +181,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "color");
     assertNotNull(annotation);
-    assertEquals(SupportAnnotationDetector.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
   }
 
   private PsiElement getPsiElement(String text) {

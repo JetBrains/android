@@ -63,12 +63,12 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
       if (facet != null) {
         if (element1 instanceof PsiFile) {
-          return facet.getLocalResourceManager().getFileResourceType((PsiFile)element1) != null;
+          return facet.getLocalResourceManager().getFileResourceFolderType((PsiFile)element1) != null;
         }
         else {
-          final String fileResType = facet.getLocalResourceManager().getFileResourceType(element1.getContainingFile());
+          final ResourceFolderType fileResType = facet.getLocalResourceManager().getFileResourceFolderType(element1.getContainingFile());
 
-          if (ResourceFolderType.VALUES.getName().equals(fileResType)) {
+          if (ResourceFolderType.VALUES == fileResType) {
             return AndroidResourceUtil.getResourceTypeByValueResourceTag((XmlTag)element1) != null;
           }
         }

@@ -20,8 +20,8 @@ import org.fest.swing.driver.AbstractJTableCellWriter;
 import org.fest.swing.driver.JTableLocation;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 

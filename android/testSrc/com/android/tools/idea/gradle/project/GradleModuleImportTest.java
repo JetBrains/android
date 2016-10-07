@@ -175,7 +175,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
 
   @NotNull
   private VirtualFile createProjectWithSubprojects(Map<String, String> modules, String... nonExistingReferencedModules) throws IOException {
-    Collection<String> customLocationStatements = new LinkedList<String>();
+    Collection<String> customLocationStatements = new LinkedList<>();
 
     for (Map.Entry<String, String> module : modules.entrySet()) {
       String path = module.getValue();

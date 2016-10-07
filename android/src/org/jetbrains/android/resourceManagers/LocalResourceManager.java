@@ -16,25 +16,19 @@
 
 package org.jetbrains.android.resourceManagers;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
-import com.intellij.util.indexing.FileBasedIndex;
-import org.jetbrains.android.AndroidValueResourcesIndex;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -43,14 +37,10 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -69,11 +59,14 @@ public class LocalResourceManager extends ResourceManager {
     return myFacet;
   }
 
+  /**
+   * Gets all resource directories reachable from the facet (modules and libraries).
+   * @return resource directories
+   */
   @NotNull
   @Override
   public VirtualFile[] getAllResourceDirs() {
-    Set<VirtualFile> result = new HashSet<VirtualFile>();
-    collectResourceDirs(getFacet(), result, new HashSet<Module>());
+    Set<VirtualFile> result = AppResourceRepository.getAppResources(myFacet, true).getResourceDirs();
     return VfsUtilCore.toVirtualFileArray(result);
   }
 
@@ -110,40 +103,8 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   @NotNull
-  public List<ResourceElement> getValueResources(@NotNull final String resourceType) {
+  public List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType) {
     return getValueResources(resourceType, null);
-  }
-
-  private static void collectResourceDirs(AndroidFacet facet, Set<VirtualFile> result, Set<Module> visited) {
-    if (!visited.add(facet.getModule())) {
-      return;
-    }
-
-    for (VirtualFile resDir : facet.getAllResourceDirectories()) {
-      if (!result.add(resDir)) {
-        // We've already encountered this resource directory: that means that we are probably
-        // processing a library facet as part of a dependency, when that dependency was present
-        // and processed from an earlier module as well. No need to continue with this module at all;
-        // already handled.
-        return;
-      }
-    }
-
-    // Add in local AAR dependencies, if any
-    Set<File> dirs = Sets.newHashSet();
-    ResourceFolderManager.addAarsFromModuleLibraries(facet, dirs);
-    if (!dirs.isEmpty()) {
-      for (File dir : dirs) {
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(dir);
-        if (virtualFile != null) {
-          result.add(virtualFile);
-        }
-      }
-    }
-
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), false)) {
-      collectResourceDirs(depFacet, result, visited);
-    }
   }
 
   @Nullable
@@ -156,43 +117,6 @@ public class LocalResourceManager extends ResourceManager {
   public static LocalResourceManager getInstance(@NotNull PsiElement element) {
     AndroidFacet facet = AndroidFacet.getInstance(element);
     return facet != null ? facet.getLocalResourceManager() : null;
-  }
-
-  @NotNull
-  public Set<String> getValueResourceTypes() {
-    final Map<VirtualFile, Set<String>> file2Types = new HashMap<VirtualFile, Set<String>>();
-    final FileBasedIndex index = FileBasedIndex.getInstance();
-    final GlobalSearchScope scope = GlobalSearchScope.projectScope(myProject);
-
-    for (ResourceType resourceType : AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES) {
-      final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
-
-      index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
-        @Override
-        public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
-          for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
-            Set<String> resourcesInFile = file2Types.get(file);
-
-            if (resourcesInFile == null) {
-              resourcesInFile = new HashSet<String>();
-              file2Types.put(file, resourcesInFile);
-            }
-            resourcesInFile.add(info.getResourceEntry().getType());
-          }
-          return true;
-        }
-      }, scope);
-    }
-    final Set<String> result = new HashSet<String>();
-
-    for (VirtualFile file : getAllValueResourceFiles()) {
-      final Set<String> types = file2Types.get(file);
-
-      if (types != null) {
-        result.addAll(types);
-      }
-    }
-    return result;
   }
 
   @Override
@@ -339,31 +263,32 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
-    ResourceType t = ResourceType.getEnum(type);
-    if (publicOnly && t != null) {
-      Set<String> result = new HashSet<String>();
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
-      for (String name : getValueResourceNames(type)) {
-        if (!appResources.isPrivate(t, name)) {
-          result.add(name);
+  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
+    Collection<String> resourceNames;
+    if (resourceType == ResourceType.STYLEABLE) {
+      // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
+      resourceNames = appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+    } else {
+      resourceNames = appResources.getItemsOfType(resourceType);
+    }
+    // We may need to filter out public only, or if the type is attr, filter out android: attributes.
+    if (publicOnly || resourceType == ResourceType.ATTR) {
+      Set<String> filtered = ContainerUtil.newHashSet(resourceNames.size());
+      for (String name : resourceNames) {
+        if (resourceType == ResourceType.ATTR) {
+          if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+            filtered.add(name);
+          }
         }
-      }
-      for (String name : getFileResourcesNames(type)) {
-        if (!appResources.isPrivate(t, name)) {
-          result.add(name);
-        }
-      }
-      if (t == ResourceType.ID) {
-        for (String name : getIds(true)) {
-          if (!appResources.isPrivate(t, name)) {
-            result.add(name);
+        if (publicOnly) {
+          if (!appResources.isPrivate(resourceType, name)) {
+            filtered.add(name);
           }
         }
       }
-      return result;
-    } else {
-      return super.getResourceNames(type, publicOnly);
+      resourceNames = filtered;
     }
+    return resourceNames;
   }
 }

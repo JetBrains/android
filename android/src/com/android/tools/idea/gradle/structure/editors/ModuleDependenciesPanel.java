@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
@@ -303,8 +304,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
   private String installRepositoryIfNeeded(String coordinateText) {
     GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(coordinateText);
     assert gradleCoordinate != null;  // Only allowed to click ok when the string is valid.
-    if (!REVISION_ANY.equals(gradleCoordinate.getRevision()) ||
-        !RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(gradleCoordinate.getArtifactId())) {
+    SupportLibrary supportLibrary = SupportLibrary.forGradleCoordinate(gradleCoordinate);
+
+    if (!REVISION_ANY.equals(gradleCoordinate.getRevision()) || supportLibrary == null) {
       // No installation needed, or it's not a local repository.
       return coordinateText;
     }
@@ -331,7 +333,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+        return RepositoryUrlManager.get().getLibraryStringCoordinate(supportLibrary, true);
       }
     }
 

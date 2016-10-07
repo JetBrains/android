@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -30,68 +29,64 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
+import org.jetbrains.annotations.NotNull;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
-  public static final boolean ENABLED = RenderService.NELE_ENABLED;
-
-  /** FileEditorProvider ID for the layout editor */
+  /**
+   * FileEditorProvider ID for the layout editor
+   */
   public static final String DESIGNER_ID = "android-designer2";
 
-  public static boolean acceptLayout(@NonNull Project project, @NonNull VirtualFile file) {
-    if (!ENABLED) {
+  @Override
+  public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
+    if (facet == null) {
       return false;
     }
 
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    return psiFile instanceof XmlFile &&
-           getFacet(project, file) != null &&
-           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
+    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
+    // legacy android projects as well. Only enable for those two cases for now.
+    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
+      return false;
+    }
+
+    return NlLayoutType.supports((XmlFile)psiFile);
   }
 
-  @Nullable
-  private static AndroidFacet getFacet(@NonNull Project project, @NonNull VirtualFile file) {
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    return psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
-  }
-
+  @NotNull
   @Override
-  public boolean accept(@NonNull Project project, @NonNull VirtualFile file) {
-    return acceptLayout(project, file);
-  }
-
-  @NonNull
-  @Override
-  public FileEditor createEditor(@NonNull Project project, @NonNull VirtualFile file) {
-    AndroidFacet facet = getFacet(project, file);
-    assert facet != null; // checked by acceptLayout
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
+    assert facet != null; // checked by accept
     return new NlEditor(facet, file, project);
   }
 
   @Override
-  public void disposeEditor(@NonNull FileEditor editor) {
+  public void disposeEditor(@NotNull FileEditor editor) {
     Disposer.dispose(editor);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public FileEditorState readState(@NonNull Element sourceElement, @NonNull Project project, @NonNull VirtualFile file) {
+  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     return FileEditorState.INSTANCE;
   }
 
   @Override
-  public void writeState(@NonNull FileEditorState state, @NonNull Project project, @NonNull Element targetElement) {
+  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getEditorTypeId() {
     return DESIGNER_ID;
   }
 
-  @NonNull
+  @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
     return AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()

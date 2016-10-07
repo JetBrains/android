@@ -16,32 +16,40 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.google.common.collect.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static java.util.Collections.sort;
 
 public class NativeAndroidGradleModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private static final Logger LOG = Logger.getInstance(NativeAndroidGradleModel.class);
 
-  @NotNull private final ProjectSystemId myProjectSystemId;
-  @NotNull private final String myModuleName;
-  @NotNull private final File myRootDirPath;
-  @NotNull private final NativeAndroidProject myNativeAndroidProject;
-  // TODO: Serialize the model using the proxy objects to cache the model data properly.
+  @NotNull private ProjectSystemId myProjectSystemId;
+  @NotNull private String myModuleName;
+  @NotNull private File myRootDirPath;
+  @NotNull private NativeAndroidProject myNativeAndroidProject;
 
-  @NotNull private final Map<String, NativeVariant> myVariantsByName = Maps.newHashMap();
-  @NotNull private final Map<String, NativeToolchain> myToolchainsByName = Maps.newHashMap();
-  @NotNull private final Map<String, NativeSettings> mySettingsByName = Maps.newHashMap();
+  @Nullable private transient GradleVersion myModelVersion;
+  @Nullable private transient CountDownLatch myProxyNativeAndroidProjectLatch;
+  @Nullable private NativeAndroidProject myProxyNativeAndroidProject;
+
+  @NotNull private Map<String, NativeVariant> myVariantsByName = Maps.newHashMap();
+  @NotNull private Map<String, NativeToolchain> myToolchainsByName = Maps.newHashMap();
+  @NotNull private Map<String, NativeSettings> mySettingsByName = Maps.newHashMap();
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
@@ -70,6 +78,16 @@ public class NativeAndroidGradleModel implements Serializable {
     myRootDirPath = rootDirPath;
     myNativeAndroidProject = nativeAndroidProject;
 
+    parseAndSetModelVersion();
+
+    // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
+    // asynchronously to avoid blocking the project sync operation for reproxying to complete.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myProxyNativeAndroidProjectLatch = new CountDownLatch(1);
+      myProxyNativeAndroidProject = reproxy(NativeAndroidProject.class, myNativeAndroidProject);
+      myProxyNativeAndroidProjectLatch.countDown();
+    });
+
     populateVariantsByName();
     populateToolchainsByName();
     populateSettingsByName();
@@ -79,7 +97,7 @@ public class NativeAndroidGradleModel implements Serializable {
 
   private void populateVariantsByName() {
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
-      String variantName = artifact.getGroupName();
+      String variantName = modelVersionIsAtLeast("2.0.0") ? artifact.getGroupName() : artifact.getName();
       NativeVariant variant = myVariantsByName.get(variantName);
       if (variant == null) {
         variant = new NativeVariant(variantName);
@@ -125,6 +143,14 @@ public class NativeAndroidGradleModel implements Serializable {
     sort(sortedVariantNames);
     assert !sortedVariantNames.isEmpty();
     mySelectedVariantName = sortedVariantNames.get(0);
+  }
+
+  private void parseAndSetModelVersion() {
+    myModelVersion = GradleVersion.tryParse(myNativeAndroidProject.getModelVersion());
+  }
+
+  public boolean modelVersionIsAtLeast(@NotNull String revision) {
+    return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
   @NotNull
@@ -184,7 +210,70 @@ public class NativeAndroidGradleModel implements Serializable {
     return mySettingsByName.get(settingsName);
   }
 
-  public static class NativeVariant {
+  /**
+   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
+   *
+   * @return the proxy object of the imported Native Android Gradle project.
+   */
+  @NotNull
+  public NativeAndroidProject waitForAndGetProxyAndroidProject() {
+    waitForProxyAndroidProject();
+    assert myProxyNativeAndroidProject != null;
+    return myProxyNativeAndroidProject;
+  }
+
+  /**
+   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
+   */
+  public void waitForProxyAndroidProject() {
+    if (myProxyNativeAndroidProjectLatch != null) {
+      try {
+        myProxyNativeAndroidProjectLatch.await();
+      }
+      catch (InterruptedException e) {
+        LOG.error(e);
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  private void writeObject(ObjectOutputStream out) throws IOException {
+    waitForProxyAndroidProject();
+
+    out.writeObject(myProjectSystemId);
+    out.writeObject(myModuleName);
+    out.writeObject(myRootDirPath);
+    out.writeObject(myProxyNativeAndroidProject);
+    out.writeObject(mySelectedVariantName);
+  }
+
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    myProjectSystemId = (ProjectSystemId)in.readObject();
+    myModuleName = (String)in.readObject();
+    myRootDirPath = (File)in.readObject();
+    myNativeAndroidProject = (NativeAndroidProject)in.readObject();
+    mySelectedVariantName = (String)in.readObject();
+
+    parseAndSetModelVersion();
+
+    myProxyNativeAndroidProject = myNativeAndroidProject;
+
+    myVariantsByName = Maps.newHashMap();
+    myToolchainsByName = Maps.newHashMap();
+    mySettingsByName = Maps.newHashMap();
+
+    populateVariantsByName();
+    populateToolchainsByName();
+    populateSettingsByName();
+  }
+
+  public class NativeVariant {
     @NotNull private final String myVariantName;
     @NotNull private final Map<String, NativeArtifact> myArtifactsByName = Maps.newHashMap();
 
@@ -210,8 +299,10 @@ public class NativeAndroidGradleModel implements Serializable {
     public Collection<File> getSourceFolders() {
       Set<File> sourceFolders = Sets.newLinkedHashSet();
       for (NativeArtifact artifact : getArtifacts()) {
-        for (File headerRoot : artifact.getExportedHeaders()) {
-          sourceFolders.add(headerRoot);
+        if (modelVersionIsAtLeast("2.0.0")) {
+          for (File headerRoot : artifact.getExportedHeaders()) {
+            sourceFolders.add(headerRoot);
+          }
         }
         for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
           sourceFolders.add(sourceFolder.getFolderPath());

@@ -21,9 +21,9 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Predicate;
@@ -366,13 +366,20 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       renamedStyles.add(name);
 
       final String stylePrefix = name + ".";
-      Collection<String> renameCandidates = Collections2.filter(manager.getResourceNames(type),
-        new Predicate<String>() {
-          @Override
-          public boolean apply(String input) {
-            return input.startsWith(stylePrefix);
-          }
-        });
+      Collection<String> renameCandidates;
+      ResourceType resourceType = ResourceType.getEnum(type);
+      if (resourceType == null) {
+        renameCandidates = Collections.emptyList();
+      }
+      else {
+        renameCandidates = Collections2.filter(manager.getResourceNames(resourceType),
+                                               new Predicate<String>() {
+                                                 @Override
+                                                 public boolean apply(String input) {
+                                                   return input.startsWith(stylePrefix);
+                                                 }
+                                               });
+      }
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
         // resourceName.lastIndexOf will never return -1 because we've filtered all names that

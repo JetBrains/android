@@ -17,7 +17,9 @@ package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.Attribute;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 
+@Styleable("AndroidManifestUsesFeature")
 public interface UsesFeature extends ManifestElementWithName {
   String HARDWARE_TYPE_WATCH = "android.hardware.type.watch";
 

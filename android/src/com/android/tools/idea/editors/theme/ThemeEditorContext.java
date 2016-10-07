@@ -94,9 +94,10 @@ public class ThemeEditorContext implements Disposable {
     // setTheme(null) is required since the configuration could have a link to a non existent theme (if it was removed).
     // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
     // fails to find the local themes.
-    myConfiguration.setTheme(null);
+    Configuration resolverConfiguration = myConfiguration.clone();
+    resolverConfiguration.setTheme(null);
     myEnabledListeners = true;
-    myThemeResolver = new ThemeResolver(myConfiguration);
+    myThemeResolver = new ThemeResolver(resolverConfiguration);
   }
 
   @NotNull

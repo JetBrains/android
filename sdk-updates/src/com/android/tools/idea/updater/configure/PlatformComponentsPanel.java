@@ -18,7 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -60,7 +60,7 @@ public class PlatformComponentsPanel {
   private UpdaterTreeNode myPlatformDetailsRootNode;
   private UpdaterTreeNode myPlatformSummaryRootNode;
 
-  Set<NodeStateHolder> myStates = Sets.newHashSet();
+  Set<PackageNodeModel> myStates = Sets.newHashSet();
 
   // map of versions to current subpackages
   private final Multimap<AndroidVersion, UpdatablePackage> myCurrentPackages = TreeMultimap.create();
@@ -71,6 +71,7 @@ public class PlatformComponentsPanel {
       refreshModified();
     }
   };
+  private SdkUpdaterConfigurable myConfigurable;
 
   public PlatformComponentsPanel() {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
@@ -101,9 +102,9 @@ public class PlatformComponentsPanel {
       boolean obsolete = false;
       for (UpdatablePackage info : myCurrentPackages.get(version)) {
         RepoPackage pkg = info.getRepresentative();
-        NodeStateHolder holder = new NodeStateHolder(info);
-        myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
+        PackageNodeModel model = new PackageNodeModel(info);
+        myStates.add(model);
+        UpdaterTreeNode node = new DetailsTreeNode(model, myModificationListener, myConfigurable);
         marker.add(node);
         versionNodes.add(node);
         if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
@@ -185,13 +186,13 @@ public class PlatformComponentsPanel {
     refreshModified();
   }
 
-  public void clearState() {
-    myStates.clear();
-  }
-
   public void setEnabled(boolean enabled) {
     myPlatformDetailTable.setEnabled(enabled);
     myPlatformSummaryTable.setEnabled(enabled);
     myPlatformDetailsCheckbox.setEnabled(enabled);
+  }
+
+  public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
+    myConfigurable = configurable;
   }
 }

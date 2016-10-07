@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class DeleteAction extends AnAction {
   private final DesignSurface mySurface;
 
-  public DeleteAction(@NonNull DesignSurface surface) {
+  public DeleteAction(@NotNull DesignSurface surface) {
     super("Delete", "Delete", null);
     mySurface = surface;
   }

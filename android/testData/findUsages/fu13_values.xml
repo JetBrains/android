@@ -1,0 +1,11 @@
+<resources>
+  <string name="myString13">String 13</string>
+  <string name="myString42">String 42</string>
+  <string name="hello">hello</string>
+
+  <string-array name="stringsCategories">
+    <item>@string/myString13</item>
+    <item>@string/myString42</item>
+    <item>@string/hel<caret>lo</item>
+  </string-array>
+</resources>

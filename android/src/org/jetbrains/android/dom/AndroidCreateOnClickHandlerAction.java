@@ -34,6 +34,8 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -140,7 +142,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       final char c = type.charAt(i);
 
       if (Character.isUpperCase(c)) {
-        return type.substring(i).toLowerCase();
+        return type.substring(i).toLowerCase(Locale.US);
       }
     }
     return "o";

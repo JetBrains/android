@@ -16,14 +16,9 @@
 package com.android.tools.idea.uibuilder.editor;
 
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -40,12 +35,19 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.Alarm;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -55,21 +57,37 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private final NlPreviewManager myManager;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
+  private final MergingUpdateQueue myRenderingQueue =
+    new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
   private XmlFile myFile;
+  private boolean isActive = true;
+  private NlActionsToolbar myActionsToolbar;
+
+  /**
+   * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
+   * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
+   */
+  private XmlFile myInactiveFile;
+  /**
+   * Contains the file that is currently being loaded (it might take a while to get a preview rendered).
+   * Once the file is loaded, myPendingFile will be null.
+   */
+  private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
-    mySurface = new DesignSurface(manager.getProject());
+    mySurface = new DesignSurface(manager.getProject(), this);
+    Disposer.register(this, mySurface);
     mySurface.setCentered(true);
-    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY);
+    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
       @Override
-      public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull List<NlComponent> newSelection) {
+      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
         assert surface == mySurface; // We're maintaining the listener per surface
         // Allow only one component
         NlComponent component = newSelection.size() == 1 ? newSelection.get(0) : null;
@@ -77,21 +95,29 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       }
 
       @Override
-      public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
       }
 
       @Override
-      public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
+      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+      }
+
+      @Override
+      public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+        return false;
       }
     });
+
+    myRenderingQueue.setRestartTimerOnAdd(true);
 
     myContentSplitter = new ThreeComponentsSplitter();
 
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    JComponent toolbar = NlEditorPanel.createToolbar(mySurface);
-    contentPanel.add(toolbar);
+
+    myActionsToolbar = new NlActionsToolbar(mySurface);
+    contentPanel.add(myActionsToolbar.getToolbarComponent());
     contentPanel.add(mySurface);
 
     myContentSplitter.setDividerWidth(0);
@@ -107,8 +133,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     if (showing) {
       properties.setValue(key, Boolean.toString(false));
     }
-
-    paletteManager.bind(this);
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -155,14 +179,24 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
           List<NlComponent> views = screenView.getModel().findByOffset(offset);
-          if (views != null && views.size() == 1 && views.get(0).isRoot()) {
-            views = null;
+          if (views == null || views.isEmpty()) {
+            views = screenView.getModel().getComponents();
           }
           try {
             myIgnoreListener = true;
             SelectionModel selectionModel = screenView.getSelectionModel();
-            selectionModel.setSelection(views != null ? views : Collections.<NlComponent>emptyList());
-            mySurface.repaint();
+            selectionModel.setSelection(views);
+            myRenderingQueue.queue(new Update("Preview update") {
+              @Override
+              public void run() {
+                mySurface.repaint();
+              }
+
+              @Override
+              public boolean canEat(Update update) {
+                return true;
+              }
+            });
           } finally {
             myIgnoreListener = false;
           }
@@ -176,13 +210,16 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return myFile;
   }
 
-  @NonNull
+  @NotNull
   public JPanel getContentPanel() {
     return myContentSplitter;
   }
 
   @Override
   public void dispose() {
+    deactivate();
+    myInactiveFile = null;
+    NlPaletteManager.get(myManager.getProject()).dispose(this);
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -198,15 +235,17 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.requestRenderAsap(); // on file switches, render as soon as possible; the delay is for edits
+      model.render(); // on file switches, render as soon as possible; the delay is for edits
     }
 
     @Override
-    public void modelChanged(@NonNull NlModel model) {
+    public void modelChanged(@NotNull NlModel model) {
+      // This won't be called in the dispatch thread so, to avoid a 10ms delay in requestRender
+      model.render();
     }
 
     @Override
-    public void modelRendered(@NonNull NlModel model) {
+    public void modelRendered(@NotNull NlModel model) {
       model.removeListener(this);
       if (valid) {
         valid = false;
@@ -226,14 +265,23 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     }
   }
 
-  private Pending myPendingFile;
-
   public boolean setFile(@Nullable PsiFile file) {
+    if (!isActive) {
+      // The form is not active so we just save the file to show once activate() is called
+      myInactiveFile = (XmlFile)file;
+
+      if (file != null) {
+        return false;
+      }
+    }
+
     if (myPendingFile != null) {
-      if (file == myPendingFile) {
+      if (file == myPendingFile.file) {
         return false;
       }
       myPendingFile.invalidate();
+      // Set the model to null so the progressbar is displayed
+      mySurface.setModel(null);
     } else if (file == myFile) {
       return false;
     }
@@ -242,20 +290,21 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     if (facet == null || file.getVirtualFile() == null) {
       myPendingFile = null;
       myFile = null;
-      setEditor(null);
+      setActiveModel(null);
     } else {
       XmlFile xmlFile = (XmlFile)file;
-      NlModel model = NlModel.create(mySurface, xmlFile.getProject(), facet, xmlFile);
-      model.setRenderDelay(800);
+      NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
       myPendingFile = new Pending(xmlFile, model);
     }
     return true;
   }
 
   public void setActiveModel(@Nullable NlModel model) {
+    myPendingFile = null;
     ScreenView currentScreenView = mySurface.getCurrentScreenView();
     if (currentScreenView != null) {
       currentScreenView.getModel().deactivate();
+      Disposer.dispose(currentScreenView.getModel());
     }
 
     if (model == null) {
@@ -264,11 +313,33 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     } else {
       myFile = model.getFile();
       mySurface.setModel(model);
-      mySurface.zoomToFit();
+      if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
+        // If we are resizing, keep the zoom level constant
+        // only if the zoom was previously set to FIT
+        mySurface.zoomToFit();
+      }
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
       myManager.setDesignSurface(mySurface);
+      myActionsToolbar.setModel(model);
+
+      attachPalette();
     }
+  }
+
+  private void attachPalette() {
+    Project project = myManager.getProject();
+    DumbService.getInstance(project).runWhenSmart(() -> {
+      if (NlLayoutType.typeOf(myFile).isSupportedByDesigner()) {
+        // While we wait for the index to be ready, the preview might become inactive so we need to check first
+        if (isActive && myFile != null) {
+          NlPaletteManager.get(project).bind(this);
+        }
+      }
+      else {
+        NlPaletteManager.get(project).dispose(this);
+      }
+    });
   }
 
   @Nullable
@@ -276,7 +347,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return myRenderResult;
   }
 
-  public void setRenderResult(@NonNull RenderResult renderResult) {
+  public void setRenderResult(@NotNull RenderResult renderResult) {
     myRenderResult = renderResult;
   }
 
@@ -289,7 +360,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return null;
   }
 
-  @NonNull
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }
@@ -326,6 +397,40 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       } catch (Exception ignore) {
       }
     }
+  }
+
+  /**
+   * Re-enables updates for this preview form. See {@link #deactivate()}
+   */
+  public void activate() {
+    if (isActive) {
+      return;
+    }
+
+    isActive = true;
+    if (myFile == null && myPendingFile == null) {
+      setFile(myInactiveFile);
+    }
+    myInactiveFile = null;
+  }
+
+  /**
+   * Disables the updates for this preview form. Any changes to resources or the layout won't update
+   * this preview until {@link #activate()} is called.
+   */
+  public void deactivate() {
+    if (!isActive) {
+      return;
+    }
+
+    if (myFile != null) {
+      myInactiveFile = myFile;
+    } else {
+      // The file might still be rendering
+      myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
+    }
+    setFile(null);
+    isActive = false;
   }
 
   // ---- Implements DesignerEditorPanelFacade ----

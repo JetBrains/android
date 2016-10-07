@@ -18,7 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.Sets;
 
 import javax.swing.*;
@@ -70,31 +70,31 @@ class SummaryTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  public NodeStateHolder.SelectedState getInitialState() {
+  public PackageNodeModel.SelectedState getInitialState() {
     boolean hasNeedsUpdate = false;
     for (UpdaterTreeNode summaryNode : myIncludedChildren) {
-      if (summaryNode.getInitialState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        return NodeStateHolder.SelectedState.NOT_INSTALLED;
+      if (summaryNode.getInitialState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return PackageNodeModel.SelectedState.NOT_INSTALLED;
       }
-      if (summaryNode.getInitialState() == NodeStateHolder.SelectedState.MIXED) {
+      if (summaryNode.getInitialState() == PackageNodeModel.SelectedState.MIXED) {
         hasNeedsUpdate = true;
       }
     }
-    return hasNeedsUpdate ? NodeStateHolder.SelectedState.MIXED : NodeStateHolder.SelectedState.INSTALLED;
+    return hasNeedsUpdate ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getCurrentState() {
+  public PackageNodeModel.SelectedState getCurrentState() {
     boolean hasNeedsUpdate = false;
     for (UpdaterTreeNode summaryNode : myIncludedChildren) {
-      if (summaryNode.getCurrentState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        return NodeStateHolder.SelectedState.NOT_INSTALLED;
+      if (summaryNode.getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return PackageNodeModel.SelectedState.NOT_INSTALLED;
       }
-      if (summaryNode.getCurrentState() == NodeStateHolder.SelectedState.MIXED) {
+      if (summaryNode.getCurrentState() == PackageNodeModel.SelectedState.MIXED) {
         hasNeedsUpdate = true;
       }
     }
-    return hasNeedsUpdate ? NodeStateHolder.SelectedState.MIXED : NodeStateHolder.SelectedState.INSTALLED;
+    return hasNeedsUpdate ? PackageNodeModel.SelectedState.MIXED : PackageNodeModel.SelectedState.INSTALLED;
   }
 
   @Override
@@ -123,10 +123,10 @@ class SummaryTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  protected void setState(NodeStateHolder.SelectedState state) {
+  protected void setState(PackageNodeModel.SelectedState state) {
     boolean hasOrigNotInstalled = false;
     for (UpdaterTreeNode summaryTreeNode : myIncludedChildren) {
-      if (summaryTreeNode.getInitialState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+      if (summaryTreeNode.getInitialState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
         hasOrigNotInstalled = true;
       }
     }
@@ -137,18 +137,18 @@ class SummaryTreeNode extends UpdaterTreeNode {
       child.resetState();
     }
 
-    if (state == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+    if (state == PackageNodeModel.SelectedState.NOT_INSTALLED) {
       if (!hasOrigNotInstalled) {
         // We originally were completely installed, so remove all packages to uninstall.
         for (UpdaterTreeNode child : myAllChildren) {
-          child.setState(NodeStateHolder.SelectedState.NOT_INSTALLED);
+          child.setState(PackageNodeModel.SelectedState.NOT_INSTALLED);
         }
       }
     }
-    if (state == NodeStateHolder.SelectedState.INSTALLED) {
+    if (state == PackageNodeModel.SelectedState.INSTALLED) {
       // install included packages
       for (UpdaterTreeNode child : myIncludedChildren) {
-        child.setState(NodeStateHolder.SelectedState.INSTALLED);
+        child.setState(PackageNodeModel.SelectedState.INSTALLED);
       }
     }
   }
@@ -169,14 +169,14 @@ class SummaryTreeNode extends UpdaterTreeNode {
     boolean foundPlatform = false;
     boolean foundUpdate = false;
     for (UpdaterTreeNode child : myAllChildren) {
-      if (child.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        TypeDetails details = ((PlatformDetailsTreeNode)child).getPackage().getTypeDetails();
+      if (child.getInitialState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        TypeDetails details = ((DetailsTreeNode)child).getPackage().getTypeDetails();
         if (details instanceof DetailsTypes.SourceDetailsType) {
           foundSources = true;
         } else if (details instanceof DetailsTypes.PlatformDetailsType) {
           foundPlatform = true;
         }
-        if (child.getInitialState() == NodeStateHolder.SelectedState.MIXED) {
+        if (child.getInitialState() == PackageNodeModel.SelectedState.MIXED) {
           foundUpdate = true;
         }
       }

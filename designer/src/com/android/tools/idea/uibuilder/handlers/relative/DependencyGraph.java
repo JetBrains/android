@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -58,8 +58,8 @@ public class DependencyGraph {
    * @param layout the relative layout
    * @return a {@link DependencyGraph} for the layout
    */
-  @NonNull
-  public static DependencyGraph get(@NonNull NlComponent layout) {
+  @NotNull
+  public static DependencyGraph get(@NotNull NlComponent layout) {
     DependencyGraph dependencyGraph = ourCache.get(layout);
     if (dependencyGraph != null) {
       if (dependencyGraph.myModelVersion == layout.getModel().getModificationCount()) {
@@ -275,12 +275,12 @@ public class DependencyGraph {
    * is a node in the dependency graph.
    */
   static class ViewData {
-    @NonNull public final NlComponent node;
+    @NotNull public final NlComponent node;
     @Nullable public final String id;
-    @NonNull public final List<Constraint> dependsOn = new ArrayList<Constraint>(4);
-    @NonNull public final List<Constraint> dependedOnBy = new ArrayList<Constraint>(8);
+    @NotNull public final List<Constraint> dependsOn = new ArrayList<Constraint>(4);
+    @NotNull public final List<Constraint> dependedOnBy = new ArrayList<Constraint>(8);
 
-    ViewData(@NonNull NlComponent node, @Nullable String id) {
+    ViewData(@NotNull NlComponent node, @Nullable String id) {
       this.node = node;
       this.id = id;
     }
@@ -291,17 +291,17 @@ public class DependencyGraph {
    * an edge in the dependency graph.
    */
   static class Constraint {
-    @NonNull public final ConstraintType type;
+    @NotNull public final ConstraintType type;
     public final ViewData from;
     public final ViewData to;
 
-    Constraint(@NonNull ConstraintType type, @NonNull ViewData from, @NonNull ViewData to) {
+    Constraint(@NotNull ConstraintType type, @NotNull ViewData from, @NotNull ViewData to) {
       this.type = type;
       this.from = from;
       this.to = to;
     }
 
-    static String describePath(@NonNull List<Constraint> path, @Nullable String newName, @Nullable String newId) {
+    static String describePath(@NotNull List<Constraint> path, @Nullable String newName, @Nullable String newId) {
       String s = "";
       for (int i = path.size() - 1; i >= 0; i--) {
         Constraint constraint = path.get(i);

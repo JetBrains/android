@@ -165,6 +165,41 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     checkFile("simple.xml",  ResourceFolderType.LAYOUT);
   }
 
+  public void testSrcCompat() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/srccompat.xml", "res/layout/srccompat.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("ImageView", parser.getName());
+    assertEquals("@drawable/normal_src", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@drawable/compat_src", parser.getAttributeValue(AUTO_URI, "srcCompat"));
+    parser.setUseSrcCompat(true);
+    assertEquals("@drawable/compat_src", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@drawable/compat_src", parser.getAttributeValue(AUTO_URI, "srcCompat"));
+    parser.setUseSrcCompat(false);
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
+
+    assertEquals(START_TAG, parser.nextTag()); // ImageView (@id/second)
+    assertNull(parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    parser.setUseSrcCompat(true);
+    assertEquals("@drawable/compat_src_2", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    parser.setUseSrcCompat(false);
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/second)
+
+    assertEquals(START_TAG, parser.nextTag()); // NotAImageView (@id/third)
+    assertEquals("@drawable/compat_src_3", parser.getAttributeValue(AUTO_URI, "srcCompat"));
+    assertEquals("@drawable/normal_src_3", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    parser.setUseSrcCompat(true);
+    assertEquals("@drawable/normal_src_3", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    parser.setUseSrcCompat(false);
+    assertEquals(END_TAG, parser.nextTag()); // NotAImageView (@id/third)
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
@@ -203,23 +238,22 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           break;
         }
         default:
-          fail("Unexpected type");
-          return;
+          throw new AssertionError("Unexpected type");
       }
 
       PsiElement element = null;
       if (expected == XmlPullParser.START_TAG) {
         assertNotNull(parser.getViewKey());
         assertNotNull(parser.getViewCookie());
-        assertTrue(parser.getViewCookie() instanceof PsiElement);
-        element = (PsiElement)parser.getViewCookie();
+        assertTrue(parser.getViewCookie() instanceof TagSnapshot);
+        element = ((TagSnapshot)parser.getViewCookie()).tag;
       }
 
       if (expected == XmlPullParser.START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
         if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
-          SortedSet<String> referenceAttributes = new TreeSet<String>();
-          SortedSet<String> attributes = new TreeSet<String>();
+          SortedSet<String> referenceAttributes = new TreeSet<>();
+          SortedSet<String> attributes = new TreeSet<>();
           for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
             String s = referenceParser.getAttributePrefix(i) + ':' + referenceParser.getAttributeName(i) + '='
                        + referenceParser.getAttributeValue(i);

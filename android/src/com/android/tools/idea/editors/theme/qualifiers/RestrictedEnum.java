@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 
 public class RestrictedEnum implements RestrictedQualifier {
@@ -31,6 +32,7 @@ public class RestrictedEnum implements RestrictedQualifier {
   private final EnumSet<? extends ResourceEnum> myPossibleValues;
 
   public RestrictedEnum(@NotNull Class<? extends ResourceEnum> enumClass) {
+    //noinspection unchecked
     myPossibleValues = EnumSet.copyOf((Collection)Arrays.asList(enumClass.getEnumConstants()));
     myEnumClass = enumClass;
   }
@@ -42,19 +44,22 @@ public class RestrictedEnum implements RestrictedQualifier {
 
   @Override
   public void setRestrictions(@Nullable ResourceQualifier compatible, @NotNull Collection<ResourceQualifier> incompatibles) {
-    if (compatible != null) {
+    if (ResourceQualifier.isValid(compatible)) {
       myPossibleValues.clear();
-      myPossibleValues.addAll((Collection)Arrays.asList(getValue(compatible)));
+      //noinspection unchecked
+      myPossibleValues.addAll((Collection)Collections.singletonList(getValue(compatible)));
     } else {
       for (ResourceQualifier qualifier : incompatibles) {
-        myPossibleValues.remove(getValue(qualifier));
+        if (qualifier.isValid()) {
+          myPossibleValues.remove(getValue(qualifier));
+        }
       }
     }
   }
 
   @Override
   public boolean isMatchFor(@Nullable ResourceQualifier qualifier) {
-    if (qualifier == null) {
+    if (!ResourceQualifier.isValid(qualifier)) {
       return false;
     }
     return myPossibleValues.contains(getValue(qualifier));

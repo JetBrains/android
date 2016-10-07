@@ -15,6 +15,9 @@
   <item name="android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction AccessibilityAction(int, java.lang.CharSequence) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.accessibility.AccessibilityWindowInfo java.lang.CharSequence getTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.accessibility.CaptioningManager android.view.accessibility.CaptioningManager.CaptionStyle getUserStyle()">
     <annotation name="android.support.annotation.NonNull" />
   </item>

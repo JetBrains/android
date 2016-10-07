@@ -351,6 +351,71 @@
   <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.HardwarePropertiesManager android.os.CpuUsageInfo[] getCpuUsages()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.HardwarePropertiesManager float[] getDeviceTemperatures(int, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.HardwarePropertiesManager float[] getDeviceTemperatures(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.HardwarePropertiesManager.DEVICE_TEMPERATURE_CPU, android.os.HardwarePropertiesManager.DEVICE_TEMPERATURE_GPU, android.os.HardwarePropertiesManager.DEVICE_TEMPERATURE_BATTERY, android.os.HardwarePropertiesManager.DEVICE_TEMPERATURE_SKIN}" />
+    </annotation>
+  </item>
+  <item name="android.os.HardwarePropertiesManager float[] getDeviceTemperatures(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.HardwarePropertiesManager.TEMPERATURE_CURRENT, android.os.HardwarePropertiesManager.TEMPERATURE_THROTTLING, android.os.HardwarePropertiesManager.TEMPERATURE_SHUTDOWN, android.os.HardwarePropertiesManager.TEMPERATURE_THROTTLING_BELOW_VR_MIN}" />
+    </annotation>
+  </item>
+  <item name="android.os.HardwarePropertiesManager float[] getFanSpeeds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.LocaleList LocaleList(java.util.Locale...) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.LocaleList android.os.LocaleList forLanguageTags(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.LocaleList android.os.LocaleList forLanguageTags(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.LocaleList android.os.LocaleList getAdjustedDefault()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
+  <item name="android.os.LocaleList android.os.LocaleList getDefault()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
+  <item name="android.os.LocaleList android.os.LocaleList getEmptyLocaleList()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.LocaleList int indexOf(java.util.Locale)">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.os.LocaleList int size()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.os.LocaleList java.lang.String toLanguageTags()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.LocaleList java.util.Locale getFirstMatch(java.lang.String[])">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.LocaleList void setDefault(android.os.LocaleList) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
   <item name="android.os.Looper android.os.Looper myLooper()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -418,6 +483,18 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.PersistableBundle void putPersistableBundle(java.lang.String, android.os.PersistableBundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>

@@ -23,7 +23,6 @@ import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
-import java.util.*;
 
 public final class List extends Node implements BinaryObject {
   @Override

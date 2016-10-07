@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -82,11 +76,41 @@ public final class GradleDslNewExpression extends GradleDslExpression {
   @Nullable
   @Override
   public <T> T getValue(@NotNull Class<T> clazz) {
+    if (clazz.isAssignableFrom(File.class)) {
+      return clazz.cast(getFileValue());
+    }
     Object value = getValue();
     if (clazz.isInstance(value)) {
       return clazz.cast(value);
     }
     return null;
+  }
+
+  @Nullable
+  private File getFileValue() {
+    if (!myName.equals("File")) {
+      return null;
+    }
+
+    List<GradleDslExpression> arguments = getArguments();
+    if (arguments.isEmpty()) {
+      return null;
+    }
+
+    String firstArgumentValue = arguments.get(0).getValue(String.class);
+    if (firstArgumentValue == null) {
+      return null;
+    }
+
+    File result = new File(firstArgumentValue);
+    for (int i = 1; i < arguments.size(); i++) {
+      String value = arguments.get(i).getValue(String.class);
+      if (value == null) {
+        return null;
+      }
+      result = new File(result, value);
+    }
+    return result;
   }
 
   @Override

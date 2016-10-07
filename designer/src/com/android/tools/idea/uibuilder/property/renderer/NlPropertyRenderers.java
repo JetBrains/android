@@ -26,6 +26,8 @@ import java.util.Set;
 public class NlPropertyRenderers {
   private static NlDefaultRenderer ourDefaultRenderer;
   private static NlBooleanRenderer ourBooleanRenderer;
+  private static NlFlagRenderer ourFlagRenderer;
+  private static NlFlagItemRenderer ourFlagItemRenderer;
 
   @NotNull
   public static TableCellRenderer get(@NotNull NlProperty p) {
@@ -41,8 +43,30 @@ public class NlPropertyRenderers {
         return renderer;
       }
     }
+    if (formats.contains(AttributeFormat.Flag)) {
+      NlFlagRenderer renderer = getFlagRenderer();
+      if (renderer.canRender(p, formats)) {
+        return renderer;
+      }
+    }
 
     return getDefaultRenderer();
+  }
+
+  @NotNull
+  public static NlFlagRenderer getFlagRenderer() {
+    if (ourFlagRenderer == null) {
+      ourFlagRenderer = new NlFlagRenderer();
+    }
+    return ourFlagRenderer;
+  }
+
+  @NotNull
+  public static NlFlagItemRenderer getFlagItemRenderer() {
+    if (ourFlagItemRenderer == null) {
+      ourFlagItemRenderer = new NlFlagItemRenderer();
+    }
+    return ourFlagItemRenderer;
   }
 
   @NotNull
@@ -50,7 +74,6 @@ public class NlPropertyRenderers {
     if (ourBooleanRenderer == null) {
       ourBooleanRenderer = new NlBooleanRenderer();
     }
-
     return ourBooleanRenderer;
   }
 
@@ -59,7 +82,6 @@ public class NlPropertyRenderers {
     if (ourDefaultRenderer == null) {
       ourDefaultRenderer = new NlDefaultRenderer();
     }
-
     return ourDefaultRenderer;
   }
 }

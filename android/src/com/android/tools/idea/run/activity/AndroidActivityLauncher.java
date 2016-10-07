@@ -19,9 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidActivityLauncher {
   @NotNull
-  public static String getStartActivityCommand(@NotNull String activityPath, boolean waitForDebugger, @NotNull String extraFlags) {
+  public static String getStartActivityCommand(@NotNull String activityPath, @NotNull String extraFlags) {
     return "am start" +
-           (waitForDebugger ? " -D" : "") +
            " -n \"" + activityPath + "\"" +
            " -a android.intent.action.MAIN" +
            " -c android.intent.category.LAUNCHER" +

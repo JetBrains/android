@@ -16,24 +16,27 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.repository.api.LocalPackage;
-import com.android.sdklib.repository.local.LocalExtraPkgInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
+  public static final Version REQUIRED_GAPI_VERSION = Version.VERSION_3;
+
   private static final Map<String, String> ABI_REMAP = ImmutableMap.<String, String>builder()
     .put("32-bit (arm)", "armeabi-v7a") // Not a valid abi, but returned anyway by ClientData.getAbi
     .put("64-bit (arm)", "arm64-v8a")   // Not a valid abi, but returned anyway by ClientData.getAbi
@@ -46,8 +49,8 @@ public final class GapiPaths {
     .build();
 
   private static final Map<String, String> ABI_TARGET = ImmutableMap.<String, String>builder()
-    .put("armeabi-v7a", "android-arm")
-    .put("arm64-v8a", "android-arm64")
+    .put("armeabi-v7a", "android-armv7a")
+    .put("arm64-v8a", "android-armv8a")
     .put("x86", "android-x86")
     .build();
 
@@ -56,12 +59,11 @@ public final class GapiPaths {
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
   @NotNull private static final String GAPIR_EXECUTABLE_NAME;
   @NotNull private static final String STRINGS_DIR_NAME = "strings";
-  @NotNull private static final String GAPII_LIBRARY_NAME;
+  @NotNull private static final String GAPII_LIBRARY_NAME = "libgapii.so";
+  @NotNull private static final String INTERCEPTOR_LIBRARY_NAME = "libinterceptor.so";
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
-  @NotNull private static final String SDK_VENDOR = "android";
   @NotNull private static final String SDK_PATH = "gapid";
-  @NotNull private static final String SDK_PACKAGE_PATH = "extras;android;gapid";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -81,7 +83,6 @@ public final class GapiPaths {
     HOST_ARCH = remap(ARCH_REMAP, SystemInfo.OS_ARCH);
     GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
-    GAPII_LIBRARY_NAME = "libgapii.so";
   }
 
   @NotNull private static final Object myPathLock = new Object();
@@ -121,29 +122,54 @@ public final class GapiPaths {
   }
 
   @NotNull
-  static public File findTraceLibrary(@NotNull String abi) throws IOException {
+  private static File findLibrary(@NotNull String libraryName, @NotNull String abi) throws IOException {
     findTools();
     String remappedAbi = remap(ABI_REMAP, abi);
-    File lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    File lib = findPath(OS_ANDROID, remappedAbi, libraryName);
     if (lib.exists()) {
       return lib;
     }
     remappedAbi = remap(ABI_TARGET, remappedAbi);
-    lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    lib = findPath(OS_ANDROID, remappedAbi, libraryName);
     if (lib.exists()) {
       return lib;
     }
-    throw new IOException("Unsupported " + GAPII_LIBRARY_NAME + " abi '" + abi + "'");
+    throw new IOException("Unsupported " + libraryName + " abi '" + abi + "'");
   }
 
   @NotNull
-  static public File findPkgInfoApk() {
+  public static File findTraceLibrary(@NotNull String abi) throws IOException {
+    return findLibrary(GAPII_LIBRARY_NAME, abi);
+  }
+
+  @NotNull
+  public static File findInterceptorLibrary(@NotNull String abi) throws IOException {
+    return findLibrary(INTERCEPTOR_LIBRARY_NAME, abi);
+  }
+
+  @NotNull
+  public static File findPkgInfoApk() {
     findTools();
     return myPkgInfoPath;
   }
 
+  /**
+   * @return a {@link Collection} of SDK components to install, or the empty collection if we're up-to-date.
+   */
+  public static Collection<String> getMissingSdkComponents() {
+    // If we have found a valid install, ...
+    if (isValid()) {
+      LocalPackage gapi = GapiPaths.getLocalPackage();
+      // ... and if the installed package is compatible, we don't need a new install.
+      if (gapi == null || REQUIRED_GAPI_VERSION.isCompatible(gapi.getVersion())) {
+        return Collections.emptyList();
+      }
+    }
+    return ImmutableList.of(REQUIRED_GAPI_VERSION.getSdkPackagePath());
+  }
+
   @NotNull
-  static private File findPath(@NotNull String os, String abi, @NotNull String binary) {
+  private static File findPath(@NotNull String os, String abi, @NotNull String binary) {
     File test;
     File osDir = new File(myBaseDir, os);
     if (abi != null) {
@@ -169,11 +195,16 @@ public final class GapiPaths {
     return value;
   }
 
-  public static File getSdkPath() {
+  @Nullable("gapi is not installed")
+  private static LocalPackage getLocalPackage() {
     AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
-    LocalPackage info = handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
-    if (info == null) { return null; }
-    return info.getLocation();
+    return handler.getLocalPackage(REQUIRED_GAPI_VERSION.getSdkPackagePath(), new StudioLoggerProgressIndicator(GapiPaths.class));
+  }
+
+  @Nullable("gapi is not installed")
+  private static File getSdkPath() {
+    LocalPackage info = getLocalPackage();
+    return info == null ? null : info.getLocation();
   }
 
   private static boolean checkForTools(File dir) {
@@ -188,7 +219,7 @@ public final class GapiPaths {
 
   private static void findTools() {
     synchronized (myPathLock) {
-      if (myGapisPath != null) {
+      if (myGapisPath != null && myGapisPath.exists()) {
         return;
       }
       if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {

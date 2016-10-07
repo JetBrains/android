@@ -17,7 +17,6 @@ package com.android.tools.idea.actions;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;

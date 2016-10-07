@@ -30,7 +30,9 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -55,8 +57,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +76,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
  * <p/>
  * See {@link Schema} for the full XML schema for a service file to get a better overview of its
  * capabilities.
+ *
+ * TODO: Consider migrating much of this to JAXB to reduce manual parsing.
  */
 /* package */ final class ServiceXmlParser extends DefaultHandler {
   private static final Logger LOG = Logger.getInstance(ServiceXmlParser.class);
@@ -101,9 +105,17 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private ServicePanelBuilder myPanelBuilder;
 
   // These fields are not initialized by the constructor but are by the parsing step and not null afterward.
-  @NotNull @SuppressWarnings("NullableProblems") private ServiceCategory myServiceCategory;
-  @NotNull @SuppressWarnings("NullableProblems") private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  @NotNull @SuppressWarnings("NullableProblems") private File myRecipeFile;
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private ServiceCategory myServiceCategory;
+
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private DeveloperServiceMetadata myDeveloperServiceMetadata;
+
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
@@ -192,13 +204,15 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
   public void install() {
     List<File> filesToOpen = Lists.newArrayList();
-    analyzeRecipe(false, filesToOpen, null, null, null);
+    analyzeRecipe(false, filesToOpen, null, null, null, null, null);
     TemplateUtils.openEditors(myModule.getProject(), filesToOpen, true);
   }
 
   private void analyzeRecipe(boolean findOnlyReferences,
                              @Nullable Collection<File> openFiles,
-                             @Nullable Collection<String> dependencies,
+                             @Nullable SetMultimap<String, String> dependencies,
+                             @Nullable Collection<String> classpathEntries,
+                             @Nullable Collection<String> plugins,
                              @Nullable Collection<File> sourceFiles,
                              @Nullable Collection<File> targetFiles) {
     try {
@@ -213,6 +227,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withGradleSync(false)
         .intoOpenFiles(openFiles)
         .intoDependencies(dependencies)
+        .intoClasspathEntries(classpathEntries)
+        .intoPlugins(plugins)
         .intoSourceFiles(sourceFiles)
         .intoTargetFiles(targetFiles)
         .build();
@@ -243,6 +259,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
 
     String name = requireAttr(attributes, Schema.Service.ATTR_NAME);
+    String id = requireAttr(attributes, Schema.Service.ATTR_ID);
     String description = requireAttr(attributes, Schema.Service.ATTR_DESCRIPTION);
     String category = requireAttr(attributes, Schema.Service.ATTR_CATEGORY);
     File iconFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_ICON));
@@ -270,7 +287,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
 
     Icon icon = new ImageIcon(iconFile.getPath());
-    myDeveloperServiceMetadata = new DeveloperServiceMetadata(name, description, icon);
+    myDeveloperServiceMetadata = new DeveloperServiceMetadata(id, name, description, icon);
     if (learnLink != null) {
       myDeveloperServiceMetadata.setLearnMoreLink(toUri(learnLink));
     }
@@ -280,13 +297,22 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void closeServiceTag() {
-    HashSet<String> dependencies = Sets.newHashSet();
+    SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
+    Set<String> classpathEntries = Sets.newHashSet();
+    Set<String> plugins = Sets.newHashSet();
     List<File> sourceFiles = Lists.newArrayList();
     List<File> targetFiles = Lists.newArrayList();
-    analyzeRecipe(true, null, dependencies, sourceFiles, targetFiles);
+    analyzeRecipe(true, null, dependencies, classpathEntries, plugins, sourceFiles, targetFiles);
 
-    for (String d : dependencies) {
+    // Ignore test configurations here.
+    for (String d : dependencies.get(SdkConstants.GRADLE_COMPILE_CONFIGURATION)) {
       myDeveloperServiceMetadata.addDependency(d);
+    }
+    for (String c : classpathEntries) {
+      myDeveloperServiceMetadata.addClasspathEntry(c);
+    }
+    for (String p : plugins) {
+      myDeveloperServiceMetadata.addPlugin(p);
     }
     for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
@@ -540,6 +566,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       public static final String ATTR_LEARN_MORE = "learnMore";
       public static final String ATTR_MIN_API = "minApi";
       public static final String ATTR_NAME = "name";
+      public static final String ATTR_ID = "id";
     }
 
     public static abstract class UiTag {

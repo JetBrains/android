@@ -16,29 +16,23 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.gradle.util.Projects.populate;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
@@ -67,28 +61,31 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
     populateProject(projectInfo);
 
-    Runnable runnable = new Runnable() {
-      @Override
-      public void run() {
-        if (myProjectIsNew && (!ApplicationManager.getApplication().isUnitTestMode() || !GradleProjectImporter.ourSkipSetupFromTest)) {
+    Runnable runnable = () -> {
+      boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
+      if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
+        if (myProjectIsNew) {
           open(myProject);
         }
-
-        if (myProjectIsNew) {
-          // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-          // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-          // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-          // listeners to be registered.
-          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
-          projectComponent.configureGradleProject();
+        if (!isTest) {
+          myProject.save();
         }
-        if (mySyncListener != null) {
-          if (mySyncSkipped) {
-            mySyncListener.syncSkipped(myProject);
-          }
-          else {
-            mySyncListener.syncSucceeded(myProject);
-          }
+      }
+
+      if (myProjectIsNew) {
+        // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+        // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+        // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+        // listeners to be registered.
+        AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
+        projectComponent.configureGradleProject();
+      }
+      if (mySyncListener != null) {
+        if (mySyncSkipped) {
+          mySyncListener.syncSkipped(myProject);
+        }
+        else {
+          mySyncListener.syncSucceeded(myProject);
         }
       }
     };
@@ -96,58 +93,19 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      GuiUtils.invokeLaterIfNeeded(runnable, ModalityState.defaultModalityState());
+      invokeLaterIfNeeded(runnable);
     }
   }
 
   private void populateProject(@NotNull final DataNode<ProjectData> projectInfo) {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
-      @Override
-      public void run() {
-        populate(myProject, getModulesToImport(projectInfo));
-      }
-    });
-  }
-
-  @NotNull
-  private Collection<DataNode<ModuleData>> getModulesToImport(DataNode<ProjectData> projectInfo) {
-    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, MODULE);
-    ProjectSubset subview = ProjectSubset.getInstance(myProject);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
-      if (mySelectModulesToImport) {
-        // Importing a project. Allow user to select which modules to include in the project.
-        Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
-        if (selection != null) {
-          return selection;
-        }
-      }
-      else {
-        // We got here because a project was synced with Gradle. Make sure that we don't add any modules that were not selected during
-        // project import (if applicable.)
-        String[] persistedModuleNames = subview.getSelection();
-        if (persistedModuleNames != null) {
-          int moduleCount = persistedModuleNames.length;
-          if (moduleCount > 0) {
-            List<String> moduleNames = Lists.newArrayList(persistedModuleNames);
-            List<DataNode<ModuleData>> selectedModules = Lists.newArrayListWithExpectedSize(moduleCount);
-            for (DataNode<ModuleData> module : modules) {
-              String name = module.getData().getExternalName();
-              if (moduleNames.contains(name)) {
-                selectedModules.add(module);
-              }
-            }
-            return selectedModules;
-          }
-        }
-      }
-    }
-    // Delete any stored module selection.
-    subview.clearSelection();
-    return modules;
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySelectModulesToImport, true));
   }
 
   @Override
   public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
+    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID));
+
     if (errorDetails != null) {
       LOG.warn(errorDetails);
     }

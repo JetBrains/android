@@ -28,8 +28,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,11 +37,11 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
+import static com.android.tools.idea.project.NewProjects.activateProjectView;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
 public abstract class NewProjectImportGradleSyncListener extends GradleSyncListener.Adapter {
   @Override
@@ -122,13 +120,6 @@ public abstract class NewProjectImportGradleSyncListener extends GradleSyncListe
       finally {
         facetModel.commit();
       }
-    }
-  }
-
-  public static void activateProjectView(@NotNull Project project) {
-    ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(PROJECT_VIEW);
-    if (window != null) {
-      window.activate(null, false);
     }
   }
 

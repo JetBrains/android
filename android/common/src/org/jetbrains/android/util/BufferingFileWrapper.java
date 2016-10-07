@@ -81,6 +81,11 @@ public class BufferingFileWrapper implements IAbstractFile {
   }
 
   @Override
+  public String getPath() {
+    return myFile.getPath();
+  }
+
+  @Override
   public boolean exists() {
     return myFile.isFile();
   }

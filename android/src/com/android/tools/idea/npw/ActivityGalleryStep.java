@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
@@ -37,6 +38,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
@@ -49,14 +51,15 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   private static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
 
-  private final FormFactorUtils.FormFactor myFormFactor;
+  @NotNull
+  private final FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
   private final Module myModule;
   private boolean myAppThemeExists;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
-  public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
+  public ActivityGalleryStep(@NotNull FormFactor formFactor, boolean showSkipEntry,
                              @NotNull Key<TemplateEntry> currentSelectionKey, @Nullable Module module, @NotNull Disposable disposable) {
     super(disposable);
     myFormFactor = formFactor;
@@ -67,7 +70,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   }
 
   private JComponent createGallery() {
-    myGallery = new ASGallery<Optional<TemplateEntry>>();
+    myGallery = new ASGallery<>();
     Dimension thumbnailSize = DEFAULT_GALLERY_THUMBNAIL_SIZE;
     myGallery.setThumbnailSize(thumbnailSize);
     myGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));
@@ -80,6 +83,14 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
         else {
           return "Add No Activity";
         }
+      }
+    });
+    myGallery.setDefaultAction(new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        DynamicWizard wizard = getWizard();
+        assert wizard != null;
+        wizard.doNextAction();
       }
     });
     myGallery.setImageProvider(new Function<Optional<TemplateEntry>, Image>() {
@@ -168,8 +179,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @Override
   public void init() {
     super.init();
-    String formFactorName = myFormFactor.id;
-    TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
+    TemplateListProvider templateListProvider = new TemplateListProvider(myFormFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
                                                                          TemplateManager.EXCLUDED_TEMPLATES);
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));

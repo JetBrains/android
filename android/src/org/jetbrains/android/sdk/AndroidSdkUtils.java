@@ -21,13 +21,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.logcat.AdbErrors;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -83,7 +82,6 @@ import static com.android.tools.idea.sdk.Jdks.chooseOrCreateJavaSdk;
 import static com.android.tools.idea.sdk.Jdks.createJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.google.common.base.Joiner.on;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -950,11 +948,7 @@ public final class AndroidSdkUtils {
       }
       catch (ExecutionException e) {
         // timed out waiting for bridge, ask the user what to do
-        String adbErrors = on('\n').join(AdbErrors.getErrors());
         String message = "ADB not responding. If you'd like to retry, then please manually kill \"" + FN_ADB + "\" and click 'Restart'";
-        if (!adbErrors.isEmpty()) {
-          message += "\nErrors from ADB:\n" + adbErrors;
-        }
         retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
                 Messages.YES;
       }
@@ -962,23 +956,6 @@ public final class AndroidSdkUtils {
     while (retry);
 
     return bridge;
-  }
-
-  /**
-   * @return URL for the Android SDK download for the current platform, or {@code null} if the platform was not recognized.
-   */
-  @Nullable
-  public static String getSdkDownloadUrl() {
-    if (SystemInfo.isLinux) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
-    }
-    else if (SystemInfo.isWindows) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
-    }
-    else if (SystemInfo.isMac) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
-    }
-    return null;
   }
 
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {

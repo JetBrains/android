@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MissingBuildToolsErrorHandler extends AbstractSyncErrorHandler {
-  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
+  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?(F|f)ailed to find Build Tools revision (.*)");
 
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -37,9 +37,10 @@ public class MissingBuildToolsErrorHandler extends AbstractSyncErrorHandler {
 
     Matcher matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(firstLine);
     if (matcher.matches()) {
-      String version = matcher.group(2);
+      String version = matcher.group(3);
       InstallBuildToolsHyperlink hyperlink = new InstallBuildToolsHyperlink(version, null);
       updateNotification(notification, project, error.getMessage(), hyperlink);
+      return true;
     }
     return false;
   }

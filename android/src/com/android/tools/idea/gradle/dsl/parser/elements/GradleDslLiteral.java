@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +28,8 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
@@ -32,6 +37,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
@@ -41,6 +47,7 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
  */
 public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable private Object myUnsavedValue;
+  @Nullable private GrClosableBlock myUnsavedConfigBlock;
 
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name, null);
@@ -80,6 +87,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
         literalText = unquoteString(literalText);
       }
 
+      List<GradleResolvedVariable> resolvedVariables = Lists.newArrayList();
       GrStringInjection[] injections = ((GrString)myExpression).getInjections();
       for (GrStringInjection injection : injections) {
         String variableName = null;
@@ -97,15 +105,17 @@ public final class GradleDslLiteral extends GradleDslExpression {
         }
 
         if (!isEmpty(variableName)) {
-          GradleDslExpression resolvedLiteral = resolveReference(variableName, GradleDslExpression.class);
-          if (resolvedLiteral != null) {
-            Object resolvedValue = resolvedLiteral.getValue();
+          GradleDslExpression resolvedExpression = resolveReference(variableName, GradleDslExpression.class);
+          if (resolvedExpression != null) {
+            Object resolvedValue = resolvedExpression.getValue();
             if (resolvedValue != null) {
+              resolvedVariables.add(new GradleResolvedVariable(variableName, resolvedValue, resolvedExpression));
               literalText = literalText.replace(injection.getText(), resolvedValue.toString());
             }
           }
         }
       }
+      setResolvedVariables(resolvedVariables);
       return literalText;
     }
     return null;
@@ -128,6 +138,14 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Override
   public void setValue(@NotNull Object value) {
     myUnsavedValue = value;
+    setModified(true);
+  }
+
+  public void setConfigBlock(@NotNull GrClosableBlock block) {
+    // For now we only support setting the config block on literals for newly created dependencies.
+    Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
+
+    myUnsavedConfigBlock = block;
     setModified(true);
   }
 
@@ -210,11 +228,48 @@ public final class GradleDslLiteral extends GradleDslExpression {
       }
     }
     else {
-      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      PsiElement added;
+      if (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList)) { // Method call arguments in ().
+        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before )
+      }
+      else {
+        added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      }
       if (added instanceof GrLiteral) {
         myExpression = (GrLiteral)added;
       }
+
+      if (myUnsavedConfigBlock != null) {
+        addConfigBlock();
+      }
     }
+  }
+
+  private void addConfigBlock() {
+    if (myUnsavedConfigBlock == null) {
+      return;
+    }
+
+    GroovyPsiElement psiElement = getPsiElement();
+    if (psiElement == null) {
+      return;
+    }
+
+    GroovyPsiElementFactory factory = getPsiElementFactory();
+    if (factory == null) {
+      return;
+    }
+
+    // For now, this is only reachable for newly added dependencies, which means psiElement is an application statement with three children:
+    // the configuration name, whitespace, dependency in compact notation. Let's add some more: comma, whitespace and finally the config
+    // block.
+    GrApplicationStatement methodCallStatement = (GrApplicationStatement)factory.createStatementFromText("foo 1, 2");
+    PsiElement comma = methodCallStatement.getArgumentList().getFirstChild().getNextSibling();
+
+    psiElement.addAfter(comma, psiElement.getLastChild());
+    psiElement.addAfter(factory.createWhiteSpace(), psiElement.getLastChild());
+    psiElement.addAfter(myUnsavedConfigBlock, psiElement.getLastChild());
+    myUnsavedConfigBlock = null;
   }
 
   @Override
@@ -240,18 +295,26 @@ public final class GradleDslLiteral extends GradleDslExpression {
       return null;
     }
 
-    GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement == null) {
+    GroovyPsiElementFactory factory = getPsiElementFactory();
+    if (factory == null) {
       return null;
     }
 
-    Project project = psiElement.getProject();
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
     GrExpression newExpression = factory.createExpressionFromText(unsavedValueText);
 
     if (!(newExpression instanceof GrLiteral)) {
       return null;
     }
     return (GrLiteral)newExpression;
+  }
+
+  private GroovyPsiElementFactory getPsiElementFactory() {
+    GroovyPsiElement psiElement = getPsiElement();
+    if (psiElement == null) {
+      return null;
+    }
+
+    Project project = psiElement.getProject();
+    return GroovyPsiElementFactory.getInstance(project);
   }
 }

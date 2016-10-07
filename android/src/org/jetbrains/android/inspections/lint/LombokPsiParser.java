@@ -18,12 +18,14 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.client.api.JavaParser;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
@@ -32,6 +34,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -54,12 +59,16 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_VALUE;
 
+// TODO: Rename from Lombok to something else; pick a better prefix for the Lint integration in the IDE.
+// LintIdeJavaParser, LintIdeProject, etc.?
 public class LombokPsiParser extends JavaParser {
   private final LintClient myClient;
+  private final JavaEvaluator myJavaEvaluator;
   private AccessToken myLock;
 
-  public LombokPsiParser(LintClient client) {
+  public LombokPsiParser(LintClient client, Project project) {
     myClient = client;
+    myJavaEvaluator = new MyJavaEvaluator(project);
   }
 
   @Override
@@ -82,6 +91,22 @@ public class LombokPsiParser extends JavaParser {
     myLock.finish();
     myLock = null;
     return null;
+  }
+
+  @NonNull
+  @Override
+  public JavaEvaluator getEvaluator() {
+    return myJavaEvaluator;
+  }
+
+  @Nullable
+  @Override
+  public PsiJavaFile parseJavaToPsi(@NonNull JavaContext context) {
+    PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
+    if (!(psiFile instanceof PsiJavaFile)) {
+      return null;
+    }
+    return (PsiJavaFile)psiFile;
   }
 
   @Override
@@ -132,6 +157,30 @@ public class LombokPsiParser extends JavaParser {
 
   @NonNull
   @Override
+  public Location getLocation(@NonNull JavaContext context, @NonNull PsiElement element) {
+    // We don't need line numbers, so override super to avoid computing source file contents
+    TextRange range = element.getTextRange();
+    PsiFile containingFile = element.getContainingFile();
+    File file = context.file;
+    if (containingFile != context.getJavaFile()) {
+      // Reporting an error in a different file.
+      if (context.getDriver().getScope().size() == 1) {
+        // Don't bother with this error if it's in a different file during single-file analysis
+        return Location.NONE;
+      }
+
+      VirtualFile virtualFile = containingFile.getVirtualFile();
+      if (virtualFile != null) {
+        file = VfsUtilCore.virtualToIoFile(virtualFile);
+      } else {
+        return Location.NONE;
+      }
+    }
+    return Location.create(file, null, range.getStartOffset(), range.getEndOffset());
+  }
+
+  @NonNull
+  @Override
   public Location getRangeLocation(@NonNull JavaContext context, @NonNull Node from, int fromDelta, @NonNull Node to, int toDelta) {
     Position position1 = from.getPosition();
     Position position2 = to.getPosition();
@@ -144,6 +193,19 @@ public class LombokPsiParser extends JavaParser {
 
     int start = Math.max(0, from.getPosition().getStart() + fromDelta);
     int end = to.getPosition().getEnd() + toDelta;
+    return Location.create(context.file, null, start, end);
+  }
+
+  @NonNull
+  @Override
+  public Location getRangeLocation(@NonNull JavaContext context,
+                                   @NonNull PsiElement from,
+                                   int fromDelta,
+                                   @NonNull PsiElement to,
+                                   int toDelta) {
+    // We don't need source contents for locations in the IDE
+    int start = Math.max(0, from.getTextRange().getStartOffset() + fromDelta);
+    int end = to.getTextRange().getEndOffset() + toDelta;
     return Location.create(context.file, null, start, end);
   }
 
@@ -251,6 +313,11 @@ public class LombokPsiParser extends JavaParser {
         return getTypeDescriptor(element);
       }
     });
+  }
+
+  @Override
+  public void runReadAction(@NonNull Runnable runnable) {
+    ApplicationManager.getApplication().runReadAction(runnable);
   }
 
   @VisibleForTesting
@@ -463,6 +530,68 @@ public class LombokPsiParser extends JavaParser {
     }
 
     return false;
+  }
+
+  private static class MyJavaEvaluator extends JavaEvaluator {
+    private final Project myProject;
+
+    public MyJavaEvaluator(Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public boolean extendsClass(@Nullable PsiClass cls, @NonNull String className, boolean strict) {
+      // TODO: This checks interfaces too. Let's find a cheaper method which only checks direct super classes!
+      return InheritanceUtil.isInheritor(cls, strict, className);
+    }
+
+    @Override
+    public boolean implementsInterface(@NonNull PsiClass cls, @NonNull String interfaceName, boolean strict) {
+      // TODO: This checks superclasses too. Let's find a cheaper method which only checks interfaces.
+      return false;
+    }
+
+    @Override
+    public boolean inheritsFrom(@NonNull PsiClass cls, @NonNull String className, boolean strict) {
+      return InheritanceUtil.isInheritor(cls, strict, className);
+    }
+
+    @Nullable
+    @Override
+    public PsiClass findClass(@NonNull String qualifiedName) {
+      return JavaPsiFacade.getInstance(myProject).findClass(qualifiedName, GlobalSearchScope.allScope(myProject));
+    }
+
+    @Nullable
+    @Override
+    public PsiClassType getClassType(@Nullable PsiClass cls) {
+      return cls != null ? JavaPsiFacade.getElementFactory(myProject).createType(cls) : null;
+    }
+
+    @NonNull
+    @Override
+    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner owner, boolean inHierarchy) {
+      return AnnotationUtil.getAllAnnotations(owner, inHierarchy, null, true);
+    }
+
+    @Nullable
+    @Override
+    public PsiAnnotation findAnnotationInHierarchy(@NonNull PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
+      return AnnotationUtil.findAnnotationInHierarchy(listOwner, Sets.newHashSet(annotationNames));
+    }
+
+    @Nullable
+    @Override
+    public PsiAnnotation findAnnotation(@Nullable PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
+      return AnnotationUtil.findAnnotation(listOwner, false, annotationNames);
+    }
+
+    @Nullable
+    @Override
+    public File getFile(@NonNull PsiFile file) {
+      VirtualFile virtualFile = file.getVirtualFile();
+      return virtualFile != null ? VfsUtilCore.virtualToIoFile(virtualFile) : null;
+    }
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */
@@ -851,6 +980,18 @@ public class LombokPsiParser extends JavaParser {
       return null;
     }
 
+    @Override
+    public boolean isInterface() {
+      ensureInitialized();
+      return super.isInterface();
+    }
+
+    @Override
+    public boolean isEnum() {
+      ensureInitialized();
+      return super.isEnum();
+    }
+
     @Nullable
     @Override
     public ResolvedClass getContainingClass() {
@@ -1007,6 +1148,22 @@ public class LombokPsiParser extends JavaParser {
         }
       }
       return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isInterface() {
+      if (myClass != null) {
+        return myClass.isInterface();
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isEnum() {
+      if (myClass != null) {
+        return myClass.isEnum();
+      }
+      return false;
     }
 
     @Override

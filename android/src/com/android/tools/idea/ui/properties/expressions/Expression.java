@@ -30,12 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class Expression<T> extends AbstractObservableValue<T> implements ObservableValue<T> {
 
   @SuppressWarnings("FieldCanBeLocal") // must be local to avoid weak garbage collection
-  private final InvalidationListener myListener = new InvalidationListener() {
-    @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
-      notifyInvalidated();
-    }
-  };
+  private final InvalidationListener myListener = sender -> notifyInvalidated();
 
   protected Expression(ObservableValue... values) {
     if (values.length == 0) {

@@ -22,8 +22,10 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
@@ -37,7 +39,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Set;
 
-public class NlDefaultRenderer extends NlAttributeRenderer implements NlPropertyRenderer {
+public class NlDefaultRenderer extends NlAttributeRenderer {
   public static final int ICON_SIZE = 14;
   private final SimpleColoredComponent myLabel;
 
@@ -54,7 +56,6 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
     customize(p, col);
   }
 
-
   @VisibleForTesting
   void customize(NlProperty property, int column) {
     if (column == 0) {
@@ -66,22 +67,22 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
 
   private void appendValue(@NotNull NlProperty property) {
     String value = property.getValue();
-
+    String text = StringUtil.notNullize(value);
     Icon icon = getIcon(property);
     if (icon != null) {
       myLabel.setIcon(icon);
     }
-
-    if (value == null) {
-      value = "";
+    if (!property.isDefaultValue(value)) {
+      myLabel.setForeground(JBColor.BLUE);
     }
-    myLabel.append(value, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myLabel.setToolTipText(value);
+
+    myLabel.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    myLabel.setToolTipText(text);
   }
 
   @Nullable
   public static Icon getIcon(@NotNull NlProperty property) {
-    String text = property.getValue();
+    String text = property.getResolvedValue();
     if (text == null) {
       return null;
     }
@@ -90,7 +91,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
       return getColorIcon(text);
     }
 
-    Configuration configuration = property.getComponent().getModel().getConfiguration();
+    Configuration configuration = property.getModel().getConfiguration();
     //noinspection ConstantConditions
     if (configuration == null) { // happens in unit test
       return null;
@@ -124,7 +125,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
       return null;
     }
 
-    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getComponent().getModel().getProject()));
+    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
     return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath());
   }
 

@@ -26,8 +26,10 @@ import java.io.InputStream;
 
 import static com.android.tools.idea.rendering.RenderTestBase.assertImageSimilar;
 import static com.android.tools.idea.rendering.RenderTestBase.getTempDir;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.RELATIVE_DATA_PATH;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getTestDataDir;
+import static com.google.common.truth.Truth.assertAbout;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -85,7 +87,7 @@ public class ImageFixture {
       if (thumbnailDir == null) {
         thumbnailDir = getTempDir();
       }
-      assertTrue(thumbnailDir.getPath() + " does not exist", thumbnailDir.exists());
+      assertAbout(file()).that(thumbnailDir).isDirectory();
       File file = new File(thumbnailDir, relativePath.replace('/', File.separatorChar));
       if (file.exists()) {
         BufferedImage goldenImage = ImageIO.read(file);

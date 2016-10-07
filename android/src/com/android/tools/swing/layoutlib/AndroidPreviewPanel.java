@@ -24,6 +24,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
@@ -38,6 +39,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -59,7 +61,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private final Runnable myInvalidateRunnable = new Runnable() {
     @Override
     public void run() {
-      ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
+
       try {
         synchronized (myGraphicsLayoutRendererLock) {
           // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
@@ -70,6 +72,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
           }
         }
 
+        ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
         GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
           .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
         graphicsLayoutRenderer.setScale(myScale);
@@ -80,11 +83,22 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
           myGraphicsLayoutRenderer = graphicsLayoutRenderer;
         }
       }
+      catch (AlreadyDisposedException e) {
+        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread
+        // it can happen that create blocks until after the module has been disposed.
+        // In this case we just ignore it, since this might be a stale request.
+      }
       catch (UnsupportedLayoutlibException e) {
         notifyUnsupportedLayoutlib();
       }
       catch (InitializationException e) {
-        LOG.error(e);
+        Throwable cause = e.getCause();
+
+        if (cause instanceof UnsupportedJavaRuntimeException) {
+          notifyUnsupportedJavaRuntime(((UnsupportedJavaRuntimeException)cause).getPresentableMessage());
+        } else {
+          LOG.error(e);
+        }
       }
     }
   };
@@ -107,14 +121,29 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
     @Override
     protected void done() {
+      try {
+        get();
+      } catch (ExecutionException ex) {
+        Throwable t = ex.getCause();
+        if (t instanceof RuntimeException) {
+          throw (RuntimeException) t;
+        } else if (t instanceof Error) {
+          throw (Error) t;
+        } else {
+          throw new RuntimeException(t);
+        }
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+
       repaint();
     }
   }
 
   private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
-    new Notification("Android", "Layoutlib", "The Theme Editor preview requires at least Android M Preview SDK", NotificationType.ERROR);
-
+    new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
   private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
+  private static final AtomicBoolean ourJavaRuntimeNotification = new AtomicBoolean(false);
 
   private final DumbService myDumbService;
   private final Object myGraphicsLayoutRendererLock = new Object();
@@ -211,6 +240,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static void notifyUnsupportedLayoutlib() {
     if (ourLayoutlibNotification.compareAndSet(false, true)) {
       Notifications.Bus.notify(UNSUPPORTED_LAYOUTLIB_NOTIFICATION);
+    }
+  }
+
+  private static void notifyUnsupportedJavaRuntime(String message) {
+    if (ourJavaRuntimeNotification.compareAndSet(false, true)) {
+      Notifications.Bus.notify(new Notification("Android", "Preview", message, NotificationType.ERROR));
     }
   }
 

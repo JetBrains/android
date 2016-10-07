@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.fd.InstantRunConfigurable">
-  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="9" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="563" height="250"/>
@@ -18,7 +18,7 @@
       </component>
       <component id="3e826" class="com.intellij.ui.components.JBCheckBox" binding="myRestartActivityCheckBox">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Restart activity on code changes"/>
@@ -26,7 +26,7 @@
       </component>
       <vspacer id="a26c5">
         <constraints>
-          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="72ff4" class="com.intellij.ui.components.JBLabel" binding="myGradleLabel">
@@ -46,43 +46,15 @@
       </component>
       <component id="cad68" class="com.intellij.ui.components.JBCheckBox" binding="myShowToastCheckBox">
         <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Show toasts in the running app when changes are applied"/>
         </properties>
       </component>
-      <component id="fffd5" class="com.intellij.ui.components.JBCheckBox" binding="myColdSwapCheckBox">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="4" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <selected value="false"/>
-          <text value="Enable &quot;cold swap&quot;: push incompatible changes incrementally (API 21+)"/>
-        </properties>
-      </component>
-      <grid id="c2bd1" binding="myColdSwapPanel" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="8" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="b6192" class="com.intellij.ui.components.JBLabel">
-            <constraints/>
-            <properties>
-              <text value="(Experimental/Temporary) Cold swap scheme:"/>
-            </properties>
-          </component>
-          <component id="8ebaa" class="javax.swing.JComboBox" binding="myColdSwapMode">
-            <constraints/>
-            <properties/>
-          </component>
-        </children>
-      </grid>
       <component id="dbc36" class="com.intellij.ui.components.JBCheckBox" binding="myShowIrStatusNotifications">
         <constraints>
-          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Show Instant Run status notifications"/>

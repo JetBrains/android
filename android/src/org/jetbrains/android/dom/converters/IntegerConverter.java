@@ -36,7 +36,7 @@ public class IntegerConverter extends ResolvingConverter<String> {
 
   @NotNull
   @Override
-  public Collection<? extends String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 

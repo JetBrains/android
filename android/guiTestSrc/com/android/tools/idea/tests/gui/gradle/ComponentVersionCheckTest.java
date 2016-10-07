@@ -15,28 +15,39 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import org.intellij.lang.annotations.Language;
 import org.jdom.JDOMException;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
-import static org.fest.assertions.Assertions.assertThat;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
-public class ComponentVersionCheckTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class ComponentVersionCheckTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
   @After
   public void removeTestMetadata() {
     VersionCompatibilityService.getInstance().reloadMetadata();
@@ -59,16 +70,16 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatibility>";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    myProjectFrame = importSimpleApplication();
-
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
-
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
-
+    MessageFixture message = guiTest.importSimpleApplication()
+      .updateGradleWrapperVersion("2.4")
+      .updateAndroidGradlePluginVersion("1.3.0")
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
     String text = message.getText();
-    assertThat(text).as("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
+    assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
 
     message.findHyperlink("Fix plugin version and sync project");
   }
@@ -91,17 +102,16 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatiblity>\n";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    myProjectFrame = importSimpleApplication();
-
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
-
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message =
-      syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.5.0"));
-
-    String text = message.getText();
-    assertThat(text).as("custom failure message").contains("The project will not build.")
-      .contains("Please use Android Gradle plugin 1.5.0 or newer.");
+    String text = guiTest.importSimpleApplication()
+      .updateGradleWrapperVersion("2.4")
+      .updateAndroidGradlePluginVersion("1.3.0")
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' "))
+      .getText();
+    assertThat(text).named("custom failure message").contains("The project will not build.");
+    assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
   }
 }

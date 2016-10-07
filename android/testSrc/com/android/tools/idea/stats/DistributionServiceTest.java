@@ -180,7 +180,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
-    final FutureResult<Boolean> result = new FutureResult<Boolean>();
+    final FutureResult<Boolean> result = new FutureResult<>();
     service.refresh(new Runnable() {
       @Override
       public void run() {
@@ -217,7 +217,7 @@ public class DistributionServiceTest extends AndroidTestCase {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
-    final FutureResult<Boolean> result = new FutureResult<Boolean>();
+    final FutureResult<Boolean> result = new FutureResult<>();
     service.refresh(new Runnable() {
       @Override
       public void run() {

@@ -19,16 +19,19 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacetConfiguration;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacetType;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Adds the Native Android Gradle facet to modules imported from {@link NativeAndroidProject}s.
@@ -59,6 +62,24 @@ public class NativeAndroidGradleFacetModuleCustomizer implements ModuleCustomize
   }
 
   private static void configureFacet(@NotNull NativeAndroidGradleFacet facet, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
+    NativeAndroidGradleFacetConfiguration configuration = facet.getConfiguration();
+    String selectedVariant = configuration.SELECTED_BUILD_VARIANT;
+    if (isNotEmpty(selectedVariant)) {
+
+      // Keep the variant in the android model and the native android model in sync.
+      // See https://code.google.com/p/android/issues/detail?id=219116
+      Module module = facet.getModule();
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null) {
+        String variant = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
+        if (isNotEmpty(variant) && !variant.equals(selectedVariant)) {
+          selectedVariant = variant;
+          configuration.SELECTED_BUILD_VARIANT = selectedVariant;
+        }
+      }
+      nativeAndroidModel.setSelectedVariantName(selectedVariant);
+    }
+
     facet.setNativeAndroidGradleModel(nativeAndroidModel);
   }
 }

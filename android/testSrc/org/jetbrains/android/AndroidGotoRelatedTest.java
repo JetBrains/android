@@ -181,7 +181,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
 
     final List<LineMarkerInfo> markers = DaemonCodeAnalyzerImpl.getLineMarkers(
       myFixture.getEditor().getDocument(), myFixture.getProject());
-    final List<LineMarkerInfo> relatedMarkers = new ArrayList<LineMarkerInfo>();
+    final List<LineMarkerInfo> relatedMarkers = new ArrayList<>();
 
     for (LineMarkerInfo marker : markers) {
       if (marker.getNavigationHandler() instanceof AndroidLineMarkerProvider.MyNavigationHandler) {
@@ -192,7 +192,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   }
 
   private static void doCheckItems(List<VirtualFile> expectedTargetFiles, List<GotoRelatedItem> items, Class<?> targetElementClass) {
-    final Set<VirtualFile> targetFiles = new HashSet<VirtualFile>();
+    final Set<VirtualFile> targetFiles = new HashSet<>();
 
     for (GotoRelatedItem item : items) {
       final PsiElement element = item.getElement();
@@ -201,6 +201,6 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
       assertNotNull(targetFile);
       targetFiles.add(targetFile);
     }
-    assertEquals(new HashSet<VirtualFile>(expectedTargetFiles), targetFiles);
+    assertEquals(new HashSet<>(expectedTargetFiles), targetFiles);
   }
 }

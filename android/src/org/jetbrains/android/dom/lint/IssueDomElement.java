@@ -18,12 +18,18 @@ package org.jetbrains.android.dom.lint;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.util.xml.*;
 
+import java.util.List;
+
 public interface IssueDomElement extends DomElement {
   @Required
   @Attribute("id")
+  @Convert(IssueIdConverter.class)
   GenericAttributeValue<String> getId();
 
   @Attribute("severity")
   @Convert(SeverityConverter.class)
   GenericAttributeValue<Severity> getSeverity();
+
+  @SubTagList("ignore")
+  List<IgnoreDomElement> getIgnores();
 }

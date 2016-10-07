@@ -20,6 +20,7 @@ package com.android.tools.idea.editors.gfxtrace.service.atom;
 public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
+    Aborted.register();
     Range.register();
     AtomGroup.register();
     AtomList.register();

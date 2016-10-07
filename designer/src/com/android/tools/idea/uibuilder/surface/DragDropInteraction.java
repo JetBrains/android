@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -27,10 +25,12 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -83,7 +83,7 @@ public class DragDropInteraction extends Interaction {
   /** The transfer item for this drag if any */
   private DnDTransferItem myTransferItem;
 
-  public DragDropInteraction(@NonNull DesignSurface designSurface, @NonNull List<NlComponent> dragged) {
+  public DragDropInteraction(@NotNull DesignSurface designSurface, @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
   }
@@ -95,7 +95,7 @@ public class DragDropInteraction extends Interaction {
     }
   }
 
-  public void setTransferItem(@NonNull DnDTransferItem item) {
+  public void setTransferItem(@NotNull DnDTransferItem item) {
     myTransferItem = item;
   }
 
@@ -105,28 +105,33 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.begin(x, y, modifiers);
     moveTo(x, y, modifiers, false);
+    myDesignSurface.startDragDropInteraction();
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     myScreenView = myDesignSurface.getScreenView(x, y);
     if (myScreenView != null && !canceled) {
-      myScreenView.getModel().renderImmediately();
+      myScreenView.getModel().notifyModified(NlModel.ChangeType.DND_END);
     }
+    if (canceled && myDragHandler != null) {
+      myDragHandler.cancel();
+    }
+    myDesignSurface.stopDragDropInteraction();
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
     myScreenView = myDesignSurface.getScreenView(x, y);
     if (myScreenView == null) {
       return;
@@ -176,12 +181,13 @@ public class DragDropInteraction extends Interaction {
       String error = myDragHandler.update(ax, ay, modifiers);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
+        added.addAll(myDraggedComponents);
         final NlModel model = myScreenView.getModel();
         XmlFile file = model.getFile();
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
-          protected void run(@NonNull Result result) throws Throwable {
+          protected void run(@NotNull Result result) throws Throwable {
             myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
 
             NlComponent before = null;
@@ -195,7 +201,7 @@ public class DragDropInteraction extends Interaction {
           }
         };
         action.execute();
-        model.notifyModified();
+        model.notifyModified(NlModel.ChangeType.DND_COMMIT);
         // Select newly dropped components
         model.getSelectionModel().setSelection(added);
       }
@@ -246,7 +252,7 @@ public class DragDropInteraction extends Interaction {
     return null;
   }
 
-  private boolean dropIsPossible(@NonNull ViewHandlerManager handlerManager, @NonNull NlComponent component, @NonNull ViewGroupHandler layout) {
+  private boolean dropIsPossible(@NotNull ViewHandlerManager handlerManager, @NotNull NlComponent component, @NotNull ViewGroupHandler layout) {
     for (NlComponent dragged : myDraggedComponents) {
       if (!layout.acceptsChild(component, dragged)) {
         return false;
@@ -276,7 +282,7 @@ public class DragDropInteraction extends Interaction {
     return Collections.<Layer>singletonList(new DragLayer());
   }
 
-  @NonNull
+  @NotNull
   public List<NlComponent> getDraggedComponents() {
     return myDraggedComponents;
   }
@@ -307,7 +313,7 @@ public class DragDropInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NonNull Graphics2D gc) {
+    public void paint(@NotNull Graphics2D gc) {
       if (myDragHandler != null) {
         myDragHandler.paint(new NlGraphics(gc, myScreenView));
       }

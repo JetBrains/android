@@ -64,23 +64,21 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final Project project = e.getProject();
-    final boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
-    final FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
+    Project project = e.getProject();
+    boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
+    FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
     descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
 
-    chooseFiles(descriptor, project, getUserHomeDir(), new Consumer<List<VirtualFile>>() {
-      @Override
-      public void consume(final List<VirtualFile> files) {
-        for (VirtualFile file : files) {
-          if (!descriptor.isFileSelectable(file)) {
-            String message = IdeBundle.message("error.dir.contains.no.project", file.getPresentableUrl());
-            Messages.showInfoMessage(project, message, IdeBundle.message("title.cannot.open.project"));
-            return;
-          }
+    final VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
+    chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
+      for (VirtualFile file : files) {
+        if (!descriptor.isFileSelectable(file)) {
+          String message = IdeBundle.message("error.dir.contains.no.project", file.getPresentableUrl());
+          Messages.showInfoMessage(project, message, IdeBundle.message("title.cannot.open.project"));
+          return;
         }
-        doOpenFile(project, files);
       }
+      doOpenFile(project, files);
     });
 
   }

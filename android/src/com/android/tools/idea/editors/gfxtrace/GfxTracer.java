@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
@@ -31,30 +30,25 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.regex.Pattern;
 
 public class GfxTracer {
   private static final long UPDATE_FREQUENCY_MS = 500;
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTracer.class);
-  @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
-  @NotNull private static final int GAPII_PORT = 9286;
+  private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
   private static final int GAPII_PROTOCOL_VERSION = 3;
   private static final int GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS = 0x00000001;
-
-  @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$|^Disabled$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
   @NotNull final CaptureHandle myCapture;
   @NotNull final Listener myListener;
+  private final Project myProject;
 
   private volatile boolean myStopped = false;
 
@@ -93,7 +87,7 @@ public class GfxTracer {
 
     void onStopped();
 
-    void onError(@NotNull String error);
+    void onError(@NotNull Exception error);
   }
 
   public static GfxTracer launch(@NotNull final Project project,
@@ -103,10 +97,11 @@ public class GfxTracer {
                                  @NotNull final Options options,
                                  @NotNull final Listener listener) {
     final GfxTracer tracer = new GfxTracer(project, device, options, listener);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
         tracer.launchAndCapture(pkg, act, options);
+      } catch (Exception ex) {
+        listener.onError(ex); // Update the trace dialog to let the user know something went wrong.
       }
     });
     return tracer;
@@ -114,13 +109,15 @@ public class GfxTracer {
 
   public static GfxTracer listen(@NotNull final Project project,
                                  @NotNull final IDevice device,
+                                 @NotNull final String packageName,
                                  @NotNull final Options options,
                                  @NotNull final Listener listener) {
     final GfxTracer tracer = new GfxTracer(project, device, options, listener);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        tracer.capture(options);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        tracer.attachTracerAndCapture(packageName, options);
+      } catch (Exception ex) {
+        listener.onError(ex);
       }
     });
     return tracer;
@@ -130,77 +127,32 @@ public class GfxTracer {
     myCaptureService = CaptureService.getInstance(project);
     myDevice = device;
     myListener = listener;
+    myProject = project;
+
     try {
-      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName);
+      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName, true);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) {
-    try {
-      myListener.onAction("Launching application...");
-      String abi = pkg.myABI;
-      if (abi == null) {
-        // Package has no preferential ABI. Use device ABI instead.
-        abi = myDevice.getAbis().get(0);
-      }
-      final File myGapii = GapiPaths.findTraceLibrary(abi);
-      String component = pkg.myName + "/" + act.myName;
-      // Switch adb to root mode, if not already
-      myDevice.root();
-      // turn off selinux enforce if it is on, and remember the state so we can reset it when we are done
-      String enforced = captureAdbShell(myDevice, "getenforce");
-      boolean wasEnforcing;
-      if (ENFORCING_PATTERN.matcher(enforced).find()) {
-        wasEnforcing = true;
-      }
-      else if (PERMISSIVE_PATTERN.matcher(enforced).find()) {
-        wasEnforcing = false;
-      }
-      else {
-        LOG.error("Unexpected getenforce result'" + enforced + "'");
-        wasEnforcing = true;
-      }
-      if (wasEnforcing) {
-        captureAdbShell(myDevice, "setenforce 0");
-      }
-      try {
-        // The property name must have at most 31 characters and must not end with dot.
-        String propName = "wrap." + pkg.myName;
-        if (propName.length() > 31) {
-          propName = propName.substring(0, 31);
-        }
-        while (propName.endsWith(".")) {
-          propName = propName.substring(0, propName.length() - 1);
-        }
-        // push the spy down to the device
-        myDevice.pushFile(myGapii.getAbsolutePath(), PRELOAD_LIB);
-        // Put gapii in the library preload
-        captureAdbShell(myDevice, "setprop " + propName + " LD_PRELOAD=" + PRELOAD_LIB);
-        try {
-          // Launch the app with the spy enabled
-          captureAdbShell(myDevice, "am start -S -W -n " + component);
-          capture(options);
-        }
-        finally {
-          // Undo the preload wrapping
-          captureAdbShell(myDevice, "setprop " + propName + " \"\"");
-        }
-      }
-      finally {
-        if (wasEnforcing) {
-          captureAdbShell(myDevice, "setenforce 1");
-        }
-      }
-    }
-    catch (RuntimeException e) {
-      throw e;
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) throws Exception {
+    myListener.onAction("Launching application...");
+    String component = pkg.myName + "/" + act.myName;
+    // Switch adb to root mode, if not already
+    myDevice.root();
+
+    // Launch the app in debug mode.
+    captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
+    attachTracerAndCapture(pkg.myName, options);
+  }
+
+  private void attachTracerAndCapture(@NotNull String pkg, @NotNull Options options) throws Exception {
+    myListener.onAction("Installing trace library...");
+    new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg);
+    LOG.info("Finished installing libraries, capturing.");
+    capture(options);
   }
 
   private void capture(@NotNull Options options) {
@@ -278,6 +230,7 @@ public class GfxTracer {
     long lastUpdateMS = 0;
     long total = 0;
     byte[] buffer = new byte[4096];
+    int retriesLeft = 60;
     try {
       // Now loop until we get a connection
       int len = 0;
@@ -288,7 +241,15 @@ public class GfxTracer {
           socket.setSoTimeout(500);
           sendHeader(socket, options);
         }
-        len = copyBlock(socket, myCapture, buffer);
+        try {
+          len = copyBlock(socket, myCapture, buffer);
+        } catch (IOException ex) {
+          if (total == 0 && retriesLeft > 0) {
+            len = -1;
+          } else {
+            throw ex;
+          }
+        }
         if (len > 0) {
           if (total == 0) {
             myListener.onAction("Tracing...");
@@ -303,7 +264,7 @@ public class GfxTracer {
         else if (len < 0) {
           socket.close();
           socket = null;
-          if (total == 0) {
+          if (total == 0 && retriesLeft-- > 0) {
             // If we have never read any data, just try again in a bit
             Thread.sleep(500);
           }

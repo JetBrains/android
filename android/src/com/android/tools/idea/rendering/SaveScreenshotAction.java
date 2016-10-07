@@ -18,8 +18,9 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -38,24 +39,36 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class SaveScreenshotAction extends AnAction {
-  private final RenderContext myContext;
+  private final DesignSurface mySurface;
 
-  public SaveScreenshotAction(RenderContext context) {
+  public SaveScreenshotAction(DesignSurface surface) {
     super("Save Screenshot...", null, AndroidIcons.Ddms.ScreenCapture);
-    myContext = context;
+    mySurface = surface;
   }
 
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
-    e.getPresentation().setEnabled(myContext.getRenderedImage() != null && e.getProject() != null);
+    e.getPresentation().setEnabled(getImage() != null && e.getProject() != null);
+  }
+
+  @Nullable
+  private BufferedImage getImage() {
+    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    if (currentScreenView != null) {
+      RenderResult result = currentScreenView.getResult();
+      if (result != null) {
+        return result.getRenderedImage();
+      }
+    }
+    return null;
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     final Project project = e.getProject();
     try {
-      BufferedImage image = myContext.getRenderedImage();
+      BufferedImage image = getImage();
       assert image != null && project != null; // enforced by update() above
 
       // We need to create a temp file since the image preview editor requires a real file
@@ -84,7 +97,7 @@ public class SaveScreenshotAction extends AnAction {
 
   @Nullable
   private String getDeviceName() {
-    Configuration config = myContext.getConfiguration();
+    Configuration config = mySurface.getConfiguration();
     if (config == null) {
       return null;
     }

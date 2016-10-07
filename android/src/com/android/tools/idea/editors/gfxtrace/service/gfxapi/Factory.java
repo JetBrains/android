@@ -22,6 +22,8 @@ public final class Factory {
     //<<<Start:Java.FactoryBody:2>>>
     CubemapLevel.register();
     Cubemap.register();
+    IndexBuffer.register();
+    Mesh.register();
     Texture2D.register();
     //<<<End:Java.FactoryBody:2>>>
   }

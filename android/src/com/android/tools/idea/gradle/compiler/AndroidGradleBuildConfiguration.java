@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
@@ -29,7 +30,8 @@ import java.util.List;
 @State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean USE_CONFIGURATION_ON_DEMAND = true;
-  public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
+  public boolean USE_EXPERIMENTAL_FASTER_BUILD = AndroidStudioInitializer.isAndroidStudio();
+  public boolean SYNC_PROJECT_BEFORE_BUILD;
   public String COMMAND_LINE_OPTIONS = "";
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {

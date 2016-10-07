@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,6 +32,8 @@ import java.util.Set;
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
+ *
+ * TODO: Rename this class to something different as this will be conflicting with GradlePropertiesModel
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElement {
   @NotNull private Map<String, GradleDslElement> myProperties = Maps.newLinkedHashMap();
@@ -145,21 +148,36 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   /**
+   * Returns the value of the give {@code property} of the type {@code clazz} along with the variable resolution history.
+   *
+   * <p>The returned {@link GradleNullableValue} may contain a {@code null} value when either the given {@code property} does not exists in
+   * this element or the given {@code property} value is not of the type {@code clazz}.
+   */
+  @NotNull
+  public <T> GradleNullableValue<T> getPropertyValue(@NotNull String property, @NotNull Class<T> clazz) {
+    GradleDslElement propertyElement = getPropertyElement(property);
+    if (propertyElement != null) {
+      T resultValue = null;
+      if (clazz.isInstance(propertyElement)) {
+        resultValue = clazz.cast(propertyElement);
+      }
+      else if (propertyElement instanceof GradleDslExpression) {
+        resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
+      }
+      if (resultValue != null) {
+        return new GradleNullableValue<>(propertyElement, resultValue);
+      }
+    }
+    return new GradleNullableValue<>(this, null);
+  }
+
+  /**
    * Returns the value of the given {@code property} of the type {@code clazz}, or {@code null} when either the given {@code property} does
    * not exists in this element or the given {@code property} value is not of the type {@code clazz}.
    */
   @Nullable
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    GradleDslElement propertyElement = getPropertyElement(property);
-    if (propertyElement != null) {
-      if (clazz.isInstance(propertyElement)) {
-        return clazz.cast(propertyElement);
-      }
-      else if (propertyElement instanceof GradleDslExpression) {
-        return ((GradleDslExpression)propertyElement).getValue(clazz);
-      }
-    }
-    return null;
+    return getPropertyValue(property, clazz).value();
   }
 
   /**
@@ -364,13 +382,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @Override
   protected void reset() {
-    myToBeRemovedProperties.clear();
-    myToBeAddedProperties.clear();
-    for (GradleDslElement element : myProperties.values()) {
+    for (GradleDslElement element : getPropertyElements().values()) {
       if (element.isModified()) {
         element.resetState();
       }
     }
+    myToBeAddedProperties.clear();
+    myToBeRemovedProperties.clear();
   }
 
   protected void clear() {

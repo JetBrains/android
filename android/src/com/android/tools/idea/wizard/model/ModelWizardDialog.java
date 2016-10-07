@@ -16,24 +16,32 @@
 package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
+import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
+import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.net.URL;
 
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
 
@@ -43,7 +51,13 @@ import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpre
  * Note that the dialog owns responsibility for starting the wizard. If you start it externally
  * first, this dialog will throw an exception on {@link #show()}.
  */
-public final class ModelWizardDialog extends DialogWrapper {
+public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.ResultListener {
+  public enum CancellationPolicy {
+    ALWAYS_CAN_CANCEL,
+    CAN_CANCEL_UNTIL_CAN_FINISH
+  }
+
+  private CancellationPolicy myCancellationPolicy = CancellationPolicy.ALWAYS_CAN_CANCEL;
 
   @SuppressWarnings("NullableProblems") // Always NotNull but initialized indirectly in constructor
   @NotNull
@@ -53,28 +67,42 @@ public final class ModelWizardDialog extends DialogWrapper {
   private ListenerManager myListeners = new ListenerManager();
 
   @Nullable private CustomLayout myCustomLayout;
+  @Nullable private URL myHelpUrl;
+
+  @NotNull
+  @Override
+  protected Action[] createLeftSideActions() {
+    return new Action[] { new StepActionWrapper() };
+  }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
                            @Nullable CustomLayout customLayout,
                            @Nullable Project project,
-                           @NotNull IdeModalityType modalityType) {
+                           @Nullable URL helpUrl,
+                           @NotNull IdeModalityType modalityType,
+                           @NotNull CancellationPolicy cancellationPolicy) {
     super(project, true, modalityType);
-    init(wizard, title, customLayout);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
                            @NotNull Component parent,
-                           @Nullable CustomLayout customLayout) {
+                           @Nullable CustomLayout customLayout,
+                           @Nullable URL helpUrl,
+                           @NotNull CancellationPolicy cancellationPolicy) {
     super(parent, true);
-    init(wizard, title, customLayout);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
-  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout) {
+  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl, @NotNull CancellationPolicy cancellationPolicy) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
+    myWizard.addResultListener(this);
     myCustomLayout = customLayout;
+    myHelpUrl = helpUrl;
+    myCancellationPolicy = cancellationPolicy;
     setTitle(title);
 
     init();
@@ -89,13 +117,9 @@ public final class ModelWizardDialog extends DialogWrapper {
     super.dispose();
     myBindings.releaseAll();
     myListeners.releaseAll();
+    myWizard.removeResultListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   * <p/>
-   * As a side effect, this starts the wizard.
-   */
   @Override
   public void show() {
     // TODO: Why is this necessary? Why is DialogWrapper ignoring setSize unless I do this?
@@ -123,25 +147,56 @@ public final class ModelWizardDialog extends DialogWrapper {
     return centerPanel;
   }
 
+  @Override
+  protected void doHelpAction() {
+    // This should never be called unless myHelpUrl is non-null (see createActions)
+    assert myHelpUrl != null;
+    BrowserUtil.browse(myHelpUrl);
+  }
+
+  @Override
+  public void doCancelAction() {
+    myWizard.cancel();
+    // DON'T call super.doCancelAction - that's triggered by onWizardFinished
+  }
+
+  @Override
+  public void doOKAction() {
+    // OK doesn't work directly. This dialog only closes when the underlying wizard closes.
+    // super.doOKAction is triggered by onWizardFinished
+  }
+
+  @Override
+  public void onWizardFinished(boolean success) {
+    // Only progress when we know the underlying wizard is done. Call the super methods directly
+    // since we stubbed out our local overrides.
+    if (success) {
+      super.doOKAction();
+    }
+    else {
+      super.doCancelAction();
+    }
+  }
+
   @NotNull
   @Override
   protected Action[] createActions() {
     NextAction nextAction = new NextAction();
     PreviousAction prevAction = new PreviousAction();
     FinishAction finishAction = new FinishAction();
-
-    if (getHelpId() == null) {
+    CancelAction cancelAction = new CancelAction(myCancellationPolicy);
+    if (myHelpUrl == null) {
       if (SystemInfo.isMac) {
-        return new Action[]{getCancelAction(), prevAction, nextAction, finishAction};
+        return new Action[]{cancelAction, prevAction, nextAction, finishAction};
       }
 
-      return new Action[]{prevAction, nextAction, getCancelAction(), finishAction};
+      return new Action[]{prevAction, nextAction, cancelAction, finishAction};
     }
     else {
       if (SystemInfo.isMac) {
-        return new Action[]{getHelpAction(), getCancelAction(), prevAction, nextAction, finishAction};
+        return new Action[]{getHelpAction(), cancelAction, prevAction, nextAction, finishAction};
       }
-      return new Action[]{prevAction, nextAction, getCancelAction(), finishAction, getHelpAction()};
+      return new Action[]{prevAction, nextAction, cancelAction, finishAction, getHelpAction()};
     }
   }
 
@@ -158,13 +213,11 @@ public final class ModelWizardDialog extends DialogWrapper {
     if (action instanceof ModelWizardDialogAction) {
       ModelWizardDialogAction wizardAction = (ModelWizardDialogAction)action;
       myBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
-      myListeners.listenAndFire(wizardAction.shouldBeDefault(), new Consumer<Boolean>() {
-        @Override
-        public void consume(Boolean isDefault) {
-          JRootPane rootPane = getRootPane();
-          if (rootPane != null && isDefault) {
-            rootPane.setDefaultButton(button);
-          }
+      myBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
+      myListeners.receiveAndFire(wizardAction.shouldBeDefault(), isDefault -> {
+        JRootPane rootPane = getRootPane();
+        if (rootPane != null && isDefault) {
+          rootPane.setDefaultButton(button);
         }
       });
     }
@@ -194,6 +247,11 @@ public final class ModelWizardDialog extends DialogWrapper {
 
     @NotNull
     public abstract ObservableBool shouldBeEnabled();
+
+    @NotNull
+    public ObservableBool shouldBeVisible() {
+      return BooleanExpressions.alwaysTrue();
+    }
 
     @NotNull
     public ObservableBool shouldBeDefault() {
@@ -249,7 +307,6 @@ public final class ModelWizardDialog extends DialogWrapper {
     @Override
     protected void doAction(ActionEvent e) {
       myWizard.goForward();
-      doOKAction();
     }
 
     @Override
@@ -262,6 +319,98 @@ public final class ModelWizardDialog extends DialogWrapper {
     @Override
     public ObservableBool shouldBeDefault() {
       return myWizard.onLastStep();
+    }
+  }
+
+  private final class CancelAction extends ModelWizardDialogAction {
+    private final CancellationPolicy myCancellationPolicy;
+
+    private CancelAction(@NotNull CancellationPolicy cancellationPolicy) {
+      super(IdeBundle.message("button.cancel"));
+      myCancellationPolicy = cancellationPolicy;
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      doCancelAction();
+    }
+
+    @Override
+    @NotNull
+    public ObservableBool shouldBeEnabled() {
+      switch (myCancellationPolicy) {
+        case CAN_CANCEL_UNTIL_CAN_FINISH:
+          return not(myWizard.onLastStep().and(myWizard.canGoForward()));
+        case ALWAYS_CAN_CANCEL:
+        default:
+          return BooleanExpressions.alwaysTrue();
+      }
+    }
+  }
+
+  /**
+   * A {@link ModelWizardDialogAction} that behaves (in terms of name, enabled status, and actual action implementation) like the
+   * {@link ModelWizardStep#getExtraAction() extra action} of the current step in our wizard. If the current step has no extra action,
+   * {@link #shouldBeVisible()} will be false.
+   */
+  private final class StepActionWrapper extends ModelWizardDialogAction {
+    private final BoolValueProperty myEnabled = new BoolValueProperty(false);
+    private final ObservableOptional<Action> myExtraAction;
+    private PropertyChangeListener myActionListener;
+
+
+    @NotNull
+    @Override
+    public ObservableBool shouldBeVisible() {
+      return myExtraAction.isPresent();
+    }
+
+    public StepActionWrapper() {
+      super("");
+
+      myExtraAction = myWizard.getExtraAction();
+
+      InvalidationListener extraActionChangedListener = new InvalidationListener() {
+        Action myActiveAction = null;
+
+        @Override
+        public void onInvalidated(@NotNull ObservableValue<?> sender) {
+          if (myActiveAction != null && myActionListener != null) {
+            myActiveAction.removePropertyChangeListener(myActionListener);
+          }
+          myActiveAction = myExtraAction.getValueOrNull();
+          if (myActiveAction != null) {
+            StepActionWrapper.this.putValue(NAME, myActiveAction.getValue(NAME));
+            myActionListener = new PropertyChangeListener() {
+              @Override
+              public void propertyChange(PropertyChangeEvent evt) {
+                if ("enabled".equals(evt.getPropertyName())) {
+                  myEnabled.set((Boolean)evt.getNewValue());
+                }
+              }
+            };
+            myActiveAction.addPropertyChangeListener(myActionListener);
+            myEnabled.set(myActiveAction.isEnabled());
+          }
+          else {
+            myActionListener = null;
+          }
+        }
+      };
+      myExtraAction.addListener(extraActionChangedListener);
+      extraActionChangedListener.onInvalidated(myExtraAction);
+    }
+
+    @NotNull
+    @Override
+    public ObservableBool shouldBeEnabled() {
+      return myEnabled;
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      assert myExtraAction.get().isPresent();
+      myExtraAction.getValue().actionPerformed(e);
     }
   }
 }

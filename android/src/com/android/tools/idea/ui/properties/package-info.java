@@ -18,7 +18,7 @@
  * Provides classes that wrap values which can then be queried, set, and chained together via bindings.
  * <p/>
  * In Java, the concept of properties is traditionally implemented by convention, requiring strictly named {@code getXXX} and {@code setXXX}
- * methods. However, wrapping this concept in a class (see {@link com.android.tools.idea.ui.properties.ObservableProperty}) makes this
+ * methods. However, wrapping this concept in a class (see {@link com.android.tools.idea.ui.properties.AbstractProperty}) makes this
  * behavior more explicit and allows setting up relationships between properties via bindings
  * (see {@link com.android.tools.idea.ui.properties.BindingsManager}).
  * <p/>

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Maps;
@@ -196,6 +197,13 @@ public class GradleProjectSyncData implements Serializable {
         data.addFileChecksum(rootDirPath, new File(rootDirPath, FN_GRADLE_PROPERTIES));
         data.addFileChecksum(rootDirPath, new File(rootDirPath, FN_LOCAL_PROPERTIES));
         data.addFileChecksum(rootDirPath, getGradleUserSettingsFile());
+      }
+
+      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+      if (nativeAndroidModel != null) {
+        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+          data.addFileChecksum(rootDirPath, externalBuildFile);
+        }
       }
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);

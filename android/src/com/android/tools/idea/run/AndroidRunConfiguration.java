@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkProjects;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.filters.TextConsoleBuilder;
@@ -37,7 +39,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -55,6 +56,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -115,12 +117,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
-      return new GradleApkProvider(facet, false);
+      return new GradleApkProvider(facet, applicationIdProvider, false);
     }
-    return new NonGradleApkProvider(facet, ARTIFACT_NAME);
+    AndroidApkFacet androidApkFacet = AndroidApkFacet.getInstance(facet.getModule());
+    if (androidApkFacet != null) {
+      return new FileSystemApkProvider(androidApkFacet.getModule(), new File(androidApkFacet.getConfiguration().APK_PATH));
+    }
+    return new NonGradleApkProvider(facet, applicationIdProvider, ARTIFACT_NAME);
   }
 
   @NotNull
@@ -179,6 +184,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
+  public int getUserIdFromAmParameters() {
+    return MultiUserUtils.getUserIdFromAmParameters(ACTIVITY_EXTRA_FLAGS);
+  }
+
+  @Override
   public boolean supportsInstantRun() {
     return true;
   }
@@ -190,16 +200,18 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
+    final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
+      getAndroidDebugger(), getAndroidDebuggerState(), getProfilerState(), getProject(), waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+
     try {
-      String applicationId = apkProvider.getPackageName();
-      return state.getLaunchTask(applicationId, facet, waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);

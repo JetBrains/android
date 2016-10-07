@@ -15,44 +15,52 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.RepoPackage;
-import com.android.repository.api.SettingsController;
-import com.android.repository.impl.installer.PackageInstaller;
+import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdkv2.StudioSdkUtil;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.validation.validators.FalseValidator;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import java.awt.event.ActionEvent;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@link ModelWizardStep} responsible for installing all selected packages before allowing the user the proceed.
@@ -74,45 +82,47 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private JProgressBar myProgressBar;
   private JBLabel myProgressDetailLabel;
 
-  private List<RemotePackage> myInstallRequests;
+  private List<UpdatablePackage> myInstallRequests;
+  private Collection<LocalPackage> myUninstallRequests;
+
   // Ok to keep a reference, since the wizard is short-lived and modal.
   private final RepoManager myRepoManager;
   private final AndroidSdkHandler mySdkHandler;
-  private CustomLogger myCustomLogger;
+  private com.android.repository.api.ProgressIndicator myLogger;
   private static final Object LOGGER_LOCK = new Object();
+  private final BackgroundAction myBackgroundAction = new BackgroundAction();
+  private final boolean myBackgroundable;
 
-  @NotNull private final SettingsController mySettings = StudioSettingsController.getInstance();
-
-  @NotNull private final Runnable myOnError = new Runnable() {
-    @Override
-    public void run() {
-      myInstallFailed.set(true);
-      myProgressBar.setEnabled(false);
-    }
-  };
-
-  public InstallSelectedPackagesStep(@NotNull List<RemotePackage> installRequests,
-                                     @NotNull RepoManager mgr,
-                                     @NotNull AndroidSdkHandler sdkHandler) {
+  public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
+                                     @NotNull Collection<LocalPackage> uninstallRequests,
+                                     @NotNull AndroidSdkHandler sdkHandler,
+                                     boolean backgroundable) {
     super("Component Installer");
     myInstallRequests = installRequests;
-    myRepoManager = mgr;
+    myUninstallRequests = uninstallRequests;
     mySdkHandler = sdkHandler;
+    myRepoManager = sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
+    myBackgroundable = backgroundable;
+  }
+
+  @Override
+  public Action getExtraAction() {
+    return myBackgroundable ? myBackgroundAction : null;
   }
 
   /**
    * Look through the list of completed changes, and set a key if any new platforms
    * were installed.
    */
-  private static void checkForUpgrades(@Nullable List<? extends RepoPackage> completedChanges) {
+  private static void checkForUpgrades(@Nullable List<UpdatablePackage> completedChanges) {
     if (completedChanges == null) {
       return;
     }
     int highestNewApiLevel = 0;
-    for (RepoPackage updated : completedChanges) {
-      TypeDetails details = updated.getTypeDetails();
+    for (UpdatablePackage updated : completedChanges) {
+      TypeDetails details = updated.getRepresentative().getTypeDetails();
       if (details instanceof DetailsTypes.PlatformDetailsType) {
         int api = ((DetailsTypes.PlatformDetailsType)details).getApiLevel();
         if (api > highestNewApiLevel) {
@@ -129,26 +139,13 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     // This will show a warning to the user once installation starts and will disable the next/finish button until installation finishes
-    myValidatorPanel.registerValidator(myInstallationFinished, new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean value) {
-        return (value) ? Result.OK : new Result(Severity.INFO, "Please wait until the installation finishes to continue");
-      }
-    });
+    String finishedText = "Please wait until the installation finishes to continue";
+    myValidatorPanel.registerValidator(myInstallationFinished, new TrueValidator(Validator.Severity.INFO, finishedText));
 
+    String installError = "Install failed. Please check the installation log and try again.";
+    myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
 
-    myValidatorPanel.registerValidator(myInstallFailed, new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean value) {
-        String error = "Install Failed. Please check your network connection and try again. " +
-                       "You may continue with creating your project, but it will not compile correctly " +
-                       "without the missing components.";
-
-        return (value) ? new Result(Severity.ERROR, error) : Result.OK;
-      }
-    });
+    myBackgroundAction.setWizard(wizard);
   }
 
   @Override
@@ -161,7 +158,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   @Override
   protected boolean shouldShow() {
-    return myInstallRequests.size() > 0;
+    return !myInstallRequests.isEmpty() || !myUninstallRequests.isEmpty();
   }
 
   @Override
@@ -184,18 +181,20 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   public void dispose() {
     synchronized (LOGGER_LOCK) {
-      if (myCustomLogger != null) {
-        myCustomLogger.cancel();
+      // If we're backgrounded, don't cancel when the window closes; allow the operation to continue.
+      if (myLogger != null && !myBackgroundAction.isBackgrounded()) {
+        myLogger.cancel();
       }
     }
   }
 
   private void startSdkInstall() {
+    CustomLogger customLogger = new CustomLogger();
     synchronized (LOGGER_LOCK) {
-      myCustomLogger = new CustomLogger();
+      myLogger = new ThrottledProgressWrapper(customLogger);
     }
 
-    InstallTask task = new InstallTask(myInstallRequests, myCustomLogger);
+    InstallTask task = new InstallTask(myInstallRequests, myUninstallRequests, myLogger);
     ProgressIndicator indicator;
     boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
     if (hasOpenProjects) {
@@ -206,17 +205,18 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       // Instead use an empty progress indicator to suppress that.
       indicator = new EmptyProgressIndicator();
     }
-    myCustomLogger.setIndicator(indicator);
-    myCustomLogger.logInfo("To install:");
-    for (RemotePackage p : myInstallRequests) {
-      myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+    customLogger.setIndicator(indicator);
+    myLogger.logInfo("To install:");
+    for (UpdatablePackage p : myInstallRequests) {
+      myLogger.logInfo(String.format("- %1$s (%2$s)", p.getRemote().getDisplayName(), p.getRemote().getPath()));
     }
-    myCustomLogger.logInfo("");
+    myLogger.logInfo("");
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
   private class InstallTask extends Task.Backgroundable {
-    @NotNull private final List<RemotePackage> myRequestedPackages;
+    @NotNull private final List<UpdatablePackage> myRequestedPackages;
+    @NotNull private final Collection<LocalPackage> myUninstallPackages;
     @NotNull private final com.android.repository.api.ProgressIndicator myProgress;
 
     @Override
@@ -224,75 +224,166 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       myProgress.cancel();
     }
 
-    private InstallTask(@NotNull List<RemotePackage> requestedPackages, @NotNull
-                        com.android.repository.api.ProgressIndicator progress) {
+    private InstallTask(@NotNull List<UpdatablePackage> requestedPackages,
+                        @NotNull Collection<LocalPackage> uninstallPackages,
+                        @NotNull com.android.repository.api.ProgressIndicator progress) {
       super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
       myRequestedPackages = requestedPackages;
+      myUninstallPackages = uninstallPackages;
       myProgress = progress;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      final List<RemotePackage> failures = Lists.newArrayList();
+      final List<RepoPackage> failures = Lists.newArrayList();
+      Map<RepoPackage, PackageOperation> preparedPackages = Maps.newLinkedHashMap();
       try {
-        for (RemotePackage remote : myRequestedPackages) {
-          PackageInstaller installer = StudioSdkUtil.findBestInstaller(remote);
-          myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
-          boolean success = false;
-          try {
-            success =
-              installer.install(remote, new StudioDownloader(indicator), mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+        for (UpdatablePackage updatable : myRequestedPackages) {
+          PackageOperation installer = getOrCreateInstaller(updatable.getRemote(), indicator);
+          processPackage(updatable.getRemote(), installer, preparedPackages, failures);
+        }
+        for (LocalPackage uninstall : myUninstallPackages) {
+          processPackage(uninstall, getOrCreateUninstaller(uninstall), preparedPackages, failures);
+        }
+        // Disable the background action so the final part can't be backgrounded.
+        myBackgroundAction.setEnabled(false);
+        if (!myBackgroundAction.isBackgrounded()) {
+          for (RepoPackage p : preparedPackages.keySet()) {
+            PackageOperation installer = preparedPackages.get(p);
+            // If we're not backgrounded, go on to the final part immediately.
+            if (!installer.complete(myProgress)) {
+              failures.add(p);
+            }
           }
-          catch (Exception e) {
-            Logger.getInstance(getClass()).warn(e);
-          }
-          if (!success) {
-            myCustomLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
-            failures.add(remote);
-          }
-          else {
-            myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
-          }
-          myCustomLogger.logInfo("");
+        }
+        else {
+          // Otherwise show a notification that we're ready to complete.
+          showPrepareCompleteNotification(preparedPackages.keySet());
+          return;
         }
       }
       finally {
         if (!failures.isEmpty()) {
-          myCustomLogger.logInfo("Failed packages:");
-          for (RemotePackage p : failures) {
-            myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+          myLogger.logInfo("Failed packages:");
+          for (RepoPackage p : failures) {
+            myLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
           }
         }
         synchronized (LOGGER_LOCK) {
-          myCustomLogger = null;
+          myLogger = null;
         }
       }
       // Use a simple progress indicator here so we don't pick up the log messages from the reload.
       StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, StudioSettingsController.getInstance());
 
-      GuiUtils.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setValue(100);
-          myProgressOverallLabel.setText("");
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setValue(100);
+        myProgressOverallLabel.setText("");
 
-          if (!failures.isEmpty()) {
-            myInstallFailed.set(true);
-            myProgressBar.setEnabled(false);
-          }
-          else {
-            myProgressDetailLabel.setText("Done");
-            checkForUpgrades(myRequestedPackages);
-          }
-          myInstallationFinished.set(true);
-
-          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
-          if (sdkDir != null) {
-            sdkDir.refresh(true, true);
-          }
+        if (!failures.isEmpty()) {
+          myInstallFailed.set(true);
+          myProgressBar.setEnabled(false);
         }
-      }, ModalityState.defaultModalityState());
+        else {
+          myProgressDetailLabel.setText("Done");
+          checkForUpgrades(myRequestedPackages);
+        }
+        myInstallationFinished.set(true);
+
+        VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
+        if (sdkDir != null) {
+          sdkDir.refresh(true, true);
+        }
+      });
+    }
+
+    @NotNull
+    private PackageOperation getOrCreateInstaller(@NotNull RepoPackage p, @NotNull ProgressIndicator indicator) {
+      // If there's already an installer in progress for this package, reuse it.
+      PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
+      if (op == null || !(op instanceof Installer)) {
+        InstallerFactory installerFactory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
+        op = installerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(indicator), mySdkHandler.getFileOp());
+      }
+      return op;
+    }
+
+    @NotNull
+    private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
+      // If there's already an uninstaller in progress for this package, reuse it.
+      PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
+      if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
+        InstallerFactory installerFactory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
+        op = installerFactory.createUninstaller((LocalPackage)p, myRepoManager, mySdkHandler.getFileOp());
+      }
+      return op;
+    }
+
+    private void processPackage(@NotNull RepoPackage p,
+                               @NotNull PackageOperation op,
+                               @NotNull Map<RepoPackage, PackageOperation> preparedPackages,
+                               @NotNull List<RepoPackage> failures) {
+      boolean success = false;
+      try {
+        success = op.prepare(myProgress);
+      }
+      catch (Exception e) {
+        Logger.getInstance(getClass()).warn(e);
+      }
+      if (success) {
+        preparedPackages.put(p, op);
+      }
+      else {
+        failures.add(p);
+      }
+    }
+
+    private void showPrepareCompleteNotification(@NotNull final Collection<RepoPackage> packages) {
+      final NotificationListener notificationListener = new NotificationListener.Adapter() {
+        @Override
+        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          if ("install".equals(event.getDescription())) {
+            ModelWizardDialog dialogForPaths = SdkQuickfixUtils.createDialogForPackages(null, myInstallRequests, myUninstallRequests, false);
+            if (dialogForPaths != null) {
+              dialogForPaths.show();
+            }
+          }
+          notification.expire();
+        }
+      };
+      final NotificationGroup group = new NotificationGroup("SDK Installer", NotificationDisplayType.STICKY_BALLOON, false);
+      Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+      final Project[] openProjectsOrNull = openProjects.length == 0 ? new Project[] {null} : openProjects;
+      ApplicationManager.getApplication().invokeLater(
+        () -> {
+          for (Project p : openProjectsOrNull) {
+            String message;
+            if (packages.size() == 1) {
+              RepoPackage pack = packages.iterator().next();
+              PackageOperation op = myRepoManager.getInProgressInstallOperation(pack);
+              // op shouldn't be null. But just in case, we assume it's an install.
+              String opName = op == null || op instanceof Installer ? "Install" : "Uninstall";
+              message = String.format("%1$sation of '%2$s' is ready to continue<br/><a href=\"install\">%1$s Now</a>",
+                                      opName, pack.getDisplayName());
+            }
+            else {
+              message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
+            }
+            group.createNotification(
+              "SDK Install", message, NotificationType.INFORMATION, notificationListener).notify(p);
+          }
+        },
+        ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)
+        o -> {
+          for (RepoPackage pack : packages) {
+            PackageOperation installer = myRepoManager.getInProgressInstallOperation(pack);
+            if (installer != null && installer.getInstallStatus() == PackageOperation.InstallStatus.PREPARED) {
+              return false;
+            }
+          }
+          return true;
+        });
     }
   }
 
@@ -304,12 +395,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressOverallLabel.setText(s);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressOverallLabel.setText(s));
       if (myIndicator != null) {
         myIndicator.setText(s);
       }
@@ -340,12 +426,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setIndeterminate(final boolean indeterminate) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setIndeterminate(indeterminate);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressBar.setIndeterminate(indeterminate));
       if (myIndicator != null) {
         myIndicator.setIndeterminate(indeterminate);
       }
@@ -353,16 +434,14 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public boolean isIndeterminate() {
-      return false;
+      return myProgressBar.isIndeterminate();
     }
 
     @Override
     public void setFraction(final double v) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
-        }
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setIndeterminate(false);
+        myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
       });
       if (myIndicator != null) {
         myIndicator.setFraction(v);
@@ -376,12 +455,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setSecondaryText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressDetailLabel.setText(s);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(s));
       if (myIndicator != null) {
         myIndicator.setText2(s);
       }
@@ -418,20 +492,44 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     }
 
     private void appendText(@NotNull final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          String current = mySdkManagerOutput.getText();
-          if (current == null) {
-            current = "";
-          }
-          mySdkManagerOutput.setText(current + "\n" + s);
+      UIUtil.invokeLaterIfNeeded(() -> {
+        String current = mySdkManagerOutput.getText();
+        if (current == null) {
+          current = "";
         }
+        mySdkManagerOutput.setText(current + "\n" + s);
       });
     }
 
     public void setIndicator(ProgressIndicator indicator) {
       myIndicator = indicator;
+    }
+  }
+
+  /**
+   * Action shown as an extra action in the wizard (see {@link ModelWizardStep#getExtraAction()}.
+   * Cancels the wizard, but lets our install task continue running.
+   */
+  private static class BackgroundAction extends AbstractAction {
+    private boolean myIsBackgrounded = false;
+    private ModelWizard.Facade myWizard;
+
+    public BackgroundAction() {
+      super("Background");
+    }
+
+    public void setWizard(@NotNull ModelWizard.Facade wizard) {
+      myWizard = wizard;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      myIsBackgrounded = true;
+      myWizard.cancel();
+    }
+
+    public boolean isBackgrounded() {
+      return myIsBackgrounded;
     }
   }
 }

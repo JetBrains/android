@@ -17,11 +17,11 @@ package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
 import com.android.jarutils.SignedJarBuilder;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
+import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.sdklib.repository.PkgProps;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.execution.ParametersListUtil;
@@ -87,9 +88,6 @@ public class AndroidCommonUtils {
   @NonNls public static final String PROGUARD_OUTPUT_JAR_NAME = "obfuscated_sources.jar";
   @NonNls public static final String SYSTEM_PROGUARD_CFG_FILE_NAME = "proguard-android.txt";
   @NonNls private static final String PROGUARD_HOME_ENV_VARIABLE = "PROGUARD_HOME";
-  public static final ResourceType[] ID_PROVIDING_RESOURCE_TYPES = new ResourceType[] {
-    ResourceType.LAYOUT, ResourceType.MENU, ResourceType.DRAWABLE, ResourceType.XML, ResourceType.TRANSITION
-  };
 
   @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";
   @NonNls public static final String ADDITIONAL_NATIVE_LIBS_ELEMENT = "additionalNativeLibs";
@@ -162,9 +160,10 @@ public class AndroidCommonUtils {
   }
 
   public static void handleDexCompilationResult(@NotNull Process process,
+                                                @NotNull String commandLine,
                                                 @NotNull String outputFilePath,
                                                 @NotNull final Map<AndroidCompilerMessageKind, List<String>> messages, boolean multiDex) {
-    final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, null, null);
+    final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, commandLine, null);
     handler.addProcessListener(new ProcessAdapter() {
       private AndroidCompilerMessageKind myCategory = null;
 
@@ -308,12 +307,6 @@ public class AndroidCommonUtils {
     finally {
       bis.close();
     }
-  }
-
-  @Nullable
-  public static String getResourceTypeByDirName(@NotNull String name) {
-    ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
-    return folderType != null ? folderType.getName() : null;
   }
 
   @NotNull
@@ -462,33 +455,29 @@ public class AndroidCommonUtils {
     return sdkToolsRevision == -1 || sdkToolsRevision >= 17;
   }
 
-  public static int parsePackageRevision(@NotNull String sdkDirOsPath, @NotNull String packageDirName) {
+  /**
+   * Gets the {@link Revision} for the given package in the given SDK from the {@code source.properties} file.
+   *
+   * @return The {@link Revision}, or {@code null} if the {@code source.properties} file doesn't exist, doesn't contain a revision, or
+   * the revision is unparsable.
+   */
+  @Nullable
+  public static Revision parsePackageRevision(@NotNull String sdkDirOsPath, @NotNull String packageDirName) {
     final File propFile =
       new File(sdkDirOsPath + File.separatorChar + packageDirName + File.separatorChar + SdkConstants.FN_SOURCE_PROP);
-    int revisionNumber = -1;
     if (propFile.exists() && propFile.isFile()) {
       final Map<String, String> map =
         ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
       if (map == null) {
-        return -1;
+        return null;
       }
-      String revision = map.get("Pkg.Revision");
+      String revision = map.get(PkgProps.PKG_REVISION);
 
       if (revision != null) {
-        final int dot = revision.indexOf('.');
-        if (dot > 0) {
-          revision = revision.substring(0, dot);
-        }
-
-        try {
-          revisionNumber = Integer.parseInt(revision);
-        }
-        catch (NumberFormatException e) {
-          LOG.debug(e);
-        }
+        return Revision.parseRevision(revision);
       }
     }
-    return revisionNumber > 0 ? revisionNumber : -1;
+    return null;
   }
 
   @NotNull
@@ -626,12 +615,12 @@ public class AndroidCommonUtils {
 
   @Nullable
   public static String executeZipAlign(@NotNull String zipAlignPath, @NotNull File source, @NotNull File destination) {
-    final ProcessBuilder processBuilder = new ProcessBuilder(
-      zipAlignPath, "-f", "4", source.getAbsolutePath(), destination.getAbsolutePath());
+    List<String> commandLine = Arrays.asList(zipAlignPath, "-f", "4", source.getAbsolutePath(), destination.getAbsolutePath());
+    final ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
 
     BaseOSProcessHandler handler;
     try {
-      handler = new BaseOSProcessHandler(processBuilder.start(), "", null);
+      handler = new BaseOSProcessHandler(processBuilder.start(), StringUtil.join(commandLine, " "), null);
     }
     catch (IOException e) {
       return e.getMessage();

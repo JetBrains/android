@@ -16,32 +16,30 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.HtmlBuilder;
+import com.android.xml.AndroidManifest;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
@@ -60,6 +58,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
@@ -71,10 +70,13 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
@@ -84,10 +86,6 @@ import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.Document;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
@@ -95,9 +93,6 @@ import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -106,11 +101,10 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.rendering.ResourceHelper.isViewPackageNeeded;
+import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
@@ -137,6 +131,11 @@ public class RenderErrorPanel extends JPanel {
   private HighlightSeverity mySeverity; // severity of messages shown, currently just warning or error
   private HtmlLinkManager myLinkManager;
   private final JScrollPane myScrollPane;
+  /**
+   * By default, if ONLY fidelity warnings are found, they are showed collapsed in one warning line. If true, the
+   * fidelity warnings will be showed expanded as any other errors.
+   */
+  private boolean myExpandFidelityWarnings;
 
   public RenderErrorPanel() {
     super(new BorderLayout());
@@ -165,7 +164,7 @@ public class RenderErrorPanel extends JPanel {
       }
     };
     myHTMLViewer.addHyperlinkListener(myHyperLinkListener);
-    myHTMLViewer.setMargin(new Insets(3, 3, 3, 3));
+    myHTMLViewer.setMargin(JBUI.insets(3, 3, 3, 3));
 
     myScrollPane = ScrollPaneFactory.createScrollPane(myHTMLViewer);
     setupStyle();
@@ -179,6 +178,7 @@ public class RenderErrorPanel extends JPanel {
       myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
       myHTMLViewer = null;
     }
+    myResult = null;
   }
 
   @Nullable
@@ -201,7 +201,8 @@ public class RenderErrorPanel extends JPanel {
   }
 
   public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
-    showErrors(HighlightSeverity.ERROR, html, result, linkManager);
+    HighlightSeverity maxSeverity = result != null && result.getLogger().hasErrors() ? HighlightSeverity.ERROR : HighlightSeverity.WARNING;
+    showErrors(maxSeverity, html, result, linkManager);
   }
 
   public void showWarning(@Nullable String html) {
@@ -212,6 +213,11 @@ public class RenderErrorPanel extends JPanel {
                          @Nullable String html,
                          @Nullable RenderResult result,
                          @Nullable HtmlLinkManager linkManager) {
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      ApplicationManager.getApplication().invokeLater(() -> showErrors(severity, html, result, linkManager));
+      return;
+    }
+
     mySeverity = severity;
     if (html == null) {
       myResult = null;
@@ -252,20 +258,7 @@ public class RenderErrorPanel extends JPanel {
     myScrollPane.setOpaque(false);
     myScrollPane.setBackground(null);
 
-    Document document = myHTMLViewer.getDocument();
-    if (!(document instanceof StyledDocument)) {
-      return;
-    }
-
-    StyledDocument styledDocument = (StyledDocument)document;
-
-    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
-    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
-
-    Style style = styledDocument.addStyle("active", null);
-    StyleConstants.setFontFamily(style, scheme.getEditorFontName());
-    StyleConstants.setFontSize(style, scheme.getEditorFontSize());
-    styledDocument.setCharacterAttributes(0, document.getLength(), style, false);
+    HtmlBuilderHelper.fixFontStyles(myHTMLViewer);
 
     // Make background semitransparent
     Color background = myHTMLViewer.getBackground();
@@ -301,28 +294,50 @@ public class RenderErrorPanel extends JPanel {
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
     builder.openHtmlBody();
 
-    // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
-    // have looked a lot nicer with the image flushed to the right!
-    builder.addHtml("<A HREF=\"");
-    builder.addHtml(URL_ACTION_CLOSE);
-    builder.addHtml("\">");
-    builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
-    builder.addHtml("</A>");
-    builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
+    if (logger.hasErrors() || myExpandFidelityWarnings) {
+      // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
+      // have looked a lot nicer with the image flushed to the right!
+      builder.addHtml("<A HREF=\"");
+      builder.addHtml(URL_ACTION_CLOSE);
+      builder.addHtml("\">");
+      builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
+      builder.addHtml("</A>");
+      builder.addNbsp();
+      builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
 
-    reportMissingStyles(logger, builder);
-    if (renderTask != null) {
-      reportOldNinePathRenderLib(logger, builder, renderTask);
-      reportRelevantCompilationErrors(logger, builder, renderTask);
-      reportMissingSizeAttributes(logger, builder, renderTask);
-      reportMissingClasses(logger, builder, renderTask);
+      reportMissingStyles(logger, builder);
+      if (renderTask != null) {
+        reportOldNinePathRenderLib(logger, builder, renderTask);
+        reportRelevantCompilationErrors(logger, builder, renderTask);
+        reportMissingSizeAttributes(logger, builder, renderTask);
+        reportMissingClasses(logger, builder, renderTask);
+      }
+      reportBrokenClasses(logger, builder);
+      reportInstantiationProblems(logger, builder);
+      reportOtherProblems(logger, builder, renderTask);
+      reportUnknownFragments(logger, builder);
+
+      if (renderTask != null) {
+        reportRenderingFidelityProblems(logger, builder, renderTask);
+      }
     }
-    reportBrokenClasses(logger, builder);
-    reportInstantiationProblems(logger, builder);
-    reportOtherProblems(logger, builder);
-    reportUnknownFragments(logger, builder);
-    if (renderTask != null) {
-      reportRenderingFidelityProblems(logger, builder, renderTask);
+    else {
+      // We only have fidelity warnings so display a small warning that allows the user to fully expand them
+      builder
+        .addIcon(HtmlBuilderHelper.getWarningIconPath())
+        .addNbsp()
+        .add("Fidelity warnings")
+        .addLink(" (show) ", myLinkManager.createRunnableLink(() -> {
+          myExpandFidelityWarnings = true;
+          if (myResult != null) {
+            RenderTask task = myResult.getRenderTask();
+            DesignSurface surface = task != null ? task.getDesignSurface() : null;
+            if (surface != null) {
+              // Just request a repaint (no full model invalidation) since the model and the errors will still be valid
+              surface.requestRender(false);
+            }
+          }
+        }));
     }
 
     builder.closeHtmlBody();
@@ -384,13 +399,19 @@ public class RenderErrorPanel extends JPanel {
           return;
         }
 
+        if (SdkConstants.CLASS_CONSTRAINT_LAYOUT.equals(className)) {
+          builder.newline().addNbsps(3);
+          builder.addLink("Add constraint-layout library dependency to the project", myLinkManager.createInstallArtifactUrl(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT));
+          builder.add(", ");
+        }
+
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null && renderContext.getType() == LAYOUT_EDITOR) {
+        //DesignSurface surface = renderTask.getDesignSurface();
+        //if (surface != null && surface.getType() == LAYOUT_EDITOR) {
           builder.add(", ");
           builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
-        }
+        //}
 
         // Offer to create the class, but only if it looks like a custom view
         // TODO: Check to see if it looks like it's the name of a custom view and the
@@ -406,12 +427,21 @@ public class RenderErrorPanel extends JPanel {
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Try to ", "build", " the project.",
                       myLinkManager.createCompileModuleUrl());
+      addRefreshAction(builder);
       if (foundCustomView) {
         builder.newline();
         builder.add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
       }
       builder.newline().newline();
     }
+  }
+
+  private void addRefreshAction(HtmlBuilder builder) {
+    builder.newlineIfNecessary();
+    builder.addIcon(HtmlBuilderHelper.getRefreshIconPath());
+    builder.addLink("Tip: Try to ", "refresh", " the layout.",
+                    myLinkManager.createRefreshRenderUrl()).newline();
+
   }
 
   private boolean addTypoSuggestions(@NotNull HtmlBuilder builder,
@@ -691,8 +721,12 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
+      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE.",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
+      builder.newline().newline();
+      builder.add("If this is an unexpected error you can also try to ");
+      builder.addLink("", "build the project", ", then ", myLinkManager.createCompileModuleUrl());
+      builder.addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl());
 
       if (firstThrowable != null) {
         builder.newline().newline();
@@ -765,9 +799,9 @@ public class RenderErrorPanel extends JPanel {
             @Override
             public void run() {
               RenderLogger.ignoreFidelityWarning(clientData);
-              RenderContext renderContext = renderTask.getRenderContext();
-              if (renderContext != null) {
-                renderContext.requestRender();
+              DesignSurface surface = renderTask.getDesignSurface();
+              if (surface != null) {
+                surface.requestRender();
               }
             }
           }));
@@ -789,9 +823,9 @@ public class RenderErrorPanel extends JPanel {
         @Override
         public void run() {
           RenderLogger.ignoreAllFidelityWarnings();
-          RenderContext renderContext = renderTask.getRenderContext();
-          if (renderContext != null) {
-            renderContext.requestRender();
+          DesignSurface surface = renderTask.getDesignSurface();
+          if (surface != null) {
+            surface.requestRender();
           }
         }
       }));
@@ -924,7 +958,44 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder) {
+  private static void addRtlNotEnabledAction(RenderLogger logger, HtmlBuilder builder, RenderTask task) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      Project project = logger.getProject();
+      if (project == null || project.isDisposed()) {
+        return;
+      }
+
+      Module module = logger.getModule();
+      if (module == null) {
+        return;
+      }
+
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      Manifest manifest = facet != null ? facet.getManifest() : null;
+      Application application = manifest != null ? manifest.getApplication() : null;
+      if (application == null) {
+        return;
+      }
+
+      final XmlTag applicationTag = application.getXmlTag();
+      if (applicationTag == null) {
+        return;
+      }
+
+      builder.add("(")
+        .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
+          new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
+
+          DesignSurface surface = task != null ? task.getDesignSurface() : null;
+          if (surface != null) {
+            surface.requestRender(true);
+          }
+        })).add(")");
+    });
+  }
+
+  private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder, RenderTask task) {
+    boolean shouldAddRefreshAction = true;
     List<RenderProblem> messages = logger.getMessages();
     if (messages != null && !messages.isEmpty()) {
       Set<String> seenTags = Sets.newHashSet();
@@ -963,6 +1034,13 @@ public class RenderErrorPanel extends JPanel {
           if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
             appendFlagValueSuggestions(builder, message);
           }
+          else if (LayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
+            addRtlNotEnabledAction(logger, builder, task);
+            shouldAddRefreshAction = false;
+          }
+          else if (LayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
+            shouldAddRefreshAction = false;
+          }
 
           int count = logger.getTagCount(tag);
           if (count > 1) {
@@ -971,6 +1049,10 @@ public class RenderErrorPanel extends JPanel {
         }
 
         builder.newline();
+      }
+
+      if (shouldAddRefreshAction) {
+        addRefreshAction(builder);
       }
     }
   }
@@ -989,7 +1071,7 @@ public class RenderErrorPanel extends JPanel {
     if (renderTask == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getConfiguration().getTarget();
+    IAndroidTarget target = renderTask.getConfiguration().getRealTarget();
     if (target == null) {
       return;
     }
@@ -1080,7 +1162,7 @@ public class RenderErrorPanel extends JPanel {
       }
     }
 
-    builder.add(throwable.toString()).newline();
+    builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
 
     boolean wasHidden = false;
     int indent = 2;
@@ -1114,7 +1196,7 @@ public class RenderErrorPanel extends JPanel {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask().getConfiguration().getTarget();
+              IAndroidTarget target = myResult.getRenderTask().getConfiguration().getRealTarget();
               platformSource = AndroidSdkUtils.findPlatformSources(target);
               platformSourceExists = platformSource != null;
             }
@@ -1216,12 +1298,14 @@ public class RenderErrorPanel extends JPanel {
 
   @SuppressWarnings({"HardCodedStringLiteral"})
   private void showEmpty() {
-    try {
-      myHTMLViewer.read(new StringReader("<html><body></body></html>"), null);
-    }
-    catch (IOException e) {
-      // can't be
-    }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      try {
+        myHTMLViewer.read(new StringReader("<html><body></body></html>"), null);
+      }
+      catch (IOException e) {
+        // can't be
+      }
+    });
   }
 
   private void reportInstantiationProblems(@NotNull final RenderLogger logger, @NotNull HtmlBuilder builder) {
@@ -1418,48 +1502,5 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  public static class HtmlBuilderHelper {
-    @Nullable
-    private static String getIconPath(String relative) {
-      // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
-      // AllIcons constants, and loading them into HTML class loader contexts?
-      URL resource = AllIcons.class.getClassLoader().getResource(relative);
-      try {
-        return (resource != null) ? resource.toURI().toURL().toExternalForm() : null;
-      }
-      catch (MalformedURLException e) {
-        return null;
-      }
-      catch (URISyntaxException e) {
-        return null;
-      }
-    }
-
-    @Nullable
-    public static String getCloseIconPath() {
-      return getIconPath("/actions/closeNew.png");
-    }
-
-    @Nullable
-    public static String getTipIconPath() {
-      return getIconPath("/actions/createFromUsage.png");
-    }
-
-    @Nullable
-    public static String getWarningIconPath() {
-      return getIconPath("/actions/warning.png");
-    }
-
-    @Nullable
-    public static String getErrorIconPath() {
-      return getIconPath("/actions/error.png");
-    }
-
-    public static String getHeaderFontColor() {
-      // See om.intellij.codeInspection.HtmlComposer.appendHeading
-      // (which operates on StringBuffers)
-      return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
-    }
-  }
 }
 

@@ -26,12 +26,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * @author coyote
+ * Abstract class for creating unit tests for XML editor. Contains utility methods for performing things such as
+ * <ul>
+ * <li>Checking highlighting: {@link #doTestHighlighting()}</li>
+ * <li>Checking results of code completion: {@link #doTestCompletionVariants(String, String...)}, {@link #toTestCompletion(String, String)}
+ * and {@link #toTestFirstCompletion(String, String)}</li>
+ * </ul>
+ * Some of these methods use test name to choose a file from testData folder they're going to use, look out for
+ * {@link #getTestName(String, boolean)} and similar methods to spot that.
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 abstract class AndroidDomTest extends AndroidTestCase {
@@ -45,10 +54,30 @@ abstract class AndroidDomTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    ensureWebserverAccess();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
+  }
+
+  private static void ensureWebserverAccess() {
+    try {
+      Class builtinWebServerAccess = Class.forName("com.intellij.util.BuiltinWebServerAccess");
+      if (builtinWebServerAccess != null) {
+        Method ensureUserAuthenticationToken =
+          builtinWebServerAccess.getMethod("ensureUserAuthenticationToken");
+        if (ensureUserAuthenticationToken != null) {
+          ensureUserAuthenticationToken.invoke(null);
+        }
+      }
+    }
+    catch (ClassNotFoundException |
+      NoSuchMethodException |
+      InvocationTargetException |
+      IllegalAccessException ignore) {
+      // that's ok, it indicates we're not running in Android Studio, but in IntelliJ ultimate.
+    }
   }
 
   @Override
@@ -71,7 +100,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     myFixture.complete(CompletionType.BASIC);
     final List<String> variants = myFixture.getLookupElementStrings();
     assertNotNull(variants);
-    final List<String> expectedVariants = new ArrayList<String>();
+    final List<String> expectedVariants = new ArrayList<>();
 
     if (systemNamespace) {
       expectedVariants.add(SdkConstants.ANDROID_URI);
@@ -89,13 +118,16 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertEquals(expectedVariants, variants);
   }
 
+  /**
+   * Loads file, invokes code completion at &lt;caret&gt; marker and returns resulting completion variants as strings.
+   */
   protected void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     UsefulTestCase.assertSameElements(lookupElementStrings, variants);
   }
 
-  protected void doTestCompletionVarinatsContains(String fileName, String... variants) throws Throwable {
+  protected void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     assertContainsElements(lookupElementStrings, variants);
@@ -112,8 +144,18 @@ abstract class AndroidDomTest extends AndroidTestCase {
     doTestHighlighting(getTestName(true) + ".xml");
   }
 
-  protected void doTestHighlighting(String file) throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(file);
+  /**
+   * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter
+   */
+  protected void doTestHighlighting(String fileName) throws Throwable {
+    doTestHighlighting(copyFileToProject(fileName));
+  }
+
+  /**
+   * Loads a virtual file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
+   * described by an example, check the usages of the function to find out.
+   */
+  protected void doTestHighlighting(VirtualFile virtualFile) throws Throwable {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
@@ -133,6 +175,10 @@ abstract class AndroidDomTest extends AndroidTestCase {
     toTestCompletion(getTestName(lowercaseFirstLetter) + ".xml", getTestName(lowercaseFirstLetter) + "_after.xml");
   }
 
+  /**
+   * Loads first file, puts caret on the &lt;caret&gt; marker, invokes code completion. If running the code completion results in returning
+   * only one completion variant, chooses it to complete code at the caret.
+   */
   protected void toTestCompletion(String fileBefore, String fileAfter) throws Throwable {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
@@ -162,6 +208,9 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
   }
 
+  /**
+   * Return a destination for files to be copied by {@link #copyFileToProject(String)}
+   */
   protected abstract String getPathToCopy(String testFileName);
 
   protected VirtualFile copyFileToProject(String path) throws IOException {
@@ -201,7 +250,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
 
   protected List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

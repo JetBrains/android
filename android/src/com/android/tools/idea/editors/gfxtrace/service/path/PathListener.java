@@ -49,16 +49,31 @@ public interface PathListener {
       return findPathOfType(CapturePath.class);
     }
 
-    public AtomPath findAtomPath() {
-      return findPathOfType(AtomPath.class);
+    public AtomRangePath findAtomPath() {
+      AtomRangePath result = findPathOfType(AtomRangePath.class);
+      if (result == null) {
+        AtomPath singleAtomPath = findPathOfType(AtomPath.class);
+        if (singleAtomPath != null) {
+          result = new AtomRangePath().setAtoms(singleAtomPath.getAtoms()).setFirst(singleAtomPath.getIndex()).setCount(1);
+        }
+      }
+      return result;
     }
 
     public MemoryRangePath findMemoryPath() {
       return findPathOfType(MemoryRangePath.class);
     }
 
+    public TypedMemoryPath findTypedMemoryPath() {
+      return findPathOfType(TypedMemoryPath.class);
+    }
+
     public StatePath findStatePath() {
       return findPathOfType(StatePath.class);
+    }
+
+    public ContextPath findContextPath() {
+      return findPathOfType(ContextPath.class);
     }
   }
 }

@@ -15,19 +15,31 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
-import com.android.tools.idea.templates.GradleFileMerger;
+import com.android.tools.idea.templates.GradleFilePsiMerger;
+import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.base.Objects;
+import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.intellij.util.LineSeparator;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +48,17 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Executor support for recipe instructions.
@@ -53,6 +69,13 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
+
+  /**
+   * 'classpath' is the configuration name used to specify buildscript dependencies.
+   */
+  private static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
+
+  private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
 
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
@@ -67,15 +90,117 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
 
+  @NotNull
+  private static GradleBuildModel getBuildModel(@NotNull File buildFile, @NotNull Project project) {
+    VirtualFile virtualFile = findFileByIoFile(buildFile, true);
+    if (virtualFile == null) {
+      throw new RuntimeException("Failed to find " + buildFile.getPath());
+    }
+    return parseBuildFile(virtualFile, project, project.getName());
+  }
+
+  @Override
+  public void applyPlugin(@NotNull String plugin) {
+    plugin = plugin.trim();
+
+    myReferences.applyPlugin(plugin);
+
+    Project project = myContext.getProject();
+    File buildFile = getGradleBuildFilePath(myContext.getModuleRoot());
+    if (project.isInitialized()) {
+      GradleBuildModel buildModel = getBuildModel(buildFile, project);
+      if (!buildModel.appliedPlugins().contains(plugin)) {
+        buildModel.applyPlugin(plugin);
+        myIO.applyChanges(buildModel);
+      }
+    }
+    else {
+      String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
+      String applyPluginStatement = "apply plugin: '" + plugin + "'";
+      String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
+      try {
+        myIO.writeFile(this, result, buildFile);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    myNeedsGradleSync = true;
+  }
+
+  @Override
+  public void addClasspath(@NotNull String mavenUrl) {
+    mavenUrl = mavenUrl.trim();
+
+    myReferences.addClasspath(mavenUrl);
+
+    ArtifactDependencySpec toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl);
+    if (toBeAddedDependency == null) {
+      throw new RuntimeException(mavenUrl + " is not a valid classpath dependency");
+    }
+
+    Project project = myContext.getProject();
+    File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
+    if (project.isInitialized()) {
+      GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
+      DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
+      ArtifactDependencyModel targetDependencyModel = null;
+      for (ArtifactDependencyModel dependencyModel : buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
+        if(equalsIgnoreVersion(toBeAddedDependency, ArtifactDependencySpec.create(dependencyModel))) {
+          targetDependencyModel = dependencyModel;
+        }
+      }
+      if (targetDependencyModel == null) {
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
+      }
+      else {
+        GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.version));
+        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().value()));
+        if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
+          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.version));
+        }
+      }
+      myIO.applyChanges(buildModel);
+    }
+    else {
+      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
+      String result = myIO.mergeGradleFiles(formatClasspath(mavenUrl), destinationContents, project, "");
+      try {
+        myIO.writeFile(this, result, rootBuildFile);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    myNeedsGradleSync = true;
+  }
+
+  private static boolean equalsIgnoreVersion(@NotNull ArtifactDependencySpec spec1, @NotNull ArtifactDependencySpec spec2) {
+    return Objects.equal(spec1.name, spec2.name) &&
+           Objects.equal(spec1.group, spec2.group) &&
+           Objects.equal(spec1.classifier, spec2.classifier) &&
+           Objects.equal(spec1.extension, spec2.extension);
+  }
+
+  @NotNull
+  private static String formatClasspath(@NotNull String dependency) {
+    return "buildscript {" + LINE_SEPARATOR +
+           "  dependencies {" + LINE_SEPARATOR +
+           "    classpath '" + dependency + "'" + LINE_SEPARATOR +
+           "  }" + LINE_SEPARATOR +
+           "}" + LINE_SEPARATOR;
+  }
+
   /**
    * Add a library dependency into the project.
    */
   @Override
-  public void addDependency(@NotNull String mavenUrl) {
-    myReferences.addDependency(mavenUrl);
+  public void addDependency(@NotNull String configuration, @NotNull String mavenUrl) {
+    myReferences.addDependency(configuration, mavenUrl);
     //noinspection unchecked
-    List<String> dependencyList = (List<String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-    dependencyList.add(mavenUrl);
+    SetMultimap<String, String> dependencyList =
+      (SetMultimap<String, String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP);
+    dependencyList.put(configuration, mavenUrl);
   }
 
   @Override
@@ -166,7 +291,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
       if (targetFile.exists()) {
         if (myContext.getProject().isInitialized()) {
-          VirtualFile toFile = VfsUtil.findFileByIoFile(targetFile, true);
+          VirtualFile toFile = findFileByIoFile(targetFile, true);
           final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
           if (status.hasReadonlyFiles()) {
             throw new TemplateUserVisibleException(
@@ -207,7 +332,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else if (targetFile.getName().equals(FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
-        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
+        contents = myIO.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
       }
       else if (hasExtension(targetFile, DOT_XML)) {
@@ -225,6 +350,34 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       throw new RuntimeException(e);
     }
     catch (TemplateException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void append(@NotNull File from, @NotNull File to) {
+    try {
+      File sourceFile = myContext.getLoader().getSourceFile(from);
+      File targetFile = getTargetFile(to);
+
+      final String sourceText = readTextFromDisk(sourceFile);
+      if (sourceText == null) {
+        return;
+      }
+
+      if (targetFile.exists()) {
+        final String targetContents = readTextFromDisk(targetFile);
+        final String resultContents = (targetContents == null ? "" : targetContents + LINE_SEPARATOR) + sourceText;
+
+        myIO.writeFile(this, resultContents, targetFile);
+      }
+      else {
+        myIO.writeFile(this, sourceText, targetFile);
+      }
+      myReferences.addSourceFile(sourceFile);
+      myReferences.addTargetFile(targetFile);
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -297,15 +450,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myContext.getModuleRoot());
-
-    String destinationContents = null;
-    if (gradleBuildFile.exists()) {
-      destinationContents = readTextFile(gradleBuildFile);
-    }
-    if (destinationContents == null) {
-      destinationContents = "";
-    }
+    File gradleBuildFile = getGradleBuildFilePath(myContext.getModuleRoot());
+    String destinationContents = gradleBuildFile.exists() ? nullToEmpty(readTextFile(gradleBuildFile)) : "";
     Object buildApi = getParamMap().get(TemplateMetadata.ATTR_BUILD_API);
     String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
     String result = myIO.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), supportLibVersionFilter);
@@ -316,8 +462,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private String formatDependencies() {
     StringBuilder dependencies = new StringBuilder();
     dependencies.append("dependencies {\n");
-    for (String dependency : myContext.getDependencies()) {
-      dependencies.append("  compile '").append(dependency).append("'\n");
+    for (Map.Entry<String, String> dependency : myContext.getDependencies().entries()) {
+      dependencies.append("  ")
+        .append(dependency.getKey())
+        .append(" '")
+        .append(dependency.getValue())
+        .append("'\n");
     }
     dependencies.append("}\n");
     return dependencies.toString();
@@ -346,7 +496,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     File source = myContext.getLoader().getSourceFile(from);
     File target = getTargetFile(to);
 
-    VirtualFile sourceFile = VfsUtil.findFileByIoFile(source, true);
+    VirtualFile sourceFile = findFileByIoFile(source, true);
     assert sourceFile != null : source;
     sourceFile.refresh(false, false);
     File destPath = (source.isDirectory() ? target : target.getParentFile());
@@ -420,7 +570,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   public boolean compareFile(@NotNull VirtualFile sourceVFile, @NotNull File targetFile)
     throws IOException {
-    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    VirtualFile targetVFile = findFileByIoFile(targetFile, true);
     if (targetVFile == null) {
       return false;
     }
@@ -472,15 +622,29 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
+      buildModel.applyChanges();
+    }
+
     public String mergeGradleFiles(@NotNull String dependencies,
                                    @NotNull String destinationContents,
                                    Project project,
                                    @Nullable String supportLibVersionFilter) {
-      return GradleFileMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      if (project.isInitialized()) {
+        return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      }
+      else {
+        return GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      }
     }
 
-    public void requestGradleSync(@NotNull Project project) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    public void requestGradleSync(@NotNull final Project project) {
+      StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
+        @Override
+        public void run() {
+          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        }
+      });
     }
   }
 
@@ -504,6 +668,10 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public void mkDir(@NotNull File directory) throws IOException {
       checkDirectoryIsWriteable(directory);
+    }
+
+    @Override
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
     }
 
     @Override

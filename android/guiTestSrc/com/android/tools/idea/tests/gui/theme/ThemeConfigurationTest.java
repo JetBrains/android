@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
@@ -26,54 +27,60 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
-@BelongsToTestGroups({THEME})
-public class ThemeConfigurationTest extends GuiTestCase {
+@RunIn(TestGroup.THEME)
+@RunWith(GuiTestRunner.class)
+public class ThemeConfigurationTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
    */
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testThemesWithConfiguration() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
 
     themesComboBox.selectItem("Create New Theme");
-    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(myRobot);
-    JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());
+
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(guiTest.robot());
     final JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 
     categoriesTree.clickPath("Material Dark");
-    myRobot.waitForIdle();
+    guiTest.robot().waitForIdle();
     themeList.clickItem("android:Theme.Material");
     themeSelectionDialog.clickOk();
-
     parentComboBox.requireSelection("android:Theme.Material");
-    newNameTextField.deleteText().enterText("MyMaterialTheme");
+
+    JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
+    newNameTextField.click();
+    newNameTextField.deleteText();
+    newNameTextField.enterText("MyMaterialTheme");
 
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("MyMaterialTheme");
-    AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getThemePreviewPanel();
+    AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getPreviewComponent().getThemePreviewPanel();
     themePreviewPanel.requirePreviewPanel();
 
-    JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
-    myRobot.click(apiButton);
-    clickPopupMenuItem("API 19", apiButton, myRobot);
+    JButton apiButton = themeEditor.findToolbarButton("API Version in Editor");
+    guiTest.robot().click(apiButton);
+    clickPopupMenuItem("API 19", "19", apiButton, guiTest.robot());
 
     themePreviewPanel.requireErrorPanel();
 

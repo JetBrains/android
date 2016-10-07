@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
-import com.intellij.ide.IdeTooltipManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.PsiNavigateUtil;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,8 +40,10 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
  * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
@@ -54,9 +53,10 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  */
 public class InteractionManager {
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
+  private static final int SCROLL_END_TIME_MS = 500;
 
   /** The canvas which owns this {@linkplain InteractionManager}. */
-  @NonNull
+  @NotNull
   private final DesignSurface mySurface;
 
   /** The currently executing {@link Interaction}, or null. */
@@ -93,7 +93,8 @@ public class InteractionManager {
    * Most recently seen mouse mask. We keep a copy of this since in some
    * scenarios (such as on a drag interaction) we don't get access to it.
    */
-  protected int myLastStateMask;
+  @InputEventMask
+  protected static int ourLastStateMask;
 
   /**
    * A timer used to control when to initiate a mouse hover action. It is active only when
@@ -101,6 +102,13 @@ public class InteractionManager {
    * fires after a certain delay once the mouse comes to rest.
    */
   private final Timer myHoverTimer;
+
+  /**
+   * A timer used to decide when we can end the scroll motion.
+   */
+  private final Timer myScrollEndTimer;
+
+  private final ActionListener myScrollEndListener;
 
   /**
    * Listener for mouse motion, click and keyboard events.
@@ -116,11 +124,22 @@ public class InteractionManager {
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NonNull DesignSurface surface) {
+  public InteractionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
     myHoverTimer.setRepeats(false);
+
+    myScrollEndTimer = new Timer(SCROLL_END_TIME_MS, null);
+    myScrollEndTimer.setRepeats(false);
+
+    myScrollEndListener = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myScrollEndTimer.removeActionListener(this);
+        finishInteraction(0, 0, 0, false);
+      }
+    };
   }
 
   /**
@@ -129,7 +148,7 @@ public class InteractionManager {
    * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
    *         Never null.
    */
-  @NonNull
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }
@@ -153,6 +172,7 @@ public class InteractionManager {
     myListener = new Listener();
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
+    layeredPane.addMouseWheelListener(myListener);
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
@@ -194,12 +214,19 @@ public class InteractionManager {
     return myLayers;
   }
 
+  /** Returns the most recently observed input event mask */
+  @InputEventMask
+  public static int getLastModifiers() {
+    return ourLastStateMask;
+  }
+
   /**
    * Updates the current interaction, if any, for the given event.
    */
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y, myLastStateMask);
+      myCurrentInteraction.update(x, y, ourLastStateMask);
+      mySurface.repaint();
     }
   }
 
@@ -225,7 +252,8 @@ public class InteractionManager {
         myLayers = null;
       }
       myCurrentInteraction = null;
-      myLastStateMask = 0;
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = 0;
       updateCursor(x, y);
       mySurface.repaint();
     }
@@ -249,8 +277,35 @@ public class InteractionManager {
     }
     SelectionModel selectionModel = screenView.getSelectionModel();
     if (!selectionModel.isEmpty()) {
+      // Gives a chance to the ViewGroupHandlers to update the cursor
       int mx = Coordinates.getAndroidX(screenView, x);
       int my = Coordinates.getAndroidY(screenView, y);
+
+      if (!selectionModel.isEmpty()) {
+        NlComponent primary = selectionModel.getPrimary();
+        NlComponent parent = primary != null ? primary.getParent() : null;
+        if (parent != null) {
+          ViewGroupHandler handler = parent.getViewGroupHandler();
+          if (handler != null) {
+            if (handler.updateCursor(screenView, mx, my)) {
+              return;
+            }
+          }
+        }
+      }
+
+      // TODO: we should have a better model for keeping track of regions handled
+      // by different view group handlers. This would let us better handles
+      // picking a handler over another one, as well as allowing mouse over behaviour
+      // in other cases than just for the currently selected widgets.
+      for (NlComponent component : selectionModel.getSelection()) {
+        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+        if (viewGroupHandler != null) {
+          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
+            return;
+          }
+        }
+      }
       int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
       SelectionHandle handle = selectionModel.findHandle(mx, my, max);
       if (handle != null) {
@@ -276,6 +331,31 @@ public class InteractionManager {
         return;
       }
     }
+    else {
+      // Allow a view group handler to update the cursor
+      NlComponent component = Coordinates.findComponent(screenView, x, y);
+      if (component != null) {
+        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+        if (viewGroupHandler != null) {
+          int mx = Coordinates.getAndroidX(screenView, x);
+          int my = Coordinates.getAndroidY(screenView, y);
+          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
+            mySurface.repaint();
+          }
+        }
+      }
+
+      // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
+      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+        Dimension size = screenView.getSize();
+        // TODO: use constants for those numbers
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+        if (resizeZone.contains(x, y)) {
+          mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+          return;
+        }
+      }
+    }
 
     mySurface.setCursor(null);
   }
@@ -284,69 +364,133 @@ public class InteractionManager {
    * Helper class which implements the {@link MouseMotionListener},
    * {@link MouseListener} and {@link KeyListener} interfaces.
    */
-  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener, ActionListener {
+  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener, ActionListener, MouseWheelListener {
 
     // --- Implements MouseListener ----
 
     @Override
-    public void mouseClicked(@NonNull MouseEvent event) {
+    public void mouseClicked(@NotNull MouseEvent event) {
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        // Warp to the text editor and show the corresponding XML for the
-        // double-clicked widget
-        int x = event.getX();
-        int y = event.getY();
-        ScreenView screenView = mySurface.getScreenView(x, y);
-        if (screenView != null) {
-          NlComponent component = Coordinates.findComponent(screenView, x, y);
-          if (component != null) {
+        NlComponent component = getComponentAt(event.getX(), event.getY());
+        if (component != null) {
+          if (mySurface.isPreviewSurface()) {
+            // Warp to the text editor and show the corresponding XML for the
+            // double-clicked widget
             PsiNavigateUtil.navigate(component.getTag());
           }
+          else {
+            // Notify that the user is interested in a component.
+            // A properties manager may move the focus to the most important attribute of the component.
+            // Such as the text attribute of a TextView
+            mySurface.notifyActivateComponent(component);
+          }
         }
+      }
+      else if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event);
       }
     }
 
     @Override
-    public void mousePressed(@NonNull MouseEvent event) {
-      if(event.getID() == MouseEvent.MOUSE_PRESSED){
+    public void mousePressed(@NotNull MouseEvent event) {
+      if (event.getID() == MouseEvent.MOUSE_PRESSED) {
         mySurface.getLayeredPane().requestFocusInWindow();
       }
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
-      myLastStateMask = event.getModifiersEx();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
 
-      // Not yet used. Should be, for Mac and Linux.
+      if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event);
+        return;
+      }
+
+      // Check if we have a ViewGroupHandler that might want
+      // to handle the entire interaction
+
+      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      if (screenView == null) {
+        return;
+      }
+
+      // Deal with the canvas resizing interaction at the bottom right of the screen view.
+      // If both screen views are present, only enable it next to the normal one.
+      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+        Dimension size = screenView.getSize();
+        // TODO: use constants for those numbers
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
+          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
+          return;
+        }
+      }
+
+      SelectionModel selectionModel = screenView.getSelectionModel();
+      NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
+      if (component == null) {
+        // If we cannot find an element where we clicked, try to use the first element currently selected
+        // (if any) to find the view group handler that may want to handle the mousePressed()
+        // This allows us to correctly handle elements out of the bounds of the screenview.
+        if (!selectionModel.isEmpty()) {
+          component = selectionModel.getPrimary();
+        } else {
+          return;
+        }
+      }
+      ViewGroupHandler viewGroupHandler = component != null ? component.getViewGroupHandler() : null;
+      if (viewGroupHandler == null) {
+        return;
+      }
+      Interaction interaction = null;
+
+      // Give a chance to the current selection's parent handler
+      if (interaction == null && !selectionModel.isEmpty()) {
+        NlComponent primary = screenView.getSelectionModel().getPrimary();
+        NlComponent parent = primary != null ? primary.getParent() : null;
+        if (parent != null) {
+          int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
+          int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
+          if (primary.containsX(ax) && primary.containsY(ay)) {
+            ViewGroupHandler handler = parent.getViewGroupHandler();
+            if (handler != null) {
+              interaction = handler.createInteraction(screenView, primary);
+            }
+          }
+        }
+      }
+
+      if (interaction == null) {
+        interaction = viewGroupHandler.createInteraction(screenView, component);
+      }
+
+      if (interaction != null) {
+        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
+      }
     }
 
     @Override
-    public void mouseReleased(@NonNull MouseEvent event) {
-      //ControlPoint mousePos = ControlPoint.create(mySurface, e);
+    public void mouseReleased(@NotNull MouseEvent event) {
+      if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.repaint();
+        mySurface.getActionManager().showPopup(event);
+        return;
+      } else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
+        // mouse release from a popup click (the popup menu was posted on
+        // the mousePressed event
+        return;
+      }
 
       int x = event.getX();
       int y = event.getY();
-      int modifiers = event.getModifiersEx();
+      int modifiers = event.getModifiers();
       if (myCurrentInteraction == null) {
-        // Just a click, select
-        ScreenView screenView = mySurface.getScreenView(x, y);
-        if (screenView == null) {
-          return;
-        }
-        SelectionModel selectionModel = screenView.getSelectionModel();
-        NlComponent component = Coordinates.findComponent(screenView, x, y);
-
-        if (component == null) {
-          // Clicked component resize handle?
-          int mx = Coordinates.getAndroidX(screenView, x);
-          int my = Coordinates.getAndroidY(screenView, y);
-          int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
-          SelectionHandle handle = selectionModel.findHandle(mx, my, max);
-          if (handle != null) {
-            component = handle.component;
-          }
-        }
-
-        List<NlComponent> components = component != null ? Collections.singletonList(component) : Collections.<NlComponent>emptyList();
-        screenView.getSelectionModel().setSelection(components);
+        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
+        selectComponentAt(x, y, allowToggle, false);
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
@@ -357,14 +501,71 @@ public class InteractionManager {
       mySurface.repaint();
     }
 
+    /**
+     * Selects the component under the given x,y coordinate, optionally
+     * toggling or replacing the selection.
+     *
+     * @param x                       The mouse click x coordinate, in Swing coordinates.
+     * @param y                       The mouse click y coordinate, in Swing coordinates.
+     * @param allowToggle             If true, clicking an unselected component adds it to the selection,
+     *                                and clicking a selected component removes it from the selection. If not,
+     *                                the selection is replaced.
+     * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
+     *                                selection (including possibly other selected components) alone
+     */
+    private void selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
+                                   boolean ignoreIfAlreadySelected) {
+      // Just a click, select
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return;
+      }
+      SelectionModel selectionModel = screenView.getSelectionModel();
+      NlComponent component = Coordinates.findComponent(screenView, x, y);
+
+      if (component == null) {
+        // Clicked component resize handle?
+        int mx = Coordinates.getAndroidX(screenView, x);
+        int my = Coordinates.getAndroidY(screenView, y);
+        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
+        SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+        if (handle != null) {
+          component = handle.component;
+        }
+      }
+
+      if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
+        return;
+      }
+
+      if (component == null) {
+        selectionModel.clear();
+      }
+      else if (allowToggle) {
+        selectionModel.toggle(component);
+      }
+      else {
+        selectionModel.setSelection(Collections.singletonList(component));
+      }
+    }
+
+    @Nullable
+    private NlComponent getComponentAt(@SwingCoordinate int x, @SwingCoordinate int y) {
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return null;
+      }
+      return Coordinates.findComponent(screenView, x, y);
+    }
+
     @Override
-    public void mouseEntered(@NonNull MouseEvent event) {
+    public void mouseEntered(@NotNull MouseEvent event) {
       myHoverTimer.restart();
       mySurface.resetHover();
     }
 
     @Override
-    public void mouseExited(@NonNull MouseEvent event) {
+    public void mouseExited(@NotNull MouseEvent event) {
       myHoverTimer.stop();
       mySurface.resetHover();
     }
@@ -378,30 +579,54 @@ public class InteractionManager {
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
-        myLastStateMask = event.getModifiersEx();
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourLastStateMask = event.getModifiers();
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
-        int modifiers = event.getModifiersEx();
+        int modifiers = event.getModifiers();
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourLastStateMask = modifiers;
         boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         ScreenView screenView = mySurface.getScreenView(x, y);
         if (screenView == null) {
           return;
         }
-        Interaction interaction;
         SelectionModel selectionModel = screenView.getSelectionModel();
-        // Dragging on top of a selection handle: start a resize operation
 
         int ax = Coordinates.getAndroidX(screenView, x);
         int ay = Coordinates.getAndroidY(screenView, y);
+
+        Interaction interaction;
+        // Dragging on top of a selection handle: start a resize operation
         int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
         if (handle != null) {
           interaction = new ResizeInteraction(screenView, handle.component, handle);
-        } else {
+        }
+        else {
           NlModel model = screenView.getModel();
-          NlComponent component = model.findLeafAt(ax, ay, false);
+          NlComponent component = null;
+
+          // Make sure we start from root if we don't have anything selected
+          if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
+            selectionModel.setSelection(Collections.singleton(model.getComponents().get(0).getRoot()));
+          }
+
+          // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+          // leaf nodes inside it
+          NlComponent primary = selectionModel.getPrimary();
+          if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
+            component = primary;
+          } else if (primary != null) {
+            component = primary.findImmediateLeafAt(ax, ay);
+          }
+          if (component == null) {
+            component = model.findLeafAt(ax, ay, false);
+          }
+
           if (component == null || component.isRoot()) {
             // Dragging on the background/root view: start a marquee selection
             interaction = new MarqueeInteraction(screenView, toggle);
@@ -414,11 +639,11 @@ public class InteractionManager {
               dragged = Lists.newArrayList();
 
               // Make sure the primary is the first element
-              NlComponent primary = selectionModel.getPrimary();
               if (primary != null) {
                 if (primary.isRoot()) {
                   primary = null;
-                } else {
+                }
+                else {
                   dragged.add(primary);
                 }
               }
@@ -448,9 +673,11 @@ public class InteractionManager {
       int y = event.getY();
       myLastMouseX = x;
       myLastMouseY = y;
-      myLastStateMask = event.getModifiersEx();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
 
-      if ((myLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+      mySurface.hover(x, y);
+      if ((ourLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
         if (myCurrentInteraction != null) {
           updateMouse(x, y);
           mySurface.repaint();
@@ -467,30 +694,24 @@ public class InteractionManager {
 
     @Override
     public void keyTyped(KeyEvent event) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
     }
 
     @Override
     public void keyPressed(KeyEvent event) {
-      myLastStateMask = event.getModifiersEx();
-      // Workaround for the fact that in keyPressed the current state
-      // mask is not yet updated
+      int modifiers = event.getModifiers();
       int keyCode = event.getKeyCode();
       char keyChar = event.getKeyChar();
-      if (keyCode == KeyEvent.VK_SHIFT) {
-        myLastStateMask |= InputEvent.SHIFT_MASK;
-      }
-      if (keyCode == KeyEvent.VK_META) {
-        myLastStateMask |= InputEvent.META_MASK;
-      }
-      if (keyCode == KeyEvent.VK_CONTROL) {
-        myLastStateMask |= InputEvent.CTRL_MASK;
-      }
+
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = modifiers;
 
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
+          finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
           return;
         }
 
@@ -499,24 +720,30 @@ public class InteractionManager {
         }
       }
 
+      if (keyChar == '+') {
+        mySurface.zoomIn();
+      } else if (keyChar == '-') {
+        mySurface.zoomOut();
+      }
+
+      // The below shortcuts only apply without modifier keys.
+      // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
+      // example Shift+= to create the + key.
+      if (event.isAltDown() || event.isMetaDown() || event.isShiftDown() || event.isControlDown()) {
+        return;
+      }
+
       // Fall back to canvas actions for the key press
       //mySurface.handleKeyPressed(e);
 
       if (keyChar == '1') {
         mySurface.zoomActual();
       } else if (keyChar == 'r') {
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView != null) {
-          screenView.getModel().requestRender();
-        }
-        mySurface.zoomIn();
-      } else if (keyChar == '+') {
-        mySurface.zoomIn();
+        // Refresh layout
+        RefreshRenderAction.clearCache(mySurface);
       } else if (keyChar == 'b') {
         DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
-        mySurface.setScreenMode(nextMode);
-      } else if (keyChar == '-') {
-        mySurface.zoomOut();
+        mySurface.setScreenMode(nextMode, true);
       } else if (keyChar == '0') {
         mySurface.zoomToFit();
       } else if (keyChar == 'd') {
@@ -545,18 +772,8 @@ public class InteractionManager {
 
     @Override
     public void keyReleased(KeyEvent event) {
-      myLastStateMask = event.getModifiersEx();
-      // Workaround for the fact that in keyPressed the current state
-      // mask is not yet updated
-      if (event.getKeyCode() == KeyEvent.VK_SHIFT) {
-        myLastStateMask |= InputEvent.SHIFT_MASK;
-      }
-      if (event.getKeyCode() == KeyEvent.VK_META) {
-        myLastStateMask |= InputEvent.META_MASK;
-      }
-      if (event.getKeyCode() == KeyEvent.VK_CONTROL) {
-        myLastStateMask |= InputEvent.CTRL_MASK;
-      }
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
 
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
@@ -586,7 +803,10 @@ public class InteractionManager {
         }
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-        List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
+
+        List<NlComponent> dragged = ApplicationManager.getApplication()
+          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(screenView, item, insertType));
+
         if (dragged == null) {
           event.reject();
           return;
@@ -619,7 +839,7 @@ public class InteractionManager {
       ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
       if (screenView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        interaction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        interaction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         interaction.setType(dragType);
         NlModel model = screenView.getModel();
@@ -641,7 +861,7 @@ public class InteractionManager {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true /* cancel interaction */);
+        finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true /* cancel interaction */);
       }
     }
 
@@ -667,7 +887,7 @@ public class InteractionManager {
         return null;
       }
       InsertType insertType = updateDropInteraction(dropAction, transferable);
-      finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, (insertType == null));
+      finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, (insertType == null));
       return insertType;
     }
 
@@ -700,14 +920,16 @@ public class InteractionManager {
         components = model.getSelectionModel().getSelection();
       }
       else {
-        components = model.createComponents(screenView, item, insertType);
+        components = ApplicationManager.getApplication()
+          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(screenView, item, insertType));
+
         if (components == null) {
           return null;  // User cancelled
         }
       }
       if (dragged.size() != components.size()) {
         throw new AssertionError(
-          String.format("Problem with drop: dragged.size(%1$d) != components.size(%1$d)", dragged.size(), components.size()));
+          String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
         components.get(index).x = dragged.get(index).x;
@@ -732,6 +954,72 @@ public class InteractionManager {
       // TODO: find the correct tooltip? to show
       mySurface.hover(x, y);
     }
+
+    // --- Implements MouseWheelListener ----
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      int x = e.getX();
+      int y = e.getY();
+
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return;
+      }
+
+      final NlComponent component = Coordinates.findComponent(screenView, x, y);
+      if (component == null) {
+        return;
+      }
+
+      int scrollAmount;
+      if (e.getScrollType() == WHEEL_UNIT_SCROLL) {
+        scrollAmount = e.getUnitsToScroll();
+      }
+      else {
+        scrollAmount = (e.getWheelRotation() < 0 ? -1 : 1);
+      }
+
+      boolean isScrollInteraction;
+      if (myCurrentInteraction == null) {
+        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(screenView, component);
+        if (scrollInteraction == null) {
+          // There is no component consuming the scroll
+          e.getComponent().getParent().dispatchEvent(e);
+          return;
+        } else {
+          // If the design surface is zoomed in we should be panning it rather than the
+          // designed view
+          JScrollPane scrollPane = mySurface.getScrollPane();
+          JViewport viewport = scrollPane.getViewport();
+          Dimension extentSize = viewport.getExtentSize();
+          Dimension viewSize = viewport.getViewSize();
+          if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+            e.getComponent().getParent().dispatchEvent(e);
+            return;
+          }
+        }
+
+        // Start a scroll interaction and a timer to bundle all the scroll events
+        startInteraction(x, y, scrollInteraction, 0);
+        isScrollInteraction = true;
+        myScrollEndTimer.addActionListener(myScrollEndListener);
+      } else {
+        isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
+      }
+      myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
+
+      if (isScrollInteraction) {
+        myScrollEndTimer.restart();
+      }
+    }
+  }
+
+  /**
+   * Cancels the current running interaction
+   */
+  public void cancelInteraction() {
+    finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
   }
 
   @VisibleForTesting

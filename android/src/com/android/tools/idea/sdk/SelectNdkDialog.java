@@ -17,9 +17,6 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
-import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -202,7 +199,7 @@ public class SelectNdkDialog extends DialogWrapper {
   protected void doOKAction() {
     if (myDownloadNdkRadioButton.isSelected()) {
       List<String> requested = ImmutableList.of(SdkConstants.FD_NDK);
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested, false);
       if (dialog != null && dialog.showAndGet()) {
         File ndk = IdeSdks.getAndroidNdkPath();
         if (ndk != null) {

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.openapi.application.ApplicationManager;
@@ -49,9 +47,10 @@ import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.HierarchyEvent;
@@ -123,6 +122,15 @@ public class NlPreviewManager implements ProjectComponent {
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
+
+          if (myToolWindowForm != null) {
+            if (visible) {
+              myToolWindowForm.activate();
+            }
+            else {
+              myToolWindowForm.deactivate();
+            }
+          }
         }
       }
     });
@@ -157,7 +165,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   // The preview image was updated. Notify the attached palette if any.
-  public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
     if (myToolWindow != null) {
       NlPaletteManager paletteManager = NlPaletteManager.get(myProject);
       LightToolWindow toolWindow = (LightToolWindow)myToolWindowForm.getClientProperty(paletteManager.getComponentName());
@@ -168,7 +176,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   @Override
-  @NonNull
+  @NotNull
   @NonNls
   public String getComponentName() {
     return "NlPreviewManager";
@@ -200,10 +208,6 @@ public class NlPreviewManager implements ProjectComponent {
   private boolean myRenderImmediately;
 
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
-    if (!RenderService.NELE_ENABLED) {
-      return;
-    }
-
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;
@@ -283,17 +287,10 @@ public class NlPreviewManager implements ProjectComponent {
         }
 
         final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(activeEditor.getDocument());
+        myToolWindowForm.setFile(psiFile);
         if (psiFile == null) {
-          myToolWindowForm.setFile(null);
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
-        }
-
-        final boolean toRender = myToolWindowForm.getFile() != psiFile;
-        if (toRender) {
-          if (!myToolWindowForm.setFile(psiFile)) {
-            return;
-          }
         }
 
         myToolWindow.setAvailable(true, null);
@@ -338,6 +335,19 @@ public class NlPreviewManager implements ProjectComponent {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
+    if (psiFile == null) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+    if (facet == null) {
+      return false;
+    }
+    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
+    // legacy android projects as well. Only enable for those two cases for now.
+    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
+      return false;
+    }
+
     // In theory, we should just check
     //   LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
     // here, but there are problems where files don't show up with layout preview
@@ -346,6 +356,7 @@ public class NlPreviewManager implements ProjectComponent {
     return isInResourceFolder(psiFile);
   }
 
+  @NotNull
   public NlPreviewForm getPreviewForm() {
     if (myToolWindow == null) {
       initToolWindow();
@@ -354,7 +365,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
-    if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
+    if (psiFile instanceof XmlFile) {
       return RenderService.canRender(psiFile);
     }
     return false;
@@ -372,7 +383,7 @@ public class NlPreviewManager implements ProjectComponent {
    * simply anticipate the change by calling this method first; the subsequent file open will
    * then become a no-op since the file doesn't change.
    */
-  public void notifyFileShown(@NonNull TextEditor editor, boolean renderImmediately) {
+  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
     // Don't delete: should be invoked from ConfigurationAction#pickedBetterMatch when we can access designer code from there
     // (or when ConfigurationAction moves here)
     if (renderImmediately) {
@@ -384,19 +395,19 @@ public class NlPreviewManager implements ProjectComponent {
     }
   }
 
-  @NonNull
+  @NotNull
   public Project getProject() {
     return myProject;
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
-    public void fileOpened(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       processFileEditorChange(getActiveLayoutXmlEditor());
     }
 
     @Override
-    public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -406,7 +417,7 @@ public class NlPreviewManager implements ProjectComponent {
     }
 
     @Override
-    public void selectionChanged(@NonNull FileEditorManagerEvent event) {
+    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor layoutXmlEditor = null;
       if (newEditor instanceof TextEditor) {

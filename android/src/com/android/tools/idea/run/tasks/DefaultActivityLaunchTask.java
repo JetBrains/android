@@ -18,14 +18,17 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.ActivityLocator;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultActivityLaunchTask extends ActivityLaunchTask {
   @NotNull private final ActivityLocator myActivityLocator;
 
-  public DefaultActivityLaunchTask(@NotNull String applicationId, @NotNull ActivityLocator activityLocator, boolean waitForDebugger, @NotNull String extraAmOptions) {
-    super(applicationId, waitForDebugger, extraAmOptions);
+  public DefaultActivityLaunchTask(@NotNull String applicationId,
+                                   @NotNull ActivityLocator activityLocator,
+                                   @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
+    super(applicationId, startActivityFlagsProvider);
     myActivityLocator = activityLocator;
   }
 

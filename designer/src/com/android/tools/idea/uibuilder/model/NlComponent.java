@@ -15,37 +15,41 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 
@@ -53,42 +57,66 @@ import static com.android.SdkConstants.*;
  * Represents a component editable in the UI builder. A component has properties,
  * if visual it has bounds, etc.
  */
-public class NlComponent {
+public class NlComponent implements NlAttributesHolder {
+  // TODO Add a needsId method to the handler classes
+  private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = new ImmutableSet.Builder<String>()
+    .add(REQUEST_FOCUS)
+    .add(SPACE)
+    .add(TAG_ITEM)
+    .add(VIEW_INCLUDE)
+    .add(VIEW_MERGE)
+    .addAll(PreferenceUtils.VALUES)
+    .build();
+
   @Nullable public List<NlComponent> children;
   @Nullable public ViewInfo viewInfo;
   @AndroidCoordinate public int x;
   @AndroidCoordinate public int y;
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
-  private NlComponent myParent;
-  @NonNull private final NlModel myModel;
-  @NonNull private XmlTag myTag;
-  @NonNull private String myTagName; // for non-read lock access elsewhere
-  @Nullable private TagSnapshot snapshot;
 
-  public NlComponent(@NonNull NlModel model, @NonNull XmlTag tag) {
+  /**
+   * True if this component's bounds were computed by NlModel.
+   */
+  private boolean myBoundsComputed;
+
+  private NlComponent myParent;
+  @NotNull private final NlModel myModel;
+  @NotNull private XmlTag myTag;
+  @NotNull private String myTagName; // for non-read lock access elsewhere
+  @Nullable private TagSnapshot mySnapshot;
+
+  /** Current open attributes transaction or null if none is open */
+  @Nullable AttributesTransaction myCurrentTransaction;
+
+  public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myTag = tag;
     myTagName = tag.getName();
   }
 
-  @NonNull
+  @NotNull
   public XmlTag getTag() {
     return myTag;
   }
 
-  @NonNull
+  @NotNull
   public NlModel getModel() {
     return myModel;
   }
 
-  public void setTag(@NonNull XmlTag tag) {
+  public void setTag(@NotNull XmlTag tag) {
     myTag = tag;
     myTagName = tag.getName();
   }
 
+  @Nullable
+  public TagSnapshot getSnapshot() {
+    return mySnapshot;
+  }
+
   public void setSnapshot(@Nullable TagSnapshot snapshot) {
-    this.snapshot = snapshot;
+    mySnapshot = snapshot;
   }
 
   public void setBounds(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int w, @AndroidCoordinate int h) {
@@ -98,41 +126,56 @@ public class NlComponent {
     this.h = h;
   }
 
-  public void addChild(@NonNull NlComponent component) {
+  void setBoundsComputed(boolean boundsComputed) {
+    myBoundsComputed = boundsComputed;
+  }
+
+  public void addChild(@NotNull NlComponent component) {
     addChild(component, null);
   }
 
-  public void addChild(@NonNull NlComponent component, @Nullable NlComponent before) {
+  public void addChild(@NotNull NlComponent component, @Nullable NlComponent before) {
+    if (component == this) {
+      throw new IllegalArgumentException();
+    }
     if (children == null) {
       children = Lists.newArrayList();
     }
     int index = before != null ? children.indexOf(before) : -1;
     if (index != -1) {
       children.add(index, component);
-    } else {
+    }
+    else {
       children.add(component);
     }
     component.setParent(this);
   }
 
-  public void delete() {
-    NlComponent parent = getParent();
-    if (parent != null) {
-      parent.removeChild(this);
+  public void removeChild(@NotNull NlComponent component) {
+    if (component == this) {
+      throw new IllegalArgumentException();
     }
-    myTag.delete();
-  }
-
-  public void removeChild(@NonNull NlComponent component) {
     if (children != null) {
       children.remove(component);
     }
     component.setParent(null);
   }
 
-  @NonNull
-  public Iterable<NlComponent> getChildren() {
-    return children != null ? children : Collections.<NlComponent>emptyList();
+  public void setChildren(@Nullable List<NlComponent> components) {
+    children = components;
+    if (components != null) {
+      for (NlComponent component : components) {
+        if (component == this) {
+          throw new IllegalArgumentException();
+        }
+        component.setParent(this);
+      }
+    }
+  }
+
+  @NotNull
+  public List<NlComponent> getChildren() {
+    return children != null ? children : Collections.emptyList();
   }
 
   public int getChildCount() {
@@ -142,6 +185,13 @@ public class NlComponent {
   @Nullable
   public NlComponent getChild(int index) {
     return children != null && index >= 0 && index < children.size() ? children.get(index) : null;
+  }
+
+  @NotNull
+  public Stream<NlComponent> flatten() {
+    return Stream.concat(
+      Stream.of(this),
+      getChildren().stream().flatMap(NlComponent::flatten));
   }
 
   @Nullable
@@ -158,7 +208,7 @@ public class NlComponent {
   }
 
   @Nullable
-  public NlComponent findViewByTag(@NonNull XmlTag tag) {
+  public NlComponent findViewByTag(@NotNull XmlTag tag) {
     if (myTag == tag) {
       return this;
     }
@@ -176,7 +226,7 @@ public class NlComponent {
   }
 
   @Nullable
-  public List<NlComponent> findViewsByTag(@NonNull XmlTag tag) {
+  public List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
     List<NlComponent> result = null;
 
     if (children != null) {
@@ -185,7 +235,8 @@ public class NlComponent {
         if (matches != null) {
           if (result != null) {
             result.addAll(matches);
-          } else {
+          }
+          else {
             result = matches;
           }
         }
@@ -202,6 +253,28 @@ public class NlComponent {
     return result;
   }
 
+  /**
+   * Return the leaf at coordinates x, y that is an immediate child of this {@linkplain NlComponent}
+   *
+   * @param px x coordinate
+   * @param py y coordinate
+   * @return an immediate child of ours, or ourself (if we are under the coordinates), or null otherwise.
+   */
+  @Nullable
+  public NlComponent findImmediateLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
+    if (children != null) {
+      // Search BACKWARDS such that if the children are painted on top of each
+      // other (as is the case in a FrameLayout) I pick the last one which will
+      // be topmost!
+      for (int i = children.size() - 1; i >= 0; i--) {
+        NlComponent child = children.get(i);
+        if (child.x <= px && child.y <= py && (child.x + child.w >= px) && (child.y + child.h >= py)) {
+          return child;
+        }
+      }
+    }
+    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+  }
 
   @Nullable
   public NlComponent findLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
@@ -218,7 +291,23 @@ public class NlComponent {
       }
     }
 
-    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+    return (!myBoundsComputed && x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+  }
+
+  public boolean containsX(@AndroidCoordinate int x) {
+    return Ranges.contains(this.x, this.x + w, x);
+  }
+
+  public boolean containsY(@AndroidCoordinate int y) {
+    return Ranges.contains(this.y, this.y + h, y);
+  }
+
+  public int getMidpointX() {
+    return x + w / 2;
+  }
+
+  public int getMidpointY() {
+    return y + h / 2;
   }
 
   public boolean isRoot() {
@@ -233,48 +322,23 @@ public class NlComponent {
     return component;
   }
 
-  public static String toTree(@NonNull List<NlComponent> roots) {
-    StringBuilder sb = new StringBuilder(200);
-    for (NlComponent root : roots) {
-      describe(sb, root, 0);
-    }
-    return sb.toString().trim();
-  }
-
-  private static void describe(@NonNull StringBuilder sb, @NonNull NlComponent component, int depth) {
-    for (int i = 0; i < depth; i++) {
-      sb.append("    ");
-    }
-    sb.append(describe(component));
-    sb.append('\n');
-    for (NlComponent child : component.getChildren()) {
-      describe(sb, child, depth + 1);
-    }
-  }
-
-  private static String describe(@NonNull NlComponent root) {
-    return Objects.toStringHelper(root).omitNullValues()
-      .add("tag", describe(root.myTag))
-      .add("bounds",  "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
-      .toString();
-  }
-
-  private static String describe(@Nullable XmlTag tag) {
-    if (tag == null) {
-      return "";
-    } else {
-      return '<' + tag.getName() + '>';
-    }
-  }
-
-  /** Returns the ID of this component */
+  /**
+   * Returns the ID of this component
+   */
   @Nullable
   public String getId() {
-    String id = getAttribute(ANDROID_URI, ATTR_ID);
+    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : getAndroidAttribute(ATTR_ID);
+
+    return stripId(id);
+  }
+
+  @Nullable
+  public static String stripId(@Nullable String id) {
     if (id != null) {
       if (id.startsWith(NEW_ID_PREFIX)) {
         return id.substring(NEW_ID_PREFIX.length());
-      } else if (id.startsWith(ID_PREFIX)) {
+      }
+      else if (id.startsWith(ID_PREFIX)) {
         return id.substring(ID_PREFIX.length());
       }
     }
@@ -290,9 +354,12 @@ public class NlComponent {
    * @return true if the component should have a default id
    */
   public boolean needsDefaultId() {
-    if (myTagName.equals(VIEW_INCLUDE) || myTagName.equals(VIEW_MERGE) || myTagName.equals(SPACE) || myTagName.equals(REQUEST_FOCUS) ||
-        // Handle <Space> in the compatibility library package
-        (myTagName.endsWith(SPACE) && myTagName.length() > SPACE.length() && myTagName.charAt(myTagName.length() - SPACE.length()) == '.')) {
+    if (TAGS_THAT_DONT_NEED_DEFAULT_IDS.contains(myTagName)) {
+      return false;
+    }
+
+    // Handle <Space> in the compatibility library package
+    if (myTagName.endsWith(SPACE) && myTagName.length() > SPACE.length() && myTagName.charAt(myTagName.length() - SPACE.length()) == '.') {
       return false;
     }
 
@@ -302,15 +369,18 @@ public class NlComponent {
       if (myTagName.endsWith("Layout")) {
         return false;
       }
-    } else if (viewHandler instanceof ViewGroupHandler) {
+    }
+    else if (viewHandler instanceof ViewGroupHandler) {
       return false;
     }
 
     return true;
   }
 
-  /** Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
-   * not need one according to {@link #needsDefaultId()} */
+  /**
+   * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
+   * not need one according to {@link #needsDefaultId()}
+   */
   public String ensureId() {
     String id = getId();
     if (id != null) {
@@ -320,13 +390,16 @@ public class NlComponent {
     return assignId();
   }
 
-  public String assignId() {
-    Collection<String> idList = getIds(myModel.getFacet());
+  private String assignId() {
+    Collection<String> idList = getIds(myModel);
     return assignId(this, idList);
   }
 
-  public static String assignId(@NonNull NlComponent component, @NonNull Collection<String> idList) {
-    String idValue = StringUtil.decapitalize(component.getTagName());
+  @NotNull
+  public static String assignId(@NotNull NlComponent component, @NotNull Collection<String> idList) {
+    String tagName = component.getTagName();
+    tagName = tagName.substring(tagName.lastIndexOf('.') + 1);
+    String idValue = StringUtil.decapitalize(tagName);
 
     Module module = component.getModel().getModule();
     Project project = module.getProject();
@@ -343,20 +416,37 @@ public class NlComponent {
       ++index;
       if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
         nextIdValue = idValue;
-      } else {
+      }
+      else {
         nextIdValue = idValue + Integer.toString(index);
       }
     }
 
     String newId = idValue + (index == 0 ? "" : Integer.toString(index));
-    component.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    // If the component has an open transaction, assign the id in that transaction
+    NlAttributesHolder attributes = component.myCurrentTransaction != null ? component.myCurrentTransaction : component;
+    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    component.myModel.getPendingIds().add(newId); // TODO clear the pending ids
     return newId;
   }
 
-  /** Looks up the existing set of id's reachable from the given module */
-  private static Collection<String> getIds(@NonNull AndroidFacet facet) {
+  /**
+   * Looks up the existing set of id's reachable from the given module
+   */
+  public static Collection<String> getIds(@NotNull NlModel model) {
+    AndroidFacet facet = model.getFacet();
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
-    return resources.getItemsOfType(ResourceType.ID);
+    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    Set<String> pendingIds = model.getPendingIds();
+    if (!pendingIds.isEmpty()) {
+      List<String> all = Lists.newArrayListWithCapacity(pendingIds.size() + ids.size());
+      all.addAll(ids);
+      all.addAll(pendingIds);
+      ids = all;
+    }
+    return ids;
   }
 
   public int getBaseline() {
@@ -372,6 +462,66 @@ public class NlComponent {
     return -1;
   }
 
+  public int getMinimumWidth() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getMinimumWidth").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+
+    return 0;
+  }
+
+  public int getMinimumHeight() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getMinimumHeight").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+
+    return 0;
+  }
+
+  /**
+   * Return the actual view id used in layout lib
+   *
+   * @return the view id, or -1 if impossible to get
+   */
+  public int getAndroidViewId() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getId").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return -1;
+  }
+
+  /**
+   * Return the current view visibility from layout lib
+   *
+   * @return the view visibility, or 0 (visible) if impossible to get
+   */
+  public int getAndroidViewVisibility() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getVisibility").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return 0;
+  }
+
   private Insets myMargins;
   private Insets myPadding;
 
@@ -379,7 +529,7 @@ public class NlComponent {
     return value == Integer.MIN_VALUE ? 0 : value;
   }
 
-  @NonNull
+  @NotNull
   public Insets getMargins() {
     if (myMargins == null) {
       if (viewInfo == null) {
@@ -398,7 +548,8 @@ public class NlComponent {
 
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
           myMargins = Insets.NONE;
-        } else {
+        }
+        else {
           myMargins = new Insets(left, top, right, bottom);
         }
       }
@@ -409,9 +560,14 @@ public class NlComponent {
     return myMargins;
   }
 
-  @NonNull
+  @NotNull
   public Insets getPadding() {
-    if (myPadding == null) {
+    return getPadding(false);
+  }
+
+  @NotNull
+  public Insets getPadding(boolean force) {
+    if (myPadding == null || force) {
       if (viewInfo == null) {
         return Insets.NONE;
       }
@@ -425,7 +581,8 @@ public class NlComponent {
         int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
           myPadding = Insets.NONE;
-        } else {
+        }
+        else {
           myPadding = new Insets(left, top, right, bottom);
         }
       }
@@ -436,60 +593,112 @@ public class NlComponent {
     return myPadding;
   }
 
+  /**
+   * Returns true if this NlComponent's class is the specified class,
+   * or if one of its super classes is the specified class.
+   *
+   * @param className A fully qualified class name
+   */
+  public boolean isOrHasSuperclass(@NotNull String className) {
+    if (viewInfo != null) {
+      Object viewObject = viewInfo.getViewObject();
+      Class<?> viewClass = viewObject.getClass();
+      while (viewClass != Object.class) {
+        if (className.equals(viewClass.getName())) {
+          return true;
+        }
+        viewClass = viewClass.getSuperclass();
+      }
+    }
+    return false;
+  }
+
   @Nullable
   public NlComponent getParent() {
     return myParent;
   }
 
-  public void setParent(@Nullable NlComponent parent) {
+  private void setParent(@Nullable NlComponent parent) {
     myParent = parent;
   }
 
-  @NonNull
+  @NotNull
   public String getTagName() {
     return myTagName;
   }
 
   @Override
   public String toString() {
-    return describe(this);
+    ToStringHelper helper = Objects.toStringHelper(this).omitNullValues()
+      .add("tag", "<" + myTag.getName() + ">")
+      .add("bounds", "[" + x + "," + y + ":" + w + "x" + h);
+    return helper.toString();
   }
 
-  /** Convenience wrapper for now; this should be replaced with property lookup */
-  public void setAttribute(@Nullable String namespace, @NonNull String attribute, @Nullable String value) {
+  /**
+   * Convenience wrapper for now; this should be replaced with property lookup
+   */
+  @Override
+  public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    if (!myTag.isValid()) {
+      // This could happen when trying to set an attribute in a component that has been already deleted
+      return;
+    }
+
+    String prefix = null;
+    if (namespace != null && !ANDROID_URI.equals(namespace)) {
+      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
+    }
+    String previous = getAttribute(namespace, attribute);
+    if ((previous != null && previous.equalsIgnoreCase(value))
+        || (previous == null && value == null)) {
+      return;
+    }
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
-    if (snapshot != null) {
-      snapshot.setAttribute(attribute, namespace, null, value);
+    if (mySnapshot != null) {
+      mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
   }
 
+  /**
+   * Starts an {@link AttributesTransaction} or returns the current open one.
+   */
+  @NotNull
+  public AttributesTransaction startAttributeTransaction() {
+    if (myCurrentTransaction == null) {
+      myCurrentTransaction = new AttributesTransaction(this);
+    }
+
+    return myCurrentTransaction;
+  }
+
+  @Override
   @Nullable
-  public String getAttribute(@Nullable String namespace, @NonNull String attribute) {
-    if (snapshot != null) {
-      return snapshot.getAttribute(attribute, namespace);
-    } else if (myTag.isValid()) {
+  public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (mySnapshot != null) {
+      return mySnapshot.getAttribute(attribute, namespace);
+    }
+    else if (AndroidPsiUtils.isValid(myTag)) {
       return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
-    } else {
+    }
+    else {
       // Newly created components for example
       return null;
     }
   }
 
-  @NonNull
+  @NotNull
   public List<AttributeSnapshot> getAttributes() {
-    if (snapshot != null) {
-      return snapshot.attributes;
+    if (mySnapshot != null) {
+      return mySnapshot.attributes;
     }
 
     if (myTag.isValid()) {
-      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-        return ApplicationManager.getApplication().runReadAction(new Computable<List<AttributeSnapshot>>() {
-          @Override
-          public List<AttributeSnapshot> compute() {
-            return AttributeSnapshot.createAttributesForTag(myTag);
-          }
-        });
+      Application application = ApplicationManager.getApplication();
+
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(myTag));
       }
       return AttributeSnapshot.createAttributesForTag(myTag);
     }
@@ -497,41 +706,35 @@ public class NlComponent {
     return Collections.emptyList();
   }
 
-  public String ensureNamespace(@NonNull String prefix, @NonNull String namespace) {
-    //todo: Merge with functionality in {@link SuppressLintIntentionAction#ensureNamespaceImported}
-    assert isRoot();
-    // Handle validity
-    String existingPrefix = myTag.getPrefixByNamespace(namespace);
-    if (existingPrefix != null) {
-      return existingPrefix;
-    }
-    if (myTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
-      String base = prefix;
-      for (int i = 2; ; i++) {
-        prefix = base + Integer.toString(i);
-        if (myTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
-          break;
-        }
-      }
-    }
-    myTag.setAttribute(XMLNS_PREFIX + prefix, namespace);
-    return prefix;
+  public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, prefix);
   }
 
   public boolean isShowing() {
-    return snapshot != null;
+    return mySnapshot != null;
   }
 
   @Nullable
   public ViewHandler getViewHandler() {
+    if (!myTag.isValid()) {
+      return null;
+    }
     return ViewHandlerManager.get(myTag.getProject()).getHandler(this);
+  }
+
+  @Nullable
+  public ViewGroupHandler getViewGroupHandler() {
+    if (!myTag.isValid()) {
+      return null;
+    }
+    return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
   }
 
   /**
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
+   * and {@link DragHandler#commit(int, int, int)}.
    *
    * @param editor     The editor showing the component
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}
@@ -541,10 +744,10 @@ public class NlComponent {
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createChild(@NonNull ViewEditor editor,
-                                 @NonNull String fqcn,
+  public NlComponent createChild(@NotNull ViewEditor editor,
+                                 @NotNull String fqcn,
                                  @Nullable NlComponent before,
-                                 @NonNull InsertType insertType) {
+                                 @NotNull InsertType insertType) {
     return myModel.createComponent(((ViewEditorImpl)editor).getScreenView(), fqcn, this, before, insertType);
   }
 
@@ -554,7 +757,7 @@ public class NlComponent {
    *
    * @param fqcn the fully qualified class name, such as android.widget.Button
    * @return true if the full package path should be included in the layout XML element
-   *         tag
+   * tag
    */
   private static boolean viewNeedsPackage(String fqcn) {
     return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
@@ -571,12 +774,36 @@ public class NlComponent {
    * @param fqcn fully qualified class name
    * @return the corresponding view tag
    */
-  @NonNull
-  public static String viewClassToTag(@NonNull String fqcn) {
+  @NotNull
+  public static String viewClassToTag(@NotNull String fqcn) {
     if (!viewNeedsPackage(fqcn)) {
       return fqcn.substring(fqcn.lastIndexOf('.') + 1);
     }
 
     return fqcn;
+  }
+
+  /**
+   * Utility function to extract the id
+   *
+   * @param str the string to extract the id from
+   * @return the string id
+   */
+  @Nullable
+  public static String extractId(@Nullable String str) {
+    if (str == null) {
+      return null;
+    }
+    int index = str.lastIndexOf("@id/");
+    if (index != -1) {
+      return str.substring(index + 4);
+    }
+
+    index = str.lastIndexOf("@+id/");
+
+    if (index != -1) {
+      return str.substring(index + 5);
+    }
+    return null;
   }
 }

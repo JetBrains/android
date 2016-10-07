@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom.manifest;
 
-/**
- * @author coyote
- */
+import org.jetbrains.android.dom.Styleable;
+
+@Styleable("AndroidManifestUsesLibrary")
 public interface UsesLibrary extends ManifestElementWithRequiredName {
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.google.common.base.Optional;
 
 /**
  * Read-only handle to an {@link ObjectProperty}.

@@ -21,12 +21,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
@@ -34,7 +30,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
@@ -46,6 +41,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
@@ -72,15 +68,9 @@ final class ProjectJdkChecks {
       if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        hyperlinks.add(new OpenUrlHyperlink(Jdks.DOWNLOAD_JDK_7_URL, "Download JDK 7"));
-
-        ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-        if (service instanceof AndroidProjectSettingsService) {
-          hyperlinks.add(new SelectJdkHyperlink((AndroidProjectSettingsService)service));
-        }
+        List<NotificationHyperlink> quickFixes = Lists.newArrayList(getJdkQuickFixes(project));
         Message msg;
-        String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
+        String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7 or newer";
         VirtualFile buildFile = getGradleBuildFile(module);
         String groupName = "Project Configuration";
 
@@ -99,7 +89,7 @@ final class ProjectJdkChecks {
             }
           }
 
-          hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", lineNumber, column));
+          quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", lineNumber, column));
           msg = new Message(project, groupName, Message.Type.ERROR, buildFile, lineNumber, column, text);
         }
         else {
@@ -107,7 +97,7 @@ final class ProjectJdkChecks {
         }
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-        messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        messages.add(msg, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
 
         setHasWrongJdk(project, true);
         return false;
@@ -145,19 +135,5 @@ final class ProjectJdkChecks {
     }
 
     return -1;
-  }
-
-  private static class SelectJdkHyperlink extends NotificationHyperlink {
-    @NotNull private final AndroidProjectSettingsService mySettingsService;
-
-    SelectJdkHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
-      super("select.jdk", "Select a JDK from the File System");
-      mySettingsService = settingsService;
-    }
-
-    @Override
-    protected void execute(@NotNull Project project) {
-      mySettingsService.chooseJdkLocation();
-    }
   }
 }

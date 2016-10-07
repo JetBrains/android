@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.fd.InstantRunConfigurable;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -137,7 +137,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
     }
 
-    myAndroidProfilersPanel = new AndroidProfilersPanel(config.getProfilerState());
+    myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
     myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
   }
 

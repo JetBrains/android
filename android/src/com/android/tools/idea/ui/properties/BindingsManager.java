@@ -74,7 +74,7 @@ public final class BindingsManager {
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src, @NotNull ObservableValue<Boolean> enabled) {
     release(dest);
 
-    myOneWayBindings.add(new OneWayBinding<T>(dest, src, enabled));
+    myOneWayBindings.add(new OneWayBinding<>(dest, src, enabled));
   }
 
   /**
@@ -87,7 +87,7 @@ public final class BindingsManager {
   public <T> void bindTwoWay(@NotNull SettableValue<T> first, @NotNull SettableValue<T> second) {
     releaseTwoWay(first, second);
 
-    myTwoWayBindings.add(new TwoWayBinding<T>(first, second));
+    myTwoWayBindings.add(new TwoWayBinding<>(first, second));
   }
 
   /**
@@ -159,7 +159,7 @@ public final class BindingsManager {
     @Override
     public void onInvalidated(@NotNull ObservableValue<?> sender) {
       if (myEnabled.get()) {
-        myInvoker.enqueue(new DestUpdater<T>(myDest, mySrc));
+        myInvoker.enqueue(new DestUpdater<>(myDest, mySrc));
       }
     }
 
@@ -187,13 +187,13 @@ public final class BindingsManager {
     private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myInvoker.enqueue(new DestUpdater<T>(myRhs, myLhs));
+        myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
       }
     };
     private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myInvoker.enqueue(new DestUpdater<T>(myLhs, myRhs));
+        myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
       }
     };
 

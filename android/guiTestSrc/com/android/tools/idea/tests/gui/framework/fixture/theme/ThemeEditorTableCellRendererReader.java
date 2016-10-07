@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import org.fest.swing.driver.CellRendererReader;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.awt.*;
 
 public class ThemeEditorTableCellRendererReader implements CellRendererReader {

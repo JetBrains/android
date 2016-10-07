@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -29,11 +29,11 @@ import java.util.List;
  * children to be reconfigured by drag &amp; drop.
  */
 public abstract class DragHandler {
-  @NonNull protected final ViewEditor editor;
-  @NonNull protected final ViewGroupHandler handler;
-  @NonNull protected final List<NlComponent> components;
-  @NonNull protected final NlComponent layout;
-  @NonNull protected DragType type = DragType.COPY;
+  @NotNull protected final ViewEditor editor;
+  @NotNull protected final ViewGroupHandler handler;
+  @NotNull protected final List<NlComponent> components;
+  @NotNull protected final NlComponent layout;
+  @NotNull protected DragType type = DragType.COPY;
   @AndroidCoordinate protected int startX;
   @AndroidCoordinate protected int startY;
   @AndroidCoordinate protected int lastX;
@@ -49,11 +49,11 @@ public abstract class DragHandler {
    * @param components the components being dragged
    * @param type       the <b>initial</b> type of drag, which can change along the way
    */
-  protected DragHandler(@NonNull ViewEditor editor,
-                        @NonNull ViewGroupHandler handler,
-                        @NonNull NlComponent layout,
-                        @NonNull List<NlComponent> components,
-                        @NonNull DragType type) {
+  protected DragHandler(@NotNull ViewEditor editor,
+                        @NotNull ViewGroupHandler handler,
+                        @NotNull NlComponent layout,
+                        @NotNull List<NlComponent> components,
+                        @NotNull DragType type) {
     this.editor = editor;
     this.handler = handler;
     this.layout = layout;
@@ -66,7 +66,7 @@ public abstract class DragHandler {
    * modifier key.
    * @param type the new type to use
    */
-  public void setDragType(@NonNull DragType type) {
+  public void setDragType(@NotNull DragType type) {
     this.type = type;
   }
 
@@ -118,7 +118,7 @@ public abstract class DragHandler {
    *
    * @param graphics the graphics to paint to
    */
-  public abstract void paint(@NonNull NlGraphics graphics);
+  public abstract void paint(@NotNull NlGraphics graphics);
 
   /**
    * Returns the index of the position between the children of the layout to drop newly inserted

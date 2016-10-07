@@ -19,7 +19,10 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
-import com.android.tools.idea.editors.theme.*;
+import com.android.tools.idea.editors.theme.ParentThemesListModel;
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -30,9 +33,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
+import org.jetbrains.android.actions.NewResourceCreationHandler;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +65,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
   private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
 
   public static final String NO_PARENT = "[no parent]";
-  private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel(ImmutableList.of(NO_PARENT), NO_PARENT);
+  private static final CollectionComboBoxModel NO_PARENT_MODEL = new CollectionComboBoxModel<String>(ImmutableList.of(NO_PARENT), NO_PARENT);
 
   private final JComboBox myParentComboBox;
   private final VariantsComboBox myVariantsComboBox;
@@ -130,7 +138,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
         Module module = myContext.getCurrentContextModule();
 
         CreateXmlResourceDialog
-          resourceDialog = new CreateXmlResourceDialog(module, ResourceType.STYLE, themeName, " ", false);
+          resourceDialog = new CreateXmlResourceDialog(module, ResourceType.STYLE, themeName, " ", false, null, null);
         resourceDialog.setTitle(String.format("Create Theme '%1$s' Variant", themeName));
         if (!resourceDialog.showAndGet()) {
           return;
@@ -140,8 +148,14 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
         List<String> dirNames = resourceDialog.getDirNames();
         String resName = resourceDialog.getResourceName();
         String parentName = myItem.getParent().getQualifiedName();
+        Project project = module.getProject();
+        VirtualFile resourceDir = resourceDialog.getResourceDirectory();
+        if (resourceDir == null) {
+          AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+          return;
+        }
 
-        ThemeEditorUtils.createNewStyle(module, resName, parentName, fileName, dirNames);
+        ThemeEditorUtils.createNewStyle(project, resourceDir, resName, parentName, fileName, dirNames);
       }
     });
 
@@ -198,7 +212,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
       }
     }
 
-    myVariantsComboBox.setModel(new CollectionComboBoxModel(variants, variants.get(0)));
+    myVariantsComboBox.setModel(new CollectionComboBoxModel<VariantsComboItem>(variants, variants.get(0)));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.structure.dialog;
 
-import com.android.tools.idea.gradle.structure.DefaultSdksConfigurable;
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.components.ServiceManager;
@@ -25,11 +26,6 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.ErrorPaneConfigurable;
-import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.roots.ui.configuration.SidePanel;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.StructureConfigurableContext;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -41,6 +37,7 @@ import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -49,28 +46,28 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.EventListener;
 import java.util.List;
 
-import static com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND;
-import static com.intellij.util.ui.UIUtil.requestFocus;
+import static com.intellij.ui.navigation.Place.goFurther;
+import static com.intellij.util.ui.UIUtil.*;
 
 public class ProjectStructureConfigurable extends BaseConfigurable
   implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
 
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
-  @NonNls public static final String CATEGORY = "category";
+  @NonNls private static final String CATEGORY = "category";
+  @NonNls private static final String CATEGORY_NAME = "categoryName";
 
   @NonNls private static final String LAST_EDITED_PROPERTY = "project.structure.last.edited";
   @NonNls private static final String PROPORTION_PROPERTY = "project.structure.proportion";
   @NonNls private static final String SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion";
 
   @NotNull private final Project myProject;
-  @NotNull private final DefaultSdksConfigurable mySdksConfigurable;
+  @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final List<Configurable> myConfigurables = Lists.newArrayList();
   @NotNull private final UIState myUiState = new UIState();
-  @NotNull private final StructureConfigurableContext myContext;
-  @NotNull private final ModulesConfigurator myModulesConfigurator;
 
   private History myHistory = new History(this);
 
@@ -78,13 +75,18 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private SidePanel mySidePanel;
   private JPanel myNotificationPanel;
   private JComponent myToolbarComponent;
-  private ErrorPaneConfigurable myErrorsComponent;
+  private ConfigurationErrorsComponent myErrorsComponent;
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
   private Configurable mySelectedConfigurable;
 
-  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>", JLabel.CENTER);
+  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+                                                     SwingConstants.CENTER);
+  private final EventDispatcher<ProjectStructureChangeListener> myChangeEventDispatcher =
+    EventDispatcher.create(ProjectStructureChangeListener.class);
+
+  private MyDisposable myDisposable = new MyDisposable();
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -93,7 +95,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   public ProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
-    mySdksConfigurable = new DefaultSdksConfigurable(this, project);
+    mySdksConfigurable = new IdeSdksConfigurable(this, project);
     mySdksConfigurable.setHistory(myHistory);
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
@@ -102,10 +104,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     myUiState.proportion = parseFloatValue(proportion);
     String sideProportion = propertiesComponent.getValue(SIDE_PROPORTION_PROPERTY);
     myUiState.sideProportion = parseFloatValue(sideProportion);
-
-    myModulesConfigurator = new ModulesConfigurator(myProject);
-    myContext = new StructureConfigurableContext(myProject, myModulesConfigurator);
-    myModulesConfigurator.setContext(myContext);
   }
 
   private static float parseFloatValue(@Nullable String value) {
@@ -138,11 +136,21 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
+  @NotNull
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place == null) {
-      return null;
+      return ActionCallback.DONE;
     }
-    Configurable toSelect = (Configurable)place.getPath(CATEGORY);
+
+    Configurable toSelect;
+    Object displayName = place.getPath(CATEGORY_NAME);
+    if (displayName instanceof String) {
+      toSelect = findConfigurable((String)displayName);
+    }
+    else {
+      toSelect = (Configurable)place.getPath(CATEGORY);
+    }
+
     JComponent detailsContent = myDetails.getTargetComponent();
 
     if (mySelectedConfigurable != toSelect) {
@@ -197,7 +205,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     }
 
     ActionCallback result = new ActionCallback();
-    Place.goFurther(toSelect, place, requestFocus).notifyWhenDone(result);
+    goFurther(toSelect, place, requestFocus).notifyWhenDone(result);
 
     myDetails.revalidate();
     myDetails.repaint();
@@ -207,6 +215,16 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     }
 
     return result;
+  }
+
+  @Nullable
+  private Configurable findConfigurable(@NotNull String displayName) {
+    for (Configurable configurable : myConfigurables) {
+      if (displayName.equals(configurable.getDisplayName())) {
+        return configurable;
+      }
+    }
+    return null;
   }
 
   private void saveSideProportion() {
@@ -225,14 +243,22 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    place.putPath(CATEGORY, mySelectedConfigurable);
-    Place.queryFurther(mySelectedConfigurable, place);
+    if (mySelectedConfigurable != null) {
+      place.putPath(CATEGORY, mySelectedConfigurable);
+      Place.queryFurther(mySelectedConfigurable, place);
+    }
   }
 
   @Override
   @NotNull
   public String getId() {
     return "android.project.structure";
+  }
+
+  @Override
+  @Nullable
+  public Runnable enableSearch(String option) {
+    return null;
   }
 
   @Override
@@ -244,7 +270,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   @Override
   @Nullable
   public String getHelpTopic() {
-    return null;
+    return mySelectedConfigurable != null ? mySelectedConfigurable.getHelpTopic() : "";
   }
 
   @Override
@@ -282,8 +308,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     mySplitter.setSecondComponent(myDetails);
 
     component.add(mySplitter, BorderLayout.CENTER);
-    myErrorsComponent = new ErrorPaneConfigurable(myProject, myContext, null);
-    component.add(myErrorsComponent.createComponent(), BorderLayout.SOUTH);
+    myErrorsComponent = new ConfigurationErrorsComponent(myProject);
+    component.add(myErrorsComponent, BorderLayout.SOUTH);
 
     myUiInitialized = true;
 
@@ -293,7 +319,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private void initSidePanel() {
     boolean isDefaultProject = myProject == ProjectManager.getInstance().getDefaultProject();
 
-    mySidePanel = new SidePanel(this);
+    mySidePanel = new SidePanel(this, myHistory);
 
     addConfigurable(mySdksConfigurable);
 
@@ -303,32 +329,45 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   private void addConfigurables() {
-    for (ModuleStructureConfigurableContributor contributor : ModuleStructureConfigurableContributor.EP_NAME.getExtensions()) {
-      Configurable configurable = contributor.getModuleStructureConfigurable(myProject);
-      if (configurable != null) {
-        addConfigurable(configurable);
-        break;
-      }
+    if (myDisposable.disposed) {
+      myDisposable = new MyDisposable();
     }
-
-    for (ProjectStructureItemsContributor contributor : ProjectStructureItemsContributor.EP_NAME.getExtensions()) {
-      List<ProjectStructureItemGroup> itemGroups = contributor.getItemGroups(myProject);
-      for (ProjectStructureItemGroup group : itemGroups) {
-        String name = group.getGroupName();
-        mySidePanel.addSeparator(name);
-        for (Configurable item : group.getItems()) {
-          addConfigurable(item);
-        }
-      }
+    List<ProjectStructureItemGroup> additionalConfigurableGroups = Lists.newArrayList();
+    for (AndroidConfigurableContributor contributor : AndroidConfigurableContributor.EP_NAME.getExtensions()) {
+      contributor.getMainConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
+      additionalConfigurableGroups.addAll(contributor.getAdditionalConfigurableGroups());
+    }
+    for (ProjectStructureItemGroup group : additionalConfigurableGroups) {
+      String name = group.getGroupName();
+      mySidePanel.addSeparator(name);
+      group.getItems().forEach(this::addConfigurable);
     }
   }
 
   private void addConfigurable(@NotNull Configurable configurable) {
-    if (configurable instanceof BaseStructureConfigurable) {
-      ((BaseStructureConfigurable)configurable).init(myContext);
-    }
     myConfigurables.add(configurable);
+    if (configurable instanceof Place.Navigator) {
+      Place.Navigator navigator = (Place.Navigator)configurable;
+      navigator.setHistory(myHistory);
+    }
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
+    if (configurable instanceof CounterDisplayConfigurable) {
+      ((CounterDisplayConfigurable)configurable).add(() -> invokeLaterIfNeeded(() -> mySidePanel.repaint()), myDisposable);
+    }
+  }
+
+  public static void putPath(@NotNull Place place, @NotNull Configurable configurable) {
+    place.putPath(CATEGORY_NAME, configurable.getDisplayName());
+  }
+
+  @Nullable
+  public <T extends Configurable> T findConfigurable(@NotNull Class<T> type) {
+    for (Configurable configurable : myConfigurables) {
+      if (type.isInstance(configurable)) {
+        return type.cast(configurable);
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -337,8 +376,27 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
-  public void apply() throws ConfigurationException {
+  public boolean isModified() {
+    for (Configurable configurable : myConfigurables) {
+      if (configurable.isModified()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
+  @Override
+  public void apply() throws ConfigurationException {
+    boolean applied = false;
+    for (Configurable configurable : myConfigurables) {
+      if (configurable.isModified()) {
+        configurable.apply();
+        applied = true;
+      }
+    }
+    if (applied) {
+      myChangeEventDispatcher.getMulticaster().projectStructureChanged();
+    }
   }
 
   @Override
@@ -346,7 +404,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     AccessToken token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure");
     try {
       mySdksConfigurable.reset();
-      myContext.reset();
 
       Configurable toSelect = null;
       for (Configurable each : myConfigurables) {
@@ -391,16 +448,11 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
     myUiState.proportion = mySplitter.getProportion();
     saveSideProportion();
-    myContext.getDaemonAnalyzer().stop();
-    for (Configurable each : myConfigurables) {
-      each.disposeUIResources();
-    }
+    myConfigurables.forEach(Configurable::disposeUIResources);
     myConfigurables.clear();
 
-    myContext.clear();
-    myModulesConfigurator.getFacetsConfigurator().clearMaps();
-
     Disposer.dispose(myErrorsComponent);
+    Disposer.dispose(myDisposable);
 
     myUiInitialized = false;
   }
@@ -408,6 +460,18 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   @Nullable
   public History getHistory() {
     return myHistory;
+  }
+
+  public void add(@NotNull ProjectStructureChangeListener listener, @NotNull Disposable parentDisposable) {
+    myChangeEventDispatcher.addListener(listener, parentDisposable);
+  }
+
+  public void add(@NotNull ProjectStructureChangeListener listener) {
+    myChangeEventDispatcher.addListener(listener);
+  }
+
+  public void remove(@NotNull ProjectStructureChangeListener listener) {
+    myChangeEventDispatcher.removeListener(listener);
   }
 
   private class MyPanel extends JPanel implements DataProvider {
@@ -432,5 +496,18 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     public float proportion;
     public float sideProportion;
     @Nullable public String lastEditedConfigurable;
+  }
+
+  private static class MyDisposable implements Disposable {
+    volatile boolean disposed;
+
+    @Override
+    public void dispose() {
+      disposed = true;
+    }
+  }
+
+  public interface ProjectStructureChangeListener extends EventListener {
+    void projectStructureChanged();
   }
 }

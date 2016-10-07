@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,6 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected static final String LIB_TEMPLATE_NAME = "Android Library";
 
   @Nullable private final String myBuilderId;
-  private NewAndroidModulePath myNewAndroidModulePath;
 
   public TemplateWizardModuleBuilder(@Nullable File templateLocation,
                                      @Nullable TemplateMetadata metadata,
@@ -52,7 +50,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
-    super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
+    super(templateLocation, project, sidePanelIcon, steps, disposable, inGlobalWizard);
     myBuilderId = metadata == null ? null : metadata.getTitle();
     if (!inGlobalWizard) {
       mySteps.add(0, buildChooseModuleStep(project));
@@ -62,23 +60,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   @Override
   protected Iterable<WizardPath> setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
     List<WizardPath> paths = Lists.newArrayList(super.setupWizardPaths(project, sidePanelIcon, disposable));
-    myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    paths.add(myNewAndroidModulePath);
-    for (NewModuleWizardPathFactory factory : Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME)) {
-      paths.addAll(factory.createWizardPaths(myWizardState, this, project, sidePanelIcon, disposable));
-    }
+    paths.add(new WrapArchiveWizardPath(myWizardState, project, this, sidePanelIcon));
     return paths;
-  }
-
-  @Override
-  protected WizardPath getDefaultPath() {
-    return myNewAndroidModulePath;
-  }
-
-  @Override
-  public void templateChanged(String templateName) {
-    myNewAndroidModulePath.templateChanged();
-    super.templateChanged(templateName);
   }
 
   @Nullable
@@ -99,7 +82,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
 
     Set<String> excludedTemplates = Sets.newHashSet();
     Set<ChooseTemplateStep.MetadataListItem> builtinTemplateList =
-      new TreeSet<ChooseTemplateStep.MetadataListItem>(new Comparator<ChooseTemplateStep.MetadataListItem>() {
+      new TreeSet<>(new Comparator<ChooseTemplateStep.MetadataListItem>() {
         @Override
         public int compare(ChooseTemplateStep.MetadataListItem o1, ChooseTemplateStep.MetadataListItem o2) {
           return Collator.getInstance().compare(o1.toString(), o2.toString());

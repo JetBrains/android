@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
@@ -31,25 +33,26 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.timing.Pause.pause;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
   ProjectViewFixture(@NotNull Project project, @NotNull Robot robot) {
@@ -60,44 +63,48 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("Project view is initialized") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    }, SHORT_TIMEOUT);
 
-    final String id = "ProjectPane";
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        projectView.changeView(id);
-      }
-    });
-    return new PaneFixture(projectView.getProjectViewPaneById(id));
+    if (!"ProjectView".equals(projectView.getCurrentViewId())) {
+      changePane("Project");
+    }
+
+    return new PaneFixture(projectView.getCurrentProjectViewPane());
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("Project view is initialized") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    }, SHORT_TIMEOUT);
 
-    final String id = "AndroidView";
-    GuiActionRunner.execute(new GuiTask() {
+    if (!"AndroidView".equals(projectView.getCurrentViewId())) {
+      changePane("Android");
+    }
+
+    return new PaneFixture(projectView.getCurrentProjectViewPane());
+  }
+
+  /**
+   * Given a list of relative paths, finds if they all belong to the Project.
+   * @param paths The list of relative paths with / used as separators
+   */
+  public void assertFilesExist(@NotNull String... paths) {
+    VirtualFile baseDir = myProject.getBaseDir();
+    for (String path : paths) {
+      VirtualFile file = baseDir.findFileByRelativePath(path);
+      assertTrue("File doesn't exist: " + path, file != null && file.exists());
+    }
+  }
+
+  private void changePane(@NotNull String paneName) {
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
       @Override
-      protected void executeInEDT() throws Throwable {
-        projectView.changeView(id);
+      protected boolean isMatching(@NotNull BaseLabel component) {
+        return "Project:".equals(component.getText());
       }
     });
-    return new PaneFixture(projectView.getProjectViewPaneById(id));
+
+    myRobot.click(projectDropDown.getParent());
+    GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
   }
 
   public static class PaneFixture {
@@ -120,10 +127,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
-      final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
-      pause(new Condition("Tree Structure to be built") {
-        @Override
-        public boolean test() {
+      final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<>();
+      Wait.minutes(2).expecting("AbstractTreeStructure to be built")
+        .until(() -> {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
             @Override
             protected AbstractTreeStructure executeInEDT() throws Throwable {
@@ -138,8 +144,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           });
           treeStructureRef.set(treeStructure);
           return treeStructure != null;
-        }
-      }, SHORT_TIMEOUT);
+        });
 
       return treeStructureRef.get();
     }
@@ -209,10 +214,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
       assertNotNull(node);
 
-      pause(new Condition("Node to be selected") {
-        @Override
-        public boolean test() {
-          return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {
+      Wait.minutes(2).expecting("node to be selected").until(
+        () -> node.equals(GuiActionRunner.execute(
+          new GuiQuery<Object>() {
             @Override
             protected Object executeInEDT() throws Throwable {
               DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
@@ -221,9 +225,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
               }
               return null;
             }
-          }));
-        }
-      }, SHORT_TIMEOUT);
+          })));
     }
   }
 

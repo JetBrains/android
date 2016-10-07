@@ -15,30 +15,63 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <ImageView>} view */
+/**
+ * Handler for the {@code <ImageView>} widget
+ */
 public class ImageViewHandler extends ViewHandler {
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SRC,
+      ATTR_CONTENT_DESCRIPTION,
+      ATTR_BACKGROUND,
+      ATTR_SCALE_TYPE,
+      ATTR_ADJUST_VIEW_BOUNDS,
+      ATTR_CROP_TO_PADDING);
+  }
+
+  @Override
+  @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_SRC, getSampleImageSrc())
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .endTag(tagName)
+      .toString();
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
+      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
       if (src != null) {
-        newChild.setAttribute(ANDROID_URI, ATTR_SRC, src);
+        if (editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
+          newChild.setAttribute(ANDROID_URI, ATTR_SRC, null);
+          newChild.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, src);
+        }
+        else {
+          newChild.setAttribute(ANDROID_URI, ATTR_SRC, src);
+        }
         return true;
       }
       else {
@@ -49,7 +82,13 @@ public class ImageViewHandler extends ViewHandler {
 
     // Fallback if dismissed or during previews etc
     if (insertType.isCreate()) {
-      newChild.setAttribute(ANDROID_URI, ATTR_SRC, getSampleImageSrc());
+      if (editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT)) {
+        newChild.setAttribute(ANDROID_URI, ATTR_SRC, null);
+        newChild.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, getSampleImageSrc());
+      }
+      else {
+        newChild.setAttribute(ANDROID_URI, ATTR_SRC, getSampleImageSrc());
+      }
     }
 
     return true;
@@ -62,6 +101,7 @@ public class ImageViewHandler extends ViewHandler {
    *
    * @return a source attribute to use for sample images, never null
    */
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_star"; //$NON-NLS-1$

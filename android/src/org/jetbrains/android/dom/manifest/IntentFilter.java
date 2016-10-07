@@ -15,15 +15,21 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import com.intellij.util.xml.SubTagList;
+import org.jetbrains.android.dom.Styleable;
+
 import java.util.List;
 
-/**
- * @author yole
- */
+@Styleable("AndroidManifestIntentFilter")
 public interface IntentFilter extends ManifestElement {
-    List<Action> getActions();
-    List<Category> getCategories();
+  List<Action> getActions();
 
-    Action addAction();
-    Category addCategory();
+  List<Category> getCategories();
+
+  @SubTagList("data")
+  List<Data> getDataElements();
+
+  Action addAction();
+
+  Category addCategory();
 }

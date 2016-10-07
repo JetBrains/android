@@ -36,6 +36,8 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final List<NativeArtifact> myNativeArtifacts = Lists.newArrayList();
 
+  @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
+
   public NativeAndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
   }
@@ -52,7 +54,11 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
   @NotNull
   @Override
   public String getModelVersion() {
-    return SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
+    return myModelVersion;
+  }
+
+  public void setModelVersion(@NotNull String modelVersion) {
+    myModelVersion = modelVersion;
   }
 
   @Override
@@ -100,6 +106,12 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
   @Override
   public Map<String, String> getFileExtensions() {
     return ImmutableMap.of();
+  }
+
+  @NotNull
+  @Override
+  public Collection<String> getBuildSystems() {
+    return ImmutableList.of();
   }
 
   /**

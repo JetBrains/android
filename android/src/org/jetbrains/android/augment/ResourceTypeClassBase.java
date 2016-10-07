@@ -29,16 +29,20 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
                                         boolean nonFinal,
                                         @NotNull String resClassName,
                                         @NotNull final PsiClass context) {
+    ResourceType resourceType = ResourceType.getEnum(resClassName);
+    if (resourceType == null) {
+      return PsiField.EMPTY_ARRAY;
+    }
     final Map<String, PsiType> fieldNames = new HashMap<String, PsiType>();
-    final boolean styleable = ResourceType.STYLEABLE.getName().equals(resClassName);
+    final boolean styleable = ResourceType.STYLEABLE == resourceType;
     final PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
 
-    for (String resName : manager.getResourceNames(resClassName)) {
+    for (String resName : manager.getResourceNames(resourceType)) {
       fieldNames.put(resName, basicType);
     }
 
     if (styleable) {
-      for (ResourceEntry entry : manager.getValueResourceEntries(ResourceType.ATTR.getName())) {
+      for (ResourceEntry entry : manager.getValueResourceEntries(ResourceType.ATTR)) {
         final String resName = entry.getName();
         final String resContext = entry.getContext();
 
@@ -50,7 +54,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
     final PsiField[] result = new PsiField[fieldNames.size()];
     final PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
 
-    int idIterator = ResourceType.getEnum(resClassName).ordinal() * 100000;
+    int idIterator = resourceType.ordinal() * 100000;
     int i = 0;
 
     for (Map.Entry<String, PsiType> entry : fieldNames.entrySet()) {
@@ -72,7 +76,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
       myFieldsCache = CachedValuesManager.getManager(getProject()).createCachedValue(new CachedValueProvider<PsiField[]>() {
         @Override
         public Result<PsiField[]> compute() {
-          return Result.create(doGetFields(), PsiModificationTracker.MODIFICATION_COUNT);
+          return Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
         }
       });
     }

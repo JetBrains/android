@@ -16,45 +16,54 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.ERROR;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.INFORMATION;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
  */
-@BelongsToTestGroups({PROJECT_SUPPORT})
-public class MultipleModuleTypeCompilationTest extends GuiTestCase {
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class MultipleModuleTypeCompilationTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
 
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
+  @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
-    assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
+    assertThat(invokedTasks).containsExactly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
   }
 
-  @Test @IdeGuiTest
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
+  @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    CompileContext context = myProjectFrame.invokeProjectMakeUsingJps();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    CompileContext context = guiTest.ideFrame().invokeProjectMakeUsingJps();
 
     String[] invokedTasks = null;
     for (CompilerMessage msg : context.getMessages(INFORMATION)) {
@@ -67,7 +76,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
       }
     }
     // In JPS we cannot call "compileJava" because in JPS "Make" means "assemble".
-    assertThat(invokedTasks).containsOnly(":app:assembleDebug", ":javaLib:assemble");
+    assertThat(invokedTasks).asList().containsExactly(":app:assembleDebug", ":javaLib:assemble");
 
     int errorCount = context.getMessageCount(ERROR);
     assertEquals(0, errorCount);

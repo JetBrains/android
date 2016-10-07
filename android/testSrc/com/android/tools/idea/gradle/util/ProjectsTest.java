@@ -20,6 +20,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -42,7 +43,7 @@ public class ProjectsTest extends IdeaTestCase {
       facet.getProperties().ALLOW_USER_CONFIGURATION = false;
       facetModel.addFacet(facet);
     } finally {
-      facetModel.commit();
+      ApplicationManager.getApplication().runWriteAction(facetModel::commit);
     }
 
     assertTrue(Projects.requiresAndroidModel(myProject));
@@ -70,7 +71,7 @@ public class ProjectsTest extends IdeaTestCase {
       AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
       facetModel.addFacet(facet);
     } finally {
-      facetModel.commit();
+      ApplicationManager.getApplication().runWriteAction(facetModel::commit);
     }
   }
 

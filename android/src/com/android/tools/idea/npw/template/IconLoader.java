@@ -51,7 +51,7 @@ final class IconLoader extends CacheLoader<File, Optional<Icon>> {
       if (iconPath.isFile()) {
         BufferedImage image = ImageIO.read(iconPath);
         if (image != null) {
-          return Optional.<Icon>of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
+          return Optional.of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
         }
         else {
           getLog().warn("File " + iconPath.getAbsolutePath() + " exists but is not a valid image");

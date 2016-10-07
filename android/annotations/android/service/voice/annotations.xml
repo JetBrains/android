@@ -30,6 +30,15 @@
   <item name="android.service.voice.VoiceInteractionSession void onHandleAssist(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssistSecondary(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent, int, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssistSecondary(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent, int, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.service.voice.VoiceInteractionSession void onHandleAssistSecondary(android.os.Bundle, android.app.assist.AssistStructure, android.app.assist.AssistContent, int, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.service.voice.VoiceInteractionSession void onHandleScreenshot(android.graphics.Bitmap) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>

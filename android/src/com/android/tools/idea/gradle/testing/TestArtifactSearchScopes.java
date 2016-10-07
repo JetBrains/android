@@ -17,49 +17,52 @@ package com.android.tools.idea.gradle.testing;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
-import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
-import com.google.common.collect.Sets;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 /**
  * Android test artifacts {@code GlobalSearchScope}s:
  * <ul>
- *   <li>Android test source</li>
- *   <li>Unit test source</li>
- *   <li>"Excluded" for Android test source (unit test's source / library / module dependencies)</li>
- *   <li>"Excluded" for unit test source</li>
+ * <li>Android test source</li>
+ * <li>Unit test source</li>
+ * <li>"Excluded" for Android test source (unit test's source / library / module dependencies)</li>
+ * <li>"Excluded" for unit test source</li>
  * </ul>
  */
-public final class TestArtifactSearchScopes {
+public final class TestArtifactSearchScopes implements Disposable {
   private static final Key<TestArtifactSearchScopes> SEARCH_SCOPES_KEY = Key.create("TEST_ARTIFACT_SEARCH_SCOPES");
 
   @Nullable
   public static TestArtifactSearchScopes get(@NotNull VirtualFile file, @NotNull Project project) {
+    if (lastGradleSyncFailed(project)) {
+      return null;
+    }
+
     ProjectFileIndex projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project);
     Module module = projectFileIndex.getModuleForFile(file);
     return module != null ? get(module) : null;
@@ -79,13 +82,12 @@ public final class TestArtifactSearchScopes {
     for (Module module : moduleManager.getModules()) {
       TestArtifactSearchScopes scopes;
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-      scopes = androidModel != null ? new TestArtifactSearchScopes(module, androidModel) : null;
+      scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
       module.putUserData(SEARCH_SCOPES_KEY, scopes);
     }
   }
 
   @NotNull private final Module myModule;
-  @NotNull private final AndroidGradleModel myAndroidModel;
 
   private FileRootSearchScope myAndroidTestSourceScope;
   private FileRootSearchScope myUnitTestSourceScope;
@@ -95,9 +97,9 @@ public final class TestArtifactSearchScopes {
   private FileRootSearchScope mySharedTestsExcludeScope;
   private FileRootSearchScope myUnitTestDependencyExcludeScope;
 
-  private TestArtifactSearchScopes(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  private TestArtifactSearchScopes(@NotNull Module module) {
     myModule = module;
-    myAndroidModel = androidModel;
+    Disposer.register(module, this);
   }
 
   @NotNull
@@ -109,8 +111,8 @@ public final class TestArtifactSearchScopes {
     return getAndroidTestSourceScope().accept(file);
   }
 
-  public boolean isUnitTestSource(@NotNull VirtualFile vFile) {
-    return getUnitTestSourceScope().accept(vFile);
+  public boolean isUnitTestSource(@NotNull VirtualFile file) {
+    return getUnitTestSourceScope().accept(file);
   }
 
   @NotNull
@@ -131,10 +133,14 @@ public final class TestArtifactSearchScopes {
 
   @NotNull
   private FileRootSearchScope getSourceScope(@NotNull String artifactName) {
-    Set<File> roots = Sets.newHashSet();
-    // TODO consider generated source
-    for (SourceProvider sourceProvider : myAndroidModel.getTestSourceProviders(artifactName)) {
-      roots.addAll(getAllSourceFolders(sourceProvider));
+    Set<File> roots = Collections.emptySet();
+    AndroidGradleModel androidModel = getAndroidModel();
+    if (androidModel != null) {
+      roots = new HashSet<>();
+      // TODO consider generated source
+      for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
+        roots.addAll(getAllSourceFolders(sourceProvider));
+      }
     }
     return new FileRootSearchScope(myModule.getProject(), roots);
   }
@@ -142,9 +148,8 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getAndroidTestExcludeScope() {
     if (myAndroidTestExcludeScope == null) {
-      myAndroidTestExcludeScope = getUnitTestSourceScope()
-        .exclude(getAndroidTestSourceScope())
-        .merge(getAndroidTestDependencyExcludeScope());
+      FileRootSearchScope exclude = getUnitTestSourceScope().exclude(getAndroidTestSourceScope());
+      myAndroidTestExcludeScope = exclude.merge(getAndroidTestDependencyExcludeScope());
     }
     return myAndroidTestExcludeScope;
   }
@@ -152,9 +157,8 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getUnitTestExcludeScope() {
     if (myUnitTestExcludeScope == null) {
-      myUnitTestExcludeScope = getAndroidTestSourceScope()
-        .exclude(getUnitTestSourceScope())
-        .merge(getUnitTestDependencyExcludeScope());
+      FileRootSearchScope exclude = getAndroidTestSourceScope().exclude(getUnitTestSourceScope());
+      myUnitTestExcludeScope = exclude.merge(getUnitTestDependencyExcludeScope());
     }
     return myUnitTestExcludeScope;
   }
@@ -188,113 +192,69 @@ public final class TestArtifactSearchScopes {
 
   @NotNull
   private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
-    BaseArtifact unitTestArtifact = myAndroidModel.getUnitTestArtifactInSelectedVariant();
-    BaseArtifact androidTestArtifact = myAndroidModel.getAndroidTestArtifactInSelectedVariant();
+    AndroidGradleModel androidModel = getAndroidModel();
 
-    boolean isAndroidTestArtifact = ARTIFACT_ANDROID_TEST.equals(artifactName);
-
-    BaseArtifact excludeArtifact = isAndroidTestArtifact ? unitTestArtifact : androidTestArtifact;
-
-    DependencySet androidTestDependencies = null;
-    DependencySet unitTestDependencies = null;
-
-    DependencyScope scope = TEST;
-    if (unitTestArtifact != null) {
-      unitTestDependencies = Dependency.extractFrom(unitTestArtifact, scope);
-    }
-    if (androidTestArtifact != null) {
-      androidTestDependencies = Dependency.extractFrom(androidTestArtifact, scope);
-    }
-    DependencySet mainDependencies = Dependency.extractFrom(myAndroidModel.getMainArtifact(), COMPILE);
-
-    DependencySet dependenciesToInclude = isAndroidTestArtifact ? androidTestDependencies : unitTestDependencies;
-    DependencySet dependenciesToExclude = isAndroidTestArtifact ? unitTestDependencies : androidTestDependencies;
-
-    Project project = myModule.getProject();
-
-    Set<Module> excludedModules = Sets.newHashSet();
-
-    if (dependenciesToExclude != null) {
-      for (ModuleDependency dependency : dependenciesToExclude.onModules()) {
-        Module dependencyModule = dependency.getModule(project);
-        if (dependencyModule != null) {
-          excludedModules.add(dependencyModule);
-        }
-      }
+    if (androidModel == null) {
+      return new FileRootSearchScope(myModule.getProject(), Collections.emptyList());
     }
 
-    if (dependenciesToInclude != null) {
-      for (ModuleDependency dependency : dependenciesToInclude.onModules()) {
-        Module dependencyModule = dependency.getModule(project);
-        if (dependencyModule != null) {
-          excludedModules.remove(dependencyModule);
-        }
-      }
-    }
+    DependencySet mainDependencies = extractMainDependencies(androidModel);
+    DependencySet androidTestDependencies = extractAndroidTestDependencies(androidModel);
+    DependencySet unitTestDependencies = extractUnitTestDependencies(androidModel);
 
-    for (ModuleDependency dependency : mainDependencies.onModules()) {
-      Module dependencyModule = dependency.getModule(project);
-      if (dependencyModule != null) {
-        excludedModules.remove(dependencyModule);
-      }
-    }
+    boolean isAndroidTest = ARTIFACT_ANDROID_TEST.equals(artifactName);
+    DependencySet dependenciesToInclude = isAndroidTest ? androidTestDependencies : unitTestDependencies;
+    DependencySet dependenciesToExclude = isAndroidTest ? unitTestDependencies : androidTestDependencies;
 
-    Set<File> excludedRoots = Sets.newHashSet();
-    if (excludeArtifact != null) {
-      // TODO this is not enough, we should also exclude those artifacts from depended modules
-      excludedRoots.add(excludeArtifact.getClassesFolder());
-    }
+    ExcludedModules excludedModules = new ExcludedModules(myModule);
+    excludedModules.add(dependenciesToExclude);
+    excludedModules.remove(dependenciesToInclude);
+    excludedModules.remove(mainDependencies);
 
-    if (dependenciesToExclude != null) {
-      for (LibraryDependency dependency : dependenciesToExclude.onLibraries()) {
-        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
-          excludedRoots.add(new File(path));
-        }
-      }
-    }
+    ExcludedRoots excludedRoots = new ExcludedRoots(myModule, excludedModules, dependenciesToExclude, dependenciesToInclude, isAndroidTest);
+    excludedRoots.removeLibraryPaths(mainDependencies);
 
-    // This depends on all the modules are using explicit dependencies in android studio
-    for (Module excludedModule : excludedModules) {
-      ModuleRootManager rootManager = ModuleRootManager.getInstance(excludedModule);
-      for (ContentEntry entry : rootManager.getContentEntries()) {
-        for (SourceFolder sourceFolder : entry.getSourceFolders()) {
-          excludedRoots.add(urlToFilePath(sourceFolder.getUrl()));
-        }
-        CompilerModuleExtension compiler = rootManager.getModuleExtension(CompilerModuleExtension.class);
-        String url = compiler.getCompilerOutputUrl();
-        if (isNotEmpty(url)) {
-          excludedRoots.add(urlToFilePath(url));
-        }
-      }
+    return new FileRootSearchScope(myModule.getProject(), excludedRoots.get());
+  }
 
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(excludedModule);
-      if (androidGradleModel != null) {
-        excludedRoots.add(androidGradleModel.getMainArtifact().getJavaResourcesFolder());
-      }
-    }
+  @NotNull
+  private static DependencySet extractUnitTestDependencies(@NotNull AndroidGradleModel androidModel) {
+    BaseArtifact artifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    return extractTestDependencies(artifact, androidModel.getModelVersion());
+  }
 
-    if (dependenciesToInclude != null) {
-      for (LibraryDependency dependency : dependenciesToInclude.onLibraries()) {
-        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
-          excludedRoots.remove(new File(path));
-        }
-      }
-    }
+  @NotNull
+  private static DependencySet extractAndroidTestDependencies(@NotNull AndroidGradleModel androidModel) {
+    BaseArtifact artifact = androidModel.getAndroidTestArtifactInSelectedVariant();
+    return extractTestDependencies(artifact, androidModel.getModelVersion());
+  }
 
-    for (LibraryDependency dependency : mainDependencies.onLibraries()) {
-      for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
-        excludedRoots.remove(new File(path));
-      }
-    }
-    return new FileRootSearchScope(project, excludedRoots);
+  @NotNull
+  private static DependencySet extractTestDependencies(@Nullable BaseArtifact artifact,
+                                                       @Nullable GradleVersion modelVersion) {
+    return extractDependencies(TEST, artifact, modelVersion);
+  }
+
+  @NotNull
+  private static DependencySet extractMainDependencies(AndroidGradleModel androidModel) {
+    return extractDependencies(COMPILE, androidModel.getMainArtifact(), androidModel.getModelVersion());
+  }
+
+  @NotNull
+  private static DependencySet extractDependencies(@NotNull DependencyScope scope,
+                                                   @Nullable BaseArtifact artifact,
+                                                   @Nullable GradleVersion modelVersion) {
+    return artifact != null ? Dependency.extractFrom(artifact, scope, modelVersion) : DependencySet.EMPTY;
   }
 
   @Nullable
-  private static File urlToFilePath(@NotNull String url) {
-    if (url.startsWith(JAR_PROTOCOL_PREFIX)) {
-      return getJarFromJarUrl(url);
-    }
-    String path = urlToPath(url);
-    return new File(toSystemDependentPath(path));
+  private AndroidGradleModel getAndroidModel() {
+    return myModule.isDisposed() ? null : AndroidGradleModel.get(myModule);
   }
+
+  @Override
+  public void dispose() {
+    myModule.putUserData(SEARCH_SCOPES_KEY, null);
+  }
+
 }

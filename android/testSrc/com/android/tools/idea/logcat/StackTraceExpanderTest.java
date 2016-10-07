@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class StackTraceExpanderTest {
   // From http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace%28%29
@@ -147,7 +147,7 @@ public class StackTraceExpanderTest {
       StringUtil.repeatSymbol(' ', 9), // 9 spaces before at symbol in standard Java traces, used above
       " "); // 1 space before "Caused by:" in the stack traces used above
 
-    List<String> output = new ArrayList<String>();
+    List<String> output = new ArrayList<>();
 
     for (String line: Splitter.on('\n').split(input)) {
       for (String s : expander.process(line)) {

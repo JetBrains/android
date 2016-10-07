@@ -15,24 +15,17 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
-public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+import static com.google.common.truth.Truth.assertThat;
+
+public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
 
   public void testRemoveAndroidTestClasspath() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidJunitPatcherWithTestArtifactTest.test temporarily disabled");
-      return;
-    }
-
     loadProject("projects/sync/multiproject", false);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
@@ -41,16 +34,16 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleArtifa
     parameters.configureByModule(module1, JavaParameters.CLASSES_AND_TESTS);
 
     String classpath = parameters.getClassPath().getPathsString();
-    assertTrue(classpath.contains("junit-4.12.jar"));
-    assertTrue(classpath.contains("gson-2.4.jar"));
-    assertTrue(classpath.contains("guava-18.0.jar"));
+    assertThat(classpath).contains("junit-4.12.jar");
+    assertThat(classpath).contains("gson-2.4.jar");
+    assertThat(classpath).contains("guava-18.0.jar");
 
     // JUnit is in test dependency, gson and guava are android test dependency
     myPatcher.patchJavaParameters(module1, parameters);
     classpath = parameters.getClassPath().getPathsString();
-    assertTrue(classpath.contains("junit-4.12.jar"));
-    assertFalse(classpath.contains("gson-2.4.jar"));
-    assertFalse(classpath.contains("guava-18.0.jar"));
-    assertFalse(classpath.contains("module3"));
+    assertThat(classpath).contains("junit-4.12.jar");
+    assertThat(classpath).doesNotContain("gson-2.4.jar");
+    assertThat(classpath).doesNotContain("guava-18.0.jar");
+    assertThat(classpath).doesNotContain("module3");
   }
 }

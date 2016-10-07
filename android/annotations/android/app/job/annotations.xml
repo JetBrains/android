@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.app.job.JobInfo android.app.job.JobInfo.TriggerContentUri[] getTriggerContentUris()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobInfo.Builder android.app.job.JobInfo.Builder addTriggerContentUri(android.app.job.JobInfo.TriggerContentUri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobInfo.TriggerContentUri TriggerContentUri(android.net.Uri, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.job.JobScheduler android.app.job.JobInfo getPendingJob(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.job.JobScheduler java.util.List&lt;android.app.job.JobInfo&gt; getAllPendingJobs()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.expressions.double_.ComparisonExpression;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class that every double-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class DoubleProperty extends ObservableProperty<Double> implements ObservableDouble {
+public abstract class DoubleProperty extends AbstractProperty<Double> implements ObservableDouble {
 
   public void increment() {
     set(get() + 1.0);

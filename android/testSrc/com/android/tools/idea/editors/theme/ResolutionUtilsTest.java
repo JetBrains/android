@@ -29,10 +29,10 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
 
   public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true);
+    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true, null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false);
+    styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
@@ -52,6 +52,8 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals("android:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@android:style/Theme"));
     assertEquals("namespace:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@namespace:style/Theme"));
     assertEquals("AppTheme", ResolutionUtils.getQualifiedNameFromResourceUrl("@style/AppTheme"));
+    // TODO get it to also work for theme attr urls
+    // for theme attributes, the "attr/" is optional: http://developer.android.com/guide/topics/resources/accessing-resources.html
   }
 
   /**

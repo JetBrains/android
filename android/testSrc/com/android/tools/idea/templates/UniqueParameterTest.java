@@ -29,11 +29,9 @@ import org.mockito.Mockito;
 import org.w3c.dom.Element;
 
 import javax.imageio.metadata.IIOMetadataNode;
-
 import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.*;
-import static org.junit.Assume.assumeTrue;
 import static com.android.tools.idea.templates.Parameter.Constraint.UNIQUE;
 
 /**
@@ -50,7 +48,6 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    assumeTrue(CAN_SYNC_PROJECTS);
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);

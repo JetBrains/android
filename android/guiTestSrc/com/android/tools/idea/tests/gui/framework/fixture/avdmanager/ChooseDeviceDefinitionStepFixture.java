@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -34,6 +35,10 @@ import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertNotNull;
 
 public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture> {
+
+  /** The index of the Name column in the device-definition table. */
+  private static final int NAME_COLUMN = 0;
+
   public ChooseDeviceDefinitionStepFixture(@NotNull Robot robot, @NotNull JRootPane rootPane) {
     super(ChooseDeviceDefinitionStepFixture.class, robot, rootPane);
   }
@@ -46,7 +51,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture selectDeviceByName(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture selectHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
     JTableCellFixture cell = deviceListFixture.cell(deviceName);
     cell.select();
@@ -54,7 +59,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture removeDeviceByName(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture deleteHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
 
     deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);
@@ -70,14 +75,17 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     }).click();
 
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
+
+    Wait.seconds(10).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
+
     return this;
   }
 
   @NotNull
-  public DeviceEditWizardFixture createNewDevice() {
+  public HardwareProfileWizardFixture newHardwareProfile() {
     JButton newDeviceButton = robot().finder().find(target(), withText("New Hardware Profile").andShowing());
     robot().click(newDeviceButton);
-    return DeviceEditWizardFixture.find(robot());
+    return HardwareProfileWizardFixture.find(robot());
   }
 
   @NotNull
@@ -91,13 +99,11 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     return new JTableFixture(robot(), deviceList);
   }
 
-  public boolean deviceExists(@NotNull String deviceName) {
-    try {
-      getTableFixture().cell(deviceName);
-      return true;
+  public ImmutableList<String> deviceNames() {
+    ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
+    for (String[] row : getTableFixture().contents()) {
+      listBuilder.add(row[NAME_COLUMN]);
     }
-    catch (ActionFailedException e) {
-      return false;
-    }
+    return listBuilder.build();
   }
 }

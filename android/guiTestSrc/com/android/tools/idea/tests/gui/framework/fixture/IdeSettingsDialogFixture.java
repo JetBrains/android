@@ -30,7 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
@@ -41,7 +41,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
-        return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
+        return expectedTitle.equals(dialog.getTitle());
       }
     }));
   }

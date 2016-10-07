@@ -40,5 +40,6 @@ public class FmCompareVersionsMethodTest extends TestCase {
     check("1.1.0", "1.1.0", 0);
     check("1.0.0", "1.1.0", -1);
     check("1.3.0-alpha4", "1.1.0", 1);
+    check("2.2.0-dev", "1.1.0", 1);
   }
 }

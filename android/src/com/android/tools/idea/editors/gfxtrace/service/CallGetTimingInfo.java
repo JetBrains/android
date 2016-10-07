@@ -93,7 +93,7 @@ final class CallGetTimingInfo implements BinaryObject {
       CallGetTimingInfo o = (CallGetTimingInfo)obj;
       e.object(o.myDevice);
       e.object(o.myCapture);
-      o.myFlags.encode(e);
+      e.int32(o.myFlags.getNumber());
     }
 
     @Override
@@ -101,7 +101,7 @@ final class CallGetTimingInfo implements BinaryObject {
       CallGetTimingInfo o = (CallGetTimingInfo)obj;
       o.myDevice = (DevicePath)d.object();
       o.myCapture = (CapturePath)d.object();
-      o.myFlags = TimingFlags.decode(d);
+      o.myFlags = TimingFlags.valueOf(d.int32());
     }
     //<<<End:Java.KlassBody:2>>>
   }

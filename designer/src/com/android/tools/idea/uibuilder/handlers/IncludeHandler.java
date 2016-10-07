@@ -15,28 +15,90 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.EnumSet;
+import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.TOOLS_URI;
 
-/** Handler for the {@code <include>} tag */
-public class IncludeHandler extends ViewHandler {
+/**
+ * Handler for the {@code <include>} tag
+ */
+public final class IncludeHandler extends ViewHandler {
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_LAYOUT,
+      ATTR_VISIBILITY);
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
+    return "<include>";
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
+    return "<include>";
+  }
+
+  @NotNull
+  @Override
+  public String getTitleAttributes(@NotNull NlComponent component) {
+    String layout = component.getAttribute(null, ATTR_LAYOUT);
+    return StringUtil.isEmpty(layout) ? "" : "- " + layout;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
+    return AndroidIcons.Views.Include;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
+    return AndroidIcons.Views.Include;
+  }
+
+  @Override
+  @Language("XML")
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return "<include/>";
+      default:
+        return NO_PREVIEW;
+    }
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include.
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT), null);
+      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
         newChild.setAttribute(null, ATTR_LAYOUT, src);
         return true;

@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.Density;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.dependencies.DependencyManager;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.res.ResourceNotificationManager.Reason;
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.structure.NlComponentTree;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.designer.DesignerEditorPanelFacade;
+import com.google.common.collect.Lists;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CopyProvider;
@@ -50,21 +57,27 @@ import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IJSwingUtilities;
+import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -74,46 +87,73 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener, DataProvider {
+public class NlPalettePanel extends JPanel
+  implements LightToolWindowContent, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
+
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
-  private static final double PREVIEW_SCALE = 0.5;
   private static final int ICON_SPACER = 4;
 
-  @NonNull private final JTree myTree;
-  @NonNull private final NlPaletteModel myModel;
-  @NonNull private final IconPreviewFactory myIconFactory;
-  @NonNull private final DesignerEditorPanelFacade myDesigner;
-  @NonNull private final Set<String> myMissingLibraries;
-  @NonNull private final Disposable myDisposable;
-  @NonNull private Mode myMode;
-  @Nullable private ScalableDesignSurface myDesignSurface;
-  @Nullable private BufferedImage myLastDragImage;
+  private final JTree myPaletteTree;
+  private final IconPreviewFactory myIconFactory;
+  private final NlPaletteModel myModel;
+  private final Set<String> myMissingLibraries;
+  private final Disposable myDisposable;
+  private final DnDManager myDndManager;
+  private final DnDSource myDndSource;
 
-  public NlPalettePanel(@NonNull DesignerEditorPanelFacade designer) {
-    myDesigner = designer;
-    myModel = NlPaletteModel.get();
-    myTree = new DnDAwareTree();
+  private final NlComponentTree myStructureTree;
+
+  private DesignSurface myDesignSurface;
+  private Mode myMode;
+  private BufferedImage myLastDragImage;
+  private Configuration myConfiguration;
+
+  public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+    myPaletteTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
-    myMissingLibraries = new HashSet<String>();
+    myModel = NlPaletteModel.get(project);
+    myMissingLibraries = new HashSet<>();
     myDisposable = Disposer.newDisposable();
     myMode = Mode.ICON_AND_TEXT;
+
+    myDndManager = DnDManager.getInstance();
+    myDndSource = new PaletteDnDSource();
+    myDndManager.registerSource(myDndSource, myPaletteTree);
     initTree();
-    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane palettePane = ScrollPaneFactory.createScrollPane(myPaletteTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+
+    myStructureTree = new NlComponentTree(designSurface);
+    JComponent structurePane = createStructurePane(myStructureTree);
+
+    Splitter splitter = new Splitter(true, 0.6f);
+    splitter.setFirstComponent(palettePane);
+    splitter.setSecondComponent(structurePane);
+
     setLayout(new BorderLayout());
-    add(pane, BorderLayout.CENTER);
+    add(splitter, BorderLayout.CENTER);
+    setDesignSurface(designSurface);
   }
 
-  @NonNull
+  @NotNull
+  private static JComponent createStructurePane(@NotNull NlComponentTree structureTree) {
+    JPanel panel = new JPanel(new BorderLayout());
+    JBLabel label = new JBLabel("Component Tree");
+    label.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+    label.setBorder(BorderFactory.createEmptyBorder(0, 5, 4, 10));
+    panel.add(label, BorderLayout.NORTH);
+    panel.add(ScrollPaneFactory.createScrollPane(structureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
+    return panel;
+  }
+
+  @NotNull
   public JComponent getFocusedComponent() {
-    return myTree;
+    return myPaletteTree;
   }
 
   public enum Mode {
@@ -126,28 +166,51 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       myMenuText = menuText;
     }
 
-    @NonNull
+    @NotNull
     public String getMenuText() {
       return myMenuText;
     }
   }
 
-  public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+    myStructureTree.setDesignSurface(designSurface);
+    Module prevModule = null;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
+        prevModule = configuration.getModule();
         configuration.removeListener(this);
       }
     }
-    myDesignSurface = designSurface;
+    Module newModule = null;
+    myDesignSurface = designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface : null;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
+        newModule = configuration.getModule();
         configuration.addListener(this);
       }
+      updateConfiguration();
+      initItems();
+      checkForNewMissingDependencies();
     }
-    checkForNewMissingDependencies();
-    setMode(myMode);
+    if (prevModule != newModule) {
+      if (prevModule != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(prevModule);
+        if (facet != null) {
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(prevModule.getProject());
+          manager.removeListener(this, facet, null, null);
+        }
+      }
+      if (newModule != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(newModule);
+        if (facet != null) {
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(newModule.getProject());
+          manager.addListener(this, facet, null, null);
+        }
+        myIconFactory.dropCache();
+      }
+    }
   }
 
   private void updateColorsAfterColorThemeChange(boolean doUpdate) {
@@ -158,11 +221,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     else {
       manager.removeLafManagerListener(this);
     }
-  }
-
-  @Override
-  public void lookAndFeelChanged(LafManager source) {
-    setColors();
   }
 
   private void setColors() {
@@ -202,8 +260,8 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         }
       }
     }
-    myTree.setBackground(background);
-    myTree.setForeground(foreground);
+    myPaletteTree.setBackground(background);
+    myPaletteTree.setForeground(foreground);
   }
 
   @Override
@@ -217,15 +275,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     return null;
   }
 
-  // ---- implements ConfigurationListener ----
-
-  @Override
-  public boolean changed(int flags) {
-    setMode(myMode);
-    return true;
-  }
-
-  @NonNull
+  @NotNull
   public AnAction[] getActions() {
     return new AnAction[]{new OptionAction()};
   }
@@ -239,7 +289,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
 
     @Override
-    public void actionPerformed(@NonNull AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       int x = 0;
       int y = 0;
       InputEvent inputEvent = e.getInputEvent();
@@ -252,7 +302,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void showOptionPopup(@NonNull Component component, int x, int y) {
+  private void showOptionPopup(@NotNull Component component, int x, int y) {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new TogglePaletteModeAction(this, Mode.ICON_AND_TEXT));
     group.add(new TogglePaletteModeAction(this, Mode.PREVIEW));
@@ -262,60 +312,102 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     popupMenu.getComponent().show(component, x, y);
   }
 
-  @NonNull
+  @NotNull
   public Mode getMode() {
     return myMode;
   }
 
-  public void setMode(@NonNull Mode mode) {
+  public void setMode(@NotNull Mode mode) {
     myMode = mode;
-    if (mode == Mode.PREVIEW && myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        myIconFactory.load(configuration, new Runnable() {
-          @Override
-          public void run() {
-            setColors();
-            invalidateUI();
-          }
-        });
+    setColors();
+    invalidateUI();
+  }
+
+  private void updateConfiguration() {
+    myConfiguration = null;
+    if (myDesignSurface == null) {
+      return;
+    }
+    Configuration designConfiguration = myDesignSurface.getConfiguration();
+    if (designConfiguration == null) {
+      return;
+    }
+    State designState = designConfiguration.getDeviceState();
+    Configuration configuration = designConfiguration.clone();
+    Device device = configuration.getDevice();
+    if (device == null) {
+      return;
+    }
+
+    // Override to a predefined density that closest matches the screens resolution
+    Density override = null;
+    int monitorResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+    for (Density density : Density.values()) {
+      if (density.getDpiValue() > 0) {
+        if (override == null || Math.abs(density.getDpiValue() - monitorResolution) < Math.abs(override.getDpiValue() - monitorResolution)) {
+          override = density;
+        }
       }
     }
-    else {
-      setColors();
-      invalidateUI();
+
+    if (override != null) {
+      device = new Device.Builder(device).build();
+      for (State state : device.getAllStates()) {
+        Screen screen = state.getHardware().getScreen();
+        screen.setXDimension((int)(screen.getXDimension() * override.getDpiValue() / screen.getXdpi()));
+        screen.setYDimension((int)(screen.getYDimension() * override.getDpiValue() / screen.getYdpi()));
+        screen.setXdpi(override.getDpiValue());
+        screen.setYdpi(override.getDpiValue());
+        screen.setPixelDensity(override);
+      }
+      configuration.setDevice(device, false);
+      if (designState != null) {
+        configuration.setDeviceStateName(designState.getName());
+      }
+      myConfiguration = configuration;
     }
   }
 
   private void invalidateUI() {
     // BasicTreeUI keeps a cache of node heights. This will replace the ui and force a new node height computation.
-    IJSwingUtilities.updateComponentTreeUI(myTree);
+    IJSwingUtilities.updateComponentTreeUI(myPaletteTree);
   }
 
   private void initTree() {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-    myTree.setModel(treeModel);
-    myTree.setRowHeight(0);
-    myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-    myTree.setRootVisible(false);
-    myTree.setShowsRootHandles(false);
-    myTree.setBorder(new EmptyBorder(INSETS));
-    myTree.setToggleClickCount(1);
-    ToolTipManager.sharedInstance().registerComponent(myTree);
-    TreeUtil.installActions(myTree);
-    createCellRenderer(myTree);
-    addData(myModel, rootNode);
-    expandAll(myTree, rootNode);
-    myTree.setSelectionRow(0);
-    new PaletteSpeedSearch(myTree);
-    enableDnD();
+    myPaletteTree.setModel(treeModel);
+    myPaletteTree.setRowHeight(0);
+    myPaletteTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    myPaletteTree.setRootVisible(false);
+    myPaletteTree.setShowsRootHandles(false);
+    myPaletteTree.setBorder(new EmptyBorder(INSETS));
+    myPaletteTree.setToggleClickCount(2);
+    ToolTipManager.sharedInstance().registerComponent(myPaletteTree);
+    TreeUtil.installActions(myPaletteTree);
+    createCellRenderer(myPaletteTree);
+    myPaletteTree.setSelectionRow(0);
+    new PaletteSpeedSearch(myPaletteTree);
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
   }
 
+  private void initItems() {
+    if (myDesignSurface == null || myPaletteTree.getRowCount() > 0) {
+      return;
+    }
+    DumbService.getInstance(myDesignSurface.getProject()).smartInvokeLater(() -> {
+      if (myDesignSurface == null) {
+        return;
+      }
+      DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
+      addItems(myModel.getPalette(myDesignSurface.getLayoutType()).getItems(), root);
+      checkForNewMissingDependencies();
+      expandAll(myPaletteTree, root);
+    });
+  }
 
-  private static void expandAll(@NonNull JTree tree, @NonNull DefaultMutableTreeNode rootNode) {
+  private static void expandAll(@NotNull JTree tree, @NotNull DefaultMutableTreeNode rootNode) {
     TreePath rootPath = new TreePath(rootNode);
     tree.expandPath(rootPath);
     TreeNode child = rootNode.getLastChild();
@@ -325,10 +417,10 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void createCellRenderer(@NonNull JTree tree) {
+  private void createCellRenderer(@NotNull JTree tree) {
     ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
       @Override
-      public void customizeCellRenderer(@NonNull JTree tree,
+      public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
@@ -337,39 +429,44 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
                                         boolean hasFocus) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         Object content = node.getUserObject();
-        if (content instanceof NlPaletteItem) {
-          NlPaletteItem item = (NlPaletteItem)content;
+        if (content instanceof Palette.Item) {
+          Palette.Item item = (Palette.Item)content;
           BufferedImage image = null;
-          if (!needsLibraryLoad(item) && myMode == Mode.PREVIEW && myDesignSurface != null && myDesignSurface.getConfiguration() != null) {
-            image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), PREVIEW_SCALE);
+          if (!needsLibraryLoad(item) && myMode == Mode.PREVIEW && myConfiguration != null) {
+            image = myIconFactory.getImage(item, myConfiguration, getScale(item));
           }
           if (image != null) {
-            setIcon(new ImageIcon(image));
+            setIcon(new JBImageIcon(image));
+            setToolTipText(item.getTitle());
           }
           else if (needsLibraryLoad(item)) {
             Icon icon = item.getIcon();
-            if (icon == null) {
-              icon = AndroidIcons.Views.View;
-            }
             Icon download = AllIcons.Actions.Download;
-            image = UIUtil
-              .createImage(download.getIconWidth() + icon.getIconWidth() + ICON_SPACER, icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+            int factor = SystemInfo.isAppleJvm ? 2 : 1;
+            image = UIUtil.createImage(factor * (download.getIconWidth() + icon.getIconWidth() + ICON_SPACER),
+                                       factor * icon.getIconHeight(),
+                                       BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2 = (Graphics2D)image.getGraphics();
+            g2.scale(factor, factor);
             icon.paintIcon(myTree, g2, 0, 0);
             download.paintIcon(myTree, g2, icon.getIconWidth() + ICON_SPACER, 0);
             g2.dispose();
+            BufferedImage retina = ImageUtils.convertToRetina(image);
+            if (retina != null) {
+              image = retina;
+            }
 
             append(item.getTitle());
-            setIcon(new ImageIcon(image));
+            setIcon(new JBImageIcon(image));
           }
           else {
             append(item.getTitle());
             setIcon(item.getIcon());
           }
         }
-        else if (content instanceof NlPaletteGroup) {
-          NlPaletteGroup group = (NlPaletteGroup)content;
-          append(group.getTitle());
+        else if (content instanceof Palette.Group) {
+          Palette.Group group = (Palette.Group)content;
+          append(group.getName());
           setIcon(AllIcons.Nodes.Folder);
         }
       }
@@ -378,67 +475,109 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     tree.setCellRenderer(renderer);
   }
 
-  private boolean needsLibraryLoad(@NonNull NlPaletteItem item) {
-    return !Collections.disjoint(myMissingLibraries, item.getLibraries());
+  private static double getScale(@NotNull Palette.Item item) {
+    double scale = item.getPreviewScale();
+    if (scale <= 0.1 || scale > 5.0) {
+      // Do not allow ridiculous custom scale factors.
+      scale = 1.0;
+    }
+    return scale;
   }
 
-  private static void addData(@NonNull NlPaletteModel model, @NonNull DefaultMutableTreeNode rootNode) {
-    for (NlPaletteGroup group : model.getGroups()) {
-      DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(group);
-      for (NlPaletteItem item : group.getItems()) {
-        DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(item);
-        groupNode.add(itemNode);
+  private boolean needsLibraryLoad(@Nullable Palette.BaseItem item) {
+    if (!(item instanceof Palette.Item)) {
+      return false;
+    }
+    Palette.Item paletteItem = (Palette.Item)item;
+    return myMissingLibraries.contains(paletteItem.getGradleCoordinate());
+  }
+
+  private static void addItems(@NotNull List<Palette.BaseItem> items, @NotNull DefaultMutableTreeNode rootNode) {
+    for (Palette.BaseItem item : items) {
+      DefaultMutableTreeNode node = new DefaultMutableTreeNode(item);
+      if (item instanceof Palette.Group) {
+        Palette.Group group = (Palette.Group)item;
+        addItems(group.getItems(), node);
       }
-      rootNode.add(groupNode);
+      rootNode.add(node);
     }
   }
 
-  private void enableDnD() {
-    final DnDManager dndManager = DnDManager.getInstance();
-    dndManager.registerSource(new PaletteDnDSource(), myTree);
-  }
-
   private void enableClickToLoadMissingDependency() {
-    myTree.addMouseListener(new MouseAdapter() {
+    myPaletteTree.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent event) {
-        NlPaletteItem item = getItemForPath(myTree.getPathForLocation(event.getX(), event.getY()));
-        if (item != null && needsLibraryLoad(item)) {
+        Palette.BaseItem object = getItemForPath(myPaletteTree.getPathForLocation(event.getX(), event.getY()));
+        if (needsLibraryLoad(object)) {
+          Palette.Item item = (Palette.Item)object;
+          String coordinate = item.getGradleCoordinate();
+          assert coordinate != null;
           Module module = getModule();
-          DependencyManager manager = module != null ? DependencyManager.getDependencyManager(module.getProject()) : null;
-          if (manager != null) {    // todo: remove when DependencyManager has been implemented for other BUILD cases.
-            manager.ensureLibraryIsIncluded(module, item.getLibraries(), null);
-          }
+          assert module != null;
+          GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+          manager.ensureLibraryIsIncluded(module, toGradleCoordinates(Collections.singletonList(coordinate)), null);
         }
       }
     });
-    ApplicationManager.getApplication().getMessageBus().connect(myDisposable)
-      .subscribe(ProjectEx.ProjectSaved.TOPIC, new ProjectEx.ProjectSaved() {
-        @Override
-        public void saved(@NotNull final Project project) {
-          Module module = getModule();
-          if (module != null && module.getProject().equals(project)) {
-            if (checkForNewMissingDependencies()) {
-              invalidateUI();
-            }
-          }
+    ApplicationManager.getApplication().getMessageBus().connect(myDisposable).subscribe(ProjectEx.ProjectSaved.TOPIC, project -> {
+      Module module = getModule();
+      if (project == null || project.isDisposed() || myDesignSurface == null || !myDesignSurface.getLayoutType().isSupportedByDesigner()) {
+        // Do not check for new dependencies if this project is being closed...
+        return;
+      }
+      if (module != null && module.getProject().equals(project)) {
+        if (checkForNewMissingDependencies()) {
+          repaint();
         }
-      });
+      }
+    });
   }
 
   private boolean checkForNewMissingDependencies() {
     Module module = getModule();
-    DependencyManager manager = module != null ? DependencyManager.getDependencyManager(module.getProject()) : null;
     List<String> missing = Collections.emptyList();
-    if (manager != null) {
-      missing = manager.findMissingDependencies(module, myModel.getLibrariesUsed());
-    }
-    if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
-      return false;
+    if (module != null) {
+      GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+      missing = fromGradleCoordinates(
+        manager.findMissingDependencies(module, myModel.getPalette(myDesignSurface.getLayoutType()).getGradleCoordinates()));
+      if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
+        return false;
+      }
     }
     myMissingLibraries.clear();
     myMissingLibraries.addAll(missing);
     return true;
+  }
+
+  @NotNull
+  private static List<GradleCoordinate> toGradleCoordinates(@NotNull Collection<String> dependencies) {
+    if (dependencies.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<GradleCoordinate> coordinates = Lists.newArrayList();
+    for (String dependency : dependencies) {
+      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+");
+      if (coordinate == null) {
+        continue;
+      }
+      coordinates.add(coordinate);
+    }
+    return coordinates;
+  }
+
+  @NotNull
+  private static List<String> fromGradleCoordinates(@NotNull Collection<GradleCoordinate> coordinates) {
+    if (coordinates.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> dependencies = Lists.newArrayList();
+    for (GradleCoordinate coordinate : coordinates) {
+      String dependency = coordinate.getId();
+      if (dependency != null) {
+        dependencies.add(dependency);
+      }
+    }
+    return dependencies;
   }
 
   @Nullable
@@ -448,73 +587,121 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   }
 
   @Nullable
-  private static NlPaletteItem getItemForPath(@Nullable TreePath path) {
+  private static Palette.BaseItem getItemForPath(@Nullable TreePath path) {
     if (path == null) {
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-    Object content = node.getUserObject();
-    return content instanceof NlPaletteItem ? (NlPaletteItem)content : null;
+    return (Palette.BaseItem)node.getUserObject();
   }
+
+  // ---- implements ConfigurationListener ----
+
+  @Override
+  public boolean changed(int flags) {
+    updateConfiguration();
+    repaint();
+    return true;
+  }
+
+  // ---- implements ResourceChangeListener ----
+
+  @Override
+  public void resourcesChanged(@NotNull Set<Reason> reasons) {
+    for (Reason reason : reasons) {
+      // Drop the preview images created before this change.
+      // Unless this is a configuration change since we cache images for each configuration.
+      if (reason != Reason.CONFIGURATION_CHANGED) {
+        myIconFactory.dropCache();
+        return;
+      }
+    }
+  }
+
+  // ---- implements LafManagerListener ----
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    setColors();
+  }
+
+  // ---- implements LightToolWindowContent ----
 
   @Override
   public void dispose() {
-    if (myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        configuration.removeListener(this);
-      }
-    }
+    setDesignSurface(null);
+    myDndManager.unregisterSource(myDndSource, myPaletteTree);
+    ToolTipManager.sharedInstance().unregisterComponent(myPaletteTree);
     updateColorsAfterColorThemeChange(false);
     Disposer.dispose(myDisposable);
+    myStructureTree.dispose();
+  }
+
+  // ---- inner classes ----
+
+  /**
+   * Tree with special handling for preview images.
+   */
+  private class PaletteTree extends DnDAwareTree {
+    @Override
+    public void paintComponent(Graphics g) {
+      if (myMode == Mode.PREVIEW && myDesignSurface != null) {
+        if (myConfiguration != null) {
+          // We want to delay the generation of the preview images as much as possible because it is time consuming.
+          // Do this just before the images are needed for painting.
+          if (myIconFactory.load(myConfiguration, myModel.getPalette(myDesignSurface.getLayoutType()), false)) {
+            // If we just generated the preview images, we must invalidate the row heights that the tree is
+            // caching internally. Then invalidate and wait for the next paint.
+            // Otherwise some images may be cropped.
+            invalidateUI();
+            return;
+          }
+        }
+      }
+      super.paintComponent(g);
+    }
   }
 
   private class PaletteDnDSource implements DnDSource {
 
     @Override
     public boolean canStartDragging(DnDAction action, Point dragOrigin) {
-      NlPaletteItem item = getItemForPath(myTree.getPathForLocation(dragOrigin.x, dragOrigin.y));
-      return item != null && !needsLibraryLoad(item);
+      Palette.BaseItem content = getItemForPath(myPaletteTree.getPathForLocation(dragOrigin.x, dragOrigin.y));
+      return content instanceof Palette.Item && !needsLibraryLoad(content);
     }
 
     @Override
     public DnDDragStartBean startDragging(DnDAction action, Point dragOrigin) {
-      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
-      NlPaletteItem item = getItemForPath(path);
-      assert item != null;
+      TreePath path = myPaletteTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      Palette.BaseItem content = getItemForPath(path);
+      assert content instanceof Palette.Item;
+      Palette.Item item = (Palette.Item)content;
       Dimension size = null;
       if (myDesignSurface != null) {
         ScreenView screenView = myDesignSurface.getCurrentScreenView();
-        BufferedImage image = screenView != null ? myIconFactory.renderDragImage(item, screenView, 1.0) : null;
+        BufferedImage image = screenView != null ? myIconFactory.renderDragImage(item, screenView) : null;
         if (image != null) {
           size = new Dimension(image.getWidth(), image.getHeight());
           myLastDragImage = image;
         }
       }
       if (size == null) {
-        Rectangle bounds = myTree.getPathBounds(path);
+        Rectangle bounds = myPaletteTree.getPathBounds(path);
         size = bounds != null ? bounds.getSize() : new Dimension(200, 100);
         if (myDesignSurface != null) {
           double scale = myDesignSurface.getScale();
           size.setSize(size.getWidth() / scale, size.getHeight() / scale);
         }
       }
-      if (myDesigner instanceof NlPreviewForm) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ((NlPreviewForm)myDesigner).minimizePalette();
-          }
-        });
-      }
-      DnDTransferComponent component = new DnDTransferComponent(item.getId(), item.getRepresentation(), size.width, size.height);
+      myDesignSurface.minimizePaletteOnPreview();
+      DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
       return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(component)));
     }
 
     @Nullable
     @Override
     public Pair<Image, Point> createDraggedImage(DnDAction action, Point dragOrigin) {
-      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      TreePath path = myPaletteTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
       BufferedImage image = null;
       if (myLastDragImage != null && myDesignSurface != null) {
         double scale = myDesignSurface.getScale();
@@ -522,25 +709,29 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         myLastDragImage = null;
       }
       if (image == null) {
-        int row = myTree.getRowForPath(path);
+        // We do not have a preview image to drag. Use the selected row as an image.
+        int row = myPaletteTree.getRowForPath(path);
         Component comp =
-          myTree.getCellRenderer().getTreeCellRendererComponent(myTree, path.getLastPathComponent(), false, true, true, row, false);
-        comp.setForeground(myTree.getForeground());
-        comp.setBackground(myTree.getBackground());
-        comp.setFont(myTree.getFont());
+          myPaletteTree
+            .getCellRenderer().getTreeCellRendererComponent(myPaletteTree, path.getLastPathComponent(), false, true, true, row, false);
+        comp.setForeground(myPaletteTree.getForeground());
+        comp.setBackground(myPaletteTree.getBackground());
+        comp.setFont(myPaletteTree.getFont());
         comp.setSize(comp.getPreferredSize());
-        image = UIUtil.createImage(comp.getWidth(), comp.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        // Do not allocate the double size buffer here this will not be drawn as a retina image i.e. don't use UUtil.createImage()
+        //noinspection UndesirableClassUsage
+        image = new BufferedImage(comp.getWidth(), comp.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = (Graphics2D)image.getGraphics();
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
         comp.paint(g2);
         g2.dispose();
       }
-      return Pair.<Image, Point>pair(image, new Point(-image.getWidth() / 2, -image.getHeight() / 2));
+      return Pair.pair(image, new Point(-image.getWidth() / 2, -image.getHeight() / 2));
     }
 
     @Override
     public void dragDropEnd() {
-      myTree.clearSelection();
+      myPaletteTree.clearSelection();
     }
 
     @Override
@@ -549,7 +740,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   }
 
   private static final class PaletteSpeedSearch extends TreeSpeedSearch {
-    PaletteSpeedSearch(@NonNull JTree tree) {
+    PaletteSpeedSearch(@NotNull JTree tree) {
       super(tree);
     }
 
@@ -559,67 +750,68 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         return false;
       }
       TreePath path = (TreePath)element;
-      NlPaletteItem item = getItemForPath(path);
-      return item != null && compare(item.getTitle(), pattern);
+      Palette.BaseItem content = getItemForPath(path);
+      return content instanceof Palette.Item && compare(((Palette.Item)content).getTitle(), pattern);
     }
   }
 
   private class ActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
 
     @Override
-    public void performCopy(@NonNull DataContext dataContext) {
-      TreePath path = myTree.getSelectionPath();
-      NlPaletteItem item = getItemForPath(path);
-      if (item != null && !needsLibraryLoad(item)) {
-        DnDTransferComponent component = new DnDTransferComponent(item.getId(), item.getRepresentation(), 0, 0);
+    public void performCopy(@NotNull DataContext dataContext) {
+      TreePath path = myPaletteTree.getSelectionPath();
+      Palette.BaseItem content = getItemForPath(path);
+      if (content instanceof Palette.Item && !needsLibraryLoad(content)) {
+        Palette.Item item = (Palette.Item)content;
+        DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
         CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
       }
     }
 
     @Override
-    public boolean isCopyEnabled(@NonNull DataContext dataContext) {
+    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public boolean isCopyVisible(@NonNull DataContext dataContext) {
+    public boolean isCopyVisible(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public void performCut(@NonNull DataContext dataContext) {
+    public void performCut(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isCutEnabled(@NonNull DataContext dataContext) {
+    public boolean isCutEnabled(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public boolean isCutVisible(@NonNull DataContext dataContext) {
+    public boolean isCutVisible(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void deleteElement(@NonNull DataContext dataContext) {
+    public void deleteElement(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean canDeleteElement(@NonNull DataContext dataContext) {
+    public boolean canDeleteElement(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void performPaste(@NonNull DataContext dataContext) {
+    public void performPaste(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isPastePossible(@NonNull DataContext dataContext) {
+    public boolean isPastePossible(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public boolean isPasteEnabled(@NonNull DataContext dataContext) {
+    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
       return false;
     }
   }

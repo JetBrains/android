@@ -130,7 +130,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   @NotNull
-  private static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
+  public static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
     String ids = String.format(Locale.US, "%s-%s", header.getPid(), header.getTid());
 
     // For parsing later, tags should not have spaces in them. Replace spaces with
@@ -144,14 +144,6 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
                          header.getLogLevel().getPriorityLetter(),
                          tag,
                          message);
-  }
-
-  /**
-   * Construct a fake logcat message at the specified level.
-   */
-  public static String formatMessage(@NotNull Log.LogLevel level, @NotNull String message) {
-    LogCatHeader fakeHeader = new LogCatHeader(level, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
-    return formatMessageFull(fakeHeader, message);
   }
 
   /**

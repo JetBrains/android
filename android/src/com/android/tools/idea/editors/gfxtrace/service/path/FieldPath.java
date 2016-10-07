@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class FieldPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myStruct.stringPath(builder).append(".").append(myName);
+  public String getSegmentString() {
+    return myName;
   }
 
   @Override

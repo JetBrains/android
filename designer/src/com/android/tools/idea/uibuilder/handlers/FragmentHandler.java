@@ -15,28 +15,92 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
+
+import javax.swing.*;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <fragment>} tag */
-public class FragmentHandler extends ViewHandler {
+/**
+ * Handler for the {@code <fragment>} tag
+ */
+public final class FragmentHandler extends ViewHandler {
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_NAME,
+      ATTR_LAYOUT,
+      ATTR_CLASS);
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
+    return "<fragment>";
+  }
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
+    return "<fragment>";
+  }
+
+  @NotNull
+  @Override
+  public String getTitleAttributes(@NotNull NlComponent component) {
+    String name = component.getAttribute(ANDROID_URI, ATTR_NAME);
+    return StringUtil.isEmpty(name) ? "" : "- " + name;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
+    return AndroidIcons.Views.Fragment;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
+    return AndroidIcons.Views.Fragment;
+  }
+
+  @Override
+  @Language("XML")
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        return super.getXml(tagName, xmlType);
+    }
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
         return true;
       }
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null);
+      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, null);
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
         return true;
@@ -46,7 +110,6 @@ public class FragmentHandler extends ViewHandler {
         return false;
       }
     }
-
     return true;
   }
 }

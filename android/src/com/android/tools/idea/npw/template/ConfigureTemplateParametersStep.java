@@ -27,9 +27,9 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
@@ -232,7 +232,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
           @Override
           public void onInvalidated(@NotNull ObservableValue<?> sender) {
             // If not evaluating, change comes from the user
-            if (myEvaluationState == EvaluationState.NOT_EVALUATING) {
+            if (myEvaluationState != EvaluationState.EVALUATING) {
               myUserValues.put(parameter, property.get());
               // Evaluate later to prevent modifying Swing values that are locked during read
               enqueueEvaluateParameters();
@@ -259,7 +259,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     if (mySourceSets.size() > 1) {
-      RowEntry row = new RowEntry<JComboBox>("Target Source Set", new SourceSetComboProvider(mySourceSets));
+      RowEntry row = new RowEntry<>("Target Source Set", new SourceSetComboProvider(mySourceSets));
       row.setEnabled(mySourceSets.size() > 1);
       row.addToPanel(myParametersPanel);
 
@@ -326,12 +326,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       assert parameter.name != null;
       RowEntry<?> rowEntry;
       if (module != null) {
-        rowEntry = new RowEntry<EditorComboBox>(parameter.name,
-                                                new PackageComboProvider(module.getProject(), parameter, myPackageName.get(),
-                                                                         getRecentsKeyForParameter(parameter)));
+        rowEntry = new RowEntry<>(parameter.name,
+                                  new PackageComboProvider(module.getProject(), parameter, myPackageName.get(),
+                                                           getRecentsKeyForParameter(parameter)));
       }
       else {
-        rowEntry = new RowEntry<LabelWithEditLink>(parameter.name, new LabelWithEditLinkProvider(parameter));
+        rowEntry = new RowEntry<>(parameter.name, new LabelWithEditLinkProvider(parameter));
       }
 
       // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
@@ -345,9 +345,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     if (ATTR_PARENT_ACTIVITY_CLASS.equals(parameter.id)) {
       if (module != null) {
         assert parameter.name != null;
-        return new RowEntry<ReferenceEditorComboWithBrowseButton>(parameter.name, new ActivityComboProvider(module, parameter,
-                                                                                                            getRecentsKeyForParameter(
-                                                                                                              parameter)));
+        return new RowEntry<>(parameter.name, new ActivityComboProvider(module, parameter,
+                                                                        getRecentsKeyForParameter(
+                                                                          parameter)));
       }
     }
 
@@ -357,14 +357,14 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     switch (parameter.type) {
       case STRING:
         assert parameter.name != null;
-        return new RowEntry<JTextField>(parameter.name, new TextFieldProvider(parameter));
+        return new RowEntry<>(parameter.name, new TextFieldProvider(parameter));
       case BOOLEAN:
-        return new RowEntry<JCheckBox>(new CheckboxProvider(parameter), RowEntry.WantGrow.NO);
+        return new RowEntry<>(new CheckboxProvider(parameter), RowEntry.WantGrow.NO);
       case SEPARATOR:
-        return new RowEntry<JSeparator>(new SeparatorProvider(parameter), RowEntry.WantGrow.YES);
+        return new RowEntry<>(new SeparatorProvider(parameter), RowEntry.WantGrow.YES);
       case ENUM:
         assert parameter.name != null;
-        return new RowEntry<JComboBox>(parameter.name, new EnumComboProvider(parameter));
+        return new RowEntry<>(parameter.name, new EnumComboProvider(parameter));
       default:
         throw new IllegalStateException(
           String.format("Can't create UI for unknown component type: %1$s (%2$s)", parameter.type, parameter.id));
@@ -383,12 +383,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
     myEvaluationState = EvaluationState.REQUEST_ENQUEUED;
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        evaluateParameters();
-      }
-    }, ModalityState.any());
+    ApplicationManager.getApplication().invokeLater(this::evaluateParameters, ModalityState.any());
   }
 
   /**
@@ -607,16 +602,18 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
      */
     templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
 
+    String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
     File srcDir = paths.getSrcDirectory();
-    File testDir = paths.getTestDirectory();
-    if (srcDir != null && testDir != null) {
-      String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
-
+    if (srcDir != null) {
       srcDir = new File(srcDir, packageAsDir);
-      testDir = new File(testDir, packageAsDir);
 
       templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
       templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
+    }
+
+    File testDir = paths.getTestDirectory();
+    if (testDir != null) {
+      testDir = new File(testDir, packageAsDir);
 
       templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
       templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
@@ -701,17 +698,20 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final JPanel myHeader;
     @NotNull private final ComponentProvider<T> myComponentProvider;
     @NotNull private final T myComponent;
-    @Nullable private ObservableProperty<?> myProperty;
+    @Nullable private AbstractProperty<?> myProperty;
     @NotNull private WantGrow myWantGrow;
 
     public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
-      myHeader.add(new JBLabel(headerText + ":"));
+      JBLabel headerLabel = new JBLabel(headerText + ":");
+      myHeader.add(headerLabel);
       myHeader.add(Box.createHorizontalStrut(20));
       myWantGrow = WantGrow.NO;
       myComponentProvider = componentProvider;
       myComponent = componentProvider.createComponent();
       myProperty = componentProvider.createProperty(myComponent);
+
+      headerLabel.setLabelFor(myComponent);
     }
 
     public RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {
@@ -757,7 +757,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     public <V> void setValue(@NotNull V value) {
       assert myProperty != null;
       //noinspection unchecked Should always be true if registration is done correctly
-      ((ObservableProperty<V>)myProperty).set(value);
+      ((AbstractProperty<V>)myProperty).set(value);
     }
 
     @NotNull

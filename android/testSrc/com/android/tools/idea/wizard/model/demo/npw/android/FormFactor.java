@@ -21,8 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A mock representation of {@link com.android.tools.idea.npw.FormFactorUtils.FormFactor} slimmed
- * down for demo purposes.
+ * A mock representation of {@link com.android.tools.idea.npw.FormFactor} slimmed down for demo purposes.
  */
 public final class FormFactor {
 

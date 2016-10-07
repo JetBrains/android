@@ -29,7 +29,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -76,11 +75,6 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testImportData() {
     String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
 
@@ -89,7 +83,7 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     }
     List<DataNode<AndroidGradleModel>> nodes = Lists.newArrayList();
     Key<AndroidGradleModel> key = AndroidProjectKeys.ANDROID_MODEL;
-    nodes.add(new DataNode<AndroidGradleModel>(key, myAndroidModel, null));
+    nodes.add(new DataNode<>(key, myAndroidModel, null));
 
     assertEquals(key, service.getTargetDataKey());
 

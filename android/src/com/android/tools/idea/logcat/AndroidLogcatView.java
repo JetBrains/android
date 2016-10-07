@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -69,15 +70,16 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private volatile IDevice myDevice;
   private final AndroidLogConsole myLogConsole;
+  private final FormattedLogLineReceiver myFormattedLogLineReceiver;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private final IDevice myPreselectedDevice;
 
+  /**
+   * A default filter which will always let everything through.
+   */
   @NotNull
-  private ConfiguredFilter mySelectedAppFilter;
-
-  @NotNull
-  private ConfiguredFilter myNoFilter;
+  private final AndroidLogcatFilter myNoFilter;
 
   /**
    * Called internally when the device may have changed, or been significantly altered.
@@ -91,6 +93,9 @@ public abstract class AndroidLogcatView implements Disposable {
           return;
         }
         if (forceReconnect) {
+          if (myDevice != null) {
+            AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+          }
           myDevice = null;
         }
         updateLogConsole();
@@ -108,21 +113,19 @@ public abstract class AndroidLogcatView implements Disposable {
     return myLogConsole;
   }
 
+  // TODO: Now that clearLogcat lives in AndroidLogcatService, this should go away using a listener
+  // pattern.
   public final void clearLogcat(@Nullable IDevice device) {
     if (device == null) {
       return;
     }
 
     myLogFilterModel.beginRejectingOldMessages();
-    AndroidLogcatUtils.clearLogcat(myProject, device);
+    AndroidLogcatService.getInstance().clearLogcat(device, myProject);
 
-    // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
-    // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
-    // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
-    // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
-    // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
-    if (device.equals(getSelectedDevice())) {
-      notifyDeviceUpdated(true);
+    // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
+    if (myLogConsole.getConsole() != null) {
+      myLogConsole.clear();
     }
   }
 
@@ -142,33 +145,36 @@ public abstract class AndroidLogcatView implements Disposable {
 
     myLogFilterModel =
       new AndroidLogFilterModel() {
-        @Nullable private ConfiguredFilter myConfiguredFilter;
+
+        @NotNull
+        private AndroidLogcatPreferences getPreferences() {
+          return AndroidLogcatPreferences.getInstance(project);
+        }
 
         @Override
         protected void saveLogLevel(String logLevelName) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL = logLevelName;
+          getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
         }
 
         @Override
         public String getSelectedLogLevelName() {
-          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL;
+          return getPreferences().TOOL_WINDOW_LOG_LEVEL;
         }
 
         @Override
-        protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
-          myConfiguredFilter = filter;
-        }
-
-        @Nullable
-        @Override
-        protected ConfiguredFilter getConfiguredFilter() {
-          return myConfiguredFilter;
+        protected void saveConfiguredFilterName(String filterName) {
+          getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
         }
       };
 
     AndroidLogcatFormatter logFormatter = new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, logFormatter);
+    myFormattedLogLineReceiver = new FormattedLogLineReceiver() {
+      @Override
+      protected void receiveFormattedLogLine(@NotNull String line) {
+        myLogConsole.addLogLine(line);
+      }
+    };
 
     if (preselectedDevice == null && deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
@@ -187,31 +193,21 @@ public abstract class AndroidLogcatView implements Disposable {
 
           @Override
           public void clientSelected(@Nullable final Client c) {
-            boolean reselect = myFilterComboBoxModel.getSelectedItem() == mySelectedAppFilter;
-            AndroidConfiguredLogFilters.FilterEntry f;
-            if (c != null) {
-              f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForClient(c.getClientData());
-            }
-            else {
-              f = new AndroidConfiguredLogFilters.FilterEntry();
-            }
-            // Replace mySelectedAppFilter
-            int index = myFilterComboBoxModel.getIndexOf(mySelectedAppFilter);
-            if (index >= 0) {
-              myFilterComboBoxModel.removeElementAt(index);
-              mySelectedAppFilter = ConfiguredFilter.compile(f, SELECTED_APP_FILTER);
-              myFilterComboBoxModel.insertElementAt(mySelectedAppFilter, index);
-            }
-            if (reselect) {
-              myFilterComboBoxModel.setSelectedItem(mySelectedAppFilter);
+            AndroidLogcatFilter selected = (AndroidLogcatFilter)myFilterComboBoxModel.getSelectedItem();
+            updateDefaultFilters(c != null ? c.getClientData() : null);
+
+            // Attempt to preserve selection as best we can. Often we don't have to do anything,
+            // but it's possible an old filter was replaced with an updated version - so, new
+            // instance, but the same name.
+            if (selected != null && myFilterComboBoxModel.getSelectedItem() != selected) {
+              selectFilterByName(selected.getName());
             }
           }
         };
       deviceContext.addListener(deviceSelectionListener, this);
     }
 
-    mySelectedAppFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.FilterEntry(), SELECTED_APP_FILTER);
-    myNoFilter = ConfiguredFilter.compile(new AndroidConfiguredLogFilters.FilterEntry(), NO_FILTERS);
+    myNoFilter = new DefaultAndroidLogcatFilter.Builder(NO_FILTERS).build();
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -235,29 +231,35 @@ public abstract class AndroidLogcatView implements Disposable {
     final JPanel panel = new JPanel();
     final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
-    editFiltersCombo.setModel(myFilterComboBoxModel);
-    String def = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
-    if (StringUtil.isEmpty(def)) {
-      def = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
+    myFilterComboBoxModel.addElement(myNoFilter);
+    myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
+
+    updateDefaultFilters(null);
+    updateUserFilters();
+    String selectName = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
+    if (StringUtil.isEmpty(selectName)) {
+      selectName = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
     }
-    updateFilterCombobox(def);
+    selectFilterByName(selectName);
+
+    editFiltersCombo.setModel(myFilterComboBoxModel);
     applySelectedFilter();
     // note: the listener is added after the initial call to populate the combo
     // boxes in the above call to updateConfiguredFilters
     editFiltersCombo.addItemListener(new ItemListener() {
-      @Nullable private ConfiguredFilter myLastSelected;
+      @Nullable private AndroidLogcatFilter myLastSelected;
 
       @Override
       public void itemStateChanged(ItemEvent e) {
         Object item = e.getItem();
         if (e.getStateChange() == ItemEvent.DESELECTED) {
-          if (item instanceof ConfiguredFilter) {
-            myLastSelected = (ConfiguredFilter)item;
+          if (item instanceof AndroidLogcatFilter) {
+            myLastSelected = (AndroidLogcatFilter)item;
           }
         }
         else if (e.getStateChange() == ItemEvent.SELECTED) {
 
-          if (item instanceof ConfiguredFilter) {
+          if (item instanceof AndroidLogcatFilter) {
             applySelectedFilter();
           }
           else {
@@ -266,8 +268,11 @@ public abstract class AndroidLogcatView implements Disposable {
               new EditLogFilterDialog(AndroidLogcatView.this, myLastSelected == null ? null : myLastSelected.getName());
             dialog.setTitle(AndroidBundle.message("android.logcat.new.filter.dialog.title"));
             if (dialog.showAndGet()) {
-              final AndroidConfiguredLogFilters.FilterEntry newEntry = dialog.getCustomLogFiltersEntry();
-              updateFilterCombobox(newEntry != null ? newEntry.getName() : null);
+              final PersistentAndroidLogFilters.FilterData filterData = dialog.getActiveFilter();
+              updateUserFilters();
+              if (filterData != null) {
+                selectFilterByName(filterData.getName());
+              }
             }
             else {
               editFiltersCombo.setSelectedItem(myLastSelected);
@@ -279,10 +284,10 @@ public abstract class AndroidLogcatView implements Disposable {
 
     editFiltersCombo.setRenderer(new ColoredListCellRenderer<Object>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof ConfiguredFilter) {
+      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        if (value instanceof AndroidLogcatFilter) {
           setBorder(null);
-          append(((ConfiguredFilter)value).getName());
+          append(((AndroidLogcatFilter)value).getName());
         }
         else {
           setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
@@ -311,23 +316,19 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private volatile @Nullable AndroidLogcatReceiver myReceiver;
-
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
+      AndroidLogcatService androidLogcatService = AndroidLogcatService.getInstance();
+      if (myDevice != null) {
+        androidLogcatService.removeListener(myDevice, myFormattedLogLineReceiver);
+      }
+      // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
+      if (myLogConsole.getConsole() != null) {
+        myLogConsole.clear();
+      }
       myDevice = device;
-      AndroidLogcatReceiver receiver = myReceiver;
-      if (receiver != null) {
-        receiver.cancel();
-      }
-      if (device != null) {
-        final ConsoleView console = myLogConsole.getConsole();
-        if (console != null) {
-          console.clear();
-        }
-        myReceiver = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
-      }
+      androidLogcatService.addListener(myDevice, myFormattedLogLineReceiver, true);
     }
   }
 
@@ -347,34 +348,74 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private void applySelectedFilter() {
     final Object filter = myFilterComboBoxModel.getSelectedItem();
-    if (filter instanceof ConfiguredFilter) {
+    if (filter instanceof AndroidLogcatFilter) {
       ProgressManager.getInstance().run(new Task.Backgroundable(myProject, LogConsoleBase.APPLYING_FILTER_TITLE) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
-          myLogFilterModel.updateConfiguredFilter((ConfiguredFilter)filter);
+          myLogFilterModel.updateLogcatFilter((AndroidLogcatFilter)filter);
         }
       });
     }
   }
 
-  private void updateFilterCombobox(String select) {
-    final AndroidConfiguredLogFilters filters = AndroidConfiguredLogFilters.getInstance(myProject);
-    final List<AndroidConfiguredLogFilters.FilterEntry> entries = filters.getFilterEntries();
-
-    myFilterComboBoxModel.removeAllElements();
-    if (myDeviceContext != null) {
-      myFilterComboBoxModel.addElement(mySelectedAppFilter);
+  /**
+   * Update the list of filters which are provided by default (selected app and filters provided
+   * by plugins). These show up in the top half of the filter pulldown.
+   */
+  private void updateDefaultFilters(@Nullable ClientData client) {
+    int noFilterIndex = myFilterComboBoxModel.getIndexOf(myNoFilter);
+    for (int i = 0; i < noFilterIndex; i++) {
+      myFilterComboBoxModel.removeElementAt(0);
     }
-    myFilterComboBoxModel.addElement(myNoFilter);
-    myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
 
-    for (AndroidConfiguredLogFilters.FilterEntry entry : entries) {
-      final String name = entry.getName();
+    int insertIndex = 0;
 
-      ConfiguredFilter filter = ConfiguredFilter.compile(entry, entry.getName());
-      myFilterComboBoxModel.addElement(filter);
-      if (name.equals(select)) {
-        myFilterComboBoxModel.setSelectedItem(filter);
+    DefaultAndroidLogcatFilter.Builder selectedAppFilterBuilder = new DefaultAndroidLogcatFilter.Builder(SELECTED_APP_FILTER);
+    if (client != null) {
+      selectedAppFilterBuilder.setPid(client.getPid());
+    }
+    // Even if "client" is null, create a dummy "Selected app" filter as a placeholder which will
+    // be replaced when a client is eventually created.
+    myFilterComboBoxModel.insertElementAt(selectedAppFilterBuilder.build(), insertIndex++);
+
+    for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
+      AndroidLogcatFilter filter = filterProvider.getFilter(client);
+      myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
+    }
+  }
+
+
+  /**
+   * Update the list of filters which have been created by the user. These show up in the bottom
+   * half of the filter pulldown.
+   */
+  private void updateUserFilters() {
+
+    assert myFilterComboBoxModel.getIndexOf(EDIT_FILTER_CONFIGURATION) >= 0;
+
+    int userFiltersStartIndex = myFilterComboBoxModel.getIndexOf(EDIT_FILTER_CONFIGURATION) + 1;
+    while (myFilterComboBoxModel.getSize() > userFiltersStartIndex) {
+      myFilterComboBoxModel.removeElementAt(userFiltersStartIndex);
+    }
+
+    final List<PersistentAndroidLogFilters.FilterData> filters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
+    for (PersistentAndroidLogFilters.FilterData filter : filters) {
+      final String name = filter.getName();
+      assert name != null; // The UI that creates filters should ensure a name was created
+
+      AndroidLogcatFilter compiled = DefaultAndroidLogcatFilter.compile(filter, name);
+      myFilterComboBoxModel.addElement(compiled);
+    }
+  }
+
+  private void selectFilterByName(String name) {
+    for (int i = 0; i < myFilterComboBoxModel.getSize(); i++) {
+      Object element = myFilterComboBoxModel.getElementAt(i);
+      if (element instanceof AndroidLogcatFilter) {
+        if (((AndroidLogcatFilter)element).getName().equals(name)) {
+          myFilterComboBoxModel.setSelectedItem(element);
+          break;
+        }
       }
     }
   }
@@ -386,6 +427,9 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Override
   public final void dispose() {
+    if (myDevice != null) {
+      AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+    }
   }
 
   private final class MyRestartAction extends AnAction {
@@ -415,9 +459,9 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
-      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
-      private final AndroidLogcatPreferences myPreferences;
+  final class AndroidLogConsole extends LogConsoleBase{
+    private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
+    private final AndroidLogcatPreferences myPreferences;
 
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
       super(project, null, "", false, logFilterModel, GlobalSearchScope.allScope(project), logFormatter);
@@ -458,9 +502,8 @@ public abstract class AndroidLogcatView implements Disposable {
       return myRegexFilterComponent;
     }
 
-    @Override
-    public synchronized void addMessage(@NotNull String text) {
-      super.addMessage(text);
+    public void addLogLine(@NotNull String line) {
+      super.addMessage(line);
     }
 
     /**

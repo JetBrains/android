@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class DependencySetupErrorsTest {
   private DependencySetupErrors myErrors;
@@ -42,18 +42,18 @@ public class DependencySetupErrorsTest {
 
     DependencySetupErrors.MissingModule missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib1");
-    assertThat(missingModule.dependentNames).containsSequence("app1");
+    assertThat(missingModule.dependentNames).containsExactly("app1");
 
     missingModules = myErrors.getMissingModulesWithBackupLibraries();
     assertThat(missingModules).hasSize(2);
 
     missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib2");
-    assertThat(missingModule.dependentNames).containsSequence("app1", "app2");
+    assertThat(missingModule.dependentNames).containsExactly("app1", "app2").inOrder();
 
     missingModule = missingModules.get(1);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
-    assertThat(missingModule.dependentNames).containsSequence("app1");
+    assertThat(missingModule.dependentNames).containsExactly("app1");
   }
 
   @Test
@@ -61,7 +61,7 @@ public class DependencySetupErrorsTest {
     myErrors.addMissingName("app2");
     myErrors.addMissingName("app2");
     myErrors.addMissingName("app1");
-    assertThat(myErrors.getMissingNames()).containsSequence("app1", "app2");
+    assertThat(myErrors.getMissingNames()).containsExactly("app1", "app2").inOrder();
   }
 
   @Test
@@ -69,6 +69,6 @@ public class DependencySetupErrorsTest {
     myErrors.addMissingBinaryPath("app2");
     myErrors.addMissingBinaryPath("app2");
     myErrors.addMissingBinaryPath("app1");
-    assertThat(myErrors.getDependentsOnLibrariesWithoutBinaryPath()).containsSequence("app1", "app2");
+    assertThat(myErrors.getDependentsOnLibrariesWithoutBinaryPath()).containsExactly("app1", "app2").inOrder();
   }
 }

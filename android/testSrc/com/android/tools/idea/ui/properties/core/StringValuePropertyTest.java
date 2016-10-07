@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.properties.core;
 import com.android.tools.idea.ui.properties.CountListener;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class StringValuePropertyTest {
   @Test

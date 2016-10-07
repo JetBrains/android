@@ -23,10 +23,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -176,8 +173,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_6));
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_7));
       if (!myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
-        LanguageLevel defaultLevel = LanguageLevel.JDK_1_6;
-        myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString(defaultLevel));
+        myTemplateState.put(ATTR_JAVA_VERSION, LanguageLevel.JDK_1_6.getCompilerComplianceDefaultOption());
       }
     }
     else {
@@ -344,7 +340,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   public static IAndroidTarget[] getCompilationTargets(@NotNull AndroidSdkData sdkData) {
     IAndroidTarget[] targets = sdkData.getTargets();
-    List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
+    List<IAndroidTarget> list = new ArrayList<>();
 
     for (IAndroidTarget target : targets) {
       if (!target.isPlatform() && target.getAdditionalLibraries().isEmpty()) {
@@ -473,25 +469,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
-      @Override
-      public String call() {
-        return computeModuleName();
-      }
-    });
-    updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
-      @Override
-      public String call() {
-        return computePackageName();
-      }
-    });
+    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, this::computeModuleName);
+    updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, this::computePackageName);
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
-        @Override
-        public String call() {
-          return computeProjectLocation();
-        }
-      });
+      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), this::computeProjectLocation);
     }
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
@@ -821,19 +802,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return sdkData;
   }
 
-  public static String languageLevelToString(LanguageLevel level) { // Performs the reverse of LanguageLevel.parse()
-    switch (level) {
-      case JDK_1_5:
-        return "1.5";
-      case JDK_1_6:
-        return "1.6";
-      case JDK_1_7:
-        return "1.7";
-      default:
-        return level.name().substring(4).replace('_', '.'); // JDK_1_2 => 1.2
-    }
-  }
-
   /**
    * Find a unique filename to avoid conflicts.
    */
@@ -871,7 +839,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     public final LanguageLevel level;
 
     public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
-      super(languageLevelToString(level), level.getPresentableText(), 1, 1);
+      super(level.getCompilerComplianceDefaultOption(), level.getPresentableText(), 1, 1);
       this.level = level;
     }
 

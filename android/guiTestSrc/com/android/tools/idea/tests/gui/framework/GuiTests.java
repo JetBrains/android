@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
@@ -27,12 +29,15 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -42,21 +47,26 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Timeout;
+import org.fest.swing.fixture.JTableFixture;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.AssumptionViolatedException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
@@ -64,77 +74,75 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEn
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
-import static org.fest.swing.timing.Pause.pause;
-import static org.fest.swing.timing.Timeout.timeout;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
 public final class GuiTests {
-  public static final Timeout THIRTY_SEC_TIMEOUT = timeout(30, SECONDS);
-  public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
-  public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
-  /** Environment variable set by users to point to sources */
+  /**
+   * Environment variable set by users to point to sources
+   */
   public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
-  /** Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility */
+  /**
+   * Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility
+   */
   public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
-  /** AOSP-relative path to directory containing GUI test data */
+  /**
+   * AOSP-relative path to directory containing GUI test data
+   */
   public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
-  /** Environment variable pointing to the JDK to be used for tests */
+  /**
+   * Environment variable pointing to the JDK to be used for tests
+   */
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
-  // Called by MethodInvoker via reflection
-  @SuppressWarnings("unused")
-  public static void failIfIdeHasFatalErrors() {
-    final MessagePool messagePool = MessagePool.getInstance();
-    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
-    int fatalErrorCount = fatalErrors.size();
-    for (int i = 0; i < fatalErrorCount; i++) {
-      System.err.println("** Fatal Error " + (i + 1) + " of " + fatalErrorCount);
-      AbstractMessage error = fatalErrors.get(i);
-      System.err.println("* Message: ");
-      System.err.println(error.getMessage());
-
-      String additionalInfo = error.getAdditionalInfo();
+  @NotNull
+  public static List<Error> fatalErrorsFromIde() {
+    List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
+    List<Error> errors = new ArrayList<>(errorMessages.size());
+    for (AbstractMessage errorMessage : errorMessages) {
+      StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
+      String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
-        System.err.println("* Additional Info: ");
-        System.err.println(additionalInfo);
+        messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);
       }
-
-      String throwableText = error.getThrowableText();
-      if (isNotEmpty(throwableText)) {
-        System.err.println("* Throwable: ");
-        System.err.println(throwableText);
-      }
-      System.err.println();
+      Error error = new Error(messageBuilder.toString(), errorMessage.getThrowable());
+      errors.add(error);
     }
-    if (fatalErrorCount > 0) {
-      throw new AssertionError(fatalErrorCount + " fatal errors found. Stopping test execution.");
-    }
+    return Collections.unmodifiableList(errors);
   }
 
-  // Called by MethodInvoker via reflection
-  @SuppressWarnings("unused")
-  public static boolean doesIdeHaveFatalErrors() {
-    final MessagePool messagePool = MessagePool.getInstance();
-    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
-    return !fatalErrors.isEmpty();
+  static void setIdeSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
+
+    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
+    state.setSkipSdkMerge(false);
+    state.setUseCachedGradleModelOnly(false);
+
+    // TODO: setUpDefaultGeneralSettings();
   }
 
   // Called by IdeTestApplication via reflection.
@@ -149,13 +157,13 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    final File androidSdkPath = getAndroidSdkPath();
+    File androidSdkPath = getAndroidSdkPath();
 
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
     if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
       fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
     }
-    final File jdkPath = new File(jdkHome);
+    File jdkPath = new File(jdkHome);
 
     execute(new GuiTask() {
       @Override
@@ -163,9 +171,8 @@ public final class GuiTests {
         File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
         File currentJdkPath = IdeSdks.getJdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
+          ApplicationManager.getApplication().runWriteAction(
+            () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               IdeSdks.setAndroidSdkPath(androidSdkPath, null);
 
@@ -173,44 +180,93 @@ public final class GuiTests {
               IdeSdks.setJdkPath(jdkPath);
 
               System.out.println();
-            }
-          });
+            });
         }
       }
     });
 
   }
 
-  @Nullable
-  public static File getGradleHomePath() {
-    return getFilePathProperty("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
+  public static void refreshFiles() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(
+          () -> {
+            LocalFileSystem.getInstance().refresh(false /* synchronous */);
+          });
+      }
+    });
   }
 
-  @Nullable
-  public static File getUnsupportedGradleHome() {
-    return getGradleHomeFromSystemProperty("unsupported.gradle.home.path", "2.1");
+  /**
+   * @return the path of the installation of a supported Gradle version. The path of the installation is specified via the system property
+   * 'supported.gradle.home.path'. If the system property is not found, the test invoking this method will be skipped.
+   */
+  @NotNull
+  public static File getGradleHomePathOrSkipTest() {
+    return getFilePathPropertyOrSkipTest("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
   }
 
-  @Nullable
-  public static File getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
+  /**
+   * @return the path of the installation of a Gradle version that is no longer supported by the IDE. The path of the installation is
+   * specified via the system property 'unsupported.gradle.home.path'. If the system property is not found, the test invoking this method
+   * will be skipped.
+   */
+  @NotNull
+  public static File getUnsupportedGradleHomeOrSkipTest() {
+    return getGradleHomeFromSystemPropertyOrSkipTest("unsupported.gradle.home.path", "2.1");
+  }
+
+  /**
+   * Returns the Gradle installation directory whose path is specified in the given system property. If the expected system property is not
+   * found, the test invoking this method will be skipped.
+   *
+   * @param propertyName  the name of the system property.
+   * @param gradleVersion the version of the Gradle installation. This is used in the message displayed when the expected system property is
+   *                      not found.
+   * @return the Gradle installation directory whose path is specified in the given system property.
+   */
+  @NotNull
+  public static File getGradleHomeFromSystemPropertyOrSkipTest(@NotNull String propertyName, @NotNull String gradleVersion) {
     String description = "the path of a Gradle " + gradleVersion + " distribution";
-    return getFilePathProperty(propertyName, description, true);
+    return getFilePathPropertyOrSkipTest(propertyName, description, true);
   }
 
-
-  @Nullable
-  public static File getFilePathProperty(@NotNull String propertyName,
-                                         @NotNull String description,
-                                         boolean isDirectory) {
+  /**
+   * Returns a file whose path is specified in the given system property. If the expected system property is not found, the test invoking \
+   * this method will be skipped.
+   *
+   * @param propertyName the name of the system property.
+   * @param description  the description of the path to get. This is used in the message displayed when the expected system property is not
+   *                     found.
+   * @param isDirectory  indicates whether the file is a directory.
+   * @return a file whose path is specified in the given system property.
+   */
+  @NotNull
+  public static File getFilePathPropertyOrSkipTest(@NotNull String propertyName, @NotNull String description, boolean isDirectory) {
     String pathValue = System.getProperty(propertyName);
+    File path = null;
     if (!isNullOrEmpty(pathValue)) {
-      File path = new File(pathValue);
-      if (isDirectory && path.isDirectory() || !isDirectory && path.isFile()) {
-        return path;
+      File tempPath = new File(pathValue);
+      if (isDirectory && tempPath.isDirectory() || !isDirectory && tempPath.isFile()) {
+        path = tempPath;
       }
     }
-    System.out.println("Please specify " + description + ", using system property " + quote(propertyName));
-    return null;
+
+    if (path == null) {
+      skipTest("Please specify " + description + ", using system property " + quote(propertyName));
+    }
+    return path;
+  }
+
+  /**
+   * Skips a test (the test will be marked as "skipped"). This method has the same effect as the {@code Ignore} annotation, with the
+   * advantage of allowing tests to be skipped conditionally.
+   */
+  @Contract("_ -> fail")
+  public static void skipTest(@NotNull String message) {
+    throw new AssumptionViolatedException(message);
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
@@ -224,7 +280,7 @@ public final class GuiTests {
     Robot robot = null;
     try {
       robot = BasicRobot.robotWithCurrentAwtHierarchy();
-      final MyProjectManagerListener listener = new MyProjectManagerListener();
+      MyProjectManagerListener listener = new MyProjectManagerListener();
       findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
         @Override
         protected boolean isMatching(@NotNull Frame frame) {
@@ -237,7 +293,7 @@ public final class GuiTests {
           }
           return false;
         }
-      }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
+      }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
 
       // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
       // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
@@ -245,14 +301,14 @@ public final class GuiTests {
         if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
           SYSTEM_EVENT_QUEUE.getNextEvent();
         }
-      } catch (InterruptedException ex ) {
+      }
+      catch (InterruptedException ex) {
         // Ignored.
       }
 
       if (listener.myActive) {
-        pause(new Condition("Project to be opened") {
-          @Override
-          public boolean test() {
+        Wait.minutes(2).expecting("project to be opened")
+          .until(() -> {
             boolean notified = listener.myNotified;
             if (notified) {
               ProgressManager progressManager = ProgressManager.getInstance();
@@ -265,8 +321,7 @@ public final class GuiTests {
               return isIdle;
             }
             return false;
-          }
-        }, LONG_TIMEOUT);
+          });
       }
     }
     finally {
@@ -277,9 +332,19 @@ public final class GuiTests {
     }
   }
 
+  static ImmutableList<Window> windowsShowing() {
+    ImmutableList.Builder<Window> listBuilder = ImmutableList.builder();
+    for (Window window : Window.getWindows()) {
+      if (window.isShowing()) {
+        listBuilder.add(window);
+      }
+    }
+    return listBuilder.build();
+  }
+
   @NotNull
   public static File getProjectCreationDirPath() {
-   return TMP_PROJECT_ROOT;
+    return TMP_PROJECT_ROOT;
   }
 
   @NotNull
@@ -308,7 +373,7 @@ public final class GuiTests {
   private GuiTests() {
   }
 
-  public static void deleteFile(@Nullable final VirtualFile file) {
+  public static void deleteFile(@Nullable VirtualFile file) {
     // File deletion must happen on UI thread under write lock
     if (file != null) {
       execute(new GuiTask() {
@@ -330,7 +395,9 @@ public final class GuiTests {
     }
   }
 
-  /** Waits until an IDE popup is shown (and returns it */
+  /**
+   * Waits until an IDE popup is shown and returns it.
+   */
   public static JBList waitForPopup(@NotNull Robot robot) {
     return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
@@ -345,8 +412,8 @@ public final class GuiTests {
    * Clicks an IntelliJ/Studio popup menu item with the given label prefix
    *
    * @param labelPrefix the target menu item label prefix
-   * @param component a component in the same window that the popup menu is associated with
-   * @param robot the robot to drive it with
+   * @param component   a component in the same window that the popup menu is associated with
+   * @param robot       the robot to drive it with
    */
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull Component component, @NotNull Robot robot) {
     clickPopupMenuItemMatching(new PrefixMatcher(labelPrefix), component, robot);
@@ -377,22 +444,20 @@ public final class GuiTests {
     java.util.List<String> items = Lists.newArrayList();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
+      String s;
       if (elementAt instanceof PopupFactoryImpl.ActionItem) {
-        PopupFactoryImpl.ActionItem item = (PopupFactoryImpl.ActionItem)elementAt;
-        String s = item.getText();
-        if (labelMatcher.matches(s)) {
-          new JListFixture(robot, list).clickItem(i);
-          return;
-        }
-        items.add(s);
-      } else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
-        String s = elementAt.toString();
-        if (labelMatcher.matches(s)) {
-          new JListFixture(robot, list).clickItem(i);
-          return;
-        }
-        items.add(s);
+        s = ((PopupFactoryImpl.ActionItem)elementAt).getText();
       }
+      else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
+        s = elementAt.toString();
+      }
+
+      if (labelMatcher.matches(s)) {
+        new JListFixture(robot, list).clickItem(i);
+        robot.waitForIdle();
+        return;
+      }
+      items.add(s);
     }
 
     if (items.isEmpty()) {
@@ -401,9 +466,11 @@ public final class GuiTests {
     fail("Did not find menu item '" + labelMatcher + "' among " + on(", ").join(items));
   }
 
-  /** Returns the root container containing the given component */
+  /**
+   * Returns the root container containing the given component
+   */
   @Nullable
-  public static Container getRootContainer(@NotNull final Component component) {
+  public static Container getRootContainer(@NotNull Component component) {
     return execute(new GuiQuery<Container>() {
       @Override
       @Nullable
@@ -414,46 +481,55 @@ public final class GuiTests {
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButton(container, "OK");
+    findAndClickButtonWhenEnabled(container, "OK");
   }
 
   public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButton(container, "Cancel");
+    findAndClickButtonWhenEnabled(container, "Cancel");
   }
 
-  public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+  public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     JButton button = findButton(container, text, robot);
     robot.click(button);
   }
 
-  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    final JButton button = findButton(container, text, robot);
-    pause(new Condition("Wait for button " + text + " to be enabled.") {
-      @Override
-      public boolean test() {
-        return button.isEnabled() && button.isVisible() && button.isShowing();
-      }
-    }, SHORT_TIMEOUT);
+    JButton button = findButton(container, text, robot);
+    Wait.minutes(2).expecting("button " + text + " to be enabled")
+      .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
   }
 
-  @NotNull
-  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text, Robot robot) {
-    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull JButton button) {
-          String buttonText = button.getText();
-          if (buttonText != null) {
-            return buttonText.trim().equals(text) && button.isShowing();
-          }
-          return false;
-        }
-      });
+  /**
+   * Fest API bug work-around - Double click on FEST moves the mouse between clicks (to the same location), and that fails on Mac.
+   */
+  public static void doubleClick(Robot robot, Point clickLocation) {
+    robot.moveMouse(clickLocation);
+    robot.pressMouse(LEFT_BUTTON);
+    robot.releaseMouse(LEFT_BUTTON);
+    robot.pressMouse(LEFT_BUTTON);
+    robot.releaseMouse(LEFT_BUTTON);
   }
 
-  /** Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null */
+  @NotNull
+  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text, Robot robot) {
+    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return buttonText.trim().equals(text) && button.isShowing();
+        }
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null
+   */
   @Nullable
   public static File getTestDataDir() {
     File aosp = getAospSourceDir();
@@ -490,25 +566,48 @@ public final class GuiTests {
     return null;
   }
 
-  /** Waits for a first component which passes the given matcher to become visible */
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot, @NotNull GenericTypeMatcher<T> matcher) {
+    return waitUntilShowing(robot, null, matcher);
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
+                                                         @Nullable Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher) {
+    return waitUntilFound(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return component.isShowing() && matcher.matches(component);
+      }
+    });
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot, @NotNull GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, null, matcher);
   }
 
-  public static void skip(@NotNull String testName) {
-    System.out.println("Skipping test '" + testName + "'");
-  }
-
-  /** Waits for a first component which passes the given matcher under the given root to become visible. */
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
-                                                       @Nullable final Container root,
-                                                       @NotNull final GenericTypeMatcher<T> matcher) {
-    final AtomicReference<T> reference = new AtomicReference<T>();
-    pause(new Condition("Find component using " + matcher.toString()) {
-      @Override
-      public boolean test() {
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
+                                                       @Nullable Container root,
+                                                       @NotNull GenericTypeMatcher<T> matcher) {
+    AtomicReference<T> reference = new AtomicReference<>();
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.minutes(2).expecting("matching " + typeName)
+      .until(() -> {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);
         boolean found = allFound.size() == 1;
@@ -521,23 +620,94 @@ public final class GuiTests {
           fail("Found more than one " + matcher.supportedType().getSimpleName() + " which matches the criteria: " + allFound);
         }
         return found;
-      }
-    }, SHORT_TIMEOUT);
+      });
 
     return reference.get();
   }
 
-  /** Waits until no components match the given criteria under the given root */
-  public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
-                                                         @NotNull final Container root,
-                                                         @NotNull final GenericTypeMatcher<T> matcher) {
-    pause(new Condition("Find component using " + matcher.toString()) {
-      @Override
-      public boolean test() {
-        Collection<T> allFound = robot.finder().findAll(root, matcher);
-        return allFound.isEmpty();
+  /**
+   * Waits until no components match the given criteria under the given root
+   */
+  public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
+                                                         @NotNull Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher) {
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.minutes(2).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+  }
+
+  public static void waitForBackgroundTasks(Robot robot) {
+    Wait.minutes(2).expecting("background tasks to finish")
+      .until(() -> {
+        robot.waitForIdle();
+
+        ProgressManager progressManager = ProgressManager.getInstance();
+        return !progressManager.hasModalProgressIndicator() &&
+               !progressManager.hasProgressIndicator() &&
+               !progressManager.hasUnsafeProgressIndicator();
+      });
+  }
+
+  /** Pretty-prints the given table fixture */
+  @NotNull
+  public static String tableToString(@NotNull JTableFixture table) {
+    return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /** Pretty-prints the given table fixture */
+  @NotNull
+  public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
+                                     int cellWidth) {
+    String[][] contents = table.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      for (int column = Math.max(0, startColumn); column < Math.min(contents[0].length, endColumn); column++) {
+        String cell = contents[row][column];
+        if (cell.length() > cellWidth) {
+          cell = cell.substring(0, cellWidth - 3) + "...";
+        }
+        sb.append(String.format(formatString, cell));
       }
-    }, SHORT_TIMEOUT);
+      sb.append('\n');
+    }
+
+    return sb.toString();
+  }
+
+  /** Pretty-prints the given list fixture */
+  @NotNull
+  public static String listToString(@NotNull JListFixture list) {
+    return listToString(list, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /** Pretty-prints the given list fixture */
+  @NotNull
+  public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
+    String[] contents = list.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      String cell = contents[row];
+      if (cell.length() > cellWidth) {
+        cell = cell.substring(0, cellWidth - 3) + "...";
+      }
+      sb.append(String.format(formatString, cell));
+      sb.append('\n');
+    }
+
+    return sb.toString();
+  }
+
+  @NotNull
+  public static <T extends Component> GenericTypeMatcher<T> matcherForType(Class<T> type) {
+    return new GenericTypeMatcher<T>(type) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return true;
+      }
+    };
   }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
@@ -551,7 +721,6 @@ public final class GuiTests {
   }
 
   private static class PrefixMatcher extends BaseMatcher<String> {
-
     private final String prefix;
 
     public PrefixMatcher(String prefix) {
@@ -565,7 +734,7 @@ public final class GuiTests {
 
     @Override
     public void describeTo(Description description) {
-      description.appendText("with prefix '" + prefix +"'");
+      description.appendText("with prefix '" + prefix + "'");
     }
   }
 }

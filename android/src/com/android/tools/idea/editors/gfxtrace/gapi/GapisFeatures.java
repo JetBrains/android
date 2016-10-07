@@ -22,7 +22,10 @@ import java.util.Set;
  * This class exposes the set of features supported by the GAPIS instance.
  */
 public class GapisFeatures {
+  private static final String FEATURE_STABLE = "stable";
   private static final String FEATURE_RPC_STRING_TABLES = "rpc-string-tables";
+  private static final String FEATURE_CONTEXTS_AND_HIERACHIES = "contexts-hierachies";
+  private static final String FEATURE_MESHES = "meshes";
 
   private final Set<String> myFeatures = new HashSet<String>();
 
@@ -30,6 +33,13 @@ public class GapisFeatures {
     for (String feature : featureList) {
       myFeatures.add(feature);
     }
+  }
+
+  /**
+   * Returns true if GAPIS is considered stable (non-experimental):
+   */
+  public boolean isStable() {
+    return myFeatures.contains(FEATURE_STABLE);
   }
 
   /**
@@ -41,5 +51,27 @@ public class GapisFeatures {
    */
   public boolean hasRpcStringTables() {
     return myFeatures.contains(FEATURE_RPC_STRING_TABLES);
+  }
+
+  /**
+   * Returns true if the GAPIS instance supports getting the following paths:
+   * <ul>
+   *  <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.ContextsPath}
+   *  <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.HierarchiesPath}
+   * </ul>
+   */
+  public boolean hasContextsAndHierachies() {
+    return myFeatures.contains(FEATURE_CONTEXTS_AND_HIERACHIES);
+  }
+
+  /**
+   * Returns true if the GAPIS instance supports getting the following paths:
+   * <ul>
+   *   <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.MeshPath}
+   *   <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.VertexStreamDataPath}
+   * </ul>
+   */
+  public boolean hasMeshes() {
+    return myFeatures.contains(FEATURE_MESHES);
   }
 }

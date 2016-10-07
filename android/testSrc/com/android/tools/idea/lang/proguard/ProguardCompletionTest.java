@@ -70,7 +70,7 @@ public class ProguardCompletionTest extends AndroidTestCase {
   }
 
   /**
-   * Tests basic completion on the input file @{code fileBefore} at caret position, comparing it
+   * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.
    *
    * @param fileBefore the source file on which completion is performed

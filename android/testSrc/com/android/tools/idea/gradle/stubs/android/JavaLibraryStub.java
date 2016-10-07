@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class JavaLibraryStub implements JavaLibrary {
@@ -39,12 +40,24 @@ public class JavaLibraryStub implements JavaLibrary {
   @Override
   @NotNull
   public List<? extends JavaLibrary> getDependencies() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   public boolean isProvided() {
     return false;
+  }
+
+  @Override
+  @Nullable
+  public String getProject() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return null;
   }
 
   @Override
@@ -57,5 +70,10 @@ public class JavaLibraryStub implements JavaLibrary {
   @Nullable
   public MavenCoordinates getResolvedCoordinates() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return false;
   }
 }

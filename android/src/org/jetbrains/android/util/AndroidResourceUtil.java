@@ -21,9 +21,10 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -52,7 +53,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
@@ -64,7 +64,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
-import org.jetbrains.android.dom.resources.ScalarResourceElement;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -75,8 +74,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.ATTR_TYPE;
-import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -96,9 +94,7 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
   public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
-  public static final Set<ResourceType> XML_FILE_RESOURCE_TYPES = EnumSet
-    .of(ResourceType.ANIM, ResourceType.ANIMATOR, ResourceType.INTERPOLATOR, ResourceType.LAYOUT, ResourceType.MENU, ResourceType.XML,
-        ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.RAW, ResourceType.TRANSITION);
+  public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = Maps.newEnumMap(ResourceType.class);
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
@@ -143,6 +139,18 @@ public class AndroidResourceUtil {
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
     ALL_VALUE_RESOURCE_TYPES.add(ATTR);
     ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
+
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIM, ResourceFolderType.ANIM);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.COLOR, ResourceFolderType.COLOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.MENU, ResourceFolderType.MENU);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.RAW, ResourceFolderType.RAW);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.TRANSITION, ResourceFolderType.TRANSITION);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.XML, ResourceFolderType.XML);
   }
 
   public static String packageToRClass(@NotNull String packageName) {
@@ -466,6 +474,17 @@ public class AndroidResourceUtil {
     return PsiField.EMPTY_ARRAY;
   }
 
+  /**
+   * Generate an extension-less file name based on a passed string, that should pass
+   * validation as a resource file name by Gradle plugin.
+   * <p/>
+   * For names validation in the Gradle plugin, see {@link com.android.ide.common.res2.FileResourceNameValidator}
+   */
+  @NotNull
+  public static String getValidResourceFileName(@NotNull String base) {
+    return base.replace('-', '_').toLowerCase(Locale.US);
+  }
+
   @Nullable
   public static String getResourceNameByReferenceText(@NotNull String text) {
     int i = text.indexOf('/');
@@ -527,24 +546,16 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<VirtualFile> getResourceSubdirs(@Nullable String resourceType, @NotNull VirtualFile[] resourceDirs) {
-    if (resourceType != null && ResourceFolderType.getTypeByName(resourceType) == null) {
-      return Collections.emptyList();
-    }
+  public static List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType, @NotNull VirtualFile[] resourceDirs) {
     final List<VirtualFile> dirs = new ArrayList<VirtualFile>();
 
     for (VirtualFile resourcesDir : resourceDirs) {
       if (resourcesDir == null || !resourcesDir.isValid()) {
         continue;
       }
-      if (resourceType == null) {
-        ContainerUtil.addAll(dirs, resourcesDir.getChildren());
-      }
-      else {
-        for (VirtualFile child : resourcesDir.getChildren()) {
-          String type = AndroidCommonUtils.getResourceTypeByDirName(child.getName());
-          if (resourceType.equals(type)) dirs.add(child);
-        }
+      for (VirtualFile child : resourcesDir.getChildren()) {
+        ResourceFolderType type = ResourceFolderType.getFolderType(child.getName());
+        if (resourceType.equals(type)) dirs.add(child);
       }
     }
     return dirs;
@@ -574,44 +585,48 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<ResourceElement> getValueResourcesFromElement(@NotNull String resourceType, @NotNull Resources resources) {
+  public static List<ResourceElement> getValueResourcesFromElement(@NotNull ResourceType resourceType, @NotNull Resources resources) {
     final List<ResourceElement> result = new ArrayList<ResourceElement>();
 
-    if (resourceType.equals(ResourceType.STRING.getName())) {
-      result.addAll(resources.getStrings());
+    //noinspection EnumSwitchStatementWhichMissesCases
+    switch (resourceType) {
+      case STRING:
+        result.addAll(resources.getStrings());
+        break;
+      case PLURALS:
+        result.addAll(resources.getPluralss());
+        break;
+      case DRAWABLE:
+        result.addAll(resources.getDrawables());
+        break;
+      case COLOR:
+        result.addAll(resources.getColors());
+        break;
+      case DIMEN:
+        result.addAll(resources.getDimens());
+        break;
+      case STYLE:
+        result.addAll(resources.getStyles());
+        break;
+      case ARRAY:
+        result.addAll(resources.getStringArrays());
+        result.addAll(resources.getIntegerArrays());
+        result.addAll(resources.getArrays());
+        break;
+      case INTEGER:
+        result.addAll(resources.getIntegers());
+        break;
+      case FRACTION:
+        result.addAll(resources.getFractions());
+        break;
+      case BOOL:
+        result.addAll(resources.getBools());
+        break;
     }
-    else if (resourceType.equals(ResourceType.PLURALS.getName())) {
-      result.addAll(resources.getPluralss());
-    }
-    else if (resourceType.equals(ResourceType.DRAWABLE.getName())) {
-      result.addAll(resources.getDrawables());
-    }
-    else if (resourceType.equals(ResourceType.COLOR.getName())) {
-      result.addAll(resources.getColors());
-    }
-    else if (resourceType.equals(ResourceType.DIMEN.getName())) {
-      result.addAll(resources.getDimens());
-    }
-    else if (resourceType.equals(ResourceType.STYLE.getName())) {
-      result.addAll(resources.getStyles());
-    }
-    else if (resourceType.equals(ResourceType.ARRAY.getName())) {
-      result.addAll(resources.getStringArrays());
-      result.addAll(resources.getIntegerArrays());
-      result.addAll(resources.getArrays());
-    }
-    else if (resourceType.equals(ResourceType.INTEGER.getName())) {
-      result.addAll(resources.getIntegers());
-    }
-    else if (resourceType.equals(ResourceType.FRACTION.getName())) {
-      result.addAll(resources.getFractions());
-    }
-    else if (resourceType.equals(ResourceType.BOOL.getName())) {
-      result.addAll(resources.getBools());
-    }
+
     for (Item item : resources.getItems()) {
       String type = item.getType().getValue();
-      if (resourceType.equals(type)) {
+      if (resourceType.getName().equals(type)) {
         result.add(item);
       }
     }
@@ -739,19 +754,16 @@ public class AndroidResourceUtil {
     return ArrayUtil.toStringArray(names);
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @Nullable String resourceValue,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull Processor<ResourceElement> afterAddedProcessor) {
-    final Project project = module.getProject();
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-
     try {
-      return addValueResource(facet, resourceName, resourceType, fileName, dirNames, resourceValue, afterAddedProcessor);
+      return addValueResource(project, resDir, resourceName, resourceType, fileName, dirNames, resourceValue, afterAddedProcessor);
     }
     catch (Exception e) {
       final String message = CreateElementActionBase.filterMessage(e.getMessage());
@@ -767,23 +779,25 @@ public class AndroidResourceUtil {
     }
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value) {
-    return createValueResource(module, resourceName, resourceType, fileName, dirNames, value, null);
+    return createValueResource(project, resDir, resourceName, resourceType, fileName, dirNames, value, null);
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value,
                                             @Nullable final List<ResourceElement> outTags) {
-    return createValueResource(module, resourceName, value, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
+    return createValueResource(project, resDir, resourceName, value, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
       @Override
       public boolean process(ResourceElement element) {
         if (value.length() > 0) {
@@ -803,7 +817,8 @@ public class AndroidResourceUtil {
     });
   }
 
-  private static boolean addValueResource(@NotNull AndroidFacet facet,
+  private static boolean addValueResource(@NotNull Project project,
+                                          @NotNull VirtualFile resDir,
                                           @NotNull final String resourceName,
                                           @NotNull final ResourceType resourceType,
                                           @NotNull String fileName,
@@ -816,29 +831,28 @@ public class AndroidResourceUtil {
     final VirtualFile[] resFiles = new VirtualFile[dirNames.size()];
 
     for (int i = 0, n = dirNames.size(); i < n; i++) {
-      final VirtualFile resFile = findOrCreateResourceFile(facet, fileName, dirNames.get(i));
+      final VirtualFile resFile = findOrCreateResourceFile(project, resDir, fileName, dirNames.get(i));
       if (resFile == null) {
         return false;
       }
       resFiles[i] = resFile;
     }
 
-    if (!ReadonlyStatusHandler.ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+    if (!ReadonlyStatusHandler.ensureFilesWritable(project, resFiles)) {
       return false;
     }
     final Resources[] resourcesElements = new Resources[resFiles.length];
 
     for (int i = 0; i < resFiles.length; i++) {
-      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles[i], Resources.class);
+      final Resources resources = AndroidUtils.loadDomElement(project, resFiles[i], Resources.class);
       if (resources == null) {
-        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        AndroidUtils.reportError(project, AndroidBundle.message("not.resource.file.error", fileName));
         return false;
       }
       resourcesElements[i] = resources;
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.length);
-    Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -863,18 +877,21 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Sets a new value for a color.
-   * @param facet {@link AndroidFacet} instance
-   * @param colorName the name of the color to be modified
-   * @param newValue the new color value
-   * @param fileName the color values file name
-   * @param dirNames list of values directories where the color should be changed
+   * Sets a new value for a resource.
+   * @param project the project containing the resource
+   * @param resDir the res/ directory containing the resource
+   * @param name the name of the resource to be modified
+   * @param newValue the new resource value
+   * @param fileName the resource values file name
+   * @param dirNames list of values directories where the resource should be changed
    * @param useGlobalCommand if true, the undo will be registered globally. This allows the command to be undone from anywhere in the IDE
    *                         and not only the XML editor
-   * @return true if the color value was changed
+   * @return true if the resource value was changed
    */
-  public static boolean changeColorResource(@NotNull AndroidFacet facet,
-                                            @NotNull final String colorName,
+  public static boolean changeValueResource(@NotNull final Project project,
+                                            @NotNull VirtualFile resDir,
+                                            @NotNull final String name,
+                                            @NotNull final ResourceType resourceType,
                                             @NotNull final String newValue,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
@@ -885,28 +902,27 @@ public class AndroidResourceUtil {
     ArrayList<VirtualFile> resFiles = Lists.newArrayListWithExpectedSize(dirNames.size());
 
     for (String dirName : dirNames) {
-      final VirtualFile resFile = findResourceFile(facet, fileName, dirName);
+      final VirtualFile resFile = findResourceFile(resDir, fileName, dirName);
       if (resFile != null) {
         resFiles.add(resFile);
       }
     }
 
-    if (!ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+    if (!ensureFilesWritable(project, resFiles)) {
       return false;
     }
     final Resources[] resourcesElements = new Resources[resFiles.size()];
 
     for (int i = 0; i < resFiles.size(); i++) {
-      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles.get(i), Resources.class);
+      final Resources resources = AndroidUtils.loadDomElement(project, resFiles.get(i), Resources.class);
       if (resources == null) {
-        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        AndroidUtils.reportError(project, AndroidBundle.message("not.resource.file.error", fileName));
         return false;
       }
       resourcesElements[i] = resources;
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
-    final Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -915,7 +931,7 @@ public class AndroidResourceUtil {
       }
     }
     PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
-    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
+    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change " + resourceType.getName() + " Resource", files) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
         if (useGlobalCommand) {
@@ -924,10 +940,10 @@ public class AndroidResourceUtil {
 
         result.setResult(false);
         for (Resources resources : resourcesElements) {
-          for (ScalarResourceElement colorElement : resources.getColors()) {
-            String colorValue = colorElement.getName().getStringValue();
-            if (colorName.equals(colorValue)) {
-              colorElement.setStringValue(newValue);
+          for (ResourceElement element : getValueResourcesFromElement(resourceType, resources)) {
+            String value = element.getName().getStringValue();
+            if (name.equals(value)) {
+              element.setStringValue(newValue);
               result.setResult(true);
             }
           }
@@ -939,16 +955,10 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  private static VirtualFile findResourceFile(@NotNull AndroidFacet facet,
+  private static VirtualFile findResourceFile(@NotNull VirtualFile resDir,
                                               @NotNull final String fileName,
                                               @NotNull String dirName) {
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      return null;
-    }
     VirtualFile dir = resDir.findChild(dirName);
-
     if (dir == null) {
       return null;
     }
@@ -956,17 +966,10 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  private static VirtualFile findOrCreateResourceFile(@NotNull AndroidFacet facet,
+  private static VirtualFile findOrCreateResourceFile(@NotNull Project project,
+                                                      @NotNull VirtualFile resDir,
                                                       @NotNull final String fileName,
                                                       @NotNull String dirName) throws Exception {
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
-      return null;
-    }
     final VirtualFile dir = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName);
     final String dirPath = FileUtil.toSystemDependentName(resDir.getPath() + '/' + dirName);
 
@@ -1169,7 +1172,7 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Returns the type of the ResourceItem based on a node's attributes.
+   * Returns the type of the ResourceChooserItem based on a node's attributes.
    * @param node the node
    * @return the ResourceType or null if it could not be inferred.
    */
@@ -1279,7 +1282,8 @@ public class AndroidResourceUtil {
   /**
    * Finds and returns the resource files named stateListName in the directories listed in dirNames.
    * If some of the directories do not contain a file with that name, creates such a resource file.
-   * @param module Module containing the directories under investigation
+   * @param project the project
+   * @param resDir the res/ dir containing the directories under investigation
    * @param folderType Type of the directories under investigation
    * @param resourceType Type of the resource file to create if necessary
    * @param stateListName Name of the resource files to be returned
@@ -1287,20 +1291,13 @@ public class AndroidResourceUtil {
    * @return List of found and created files
    */
   @Nullable
-  public static List<VirtualFile> findOrCreateStateListFiles(@NotNull Module module, @NotNull final ResourceFolderType folderType,
-                                                             @NotNull final ResourceType resourceType, @NotNull final String stateListName,
+  public static List<VirtualFile> findOrCreateStateListFiles(@NotNull final Project project,
+                                                             @NotNull final VirtualFile resDir,
+                                                             @NotNull final ResourceFolderType folderType,
+                                                             @NotNull final ResourceType resourceType,
+                                                             @NotNull final String stateListName,
                                                              @NotNull final List<String> dirNames) {
-    final Project project = module.getProject();
     final PsiManager manager = PsiManager.getInstance(project);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
-      return null;
-    }
-
     final List<VirtualFile> files = Lists.newArrayListWithCapacity(dirNames.size());
     boolean foundFiles = new WriteCommandAction<Boolean>(project, "Find statelists files") {
       @Override
@@ -1352,8 +1349,8 @@ public class AndroidResourceUtil {
     return foundFiles ? files : null;
   }
 
-  public static void updateStateList(@NotNull Module module, final @NotNull ResourceHelper.StateList stateList, @NotNull List<VirtualFile> files) {
-    Project project = module.getProject();
+  public static void updateStateList(@NotNull Project project, final @NotNull ResourceHelper.StateList stateList,
+                                     @NotNull List<VirtualFile> files) {
     if (!ensureFilesWritable(project, files)) {
       return;
     }
@@ -1378,7 +1375,7 @@ public class AndroidResourceUtil {
       selectorClass = DrawableSelector.class;
     }
     for (VirtualFile file : files) {
-      final AndroidDomElement selector = AndroidUtils.loadDomElement(module, file, selectorClass);
+      final AndroidDomElement selector = AndroidUtils.loadDomElement(project, file, selectorClass);
       if (selector == null) {
         AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
         return;
@@ -1425,4 +1422,63 @@ public class AndroidResourceUtil {
     }.execute();
   }
 
+
+  /**
+   * Ensures that the given namespace is imported in the given XML document.
+   */
+  @NotNull
+  public static String ensureNamespaceImported(@NotNull XmlFile file, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
+    final XmlTag rootTag = file.getRootTag();
+
+    assert rootTag != null;
+    final XmlElementFactory elementFactory = XmlElementFactory.getInstance(file.getProject());
+
+    String prefix = rootTag.getPrefixByNamespace(namespaceUri);
+    if (prefix != null) {
+      return prefix;
+    }
+
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+
+    if (suggestedPrefix != null) {
+      prefix = suggestedPrefix;
+    }
+    else if (TOOLS_URI.equals(namespaceUri)) {
+      prefix = TOOLS_PREFIX;
+    }
+    else if (ANDROID_URI.equals(namespaceUri)) {
+      prefix = ANDROID_NS_NAME;
+    }
+    else {
+      prefix = APP_PREFIX;
+    }
+    if (rootTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
+      String base = prefix;
+      for (int i = 2; ; i++) {
+        prefix = base + Integer.toString(i);
+        if (rootTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
+          break;
+        }
+      }
+    }
+    String name = XMLNS_PREFIX + prefix;
+    final XmlAttribute xmlnsAttr = elementFactory.createXmlAttribute(name, namespaceUri);
+    final XmlAttribute[] attributes = rootTag.getAttributes();
+    XmlAttribute next = attributes.length > 0 ? attributes[0] : null;
+    for (XmlAttribute attribute : attributes) {
+      String attributeName = attribute.getName();
+      if (!attributeName.startsWith(XMLNS_PREFIX) || attributeName.compareTo(name) > 0) {
+        next = attribute;
+        break;
+      }
+    }
+    if (next != null) {
+      rootTag.addBefore(xmlnsAttr, next);
+    }
+    else {
+      rootTag.add(xmlnsAttr);
+    }
+
+    return prefix;
+  }
 }

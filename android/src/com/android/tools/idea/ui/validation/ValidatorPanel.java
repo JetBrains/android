@@ -21,10 +21,9 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
@@ -46,14 +45,6 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    */
   private static final String BLANK = " ";
 
-  // @formatter:off
-  private static ImmutableMap<Validator.Severity, Icon> ICONS = ImmutableMap.of(
-    Validator.Severity.INFO, AllIcons.General.BalloonInformation,
-    Validator.Severity.WARNING, AllIcons.General.BalloonWarning,
-    Validator.Severity.ERROR, AllIcons.General.BalloonError
-  );
-  // @formatter:on
-
   private final ListenerManager myListeners = new ListenerManager();
   private final Table<Validator.Severity, ObservableValue<?>, String> myMessages = HashBasedTable.create();
   private final BoolProperty myHasErrors = new BoolValueProperty();
@@ -68,6 +59,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     add(myRootPanel);
     myRootPanel.add(innerPanel);
 
+    myValidationLabel.setName("ValidationLabel");
     myValidationLabel.setText(BLANK);
 
     Disposer.register(parentDisposable, this);
@@ -101,6 +93,25 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   /**
+   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with a severity of
+   * {@link Validator.Severity#ERROR}
+  **/
+  public void registerValidator(@NotNull ObservableValue<Boolean> value,
+                                @NotNull String errorMessage) {
+    registerValidator(value, new TrueValidator(errorMessage));
+  }
+
+  /**
+   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with the specified
+   * {@link Validator.Severity}
+   **/
+  public void registerValidator(@NotNull ObservableValue<Boolean> value,
+                                @NotNull Validator.Severity severity,
+                                @NotNull String errorMessage) {
+    registerValidator(value, new TrueValidator(severity, errorMessage));
+  }
+
+  /**
    * Returns a property which indicates if any of the components in this panel are invalid.
    *
    * This is a useful property for UIs to listen to, as they can bind various components (such as a
@@ -120,7 +131,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       Iterator<String> messages = myMessages.row(severity).values().iterator();
       if (messages.hasNext()) {
         myValidationLabel.setText(messages.next());
-        myValidationLabel.setIcon(ICONS.get(severity));
+        myValidationLabel.setIcon(severity.getIcon());
 
         if (severity == Validator.Severity.ERROR) {
           myHasErrors.set(true);

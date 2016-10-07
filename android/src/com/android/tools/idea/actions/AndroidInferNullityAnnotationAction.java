@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
@@ -22,6 +23,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -53,7 +55,6 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
 import com.intellij.util.Consumer;
-import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.containers.ContainerUtil;
@@ -126,10 +127,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   protected boolean checkModules(@NotNull final Project project,
                                  @NotNull final AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
-    RepositoryUrlManager manager = RepositoryUrlManager.get();
-    final String annotationsLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
-    final String appCompatLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.APP_COMPAT_ID_V7);
-
     final Set<Module> modulesWithoutAnnotations = new HashSet<Module>();
     final Set<Module> modulesWithLowVersion = new HashSet<Module>();
     for (Module module : modules.keySet()) {
@@ -146,8 +143,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
-          String notation = dependency.getSpec().compactNotation();
-          if (notation.equals(annotationsLibraryCoordinate) || notation.equals(appCompatLibraryCoordinate)) {
+          String notation = dependency.compactNotation().value();
+          if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
             dependencyFound = true;
             break;
           }
@@ -168,19 +167,14 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     if (modulesWithoutAnnotations.isEmpty()) {
       return true;
     }
-    String moduleNames = StringUtil.join(modulesWithoutAnnotations, new Function<Module, String>() {
-      @Override
-      public String fun(Module module) {
-        return module.getName();
-      }
-    }, ", ");
+    String moduleNames = StringUtil.join(modulesWithoutAnnotations, Module::getName, ", ");
     int count = modulesWithoutAnnotations.size();
     String message = String.format("The %1$s %2$s %3$sn't refer to the existing '%4$s' library with Android nullity annotations. \n\n" +
                                    "Would you like to add the %5$s now?",
                                    pluralize("module", count),
                                    moduleNames,
                                    count > 1 ? "do" : "does",
-                                   RepositoryUrlManager.SUPPORT_ANNOTATIONS,
+                                   SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       final LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
@@ -188,6 +182,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         new WriteCommandAction(project, ADD_DEPENDENCY) {
           @Override
           protected void run(@NotNull final Result result) throws Throwable {
+            RepositoryUrlManager manager = RepositoryUrlManager.get();
+            String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
@@ -330,6 +326,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GradleBuildModel buildModel = GradleBuildModel.get(module);
           if (buildModel != null) {
             buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+            buildModel.applyChanges();
           }
         }
       });

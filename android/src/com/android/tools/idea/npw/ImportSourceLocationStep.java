@@ -80,7 +80,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private TextFieldWithBrowseButton mySourceLocation;
   private JBLabel myErrorWarning;
   private AsyncProcessIcon myValidationProgress;
-  private JBLabel myLocationLabel;
   private JBScrollPane myModulesScroller;
   private ModulesTable myModulesPanel;
   private JLabel myRequiredModulesLabel;
@@ -94,7 +93,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private Icon mySidePanelIcon;
 
   public ImportSourceLocationStep(@NotNull WizardContext context,
-                                  @Nullable VirtualFile importSource,
                                   @NotNull NewModuleWizardState state,
                                   @Nullable Icon sidePanelIcon,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
@@ -134,9 +132,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         return checkPath(mySourceLocation.getText());
       }
     };
-    myErrorWarning.setText("");
-    myErrorWarning.setIcon(null);
-    setupSourceLocationControls(importSource);
+    setupSourceLocationControls();
     myDelayedValidationProgressDisplay = new Timer(VALIDATION_STATUS_DISPLAY_DELAY, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -159,24 +155,18 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     return mySidePanelIcon;
   }
 
-  private void setupSourceLocationControls(@Nullable VirtualFile importSource) {
-    if (importSource == null) {
-      FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
-      descriptor.setTitle("Select Source Location");
-      descriptor.setDescription("Select existing ADT or Gradle project to import as a new subproject");
-      mySourceLocation.addBrowseFolderListener(new TextBrowseFolderListener(descriptor));
-      mySourceLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(DocumentEvent e) {
-          invalidate();
-        }
-      });
-    }
-    else {
-      mySourceLocation.setVisible(false);
-      myLocationLabel.setVisible(false);
-      mySourceLocation.setText(importSource.getPath());
-    }
+  private void setupSourceLocationControls() {
+    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
+    descriptor.setTitle("Select Source Location");
+    descriptor.setDescription("Select existing ADT or Gradle project to import as a new subproject");
+    mySourceLocation.addBrowseFolderListener(new TextBrowseFolderListener(descriptor));
+    mySourceLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        invalidate();
+      }
+    });
+
     applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
     myErrorWarning.setIcon(null);
     myErrorWarning.setText(null);

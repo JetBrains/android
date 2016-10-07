@@ -19,8 +19,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
-import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidActionBarIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
@@ -40,6 +39,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,6 +60,13 @@ import java.util.Map;
  * {@link AndroidIconType}.
  */
 public final class ConfigureIconPanel extends JPanel implements Disposable {
+
+  /**
+   * Source material icons are provided in a vector graphics format, but their default resolution
+   * is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
+   * a fair bit.
+   */
+  private static final Dimension CLIPART_RESOLUTION = new Dimension(256, 256);
 
   @NotNull private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
 
@@ -131,16 +138,31 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private JPanel myClipartAssetRowPanel;
   private JPanel myTextAssetRowPanel;
   private ImageAssetBrowser myImageAssetBrowser;
-  private ClipartAssetButton myClipartAssetButton;
+  private VectorIconButton myClipartAssetButton;
   private TextAssetEditor myTextAssetEditor;
+  private JBLabel myOutputNameLabel;
+  private JLabel myAssetTypeLabel;
+  private JBLabel myImagePathLabel;
+  private JBLabel myClipartLabel;
+  private JBLabel myTextLabel;
+  private JBLabel myTrimLabel;
+  private JBLabel myPaddingLabel;
+  private JBLabel myForegroundLabel;
+  private JBLabel myThemeLabel;
+  private JBLabel myCustomColorLabel;
+  private JBLabel myBackgroundLabel;
+  private JBLabel myScalingLabel;
+  private JBLabel myShapeLabel;
+  private JBLabel myEffectLabel;
 
-  private ObservableProperty<Color> myForegroundColor;
-  private ObservableProperty<Color> myBackgroundColor;
+  private BoolProperty myIgnoreForegroundColor;
+  private AbstractProperty<Color> myForegroundColor;
+  private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myCropped;
   private BoolProperty myDogEared;
-  private ObservableProperty<ActionBarIconGenerator.Theme> myTheme;
-  private ObservableProperty<GraphicGenerator.Shape> myShape;
-  private ObservableProperty<Color> myThemeColor;
+  private AbstractProperty<ActionBarIconGenerator.Theme> myTheme;
+  private AbstractProperty<GraphicGenerator.Shape> myShape;
+  private AbstractProperty<Color> myThemeColor;
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -182,9 +204,29 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     );
     // @formatter:on
 
+    // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
+    // valid targets
+    myOutputNameLabel.setLabelFor(myOutputNameTextField);
+    myAssetTypeLabel.setLabelFor(myAssetRadioButtonsPanel);
+    myImagePathLabel.setLabelFor(myImageAssetBrowser);
+    myClipartLabel.setLabelFor(myClipartAssetButton);
+    myTextLabel.setLabelFor(myTextAssetEditor);
+    myTrimLabel.setLabelFor(myTrimOptionsPanel);
+    myPaddingLabel.setLabelFor(myPaddingSliderPanel);
+    myForegroundLabel.setLabelFor(myForegroundColorPanel);
+    myThemeLabel.setLabelFor(myThemeComboBox);
+    myCustomColorLabel.setLabelFor(myCustomThemeColorPanel);
+    myBackgroundLabel.setLabelFor(myBackgroundColorPanel);
+    myScalingLabel.setLabelFor(myScalingRadioButtonsPanel);
+    myShapeLabel.setLabelFor(myShapeComboBox);
+    myEffectLabel.setLabelFor(myEffectRadioButtonsPanel);
+
     // Default the active asset type to "clipart", it's the most visually appealing and easy to
     // play around with.
-    myActiveAsset = new ObjectValueProperty<BaseAsset>(myClipartAssetButton.getAsset());
+    VectorAsset clipartAsset = myClipartAssetButton.getAsset();
+    clipartAsset.outputWidth().set(CLIPART_RESOLUTION.width);
+    clipartAsset.outputHeight().set(CLIPART_RESOLUTION.height);
+    myActiveAsset = new ObjectValueProperty<>(clipartAsset);
     myClipartRadioButton.setSelected(true);
 
     initializeListenersAndBindings();
@@ -203,26 +245,24 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     final StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
-    myForegroundColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myBackgroundColorPanel));
+    myIgnoreForegroundColor = new SelectedProperty(myImageRadioButton);
+    myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
     myCropped = new SelectedProperty(myCropRadioButton);
     myDogEared = new SelectedProperty(myDogEarRadioButton);
 
-    myTheme = new OptionalToValuePropertyAdapter<ActionBarIconGenerator.Theme>(
-      new SelectedItemProperty<ActionBarIconGenerator.Theme>(myThemeComboBox));
-    myThemeColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myCustomThemeColorPanel));
+    myTheme = new OptionalToValuePropertyAdapter<>(
+      new SelectedItemProperty<>(myThemeComboBox));
+    myThemeColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myCustomThemeColorPanel));
 
-    myShape = new OptionalToValuePropertyAdapter<GraphicGenerator.Shape>(new SelectedItemProperty<GraphicGenerator.Shape>(myShapeComboBox));
+    myShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
-    ActionListener radioSelectedListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JRadioButton source = ((JRadioButton)e.getSource());
-        AssetComponent assetComponent = myAssetPanelMap.get(source);
-        myActiveAsset.set(assetComponent.getAsset());
-      }
+    ActionListener radioSelectedListener = e -> {
+      JRadioButton source = ((JRadioButton)e.getSource());
+      AssetComponent assetComponent = myAssetPanelMap.get(source);
+      myActiveAsset.set(assetComponent.getAsset());
     };
     myClipartRadioButton.addActionListener(radioSelectedListener);
     myImageRadioButton.addActionListener(radioSelectedListener);
@@ -230,50 +270,31 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     // If any of our underlying asset panels change, we should pass that on to anyone listening to
     // us as well.
-    ActionListener assetPanelListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        fireAssetListeners();
-      }
-    };
+    ActionListener assetPanelListener = e -> fireAssetListeners();
     for (AssetComponent assetComponent : myAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
 
-    final Runnable onAssetModified = new Runnable() {
-      @Override
-      public void run() {
-        fireAssetListeners();
-      }
-    };
+    final Runnable onAssetModified = this::fireAssetListeners;
     myListeners
       .listenAll(trimmed, paddingPercent, myForegroundColor, myBackgroundColor, myCropped, myDogEared, myTheme, myThemeColor, myShape)
       .with(onAssetModified);
 
-    myListeners.listenAndFire(myActiveAsset, new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myActiveAssetBindings.releaseAll();
-        myActiveAssetBindings.bindTwoWay(trimmed, myActiveAsset.get().trimmed());
-        myActiveAssetBindings.bindTwoWay(paddingPercent, myActiveAsset.get().paddingPercent());
-        myActiveAssetBindings.bindTwoWay(myForegroundColor, myActiveAsset.get().color());
+    myListeners.listenAndFire(myActiveAsset, sender -> {
+      myActiveAssetBindings.releaseAll();
+      myActiveAssetBindings.bindTwoWay(trimmed, myActiveAsset.get().trimmed());
+      myActiveAssetBindings.bindTwoWay(paddingPercent, myActiveAsset.get().paddingPercent());
+      myActiveAssetBindings.bindTwoWay(myForegroundColor, myActiveAsset.get().color());
 
-        getIconGenerator().sourceAsset().setValue(myActiveAsset.get());
-        onAssetModified.run();
-      }
+      getIconGenerator().sourceAsset().setValue(myActiveAsset.get());
+      onAssetModified.run();
     });
 
     ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER));
     ObservableBool isActionBarIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.ACTIONBAR));
     ObservableBool isCustomTheme = myTheme.isEqualTo(ActionBarIconGenerator.Theme.CUSTOM);
-    ObservableBool isClipartOrText = new BooleanExpression(myActiveAsset) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        BaseAsset baseAsset = myActiveAsset.get();
-        return baseAsset instanceof TextAsset || baseAsset instanceof ClipartAsset;
-      }
-    };
+    ObservableValue<Boolean> isClipartOrText =
+      myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);
     ObservableBool supportsEffects = new BooleanExpression(myShape) {
       @NotNull
       @Override
@@ -315,12 +336,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       e.getKey().set(false);
       myGeneralBindings.bind(e.getKey(), e.getValue());
     }
-    myListeners.listenAll(layoutProperties.keySet()).with(new Runnable() {
-      @Override
-      public void run() {
-        SwingUtilities.updateComponentTreeUI(myAllOptionsPanel);
-      }
-    });
+    myListeners.listenAll(layoutProperties.keySet()).with(() -> SwingUtilities.updateComponentTreeUI(myAllOptionsPanel));
   }
 
   @NotNull
@@ -359,12 +375,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private void updateBindingsAndUiForActiveIconType() {
     myOutputName.set(myIconType.toOutputName("name"));
 
-    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<BaseAsset>(myActiveAsset));
+    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
 
     switch (myIconType) {
       case LAUNCHER:
         AndroidLauncherIconGenerator launcherIconGenerator = (AndroidLauncherIconGenerator)myIconGenerator;
+        myGeneralBindings.bind(launcherIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
+        myGeneralBindings.bindTwoWay(myForegroundColor, launcherIconGenerator.foregroundColor());
         myGeneralBindings.bindTwoWay(myBackgroundColor, launcherIconGenerator.backgroundColor());
         myGeneralBindings.bindTwoWay(myCropped, launcherIconGenerator.cropped());
         myGeneralBindings.bindTwoWay(myShape, launcherIconGenerator.shape());

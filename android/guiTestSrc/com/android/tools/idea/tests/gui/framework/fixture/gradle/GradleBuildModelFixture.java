@@ -25,8 +25,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -46,7 +45,7 @@ public class GradleBuildModelFixture {
   public void requireDependency(@NotNull String configurationName, @NotNull ArtifactDependencySpec expected) {
     DependenciesModel dependenciesModel = myTarget.dependencies();
     for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-      ArtifactDependencySpec actual = dependency.getSpec();
+      ArtifactDependencySpec actual = ArtifactDependencySpec.create(dependency);
       if (configurationName.equals(dependency.configurationName()) && expected.equals(actual)) {
         return;
       }
@@ -75,12 +74,7 @@ public class GradleBuildModelFixture {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            myTarget.applyChanges();
-          }
-        });
+        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges);
       }
     });
   }

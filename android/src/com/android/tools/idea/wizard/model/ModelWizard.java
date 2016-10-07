@@ -17,8 +17,6 @@ package com.android.tools.idea.wizard.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -52,7 +50,7 @@ import java.util.Set;
 public final class ModelWizard implements Disposable {
 
   private final List<ModelWizardStep> mySteps;
-  private final Facade myFacade = new Facade();
+
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
    * all of those should be shown as well. In this way, skipping a parent step automatically will
@@ -64,11 +62,14 @@ public final class ModelWizard implements Disposable {
   private final BoolProperty myCanGoBack = new BoolValueProperty();
   private final BoolProperty myCanGoForward = new BoolValueProperty();
   private final BoolProperty myOnLastStep = new BoolValueProperty();
+  private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
 
-  private final Stack<ModelWizardStep> myPrevSteps = new Stack<ModelWizardStep>();
+  private final Stack<ModelWizardStep> myPrevSteps = new Stack<>();
 
   private final StringProperty myTitle = new StringValueProperty();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
+
+  private final List<ResultListener> myResultListeners = Lists.newArrayListWithExpectedSize(1);
 
   private int myCurrIndex = -1;
 
@@ -85,6 +86,8 @@ public final class ModelWizard implements Disposable {
    * {@link WizardModel#handleFinished()} on each of their associated models.
    * <p/>
    * Note: You don't use this constructor directly - instead, use {@link Builder#build()}.
+   *
+   * @throws IllegalArgumentException if {@code steps} is empty or none of the steps are visible.
    */
   private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
     mySteps = Lists.newArrayListWithExpectedSize(steps.size());
@@ -96,15 +99,12 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
-    myCanGoForward.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        if (myCanGoForward.get()) {
-          // Make double sure that, when we switch from blocked to can proceed, we check that no
-          // no future steps also became visible or hidden at some point. Otherwise, we might think
-          // we're on the last step when we're not (or vice versa).
-          myOnLastStep.set(isOnLastVisibleStep());
-        }
+    myCanGoForward.addListener(sender -> {
+      if (myCanGoForward.get()) {
+        // Make double sure that, when we switch from blocked to can proceed, we check that no
+        // future steps also became visible or hidden at some point. Otherwise, we might think
+        // we're on the last step when we're not (or vice versa).
+        myOnLastStep.set(isOnLastVisibleStep());
       }
     });
 
@@ -120,7 +120,32 @@ public final class ModelWizard implements Disposable {
       seenModels.add(model);
     }
 
-    start();
+    // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
+    // if we can.
+
+    Facade facade = new Facade();
+    for (ModelWizardStep step : mySteps) {
+      step.onWizardStarting(facade);
+    }
+
+    boolean atLeastOneVisibleStep = false;
+    for (ModelWizardStep step : mySteps) {
+      if (shouldShowStep(step)) {
+        atLeastOneVisibleStep = true;
+        break;
+      }
+    }
+
+    if (atLeastOneVisibleStep) {
+      goForward(); // Proceed to first step
+    }
+    else {
+      // Normally we'd leave it up to external code to dispose the wizard, but since we're throwing
+      // an exception in the constructor, it means the caller won't be able to get a reference to
+      // this wizard before the exception interrupts it. So we manually clean things up ourselves.
+      Disposer.dispose(this);
+      throw new IllegalStateException("Trying to create a wizard but no steps are visible");
+    }
   }
 
   /**
@@ -201,15 +226,20 @@ public final class ModelWizard implements Disposable {
   /**
    * Returns the currently active step.
    * <p/>
-   * It is an error to call this method before the wizard has started or after it has finished.
+   * Calling this method after a wizard has finished should not be done and has undefined behavior.
    */
   @VisibleForTesting
   @NotNull
   ModelWizardStep getCurrentStep() {
-    ensureWizardIsRunning();
-
     return mySteps.get(myCurrIndex);
   }
+
+  /**
+   * Returns an (optional) action to be shown in addition to the normal wizard actions (next, previous, etc.).
+   * This action is provided by the current wizard step.
+   */
+  @NotNull
+  ObservableOptional<Action> getExtraAction() { return myExtraAction; }
 
   /**
    * Returns the panel that will contain the UI for each step. It is up to an external UI class
@@ -221,38 +251,10 @@ public final class ModelWizard implements Disposable {
   }
 
   /**
-   * Starts this wizard, after all steps have been added. Once started, the wizard will be pointed
-   * at the first step, and navigation can begin via {@link #goForward()} and {@link #goBack()}.
-   *
-   * If there are no steps, this wizard immediately progresses to a finished state.
-   */
-  private void start() {
-    for (ModelWizardStep step : mySteps) {
-      step.onWizardStarting(myFacade);
-    }
-
-    boolean atLeastOneVisibleStep = false;
-    for (ModelWizardStep step : mySteps) {
-      if (shouldShowStep(step)) {
-        atLeastOneVisibleStep = true;
-        break;
-      }
-    }
-
-    if (atLeastOneVisibleStep) {
-      goForward(); // Proceed to first step
-    }
-    else {
-      handleFinished(true);
-    }
-  }
-
-  /**
    * Moves the wizard to the next page. If we're currently on the last page, then this action
    * finishes the wizard.
    * <p/>
-   * It is an error to call this without first calling {@link #start()} or on a wizard that has
-   * already finished.
+   * It is an error to call this on a wizard that has already finished.
    */
   public void goForward() {
     ensureWizardIsRunning();
@@ -310,13 +312,20 @@ public final class ModelWizard implements Disposable {
   /**
    * Cancels the wizard, discarding all work done so far.
    * <p/>
-   * It is an error to call this without first calling {@link #start()} or on a wizard that has
-   * already finished.
+   * It is an error to call this on a wizard that has already finished.
    */
   public void cancel() {
     ensureWizardIsRunning();
 
     handleFinished(false);
+  }
+
+  public void addResultListener(@NotNull ResultListener listener) {
+    myResultListeners.add(listener);
+  }
+
+  public void removeResultListener(@NotNull ResultListener listener) {
+    myResultListeners.remove(listener);
   }
 
   public boolean isFinished() {
@@ -347,11 +356,19 @@ public final class ModelWizard implements Disposable {
     myCanGoBack.set(false);
     myCanGoForward.set(false);
     myOnLastStep.set(false);
+
+    // Make a copy of the event list, as a listener may attempt to remove their listener when this
+    // is fired.
+    List<ResultListener> listenersCopy = Lists.newArrayList(myResultListeners);
+    for (ResultListener listener : listenersCopy) {
+      listener.onWizardFinished(success);
+    }
   }
 
   private void showCurrentStep() {
     ModelWizardStep step = mySteps.get(myCurrIndex);
     myTitle.set(step.getTitle());
+    myExtraAction.setNullableValue(step.getExtraAction());
     ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
@@ -402,6 +419,14 @@ public final class ModelWizard implements Disposable {
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myResultListeners.clear();
+  }
+
+  /**
+   * Listener interface which is fired when the wizard is either finished or canceled.
+   */
+  public interface ResultListener {
+    void onWizardFinished(boolean success);
   }
 
   /**
@@ -448,6 +473,55 @@ public final class ModelWizard implements Disposable {
         return; // Protects against user calling this method in ModelWizardStep#onWizardStarting
       }
       ModelWizard.this.updateNavigationProperties();
+    }
+
+    /**
+     * Allows the child step to move the wizard to the next step. If the wizard is on its last
+     * step, then this action finishes the wizard.
+     *
+     * This should be used very sparingly, as normally you should encourage the user to navigate
+     * the wizard via the UI and not do it directly. However, this can be useful if you have a
+     * UI interaction where it's obvious that the user is making a clear choice and wants to move
+     * forward with it, like double-clicking an item from a grid, etc.
+     *
+     * Because this class is passed to child steps before the wizard has even started, this method
+     * will throw an exception if called too early. The step is expected to delay the call at least
+     * until the wizard has started, such as on a button press or other UI event.
+     *
+     * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
+     */
+    public boolean goForward() {
+      if (myCurrIndex < 0) {
+        // Protects against user calling this method directly in ModelWizardStep#onWizardStarting
+        throw new IllegalStateException("Attempting to goForward before the wizard has even started");
+      }
+
+      if (canGoForward().get()) {
+        ModelWizard.this.goForward();
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+
+    /**
+     * Allows the child step to cancel the wizard. This should be used very sparingly, as normally
+     * you should encourage the user to cancel the wizard via the UI and not do it directly.
+     * However, this can be useful if you need to, say, close the wizard after some timeout passed,
+     * or close it if you instead intend to finish the rest of the wizard's work on a background
+     * task, etc.
+     *
+     * Because this class is passed to child steps before the wizard has even started, this method
+     * will throw an exception if called too early. The step is expected to delay the call at least
+     * until the wizard has started, such as on a button press or other UI event.
+     */
+    public void cancel() {
+      if (myCurrIndex < 0) {
+        // Protects against user calling this method directly in ModelWizardStep#onWizardStarting
+        throw new IllegalStateException("Attempting to cancel before the wizard has even started");
+      }
+      ModelWizard.this.cancel();
     }
   }
 }

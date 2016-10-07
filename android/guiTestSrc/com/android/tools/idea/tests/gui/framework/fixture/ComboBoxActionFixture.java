@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.JBListWithHintProvider;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -23,17 +24,15 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
@@ -83,7 +82,7 @@ public class ComboBoxActionFixture {
 
   public String getSelectedItemText() {
     return execute(new GuiQuery<String>() {
-      @javax.annotation.Nullable
+      @Nullable
       @Override
       protected String executeInEDT() throws Throwable {
         return myTarget.getText();
@@ -93,18 +92,14 @@ public class ComboBoxActionFixture {
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    pause(new Condition("Wait until comboBoxButton is enabled") {
-      @Override
-      public boolean test() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("comboBoxButton to be enabled").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return comboBoxButtonFixture.target().isEnabled();
           }
-        });
-      }
-    }, SHORT_TIMEOUT);
+        }));
     comboBoxButtonFixture.click();
   }
 
@@ -114,9 +109,8 @@ public class ComboBoxActionFixture {
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
-    pause(new Condition("Wait until the list is populated.") {
-      @Override
-      public boolean test() {
+    Wait.minutes(2).expecting("the list to be populated")
+      .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
@@ -126,8 +120,7 @@ public class ComboBoxActionFixture {
           }
         }
         return false;
-      }
-    }, SHORT_TIMEOUT);
+      });
 
     final Integer appIndex = execute(new GuiQuery<Integer>() {
       @Override
@@ -144,7 +137,7 @@ public class ComboBoxActionFixture {
       }
     });
     //noinspection ConstantConditions
-    assertTrue(appIndex >= 0);
+    assertThat(appIndex).isAtLeast(0);
 
     execute(new GuiTask() {
       @Override

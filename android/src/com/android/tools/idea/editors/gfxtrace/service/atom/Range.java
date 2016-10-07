@@ -22,6 +22,7 @@ import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class Range implements BinaryObject {
   public boolean isValid() {
@@ -34,6 +35,50 @@ public final class Range implements BinaryObject {
 
   public boolean contains(long atomImdex) {
     return atomImdex >= myStart && atomImdex < myEnd;
+  }
+
+  /** @return whether this range completely contains the given range */
+  public boolean contains(Range range) {
+    return myStart <= range.getStart() && myEnd >= range.getEnd();
+  }
+
+  /** @return whether any of the ranges contains the given index */
+  public static boolean contains(Range[] list, long atomIndex) {
+    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+      (atomIndex < x.myStart) ? 1 :
+      (atomIndex >= x.myEnd) ? -1 : 0);
+    return rangeIndex >= 0;
+  }
+
+  /** @return whether this range has any overlap with the given range */
+  public boolean overlaps(Range range) {
+    return myStart < range.getEnd() && range.getStart() < myEnd;
+  }
+
+  public long getCount() {
+    return myEnd - myStart;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Range range = (Range)o;
+    if (myStart != range.myStart) return false;
+    if (myEnd != range.myEnd) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int)(myStart ^ (myStart >>> 32));
+    result = 31 * result + (int)(myEnd ^ (myEnd >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Range{start=" + myStart + ", end=" + myEnd + '}';
   }
 
   //<<<Start:Java.ClassBody:1>>>

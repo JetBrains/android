@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AvdComboBox;
 import com.android.tools.idea.run.LaunchCompatibility;

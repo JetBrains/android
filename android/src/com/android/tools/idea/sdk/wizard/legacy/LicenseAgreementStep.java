@@ -16,12 +16,12 @@
 package com.android.tools.idea.sdk.wizard.legacy;
 
 import com.android.repository.api.*;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
-import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -263,10 +263,10 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         if (license == null) {
             license = AndroidSdkLicenseTemporaryData.getLicense(
               p.getTypeDetails() instanceof DetailsTypes.ApiDetailsType &&
-              DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)p.getTypeDetails()).isPreview());
+              ((DetailsTypes.ApiDetailsType)p.getTypeDetails()).getAndroidVersion().isPreview());
         }
         myLicenses.add(license);
-        if (!license.checkAccepted(mySdkRoot)) {
+        if (!license.checkAccepted(mySdkRoot, mySdkHandler.getFileOp())) {
           toReturn.add(new Change(ChangeType.INSTALL, p, license));
         }
       }
@@ -309,7 +309,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   public void performFinishingActions() {
     for (License license : myLicenses) {
-      license.setAccepted(mySdkRoot);
+      license.setAccepted(mySdkRoot, mySdkHandler.getFileOp());
     }
   }
 

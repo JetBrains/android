@@ -20,6 +20,7 @@ import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,15 +32,15 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
-import com.intellij.util.PathUtil;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.TestProjects.createNativeProject;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
@@ -54,10 +55,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    String basePath = myProject.getBasePath();
-    assertNotNull(basePath);
-    File baseDir = new File(basePath);
+    File baseDir = Projects.getBaseDirPath(myProject);
     myNativeAndroidProject = createNativeProject(baseDir, myProject.getName());
 
     myNativeAndroidGradleModel = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), baseDir, myNativeAndroidProject);
@@ -74,6 +72,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
       }
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
@@ -83,29 +82,33 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(moduleFile);
     final VirtualFile moduleDir = moduleFile.getParent();
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-        ModifiableRootModel model = moduleRootManager.getModifiableModel();
-        model.addContentEntry(moduleDir);
-        model.commit();
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
+      model.addContentEntry(moduleDir);
+      model.commit();
     });
   }
 
-  public void testCustomizeModule() throws Exception {
+  public void testCustomizeModuleWithDefaultModel() {
+    verifyCustomizeModule();
+  }
+
+  public void testCustomizeModuleWithModel200() {
+    myNativeAndroidProject.setModelVersion("2.0.0");
+    verifyCustomizeModule();
+  }
+
+  private void verifyCustomizeModule() {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        myCustomizer.customizeModule(myProject, myModule, modelsProvider, myNativeAndroidGradleModel);
-        modelsProvider.commit();
-      }
-      catch (Throwable t) {
-        modelsProvider.dispose();
-        ExceptionUtil.rethrowAllAsUnchecked(t);
-      }
-    });
+    try {
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myNativeAndroidGradleModel);
+      ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
+    }
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      rethrowAllAsUnchecked(t);
+    }
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
@@ -115,15 +118,17 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       String path = urlToPath(folder.getUrl());
-      sourcePaths.add(path);
+      sourcePaths.add(toSystemIndependentName(path));
     }
 
     List<String> allExpectedPaths = Lists.newArrayList();
 
     Set<File> sourceFolderPaths = Sets.newLinkedHashSet();
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
-      for (File headerRoot : artifact.getExportedHeaders()) {
-        sourceFolderPaths.add(headerRoot);
+      if (myNativeAndroidGradleModel.modelVersionIsAtLeast("2.0.0")) {
+        for (File headerRoot : artifact.getExportedHeaders()) {
+          sourceFolderPaths.add(headerRoot);
+        }
       }
       for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
         sourceFolderPaths.add(sourceFolder.getFolderPath());
@@ -137,7 +142,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     }
 
     for (File file : sourceFolderPaths) {
-      allExpectedPaths.add(PathUtil.toSystemIndependentName(file.getPath()));
+      allExpectedPaths.add(toSystemIndependentName(file.getPath()));
     }
 
     assertEquals(allExpectedPaths, sourcePaths);

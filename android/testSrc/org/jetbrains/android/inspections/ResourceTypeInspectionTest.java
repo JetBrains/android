@@ -20,16 +20,11 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.InspectionProfileEntry;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.LanguageLevelModuleExtension;
-import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
@@ -44,41 +39,31 @@ import java.util.List;
 
 @SuppressWarnings("StatementWithEmptyBody")
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
+
   private String myOldCharset;
-
-  @NotNull
-  @Override
-  protected LightProjectDescriptor getProjectDescriptor() {
-    return new LightProjectDescriptor() {
-      @Nullable
-      @Override
-      public Sdk getSdk() {
-        return JAVA_1_7.getSdk();
-      }
-
-      @Override
-      protected void configureModule(@NotNull Module module, @NotNull ModifiableRootModel model, @NotNull ContentEntry contentEntry) {
-        // Module must have Android facet or resource type inspection will become a no-op
-        if (AndroidFacet.getInstance(module) == null) {
-          String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
-          String platform = AndroidTestBase.getDefaultPlatformDir();
-          AndroidTestCase.addAndroidFacet(module, sdkPath, platform, false);
-          Sdk sdk = AndroidTestBase.createAndroidSdk(sdkPath, platform);
-          model.setSdk(sdk);
-
-          @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
-          ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-          sdkModificator.commitChanges();
-
-          model.getModuleExtension(LanguageLevelModuleExtension.class).setLanguageLevel(LanguageLevel.JDK_1_8);
-        }
-      }
-    };
-  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    //noinspection StatementWithEmptyBody
+    if (getName().equals("testNotAndroid")) {
+      // Don't add an Android facet here; we're testing that we're a no-op outside of Android projects
+      // since the inspection is registered at the .java source type level
+      return;
+    }
+
+    // Module must have Android facet or resource type inspection will become a no-op
+    if (AndroidFacet.getInstance(myModule) == null) {
+      String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
+      String platform = AndroidTestBase.getDefaultPlatformDir();
+      AndroidTestCase.addAndroidFacet(myModule, sdkPath, platform, true);
+      Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
+      assertNotNull(sdk);
+      @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
+      ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+      sdkModificator.commitChanges();
+    }
 
     // Required by testLibraryRevocablePermissions (but placing it there leads to
     // test ordering issues)
@@ -1127,6 +1112,141 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}");
   }
 
+  public void testAnyThread() {
+    // Tests support for the @AnyThread annotation as well as fixing bugs
+    // suppressing AndroidLintWrongThread and
+    // 207313: Class-level threading annotations are not overrideable
+    // 207302: @WorkerThread cannot call View.post
+
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.BinderThread;\n" +
+            "import android.support.annotation.MainThread;\n" +
+            "import android.support.annotation.UiThread;\n" +
+            "import android.support.annotation.WorkerThread;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    @UiThread\n" +
+            "    static class AnyThreadTest {\n" +
+            "        //    @AnyThread\n" +
+            "        static void threadSafe() {\n" +
+            "            /*Method worker must be called from the worker thread, currently inferred thread is UI*/worker()/**/; // ERROR\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        static void worker() {\n" +
+            "            /*Method threadSafe must be called from the UI thread, currently inferred thread is worker*/threadSafe()/**/; // OK\n" +
+            "        }\n" +
+            "\n" +
+            "        // Multi thread test\n" +
+            "        @UiThread\n" +
+            "        @WorkerThread\n" +
+            "        private static void calleee() {\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        private static void call1() {\n" +
+            "            calleee(); // OK - context is included in target\n" +
+            "        }\n" +
+            "\n" +
+            "        @BinderThread\n" +
+            "        @WorkerThread\n" +
+            "        private static void call2() {\n" +
+            "            /*Method calleee must be called from the UI or worker thread, currently inferred thread is binder and worker*/calleee()/**/; // Not ok: thread could be binder thread, not supported by target\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static AsyncTask testTask() {\n" +
+            "\n" +
+            "        return new AsyncTask() {\n" +
+            "            final CustomView view = new CustomView();\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void doInBackground(Object... params) {\n" +
+            "                /*Method onPreExecute must be called from the main thread, currently inferred thread is worker*/onPreExecute()/**/; // ERROR\n" +
+            "                /*Method paint must be called from the UI thread, currently inferred thread is worker*/view.paint()/**/; // ERROR\n" +
+            "                publishProgress(); // OK\n" +
+            "            }\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void onPreExecute() {\n" +
+            "                /*Method publishProgress must be called from the worker thread, currently inferred thread is main*/publishProgress()/**/; // ERROR\n" +
+            "                onProgressUpdate(); // OK\n" +
+            "                // Suppressed via older Android Studio inspection id:\n" +
+            "                //noinspection ResourceType\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "                // Suppressed via new lint id:\n" +
+            "                //noinspection WrongThread\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "                // Suppressed via Studio inspection id:\n" +
+            "                //noinspection AndroidLintWrongThread\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "            }\n" +
+            "        };\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static class View {\n" +
+            "        public void paint() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class CustomView extends View {\n" +
+            "        @Override public void paint() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public abstract static class AsyncTask {\n" +
+            "        @WorkerThread\n" +
+            "        protected abstract void doInBackground(Object... params);\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onPreExecute() {\n" +
+            "        }\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onProgressUpdate(Object... values) {\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        protected final void publishProgress(Object... values) {\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testPx() {
+    // Test the @Px annotation
+    doCheck("\n" +
+            "package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.Px;\n" +
+            "import android.support.annotation.DimenRes;\n" +
+            "\n" +
+            "public abstract class X {\n" +
+            "    @DimenRes\n" +
+            "    public abstract int getDimension1();\n" +
+            "    public abstract void setDimension1(@DimenRes int dimension);\n" +
+            "    @Px\n" +
+            "    public abstract int getDimension2();\n" +
+            "    public abstract void setDimension2(@Px int dimension);\n" +
+            "\n" +
+            "    public void test1() {\n" +
+            "        int actualSize = getDimension2();\n" +
+            //"        setDimension1(/*Expected a dimension resource id (R.color.) but received a pixel integer*/actualSize/**/); // ERROR\n" +
+            //"        setDimension1(/*Expected a dimension resource id (R.color.) but received a pixel integer*/getDimension2()/**/); // ERROR\n" +
+            "        setDimension1(getDimension1()); // OK\n" +
+            "    }\n" +
+            "    public void test2() {\n" +
+            "        int actualSize = getDimension1();\n" +
+            //"        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(actualSize)`*/actualSize/**/); // ERROR\n" +
+            "        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(getDimension1())`*/getDimension1()/**/); // ERROR\n" +
+            "        setDimension2(getDimension2()); // OK\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testCombinedIntDefAndIntRange() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
@@ -1258,6 +1378,98 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        getResources().getColor(getSwipeColor()); // OK: color to color\n" +
             "        view.setBackgroundResource(getSwipeColor()); // OK: color promotes to drawable\n" +
             "        getResources().getColor(/*Expected resource of type color*/getDrawableIcon()/**/); // Not OK: drawable doesn't promote to color\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testObtainStyleablesFromArray() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=201882
+    // obtainStyledAttributes normally expects a styleable but you can also supply a
+    // custom int array
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.Context;\n" +
+            "import android.content.res.TypedArray;\n" +
+            "import android.graphics.Color;\n" +
+            "import android.util.AttributeSet;\n" +
+            "\n" +
+            "@SuppressWarnings(\"unused\")\n" +
+            "public class X {\n" +
+            "    public void test1(Activity activity, float[] foregroundHsv, float[] backgroundHsv) {\n" +
+            "        TypedArray attributes = activity.obtainStyledAttributes(\n" +
+            "                new int[] {\n" +
+            "                        R.attr.setup_wizard_navbar_theme,\n" +
+            "                        android.R.attr.colorForeground,\n" +
+            "                        android.R.attr.colorBackground });\n" +
+            "        Color.colorToHSV(attributes.getColor(1, 0), foregroundHsv);\n" +
+            "        Color.colorToHSV(attributes.getColor(2, 0), backgroundHsv);\n" +
+            "        attributes.recycle();\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test2(Context context, AttributeSet attrs, int defStyle) {\n" +
+            "        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BezelImageView,\n" +
+            "                defStyle, 0);\n" +
+            "        a.getDrawable(R.styleable.BezelImageView_maskDrawable);\n" +
+            "        a.recycle();\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class R {\n" +
+            "        public static class attr {\n" +
+            "            public static final int setup_wizard_navbar_theme = 0x7f01003b;\n" +
+            "        }\n" +
+            "        public static class styleable {\n" +
+            "            public static final int[] BezelImageView = {\n" +
+            "                    0x7f01005d, 0x7f01005e, 0x7f01005f\n" +
+            "            };\n" +
+            "            public static final int BezelImageView_maskDrawable = 0;\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  @SuppressWarnings("all") // sample code
+  public void testRequiresApi() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.RequiresApi;\n" +
+            "import android.os.Build;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void caller() {\n" +
+            "        /*Call requires API level 19 (current min is 17): test.pkg.X#requiresKitKat*/requiresKitKat()/**/; // ERROR - requires 19\n" +
+            "        LollipopClass lollipopClass = /*Call requires API level 21 (current min is 17): test.pkg.X.LollipopClass#LollipopClass*/new LollipopClass()/**/;\n" +
+            "        /*Call requires API level 21 (current min is 17): test.pkg.X.LollipopClass#requiresLollipop*/lollipopClass.requiresLollipop()/**/; // ERROR - requires 21\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(19)\n" +
+            "    public void requiresKitKat() {\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(21)\n" +
+            "    public class LollipopClass {\n" +
+            "        LollipopClass() {\n" +
+            "        }\n" +
+            "\n" +
+            "        public void requiresLollipop() {\n" +
+            "            requiresKitKat(); // OK\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void something() {\n" +
+            "        /*Call requires API level 22 (current min is 17): test.pkg.X#requiresLollipop*/requiresLollipop()/**/; // ERROR\n" +
+            "        if (Build.VERSION.SDK_INT >= 22) {\n" +
+            "            requiresLollipop(); // OK\n" +
+            "        }\n" +
+            "        if (Build.VERSION.SDK_INT < 22) {\n" +
+            "            return;\n" +
+            "        }\n" +
+            "        requiresLollipop(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(22)\n" +
+            "    public void requiresLollipop() {\n" +
             "    }\n" +
             "}\n");
   }
@@ -1516,6 +1728,21 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                       "public @interface ColorInt {\n" +
                       "}";
     classes.add(header + colorInt);
+
+    @Language("JAVA")
+    String px = "@Retention(SOURCE)\n" +
+                "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                "public @interface Px {\n" +
+                "}";
+    classes.add(header + px);
+
+    @Language("JAVA")
+    String requiresApi = "@Retention(SOURCE)\n" +
+                         "@Target({TYPE,METHOD,CONSTRUCTOR,FIELD})\n" +
+                         "public @interface RequiresApi {\n" +
+                         "    int value();\n" +
+                         "}";
+    classes.add(header + requiresApi);
 
     @Language("JAVA")
     String intDef = "@Retention(SOURCE)\n" +

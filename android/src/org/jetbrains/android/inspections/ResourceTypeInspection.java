@@ -18,8 +18,10 @@ package org.jetbrains.android.inspections;
 
 import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
@@ -64,13 +66,14 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import com.siyeh.ig.psiutils.ExpressionUtils;
 import gnu.trove.THashSet;
-import lombok.ast.BinaryOperator;
 import lombok.ast.NullLiteral;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.inspections.lint.LombokPsiParser;
-import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.android.inspections.lint.AddTargetApiQuickFix;
+import org.jetbrains.android.inspections.lint.AddTargetVersionCheckQuickFix;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import org.jetbrains.android.inspections.lint.IntellijLintUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +82,12 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
+import static com.android.tools.lint.checks.ApiDetector.UNSUPPORTED;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
@@ -433,7 +440,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   private static void checkMethodAnnotations(@NotNull PsiCall methodCall, @NotNull ProblemsHolder holder, @NotNull PsiMethod method) {
-    for (PsiAnnotation annotation : getAllAnnotations(method)) {
+    PsiAnnotation[] methodAnnotations = getAllAnnotations(method);
+
+    PsiAnnotation[] classAnnotations = null;
+    PsiClass containingClass = method.getContainingClass();
+    if (containingClass != null) {
+      // Class annotations only apply to instance methods. Static methods in child classes do not inherit class annotations.
+      boolean isStatic = method.hasModifierProperty(PsiModifier.STATIC);
+      classAnnotations = isStatic ? getLocalAnnotations(containingClass) : getAllAnnotations(containingClass);
+    }
+
+    for (PsiAnnotation annotation : methodAnnotations) {
       String qualifiedName = annotation.getQualifiedName();
       if (qualifiedName == null) {
         continue;
@@ -456,7 +473,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
               // Handle equals() as a special case: if you're invoking
               //   .equals on a method whose return value annotated with @StringDef
               //   we want to make sure that the equals parameter is compatible.
-              // 186598: StringDef dont warn using a getter and equals
+              // 186598: StringDef don't warn using a getter and equals
               PsiElement parent = methodCall.getParent();
               PsiType type = method.getReturnType();
               if (type != null && parent instanceof PsiReferenceExpression) {
@@ -488,22 +505,24 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       } else if (CHECK_RESULT_ANNOTATION.equals(qualifiedName)) {
         checkReturnValueUsage(methodCall, holder, method);
       } else if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
-        checkThreadAnnotation(methodCall, holder, method, qualifiedName);
+        checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations,
+                              classAnnotations != null ? classAnnotations : PsiAnnotation.EMPTY_ARRAY);
+      } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
+        checkApiLevel(methodCall, method, holder, annotation);
       }
     }
 
-    PsiClass cls = method.getContainingClass();
-    if (cls != null) {
-      // Class annotations only apply to instance methods. Static methods in child classes do not inherit class annotations.
-      PsiAnnotation[] annotations = method.hasModifierProperty(PsiModifier.STATIC) ? getLocalAnnotations(cls) : getAllAnnotations(cls);
-      for (PsiAnnotation annotation : annotations) {
+    if (classAnnotations != null) {
+      for (PsiAnnotation annotation : classAnnotations) {
         String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null) {
           continue;
         }
 
         if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
-          checkThreadAnnotation(methodCall, holder, method, qualifiedName);
+          checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations, classAnnotations);
+        } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
+          checkApiLevel(methodCall, method, holder, annotation);
         } else if (!qualifiedName.startsWith(DEFAULT_PACKAGE)) {
           // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
           PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
@@ -511,7 +530,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) {
             continue;
           }
-          cls = (PsiClass)resolved;
+          PsiClass cls = (PsiClass)resolved;
           for (PsiAnnotation a : getAllAnnotations(cls)) {
             qualifiedName = a.getQualifiedName();
             if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
@@ -521,6 +540,61 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
     }
+  }
+
+  private static void checkApiLevel(@NotNull PsiCall methodCall,
+                                    @NotNull PsiMethod method,
+                                    @NotNull ProblemsHolder holder,
+                                    @NotNull PsiAnnotation annotation) {
+    AndroidFacet facet = AndroidFacet.getInstance(methodCall);
+    assert facet != null; // already checked early on in the inspection visitor
+    AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
+
+    PsiAnnotationMemberValue apiValue = annotation.findAttributeValue(ATTR_VALUE);
+    if (apiValue == null || (int)getLongValue(apiValue, 1) == 1) {
+      // Look for both value= and api= (they are aliases, though  value of 1 is meaningless)
+      apiValue = annotation.findAttributeValue("api");
+    }
+    int api = (int)getLongValue(apiValue, 1);
+    if (api <= 1) {
+      return;
+    }
+    int minSdk = minSdkVersion.getFeatureLevel();
+    if (api <= minSdk) {
+      return;
+    }
+
+    int target = ApiDetector.getTargetApi(methodCall);
+    if (target != -1) {
+      if (api <= target) {
+        return;
+      }
+    }
+
+    if (IntellijLintUtils.isSuppressed(methodCall, methodCall.getContainingFile(), UNSUPPORTED)) {
+      return;
+    }
+
+    if (ApiDetector.isWithinVersionCheckConditional(methodCall, api)) {
+      return;
+    }
+    if (ApiDetector.isPrecededByVersionCheckExit(methodCall, api)) {
+      return;
+    }
+
+    PsiClass containingClass = method.getContainingClass();
+    String fqcn = containingClass != null ? containingClass.getQualifiedName() : "";
+    // Keep in sync with guessLintIssue
+    String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
+                                     fqcn + '#' + method.getName());
+
+    LocalQuickFix versionCheck = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetVersionCheckQuickFix(api), methodCall, methodCall);
+    LocalQuickFix addTargetApiQuickFix = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetApiQuickFix(api, false, methodCall),
+                                                                                 methodCall, methodCall);
+    LocalQuickFix addRequiresApiQuickFix = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetApiQuickFix(api, true, methodCall),
+                                                                                   methodCall, methodCall);
+
+    registerProblem(holder, UNSUPPORTED, methodCall, message, versionCheck, addRequiresApiQuickFix, addTargetApiQuickFix);
   }
 
   @Nullable
@@ -658,7 +732,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static PermissionFinder.Result getPermissionRequirement(@NonNull PsiField field,
                                                                   @NonNull PsiAnnotation annotation,
                                                                   @NonNull PermissionFinder.Operation operation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     PsiClass containingClass = field.getContainingClass();
     String name;
     if (containingClass != null) {
@@ -669,20 +743,82 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return new PermissionFinder.Result(operation, requirement, StringUtil.notNullize(name));
   }
 
-  private static void checkThreadAnnotation(PsiCall methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
-    String threadContext = getThreadContext(methodCall);
+  private static void checkThreadAnnotation(@NotNull PsiCall methodCall,
+                                            @NotNull ProblemsHolder holder,
+                                            @NotNull PsiMethod method,
+                                            @NotNull PsiAnnotation annotation,
+                                            @NotNull String qualifiedName,
+                                            @NotNull PsiAnnotation[] allMethodAnnotations,
+                                            @NonNull PsiAnnotation[] allClassAnnotations) {
+    List<String> threadContext = getThreadContext(methodCall);
     if (threadContext != null && !isCompatibleThread(threadContext, qualifiedName)) {
+      // If the annotation is specified on the class, ignore this requirement
+      // if there is another annotation specified on the method.
+      PsiClass containingClass = method.getContainingClass();
+      //PsiAnnotation[] allClassAnnotations = containingClass != null ? getAllAnnotations(containingClass) : PsiAnnotation.EMPTY_ARRAY;
+      if (containsAnnotation(allClassAnnotations, annotation)) {
+        if (containsThreadingAnnotation(allMethodAnnotations)) {
+          return;
+        }
+        // Make sure ALL the other context annotations are acceptable!
+      } else {
+        assert containsAnnotation(allMethodAnnotations, annotation);
+        // See if any of the *other* annotations are compatible.
+        Boolean isFirst = null;
+        for (PsiAnnotation other : allMethodAnnotations) {
+          if (other == annotation) {
+            if (isFirst == null) {
+              isFirst = true;
+            }
+            continue;
+          } else if (!isThreadingAnnotation(other)) {
+            continue;
+          }
+          if (isFirst == null) {
+            // We'll be called for each annotation on the method.
+            // For each one we're checking *all* annotations on the target.
+            // Therefore, when we're seeing the second, third, etc annotation
+            // on the method we've already checked them, so return here.
+            return;
+          }
+          String s = other.getQualifiedName();
+          if (s != null && isCompatibleThread(threadContext, s)) {
+            return;
+          }
+        }
+      }
+
+      String name = method.getName();
+      if (name.startsWith("post")
+          && containingClass != null
+          && CLASS_VIEW.equals(containingClass.getQualifiedName())) {
+        // The post()/postDelayed() methods are (currently) missing
+        // metadata (@AnyThread); they're on a class marked @UiThread
+        // but these specific methods are not @UiThread.
+        return;
+      }
+
+      List<String> targetThreads = getThreads(method);
+      if (targetThreads == null) {
+        targetThreads = Collections.singletonList(qualifiedName);
+      }
       String message = String.format("Method %1$s must be called from the %2$s thread, currently inferred thread is %3$s",
-        method.getName(), describeThread(qualifiedName), describeThread(threadContext));
+        method.getName(), describeThreads(targetThreads, true), describeThreads(threadContext, false));
       registerProblem(holder, THREAD, methodCall, message);
     }
   }
 
   /** Attempts to infer the current thread context at the site of the given method call */
   @Nullable
-  private static String getThreadContext(PsiCall methodCall) {
+  private static List<String> getThreadContext(PsiCall methodCall) {
     PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
+    return getThreads(method);
+  }
+
+  /** Returns the threading annotations in effect for the given method */
+  public static List<String> getThreads(@Nullable PsiMethod method) {
     if (method != null) {
+      List<String> result = null;
       PsiAnnotation[] annotations = getAllAnnotations(method);
       for (PsiAnnotation annotation : annotations) {
         String qualifiedName = annotation.getQualifiedName();
@@ -691,8 +827,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
 
         if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(THREAD_SUFFIX)) {
-          return qualifiedName;
+          if (result == null) {
+            result = new ArrayList<>(4);
+          }
+          result.add(qualifiedName);
         }
+      }
+
+      if (result != null) {
+        // We don't accumulate up the chain: one method replaces the requirements
+        // of its super methods.
+        return result;
       }
 
       // See if we're extending a class with a known threading context
@@ -706,8 +851,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           }
 
           if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) && qualifiedName.endsWith(THREAD_SUFFIX)) {
-            return qualifiedName;
+            if (result == null) {
+              result = new ArrayList<>(4);
+            }
+            result.add(qualifiedName);
           }
+        }
+        if (result != null) {
+          // We don't accumulate up the chain: one class replaces the requirements
+          // of its super classes.
+          return result;
         }
       }
     }
@@ -724,7 +877,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                  @NotNull ProblemsHolder holder,
                                                  @Nullable PsiMethod method,
                                                  @NotNull PsiAnnotation annotation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     checkPermissionRequirement(methodCall, holder, method, null, requirement);
   }
 
@@ -811,7 +964,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return lookup;
     }
 
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
@@ -831,10 +984,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           // TODO: Resolve suggest attribute (e.g. prefix annotation class if it starts
           // with "#" etc)?
           if (!suggest.isEmpty()) {
-            String name = suggest;
-            if (name.startsWith("#")) {
-              name = name.substring(1);
-            }
+            String name = StringUtil.trimStart(suggest, "#");
             message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
             if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
               registerProblem(holder, CHECK_RESULT, methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
@@ -876,7 +1026,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         return;
       }
 
-      final Manifest manifest = AndroidUtils.loadDomElement(myFacet.getModule(), manifestFile, Manifest.class);
+      final Manifest manifest = myFacet.getManifest();
       if (manifest == null) {
         return;
       }
@@ -1007,11 +1157,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       // For example, take the case of location permissions: you need COARSE OR FINE.
       // In that case, we check that you do not have COARSE, *and* that you do not have FINE,
       // before we exit.
-      BinaryOperator operator = myRequirement.getOperator();
-      if (operator == null || operator == BinaryOperator.LOGICAL_AND) {
-        operator = BinaryOperator.LOGICAL_OR;
-      } else if (operator == BinaryOperator.LOGICAL_OR) {
-        operator = BinaryOperator.LOGICAL_AND;
+      IElementType operator = myRequirement.getOperator();
+      if (operator == null || operator == JavaTokenType.ANDAND) {
+        operator = JavaTokenType.OROR;
+      } else if (operator == JavaTokenType.OROR) {
+        operator = JavaTokenType.ANDAND;
       }
 
       PsiElementFactory factory = facade.getElementFactory();
@@ -1032,7 +1182,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           first = false;
         } else {
           sb.append(' ');
-          sb.append(operator.getSymbol());
+          if (operator == JavaTokenType.ANDAND) {
+            sb.append("&&");
+          }
+          else if (operator == JavaTokenType.OROR) {
+            sb.append("||");
+          }
+          else if (operator == JavaTokenType.XOR) {
+            sb.append("^");
+          }
           sb.append(' ');
         }
         if (usingAppCompat) {
@@ -1270,11 +1428,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     public boolean isCompatibleWith(@NotNull ResourceTypeAllowedValues other) {
       // Happy if *any* of the resource types on the annotation matches any of the
       // annotations allowed for this API
-      if (other.types.isEmpty() && types.isEmpty()) {
-        // Passing in a method call whose return value is @ColorInt
-        // to a parameter which is @ColorInt: OK
-        return true;
-      }
       for (ResourceType type : other.types) {
         if (isTypeAllowed(type)) {
           return true;
@@ -1793,7 +1946,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           constraint = merge(new SizeConstraint(annotation), constraint);
         }
         else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
-          constraint = merge(new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList()), constraint);
+          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(COLOR_INT_MARKER_TYPE)), constraint);
+        }
+        else if (PX_ANNOTATION.equals(qualifiedName)) {
+          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(PX_MARKER_TYPE)), constraint);
         }
         else if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
           // PERMISSION_ANNOTATION, PERMISSION_ANNOTATION_READ, PERMISSION_ANNOTATION_WRITE
@@ -1875,16 +2031,39 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     else if (constraint instanceof ResourceTypeAllowedValues) {
       Issue issue = RESOURCE_TYPE;
       List<ResourceType> types = ((ResourceTypeAllowedValues)constraint).types;
-      String message;
-      if (types.isEmpty()) {
-        // Keep in sync with guessLintIssue
-        message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
-                                argument.getText());
-        issue = COLOR_USAGE;
+
+      if (types.contains(ResourceType.STYLEABLE) && (types.size() == 1)) {
+        PsiExpressionList argumentList = PsiTreeUtil.getParentOfType(argument, PsiExpressionList.class, true);
+        if (argumentList != null && argumentList.getParent() instanceof PsiMethodCallExpression) {
+          PsiExpression qualifier = ((PsiMethodCallExpression)argumentList.getParent()).getMethodExpression().getQualifierExpression();
+          if (qualifier != null && qualifier.getType() != null &&
+              "android.content.res.TypedArray".equals(qualifier.getType().getCanonicalText())) {
+            if (typeArrayFromArrayLiteral(qualifier)) {
+              // You're generally supposed to provide a styleable to the TypedArray methods,
+              // but you're also allowed to supply an integer array
+              return;
+            }
+          }
+        }
       }
-      else if (types.size() == 1) {
-        // Keep in sync with guessLintIssue
-        message = "Expected resource of type " + types.get(0);
+
+      String message;
+      if (types.size() == 1) {
+        if (types.contains(COLOR_INT_MARKER_TYPE)) {
+          // Keep in sync with guessLintIssue
+          message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
+                                  argument.getText());
+          issue = COLOR_USAGE;
+        }
+        else if (types.contains(PX_MARKER_TYPE)) {
+          // Keep in sync with guessLintIssue
+          message = String.format("Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(%1$s)`",
+                                  argument.getText());
+        }
+        else {
+          // Keep in sync with guessLintIssue
+          message = "Expected resource of type " + types.get(0);
+        }
       }
       else {
         // Keep in sync with guessLintIssue
@@ -2195,8 +2374,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           }
         }
 
-        if (allowedValues.types.isEmpty() && PsiType.INT.equals(expression.getType())) {
+        if (allowedValues.types.contains(COLOR_INT_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
+          return InspectionResult.valid();
+        } else if (allowedValues.types.contains(PX_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
+          // Passing literal integer to a pixel call
           return InspectionResult.valid();
         }
       }
@@ -2592,7 +2774,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                       @NotNull @Nls(capitalization = Nls.Capitalization.Sentence) String message,
                                       @Nullable LocalQuickFix... fixes) {
     // Look for aliases
-    if (SuppressManager.getInstance().isSuppressedFor(psiElement, lintIssue.getId())) {
+    SuppressManager suppressManager = SuppressManager.getInstance();
+    String id = lintIssue.getId();
+    if (suppressManager.isSuppressedFor(psiElement, id) || suppressManager.isSuppressedFor(psiElement, "AndroidLint" + id)) {
       return;
     }
 
@@ -2611,6 +2795,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static Issue guessLintIssue(@NotNull String message) {
     if (message.startsWith("Should pass resolved color ")) {
       return COLOR_USAGE;
+    } else if (message.startsWith("Should pass resolved pixel dimension ")) {
+      return RESOURCE_TYPE;
     } else if (message.startsWith("The result of ")) {
       return CHECK_RESULT;
     } else if (message.startsWith("Call requires permission ") || message.startsWith("Missing permissions ")) {
@@ -2623,6 +2809,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return RESOURCE_TYPE;
     } else if (message.contains("must be called from ")) {
       return THREAD;
+    } else if (message.contains("Call requires API ")) {
+      return UNSUPPORTED;
     }
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {

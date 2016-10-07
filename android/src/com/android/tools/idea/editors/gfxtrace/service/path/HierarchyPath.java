@@ -23,10 +23,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+/** @deprecated use {@link HierarchiesPath} instead */
 public final class HierarchyPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myCapture.stringPath(builder).append(".Hierarchy");
+  public String getSegmentString() {
+    return "Hierarchy";
   }
 
   @Override

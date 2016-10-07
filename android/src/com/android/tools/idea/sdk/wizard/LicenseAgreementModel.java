@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
@@ -67,7 +68,7 @@ public final class LicenseAgreementModel extends WizardModel {
     }
 
     for (License license : myLicenses) {
-      license.setAccepted(mySdkRoot.getValue());
+      license.setAccepted(mySdkRoot.getValue(), FileOpUtils.create());
     }
   }
 }

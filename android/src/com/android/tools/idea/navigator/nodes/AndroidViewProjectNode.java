@@ -98,6 +98,11 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       children.add(new AndroidBuildScriptsGroupNode(project, settings));
     }
 
+    ExternalBuildFilesGroupNode externalBuildFilesNode = new ExternalBuildFilesGroupNode(project, settings);
+    if (!externalBuildFilesNode.getChildren().isEmpty()) {
+      children.add(externalBuildFilesNode);
+    }
+
     // TODO: What about files in the base project directory
 
     // TODO: Do we want to show the External Libraries Node or a Dependencies node
@@ -109,6 +114,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s", getProject().getName());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    return super.equals(o);
   }
 
   /** Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(com.intellij.ide.projectView.PresentationData)} */

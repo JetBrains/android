@@ -22,7 +22,9 @@ import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,11 +53,17 @@ import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
  * are of type {@link XmlTag}.
  */
 public class LayoutPsiPullParser extends LayoutPullParser {
+  /**
+   * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
+   * ImageView and all the framework views that inherit from ImageView and support srcCompat.
+   */
+  private static final ImmutableSet<String> TAGS_SUPPORTING_SRC_COMPAT = ImmutableSet.of(IMAGE_BUTTON, IMAGE_VIEW);
+
   @NotNull
   private final LayoutLog myLogger;
 
   @NotNull
-  private final List<TagSnapshot> myNodeStack = new ArrayList<TagSnapshot>();
+  private final List<TagSnapshot> myNodeStack = new ArrayList<>();
 
   @Nullable
   protected final TagSnapshot myRoot;
@@ -67,6 +75,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected String myAndroidPrefix;
 
   protected boolean myProvideViewCookies = true;
+
+  /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
+  private boolean myUseSrcCompat;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -133,17 +144,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           myRoot = null;
         }
       } else {
-        myRoot = ApplicationManager.getApplication().runReadAction(new Computable<TagSnapshot>() {
-
-          @Override
-          public TagSnapshot compute() {
-            if (root.isValid()) {
-              myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-              myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-              return createSnapshot(root);
-            } else {
-              return null;
-            }
+        myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+          if (root.isValid()) {
+            myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
+            myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+            return createSnapshot(root);
+          } else {
+            return null;
           }
         });
       }
@@ -207,10 +214,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public Object getViewCookie() {
     if (myProvideViewCookies) {
-      TagSnapshot element = getCurrentNode();
-      if (element != null) {
-        return element.tag;
-      }
+      return getCurrentNode();
     }
 
     return null;
@@ -329,6 +333,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         if (layout != null) {
           return layout;
         }
+      } else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
+        String srcCompatValue = tag.getAttribute("srcCompat", AUTO_URI);
+        if (srcCompatValue != null) {
+          return srcCompatValue;
+        }
       }
 
       String value = null;
@@ -337,7 +346,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       } else if (namespace.equals(ANDROID_URI)) {
         if (myAndroidPrefix != null) {
           if (myToolsPrefix != null) {
-            for (AttributeSnapshot attribute : tag.attributes) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+              AttributeSnapshot attribute = tag.attributes.get(i);
               if (localName.equals(attribute.name)) {
                 if (myToolsPrefix.equals(attribute.prefix)) {
                   value = attribute.value;
@@ -359,11 +370,20 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           value = tag.getAttribute(localName, namespace);
         }
       } else {
+        // Temporary conversion: ConstraintLayout 1.0 is looking in the app namespace for attributes stored
+        // in tools namespace in the XML
+        if ((ATTR_LAYOUT_EDITOR_ABSOLUTE_X.equals(localName) || ATTR_LAYOUT_EDITOR_ABSOLUTE_Y.equals(localName)) &&
+            AUTO_URI.equals(namespace)) {
+          return getAttributeValue(TOOLS_URI, localName);
+        }
+
         // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
         // will be for the current application's resource package, e.g.
         // http://schemas.android.com/apk/res/foo.bar, but the XML document will
         // be using http://schemas.android.com/apk/res-auto in library projects:
-        for (AttributeSnapshot attribute : tag.attributes) {
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+          AttributeSnapshot attribute = tag.attributes.get(i);
           if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
                                                    AUTO_URI.equals(attribute.namespace))) {
             value = attribute.value;
@@ -426,6 +446,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           }
           myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", fragmentId);
         }
+      } else if (name.endsWith("Compat") && name.indexOf('.') == -1) {
+        return name.substring(0, name.length() - "Compat".length());
       }
 
       return name;
@@ -550,96 +572,121 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     }
 
     String rootTag = tag.getName();
-    if (rootTag.equals(VIEW_FRAGMENT)) {
-      XmlAttribute[] psiAttributes = tag.getAttributes();
-      List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-      for (XmlAttribute psiAttribute : psiAttributes) {
-        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
-        if (attribute != null) {
-          attributes.add(attribute);
-        }
-      }
+    switch (rootTag) {
+      case VIEW_FRAGMENT:
+        return createSnapshotForViewFragment(tag);
 
-      List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-      for (XmlAttribute psiAttribute : psiAttributes) {
-        String name = psiAttribute.getName();
-        if (name.startsWith(XMLNS_PREFIX)) {
-          continue;
-        }
-        String localName = psiAttribute.getLocalName();
-        if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
-            localName.equals(ATTR_ID)) {
-          continue;
-        }
-        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
-        if (attribute != null) {
-          includeAttributes.add(attribute);
-        }
-      }
+      case FRAME_LAYOUT:
+        return createSnapshotForFrameLayout(tag);
 
-      TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
-                                                           Collections.<TagSnapshot>emptyList());
-      return TagSnapshot.createSyntheticTag(tag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
-    } else if (rootTag.equals(FRAME_LAYOUT)) {
-      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
+      case VIEW_MERGE:
+        return createSnapshotForMerge(tag);
 
-      // tools:layout on a <FrameLayout> acts like an <include> child. This
-      // lets you preview runtime additions on FrameLayouts.
-      String layout = tag.getAttributeValue(ATTR_LAYOUT, TOOLS_URI);
-      if (layout != null && root.children.isEmpty()) {
-        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-        if (prefix != null) {
-          List<TagSnapshot> children = Lists.newArrayList();
-          root.children = children;
-          List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
-          attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
-          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
-          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
-          TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes,
-                                                               Collections.<TagSnapshot>emptyList());
-          children.add(element);
-        }
-      }
+      default:
+        TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
-      // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
-      String visibleChild = tag.getAttributeValue("visibleChildren", TOOLS_URI);
-      if (visibleChild != null) {
-        Set<Integer> indices = Sets.newHashSet();
-        for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
-          try {
-            indices.add(Integer.parseInt(s));
-          } catch (NumberFormatException e) {
-            // ignore metadata if it's incorrect
+        // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
+        // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
+        if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
+          XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
+          if (id == null) {
+            String prefix = tag.getPrefixByNamespace(ANDROID_URI);
+            if (prefix != null) {
+              root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
+            }
           }
         }
-        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-        if (prefix != null) {
-          for (int i = 0, n = root.children.size(); i < n; i++) {
-            TagSnapshot child = root.children.get(i);
-            boolean visible = indices.contains(i);
-            child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
-          }
+
+        return root;
+    }
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForViewFragment(@NotNull XmlTag rootTag) {
+    XmlAttribute[] psiAttributes = rootTag.getAttributes();
+    List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
+    for (XmlAttribute psiAttribute : psiAttributes) {
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+      if (attribute != null) {
+        attributes.add(attribute);
+      }
+    }
+
+    List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(psiAttributes.length);
+    for (XmlAttribute psiAttribute : psiAttributes) {
+      String name = psiAttribute.getName();
+      if (name.startsWith(XMLNS_PREFIX)) {
+        continue;
+      }
+      String localName = psiAttribute.getLocalName();
+      if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
+          localName.equals(ATTR_ID)) {
+        continue;
+      }
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+      if (attribute != null) {
+        includeAttributes.add(attribute);
+      }
+    }
+
+    TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
+                                                         Collections.emptyList());
+    return TagSnapshot.createSyntheticTag(rootTag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+
+    // tools:layout on a <FrameLayout> acts like an <include> child. This
+    // lets you preview runtime additions on FrameLayouts.
+    String layout = rootTag.getAttributeValue(ATTR_LAYOUT, TOOLS_URI);
+    if (layout != null && root.children.isEmpty()) {
+      String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
+      if (prefix != null) {
+        List<TagSnapshot> children = Lists.newArrayList();
+        root.children = children;
+        List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
+        attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
+        attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
+        attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
+        TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes, Collections.emptyList());
+        children.add(element);
+      }
+    }
+
+    // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
+    String visibleChild = rootTag.getAttributeValue("visibleChildren", TOOLS_URI);
+    if (visibleChild != null) {
+      Set<Integer> indices = Sets.newHashSet();
+      for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
+        try {
+          indices.add(Integer.parseInt(s));
+        } catch (NumberFormatException e) {
+          // ignore metadata if it's incorrect
         }
       }
-
-      return root;
-    } else {
-      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
-
-      // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
-      // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
-      if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
-        XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
-        if (id == null) {
-          String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-          if (prefix != null) {
-            root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
-          }
+      String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
+      if (prefix != null) {
+        for (int i = 0, n = root.children.size(); i < n; i++) {
+          TagSnapshot child = root.children.get(i);
+          boolean visible = indices.contains(i);
+          child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
         }
       }
+    }
 
+    return root;
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+    String parentTag = rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
+    if (parentTag == null) {
       return root;
     }
+    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", AttributeSnapshot.createAttributesForTag(rootTag), root.children);
   }
 
   @Nullable
@@ -654,6 +701,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       return null;
     }
     return tag;
+  }
+
+  public void setUseSrcCompat(boolean useSrcCompat) {
+    myUseSrcCompat = useSrcCompat;
   }
 
   static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {
@@ -684,13 +735,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
               value = myFilter.getAttribute(tag, namespace, localName);
             }
             else {
-              value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-                @Override
-                @Nullable
-                public String compute() {
-                  return myFilter.getAttribute(tag, namespace, localName);
-                }
-              });
+              value = ApplicationManager.getApplication()
+                .runReadAction((Computable<String>)() -> myFilter.getAttribute(tag, namespace, localName));
             }
             if (value != null) {
               if (value.isEmpty()) { // empty means unset

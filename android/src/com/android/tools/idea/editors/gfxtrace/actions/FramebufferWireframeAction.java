@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.FrameBufferController;
-import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode ;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;

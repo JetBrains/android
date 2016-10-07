@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,135 +15,117 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
-import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
-import com.intellij.xml.XmlAttributeDescriptor;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-public class NlProperty extends PTableItem {
-  // Certain attributes are special and do not have an attribute definition from attrs.xml
-  private static final Set<String> ATTRS_WITHOUT_DEFN = ImmutableSet.of(
-    SdkConstants.ATTR_STYLE, // <View style="..." />
-    SdkConstants.ATTR_CLASS, // class is suggested as an attribute for a <fragment>!
-    SdkConstants.ATTR_LAYOUT // <include layout="..." />
-  );
-
-  @NotNull private final NlComponent myComponent;
-  @Nullable private final AttributeDefinition myDefinition;
-  @NotNull private final String myName;
-  @Nullable private final String myNamespace;
-
-  public NlProperty(@NotNull NlComponent component,
-                    @NotNull XmlAttributeDescriptor descriptor,
-                    @Nullable AttributeDefinition attributeDefinition) {
-    if (attributeDefinition == null && !ATTRS_WITHOUT_DEFN.contains(descriptor.getName())) {
-      throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
-    }
-
-    // NOTE: we do not save any PSI data structures as fields as they could go out of date as the user edits the file.
-    // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
-    // that the component can provide that information by having a shadow copy that is consistent with the rendering
-    myComponent = component;
-    myName = descriptor.getName();
-    myNamespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
-    myDefinition = attributeDefinition;
-  }
-
+public interface NlProperty {
+  /**
+   * Get the name of the property.
+   */
   @NotNull
-  public NlComponent getComponent() {
-    return myComponent;
-  }
+  String getName();
 
-  @Override
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
+  /**
+   * Get the namespace of the property.
+   */
   @Nullable
-  public String getValue() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    return myComponent.getAttribute(myNamespace, myName);
-  }
+  String getNamespace();
 
-  @Override
-  public void setValue(Object value) {
-    assert ApplicationManager.getApplication().isDispatchThread();
-    final String attrValue = value == null ? null : value.toString();
-    String msg = String.format("Set %1$s.%2$s to %3$s", myComponent.getTagName(), myName, attrValue);
-    new WriteCommandAction.Simple(myComponent.getModel().getProject(), msg, myComponent.getTag().getContainingFile()) {
-      @Override
-      protected void run() throws Throwable {
-        String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
-        myComponent.setAttribute(myNamespace, myName, v);
-      }
-    }.execute();
-  }
-
-  @NotNull
-  public List<String> getParentStylables() {
-    return myDefinition == null ? Collections.<String>emptyList() : myDefinition.getParentStyleables();
-  }
-
+  /**
+   * Get the value of the property as a string.
+   * If the value exists in the XML tag return that value,
+   * otherwise return the default value determined from the
+   * current theme and text appearance.
+   */
   @Nullable
-  public AttributeDefinition getDefinition() {
-    return myDefinition;
-  }
+  String getValue();
 
+  /**
+   * Returns true if the property is not set in XML.
+   */
+  boolean isValueUnset();
+
+  /**
+   * Get the resolved value of the property as a string.
+   * This is a shortcut for resolveValue(getValue())
+   */
+  @Nullable
+  String getResolvedValue();
+
+  /**
+   * Returns true if the specified value is the default value.
+   */
+  boolean isDefaultValue(@Nullable String value);
+
+  /**
+   * Resolves the specified value.
+   */
   @NotNull
-  @Override
-  public TableCellRenderer getCellRenderer() {
-    return NlPropertyRenderers.get(this);
-  }
+  String resolveValue(@NotNull String value);
 
-  @Override
-  public boolean isEditable(int col) {
-    return NlPropertyEditors.get(this) != null;
-  }
+  /**
+   * Set the property value.
+   * TODO: Should the value be of type String?
+   */
+  void setValue(@Nullable Object value);
 
-  @Override
-  public PTableCellEditor getCellEditor() {
-    return NlPropertyEditors.get(this);
-  }
+  /**
+   * Get the help information about this property.
+   */
+  String getTooltipText();
 
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-      .add("name", myName)
-      .add("namespace", namespaceToPrefix(myNamespace))
-      .toString();
-  }
+  /**
+   * Get the corresponding attribute definition if available.
+   */
+  @Nullable
+  AttributeDefinition getDefinition();
 
-  @Override
-  public String getTooltipText() {
-    return namespaceToPrefix(myNamespace) + myName;
-  }
-
+  /**
+   * Get the components this property is associated with.
+   */
   @NotNull
-  private static String namespaceToPrefix(@Nullable String namespace) {
-    if (namespace != null && SdkConstants.NS_RESOURCES.equalsIgnoreCase(namespace)) {
-      return SdkConstants.ANDROID_PREFIX;
-    } else {
-      return "";
-    }
-  }
+  List<NlComponent> getComponents();
+
+  /**
+   * Get the {@link ResourceResolver} for the component this property is associated with.
+   */
+  ResourceResolver getResolver();
+
+  /**
+   * Get the {@link NlModel} for the components we are handling.
+   */
+  @NotNull
+  NlModel getModel();
+
+  /**
+   * Get the XmlTag of the single component we are handling or {@code null} if we are handling multiple components.
+   */
+  @Nullable
+  XmlTag getTag();
+
+  /**
+   * Get the Tag name of the components we are handling or {@code null} if we are handling multiple components with different tags.
+   */
+  @Nullable
+  String getTagName();
+
+  /**
+   * Return a child property by name.
+   * An exception is raised if no such child property exists.
+   */
+  @NotNull
+  NlProperty getChildProperty(@NotNull String name);
+
+  /**
+   * Return the same property as a design time property.
+   */
+  @NotNull
+  NlProperty getDesignTimeProperty();
 }

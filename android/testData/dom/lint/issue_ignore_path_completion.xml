@@ -1,0 +1,5 @@
+<lint>
+  <issue id="UselessLeaf">
+    <ignore pa<caret>
+  </issue>
+</lint>

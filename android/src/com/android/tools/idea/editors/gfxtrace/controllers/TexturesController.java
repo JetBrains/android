@@ -15,44 +15,49 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.CubemapLevel;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Texture2D;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.image.Format;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class TexturesController extends ImagePanelController {
-  private static final Dimension DISPLAY_SIZE = new Dimension(8192, 8192);
-
   public static JComponent createUI(GfxTraceEditor editor) {
     return new TexturesController(editor).myPanel;
   }
+
+  @NotNull private AtomComboAction myJumpToAtomComboAction;
+  private Object myCurrentResourceId;
 
   public TexturesController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -60,17 +65,34 @@ public class TexturesController extends ImagePanelController {
       @Override
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
-        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.as(Format.RGBA)));
+        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
+        myJumpToAtomComboAction.setAtomIds(item == null ? Collections.emptyList() : Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList()));
+
+        // trackEvent for TEXTURE_VIEWED
+        if (item != null && myCurrentResourceId != item.info.getID()) {
+          myCurrentResourceId = item.info.getID();
+          String format = item.typeLabel;
+          Integer size = null;
+          if (item.imageInfo != null) {
+            size = item.imageInfo.getWidth() * item.imageInfo.getHeight();
+            format = format + "/" + item.imageInfo.getFormat().toString();
+          }
+          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_TEXTURE_VIEWED, format, size);
+        }
       }
     }.myList, BorderLayout.NORTH);
-    initToolbar(new DefaultActionGroup(), true);
+
+    DefaultActionGroup toolbar = new DefaultActionGroup();
+    myJumpToAtomComboAction = new AtomComboAction(editor);
+    initToolbar(toolbar, true);
+    toolbar.add(myJumpToAtomComboAction);
   }
 
   @Override
   public void notifyPath(PathEvent event) {
   }
 
-  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> {
+  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> implements AtomStream.Listener {
     private static final Dimension CONTROL_SIZE = JBUI.size(100, 50);
     private static final Dimension REQUEST_SIZE = JBUI.size(100, 100);
 
@@ -78,30 +100,39 @@ public class TexturesController extends ImagePanelController {
       @NotNull public final SingleInFlight extraController = new SingleInFlight();
       @NotNull public final ResourceInfo info;
       @NotNull public final ResourcePath path;
-      public String extraLabel;
+      @NotNull public final String typeLabel;
 
+      @Nullable public ImageInfo imageInfo;
+      @Nullable public String extraLabel;
 
       public Data(@NotNull ResourceInfo info, @NotNull String typeLabel, @NotNull ResourcePath path) {
-        super(typeLabel + " " + info.getName());
+        super(info.getName());
+        this.typeLabel = typeLabel;
         this.info = info;
         this.path = path;
       }
 
       @Override
       public String getLabel() {
-        return super.getLabel() + (extraLabel == null ? "" : " " + extraLabel);
+        return typeLabel + " " + super.getLabel() +
+               (imageInfo == null ? "" : " - " + imageInfo.getFormat() + " - " + imageInfo.getWidth() + "x" + imageInfo.getHeight()) +
+               (extraLabel == null ? "" : " " + extraLabel);
       }
     }
 
     @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
     @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
-    @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
-    @NotNull private Resources myResources;
+    private Resources myResources;
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
+      editor.getAtomStream().addListener(this);
+
       usingComboBoxWidget(CONTROL_SIZE);
-      ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+      ImageCellRenderer<?> renderer = (ImageCellRenderer<?>)myList.getRenderer();
+      renderer.setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+      renderer.setFlipImage(true);
+      renderer.setNoItemText("<Click to select texture>");
     }
 
     @Override
@@ -113,40 +144,53 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void loadCellMetadata(final Data cell) {
-      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiCallback<Object, String>() {
+      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiErrorCallback<Object, Object, String>() {
         @Override
-        protected String onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
-          Object resource = result.get();
-          if (resource instanceof Texture2D) {
-            Texture2D texture = (Texture2D)resource;
-            return getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length);
-          }
-          else if (resource instanceof Cubemap) {
-            final Cubemap texture = (Cubemap)resource;
-            return getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length);
-          }
-          else {
-            return null;
+        protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+          try {
+            return success(result.get());
+          } catch (ErrDataUnavailable e) {
+            return error(e.getMessage());
           }
         }
 
         @Override
-        protected void onUiThread(String result) {
-          if (result != null) {
-            cell.extraLabel = result;
-            myList.repaint();
+        protected void onUiThreadSuccess(Object resource) {
+          ImageInfo base = null;
+          int mipmapLevels = -1;
+
+          if (resource instanceof Texture2D) {
+            Texture2D texture = (Texture2D)resource;
+            base = texture.getLevels()[0];
+            mipmapLevels = texture.getLevels().length;
           }
+          else if (resource instanceof Cubemap) {
+            Cubemap texture = (Cubemap)resource;
+            base = texture.getLevels()[0].getNegativeZ();
+            mipmapLevels = texture.getLevels().length;
+          }
+
+          if (base != null) {
+            cell.imageInfo = base;
+            cell.extraLabel = ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
+          }
+          else {
+            cell.extraLabel = "Unknown texture type: " + resource.getClass().getName();
+          }
+
+          myList.repaint();
+        }
+
+        @Override
+        protected void onUiThreadError(String error) {
+          cell.extraLabel = error;
+          myList.repaint();
         }
       });
     }
 
-    static String getTextureDisplayLabel(Data cell, ImageInfo base, int mipmapLevels) {
-      return " - " + base.getFormat().getDisplayName() + " - " + base.getWidth() + "x" + base.getHeight() +
-             ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
-    }
-
     protected void update(boolean resourcesChanged) {
-      if (myAtomPath.getPath() != null && myResources != null) {
+      if (myEditor.getAtomStream().getSelectedAtomsPath() != null && myResources != null) {
         List<Data> cells = new ArrayList<Data>();
         addTextures(cells, myResources.getTextures1D(), "1D");
         addTextures(cells, myResources.getTextures2D(), "2D");
@@ -166,7 +210,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
-      AtomPath atomPath = myAtomPath.getPath();
+      AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomsPath().getPathToLast();
       for (ResourceInfo info : textures) {
         if (info.getFirstAccess() <= atomPath.getIndex()) {
           cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
@@ -176,24 +220,47 @@ public class TexturesController extends ImagePanelController {
 
     @Override
     public void notifyPath(PathEvent event) {
-      if (myResourcesPath.updateIfNotNull(CapturePath.resources(event.findCapturePath()))) {
-        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiCallback<Resources, Resources>() {
+      CapturePath capturePath = event.findCapturePath();
+      if (capturePath == null) {
+        return;
+      }
+      if (myResourcesPath.updateIfNotNull(CapturePath.resources(capturePath))) {
+        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiErrorCallback<Resources, Resources, String>() {
           @Override
-          protected Resources onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
-            return result.get();
+          protected ResultOrError<Resources, String> onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
+            try {
+              return success(result.get());
+            } catch (ErrDataUnavailable e) {
+              return error(e.getMessage());
+            }
           }
 
           @Override
-          protected void onUiThread(Resources result) {
+          protected void onUiThreadSuccess(Resources result) {
             myResources = result;
+            update(true);
+          }
+
+          @Override
+          protected void onUiThreadError(String error) {
+            myResources = null;
             update(true);
           }
         });
       }
+    }
 
-      if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-        update(false);
-      }
+    @Override
+    public void onAtomLoadingStart(AtomStream atoms) {
+    }
+
+    @Override
+    public void onAtomLoadingComplete(AtomStream atoms) {
+    }
+
+    @Override
+    public void onAtomsSelected(AtomRangePath path) {
+      update(false);
     }
   }
 }

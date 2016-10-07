@@ -27,12 +27,11 @@ import static com.android.tools.idea.editors.theme.SeparatedList.group;
 
 public class ThemesListModel extends AbstractListModel implements ComboBoxModel {
 
-  private static final JSeparator SEPARATOR = new JSeparator(SwingConstants.HORIZONTAL);
-
   public static final String CREATE_NEW_THEME = "Create New Theme";
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
 
+  private final JSeparator mySeparator = new JSeparator(SwingConstants.HORIZONTAL);
   private final ThemeEditorContext myContext;
   private final ImmutableList<String> myDefaultThemeNames;
   private final String myDefaultThemeName;
@@ -102,7 +101,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     myEditOptions.clear();
     buildEditOptionsList(selectedItem);
 
-    myAllItems = new SeparatedList(SEPARATOR, group(myAvailableProjectThemes), group(disabledProjectThemes),
+    myAllItems = new SeparatedList(mySeparator, group(myAvailableProjectThemes), group(disabledProjectThemes),
                                    group(myDefaultThemeNames, SHOW_ALL_THEMES), group(myEditOptions));
 
     // Set the default selection to the first element.

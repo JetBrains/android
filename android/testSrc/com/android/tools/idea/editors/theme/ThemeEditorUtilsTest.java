@@ -22,29 +22,37 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.utils.SdkUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
-import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private String sdkPlatformPath;
+  private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
+
   @Override
   protected boolean requireRecentSdk() {
     return true;
@@ -56,13 +64,37 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private void compareWithGoldenFile(@NotNull String text, @NotNull String goldenFile) throws IOException {
     final File file = new File(goldenFile);
-    String goldenText = String.format(FileUtils.readFileToString(file), sdkPlatformPath).trim();
+    String goldenText = FileUtils.readFileToString(file);
+    goldenText = goldenText.replace("$$ANDROID_SDK_PATH", sdkPlatformPath);
+    Matcher matcher = OPERATION_PATTERN.matcher(goldenText);
+    StringBuffer processedGoldenText = new StringBuffer();
+
+    while (matcher.find()) {
+      String operation = matcher.group(1);
+      String value = matcher.group(2);
+      if (operation.equals("MAKE_URL")) {
+        value = SdkUtils.fileToUrl(new File(value)).toString();
+      }
+      else if (operation.equals("MAKE_SYSTEM_DEPENDENT_PATH")) {
+        value = PathUtil.toSystemDependentName(value);
+        // escape all the backslashes so they don't get treated as backreferences by the regex engine later
+        if (File.separatorChar == '\\') {
+          value = value.replace("\\", "\\\\");
+        }
+      }
+      else {
+        // Ignore if we don't know how to handle that - may be accidental pattern match
+        continue;
+      }
+      matcher.appendReplacement(processedGoldenText, value);
+    }
+    matcher.appendTail(processedGoldenText);
 
     // Add line breaks after "<BR/>" tags for results that are easier to read.
     // Golden files are already have these line breaks, so there's no need to process them the same way.
     text = StringUtil.replace(text, "<BR/>", "<BR/>\n");
 
-    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), goldenText, text);
+    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), processedGoldenText.toString(), text);
   }
 
   public void testGenerateToolTipText() throws IOException {
@@ -71,17 +103,23 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
-    sdkPlatformPath = getTestSdkPath();
-    if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
     IAndroidTarget androidTarget = configuration.getTarget();
     assertNotNull(androidTarget);
-    sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
+    sdkPlatformPath = androidTarget.getLocation();
+
+    if (LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
+      if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
+      sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
+    }
+    sdkPlatformPath = Files.simplifyPath(sdkPlatformPath);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
     assertEquals(7, values.size());
+
+    configuration.setTheme("AppTheme");
 
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
@@ -193,7 +231,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   private static EditedStyleItem findAttribute(@NotNull final String name, @NotNull Collection<EditedStyleItem> attributes) {
     EditedStyleItem item = Iterables.find(attributes, new Predicate<EditedStyleItem>() {
       @Override
-      public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
+      public boolean apply(@Nullable EditedStyleItem input) {
         assert input != null;
         return name.equals(input.getQualifiedName());
       }
@@ -224,10 +262,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   public void testThemeNamesListOrder() {
     myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
     List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
-    assertThat(themeNames).hasSize(4)
-      .contains("aTheme", Index.atIndex(0))
-      .contains("BTheme", Index.atIndex(1))
-      .contains("cTheme", Index.atIndex(2))
-      .contains("DTheme", Index.atIndex(3));
+    assertThat(themeNames).containsExactly("aTheme", "BTheme", "cTheme", "DTheme").inOrder();
   }
 }

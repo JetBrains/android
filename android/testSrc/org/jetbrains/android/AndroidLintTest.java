@@ -33,9 +33,6 @@ import java.util.List;
 
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
@@ -44,6 +41,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+    myFixture.allowTreeAccessForAllFiles();
   }
 
   @Override
@@ -70,9 +68,11 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private void doTestHardcodedQuickfix() throws IOException {
-    final IntentionAction action = doTestHighlightingAndGetQuickfix(
-      new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(),
-      AndroidBundle.message("add.string.resource.intention.text"), false ? "AndroidManifest.xml" : "/res/layout/layout.xml", "xml");
+    String copyTo = false ? "AndroidManifest.xml" : "/res/layout/layout.xml";
+    doTestHighlighting(new AndroidLintInspectionToolProvider.AndroidLintHardcodedTextInspection(), copyTo, "xml");
+    final AndroidAddStringResourceQuickFix action =
+      AndroidTestUtils
+        .getIntentionAction(myFixture, AndroidAddStringResourceQuickFix.class, AndroidBundle.message("add.string.resource.intention.text"));
     assertNotNull(action);
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
@@ -148,6 +148,11 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/src/test/pkg/ParcelableDemo.java", "java");
   }
 
+  public void testAuthString() throws Exception {
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintAuthLeakInspection(),
+                "/src/test/pkg/AuthDemo.java", "java");
+  }
+
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInefficientWeightInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
@@ -195,6 +200,18 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedServiceInspection(),
                   AndroidBundle.message("android.lint.fix.add.permission.attribute"),
                   "AndroidManifest.xml", "xml");
+  }
+
+  public void testExportedContentProvider() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedContentProviderInspection(),
+                  "Set exported=\"false\"", "AndroidManifest.xml", "xml");
+  }
+
+  public void testExportedReceiver() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedReceiverInspection(),
+                  "Set permission attribute", "AndroidManifest.xml", "xml");
   }
 
   public void testEditText() throws Exception {
@@ -714,6 +731,39 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/deprecation.xml", "xml");
   }
 
+  /**
+   * Quick fix is available on singleLine="true" and does the right thing
+   */
+  public void testSingleLine() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.enableInspections(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection());
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
+    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
+    assertNotNull(action);
+    doTestWithAction("xml", action);
+  }
+
+  /**
+   * Specialized quick fix is not available on singleLine="false"
+   */
+  public void testSingleLineFalse() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.enableInspections(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection());
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
+    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
+    assertNull(action);
+  }
+
+  public void testUnprotectedSmsBroadcastReceiver() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
+                  "Set permission attribute", "AndroidManifest.xml", "xml");
+  }
+
   public void testActivityRegistered() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
@@ -750,6 +800,10 @@ public class AndroidLintTest extends AndroidTestCase {
     throws IOException {
     final IntentionAction action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension);
     assertNotNull(action);
+    doTestWithAction(extension, action);
+  }
+
+  private void doTestWithAction(@NotNull String extension, @NotNull final IntentionAction action) {
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
     new WriteCommandAction(myFixture.getProject(), "") {
@@ -768,13 +822,7 @@ public class AndroidLintTest extends AndroidTestCase {
                                                            @NotNull String copyTo,
                                                            @NotNull String extension) throws IOException {
     doTestHighlighting(inspection, copyTo, extension);
-
-    for (IntentionAction a : myFixture.getAvailableIntentions()) {
-      if (message.equals(a.getText())) {
-        return a;
-      }
-    }
-    return null;
+    return AndroidTestUtils.getIntentionAction(myFixture, message);
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)

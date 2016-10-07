@@ -86,7 +86,7 @@ public final class CorePropertiesDemo {
         }
       }
     });
-    SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<Gender>(myGenderCombo);
+    SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<>(myGenderCombo);
     myBindings.bind(person.myGender, new TransformOptionalExpression<Gender, Gender>(Gender.OTHER, selectedGender) {
       @NotNull
       @Override
@@ -153,9 +153,9 @@ public final class CorePropertiesDemo {
 
   private static final class Person {
     private StringProperty myName = new StringValueProperty("Jane Doe");
-    private ObjectProperty<Gender> myGender = new ObjectValueProperty<Gender>(Gender.FEMALE);
+    private ObjectProperty<Gender> myGender = new ObjectValueProperty<>(Gender.FEMALE);
     private IntProperty myAge = new IntValueProperty(13);
     private BoolProperty myIsCitizen = new BoolValueProperty();
-    private OptionalProperty<String> myEmployer = new OptionalValueProperty<String>();
+    private OptionalProperty<String> myEmployer = new OptionalValueProperty<>();
   }
 }

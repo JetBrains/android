@@ -77,8 +77,17 @@ public class DbParser implements PsiParser, LightPsiParser {
     else if (t == INEQ_COMPARISON_EXPR) {
       r = expr(b, 0, 8);
     }
+    else if (t == INFERRED_FORMAL_PARAMETER_LIST) {
+      r = inferredFormalParameterList(b, 0);
+    }
     else if (t == INSTANCE_OF_EXPR) {
       r = expr(b, 0, 7);
+    }
+    else if (t == LAMBDA_EXPRESSION) {
+      r = lambdaExpression(b, 0);
+    }
+    else if (t == LAMBDA_PARAMETERS) {
+      r = lambdaParameters(b, 0);
     }
     else if (t == LITERAL_EXPR) {
       r = literalExpr(b, 0);
@@ -128,6 +137,9 @@ public class DbParser implements PsiParser, LightPsiParser {
     else if (t == TYPE_ARGUMENTS) {
       r = typeArguments(b, 0);
     }
+    else if (t == VOID_EXPR) {
+      r = voidExpr(b, 0);
+    }
     else {
       r = parse_root_(t, b, 0);
     }
@@ -145,7 +157,7 @@ public class DbParser implements PsiParser, LightPsiParser {
       INEQ_COMPARISON_EXPR, INSTANCE_OF_EXPR, LITERAL_EXPR, LOGICAL_AND_EXPR,
       LOGICAL_OR_EXPR, METHOD_EXPR, MUL_EXPR, NEGATION_EXPR,
       NULL_COALESCE_EXPR, PAREN_EXPR, RESOURCES_EXPR, SIGN_CHANGE_EXPR,
-      TERNARY_EXPR),
+      TERNARY_EXPR, VOID_EXPR),
   };
 
   /* ********************************************************** */
@@ -242,20 +254,32 @@ public class DbParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // expr defaults?
+  // lambdaExpression  // RootLambda
+  //   |   expr defaults?
   static boolean dataBindingExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "dataBindingExpression")) return false;
     boolean r;
     Marker m = enter_section_(b);
+    r = lambdaExpression(b, l + 1);
+    if (!r) r = dataBindingExpression_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // expr defaults?
+  private static boolean dataBindingExpression_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataBindingExpression_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
     r = expr(b, l + 1, -1);
-    r = r && dataBindingExpression_1(b, l + 1);
+    r = r && dataBindingExpression_1_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
   // defaults?
-  private static boolean dataBindingExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataBindingExpression_1")) return false;
+  private static boolean dataBindingExpression_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataBindingExpression_1_1")) return false;
     defaults(b, l + 1);
     return true;
   }
@@ -347,6 +371,89 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, GT);
     exit_section_(b, m, null, r);
     return r;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER (',' IDENTIFIER)*
+  public static boolean inferredFormalParameterList(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "inferredFormalParameterList")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    r = r && inferredFormalParameterList_1(b, l + 1);
+    exit_section_(b, m, INFERRED_FORMAL_PARAMETER_LIST, r);
+    return r;
+  }
+
+  // (',' IDENTIFIER)*
+  private static boolean inferredFormalParameterList_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "inferredFormalParameterList_1")) return false;
+    int c = current_position_(b);
+    while (true) {
+      if (!inferredFormalParameterList_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "inferredFormalParameterList_1", c)) break;
+      c = current_position_(b);
+    }
+    return true;
+  }
+
+  // ',' IDENTIFIER
+  private static boolean inferredFormalParameterList_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "inferredFormalParameterList_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    r = r && consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // lambdaParameters '->' expr
+  public static boolean lambdaExpression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "lambdaExpression")) return false;
+    if (!nextTokenIs(b, "<lambda expression>", LPARENTH, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<lambda expression>");
+    r = lambdaParameters(b, l + 1);
+    r = r && consumeToken(b, LAMBDA);
+    r = r && expr(b, l + 1, -1);
+    exit_section_(b, l, m, LAMBDA_EXPRESSION, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER
+  //   |   '(' inferredFormalParameterList? ')'
+  public static boolean lambdaParameters(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "lambdaParameters")) return false;
+    if (!nextTokenIs(b, "<lambda parameters>", LPARENTH, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<lambda parameters>");
+    r = consumeToken(b, IDENTIFIER);
+    if (!r) r = lambdaParameters_1(b, l + 1);
+    exit_section_(b, l, m, LAMBDA_PARAMETERS, r, false, null);
+    return r;
+  }
+
+  // '(' inferredFormalParameterList? ')'
+  private static boolean lambdaParameters_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "lambdaParameters_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LPARENTH);
+    r = r && lambdaParameters_1_1(b, l + 1);
+    r = r && consumeToken(b, RPARENTH);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // inferredFormalParameterList?
+  private static boolean lambdaParameters_1_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "lambdaParameters_1_1")) return false;
+    inferredFormalParameterList(b, l + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -584,6 +691,19 @@ public class DbParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // 'void'
+  //   |   'Void'
+  static boolean voidLiteral(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "voidLiteral")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, VOID_KEYWORD);
+    if (!r) r = consumeToken(b, "Void");
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // Expression root: expr
   // Operator priority table:
   // 0: BINARY(nullCoalesceExpr)
@@ -607,9 +727,10 @@ public class DbParser implements PsiParser, LightPsiParser {
   // 18: POSTFIX(dotExpr)
   // 19: ATOM(resourcesExpr)
   // 20: ATOM(classExtractionExpr)
-  // 21: ATOM(literalExpr)
-  // 22: ATOM(idExpr)
-  // 23: PREFIX(parenExpr)
+  // 21: ATOM(idExpr)
+  // 22: ATOM(voidExpr)
+  // 23: ATOM(literalExpr)
+  // 24: PREFIX(parenExpr)
   public static boolean expr(PsiBuilder b, int l, int g) {
     if (!recursion_guard_(b, l, "expr")) return false;
     addVariant(b, "<expr>");
@@ -620,8 +741,9 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!r) r = castExpr(b, l + 1);
     if (!r) r = resourcesExpr(b, l + 1);
     if (!r) r = classExtractionExpr(b, l + 1);
-    if (!r) r = literalExpr(b, l + 1);
     if (!r) r = idExpr(b, l + 1);
+    if (!r) r = voidExpr(b, l + 1);
+    if (!r) r = literalExpr(b, l + 1);
     if (!r) r = parenExpr(b, l + 1);
     p = r;
     r = r && expr_0(b, l + 1, g);
@@ -818,36 +940,15 @@ public class DbParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // (type|'void') '.' 'class'
+  // type '.' 'class'
   public static boolean classExtractionExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "classExtractionExpr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, "<class extraction expr>");
-    r = classExtractionExpr_0(b, l + 1);
+    r = type(b, l + 1);
     r = r && consumeToken(b, DOT);
     r = r && consumeToken(b, CLASS_KEYWORD);
     exit_section_(b, l, m, CLASS_EXTRACTION_EXPR, r, false, null);
-    return r;
-  }
-
-  // type|'void'
-  private static boolean classExtractionExpr_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "classExtractionExpr_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = type(b, l + 1);
-    if (!r) r = consumeTokenSmart(b, VOID_KEYWORD);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // literal
-  public static boolean literalExpr(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "literalExpr")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<literal expr>");
-    r = literal(b, l + 1);
-    exit_section_(b, l, m, LITERAL_EXPR, r, false, null);
     return r;
   }
 
@@ -859,6 +960,26 @@ public class DbParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, IDENTIFIER);
     exit_section_(b, m, ID_EXPR, r);
+    return r;
+  }
+
+  // voidLiteral
+  public static boolean voidExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "voidExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<void expr>");
+    r = voidLiteral(b, l + 1);
+    exit_section_(b, l, m, VOID_EXPR, r, false, null);
+    return r;
+  }
+
+  // literal
+  public static boolean literalExpr(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "literalExpr")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, "<literal expr>");
+    r = literal(b, l + 1);
+    exit_section_(b, l, m, LITERAL_EXPR, r, false, null);
     return r;
   }
 

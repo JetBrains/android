@@ -18,15 +18,15 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdkv2.LegacyRemoteRepoLoader;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.sdklib.repository.legacy.LegacyRemoteRepoLoader;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -89,8 +89,6 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
-
-  @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
   // Paths relative to the IDE installation folder where the Android SDK may be present.
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
@@ -282,8 +280,6 @@ public class GradleSpecificInitializer implements Runnable {
 
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
-
-    AndroidSdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance()));
 
     if (androidHome != null) {
       WizardUtils.ValidationResult sdkValidationResult =

@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -40,12 +45,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
+  private static Map<NlComponent, Integer> ourComponentIds;
+
   public static void moveMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseMotionListener);
@@ -123,8 +132,8 @@ public class LayoutTestUtilities {
   }
 
   public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    NlModel model = NlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
-    model.renderImmediately();
+    NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
+    model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     return model;
   }
 
@@ -139,16 +148,16 @@ public class LayoutTestUtilities {
     when(configuration.getFile()).thenReturn(model.getFile().getVirtualFile());
 
     ScreenView screenView = mock(ScreenView.class);
+    when(screenView.getConfiguration()).thenReturn(configuration);
     when(screenView.getModel()).thenReturn(model);
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
     when(screenView.getScale()).thenReturn(scale);
+    when(screenView.getSelectionModel()).thenReturn(selectionModel);
+    when(screenView.getSize()).thenReturn(new Dimension());
+    when(screenView.getSurface()).thenReturn(surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
-    when(screenView.getConfiguration()).thenReturn(configuration);
-    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
-    when(screenView.getSurface()).thenReturn(surface);
 
+    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
     return screenView;
   }
 
@@ -177,5 +186,83 @@ public class LayoutTestUtilities {
     when(transferable.isDataFlavorSupported(eq(flavor))).thenReturn(true);
 
     return transferable;
+  }
+
+  /**
+   * Dumps out the component tree, recursively
+   *
+   * @param roots set of root components
+   * @return a string representation of the component tree
+   */
+  public static String toTree(@NotNull List<NlComponent> roots) {
+    return toTree(roots, false);
+  }
+
+  /**
+   * Dumps out the component tree, recursively
+   *
+   * @param roots           set of root components
+   * @param includeIdentity if true, display an instance identifier next to each component;
+   *                        these are assigned sequentially since the last call to {@link #resetComponentTestIds()}
+   * @return a string representation of the component tree
+   */
+  public static String toTree(@NotNull List<NlComponent> roots, boolean includeIdentity) {
+    StringBuilder sb = new StringBuilder(200);
+    for (NlComponent root : roots) {
+      describe(sb, root, 0, includeIdentity);
+    }
+    return sb.toString().trim();
+  }
+
+  /**
+   * Reset instance id's used by {@link NlComponentTest#toTree(List, boolean)}
+   */
+  @VisibleForTesting
+  public static void resetComponentTestIds() {
+    ourComponentIds = null;
+  }
+
+  @VisibleForTesting
+  private static int getInstanceId(@NotNull NlComponent root) {
+    if (ourComponentIds == null) {
+      ourComponentIds = Maps.newHashMap();
+    }
+    Integer id = ourComponentIds.get(root);
+    if (id == null) {
+      id = ourComponentIds.size();
+      ourComponentIds.put(root, id);
+    }
+
+    return id;
+  }
+
+  private static void describe(@NotNull StringBuilder sb, @NotNull NlComponent component, int depth, boolean includeIdentity) {
+    for (int i = 0; i < depth; i++) {
+      sb.append("    ");
+    }
+    sb.append(describe(component, includeIdentity));
+    sb.append('\n');
+    for (NlComponent child : component.getChildren()) {
+      describe(sb, child, depth + 1, includeIdentity);
+    }
+  }
+
+  private static String describe(@NotNull NlComponent root, boolean includeIdentity) {
+    Objects.ToStringHelper helper = Objects.toStringHelper(root).omitNullValues()
+      .add("tag", describe(root.getTag()))
+      .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h);
+    if (includeIdentity) {
+      helper.add("instance", getInstanceId(root));
+    }
+    return helper.toString();
+  }
+
+  private static String describe(@Nullable XmlTag tag) {
+    if (tag == null) {
+      return "";
+    }
+    else {
+      return '<' + tag.getName() + '>';
+    }
   }
 }

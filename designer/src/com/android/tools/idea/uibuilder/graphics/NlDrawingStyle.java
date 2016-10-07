@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.intellij.ui.Gray;
 
 import java.awt.*;
@@ -282,7 +282,7 @@ public class NlDrawingStyle {
    *            foreground color should be set
    * @param stroke The line style - such as {@link #SOLID_STROKE}.
    */
-  public NlDrawingStyle(@Nullable Color strokeColor, @Nullable Color fill, @NonNull BasicStroke stroke) {
+  public NlDrawingStyle(@Nullable Color strokeColor, @Nullable Color fill, @NotNull BasicStroke stroke) {
     myStrokeColor = strokeColor;
     myStroke = stroke;
     myFillColor = fill;
@@ -296,7 +296,7 @@ public class NlDrawingStyle {
    * @param strokeColor Stroke color to be used (e.g. for the border/foreground)
    * @param stroke The line style - such as {@link #SOLID_STROKE}.
    */
-  public NlDrawingStyle(@Nullable Color strokeColor, @NonNull BasicStroke stroke) {
+  public NlDrawingStyle(@Nullable Color strokeColor, @NotNull BasicStroke stroke) {
     this(strokeColor, null, stroke);
   }
 
@@ -318,7 +318,7 @@ public class NlDrawingStyle {
   }
 
   /** Return the line stroke style */
-  @NonNull
+  @NotNull
   public Stroke getStroke() {
     return myStroke;
   }

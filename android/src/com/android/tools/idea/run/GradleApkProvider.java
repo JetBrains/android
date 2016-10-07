@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -27,9 +28,12 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.util.Computable;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -46,15 +50,17 @@ import java.util.Set;
 public class GradleApkProvider implements ApkProvider {
   private static final Logger LOG = Logger.getInstance(GradleApkProvider.class);
 
-  /** Default suffix for test packages (as added by Android Gradle plugin) */
-  private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
-
   @NotNull
   private final AndroidFacet myFacet;
+  @NotNull
+  private final ApplicationIdProvider myApplicationIdProvider;
   private final boolean myTest;
 
-  public GradleApkProvider(@NotNull AndroidFacet facet, boolean test) {
+  public GradleApkProvider(@NotNull AndroidFacet facet,
+                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           boolean test) {
     myFacet = facet;
+    myApplicationIdProvider = applicationIdProvider;
     myTest = test;
   }
 
@@ -73,7 +79,7 @@ public class GradleApkProvider implements ApkProvider {
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     if (!androidModel.getAndroidProject().isLibrary()) {
       File apk = getApk(selectedVariant, device);
-      apkList.add(new ApkInfo(apk, getPackageName()));
+      apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
 
     if (myTest) {
@@ -81,30 +87,18 @@ public class GradleApkProvider implements ApkProvider {
       if (testArtifactInfo != null) {
         AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
-        String testPackageName = getTestPackageName();
+        String testPackageName = myApplicationIdProvider.getTestPackageName();
         assert testPackageName != null; // Cannot be null if initialized.
         apkList.add(new ApkInfo(testApk, testPackageName));
+      }
+
+      if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
+        apkList.addAll(0, getTargetedApks(selectedVariant, device));
       }
     }
     return apkList;
   }
 
-  @Override
-  @NotNull
-  public String getPackageName() throws ApkProvisionException {
-    return ApkProviderUtil.computePackageName(myFacet);
-  }
-
-  @Override
-  public String getTestPackageName() throws ApkProvisionException {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    // In the case of Gradle projects, either the merged flavor provides a test package name,
-    // or we just append ".test" to the source package name
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
-    return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
-  }
 
   @NotNull
   private static File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
@@ -127,6 +121,58 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(message);
     }
     return apkFiles.get(0).getOutputFile();
+  }
+
+  /**
+   * Gets the list of targeted apks for the specified variant.
+   *
+   * <p>This is used for test-only modules when specifying the tested apk
+   * using the targetProjectPath and targetVariant properties in the build file.
+   */
+  @NotNull
+  private List<ApkInfo> getTargetedApks(@NotNull Variant selectedVariant, @NotNull IDevice device) throws ApkProvisionException {
+    List<ApkInfo> targetedApks = Lists.newArrayList();
+    for (TestedTargetVariant testedVariant: getTestedTargetVariants(selectedVariant)) {
+      Module targetModule = ApplicationManager.getApplication().runReadAction(
+        (Computable<Module>)() ->
+          GradleUtil.findModuleByGradlePath(myFacet.getModule().getProject(), testedVariant.getTargetProjectPath()));
+
+      assert targetModule != null; // target module has to exist, otherwise we would not be able to build test apk
+      AndroidFacet targetFacet = AndroidFacet.getInstance(targetModule);
+      if (targetFacet == null){
+        LOG.warn("Please install tested apk manually.");
+        continue;
+      }
+
+      AndroidGradleModel targetAndroidModel = AndroidGradleModel.get(targetFacet);
+      if (targetAndroidModel == null){
+        LOG.warn("Android model for tested module is null. Sync might have failed.");
+        continue;
+      }
+
+      Variant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
+      if (targetVariant == null){
+        LOG.warn("Tested variant not found. Sync might have failed.");
+        continue;
+      }
+
+      File targetApk = getApk(targetVariant, device);
+      targetedApks.add(new ApkInfo(targetApk, targetVariant.getMergedFlavor().getApplicationId()));
+    }
+
+    return targetedApks;
+  }
+
+  // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
+  @NotNull
+  private static Collection<TestedTargetVariant> getTestedTargetVariants(@NotNull Variant variant) {
+    try {
+      return variant.getTestedTargetVariants();
+    }
+    catch (UnsupportedMethodException e) {
+      Logger.getInstance(GradleApkProvider.class).warn("Method 'getTestedTargetVariants' not found", e);
+      return Lists.newArrayList();
+    }
   }
 
   @NotNull

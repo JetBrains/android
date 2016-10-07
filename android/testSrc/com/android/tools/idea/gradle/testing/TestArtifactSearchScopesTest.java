@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -35,23 +35,17 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testSrcFolderIncluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testSrcFolderIncluding temporarily disabled");
-      return;
-    }
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile unitTestSource = createFile("module1/src/test/java/Test.java");
@@ -65,10 +59,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testModulesExcluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testModulesExcluding temporarily disabled");
-      return;
-    }
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile module3JavaRoot = createFile("module3/src/main/java/Main.java");
@@ -82,11 +72,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testLibrariesExcluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testLibrariesExcluding temporarily disabled");
-      return;
-    }
-
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -96,15 +81,17 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     Library junit = libraryTable.getLibraryByName("junit-4.12");  // used by unit test
     Library gson = libraryTable.getLibraryByName("gson-2.4"); // used by android test
 
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), guava);
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
-    assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), junit);
-    assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), hamcrest);
+    FileRootSearchScope unitTestExcludeScope = scopes.getUnitTestExcludeScope();
+    assertScopeContainsLibrary(unitTestExcludeScope, guava, true);
+    assertScopeContainsLibrary(unitTestExcludeScope, gson, true);
+    assertScopeContainsLibrary(unitTestExcludeScope, junit, false);
+    assertScopeContainsLibrary(unitTestExcludeScope, hamcrest, false);
 
-    assertAcceptLibrary(scopes.getAndroidTestExcludeScope(), junit);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), guava);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
+    FileRootSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
+    assertScopeContainsLibrary(androidTestExcludeScope, junit, true);
+    assertScopeContainsLibrary(androidTestExcludeScope, gson, false);
+    assertScopeContainsLibrary(androidTestExcludeScope, guava, false);
+    assertScopeContainsLibrary(androidTestExcludeScope, hamcrest, false);
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
@@ -114,12 +101,13 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
 
     Library gson = libraryTable.getLibraryByName("gson-2.4");
     // In the beginning only unit test exclude gson
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
+    assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, true);
+    assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
 
     // Now add gson to unit test dependencies as well
-    File buildFile = new File(new File(scopes.getModule().getModuleFilePath()).getParentFile(), "build.gradle");
-    appendToFile(buildFile, "\n\ndependencies { compile 'com.google.code.gson:gson:2.4' }\n");
+    VirtualFile buildFile = getGradleBuildFile(scopes.getModule());
+    assertNotNull(buildFile);
+    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.4' }\n");
 
     final CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
@@ -135,11 +123,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
-    runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
-      }
+    runWriteCommandAction(getProject(), () -> {
+      GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
     });
 
     latch.await();
@@ -148,16 +133,11 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     scopes = TestArtifactSearchScopes.get(scopes.getModule());
     assertNotNull(scopes);
     gson = libraryTable.getLibraryByName("gson-2.4");
-    assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
+    assertScopeContainsLibrary(scopes.getUnitTestExcludeScope(), gson, false);
+    assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testProjectWithSharedTestFolder temporarily disabled");
-      return;
-    }
-
     loadProject("projects/sharedTestFolder", false);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
@@ -190,17 +170,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     return testArtifactSearchScopes;
   }
 
-  private static void assertAcceptLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library) {
+  private static void assertScopeContainsLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean contains) {
     assertNotNull(library);
     for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
-      assertTrue(scope.accept(file));
-    }
-  }
-
-  private static void assertNotAcceptLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library) {
-    assertNotNull(library);
-    for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
-      assertFalse(scope.accept(file));
+      assertEquals(contains, scope.accept(file));
     }
   }
 }

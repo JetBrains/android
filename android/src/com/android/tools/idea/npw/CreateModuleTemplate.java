@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Maps;
@@ -33,7 +34,7 @@ public class CreateModuleTemplate extends AbstractModuleTemplate {
   @Nullable private final TemplateMetadata templateMetadata;
 
   public CreateModuleTemplate(@Nullable TemplateMetadata metadata,
-                              @Nullable FormFactorUtils.FormFactor formFactor,
+                              @Nullable FormFactor formFactor,
                               @NotNull String name,
                               @NotNull Icon icon) {
     super(name, metadata != null ? metadata.getDescription() : null, formFactor, icon);

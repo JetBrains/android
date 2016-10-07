@@ -16,22 +16,17 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
-import com.intellij.designer.model.Property;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
-import com.intellij.ui.Cell;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.PairFunction;
-import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.TableUI;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
@@ -39,12 +34,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 
 public class PTable extends JBTable {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
   private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
+  private PTableCellEditorProvider myEditorProvider;
 
   private int myMouseHoverRow;
   private int myMouseHoverCol;
@@ -79,12 +74,9 @@ public class PTable extends JBTable {
     addMouseMotionListener(hoverListener);
     addMouseListener(hoverListener);
 
-    mySpeedSearch = new TableSpeedSearch(this, new PairFunction<Object, Cell, String>() {
-      @Override
-      public String fun(Object object, Cell cell) {
-        if (cell.column != 0) return null; // only match property names, not values
-        return object instanceof PTableItem ? ((PTableItem)object).getName() : null;
-      }
+    mySpeedSearch = new TableSpeedSearch(this, (object, cell) -> {
+      if (cell.column != 0) return null; // only match property names, not values
+      return object instanceof PTableItem ? ((PTableItem)object).getName() : null;
     });
   }
 
@@ -92,6 +84,19 @@ public class PTable extends JBTable {
   public void setModel(@NotNull TableModel model) {
     myModel = (PTableModel)model;
     super.setModel(model);
+  }
+
+  public void setEditorProvider(PTableCellEditorProvider editorProvider) {
+    myEditorProvider = editorProvider;
+  }
+
+  // Bug: 221565
+  // Without this line it is impossible to get focus to a combo box editor.
+  // The code in JBTable will move the focus to the JPanel that includes
+  // the combo box, the resource button, and the design button.
+  @Override
+  public boolean surrendersFocusOnKeyStroke() {
+    return false;
   }
 
   @Override
@@ -105,9 +110,12 @@ public class PTable extends JBTable {
   }
 
   @Override
-  public TableCellEditor getCellEditor(int row, int column) {
+  public PTableCellEditor getCellEditor(int row, int column) {
     PTableItem value = (PTableItem)getValueAt(row, column);
-    return value.getCellEditor();
+    if (value != null && myEditorProvider != null) {
+      return myEditorProvider.getCellEditor(value);
+    }
+    return null;
   }
 
   public TableSpeedSearch getSpeedSearch() {
@@ -172,7 +180,7 @@ public class PTable extends JBTable {
   }
 
   private void quickEdit(int row) {
-    final PTableCellEditor editor = ((PTableItem)myModel.getValueAt(row, 0)).getCellEditor();
+    PTableCellEditor editor = getCellEditor(row, 0);
     if (editor == null) {
       return;
     }
@@ -185,22 +193,19 @@ public class PTable extends JBTable {
   }
 
   private void startEditing(int row) {
-    final PTableCellEditor editor = ((PTableItem)myModel.getValueAt(row, 0)).getCellEditor();
+    PTableCellEditor editor = getCellEditor(row, 0);
     if (editor == null) {
       return;
     }
 
     editCellAt(row, 1);
 
-    final JComponent preferredComponent = getComponentToFocus(editor);
+    JComponent preferredComponent = getComponentToFocus(editor);
     if (preferredComponent == null) return;
 
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(new Runnable() {
-      @Override
-      public void run() {
-        preferredComponent.requestFocusInWindow();
-        editor.activate();
-      }
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      preferredComponent.requestFocusInWindow();
+      editor.activate();
     });
   }
 
@@ -294,15 +299,16 @@ public class PTable extends JBTable {
         return;
       }
 
-      Rectangle rect = getCellRect(row, convertColumnIndexToView(0), false);
-      if (!rect.contains(e.getX(), e.getY())) {
-        return;
-      }
-      if (!PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rect.x)) {
+      Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
+      if (rectLeftColumn.contains(e.getX(), e.getY()) && PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x)) {
+        toggleTreeNode(row);
         return;
       }
 
-      toggleTreeNode(row);
+      Rectangle rectRightColumn = getCellRect(row, convertColumnIndexToView(1), false);
+      if (rectRightColumn.contains(e.getX(), e.getY())) {
+        item.mousePressed(e, rectRightColumn);
+      }
     }
   }
 

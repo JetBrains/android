@@ -52,7 +52,8 @@ public class AndroidTestListener implements ITestRunListener {
     if (myTestClassName != null) {
       testSuiteFinished();
     }
-    myLaunchStatus.terminateLaunch("Tests ran to completion.\n");
+    myPrinter.stdout("Tests ran to completion.\n");
+    myLaunchStatus.terminateLaunch("");
   }
 
   @Override
@@ -62,7 +63,7 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testRunStarted(String runName, int testCount) {
-    myPrinter.stdout("Test running started\n");
+    myPrinter.stdout("\nStarted running tests\n");
 
     final ServiceMessageBuilder builder = new ServiceMessageBuilder("enteredTheMatrix");
     myPrinter.stdout(builder.toString());

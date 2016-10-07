@@ -17,11 +17,11 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
@@ -519,8 +519,18 @@ public class ViewLoader {
   private void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      aClass = getModuleClassLoader().loadClass(className);
+      final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
+      final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
+      aClass = moduleClassLoader.loadClass(className);
 
+      if (!isClassLoaded && aClass != null) {
+        // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
+        // regenerated. Clear the ModuleClassLoader and reload the R class.
+        myLoadedClasses.clear();
+        ModuleClassLoader.clearCache(myModule);
+        myModuleClassLoader = null;
+        aClass = getModuleClassLoader().loadClass(className);
+      }
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
         myLogger.setHasLoadedClasses(true);

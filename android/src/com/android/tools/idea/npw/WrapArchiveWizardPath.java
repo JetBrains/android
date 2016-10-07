@@ -65,15 +65,10 @@ public class WrapArchiveWizardPath implements WizardPath {
                                @Nullable Icon sidePanelIcon) {
     myWizardState = wizardState;
     myProject = project;
-    steps = Collections.<ModuleWizardStep>singleton(new WrapArchiveOptionsStep(project, wizardState, sidePanelIcon));
+    steps = Collections.singleton(new WrapArchiveOptionsStep(project, wizardState, sidePanelIcon));
     if (listener != null) {
       for (ModuleWizardStep step : steps) {
-        step.registerStepListener(new StepListener() {
-          @Override
-          public void stateChanged() {
-            listener.update();
-          }
-        });
+        step.registerStepListener(listener::update);
       }
     }
   }

@@ -1,0 +1,40 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:1.5.0'
+  }
+}
+
+apply plugin: 'com.android.application'
+
+dependencies {
+  compile fileTree(dir: 'libs', include: '*.jar')
+}
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
+
+  defaultConfig {
+    minSdkVersion 8
+    targetSdkVersion 19
+    manifestPlaceholders = [activityName: "test.helloworldapp.MyActivity", versionPrefix: "1.0"]
+    versionCode = 2
+  }
+
+  sourceSets {
+    main {
+      manifest.srcFile 'AndroidManifest.xml'
+      java.srcDirs = ['src']
+      resources.srcDirs = ['src']
+      res.srcDirs = ['res']
+      assets.srcDirs = ['assets']
+    }
+    debug {
+      manifest.srcFile 'debug/AndroidManifest.xml'
+    }
+  }
+}

@@ -121,7 +121,7 @@ public class DynamicWizardStepTest extends TestCase {
         @Nullable
         @Override
         public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-          Set<ScopedStateStore.Key<?>> filterKeys = new HashSet<ScopedStateStore.Key<?>>(1);
+          Set<ScopedStateStore.Key<?>> filterKeys = new HashSet<>(1);
           filterKeys.add(INPUT_KEY);
           return filterKeys;
         }

@@ -25,10 +25,10 @@ import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.rendering.DataBindingInfo;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.Language;
@@ -82,7 +82,7 @@ import java.util.regex.Pattern;
 public class DataBindingUtil {
   public static final String BR = "BR";
 
-  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.VIEW_STUB,
+  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
                                                                     SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
 
   private static AtomicLong ourDataBindingEnabledModificationCount = new AtomicLong(0);
@@ -141,7 +141,7 @@ public class DataBindingUtil {
   @Nullable
   private static String getViewClassName(XmlTag tag, AndroidFacet facet) {
     final String elementName = getViewName(tag);
-    if (elementName.indexOf('.') == -1) {
+    if (elementName != null && elementName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(elementName)) {
         return SdkConstants.VIEW_PKG_PREFIX + elementName;
       } else if (SdkConstants.WEB_VIEW.equals(elementName)) {
@@ -150,6 +150,8 @@ public class DataBindingUtil {
         return getViewClassNameFromMerge(tag, facet);
       } else if (SdkConstants.VIEW_INCLUDE.equals(elementName)) {
         return getViewClassNameFromInclude(tag, facet);
+      } else if (SdkConstants.VIEW_STUB.equals(elementName)) {
+        return SdkConstants.DATA_BINDING_VIEW_STUB_PROXY;
       }
       return SdkConstants.WIDGET_PKG_PREFIX + elementName;
     } else {
@@ -186,6 +188,7 @@ public class DataBindingUtil {
     return info.getQualifiedName();
   }
 
+  @Nullable // when passed <view/>
   private static String getViewName(XmlTag tag) {
     String viewName = tag.getName();
     if (SdkConstants.VIEW_TAG.equals(viewName)) {
@@ -273,7 +276,7 @@ public class DataBindingUtil {
    * @return The package name that can be used to generate R and BR classes.
    */
   public static String getGeneratedPackageName(AndroidFacet facet) {
-    return ManifestInfo.get(facet.getModule(), false).getPackage();
+    return MergedManifest.get(facet).getPackage();
   }
 
   /**
@@ -342,6 +345,10 @@ public class DataBindingUtil {
       def = def.substring(1, def.length() - 1);       // Unquote the string.
     }
     return def;
+  }
+
+  public static boolean isBindingExpression(@NotNull String string) {
+    return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
 
   /**
@@ -925,10 +932,18 @@ public class DataBindingUtil {
   /**
    * The light field representing elements of BR class
    */
-  static class LightBRField extends LightField {
+  static class LightBRField extends LightField implements ModificationTracker {
 
     public LightBRField(@NotNull PsiManager manager, @NotNull PsiField field, @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
+    }
+
+    @Override
+    public long getModificationCount() {
+      // See http://b.android.com/212766
+      // The field can't change; it's computed on the fly.
+      // Needed by the LightBrClass field cache.
+      return 0;
     }
   }
 

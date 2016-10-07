@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class CapturePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("Capture(").append(myID).append(")");
+  public String getSegmentString() {
+    return "Capture(" + myID + ')';
   }
 
   @Override
@@ -42,8 +42,17 @@ public final class CapturePath extends Path {
     return (capture == null) ? null : capture.atoms();
   }
 
+  public ContextsPath contexts() {
+    return new ContextsPath().setCapture(this);
+  }
+
+  /** @deprecated use {@link #hierarchies} instead */
   public HierarchyPath hierarchy() {
     return new HierarchyPath().setCapture(this);
+  }
+
+  public HierarchiesPath hierarchies() {
+    return new HierarchiesPath().setCapture(this);
   }
 
   public ResourcesPath resources() {
@@ -78,7 +87,7 @@ public final class CapturePath extends Path {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("ID", new Array("id.ID", new Primitive("byte", Method.Uint8), 20)),
     });
     Namespace.register(Klass.INSTANCE);
   }

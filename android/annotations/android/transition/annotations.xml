@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.transition.SidePropagation void setSide(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Gravity.LEFT, android.view.Gravity.TOP, android.view.Gravity.RIGHT, android.view.Gravity.BOTTOM, android.view.Gravity.START, android.view.Gravity.END}" />
+    </annotation>
+  </item>
+  <item name="android.transition.Slide int getSlideEdge()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Gravity.LEFT, android.view.Gravity.TOP, android.view.Gravity.RIGHT, android.view.Gravity.BOTTOM, android.view.Gravity.START, android.view.Gravity.END}" />
+    </annotation>
+  </item>
+  <item name="android.transition.Slide void setSlideEdge(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Gravity.LEFT, android.view.Gravity.TOP, android.view.Gravity.RIGHT, android.view.Gravity.BOTTOM, android.view.Gravity.START, android.view.Gravity.END}" />
+    </annotation>
+  </item>
   <item name="android.transition.Transition boolean isTransitionRequired(android.transition.TransitionValues, android.transition.TransitionValues) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -11,6 +26,18 @@
   </item>
   <item name="android.transition.TransitionInflater android.transition.TransitionManager inflateTransitionManager(int, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.TransitionRes" />
+  </item>
+  <item name="android.transition.Visibility int getMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.transition.Visibility.MODE_IN, android.transition.Visibility.MODE_OUT}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.transition.Visibility void setMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.transition.Visibility.MODE_IN, android.transition.Visibility.MODE_OUT}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
 </root>
 

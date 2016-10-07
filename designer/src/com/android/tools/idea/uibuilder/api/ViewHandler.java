@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.Lists;
+import icons.AndroidDesignerIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.EnumSet;
+import java.util.List;
+
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 /** A view handler is a tool handler for a given Android view class */
-public class ViewHandler {
+public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
    *
@@ -34,8 +42,8 @@ public class ViewHandler {
    * @param newChild the newly created component
    * @return true if the proposed parent is accepted
    */
-  public boolean acceptsParent(@NonNull NlComponent layout,
-                              @NonNull NlComponent newChild) {
+  public boolean acceptsParent(@NotNull NlComponent layout,
+                               @NotNull NlComponent newChild) {
     return true;
   }
 
@@ -63,10 +71,10 @@ public class ViewHandler {
    * unconfigured component lingering around, so the component create handler
    * cancels the drop instead by returning false.
    */
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     return true;
   }
 
@@ -78,11 +86,61 @@ public class ViewHandler {
    * @param component the component whose constraints we want to paint
    * @return true if we're done with this component <b>and</b> it's children
    */
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
+  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
     return false;
   }
 
   public FillPolicy getFillPolicy() {
     return FillPolicy.WIDTH_IN_VERTICAL;
+  }
+
+  /**
+   * Adds relevant toolbar view actions that apply for views of this type to the
+   * given list.
+   * <p>
+   * They do not need to be in sorted order; actions from multiple sources will
+   * all be merged and sorted before display by the IDE. Note that this method
+   * may only be called once, so the set of actions should not depend on specific
+   * current circumstances; instead, actions which do not apply should be made
+   * disabled or invisible by calling the right methods from
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
+   *
+   * @param actions a list of view actions, such as a
+   *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   */
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    addDefaultViewActions(actions, 100);
+  }
+
+  /**
+   * Adds relevant context menu view actions that apply for views of this type
+   * to the given list.
+   * <p>
+   * They do not need to be in sorted order; actions from multiple sources will
+   * all be merged and sorted before display by the IDE. Note that this method
+   * may only be called once, so the set of actions should not depend on specific
+   * current circumstances; instead, actions which do not apply should be made
+   * disabled or invisible by calling the right methods from
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
+   *
+   * @param actions a list of view actions, such as a
+   *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   */
+  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+  }
+
+  /** Utility method which exposes the toolbar actions in a submenu */
+  protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
+    List<ViewAction> nestedActions = Lists.newArrayList();
+    addToolbarActions(nestedActions);
+    actions.add(new ViewActionMenu(label, null, nestedActions));
+  }
+
+  protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
+    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, AndroidDesignerIcons.FillWidth,
+                                         AndroidDesignerIcons.WrapWidth).setRank(startRank));
+    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
+                                         AndroidDesignerIcons.WrapHeight).setRank(startRank + 20));
+    // TODO: Gravity, etc
   }
 }

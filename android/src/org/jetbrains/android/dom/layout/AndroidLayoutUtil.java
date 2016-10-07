@@ -1,11 +1,11 @@
 package org.jetbrains.android.dom.layout;
 
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.xml.GenericAttributeValue;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,11 +21,11 @@ public class AndroidLayoutUtil {
 
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     result.add(VIEW_TAG);
     result.add(VIEW_MERGE);
     result.add(VIEW_FRAGMENT);
-    result.addAll(AndroidDomUtil.removeUnambiguousNames(AndroidDomExtender.getViewClassMap(facet)));
+    result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getViewClassMap(facet)));
     result.remove(VIEW);
     result.add(TAG_LAYOUT);
     return result;

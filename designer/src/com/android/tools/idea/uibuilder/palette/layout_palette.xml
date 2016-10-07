@@ -1,0 +1,477 @@
+<!--
+  ~ Copyright (C) 2015 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<palette>
+  <group name="Widgets">
+    <item tag="TextView"/>
+    <item tag="Button"/>
+    <item tag="ToggleButton"/>
+    <item tag="CheckBox"/>
+    <item tag="RadioButton"/>
+    <item tag="CheckedTextView"/>
+    <item tag="Spinner"/>
+    <item tag="ProgressBar"
+          id="LargeProgressBar"
+          title="ProgressBar (Large)">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyleLarge"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="ProgressBar"
+          title="ProgressBar">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyle"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="ProgressBar"
+          id="SmallProgressBar"
+          title="ProgressBar (Small)">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyleSmall"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="ProgressBar"
+          id="HorizontalProgressBar"
+          title="ProgressBar (Horizontal)"
+          scale="2.0">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyleHorizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="SeekBar"/>
+    <item tag="SeekBar"
+          id="DiscreteSeekBar"
+          title="SeekBar (Discrete)">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <SeekBar
+              style="@style/Widget.AppCompat.SeekBar.Discrete"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:max="10"
+              android:progress="3"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="QuickContactBadge"/>
+    <item tag="RatingBar" scale="0.4"/>
+    <item tag="Switch"/>
+    <item tag="Space"/>
+  </group>
+
+  <group name="Text Fields (EditText)">
+    <item tag="EditText" title="Plain Text">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="textPersonName"
+              android:text="Name"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:text="abc"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Password" title="Password">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="textPassword"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Password"
+              android:inputType="textPassword"
+              android:text="••••••••"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="numberPassword"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <!-- android:inputType="numberPassword" not used here to allow digits in preview only -->
+            <EditText
+              android:id="@+id/PasswordNumeric"
+              android:text="1•••2•••3"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Email" title="E-mail">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="textEmailAddress"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Email"
+              android:inputType="textEmailAddress"
+              android:text="user@domain.com"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Phone" title="Phone">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="phone"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Phone"
+              android:inputType="phone"
+              android:text="(555) 123 0100"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="PostalAddress" title="Postal Address">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="textPostalAddress"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/PostalAddress"
+              android:inputType="textPostalAddress"
+              android:text="Address"
+              android:layout_width="200dip"
+              android:layout_height="100dip">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="MultilineText" title="Multiline Text">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="textMultiLine"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/MultilineText"
+              android:inputType="textMultiLine"
+              android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
+              android:layout_width="200dip"
+              android:layout_height="100dip">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Time" title="Time">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="time"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Time"
+              android:inputType="time"
+              android:text="12:00am"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Date" title="Date">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="date"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Date"
+              android:inputType="date"
+              android:text="1/1/2011"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="Number" title="Number">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="number"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/Number"
+              android:inputType="number"
+              android:text="42"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="SignedNumber" title="Number (Signed)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="numberSigned"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/SignedNumber"
+              android:inputType="numberSigned"
+              android:text="-42"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="EditText" id="DecimalNumber" title="Number (Decimal)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <EditText
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:inputType="numberDecimal"
+              android:ems="10"
+            />
+          ]]>
+      </xml>
+      <preview>
+        <![CDATA[
+            <EditText
+              android:id="@+id/DecimalNumber"
+              android:inputType="numberDecimal"
+              android:text="42.0"
+              android:layout_width="200dip"
+              android:layout_height="wrap_content">
+            </EditText>
+          ]]>
+      </preview>
+    </item>
+    <item tag="AutoCompleteTextView"/>
+    <item tag="MultiAutoCompleteTextView"/>
+  </group>
+
+  <group name="Layouts">
+    <item tag="android.support.constraint.ConstraintLayout"/>
+    <item tag="GridLayout"/>
+    <item tag="FrameLayout"/>
+    <item tag="LinearLayout"
+          title="LinearLayout (horizontal)"
+          icon="AndroidIcons.Views.LinearLayout">
+      <xml>
+        <![CDATA[
+            <LinearLayout
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+            </LinearLayout>
+          ]]>
+      </xml>
+    </item>
+    <item tag="LinearLayout"
+          title="LinearLayout (vertical)"
+          icon="AndroidIcons.Views.VerticalLinearLayout">
+      <xml>
+        <![CDATA[
+            <LinearLayout
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+            </LinearLayout>
+          ]]>
+      </xml>
+    </item>
+    <item tag="RelativeLayout"/>
+    <item tag="TableLayout"/>
+    <item tag="TableRow"/>
+    <item tag="fragment"/>
+  </group>
+
+  <group name="Containers">
+    <item tag="RadioGroup"/>
+    <item tag="ListView"/>
+    <item tag="GridView"/>
+    <item tag="ExpandableListView"/>
+    <item tag="ScrollView"/>
+    <item tag="HorizontalScrollView"/>
+    <item tag="TabHost"/>
+    <item tag="WebView"/>
+    <item tag="SearchView"/>
+  </group>
+  <group name="Images &amp; Media">
+    <item tag="ImageButton"/>
+    <item tag="ImageView"/>
+    <item tag="VideoView"/>
+  </group>
+  <group name="Date &amp; Time">
+    <item tag="TimePicker" render-separately="true"/>
+    <item tag="DatePicker"/>
+    <item tag="CalendarView"/>
+    <item tag="Chronometer"/>
+    <item tag="TextClock"/>
+  </group>
+  <group name="Transitions">
+    <item tag="ImageSwitcher"/>
+    <item tag="AdapterViewFlipper"/>
+    <item tag="StackView"/>
+    <item tag="TextSwitcher"/>
+    <item tag="ViewAnimator"/>
+    <item tag="ViewFlipper"/>
+    <item tag="ViewSwitcher"/>
+  </group>
+  <group name="Advanced">
+    <item tag="include"/>
+    <item tag="requestFocus"/>
+    <item tag="view"/>
+    <item tag="ViewStub"/>
+    <item tag="TextureView"/>
+    <item tag="SurfaceView"/>
+    <item tag="NumberPicker"/>
+  </group>
+  <group name="Custom - Google">
+    <item tag="com.google.android.gms.ads.AdView"/>
+    <item tag="com.google.android.gms.maps.MapFragment"/>
+    <item tag="com.google.android.gms.maps.MapView"/>
+  </group>
+  <group name="Custom - Design">
+    <item tag="android.support.design.widget.CoordinatorLayout"/>
+    <item tag="android.support.design.widget.AppBarLayout"/>
+    <item tag="android.support.design.widget.TabLayout"/>
+    <item tag="android.support.design.widget.TabItem"/>
+    <item tag="android.support.v4.widget.NestedScrollView"/>
+    <item tag="android.support.design.widget.FloatingActionButton"/>
+    <item tag="android.support.design.widget.TextInputLayout"/>
+    <!-- Tabs -->
+  </group>
+  <group name="Custom - AppCompat">
+    <item tag="android.support.v7.widget.CardView"/>
+    <item tag="android.support.v7.widget.GridLayout"/>
+    <item tag="android.support.v7.widget.RecyclerView"/>
+    <item tag="android.support.v7.widget.Toolbar" render-separately="true"/>
+  </group>
+</palette>

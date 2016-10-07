@@ -49,6 +49,7 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
  * This is the common asset set step for both PNG files and SVG files.
  */
 abstract public class CommonAssetSetStep extends TemplateWizardStep implements Disposable {
+  public static final String ATTR_OUTPUT_FOLDER = "outputFolder";
   private static final Logger LOG = Logger.getInstance(CommonAssetSetStep.class);
   protected SourceProvider mySourceProvider = null;
 
@@ -57,7 +58,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
   protected AssetType mySelectedAssetType;
   protected boolean myInitialized;
   protected final MergingUpdateQueue myUpdateQueue;
-  protected final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
+  protected final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<>();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public CommonAssetSetStep(TemplateWizardState state,
@@ -102,12 +103,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
       public void run() {
         try {
           myAssetGenerator.generateImages(myImageMap, true, true);
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updatePreviewImages();
-            }
-          });
+          SwingUtilities.invokeLater(CommonAssetSetStep.this::updatePreviewImages);
         }
         catch (final ImageGeneratorException e) {
           SwingUtilities.invokeLater(new Runnable() {
@@ -153,7 +149,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
    * Must be run inside a write action. Creates the asset files on disk.
    */
   public void createAssets(@Nullable Module module) {
-    File targetResDir = (File)myTemplateState.get(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER);
+    File targetResDir = (File)myTemplateState.get(ATTR_OUTPUT_FOLDER);
     if (targetResDir == null) {
       if (myTemplateState.hasAttr(TemplateMetadata.ATTR_RES_DIR)) {
         assert module != null;

@@ -39,28 +39,24 @@ import java.util.Map;
  * Wrapper around data passed from the installer.
  */
 public class InstallerData {
-  public static final InstallerData EMPTY = new InstallerData(null, null, null, true, null, null);
+  public static final InstallerData EMPTY = new InstallerData(null, null, true, null, null);
 
   private static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
   private static final String PROPERTY_SDK = "androidsdk.dir";
-  private static final String PROPERTY_JDK = "jdk.dir";
   private static final String PROPERTY_SDK_REPO = "androidsdk.repo";
   private static final String PROPERTY_TIMESTAMP = "install.timestamp";
   private static final String PROPERTY_AVD = "create.avd";
   private static final String PROPERTY_VERSION = "studio.version";
   private static final Logger LOG = Logger.getInstance(InstallerData.class);
 
-  @Nullable private final File myJavaDir;
   @Nullable private final File myAndroidSrc;
   @Nullable private final File myAndroidDest;
   private final boolean myCreateAvd;
   @Nullable private final String myTimestamp;
   @Nullable private final String myVersion;
 
-  public InstallerData(@Nullable File javaDir, @Nullable File androidSrc,
-                       @Nullable File androidDest, boolean createAvd,
-                       @Nullable String timestamp, @Nullable String version) {
-    myJavaDir = javaDir;
+  public InstallerData(@Nullable File androidSrc, @Nullable File androidDest,
+                       boolean createAvd, @Nullable String timestamp, @Nullable String version) {
     myAndroidSrc = androidSrc;
     myAndroidDest = androidDest;
     myCreateAvd = createAvd;
@@ -76,7 +72,7 @@ public class InstallerData {
     }
     String androidSdkPath = properties.get(PROPERTY_SDK);
     File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
-    return new InstallerData(getIfPathExists(properties, PROPERTY_JDK), getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
+    return new InstallerData(getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
                              Boolean.valueOf(properties.containsKey(PROPERTY_AVD) ? properties.get(PROPERTY_AVD) : "true"),
                              properties.get(PROPERTY_TIMESTAMP), properties.get(PROPERTY_VERSION));
   }
@@ -104,10 +100,7 @@ public class InstallerData {
         return properties;
       }
     }
-    catch (AndroidLocation.AndroidLocationException e) {
-      LOG.error(e);
-    }
-    catch (IOException e) {
+    catch (AndroidLocation.AndroidLocationException | IOException e) {
       LOG.error(e);
     }
     return null;
@@ -140,11 +133,6 @@ public class InstallerData {
   }
 
   @Nullable
-  public File getJavaDir() {
-    return myJavaDir;
-  }
-
-  @Nullable
   public File getAndroidSrc() {
     return myAndroidSrc;
   }
@@ -160,7 +148,7 @@ public class InstallerData {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add(PROPERTY_JDK, myJavaDir).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
+    return Objects.toStringHelper(this).add(PROPERTY_SDK_REPO, myAndroidSrc).add(PROPERTY_SDK, myAndroidDest)
       .add(PROPERTY_AVD, myCreateAvd).add(PROPERTY_TIMESTAMP, myTimestamp).toString();
   }
 
@@ -174,11 +162,6 @@ public class InstallerData {
       WizardUtils.ValidationResult validationResult = WizardUtils.validateLocation(path, SdkComponentsStep.FIELD_SDK_LOCATION, false);
       return !validationResult.isError();
     }
-  }
-
-  public boolean hasValidJdkLocation() {
-    File javaDir = getJavaDir();
-    return javaDir != null && JdkDetection.validateJdkLocation(javaDir) == null;
   }
 
   @Nullable

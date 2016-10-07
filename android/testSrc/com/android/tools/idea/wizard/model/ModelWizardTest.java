@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
@@ -158,6 +158,24 @@ public class ModelWizardTest {
   @Test
   public void cantCreateWizardWithoutSteps() throws Exception {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    try {
+      wizardBuilder.build();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+  }
+
+  @Test
+  public void cantCreateWizardWithoutAtLeastOneVisibleStep() throws Exception {
+    DummyModel model = new DummyModel();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    // Creates parent, which creates child
+    GrandparentStep grandparentStep = new GrandparentStep(model);
+    grandparentStep.setShouldSkip();
+
+    wizardBuilder.addStep(grandparentStep);
+
     try {
       wizardBuilder.build();
       fail();
@@ -330,22 +348,6 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.onLastStep().get()).isTrue();
-
-    Disposer.dispose(wizard);
-  }
-
-  @Test
-  public void startingAWizardWithNoVisibleStepsFinishesAutomatically() throws Exception {
-    DummyModel model = new DummyModel();
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    // Creates parent, which creates child
-    GrandparentStep grandparentStep = new GrandparentStep(model);
-    grandparentStep.setShouldSkip();
-
-    wizardBuilder.addStep(grandparentStep);
-    ModelWizard wizard = wizardBuilder.build();
-
-    assertThat(wizard.isFinished()).isTrue();
 
     Disposer.dispose(wizard);
   }

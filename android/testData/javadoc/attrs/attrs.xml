@@ -22,4 +22,16 @@
   <declare-styleable name="MyView3">
     <attr name="myAttr1"/>
   </declare-styleable>
+
+  <declare-styleable name="MyScrollableWidget">
+    <!-- The type of scrolling to use. -->
+    <attr name="myScrollMode">
+      <!-- The widget will scroll horizontally. -->
+      <enum name="horizontal" value="0" />
+      <!-- The widget will scroll vertically. -->
+      <enum name="vertical" value="1" />
+      <!-- The widget will scroll diagonally. -->
+      <enum name="diagonal" value="2" />
+    </attr>
+  </declare-styleable>
 </resources>

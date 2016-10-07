@@ -11,6 +11,12 @@
     </activity-alias>
     <activity-alias android:name="NotLaunchable" android:label="Alias" android:targetActivity="com.example.unittest.Launcher">
     </activity-alias>
+    <activity-alias android:name="SendHandler" android:label="Alias" android:targetActivity="com.example.unittest.Launcher">
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+      </intent-filter>
+    </activity-alias>
     <activity android:name="com.example.unittest.Launcher" />
+    <activity android:name="com.example.unittest.ExportedActivity" android:exported="true" />
   </application>
 </manifest>

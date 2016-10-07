@@ -67,4 +67,7 @@ public class GradleTaskStub implements GradleTask {
   public boolean isPublic() {
     return true;
   }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
 }

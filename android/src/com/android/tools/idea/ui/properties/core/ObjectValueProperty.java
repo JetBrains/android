@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An {@link ObservableProperty} which is backed by a non-null object instance.
+ * An {@link AbstractProperty} which is backed by a non-null object instance.
  */
 public final class ObjectValueProperty<T> extends ObjectProperty<T> {
 

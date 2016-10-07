@@ -15,20 +15,12 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.SdkConstants;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
 
 public class CreateDeepLinkIntentionActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "deeplink/";

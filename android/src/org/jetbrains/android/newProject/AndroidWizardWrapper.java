@@ -23,7 +23,6 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.AndroidIcons;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,17 +52,16 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
   @Override
   public String getPresentableName() {
+    if (Boolean.getBoolean("use.npw.modelwizard"))
+    {
+      return "Android (Legacy)";
+    }
     return "Android";
   }
 
   @Override
   public Icon getNodeIcon() {
     return AndroidIcons.Android;
-  }
-
-  @Override
-  public String getDescription() {
-    return AndroidBundle.message("android.module.type.description");
   }
 
   @Override
@@ -115,11 +113,6 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     myWizard.doFinishAction();
   }
 
-  @Override
-  public boolean canProceed() {
-    return ((WizardDelegate)myWizard).canProceed();
-  }
-
   private static class WizardHostDelegate implements DynamicWizardHost {
 
     private final AbstractWizard myWizard;
@@ -156,7 +149,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     public void shakeWindow() {
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        DialogEarthquakeShaker.shake(myWizard.getPeer().getWindow());
+        DialogEarthquakeShaker.shake((JDialog)myWizard.getPeer().getWindow());
       }
     }
 
@@ -186,7 +179,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     }
   }
 
-  private static class ProjectWizard extends NewProjectWizardDynamic implements WizardDelegate {
+  private static class ProjectWizard extends NewProjectWizardDynamic {
     public ProjectWizard(@Nullable Project project, DynamicWizardHost host) {
       super(project, null, host);
     }
@@ -203,14 +196,9 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     protected void checkSdk() {
     }
-
-    @Override
-    public boolean canProceed() {
-      return canGoNext();
-    }
   }
-
-  private static class ModuleWizard extends NewModuleWizardDynamic implements WizardDelegate {
+  
+  private static class ModuleWizard extends NewModuleWizardDynamic {
     public ModuleWizard(@Nullable Project project, @NotNull DynamicWizardHost host) {
       super(project, null, host);
     }
@@ -227,11 +215,6 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     protected boolean checkSdk() {
       return true;
-    }
-
-    @Override
-    public boolean canProceed() {
-      return canGoNext();
     }
   }
 }

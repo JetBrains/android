@@ -17,17 +17,16 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -47,7 +46,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
 
 /**
  * A callback to provide information related to the Action Bar as required by the
@@ -81,16 +81,16 @@ public class ActionBarHandler extends ActionBarCallback {
   /** Flag which controls whether we should be showing the menu */
   private static boolean ourShowMenu = false;
 
-  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable RenderContext context) {
+  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable DesignSurface surface) {
     return ourShowMenu;
   }
 
-  public static boolean showMenu(boolean showMenu, @Nullable RenderContext context, boolean repaint) {
+  public static boolean showMenu(boolean showMenu, @Nullable DesignSurface surface, boolean repaint) {
     if (showMenu != ourShowMenu) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourShowMenu = showMenu;
-      if (context != null && repaint) {
-        context.requestRender();
+      if (surface != null && repaint) {
+        surface.requestRender();
       }
       return true;
     }
@@ -200,7 +200,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      ManifestInfo manifest = ManifestInfo.get(myRenderTask.getModule(), false);
+      MergedManifest manifest = MergedManifest.get(myRenderTask.getModule());
       String activity = StringUtil.notNullize(myRenderTask.getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

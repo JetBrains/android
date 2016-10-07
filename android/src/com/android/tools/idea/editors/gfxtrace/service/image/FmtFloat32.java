@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-final public class FmtFloat32 extends Format {
+final class FmtFloat32 extends Format {
   @Override
   public String getDisplayName() {
     return "FLOAT";

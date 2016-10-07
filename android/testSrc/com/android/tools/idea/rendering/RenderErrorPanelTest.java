@@ -18,9 +18,10 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.SdkTestCase;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.utils.SdkUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,6 +32,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,7 +91,14 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     assertNotNull(target);
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
-    assertSame(target, configuration.getTarget());
+    assertSame(target, configuration.getRealTarget());
+
+    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
+      // TODO: Remove this after http://b.android.com/203392 is released
+      // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
+      configuration.setTheme("android:Theme.Material");
+    }
+
     RenderService renderService = RenderService.get(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
@@ -101,7 +110,6 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    assertTrue(logger.hasProblems());
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(render);
     assert html != null;
@@ -111,7 +119,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   public void testPanel() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
@@ -122,8 +130,34 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "<BR/>" +
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
+      "<BR/>" +
+      "</body></html>", html);
+  }
+
+  public void testDataBindingAttributes() {
+    // Regression test for http://b.android.com/199963
+    // We shouldn't get quickfix notifications for data binding tags
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null);
+    assertHtmlEquals(
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
+      "<BR/>" +
+      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>" +
+      "<BR/>" +
+      "<BR/>" +
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>" +
       "</body></html>", html);
   }
@@ -131,10 +165,12 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   public void testTypo() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>" +
       "</body></html>", html);
   }
@@ -214,17 +250,18 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
 
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "This is an error with entities: &amp; &lt; \"<BR/>" +
       "<BR/>" +
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
       "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/><BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
       "</body></html>", html);
   }
 
   public void testBrokenCustomView() {
-    final AtomicReference<IAndroidTarget> target = new AtomicReference<IAndroidTarget>();
+    final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = new LogOperation() {
       @Override
       public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {
@@ -280,7 +317,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
           "\tat java.lang.Thread.run(Thread.java:680)\n");
         logger.error(null, null, throwable, null);
         //noinspection ConstantConditions
-        target.set(render.getRenderTask().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getRealTarget());
 
         assertTrue(logger.hasProblems());
       }
@@ -291,7 +328,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file://$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>" +
@@ -301,10 +338,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -314,6 +352,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     }
   }
@@ -396,7 +435,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
       "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
       "<BR/>" +
@@ -404,6 +443,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
       "</body></html>", html);
   }
 
@@ -430,7 +470,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     }
 
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Preview might be incorrect: unsupported class version.<BR/>" +
       "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
       "For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. " +
@@ -450,7 +490,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   }
 
   public void testSecurity() throws Exception {
-    final AtomicReference<IAndroidTarget> target = new AtomicReference<IAndroidTarget>();
+    final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = new LogOperation() {
       @Override
       public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {
@@ -514,7 +554,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         logger.error(null, null, throwable, null);
 
         //noinspection ConstantConditions
-        target.set(render.getRenderTask().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getRealTarget());
       }
     };
 
@@ -524,7 +564,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -549,10 +589,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -577,8 +618,92 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     }
+  }
+
+  public void testFidelityErrors() {
+    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertHtmlEquals("<html><body>&nbsp;Fidelity warnings <A HREF=\"runnable:0\">(show)</A></body></html>", html);
+
+    operation = (logger, render) -> {
+      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+      logger.error("Error", "An error", null, null);
+    };
+    html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    // When there is an error, the fidelity warnings should not be collapsed
+    assertHtmlEquals("<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">" +
+                     "Rendering Problems</font><BR/>An error<BR/><BR/>" +
+                     "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
+                     "The graphics preview in the layout editor may not" +
+                     " be accurate:<BR/><DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A><BR/>" +
+                     "</DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>" +
+                     "</body></html>", html);
+  }
+
+  public void testRefreshOnInstantiationFailure() throws Exception {
+    final String path = FileUtil.toSystemDependentName("/foo/bar/baz.png");
+    LogOperation operation = new LogOperation() {
+      @Override
+      public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {
+        Throwable throwable = createExceptionFromDesc(
+          "java.lang.ArithmeticException: / by zero\n" +
+          "\tat com.example.myapplication.MyButton.<init>(MyButton.java:14)\n" +
+          "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
+          "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n" +
+          "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n" +
+          /* Removed to avoid including source links in the annotated output
+          "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n" +
+          */
+          "\tat org.jetbrains.android.uipreview.ViewLoader.createNewInstance(ViewLoader.java:465)\n" +
+          "\tat org.jetbrains.android.uipreview.ViewLoader.loadClass(ViewLoader.java:172)\n" +
+          "\tat org.jetbrains.android.uipreview.ViewLoader.loadView(ViewLoader.java:105)\n" +
+          "\tat com.android.tools.idea.rendering.LayoutlibCallbackImpl.loadView(LayoutlibCallbackImpl.java:186)\n" +
+          "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:312)\n" +
+          "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:233)\n" +
+          /* Removed to avoid including source links in the annotated output
+          "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:727)\n" +
+          "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:495)\n" +
+          "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:397)\n" +
+          */
+          "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:324)\n" +
+          "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:429)\n" +
+          "\tat com.android.ide.common.rendering.LayoutLibrary.createSession(LayoutLibrary.java:389)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask$2.compute(RenderTask.java:548)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask$2.compute(RenderTask.java:533)\n" +
+          "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:966)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:533)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask.lambda$inflate$1(RenderTask.java:659)\n" +
+          "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266)\n" +
+          "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n" +
+          "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n" +
+          "\tat java.lang.Thread.run(Thread.java:745)\n");
+        logger.addBrokenClass("com.example.myapplication.MyButton", throwable);
+      }
+    };
+
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertHtmlEquals("<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"fon" +
+                     "t-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+                     "The following classes could not be instantiated:<DL><DD>-&NBS" +
+                     "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
+                     "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"runn" +
+                     "able:0\">Show Exception</A>, <A HREF=\"refreshRender\">Clear Cac" +
+                     "he</A>)</DL>Tip: Use <A HREF=\"http://developer.android.com/re" +
+                     "ference/android/view/View.html#isInEditMode()\">View.isInEditM" +
+                     "ode()</A> in your custom views to skip code or show sample da" +
+                     "ta when shown in the IDE.<BR/><BR/>If this is an unexpected e" +
+                     "rror you can also try to <A HREF=\"action:build\">build the pro" +
+                     "ject</A>, then manually <A HREF=\"refreshRender\">refresh the l" +
+                     "ayout</A>.<BR/><BR/><font style=\"font-weight:bold; color:#005" +
+                     "555;\">Exception Details</font><BR/>java.lang.ArithmeticExcept" +
+                     "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
+                     "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
+                     "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
+                     "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/></body>" +
+                     "</html>", html);
   }
 
   // Image paths will include full resource urls which depends on the test environment
@@ -697,6 +822,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
 
     // Dump stack back to string to make sure we have the same exception
+    desc = desc.replace("\n", SdkUtils.getLineSeparator());
     assertEquals(desc, AndroidCommonUtils.getStackTrace(throwable));
 
     return throwable;
@@ -712,7 +838,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     if (!expected.equals(actual)) {
       System.out.println("Render unit test failed: " + getName());
-      System.out.println("Output diff:\n" + SdkTestCase.getDiff(expected, actual));
+      System.out.println("Output diff:\n" + TestUtils.getDiff(expected, actual));
     }
 
     // Visually diffing very long lines is hard. Let's insert some newlines in the deltas that we're

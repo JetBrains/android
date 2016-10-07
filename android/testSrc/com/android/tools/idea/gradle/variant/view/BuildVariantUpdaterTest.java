@@ -26,8 +26,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.easymock.EasyMock.*;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link BuildVariantUpdater}.
@@ -50,7 +50,7 @@ public class BuildVariantUpdaterTest extends TestCase {
     // The list should include only the customizers that:
     // 1. Have a matching ProjectSystemId, or have ProjectSystemId.IDE as their ProjectSystemId
     // 2. Have AndroidGradleModel (or subclass) as the supported model type
-    assertThat(customizers).containsOnly(customizer1, customizer2);
+    assertThat(customizers).containsExactly(customizer1, customizer2);
   }
 
   @NotNull

@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
+import com.android.tools.rpclib.schema.Method;
+
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 public class RenderUtils {
 
@@ -39,4 +43,30 @@ public class RenderUtils {
     int offsetY = (int)((-Math.min(0, h - (int)(f * imageHeight)) / 2) / f);
     g.drawImage(image, x, y, x + w, y + h, offsetX, offsetY, imageWidth - offsetX, imageHeight - offsetY, c);
   }
+
+  public static Number toJavaIntType(Method type, Number value) {
+    switch (type.getValue()) {
+      case Method.Int8Value:
+        return value.byteValue();
+      case Method.Uint8Value:
+        return (short)(value.intValue() & 0xff);
+      case Method.Int16Value:
+        return value.shortValue();
+      case Method.Uint16Value:
+        return value.intValue() & 0xffff;
+      case Method.Int32Value:
+        return value.intValue();
+      case Method.Uint32Value:
+        return value.longValue() & 0xffffffffL;
+      case Method.Int64Value:
+        return value.longValue();
+      case Method.Uint64Value:
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(value.longValue());
+        return new BigInteger(1, buffer.array());
+      default:
+        throw new IllegalArgumentException("not int type: " + type);
+    }
+  }
+
 }

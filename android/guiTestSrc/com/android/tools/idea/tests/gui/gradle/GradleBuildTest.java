@@ -16,43 +16,44 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleBuildTest extends GuiTestCase {
-  @Test @IdeGuiTest
+@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunWith(GuiTestRunner.class)
+public class GradleBuildTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Test
   public void testBuildWithInvalidJavaHome() throws IOException {
-    String jdkPathPropertyName = "jdk.path";
-
-    String jdkPathValue = System.getProperty(jdkPathPropertyName);
-    if (isEmpty(jdkPathValue)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), jdkPathPropertyName);
-      System.out.println(msg);
-      return;
-    }
+    String jdkPathValue = System.getProperty("jdk.path");
+    assumeTrue("jdk.path system property missing", !isEmpty(jdkPathValue));
 
     File jdkPath = new File(jdkPathValue);
 
-    myProjectFrame = importSimpleApplication();
-    myProjectFrame.invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
+    guiTest.importSimpleApplication();
+    guiTest.ideFrame().invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
 
     // Find message dialog explaining the source of the error.
-    myProjectFrame.findMessageDialog("Gradle Running").clickOk();
+    guiTest.ideFrame().findMessageDialog("Gradle Running").clickOk();
 
     // Find the dialog to select the path of the JDK.
-    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(myRobot);
+    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(guiTest.robot());
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 

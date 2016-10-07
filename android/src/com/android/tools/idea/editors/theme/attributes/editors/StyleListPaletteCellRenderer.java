@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +77,7 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
     if (primaryResourceValue != null && primaryDarkResourceValue != null && accentResourceValue != null) {
       Configuration configuration = theme.getConfiguration();
       ResourceResolver resourceResolver = configuration.getConfigurationManager().getResolverCache()
-        .getResourceResolver(configuration.getTarget(), theme.getStyleResourceUrl(), configuration.getFullConfig());
+        .getResourceResolver(configuration.getRealTarget(), theme.getStyleResourceUrl(), configuration.getFullConfig());
 
       Color primaryColor = ResourceHelper.resolveColor(resourceResolver, primaryResourceValue, myContext.getProject());
       Color primaryDarkColor = ResourceHelper.resolveColor(resourceResolver, primaryDarkResourceValue, myContext.getProject());

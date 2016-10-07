@@ -89,6 +89,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
+  public void testOpenDrawerAttributeNameCompletion() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    toTestCompletion("drawer_layout.xml", "drawer_layout_after.xml");
+  }
+
   // Deprecated attributes should be crossed out in the completion
   // This test specifically checks for "android:editable" attribute on TextView
   public void testDeprecatedAttributeNamesCompletion() throws Throwable {
@@ -124,7 +130,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
   public void testToolsListViewAttributes() throws Throwable {
-    doTestCompletionVariants("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
+    doTestCompletionVariantsContains("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
   }
 
   // tools:targetApi values are autocompleted
@@ -140,6 +146,24 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   // "apple_pie" is not a valid tools:targetApi value as well
   public void testTargetApiErrorMessage2() throws Throwable {
     doTestHighlighting("tools_targetapi_error2.xml");
+  }
+
+  // Designtime attributes completion is showing completion variants
+  public void testDesigntimeAttributesCompletion() throws Throwable {
+    doTestCompletionVariants("tools_designtime_completion.xml", "src", "nextFocusRight");
+  }
+
+  // Designtime attributes completion is completing attribute names correctly
+  public void testDesigntimeAttributesCompletion2() throws Throwable {
+    toTestFirstCompletion("tools_designtime_completion_background.xml",
+                          "tools_designtime_completion_background_after.xml");
+  }
+
+  // Code completion in views inside a <layout> tag need to pick up default layout params
+  public void testDataBindingLayoutPAramCompletion() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=212690
+    toTestFirstCompletion("data_binding_completion.xml",
+                          "data_binding_completion_after.xml");
   }
 
   // fontFamily attribute values are autocompleted
@@ -405,9 +429,9 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av3.xml", "@color/", "@android:", "@drawable/");
-    doTestCompletionVariants("av8.xml", "@android:", "@anim/", "@color/", "@dimen/", "@drawable/", "@id/", "@layout/", "@string/",
-                             "@style/");
+    doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1");
+    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen", "@id/idd1",
+                                     "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1");
   }
 
   public void testLocalResourceCompletion1() throws Throwable {
@@ -433,11 +457,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testForceLocalResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av13.xml", "@string/hello", "@string/hello1");
+    // No system colors are suggested as completion.
+    doTestCompletionVariants("av13.xml", "@color/color0", "@color/color1", "@color/color2");
   }
 
   public void testSystemResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/", "@android:mipmap/");
+    doTestCompletionVariants("av6.xml", "@android:color/primary_text_dark", "@android:drawable/menuitem_background");
   }
 
   public void testCompletionSpecialCases() throws Throwable {
@@ -452,6 +477,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testFloatAttributeValuesCompletion() throws Throwable {
     copyFileToProject("myIntResource.xml", "res/values/myIntResource.xml");
     doTestCompletionVariants("floatAttributeValues.xml", "@android:", "@integer/my_integer");
+  }
+
+  public void testDrawerLayoutOpenDrawerCompletion() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    doTestCompletionVariants("drawer_layout_attr_completion.xml", "start", "end", "left", "right");
   }
 
   public void testTagNameCompletion2() throws Throwable {
@@ -546,6 +577,15 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     assertEquals("GridLayout", completionResult.get(1));
   }
 
+  // Test android:layout_width and android:layout_height highlighting for framework and library layouts
+  public void testWidthHeightHighlighting() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy classes that imitate support library ones
+    myFixture.copyFileToProject(testFolder + "/PercentRelativeLayout.java", "src/android/support/percent/PercentRelativeLayout.java");
+    myFixture.copyFileToProject(testFolder + "/PercentFrameLayout.java", "src/android/support/percent/PercentFrameLayout.java");
+
+    doTestHighlighting("dimensions_layout.xml");
+  }
+
   public void testTagNameIcons1() throws Throwable {
     doTestTagNameIcons("tn10.xml");
   }
@@ -558,7 +598,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     final LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
-    final Set<String> elementsToCheck = new HashSet<String>(Arrays.asList(
+    final Set<String> elementsToCheck = new HashSet<>(Arrays.asList(
       "view", "include", "requestFocus", "fragment", "Button"));
 
     for (LookupElement element : elements) {
@@ -898,7 +938,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     final VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

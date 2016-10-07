@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.GradleSyncState.PROJECT_EXTERNAL_BUILD_FILES_CHANGED;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
@@ -58,72 +59,121 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
+    NotificationPanel.Type newPanelType = notificationPanelType();
+    return (oldPanel != null && oldPanel.type == newPanelType) ? oldPanel : newPanelType.create(myProject);
+  }
+
+  @NotNull
+  private NotificationPanel.Type notificationPanelType() {
     if (!isBuildWithGradle(myProject)) {
-      return null;
+      return NotificationPanel.Type.NONE;
     }
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (!syncState.areSyncNotificationsEnabled()) {
-      return null;
+      return NotificationPanel.Type.NONE;
     }
     if (syncState.isSyncInProgress()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("Gradle project sync in progress...");
-      return panel;
+      return NotificationPanel.Type.IN_PROGRESS;
     }
     if (lastGradleSyncFailed(myProject)) {
-      String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-      return new SyncProblemNotificationPanel(text);
+      return NotificationPanel.Type.FAILED;
     }
     if (hasErrors(myProject)) {
-      String text = "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.";
-      return new SyncProblemNotificationPanel(text);
+      return NotificationPanel.Type.ERRORS;
     }
 
     ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
     if (gradleSyncNeeded == ThreeState.YES) {
-      return new StaleGradleModelNotificationPanel();
+      return NotificationPanel.Type.SYNC_NEEDED;
     }
 
-    return null;
+    return NotificationPanel.Type.NONE;
   }
 
-  private class StaleGradleModelNotificationPanel extends EditorNotificationPanel {
-    StaleGradleModelNotificationPanel() {
-      setText("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
-
-      createActionLabel("Sync Now", new Runnable() {
+  private static class NotificationPanel extends EditorNotificationPanel {
+    enum Type {
+      NONE() {
+        @Nullable
         @Override
-        public void run() {
-          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        NotificationPanel create(@NotNull Project project) {
+          return null;
         }
-      });
-    }
-  }
+      },
+      IN_PROGRESS() {
+        @NotNull
+        @Override
+        NotificationPanel create(@NotNull Project project) {
+          return new NotificationPanel(this, "Gradle project sync in progress...");
+        }
+      },
+      FAILED() {
+        @NotNull
+        @Override
+        NotificationPanel create(@NotNull Project project) {
+          return new SyncProblemNotificationPanel(
+            project, this, "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.");
+        }
+      },
+      ERRORS() {
+        @NotNull
+        @Override
+        NotificationPanel create(@NotNull Project project) {
+          return new SyncProblemNotificationPanel(
+            project, this, "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.");
+        }
+      },
+      SYNC_NEEDED() {
+        @NotNull
+        @Override
+        NotificationPanel create(@NotNull Project project) {
+          boolean areExternalBuildFilesChanged = PROJECT_EXTERNAL_BUILD_FILES_CHANGED.get(project, false);
+          String buildFiles = areExternalBuildFilesChanged ? "External build files" : "Gradle files";
 
-  private class SyncProblemNotificationPanel extends EditorNotificationPanel {
-    SyncProblemNotificationPanel(@NotNull String text) {
+          return new StaleGradleModelNotificationPanel(
+            project, this,
+            buildFiles + " have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+        }
+      },
+      ;
+
+      @Nullable
+      abstract NotificationPanel create(@NotNull Project project);
+    }
+
+    @NotNull private final Type type;
+
+    NotificationPanel(@NotNull Type type, @NotNull String text) {
+      this.type = type;
       setText(text);
+    }
+  }
 
-      createActionLabel("Try Again", new Runnable() {
-        @Override
-        public void run() {
-          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-        }
+  private static class StaleGradleModelNotificationPanel extends NotificationPanel {
+    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      super(type, text);
+
+      createActionLabel("Sync Now", () -> {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      });
+    }
+  }
+
+  private static class SyncProblemNotificationPanel extends NotificationPanel {
+    SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      super(type, text);
+
+      createActionLabel("Try Again", () -> {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
       });
 
-      createActionLabel("Open 'Messages' View", new Runnable() {
-        @Override
-        public void run() {
-          ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
-        }
+      createActionLabel("Open 'Messages' View", () -> {
+        ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
       });
 
-      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), new Runnable() {
-        @Override
-        public void run() {
-          File logFile = new File(PathManager.getLogPath(), "idea.log");
-          openFile(logFile);
-        }
+      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
+        File logFile = new File(PathManager.getLogPath(), "idea.log");
+        openFile(logFile);
       });
     }
   }

@@ -18,8 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ComparisonChain;
@@ -48,9 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.GOOGLE_APIS_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.TV_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
  * Displays a list of system images currently installed and allows selection of one
@@ -109,6 +106,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
     });
     myTable.getSelectionModel().addListSelectionListener(this);
+    myTable.getEmptyText().setText("No System Images available. Are you connected to the internet?");
   }
 
   public void setModel(@NotNull SystemImageListModel model) {
@@ -207,10 +205,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * @param partlyDownloaded if true we are restoring after the local images has been reloaded but not the remote.
    *                         When this is the case do NOT fallback to the best image if the last selection could not be found,
    *                         instead wait for the remote images and keep looking for the current last selected system image.
+   * @param defaultSystemImage System image to use if a previous image was not already selected
    */
-  public void restoreSelection(boolean partlyDownloaded) {
+  public void restoreSelection(boolean partlyDownloaded, @Nullable SystemImageDescription defaultSystemImage) {
     SystemImageDescription best = null;
-    SystemImageDescription toFind = myLastSelectedImage;
+    SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : defaultSystemImage;
     for (int index = 0; index < myTable.getRowCount(); index++) {
       SystemImageDescription desc = myModel.getRowValue(myTable.convertRowIndexToModel(index));
       if (desc.equals(toFind)) {
@@ -228,11 +227,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private void installForDevice() {
     int apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     List<String> requestedPackages = Lists.newArrayListWithCapacity(3);
-    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null),
-                                                     SystemImage.DEFAULT_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), DEFAULT_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), WEAR_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), TV_TAG, Abi.X86.toString()));
-    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(this, requestedPackages);
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(this, requestedPackages, false);
     if (dialog != null) {
       dialog.show();
       myModel.refreshImages(true);

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.HyperlinkEvent;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.classextension.EasyMock.*;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink}.

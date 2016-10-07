@@ -25,10 +25,10 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.collect.Maps;
@@ -76,8 +76,15 @@ public class ResourceResolverCache {
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
 
-/** Map from API level to framework resources */
+  /** Map from API level to framework resources */
   private SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<AndroidTargetData>();
+
+  /**
+   * Store map keys for the latest custom configuration cached, so that they can be removed from the cache
+   * when a new custom configuration is created. We only want to keep the latest one.
+   */
+  private String myCustomConfigurationKey;
+  private String myCustomResolverKey;
 
   public ResourceResolverCache(ConfigurationManager manager) {
     myManager = manager;
@@ -305,5 +312,17 @@ public class ResourceResolverCache {
     myCachedGeneration = 0;
     myAppResourceMap.clear();
     myResolverMap.clear();
+  }
+
+  public void replaceCustomConfig(@NotNull String themeStyle, @NotNull final FolderConfiguration fullConfiguration) {
+    if (myCustomConfigurationKey != null) {
+      myFrameworkResourceMap.remove(myCustomConfigurationKey);
+      myAppResourceMap.remove(myCustomConfigurationKey);
+    }
+    if (myCustomResolverKey != null) {
+      myResolverMap.remove(myCustomResolverKey);
+    }
+    myCustomConfigurationKey = fullConfiguration.getUniqueKey();
+    myCustomResolverKey = themeStyle + myCustomConfigurationKey;
   }
 }

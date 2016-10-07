@@ -33,7 +33,6 @@ import java.util.Map;
 
 import static com.android.assetstudiolib.BitmapGeneratorTest.assertImageSimilar;
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

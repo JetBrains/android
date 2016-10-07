@@ -16,7 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,8 +32,8 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
   @Override
   public String valueOf(UpdaterTreeNode node) {
     AndroidVersion version;
-    if (node instanceof PlatformDetailsTreeNode) {
-      DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)((PlatformDetailsTreeNode)node).getPackage().getTypeDetails();
+    if (node instanceof DetailsTreeNode) {
+      DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)((DetailsTreeNode)node).getPackage().getTypeDetails();
       version = new AndroidVersion(details.getApiLevel(), details.getCodename());
     }
     else if (node instanceof SummaryTreeNode) {

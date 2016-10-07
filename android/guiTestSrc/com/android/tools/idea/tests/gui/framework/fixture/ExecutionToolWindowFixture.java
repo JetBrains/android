@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
@@ -23,7 +24,6 @@ import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
@@ -32,19 +32,14 @@ import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
-import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
@@ -52,7 +47,6 @@ import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -66,19 +60,13 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       myContent = content;
     }
 
-    public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull Timeout timeout) {
-      pause(new Condition("LogCat tool window output check for package name.") {
-        @Override
-        public boolean test() {
-          return outputMatches(matcher);
-        }
-      }, timeout);
+    public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull long secondsToWait) {
+      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
     }
 
     /**
      * Waits until it grabs the console window and then returns true if its text matches that of {@code matcher}.
-     * Note: The caller should wrap it in something like a org.fest.swing.timing.Pause.pause to make sure they don't hang forever if the
-     * console view cannot be found for some reason.
+     * Note: This method may not terminate if the console view cannot be found.
      */
     public boolean outputMatches(@NotNull TextMatcher matcher) {
       ConsoleViewImpl consoleView;
@@ -198,13 +186,8 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       throw new IllegalStateException("Could not find the Re-run failed tests button.");
     }
 
-    public void waitForExecutionToFinish(@NotNull Timeout timeout) {
-      Pause.pause(new Condition("Wait for execution to finish") {
-        @Override
-        public boolean test() {
-          return !isExecutionInProgress();
-        }
-      }, timeout);
+    public void waitForExecutionToFinish() {
+      Wait.minutes(2).expecting("execution to finish").until(() -> !isExecutionInProgress());
     }
 
     @TestOnly

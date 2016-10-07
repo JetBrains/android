@@ -30,7 +30,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -40,6 +39,7 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.TestProjects.createBasicProject;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 
@@ -79,6 +79,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
       }
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
@@ -88,29 +89,25 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(moduleFile);
     final VirtualFile moduleDir = moduleFile.getParent();
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-        ModifiableRootModel model = moduleRootManager.getModifiableModel();
-        model.addContentEntry(moduleDir);
-        model.commit();
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
+      model.addContentEntry(moduleDir);
+      model.commit();
     });
   }
 
   public void testCustomizeModule() throws Exception {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
-        modelsProvider.commit();
-      }
-      catch (Throwable t) {
-        modelsProvider.dispose();
-        ExceptionUtil.rethrowAllAsUnchecked(t);
-      }
-    });
+    try {
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
+
+      ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
+    }
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      rethrowAllAsUnchecked(t);
+    }
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];

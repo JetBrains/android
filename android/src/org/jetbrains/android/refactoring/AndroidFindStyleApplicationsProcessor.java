@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -43,7 +44,6 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -166,7 +166,6 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
     if (myContext != null) {
       UndoUtil.markPsiFileForUndo(myContext);
-      AndroidLayoutPreviewToolWindowManager.renderIfApplicable(myContext.getProject());
     }
   }
 
@@ -200,7 +199,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
-      ResourceType.LAYOUT.getName(), resDirs.toArray(new VirtualFile[resDirs.size()]));
+      ResourceFolderType.LAYOUT, resDirs.toArray(new VirtualFile[resDirs.size()]));
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
 

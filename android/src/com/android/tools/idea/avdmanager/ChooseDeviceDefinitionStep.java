@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,129 +16,77 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
-import com.intellij.openapi.Disposable;
-import com.intellij.ui.JBColor;
+import com.google.common.base.Optional;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.DEVICE_DEFINITION_KEY;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MODE_KEY;
-
 /**
- * Wizard step for selecting a device definition from the devices declared in the SDK and
- * defined by the user.
+ * {@link ModelWizardStep} for selecting a device definition from the devices declared in the SDK
+ * and defined by the user.
  */
-public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription implements DeviceUiAction.DeviceProvider {
-  private JPanel myPanel;
-  private DeviceDefinitionList myDeviceDefinitionList;
-  private com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview myDeviceDefinitionPreview;
-  private JButton myEditDeviceButton;
-  private JPanel myEditButtonContainer;
+public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptionsModel> {
+  private JPanel myRootPanel;
+  private ChooseDeviceDefinitionPanel myDeviceDefinitionPanel;
+  private StudioWizardStepPanel myStudioWizardStepPanel;
+  private ValidatorPanel myValidatorPanel;
 
-  private final EditDeviceAction myEditDeviceAction = new EditDeviceAction(this, "Edit Device...");
-  private final CreateDeviceAction myCreateDeviceAction = new CreateDeviceAction(this, "Create Device...");
-  private final CloneDeviceAction myCloneDeviceAction = new CloneDeviceAction(this, "Clone Device...");
+  public ChooseDeviceDefinitionStep(@NotNull AvdOptionsModel model) {
+    super(model, "Select Hardware");
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Choose a device definition");
+    FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
 
-  public ChooseDeviceDefinitionStep(@Nullable Disposable parentDisposable) {
-    super(parentDisposable);
-    setBodyComponent(myPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
-    myDeviceDefinitionList.setParentProvider(this);
-    myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
+    Disposer.register(this, myDeviceDefinitionPanel);
+  }
+
+  @Override
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    myValidatorPanel.registerValidator(getModel().device(), new Validator<Optional<Device>>() {
+      @NotNull
       @Override
-      public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
-        myDeviceDefinitionPreview.setDevice(selectedDevice);
-        myState.put(DEVICE_DEFINITION_KEY, selectedDevice);
-        updateEditButton(selectedDevice);
+      public Result validate(@NotNull Optional<Device> value) {
+        return (value.isPresent())
+               ? Result.OK
+               : new Validator.Result(Severity.ERROR, "A hardware profile must be selected to continue.");
       }
     });
-    myDeviceDefinitionList.addCategoryListener(myDeviceDefinitionPreview);
-    myEditButtonContainer.setBackground(JBColor.background());
-    myEditDeviceButton.setBackground(JBColor.background());
-    myDeviceDefinitionList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
-    updateEditButton(null);
-  }
 
-  private void updateEditButton(@Nullable Device selectedDevice) {
-    myEditDeviceButton.setAction(null);
-    Action action;
-    if (selectedDevice == null) {
-      action = myCreateDeviceAction;
-    } else if (DeviceManagerConnection.getDefaultDeviceManagerConnection().isUserDevice(selectedDevice)) {
-      action = myEditDeviceAction;
-    } else {
-      action = myCloneDeviceAction;
-    }
-    myEditDeviceButton.setAction(action);
+    myDeviceDefinitionPanel.addDeviceListener(new Consumer<Device>() {
+      @Override
+      public void consume(Device device) {
+        getModel().device().setNullableValue(device);
+      }
+    });
   }
 
   @Override
-  public void onEnterStep() {
-    super.onEnterStep();
-    Device selectedDevice = myState.get(DEVICE_DEFINITION_KEY);
-    if (selectedDevice == null) {
-      myDeviceDefinitionList.selectDefaultDevice();
-    } else {
-      myDeviceDefinitionList.setSelectedDevice(selectedDevice);
-    }
-  }
-
-  @Override
-  public boolean validate() {
-    return myState.get(DEVICE_DEFINITION_KEY) != null;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false);
-  }
-
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    return null;
+  protected void onEntering() {
+    myDeviceDefinitionPanel.setDevice(getModel().device().getValueOrNull());
   }
 
   @NotNull
   @Override
-  public String getStepName() {
-    return AvdWizardConstants.CHOOSE_DEVICE_DEFINITION_STEP;
-  }
-
-  @Nullable
-  @Override
-  public Device getDevice() {
-    return myDeviceDefinitionList.getDevice();
-  }
-
-  @Override
-  public void setDevice(@Nullable Device device) {
-    myDeviceDefinitionList.setSelectedDevice(device);
-  }
-
-  @Override
-  public void selectDefaultDevice() {
-    myDeviceDefinitionList.selectDefaultDevice();
-  }
-
-  @Override
-  public void refreshDevices() {
-    myDeviceDefinitionList.refreshDevices();
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
   }
 
   @NotNull
   @Override
-  protected String getStepTitle() {
-    return "Select Hardware";
+  protected JComponent getComponent() {
+    return myStudioWizardStepPanel;
   }
 
-  @Nullable
-  @Override
-  protected String getStepDescription() {
-    return "Choose a device definition";
+  private void createUIComponents() {
+    myDeviceDefinitionPanel = new ChooseDeviceDefinitionPanel(getModel().device().getValueOrNull());
   }
-
 }

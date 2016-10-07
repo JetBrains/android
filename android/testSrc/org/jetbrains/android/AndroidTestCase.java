@@ -17,10 +17,12 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionTool;
+import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.Disposable;
@@ -34,24 +36,25 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.testFramework.InspectionTestUtil;
-import com.intellij.testFramework.InspectionsKt;
+import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
@@ -104,9 +107,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // the manifest on their own.
     createManifest();
 
-    if (isToAddSdk()) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), sdkPath);
-    }
     myFacet = addAndroidFacet(myModule, sdkPath, getPlatformDir(), isToAddSdk());
 
     LanguageLevel languageLevel = getLanguageLevel();
@@ -145,10 +145,15 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, getTestRootDisposable());
+    registerAllowedRoots(allowedRoots, myTestRootDisposable);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
+    // If we do not need a recent target, we disable the studio embedded target to allow tests to pick the test SDK in the testData
+    StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(!requireRecentSdk());
+
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {
@@ -162,9 +167,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     VfsRootAccess.allowRootAccess(newRootsArray);
     myAllowedRoots.addAll(newRoots);
 
-    Disposer.register(disposable, () -> {
-      VfsRootAccess.disallowRootAccess(newRootsArray);
-      myAllowedRoots.removeAll(newRoots);
+    Disposer.register(disposable, new Disposable() {
+      @Override
+      public void dispose() {
+        VfsRootAccess.disallowRootAccess(newRootsArray);
+        myAllowedRoots.removeAll(newRoots);
+      }
     });
   }
 
@@ -256,6 +264,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
       myModule = null;
       myAdditionalModules = null;
       myFixture.tearDown();
@@ -288,7 +297,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
     final ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     facetModel.addFacet(facet);
-    ApplicationManager.getApplication().runWriteAction(facetModel::commit);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        facetModel.commit();
+      }
+    });
     return facet;
   }
 
@@ -313,7 +327,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     scope.invalidate();
 
-    GlobalInspectionContextForTests globalContext = InspectionsKt.createGlobalContextForTool(scope, getProject(), Collections.singletonList(wrapper));
+    final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
+    final GlobalInspectionContextForTests globalContext =
+      CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);

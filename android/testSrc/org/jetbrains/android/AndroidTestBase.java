@@ -16,7 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
@@ -62,7 +62,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
     // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
     // The following line explicitly adds that folder as an allowed root.
-    VfsRootAccess.allowRootAccess(getTestRootDisposable(), FileUtil.toCanonicalPath(getAndroidPluginHome()));
+    VfsRootAccess.allowRootAccess(FileUtil.toCanonicalPath(getAndroidPluginHome()));
   }
 
   public static String getAbsoluteTestDataPath() {
@@ -91,7 +91,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
   }
 
   public static String getDefaultTestSdkPath() {
