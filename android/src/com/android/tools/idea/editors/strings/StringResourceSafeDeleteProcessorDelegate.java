@@ -18,7 +18,9 @@ package com.android.tools.idea.editors.strings;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -32,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.TAG_STRING;
@@ -48,8 +51,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   static boolean handlesElementImpl(@NotNull PsiElement element) {
     if (element instanceof XmlTag) {
       // The string element: what we actually want to delete
-      XmlTag tag = (XmlTag)element;
-      return tag.getName().equals(TAG_STRING) && tag.getAttribute(ATTR_NAME) != null;
+      return AndroidResourceUtil.isStringResource((XmlTag)element);
     }
     else if (element instanceof XmlAttributeValue) {
       // The value of the string element's name attribute. Extracted from the string element and added to the list of PsiElements to search
@@ -78,9 +80,12 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
       // Find usages of the string element's name attribute value, such as @string/string_name references in XML files
       elements.add(attribute.getValueElement());
 
-      // R.string.string_name references in Java files
-      elements.addAll(Arrays.asList(AndroidResourceUtil.findResourceFieldsForValueResource(tag, true)));
+      // R.string.string_name references in Java files that are not LightElements
+      Collection<PsiField> fields = Arrays.stream(AndroidResourceUtil.findResourceFieldsForValueResource(tag, true))
+        .filter(field -> !(field instanceof LightElement))
+        .collect(Collectors.toList());
 
+      elements.addAll(fields);
       return elements;
     }
     else if (element instanceof XmlAttributeValue) {

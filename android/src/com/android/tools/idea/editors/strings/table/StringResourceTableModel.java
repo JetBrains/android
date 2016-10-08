@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
@@ -25,14 +26,30 @@ import javax.swing.table.AbstractTableModel;
 import java.util.List;
 
 public class StringResourceTableModel extends AbstractTableModel {
-  @Nullable private StringResourceData myData;
-  @Nullable private List<String> myKeys;
-  @Nullable private List<Locale> myLocales;
+  private final StringResourceData myData;
+  private final List<String> myKeys;
+  private final List<Locale> myLocales;
 
-  public void setData(@NotNull StringResourceData data) {
+  StringResourceTableModel() {
+    myData = null;
+    myKeys = null;
+    myLocales = null;
+  }
+
+  public StringResourceTableModel(@NotNull StringResourceData data) {
     myData = data;
     myKeys = data.getKeys();
     myLocales = data.getLocales();
+  }
+
+  @Nullable
+  public StringResourceData getData() {
+    return myData;
+  }
+
+  @NotNull
+  public StringResource getStringResourceAt(int row) {
+    return myData.getStringResource(keyOfRow(row));
   }
 
   @NotNull
