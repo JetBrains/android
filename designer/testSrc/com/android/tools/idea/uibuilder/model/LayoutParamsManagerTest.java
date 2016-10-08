@@ -19,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
+import com.intellij.openapi.module.Module;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.junit.Test;
 
@@ -30,7 +32,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LayoutParamsManagerTest {
+public class LayoutParamsManagerTest extends AndroidTestCase {
 
   @SuppressWarnings("unused")
   private static class DefaultValues extends ViewGroup.LayoutParams {
@@ -60,7 +62,6 @@ public class LayoutParamsManagerTest {
     }
   }
 
-  @Test
   public void testGetDefaultValues() {
     Map<String, Object> defaults = LayoutParamsManager.getDefaultValuesFromClass(DefaultValues.class);
 
@@ -83,7 +84,6 @@ public class LayoutParamsManagerTest {
     }
   }
 
-  @Test
   public void testMapField() {
     // Check default mappings
     LinearLayoutParams layoutParams = new LinearLayoutParams();
@@ -112,7 +112,6 @@ public class LayoutParamsManagerTest {
     assertThat(LayoutParamsManager.mapField(layoutParams, "notExistingMapping").type).isEmpty();
   }
 
-  @Test
   public void testSetAttribute() {
     DefaultValues layoutParams = new DefaultValues(0, 0);
     Configuration configurationMock = mock(Configuration.class);
@@ -120,6 +119,7 @@ public class LayoutParamsManagerTest {
     when(configurationMock.getDensity()).thenReturn(Density.HIGH);
     NlModel nlModelMock = mock(NlModel.class);
     when(nlModelMock.getConfiguration()).thenReturn(configurationMock);
+    when(nlModelMock.getModule()).thenReturn(myModule);
 
     assertThat(LayoutParamsManager.setAttribute(layoutParams, "intAttribute", "123456", nlModelMock)).isTrue();
     assertThat(layoutParams.intAttribute).isEqualTo(123456);
