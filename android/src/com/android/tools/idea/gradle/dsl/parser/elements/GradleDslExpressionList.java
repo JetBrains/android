@@ -26,6 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -205,6 +206,11 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
-    return ImmutableList.of();
+    List<GradleDslExpression> expressions = getExpressions();
+    List<GradleDslElement> children = new ArrayList<>(expressions.size());
+    for (GradleDslExpression expression : expressions) {
+      children.add(expression);
+    }
+    return children;
   }
 }
