@@ -174,6 +174,7 @@ iml_module(
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/m2:guava-18",
+        "//tools/external/gradle:gradle",
         "//tools/base/templates",
         "//tools:idea/java/jdkAnnotations",
     ],
