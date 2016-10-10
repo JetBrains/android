@@ -554,10 +554,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertNoPreviewView(item, AD_VIEW, ADS_ARTIFACT);
   }
 
-  public void assertMapFragment(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, MAP_FRAGMENT, MAPS_ARTIFACT);
-  }
-
   public void assertMapView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, MAP_VIEW, MAPS_ARTIFACT);
   }

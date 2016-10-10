@@ -18,9 +18,14 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.Palette.Group;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.StringReader;
 import java.util.Iterator;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class PaletteTest extends PaletteTestCase {
 
@@ -46,6 +51,20 @@ public class PaletteTest extends PaletteTestCase {
     assertIncludeItem(iterator.next());
     assertCoordinatorLayoutItem(iterator.next());
     assertFalse(iterator.hasNext());
+  }
+
+  public void testParent() throws Exception {
+    checkParents(null, loadPalette().getItems());
+  }
+
+  private static void checkParents(@Nullable Palette.Group parent, @NotNull List<Palette.BaseItem> items) {
+    for (Palette.BaseItem item : items) {
+      assertThat(item.getParent()).isSameAs(parent);
+      if (item instanceof Group) {
+        Group group = (Group)item;
+        checkParents(group, group.getItems());
+      }
+    }
   }
 
   @Language("XML")
@@ -103,5 +122,4 @@ public class PaletteTest extends PaletteTestCase {
     ViewHandlerManager manager = new ViewHandlerManager(getProject());
     return Palette.parse(new StringReader(PALETTE), manager);
   }
-
 }
