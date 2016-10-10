@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.InstallBuild
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -35,7 +36,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
       String minimumVersion = matcher.group(3);
 
       AndroidSdkHandler sdkHandler = null;
-      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (androidSdkData != null) {
         sdkHandler = androidSdkData.getSdkHandler();
       }

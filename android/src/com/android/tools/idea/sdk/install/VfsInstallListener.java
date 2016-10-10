@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk.install;
 import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -60,8 +61,9 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
     // refresh of jar-rooted filesystems. We queue a dummy refresh to run afterward, with our desired logic
     // as the finishRunnable.
     RefreshQueue.getInstance().refresh(true, false, () -> {
-      for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
-        AndroidSdkUtils.refreshLibrariesIn(sdk);
+      AndroidSdks androidSdks = AndroidSdks.getInstance();
+      for (Sdk sdk : androidSdks.getAllAndroidSdks()) {
+        androidSdks.refreshLibrariesIn(sdk);
       }
     });
   }

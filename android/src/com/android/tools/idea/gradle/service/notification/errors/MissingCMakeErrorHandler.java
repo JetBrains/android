@@ -25,6 +25,7 @@ import com.android.repository.api.SettingsController;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -41,7 +42,6 @@ import java.util.List;
 
 import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseSdkHandler;
 
 public class MissingCMakeErrorHandler extends AbstractSyncErrorHandler {
   @Nullable private final AndroidSdkHandler mySdkHandler;
@@ -74,7 +74,7 @@ public class MissingCMakeErrorHandler extends AbstractSyncErrorHandler {
     // TODO: remove the need for doing this each time.
     AndroidSdkHandler sdkHandler = mySdkHandler;
     if (sdkHandler == null) {
-      sdkHandler = tryToChooseSdkHandler();
+      sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     }
 
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());

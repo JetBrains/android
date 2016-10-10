@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
@@ -46,7 +47,6 @@ import com.intellij.platform.templates.github.ZipUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +60,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 import static com.android.tools.idea.templates.TemplateUtils.listFiles;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 /**
  * Handles locating templates and providing template metadata
@@ -111,13 +112,13 @@ public class TemplateManager {
    */
   @Nullable
   public static File getTemplateRootFolder() {
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    String homePath = toSystemIndependentName(PathManager.getHomePath());
     // Release build?
-    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
     if (root == null) {
       // Development build?
       for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
-        root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + path));
+        root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + path));
 
         if (root != null) {
           break;
@@ -132,7 +133,7 @@ public class TemplateManager {
     }
 
     // Fall back to SDK template root
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData != null) {
       File location = sdkData.getLocation();
       File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
@@ -149,10 +150,10 @@ public class TemplateManager {
    */
   @NotNull
   public static List<File> getExtraTemplateRootFolders() {
-    List<File> folders = new ArrayList<File>();
+    List<File> folders = new ArrayList<>();
 
     // Check in various locations in the SDK
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData != null) {
       File location = sdkData.getLocation();
 
@@ -207,13 +208,13 @@ public class TemplateManager {
     }
 
     // Look for source tree files
-    String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    String homePath = toSystemIndependentName(PathManager.getHomePath());
     // Release build?
-    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
     if (root == null) {
       // Development build?
       for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
-        root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + path));
+        root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + path));
 
         if (root != null) {
           break;
@@ -242,7 +243,7 @@ public class TemplateManager {
    */
   @NotNull
   public List<File> getTemplates(@NotNull String folder) {
-    List<File> templates = new ArrayList<File>();
+    List<File> templates = new ArrayList<>();
     Map<String, File> templateNames = Maps.newHashMap();
     File root = getTemplateRootFolder();
     if (root != null) {
@@ -283,12 +284,7 @@ public class TemplateManager {
 
     // Sort by file name (not path as is File's default)
     if (templates.size() > 1) {
-      Collections.sort(templates, new Comparator<File>() {
-        @Override
-        public int compare(File file1, File file2) {
-          return file1.getName().compareTo(file2.getName());
-        }
-      });
+      Collections.sort(templates, (file1, file2) -> file1.getName().compareTo(file2.getName()));
     }
 
     return templates;
@@ -636,7 +632,7 @@ public class TemplateManager {
     for (File template : templates) {
       TemplateHandle templateHandle = new TemplateHandle(template);
       TemplateMetadata metadata = templateHandle.getMetadata();
-      if (metadata == null || !metadata.isSupported()) {
+      if (!metadata.isSupported()) {
         continue;
       }
       // Don't include this template if it's been excluded

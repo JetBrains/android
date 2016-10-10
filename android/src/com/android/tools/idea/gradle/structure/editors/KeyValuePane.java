@@ -25,6 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -42,7 +43,6 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +53,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 import static com.android.sdklib.AndroidTargetHash.getAddonHashString;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel;
@@ -89,7 +88,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     myProject = project;
     myListener = listener;
     AndroidSdkHandler sdkHandler = null;
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (androidSdkData != null) {
       sdkHandler = androidSdkData.getSdkHandler();
     }

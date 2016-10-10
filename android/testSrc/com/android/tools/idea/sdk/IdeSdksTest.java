@@ -70,7 +70,8 @@ public class IdeSdksTest extends IdeaTestCase {
     assertNotNull(facet);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
-    myIdeSdks = new IdeSdks(new Jdks());
+    Jdks jdks = new Jdks();
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks), jdks);
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {

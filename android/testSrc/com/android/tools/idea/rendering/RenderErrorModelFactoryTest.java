@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -32,7 +33,6 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -450,7 +450,7 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
     assertNotNull(target.get());
-    boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
+    boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
         "java.lang.ArithmeticException: / by zero<BR/>" +
@@ -676,7 +676,7 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     assertSize(1, issues);
 
     assertNotNull(target.get());
-    boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
+    boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +

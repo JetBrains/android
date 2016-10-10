@@ -17,13 +17,13 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -162,7 +162,7 @@ public final class GapiPaths {
 
   @Nullable("gapi is not installed")
   private static LocalPackage getLocalPackage() {
-    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     return handler.getLocalPackage(REQUIRED_GAPI_VERSION.getSdkPackagePath(), new StudioLoggerProgressIndicator(GapiPaths.class));
   }
 

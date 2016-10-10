@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGr
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
@@ -71,7 +72,10 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
@@ -96,8 +100,6 @@ import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * Class that produces a {@link RenderErrorModel} containing the issues found in a {@link RenderResult}.
@@ -228,8 +230,9 @@ public class RenderErrorModelFactory {
       return false;
     }
 
-    if (isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdks androidSdks = AndroidSdks.getInstance();
+    if (androidSdks.isAndroidSdk(sdk)) {
+      AndroidSdkAdditionalData data = androidSdks.getAndroidSdkAdditionalData(sdk);
       if (data != null) {
         Sdk jdk = data.getJavaSdk();
         if (jdk != null) {
@@ -697,7 +700,7 @@ public class RenderErrorModelFactory {
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
               IAndroidTarget target = myResult.getRenderTask() != null ? myResult.getRenderTask().getConfiguration().getRealTarget() : null;
-              platformSource = target != null ? AndroidSdkUtils.findPlatformSources(target) : null;
+              platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
             }
 

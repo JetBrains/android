@@ -20,6 +20,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.tools.idea.rendering.LogWrapper;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -27,7 +28,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.WeakHashMap;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +66,7 @@ public class DeviceManagerConnection {
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    File sdkPath = AndroidSdkUtils.tryToChooseSdkHandler().getLocation();
+    File sdkPath = AndroidSdks.getInstance().tryToChooseSdkHandler().getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
     }
