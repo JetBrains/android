@@ -319,8 +319,6 @@ public class NewProjectTest {
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
       newProjectWizard.clickFinish();
 
-      guiTest.ideFrame().requestFocusIfLost();
-
       if (myWaitForSync) {
         guiTest.ideFrame().waitForGradleProjectSyncToFinish();
       }
