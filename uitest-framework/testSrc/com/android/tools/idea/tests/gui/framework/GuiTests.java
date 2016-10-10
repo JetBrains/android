@@ -473,17 +473,6 @@ public final class GuiTests {
   }
 
   /**
-   * Fest API bug work-around - Double click on FEST moves the mouse between clicks (to the same location), and that fails on Mac.
-   */
-  public static void doubleClick(Robot robot, Point clickLocation) {
-    robot.moveMouse(clickLocation);
-    robot.pressMouse(LEFT_BUTTON);
-    robot.releaseMouse(LEFT_BUTTON);
-    robot.pressMouse(LEFT_BUTTON);
-    robot.releaseMouse(LEFT_BUTTON);
-  }
-
-  /**
    * Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null
    */
   @Nullable
