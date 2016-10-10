@@ -59,4 +59,20 @@ public class GfxTraceUtil {
     }
     return true;
   }
+
+  /**
+   * Computes the (relative) luminance of the given color.
+   * @see <a href="https://en.wikipedia.org/wiki/Relative_luminance">Relative Luminance</a>
+   */
+  public static double getLuminance(Color color) {
+    return getLuminance(color.getRGB());
+  }
+
+  /**
+   * Computes the (relative) luminance of the given color.
+   * @see <a href="https://en.wikipedia.org/wiki/Relative_luminance">Relative Luminance</a>
+   */
+  public static double getLuminance(int rgb) {
+    return (0.2126 * ((rgb >> 16) & 0xFF) + 0.7152 * ((rgb >> 8) & 0xFF) + 0.0722 * (rgb & 0xFF)) / 255.0;
+  }
 }
