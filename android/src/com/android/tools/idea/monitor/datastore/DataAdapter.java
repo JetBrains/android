@@ -39,12 +39,9 @@ public interface DataAdapter<T> {
   SeriesData<T> get(int index);
 
   /**
-   * Clears any previous data and resets any new/incoming data to be relative to the new startTime.
-   * @param deviceStartTimeUs the data starting point in device time.
-   * @param studioStartTimeUs the data starting point in studio time.
-   *                          TODO this is currently used for test data generators to convert test data timestamps back to device time.
+   * Clears any previous data.
    */
-  void reset(long deviceStartTimeUs, long studioStartTimeUs);
+  void reset();
 
   /**
    * Stops any ongoing data polls.

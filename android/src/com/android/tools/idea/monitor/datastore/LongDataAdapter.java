@@ -28,11 +28,11 @@ public class LongDataAdapter implements DataAdapter<Long> {
   private final TLongArrayList myTimestampData;
 
   @NotNull
-  private final TLongArrayList myTrafficData;
+  private final TLongArrayList myValues;
 
   public LongDataAdapter(@NotNull TLongArrayList timestampData, @NotNull TLongArrayList trafficData) {
     myTimestampData = timestampData;
-    myTrafficData = trafficData;
+    myValues = trafficData;
   }
 
   @Override
@@ -42,12 +42,13 @@ public class LongDataAdapter implements DataAdapter<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    return new SeriesData<>(myTimestampData.get(index), myTrafficData.get(index));
+    return new SeriesData<>(myTimestampData.get(index), myValues.get(index));
   }
 
   @Override
-  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
-    // TODO: implement
+  public void reset() {
+    myTimestampData.clear();
+    myValues.clear();
   }
 
   @Override

@@ -33,10 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 public final class SeriesDataStoreImpl implements SeriesDataStore {
 
-  private static final int GENERATE_DATA_THREAD_DELAY = 100;
-
-  private static final DataGenerator DEFAULT_DATA_GENERATOR = new DataGenerator(0, 100, 20);
-
   /**
    * Key to be used when no target is provided.
    */
@@ -65,7 +61,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
                              @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     myDeviceProfilerService = deviceProfilerService;
     myDispatcher = dispatcher;
-    startGeneratingData();
+    synchronizeStartTime();
   }
 
   @Override
@@ -87,8 +83,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   @Override
   public void reset() {
     synchronizeStartTime();
-    myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
-      adapter -> adapter.reset(TimeUnit.NANOSECONDS.toMicros(myDeviceStartTimeNs), TimeUnit.NANOSECONDS.toMicros(myStudioOffsetTimeNs))));
+    myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(adapter -> adapter.reset()));
   }
 
   @Override
@@ -120,41 +115,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
     Object key = target == null ? NO_TARGET : target;
     myDataSeriesMap.get(type).put(key, adapter);
-    adapter.reset(myDeviceStartTimeNs, myStudioOffsetTimeNs);
-  }
-
-  private void startGeneratingData() {
-    synchronizeStartTime();
-    for (SeriesDataType type : SeriesDataType.values()) {
-      switch (type) {
-        case CPU_MY_PROCESS:
-        case CPU_OTHER_PROCESSES:
-        case CPU_THREADS:
-        case CPU_THREAD_STATE:
-        case MEMORY_TOTAL:
-        case MEMORY_JAVA:
-        case MEMORY_NATIVE:
-        case MEMORY_GRAPHICS:
-        case MEMORY_CODE:
-        case MEMORY_OTHERS:
-        case MEMORY_OBJECT_COUNT:
-        case NETWORK_RECEIVED:
-        case NETWORK_SENT:
-        case NETWORK_CONNECTIONS:
-        case NETWORK_RADIO:
-        case NETWORK_TYPE:
-        case NETWORK_HTTP_DATA:
-        case EVENT_ACTIVITY_ACTION:
-        case EVENT_FRAGMENT_ACTION:
-        case EVENT_SIMPLE_ACTION:
-          // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
-          // Once we're done with the move, we can remove this switch/case block.
-          break;
-        default:
-          registerAdapter(type, DEFAULT_DATA_GENERATOR);
-          break;
-      }
-    }
+    adapter.reset();
   }
 
   /**
@@ -185,130 +146,6 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
     catch (StatusRuntimeException e) {
       myDispatcher.getMulticaster().profilerServerDisconnected();
-    }
-  }
-
-  private static class EmptyDataGenerator<T> implements DataAdapter<T> {
-
-    @Override
-    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
-
-    }
-
-    @Override
-    public void stop() {
-
-    }
-
-    @Override
-    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
-      return 0;
-    }
-
-    @Override
-    public SeriesData<T> get(int index) {
-      return null;
-    }
-  }
-
-  /**
-   * Simulated data generator.
-   */
-  private static class DataGenerator implements DataAdapter<Long> {
-
-    private long myNext;
-
-    private int myMaxVariance;
-
-    private int myMin;
-
-    private int myMax;
-
-    private TLongArrayList myTime = new TLongArrayList();
-
-    private TLongArrayList myData = new TLongArrayList();
-
-    private long myDeviceStartTimeUs;
-
-    private long myStudioStartTimeUs;
-
-    // TODO: we should change this and the other "generate*" names
-    // when we change this class to get actual data.
-    private Runnable myDataGenerator;
-
-    private Thread myDataGeneratorThread;
-
-    /**
-     * Generates simulated data from {@code min} to {@code max} (inclusive).
-     * Values generated don't differ more than {@code maxVariance} from the previous generated value.
-     */
-    DataGenerator(int min, int max, int maxVariance) {
-      myMin = min;
-      myMax = max;
-      myMaxVariance = maxVariance;
-      myNext = randomInInterval(min, max);
-      myDataGenerator = () -> {
-        try {
-          while (true) {
-            // TODO: come up with a better way of handling thread issues
-            SwingUtilities.invokeLater(() -> generateData());
-
-            Thread.sleep(GENERATE_DATA_THREAD_DELAY);
-          }
-        }
-        catch (InterruptedException ignored) {
-        }
-      };
-      myDataGeneratorThread = new Thread(myDataGenerator);
-    }
-
-    @Override
-    public void stop() {
-      if (myDataGeneratorThread != null) {
-        myDataGeneratorThread.interrupt();
-        myDataGeneratorThread = null;
-      }
-    }
-
-    @Override
-    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
-      stop();
-
-      myDeviceStartTimeUs = deviceStartTimeUs;
-      myStudioStartTimeUs = studioStartTimeUs;
-      myTime.clear();
-      myData.clear();
-      myDataGeneratorThread = new Thread(myDataGenerator);
-      myDataGeneratorThread.start();
-    }
-
-    @Override
-    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
-      return DataAdapter.getClosestIndex(myTime, timeUs, leftClosest);
-    }
-
-    @Override
-    public SeriesData<Long> get(int index) {
-      return new SeriesData<>(myTime.get(index), myData.get(index));
-    }
-
-    private void generateData() {
-      // Simulate adding data in device time
-      myTime.add(myDeviceStartTimeUs + (TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - myStudioStartTimeUs));
-
-      // Next value should not differ from current by more than max variance
-      long next = myNext + randomInInterval(-myMaxVariance, myMaxVariance);
-      myData.add(Math.min(myMax, Math.max(myMin, next)));
-    }
-
-    /**
-     * Returns a random number in an interval.
-     *
-     * @param min lower bound of the interval (inclusive)
-     * @param max upper bound of the interval (inclusive)
-     */
-    private static long randomInInterval(long min, long max) {
-      return (long)Math.floor(Math.random() * (max - min + 1) + min);
     }
   }
 }

@@ -29,8 +29,6 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
 
   protected TLongArrayList mTime = new TLongArrayList();
 
-  protected long mStartTimeUs;
-
   private Thread mDataThread;
 
   @Override
@@ -42,9 +40,8 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
+  public void reset() {
     stop();
-    mStartTimeUs = deviceStartTimeUs;
     mDataThread = new Thread() {
       @Override
       public void run() {
