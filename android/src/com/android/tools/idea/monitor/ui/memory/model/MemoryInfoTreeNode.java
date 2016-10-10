@@ -22,15 +22,15 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.Vector;
 
 /**
- * Model class that represents each row in the memory allocation table view.
- * TODO we should merge this with what's used in the current studio allocation view once we finalize on the device data structure.
- * e.g. {@link com.android.tools.idea.editors.allocations.nodes.AllocNode}
+ * Model class that represents each row in the memory allocation table view. TODO we should merge
+ * this with what's used in the current studio allocation view once we finalize on the device data
+ * structure. e.g. {@link com.android.tools.idea.editors.allocations.nodes.AllocNode}
  */
 public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
 
@@ -38,7 +38,7 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
 
   @Nullable private Comparator<MemoryInfoTreeNode> myComparator = null;
 
-  @NotNull private ArrayList<MemoryInfoTreeNode> myChildren = new ArrayList<>();
+  @NotNull private Vector<MemoryInfoTreeNode> myChildren = new Vector<>();
 
   private String mName;
 
@@ -100,7 +100,7 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
 
   @Override
   public void insert(MutableTreeNode newChild, int childIndex) {
-    MemoryInfoTreeNode child = (MemoryInfoTreeNode)newChild;
+    MemoryInfoTreeNode child = (MemoryInfoTreeNode) newChild;
     assert child != null;
     child.myParent = this;
     myChildren.add(childIndex, child);
@@ -116,7 +116,8 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
   }
 
   private void ensureOrder() {
-    if ((myParent != null && myParent.myComparator != myComparator) || myParent == null && myComparator != null) {
+    if ((myParent != null && myParent.myComparator != myComparator)
+        || myParent == null && myComparator != null) {
       myComparator = myParent != null ? myParent.myComparator : myComparator;
       Collections.sort(myChildren, myComparator);
     }
