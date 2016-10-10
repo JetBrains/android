@@ -50,6 +50,12 @@ public class DependencyManager {
     registerDependencyUpdates(paletteUI, parentDisposable);
   }
 
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
   public void setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
