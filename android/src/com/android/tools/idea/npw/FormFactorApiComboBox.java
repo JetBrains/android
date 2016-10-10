@@ -56,6 +56,7 @@ import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.util.*;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
@@ -135,7 +136,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
    */
   public void loadSavedApi() {
     // Check for a saved value for the min api level
-    String savedApiLevel = PropertiesComponent.getInstance().getValue(FormFactorUtils.getPropertiesComponentMinSdkKey(myFormFactor),
+    String savedApiLevel = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(myFormFactor),
                                                                       Integer.toString(myFormFactor.defaultApi));
     ScopedDataBinder.setSelectedItem(this, savedApiLevel);
     // If the savedApiLevel is not available, just pick the first target in the list
@@ -239,8 +240,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
           populateApiLevels(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null, stateStore);
         }
       }
-      PropertiesComponent.getInstance()
-        .setValue(FormFactorUtils.getPropertiesComponentMinSdkKey(myFormFactor), targetItem.getData());
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.getData());
 
       // Check Java language level; should be 7 for L; eventually this will be automatically defaulted by the Android Gradle plugin
       // instead: https://code.google.com/p/android/issues/detail?id=76252
@@ -268,6 +268,10 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
         addItem(target);
       }
     }
+  }
+
+  private static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
+    return formFactor.id + ATTR_MIN_API;
   }
 
   /**
@@ -517,7 +521,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
     int prevInsertedApiLevel = -1;
     int index = -1;
     for (int apiLevel = myFormFactor.getMinOfflineApiLevel(); apiLevel <= myFormFactor.getMaxOfflineApiLevel(); apiLevel++) {
-      if (myFormFactor.getApiBlacklist().contains(apiLevel) || apiLevel <= 0) {
+      if (myFormFactor.isSupported(null, apiLevel) || apiLevel <= 0) {
         continue;
       }
       while (apiLevel > existingApiLevel) {
