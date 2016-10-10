@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/idea/.idea/libraries:mockito",
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
