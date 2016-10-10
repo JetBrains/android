@@ -29,6 +29,11 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
   }
 
   @Override
+  public IdeaModuleIdentifier getTarget() {
+    return null;
+  }
+
+  @Override
   public IdeaModule getDependencyModule() {
     return myModule;
   }
