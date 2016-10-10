@@ -35,7 +35,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
@@ -118,44 +117,12 @@ public class FormFactorUtils {
     return toReturn;
   }
 
-  public static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
-    return formFactor.id + ATTR_MIN_API;
+  static Predicate<AndroidTargetComboBoxItem> getMinSdkComboBoxFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return input -> input != null && doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, input.getApiLevel());
   }
 
-  @NotNull
-  public static String getModuleName(@NotNull FormFactor formFactor) {
-    if (formFactor.baseFormFactor != null) {
-      // Form factors like Android Auto build upon another form factor
-      formFactor = formFactor.baseFormFactor;
-    }
-    String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
-    name = name.replaceAll("\\s", "_");
-    return name.toLowerCase();
-  }
-
-  public static Predicate<AndroidTargetComboBoxItem> getMinSdkComboBoxFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return new Predicate<AndroidTargetComboBoxItem>() {
-      @Override
-      public boolean apply(@Nullable AndroidTargetComboBoxItem input) {
-        if (input == null) {
-          return false;
-        }
-        return doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, input.getApiLevel());
-      }
-    };
-  }
-
-  public static Predicate<RepoPackage> getMinSdkPackageFilter(
-    @NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return new Predicate<RepoPackage>() {
-      @Override
-      public boolean apply(@Nullable RepoPackage input) {
-        if (input == null) {
-          return false;
-        }
-        return filterPkgDesc(input, formFactor, minSdkLevel);
-      }
-    };
+  static Predicate<RepoPackage> getMinSdkPackageFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return input -> input != null && filterPkgDesc(input, formFactor, minSdkLevel);
   }
 
   private static boolean filterPkgDesc(@NotNull RepoPackage p, @NotNull FormFactor formFactor, int minSdkLevel) {
@@ -163,21 +130,7 @@ public class FormFactorUtils {
   }
 
   private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable IdDisplay tag, int targetSdkLevel) {
-    if (!formFactor.getTags().isEmpty()) {
-      // If a whitelist is present, only allow things on the whitelist
-      if (!formFactor.getTags().contains(tag)) {
-        return false;
-      }
-    }
-
-    if (!formFactor.getApiBlacklist().isEmpty()) {
-      if (formFactor.getApiBlacklist().contains(targetSdkLevel)) {
-        return false;
-      }
-    }
-
-    // Finally, we'll check that the minSDK is honored
-    return targetSdkLevel >= minSdkLevel;
+    return formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel;
   }
 
   /**
@@ -224,16 +177,16 @@ public class FormFactorUtils {
     }
   }
 
-  public static boolean isApiType(@NotNull RepoPackage repoPackage) {
+  private static boolean isApiType(@NotNull RepoPackage repoPackage) {
     return repoPackage.getTypeDetails() instanceof DetailsTypes.ApiDetailsType;
   }
 
-  public static int getFeatureLevel(@NotNull RepoPackage repoPackage) {
+  static int getFeatureLevel(@NotNull RepoPackage repoPackage) {
     return getAndroidVersion(repoPackage).getFeatureLevel();
   }
 
   @NotNull
-  public static AndroidVersion getAndroidVersion(@NotNull RepoPackage repoPackage) {
+  static AndroidVersion getAndroidVersion(@NotNull RepoPackage repoPackage) {
     TypeDetails details = repoPackage.getTypeDetails();
     if (details instanceof DetailsTypes.ApiDetailsType) {
       return ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
@@ -246,7 +199,7 @@ public class FormFactorUtils {
    * We are only interested in 2 package types.
    */
   @Nullable
-  public static IdDisplay getTag(@NotNull RepoPackage repoPackage) {
+  static IdDisplay getTag(@NotNull RepoPackage repoPackage) {
     TypeDetails details = repoPackage.getTypeDetails();
     IdDisplay tag = NO_MATCH;
     if (details instanceof DetailsTypes.AddonDetailsType) {
