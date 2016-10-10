@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
@@ -79,7 +78,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
         return new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
                          locationOnScreen.y + bounds.y - visibleRect.y);
       });
-    GuiTests.doubleClick(myRobot, clickLocation);
+    myRobot.click(clickLocation, LEFT_BUTTON, 2);
   }
 
   @NotNull
