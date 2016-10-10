@@ -27,6 +27,8 @@ public class NlConstants {
   public static final int RULER_SIZE_PX = 20;
   public static final int RULER_MAJOR_TICK_PX = 19;
   public static final int RULER_MINOR_TICK_PX = 6;
+  public static final int RULER_MINOR_TICK_MIN_DIST_PX = 2;
+  public static final int RULER_TICK_DISTANCE = JBUI.scale(20);
   public static final int BOUNDS_RECT_DELTA = 20;
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
