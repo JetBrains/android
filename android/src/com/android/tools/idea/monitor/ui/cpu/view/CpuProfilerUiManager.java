@@ -69,7 +69,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private JPanel myBottomupJPanel;
 
-  private CPUTraceController myCPUTraceControlsUI;
+  private CPUTraceController myCpuTraceControlsUi;
 
   private Range myFlameChartRange;
 
@@ -121,8 +121,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private void createTracingButton(@NotNull JPanel toolbar) {
     TraceRequestHandler traceRequestHandler = new TraceRequestHandler(mySelectedDeviceProfilerService, myDeviceContext, myProject);
-    myCPUTraceControlsUI = new CPUTraceController(traceRequestHandler);
-    toolbar.add(myCPUTraceControlsUI);
+    myCpuTraceControlsUi = new CPUTraceController(traceRequestHandler);
+    toolbar.add(myCpuTraceControlsUi);
   }
 
   @Override
@@ -164,11 +164,13 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
       detailPanel.remove(myTabbedPane);
     }
 
+    if (myCpuTraceControlsUi != null) {
+      toolbar.remove(myCpuTraceControlsUi);
+      myCpuTraceControlsUi = null;
+    }
+
     myChoreographer.unregister(myFlameChart);
     myChoreographer.unregister(myExecutionChart);
-    overviewPanel.remove(myThreadSegment);
-    detailPanel.remove(myTabbedPane);
-    toolbar.remove(myCPUTraceControlsUI);
   }
 
   private void resetDetailedComponents() {

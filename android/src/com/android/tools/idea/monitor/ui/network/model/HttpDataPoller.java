@@ -168,11 +168,13 @@ public class HttpDataPoller extends Poller {
     }
 
     @Override
-    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
+    public void reset() {
+      myHttpDataList.clear();
     }
 
     @Override
     public void stop() {
+      // TODO: implement
     }
   }
 }

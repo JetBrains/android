@@ -34,7 +34,7 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
 
   @Override
   public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
+    return new SeriesData<>(mTime.get(index), mData.get(index));
   }
   @Override
   public int getSleepTime() {
@@ -46,11 +46,11 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
   public void generateData() {
     boolean createAction = true;
     long endTimeUs = 0;
-    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     long startTimeUs = currentTimeUs;
     //Generate a new event 50% of the time we generate data. Doing this gives us event streams show like
     //real data, instead of just starting and stopping.
-    if(mStartTimeUs != 0 && Math.random() > .5) {
+    if(Math.random() > .5) {
       //Only when we generate a new event, do we also at the same time add a new entry
       //into our time array to keep our event data
       //consistent with our time lookup.

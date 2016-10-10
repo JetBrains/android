@@ -100,9 +100,14 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
+    long startTimeUs = mDataStore.getLatestTimeUs();
     mXRange = new Range();
-    mXGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_US, 0);
+    mXGlobalRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
     mXSelectionRange = new Range();
+
+    mXRange.setOffset(startTimeUs);
+    mXGlobalRange.setOffset(startTimeUs);
+    mXSelectionRange.setOffset(startTimeUs);
 
     mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
 
