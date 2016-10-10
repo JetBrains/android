@@ -26,6 +26,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.AndroidTargetManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -54,7 +55,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
@@ -198,7 +202,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
       // Update build tools: use preview versions with preview platforms, etc
       BuildToolInfo buildTool = (target == null) ? null : target.getBuildToolInfo();
       if (buildTool == null) {
-        final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+        final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
         buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class), false);
       }
       if (buildTool != null) {
@@ -213,7 +217,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
         myInstallRequests.add(packagePath);
 
         // We also need the platform if not already installed:
-        AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
+        AndroidTargetManager targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
         if (targetManager.getTargetFromHashString(AndroidTargetHash.getPlatformHashString(androidVersion), REPO_LOG) == null) {
           stateStore.listPush(INSTALL_REQUESTS_KEY, platformPath);
           myInstallRequests.add(platformPath);
@@ -246,7 +250,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
       // instead: https://code.google.com/p/android/issues/detail?id=76252
       String javaVersion = null;
       if (ourHighestInstalledApiTarget != null && ourHighestInstalledApiTarget.getVersion().getFeatureLevel() >= 21) {
-        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
         if (sdkData != null) {
           JavaSdk jdk = JavaSdk.getInstance();
           Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
@@ -320,7 +324,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
    */
   @NotNull
   private static IAndroidTarget[] getCompilationTargets() {
-    AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
+    AndroidTargetManager targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
     List<IAndroidTarget> result = Lists.newArrayList();
     for (IAndroidTarget target : targetManager.getTargets(REPO_LOG)) {
       if (target.isPlatform()) {
@@ -454,7 +458,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
 
   private void loadRemoteTargets(final int minSdkLevel, final Runnable completedCallback,
                                  final Runnable foundItemsCallback, final Runnable noItemsCallback) {
-    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
     final Runnable runCallbacks = () -> {
       if (completedCallback != null) {

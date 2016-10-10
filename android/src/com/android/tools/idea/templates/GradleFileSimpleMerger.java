@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.*;
 import com.intellij.lexer.LexerPosition;
 import com.intellij.openapi.diagnostic.Logger;
@@ -432,7 +433,7 @@ public class GradleFileSimpleMerger {
       ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
       Ast prev = null;
-      AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdk != null) {
         for (String configuration : configurations) {
           List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configuration),

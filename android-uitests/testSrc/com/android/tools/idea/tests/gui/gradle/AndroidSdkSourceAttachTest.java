@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -48,7 +49,7 @@ import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
@@ -72,7 +73,7 @@ public class AndroidSdkSourceAttachTest {
 
   @Before
   public void restoreAndroidSdkSource() throws IOException {
-    mySdk = findSuitableAndroidSdk(ANDROID_PLATFORM);
+    mySdk = AndroidSdks.getInstance().findSuitableAndroidSdk(ANDROID_PLATFORM);
     assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
 
     String sdkHomePath = mySdk.getHomePath();

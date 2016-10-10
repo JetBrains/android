@@ -22,13 +22,13 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.lint.AndroidLintMissingConstraintsInspection;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +52,7 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
   public static void apply(@Nullable Module module) {
     if (module != null) {
       StudioSdkUtil.reloadRemoteSdkWithModalProgress();
-      AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+      AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       StudioLoggerProgressIndicator
         progress = new StudioLoggerProgressIndicator(AndroidLintMissingConstraintsInspection.class);
 

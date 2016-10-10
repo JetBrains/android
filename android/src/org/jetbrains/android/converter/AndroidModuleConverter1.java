@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.converter;
 
+import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.conversion.CannotConvertException;
 import com.intellij.conversion.ConversionProcessor;
 import com.intellij.conversion.ModuleSettings;
@@ -63,10 +65,11 @@ public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings>
 
       if (androidPlatform != null) {
 
-        Sdk androidSdk = AndroidSdkUtils.findAppropriateAndroidPlatform(androidPlatform.getTarget(), androidPlatform.getSdkData(), false);
+        IAndroidTarget target = androidPlatform.getTarget();
+        Sdk androidSdk = AndroidSdkUtils.findAppropriateAndroidPlatform(target, androidPlatform.getSdkData(), false);
 
         if (androidSdk == null) {
-          androidSdk = AndroidSdkUtils.createNewAndroidPlatform(androidPlatform.getTarget(), androidPlatform.getSdkData().getPath(), false);
+          androidSdk = AndroidSdks.getInstance().create(target, androidPlatform.getSdkData().getLocation(), false);
 
           if (androidSdk != null) {
             final SdkModificator modificator = androidSdk.getSdkModificator();

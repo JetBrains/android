@@ -38,6 +38,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +63,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.WeakHashMap;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +125,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
-    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }

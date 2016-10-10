@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
@@ -36,7 +37,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -219,7 +219,7 @@ public class AvdWizardUtils {
           }
         }
       }
-      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       File dest = null;
       if (sdkData != null) {
         File sdkDir = sdkData.getLocation();

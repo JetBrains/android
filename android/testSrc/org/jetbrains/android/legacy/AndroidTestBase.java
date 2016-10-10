@@ -18,6 +18,7 @@ package org.jetbrains.android.legacy;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -48,8 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
 /**
  * A (soon to be obsolete) base class that depends on ANDROID_HOME / ADT_TEST_PLATFORM env vars.
@@ -227,11 +226,12 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   protected void ensureSdkManagerAvailable() {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdks androidSdks = AndroidSdks.getInstance();
+    AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
     if (sdkData == null) {
       sdkData = createTestSdkManager();
       if (sdkData != null) {
-        AndroidSdkUtils.setSdkData(sdkData);
+        androidSdks.setSdkData(sdkData);
       }
     }
     assertNotNull(sdkData);
@@ -240,7 +240,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
     Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {

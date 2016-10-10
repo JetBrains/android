@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -97,7 +98,7 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   public void actionPerformed(AnActionEvent e) {
     if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Invoked from Welcome Screen, might not have an SDK setup yet
-      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdkData != null) {
         doRunTool(null, sdkData.getLocation().getPath());
       }

@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
@@ -137,7 +138,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       state.put(MAVEN_URL_KEY, mavenUrl);
     }
 
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     if (data != null) {
       File sdkLocation = data.getLocation();
