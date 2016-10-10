@@ -1191,66 +1191,69 @@ public class DesignSurface extends JPanel implements Disposable, DataProvider {
       graphics.fillRect(RULER_SIZE_PX + lx, RULER_SIZE_PX + ly, width, height);
     }
 
-    private void paintRulers(@NotNull Graphics2D g, int lx, int ly) {
+    private void paintRulers(@NotNull Graphics2D g, int scrolledX, int scrolledY) {
+      if (myScale < 0) {
+        return;
+      }
+
       final Graphics2D graphics = (Graphics2D)g.create();
       try {
         int width = myScrollPane.getWidth();
         int height = myScrollPane.getHeight();
 
         graphics.setColor(RULER_BG);
-        graphics.fillRect(lx, ly, width, RULER_SIZE_PX);
-        graphics.fillRect(lx, ly + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
+        graphics.fillRect(scrolledX, scrolledY, width, RULER_SIZE_PX);
+        graphics.fillRect(scrolledX, scrolledY + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
 
         graphics.setColor(RULER_TICK_COLOR);
         graphics.setStroke(SOLID_STROKE);
-
-        int x = myScreenX + lx - lx % 100;
-        int px2 = x + 10 - 100;
-        for (int i = 1; i < 10; i++, px2 += 10) {
-          if (px2 < myScreenX + lx - 100) {
-            continue;
-          }
-          graphics.drawLine(px2, ly, px2, ly + RULER_MINOR_TICK_PX);
-        }
-        // TODO: The rulers need to be updated to track the scale!!!
-
-        for (int px = 0; px < width; px += 100, x += 100) {
-          graphics.drawLine(x, ly, x, ly + RULER_MAJOR_TICK_PX);
-          px2 = x + 10;
-          for (int i = 1; i < 10; i++, px2 += 10) {
-            graphics.drawLine(px2, ly, px2, ly + RULER_MINOR_TICK_PX);
-          }
-        }
-
-        int y = myScreenY + ly - ly % 100;
-        int py2 = y + 10 - 100;
-        for (int i = 1; i < 10; i++, py2 += 10) {
-          if (py2 < myScreenY + ly - 100) {
-            continue;
-          }
-          graphics.drawLine(lx, py2, lx + RULER_MINOR_TICK_PX, py2);
-        }
-        for (int py = 0; py < height; py += 100, y += 100) {
-          graphics.drawLine(lx, y, lx + RULER_MAJOR_TICK_PX, y);
-          py2 = y + 10;
-          for (int i = 1; i < 10; i++, py2 += 10) {
-            graphics.drawLine(lx, py2, lx + RULER_MINOR_TICK_PX, py2);
-          }
-        }
-
-        graphics.setColor(RULER_TEXT_COLOR);
         graphics.setFont(RULER_TEXT_FONT);
-        int xDelta = lx - lx % 100;
-        x = myScreenX + 2 + xDelta;
-        for (int px = 0; px < width; px += 100, x += 100) {
-          graphics.drawString(Integer.toString(px + xDelta), x, ly + RULER_MAJOR_TICK_PX);
+
+        // Distance between two minor ticks (corrected with the current scale)
+        int minorTickDistance = Math.max((int)Math.round(RULER_TICK_DISTANCE * myScale), 1);
+        // If we keep reducing the scale, at some point we only paint half of the minor ticks
+        int tickIncrement = (minorTickDistance > RULER_MINOR_TICK_MIN_DIST_PX) ? 1 : 2;
+        int labelWidth = RULER_TEXT_FONT.getStringBounds("0000", graphics.getFontRenderContext()).getBounds().width;
+        // Only display the text if it fits between major ticks
+        boolean displayText = labelWidth < minorTickDistance * 10;
+
+        // Get the first tick that is within the viewport
+        int firstVisibleTickX = scrolledX / minorTickDistance - Math.min(myScreenX / minorTickDistance, 10);
+        for (int i = firstVisibleTickX; i * minorTickDistance < width + scrolledX; i += tickIncrement) {
+          if (i == -10) {
+            continue;
+          }
+
+          int tickPosition = i * minorTickDistance + myScreenX;
+          boolean majorTick = i >= 0 && (i % 10) == 0;
+
+          graphics.drawLine(tickPosition, scrolledY, tickPosition, scrolledY + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
+
+          if (displayText && majorTick) {
+            graphics.setColor(RULER_TEXT_COLOR);
+            graphics.drawString(Integer.toString(i * 10), tickPosition + 2, scrolledY + RULER_MAJOR_TICK_PX);
+            graphics.setColor(RULER_TICK_COLOR);
+          }
         }
 
         graphics.rotate(-Math.PI / 2);
-        int yDelta = ly - ly % 100;
-        y = myScreenY - 2 + yDelta;
-        for (int py = 0; py < height; py += 100, y += 100) {
-          graphics.drawString(Integer.toString(py + yDelta), -y, lx + RULER_MAJOR_TICK_PX);
+        int firstVisibleTickY = scrolledY / minorTickDistance - Math.min(myScreenY / minorTickDistance, 10);
+        for (int i = firstVisibleTickY; i * minorTickDistance < height + scrolledY; i += tickIncrement) {
+          if (i == -10) {
+            continue;
+          }
+
+          int tickPosition = i * minorTickDistance + myScreenY;
+          boolean majorTick = i >= 0 && (i % 10) == 0;
+
+          //noinspection SuspiciousNameCombination (we rotate the drawing 90 degrees)
+          graphics.drawLine(-tickPosition, scrolledX, -tickPosition, scrolledX + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
+
+          if (displayText && majorTick) {
+            graphics.setColor(RULER_TEXT_COLOR);
+            graphics.drawString(Integer.toString(i * 10), -tickPosition + 2, scrolledX + RULER_MAJOR_TICK_PX);
+            graphics.setColor(RULER_TICK_COLOR);
+          }
         }
       }
       finally {
