@@ -114,7 +114,7 @@ iml_module(
         "//tools/base/asset-studio:studio.assetstudio[module]",
         "//tools:idea.platform-api[module]",
         "//tools:idea.eclipse[module]",
-        "//tools/adt/idea:android_0",
+        "//tools/adt/idea:android/lib/GoogleFeedback",
         "//tools:idea.external-system-api[module]",
         "//tools/idea/.idea/libraries:gson",
         "//tools:idea.jetgroovy[module]",
@@ -131,7 +131,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/rpclib:studio.rpclib[module]",
         "//tools/adt/idea/adt-ui:adt-ui[module]",
-        "//tools/adt/idea:android_1",
+        "//tools/adt/idea:android/lib/spantable",
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/.idea/libraries:Mocks[test]",
         "//tools/idea/.idea/libraries:truth[test]",
@@ -143,7 +143,7 @@ iml_module(
         "//tools/data-binding:studio.compiler[module]",
         "//tools/idea/.idea/libraries:jogl-all",
         "//tools/idea/.idea/libraries:gluegen-rt",
-        "//tools/adt/idea:android_2",
+        "//tools/adt/idea:android/lib/libwebp",
         "//tools:idea.lang-api[module]",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools:idea.gradle[module]",
@@ -245,25 +245,9 @@ java_import(
     tags = ["managed"],
 )
 
-java_library(
-    name = "android_0",
-    runtime_deps = ["//tools/adt/idea:android/lib/GoogleFeedback"],
-    exports = ["//tools/adt/idea:android/lib/GoogleFeedback"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
-)
-
 java_import(
     name = "android/lib/GoogleFeedback",
     jars = ["android/lib/GoogleFeedback.jar"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
-)
-
-java_library(
-    name = "android_1",
-    runtime_deps = ["//tools/adt/idea:android/lib/spantable"],
-    exports = ["//tools/adt/idea:android/lib/spantable"],
     visibility = ["//visibility:public"],
     tags = ["managed"],
 )
@@ -369,14 +353,6 @@ java_import(
 java_import(
     name = "android/lib/gluegen-rt-natives-windows-i586",
     jars = ["android/lib/gluegen-rt-natives-windows-i586.jar"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
-)
-
-java_library(
-    name = "android_2",
-    runtime_deps = ["//tools/adt/idea:android/lib/libwebp"],
-    exports = ["//tools/adt/idea:android/lib/libwebp"],
     visibility = ["//visibility:public"],
     tags = ["managed"],
 )
