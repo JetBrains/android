@@ -97,7 +97,7 @@ import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener
  */
 public class Mockup implements ModelListener {
 
-  public static final boolean ENABLE_FEATURE = true;
+  public static final boolean ENABLE_FEATURE = false;
 
   private final static Pattern REGEX_CROP = Pattern.compile("(([0-9]+|-1)\\s+([0-9]+|-1)\\s*){1,2}");
   private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
