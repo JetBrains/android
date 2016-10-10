@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
+import com.android.tools.idea.uibuilder.palette.NlPaletteAndComponentTreePanel;
+import com.android.tools.idea.uibuilder.palette.NlOldPalettePanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NlPaletteManager extends NlAbstractWindowManager {
-  private NlPalettePanel myPalette;
+  private PaletteToolWindow myPalette;
 
   public NlPaletteManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
@@ -55,8 +56,8 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
     else {
       if (myPalette == null) {
-        myPalette = new NlPalettePanel(myProject, getDesignSurface(designer));
-        createWindowContent(myPalette, myPalette.getFocusedComponent(), myPalette.getActions());
+        myPalette = createPalette(myProject, getDesignSurface(designer));
+        createWindowContent(myPalette.getDesignerComponent(), myPalette.getFocusedComponent(), myPalette.getActions());
       }
       myPalette.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
@@ -80,7 +81,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
   }
 
   public void setDesignSurface(LightToolWindow toolWindow, @Nullable DesignSurface designSurface) {
-    NlPalettePanel palette = (NlPalettePanel)toolWindow.getContent();
+    PaletteToolWindow palette = (PaletteToolWindow)toolWindow.getContent();
     palette.setDesignSurface(designSurface);
   }
 
@@ -92,7 +93,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
       return toolWindow;
     }
 
-    NlPalettePanel palette = new NlPalettePanel(myProject, getDesignSurface(designer));
+    PaletteToolWindow palette = createPalette(myProject, getDesignSurface(designer));
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
@@ -112,8 +113,9 @@ public class NlPaletteManager extends NlAbstractWindowManager {
       // This is a fix for http://b.android.com/219047
       return null;
     }
-    return new LightToolWindow(palette, "Palette", AllIcons.Toolwindows.ToolWindowPalette, palette, palette.getFocusedComponent(),
-                               contentSplitter, anchor, this, myProject, propertiesComponent,
+    return new LightToolWindow(palette, "Palette", AllIcons.Toolwindows.ToolWindowPalette, palette.getDesignerComponent(),
+                               palette.getFocusedComponent(),
+                               designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
                                getVisibilityKeyName(designer), 180, palette.getActions());
   }
 
@@ -128,5 +130,15 @@ public class NlPaletteManager extends NlAbstractWindowManager {
   @Override
   public String getComponentName() {
     return "NlPaletteManager";
+  }
+
+  @NotNull
+  private static PaletteToolWindow createPalette(@NotNull Project project, @Nullable DesignSurface designSurface) {
+    if (Boolean.getBoolean("use.new.palette")) {
+      return new NlPaletteAndComponentTreePanel(project, designSurface);
+    }
+    else {
+      return new NlOldPalettePanel(project, designSurface);
+    }
   }
 }

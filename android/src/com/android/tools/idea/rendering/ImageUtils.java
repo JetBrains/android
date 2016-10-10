@@ -179,6 +179,18 @@ public class ImageUtils {
    * Resize the given image
    *
    * @param source the image to be scaled
+   * @param amount to scale the image in both directions
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage scale(BufferedImage source, double amount) {
+    return scale(source, amount, amount, 0, 0);
+  }
+
+  /**
+   * Resize the given image
+   *
+   * @param source the image to be scaled
    * @param xScale x scale
    * @param yScale y scale
    * @return the scaled image

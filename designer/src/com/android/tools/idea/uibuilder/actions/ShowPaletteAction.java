@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.editor.NlAbstractWindowManager;
 import com.android.tools.idea.uibuilder.editor.NlPaletteManager;
-import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
+import com.android.tools.idea.uibuilder.editor.PaletteToolWindow;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class ShowPaletteAction extends LightToolWindowAction<NlPalettePanel> {
+public class ShowPaletteAction extends LightToolWindowAction<PaletteToolWindow> {
 
   public ShowPaletteAction() {
-    super(NlPalettePanel.class);
+    super(PaletteToolWindow.class);
   }
 
   @NotNull
@@ -34,7 +34,7 @@ public class ShowPaletteAction extends LightToolWindowAction<NlPalettePanel> {
   }
 
   @Override
-  protected void actionPerformed(@NotNull NlPalettePanel palette) {
-    palette.activatePalette();
+  protected void actionPerformed(@NotNull PaletteToolWindow palette) {
+    palette.requestFocusInPalette();
   }
 }
