@@ -168,7 +168,7 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, SDK_LOG, myFileOp);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG, myFileOp);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
@@ -350,7 +350,7 @@ public class AvdManagerConnection {
     if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
       String baseFolder;
       try {
-        baseFolder = myAvdManager.getBaseAvdFolder();
+        baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
       }
       catch (AndroidLocation.AndroidLocationException e) {
         baseFolder = "$HOME";

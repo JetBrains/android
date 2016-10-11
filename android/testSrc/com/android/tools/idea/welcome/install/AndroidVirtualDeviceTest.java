@@ -104,7 +104,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File(new File("/sdk").getAbsolutePath()), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
     FakePackage remotePlatform = new FakePackage("platforms;android-23");

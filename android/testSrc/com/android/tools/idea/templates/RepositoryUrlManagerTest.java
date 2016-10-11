@@ -33,15 +33,17 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Tests for the local repository utility class
  */
 public class RepositoryUrlManagerTest extends TestCase {
+  private static final File SDK_DIR = new File("/sdk");
+  private static final File ANDROID_HOME = new File("/android-home");
 
   private RepositoryUrlManager myRepositoryUrlManager;
-  private File mySdkDir;
   private MockFileOp myFileOp;
   private AndroidSdkHandler mySdkHandler;
   private AndroidSdkData mySdk;
@@ -50,11 +52,10 @@ public class RepositoryUrlManagerTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFileOp = new MockFileOp();
-    mySdkDir = new File("/sdk-from-setUp");
     myRepositoryUrlManager = new RepositoryUrlManager(true /* force repository checks */);
-    mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp);
+    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp);
     mySdk = Mockito.mock(AndroidSdkData.class);
-    Mockito.when(mySdk.getLocation()).thenReturn(mySdkDir);
+    Mockito.when(mySdk.getLocation()).thenReturn(SDK_DIR);
 
     String[] paths = new String[]{
       // Android repository
@@ -98,13 +99,13 @@ public class RepositoryUrlManagerTest extends TestCase {
     };
 
     for (String path : paths) {
-      myFileOp.createNewFile(new File(mySdkDir, path));
+      myFileOp.createNewFile(new File(SDK_DIR, path));
     }
   }
 
   /** Common boilerplate code for invoking getLibraryRevision. */
   private String getLibraryRevision(SupportLibrary library, boolean preview) {
-    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), null, preview, mySdkDir, myFileOp);
+    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), null, preview, SDK_DIR, myFileOp);
   }
 
   public void testGetLibraryRevision() throws Exception {
@@ -112,7 +113,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals("21.0.2", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
 
     // Set up our fake file contents for the "maven-metadata.xml" file
-    myFileOp.recordExistingFile(new File(mySdkDir, "extras/android/m2repository/com/android/support/support-v4/maven-metadata.xml").getAbsolutePath(),
+    myFileOp.recordExistingFile(new File(SDK_DIR, "extras/android/m2repository/com/android/support/support-v4/maven-metadata.xml").getAbsolutePath(),
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
                                 "<version>13.0.0</version> <version>19.0.1</version> <version>20.0.0-rc1</version>" +
                                 "</versioning>");
@@ -139,12 +140,12 @@ public class RepositoryUrlManagerTest extends TestCase {
                                                          "actionbarsherlock",
                                                          null,
                                                          false,
-                                                         mySdkDir,
+                                                         SDK_DIR,
                                                          myFileOp));
   }
 
   public void testGetLibraryRevision_missingSdk() throws Exception {
-    myFileOp.deleteFileOrFolder(mySdkDir);
+    myFileOp.deleteFileOrFolder(SDK_DIR);
     assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
@@ -155,7 +156,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals("5.2.08", getLibraryRevision(SupportLibrary.PLAY_SERVICES, true));
 
     // Check with metadata file.
-    myFileOp.recordExistingFile(new File(mySdkDir, "extras/google/m2repository/com/google/android/gms/play-services/maven-metadata.xml").getAbsolutePath(),
+    myFileOp.recordExistingFile(new File(SDK_DIR, "extras/google/m2repository/com/google/android/gms/play-services/maven-metadata.xml").getAbsolutePath(),
                                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
                                 "<version>5.0.89</version> <version>5.2.08</version>" +
                                 "</versioning>");
@@ -183,13 +184,13 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertNotNull(supportCoordinate);
     File expectedFile = null;
     if (path != null) {
-      expectedFile = new File(mySdkDir, path.replace('/', File.separatorChar));
+      expectedFile = new File(SDK_DIR, path.replace('/', File.separatorChar));
     }
-    assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(supportCoordinate, mySdkDir, myFileOp));
+    assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(supportCoordinate, SDK_DIR, myFileOp));
   }
 
   public void testGetArchiveForCoordinate_missingSdk() throws Exception {
-    myFileOp.deleteFileOrFolder(mySdkDir);
+    myFileOp.deleteFileOrFolder(SDK_DIR);
     checkGetArchiveForCoordinate("com.android.support:support-v4:20.0.0", null);
   }
 
@@ -229,7 +230,7 @@ public class RepositoryUrlManagerTest extends TestCase {
   }
 
   public void testResolvedCoordinate_sdkMissing() throws Exception {
-    myFileOp.deleteFileOrFolder(mySdkDir);
+    myFileOp.deleteFileOrFolder(SDK_DIR);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNull(resolveDynamicCoordinateVersion(coordinate));
   }
@@ -238,7 +239,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
-    mySdkHandler = new AndroidSdkHandler(mySdkDir, myFileOp, mgr);
+    mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp, mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNotNull(coordinate);
     assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));
@@ -248,7 +249,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     RemotePackage pkg = new FakePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableMap.of(), ImmutableMap.of(pkg.getPath(), pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
-    mySdkHandler = new AndroidSdkHandler(new File("/emptysdk"), myFileOp, mgr);
+    mySdkHandler = new AndroidSdkHandler(new File("/emptysdk"), ANDROID_HOME, myFileOp, mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNotNull(coordinate);
     assertEquals("4.5.0", resolveDynamicCoordinateVersion(coordinate));
@@ -262,7 +263,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     dependencies.put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:+"));
     dependencies.put("com.google.android.gms:play-services", GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.2.+"));
     List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "23.", mySdk, myFileOp);
-    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support:appcompat-v7:19.1.0", result.get(0).toString());
     assertEquals("com.google.android.gms:play-services:4.2.42", result.get(1).toString());
     assertEquals("com.google.android.support:wearable:1.0.0", result.get(2).toString());
@@ -276,7 +277,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+"));
     dependencies.put("com.android.support.constraint:constraint-layout", GradleCoordinate.parseCoordinateString("com.android.support.constraint:constraint-layout:0.+"));
     List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
-    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support.constraint:constraint-layout:1.0.0-alpha7", result.get(0).toString());
     assertEquals("com.android.support:appcompat-v7:20.0.0", result.get(1).toString());
     assertEquals("com.android.support:support-v4:20.0.0", result.get(2).toString());
@@ -290,7 +291,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     dependencies.put("com.google.android.support:wearable", GradleCoordinate.parseCoordinateString("com.google.android.support:wearable:2.0.0-alpha2"));
     dependencies.put("com.android.support:support-v4", GradleCoordinate.parseCoordinateString("com.android.support:support-v4:19.0.1"));
     List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
-    result.sort((coordinate1, coordinate2) -> coordinate1.toString().compareTo(coordinate2.toString()));
+    result.sort(Comparator.comparing(GradleCoordinate::toString));
     assertEquals("com.android.support:appcompat-v7:19.0.1", result.get(0).toString());
     assertEquals("com.android.support:support-v4:19.0.1", result.get(1).toString());
     assertEquals("com.google.android.support:wearable:2.0.0-alpha2", result.get(2).toString());
