@@ -62,7 +62,10 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
     cmakePackage.setRevision(fakeCmakeVersion);
     remotePackages.put(fakeCmakePackage, cmakePackage);
     packages.setRemotePkgInfos(remotePackages);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"),
+                                                         null,
+                                                         new MockFileOp(),
+                                                         new FakeRepoManager(packages));
 
     MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
                                                                          new FakeSettingsController(false));
@@ -77,7 +80,10 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
   }
 
   public void testHandleErrorNoCMakePackage() {
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(new RepositoryPackages()));
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"),
+                                                         null,
+                                                         new MockFileOp(),
+                                                         new FakeRepoManager(new RepositoryPackages()));
     MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
                                                                          new FakeSettingsController(false));
 
@@ -103,7 +109,10 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
     remotePackages.put(fakeCmakePackage, cmakePackage);
     packages.setRemotePkgInfos(remotePackages);
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"),
+                                                         null,
+                                                         new MockFileOp(),
+                                                         new FakeRepoManager(packages));
     MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
                                                 new FakeSettingsController(false));
 
