@@ -28,9 +28,6 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.Map;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
@@ -45,7 +42,9 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  *
  * TODO: After wizard migration, much of this class may go away (as a lot of it is specific to
  * dynamic wizard). Consider folding remaining methods into {@link FormFactor} at that time.
+ * @deprecated replaced by {@link com.android.tools.idea.npw.platform.FormFactorUtils}
  */
+@Deprecated
 public class FormFactorUtils {
   private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
   public static final String INCLUDE_FORM_FACTOR = "included";
@@ -131,50 +130,6 @@ public class FormFactorUtils {
 
   private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable IdDisplay tag, int targetSdkLevel) {
     return formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel;
-  }
-
-  /**
-   * Create an image showing icons for each of the available form factors.
-   * @param component Icon will be drawn in the context of the given {@code component}
-   * @param requireEmulator If true, only include icons for form factors that have an emulator available.
-   * @return The new Icon
-   */
-  @Nullable
-  public static Icon getFormFactorsImage(JComponent component, boolean requireEmulator) {
-    int width = 0;
-    int height = 0;
-    for (FormFactor formFactor : FormFactor.values()) {
-      if (formFactor == FormFactor.GLASS) {
-        continue;
-      }
-      Icon icon = formFactor.getLargeIcon();
-      height = icon.getIconHeight();
-      if (!requireEmulator || formFactor.hasEmulator()) {
-        width += formFactor.getLargeIcon().getIconWidth();
-      }
-    }
-    //noinspection UndesirableClassUsage
-    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = image.createGraphics();
-    int x = 0;
-    for (FormFactor formFactor : FormFactor.values()) {
-      if (requireEmulator && !formFactor.hasEmulator()) {
-        continue;
-      }
-      if (formFactor == FormFactor.GLASS) {
-        continue;
-      }
-      Icon icon = formFactor.getLargeIcon();
-      icon.paintIcon(component, graphics, x, 0);
-      x += icon.getIconWidth();
-    }
-    if (graphics != null) {
-      graphics.dispose();
-      return new ImageIcon(image);
-    }
-    else {
-      return null;
-    }
   }
 
   private static boolean isApiType(@NotNull RepoPackage repoPackage) {
