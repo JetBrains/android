@@ -270,8 +270,20 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
+    ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
+    if (screenView != null) {
+      Dimension size = screenView.getSize();
+      Rectangle resizeZone =
+        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
+
     // We don't hover on the root since it's not a widget per see and it is always there.
-    ScreenView screenView = mySurface.getScreenView(x, y);
+    screenView = mySurface.getScreenView(x, y);
     if (screenView == null) {
       mySurface.setCursor(null);
       return;
@@ -343,19 +355,6 @@ public class InteractionManager {
           if (viewGroupHandler.updateCursor(screenView, mx, my)) {
             mySurface.repaint();
           }
-        }
-      }
-
-      // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-      screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
-      if (screenView != null) {
-        Dimension size = screenView.getSize();
-        // TODO: use constants for those numbers
-        Rectangle resizeZone =
-          new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(x, y)) {
-          mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-          return;
         }
       }
     }
