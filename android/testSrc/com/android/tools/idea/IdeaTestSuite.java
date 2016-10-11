@@ -40,7 +40,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.editors.theme.ConfiguredThemeEditorStyleTest.class,
   com.android.tools.idea.editors.theme.ResolutionUtilsTest.class,
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
-  com.android.tools.idea.gradle.AndroidGradleModelTest.class,
   com.android.tools.idea.gradle.dependencies.GradleDependencyManagerTest.class,
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.invoker.GradleInvokerTest.class,
@@ -105,7 +104,6 @@ import java.nio.file.Paths;
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
-  org.jetbrains.android.refactoring.UnusedResourcesGradleTest.class,
 })
 public class IdeaTestSuite {
 
@@ -114,7 +112,7 @@ public class IdeaTestSuite {
 
   // Initialize Idea specific environment
   static {
-    setIdeaHome();
+    setProperties();
     // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
     createTmpDir("prebuilts/tools/common/offline-m2");
     // Bazel tests are sandboxed so we disable VfsRoot checks.
@@ -130,8 +128,7 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
-    File jdk = TestUtils.getWorkspaceFile("prebuilts/studio/jdk");
-    provideRealJdkPathForGradle(jdk);
+    provideRealJdkPathForGradle("prebuilts/studio/jdk");
   }
 
   /**
@@ -140,8 +137,9 @@ public class IdeaTestSuite {
    * with two different JDKs. See
    * https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
    */
-  private static void provideRealJdkPathForGradle(File jdk) {
+  private static void provideRealJdkPathForGradle(String dir) {
     try {
+      File jdk = TestUtils.getWorkspaceFile(dir);
       File file = new File(jdk, "BUILD").toPath().toRealPath().toFile();
       System.setProperty("studio.dev.jdk", file.getParentFile().getAbsolutePath());
     }
@@ -161,8 +159,11 @@ public class IdeaTestSuite {
     }
   }
 
-  private static void setIdeaHome() {
+  private static void setProperties() {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
+    System.setProperty("gradle.user.home", createTmpDir("home").toString());
+    // See AndroidLocation.java for more information on this system property.
+    System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
   }
 
   private static Path createTmpDir(String p) {
