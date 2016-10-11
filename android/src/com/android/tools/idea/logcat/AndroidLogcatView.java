@@ -453,7 +453,7 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase{
+  final class AndroidLogConsole extends LogConsoleBase {
     private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
     private final AndroidLogcatPreferences myPreferences;
 
