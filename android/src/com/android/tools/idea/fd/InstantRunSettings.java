@@ -50,4 +50,14 @@ public class InstantRunSettings {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
     configuration.SHOW_IR_STATUS_NOTIFICATIONS = en;
   }
+
+  public static boolean isRecorderEnabled() {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    return configuration.ENABLE_RECORDER;
+  }
+
+  public static void setRecorderEnabled(boolean en) {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    configuration.ENABLE_RECORDER = en;
+  }
 }

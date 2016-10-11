@@ -39,6 +39,10 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
     </action>
 
+    <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
+    </action>
+
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
