@@ -48,6 +48,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,6 +56,8 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -446,8 +449,17 @@ public final class Projects {
    * Gradle-specific.
    */
   public static boolean isBuildWithGradle(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
+    return CachedValuesManager.getManager(project).getCachedValue(project, new CachedValueProvider<Boolean>() {
+      @Nullable
+      @Override
+      public Result<Boolean> compute() {
+        return Result.create(calcIsBuildWithGradle(project), ProjectRootModificationTracker.getInstance(project));
+      }
+    });
+  }
+
+  private static boolean calcIsBuildWithGradle(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
       if (isBuildWithGradle(module)) {
         return true;
       }
