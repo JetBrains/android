@@ -63,15 +63,15 @@ public class DependencyManager {
   }
 
   public boolean needsLibraryLoad(@NotNull Palette.Item item) {
-    return myMissingLibraries.contains(item.getGradleCoordinate());
+    return myMissingLibraries.contains(item.getGradleCoordinateId());
   }
 
   public boolean ensureLibraryIsIncluded(@NotNull Palette.Item item) {
-    String coordinate = item.getGradleCoordinate();
-    assert coordinate != null;
+    String coordinateId = item.getGradleCoordinateId();
+    assert coordinateId != null;
     assert myModule != null;
     GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-    return manager.ensureLibraryIsIncluded(myModule, toGradleCoordinatesFromDependencies(Collections.singletonList(coordinate)), null);
+    return manager.ensureLibraryIsIncluded(myModule, toGradleCoordinatesFromIds(Collections.singletonList(coordinateId)), null);
   }
 
   @NotNull
@@ -115,7 +115,8 @@ public class DependencyManager {
     Set<String> missing = Collections.emptySet();
     if (myModule != null) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-      missing = fromGradleCoordinatesToDependencies(manager.findMissingDependencies(myModule, myPalette.getGradleCoordinates()));
+      List<GradleCoordinate> coordinates = toGradleCoordinatesFromIds(myPalette.getGradleCoordinateIds());
+      missing = fromGradleCoordinatesToIds(manager.findMissingDependencies(myModule, coordinates));
       if (myMissingLibraries.equals(missing)) {
         return false;
       }
@@ -137,7 +138,7 @@ public class DependencyManager {
   }
 
   @NotNull
-  private static Set<String> fromGradleCoordinatesToDependencies(@NotNull Collection<GradleCoordinate> coordinates) {
+  private static Set<String> fromGradleCoordinatesToIds(@NotNull Collection<GradleCoordinate> coordinates) {
     return coordinates.stream()
       .map(GradleCoordinate::getId)
       .filter(dependency -> dependency != null)
@@ -145,7 +146,7 @@ public class DependencyManager {
   }
 
   @NotNull
-  private static List<GradleCoordinate> toGradleCoordinatesFromDependencies(@NotNull Collection<String> dependencies) {
+  private static List<GradleCoordinate> toGradleCoordinatesFromIds(@NotNull Collection<String> dependencies) {
     return dependencies.stream()
       .map(dependency -> GradleCoordinate.parseCoordinateString(dependency + ":+"))
       .filter(coordinate -> coordinate != null)

@@ -26,7 +26,7 @@ public class GridLayoutV7Handler extends GridLayoutHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String viewTag) {
+  public String getGradleCoordinateId(@NotNull String viewTag) {
     return GRID_LAYOUT_LIB_ARTIFACT;
   }
 }

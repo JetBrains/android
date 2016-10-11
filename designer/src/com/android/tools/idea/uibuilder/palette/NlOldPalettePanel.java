@@ -537,7 +537,7 @@ public class NlOldPalettePanel extends JPanel
       return false;
     }
     Palette.Item paletteItem = (Palette.Item)item;
-    return myMissingLibraries.contains(paletteItem.getGradleCoordinate());
+    return myMissingLibraries.contains(paletteItem.getGradleCoordinateId());
   }
 
   private static void addItems(@NotNull List<Palette.BaseItem> items, @NotNull DefaultMutableTreeNode rootNode) {
@@ -558,7 +558,7 @@ public class NlOldPalettePanel extends JPanel
         Palette.BaseItem object = getItemForPath(myPaletteTree.getPathForLocation(event.getX(), event.getY()));
         if (needsLibraryLoad(object)) {
           Palette.Item item = (Palette.Item)object;
-          String coordinate = item.getGradleCoordinate();
+          String coordinate = item.getGradleCoordinateId();
           assert coordinate != null;
           Module module = getModule();
           assert module != null;
@@ -582,8 +582,9 @@ public class NlOldPalettePanel extends JPanel
     List<String> missing = Collections.emptyList();
     if (module != null) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
-      missing = fromGradleCoordinates(
-        manager.findMissingDependencies(module, myModel.getPalette(myDesignSurface.getLayoutType()).getGradleCoordinates()));
+      Palette palette = myModel.getPalette(myDesignSurface.getLayoutType());
+      List<GradleCoordinate> dependencies = toGradleCoordinates(palette.getGradleCoordinateIds());
+      missing = fromGradleCoordinates(manager.findMissingDependencies(module, dependencies));
       if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
         return false;
       }
