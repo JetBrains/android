@@ -78,7 +78,7 @@ public class WidgetConstraintPanel extends JPanel {
       mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
       mInspectorHighlightsStrokeColor = JBColor.border();
       mInspectorStrokeColor = JBColor.foreground();
-      mInspectorConstraintColor = new JBColor(0x4481d8, 0x496784);
+      mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
     }
   }
 
