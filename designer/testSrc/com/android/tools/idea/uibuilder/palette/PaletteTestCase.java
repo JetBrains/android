@@ -745,7 +745,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
                                 @NotNull @Language("XML") String expectedXml,
                                 @NotNull @Language("XML") String expectedPreviewXml,
                                 @NotNull @Language("XML") String expectedDragPreviewXml,
-                                @NotNull String expectedGradleCoordinate,
+                                @NotNull String expectedGradleCoordinateId,
                                 double expectedScale) {
     assertTrue(base instanceof Palette.Item);
     Palette.Item item = (Palette.Item)base;
@@ -756,7 +756,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
     assertEquals(expectedTag + ".PreviewXML", formatXml(expectedPreviewXml), formatXml(item.getPreviewXml()));
     assertEquals(expectedTag + ".DragPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
-    assertEquals(expectedTag + ".GradleCoordinate", expectedGradleCoordinate, item.getGradleCoordinate());
+    assertEquals(expectedTag + ".GradleCoordinateId", expectedGradleCoordinateId, item.getGradleCoordinateId());
     assertEquals(expectedTag + ".PreviewScale", expectedScale, item.getPreviewScale());
   }
 

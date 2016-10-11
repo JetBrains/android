@@ -60,7 +60,7 @@ public class CardViewHandler extends FrameLayoutHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String viewTag) {
+  public String getGradleCoordinateId(@NotNull String viewTag) {
     return CARD_VIEW_LIB_ARTIFACT;
   }
 }
