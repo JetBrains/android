@@ -162,13 +162,7 @@ public abstract class PaletteComponentHandler {
     g2.scale(24.0 / icon.getIconWidth(), 24.0 / icon.getIconHeight());
     icon.paintIcon(null, g2, 0, 0);
     g2.dispose();
-    if (UIUtil.isRetina()) {
-      BufferedImage retina = ImageUtils.convertToRetina(image);
-      if (retina != null) {
-        image = retina;
-      }
-    }
-    return new JBImageIcon(image);
+    return new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image));
   }
 
   @NotNull

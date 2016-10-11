@@ -499,13 +499,9 @@ public class NlOldPalettePanel extends JPanel
             icon.paintIcon(myTree, g2, 0, 0);
             download.paintIcon(myTree, g2, icon.getIconWidth() + ICON_SPACER, 0);
             g2.dispose();
-            BufferedImage retina = ImageUtils.convertToRetina(image);
-            if (retina != null) {
-              image = retina;
-            }
 
             append(item.getTitle());
-            setIcon(new JBImageIcon(image));
+            setIcon(new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image)));
           }
           else {
             append(item.getTitle());
