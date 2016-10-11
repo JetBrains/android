@@ -153,7 +153,7 @@ public final class ArchiveToGradleModuleStep extends ModelWizardStep<ArchiveToGr
     }
 
     @Override
-    protected void showValidationResult(String result) {
+    protected void showValidationResult(@NotNull String result) {
       setValidationString(result);
     }
 

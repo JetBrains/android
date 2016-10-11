@@ -100,7 +100,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     myValidationStatus.setIcon(null);
     myValidator = new AsyncValidator<ValidationStatus>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(ValidationStatus result) {
+      protected void showValidationResult(@NotNull ValidationStatus result) {
         updateStep(result);
       }
 

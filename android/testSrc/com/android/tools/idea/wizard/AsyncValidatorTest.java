@@ -19,18 +19,22 @@ import com.android.tools.idea.npw.AsyncValidator;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ConcurrencyUtil;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 /**
  * Test asynchronous validator class.
  */
-public final class AsyncValidatorTest extends TestCase {
+public final class AsyncValidatorTest {
   private static final int TIMEOUT = 1000; // ms
 
   @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
@@ -43,22 +47,16 @@ public final class AsyncValidatorTest extends TestCase {
           fail("Validator hang");
         }
       }
-      assertEquals(expected, val[0]);
+      assertThat(val[0]).isEqualTo(expected);
     }
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     // This should happen on some other thread - it will become the AWT event queue thread.
     ThreadPoolExecutor executor = ConcurrencyUtil.newSingleThreadExecutor("async validator test");
     Future<IdeaTestApplication> application = executor.
-      submit(new Callable<IdeaTestApplication>() {
-        @Override
-        public IdeaTestApplication call() throws Exception {
-          return IdeaTestApplication.getInstance();
-        }
-      });
+      submit((Callable<IdeaTestApplication>)IdeaTestApplication::getInstance);
     try {
       application.get(100, TimeUnit.SECONDS); // Wait for the application instantiation
     }
@@ -67,11 +65,12 @@ public final class AsyncValidatorTest extends TestCase {
     }
   }
 
+  @Test
   public void testBasicValidation() throws InterruptedException {
     final Integer[] val = { null };
     AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(Integer result) {
+      protected void showValidationResult(@NotNull Integer result) {
         synchronized (val) {
           val[0] = result;
           val.notifyAll();
@@ -88,6 +87,7 @@ public final class AsyncValidatorTest extends TestCase {
     assertResult(val, 3);
   }
 
+  @Test
   @SuppressWarnings("BusyWait")
   public void testNoSpuriousResults() throws InterruptedException {
     final int EXPECTED_RESULT = 1000;
@@ -97,7 +97,7 @@ public final class AsyncValidatorTest extends TestCase {
 
     AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(Integer result) {
+      protected void showValidationResult(@NotNull Integer result) {
         synchronized (output) {
           if (output[0] == null) {
             output[0] = result;

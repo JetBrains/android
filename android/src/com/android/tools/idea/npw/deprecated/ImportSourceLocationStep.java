@@ -128,7 +128,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
     validator = new AsyncValidator<PathValidationResult>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(PathValidationResult result) {
+      protected void showValidationResult(@NotNull PathValidationResult result) {
         applyBackgroundOperationResult(result);
       }
 
