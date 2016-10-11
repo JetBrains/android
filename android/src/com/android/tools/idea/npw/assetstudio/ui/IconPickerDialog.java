@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -145,6 +146,7 @@ public final class IconPickerDialog extends DialogWrapper {
         VdIcon icon = (VdIcon)value;
         setText("");
         setIcon(icon);
+        AccessibleContextUtil.setName(this, icon.getDisplayName());
       }
 
       @Override
