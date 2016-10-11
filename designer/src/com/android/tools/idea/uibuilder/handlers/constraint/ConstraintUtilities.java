@@ -648,14 +648,7 @@ public class ConstraintUtilities {
   static void setBias(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String biasString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
-    float bias = 0.5f;
-    if (biasString != null && biasString.length() > 0) {
-      try {
-        bias = Float.parseFloat(biasString);
-      }
-      catch (NumberFormatException e) {
-      }
-    }
+    float bias = parseFloat(biasString, 0.5f);
     if (attribute.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)) {
       widget.setHorizontalBiasPercent(bias);
     }
@@ -675,6 +668,55 @@ public class ConstraintUtilities {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String dimensionRatioString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
     widget.setDimensionRatio(dimensionRatioString);
+  }
+
+  /**
+   * Set the ChainPack flag widget
+   *
+   * @param attribute layout_constraintVertical_chainPacked or layout_constraintHorizontal_chainPacked
+   * @param component the component we are looking at
+   * @param widget    the constraint widget we set the bias on
+   */
+  static void setChainPack(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String chainPackString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    boolean pack = false;
+    pack = Boolean.parseBoolean(chainPackString);
+     if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED.equals(attribute)) {
+      widget.setHorizontalChainPacked(pack);
+    } else {
+       widget.setVerticalChainPacked(pack);
+    }
+  }
+
+  /**
+   * Set the Weight of a widget
+   *
+   * @param attribute vertical or horizontal weight attributes
+   * @param component the component we are looking at
+   * @param widget    the constraint widget we set the bias on
+   */
+  static void setChainWeight(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    AttributesTransaction attributes = component.startAttributeTransaction();
+    String chainWeightString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    float weight = parseFloat(chainWeightString, 0.f);
+    if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED.equals(attribute)) {
+      widget.setHorizontalWeight(weight);
+    }
+    else {
+      widget.setVerticalWeight(weight);
+    }
+  }
+
+  private static float parseFloat(String string, float defaultValue) {
+    float ret = defaultValue;
+    if (string != null && string.length() > 0) {
+      try {
+        ret = Float.parseFloat(string);
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    return ret;
   }
 
   /**
@@ -1139,6 +1181,11 @@ public class ConstraintUtilities {
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
 
     setDimensionRatio(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, component, widget);
+    setChainPack(SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED, component, widget);
+    setChainPack(SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_PACKED, component, widget);
+    setChainWeight(SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT, component, widget);
+    setChainWeight(SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT, component, widget);
+
 
     if (widget instanceof Guideline) {
       Guideline guideline = (Guideline)widget;
