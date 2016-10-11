@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link SigningConfigModel}.
@@ -44,10 +43,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = getOnlyElement(signingConfigs);
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -73,10 +71,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -96,10 +93,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -119,10 +115,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -154,25 +149,23 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(2, signingConfigs.size());
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(2);
 
-    Iterator<SigningConfigModel> signingConfigsIterator = signingConfigs.iterator();
-    SigningConfigModel signingConfig = signingConfigsIterator.next();
-    assertEquals("signingConfig", "release", signingConfig.name());
-    assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
-    assertEquals("signingConfig", "password", signingConfig.storePassword());
-    assertEquals("signingConfig", "type1", signingConfig.storeType());
-    assertEquals("signingConfig", "myReleaseKey", signingConfig.keyAlias());
-    assertEquals("signingConfig", "releaseKeyPassword", signingConfig.keyPassword());
+    SigningConfigModel signingConfig1 = signingConfigs.get(0);
+    assertEquals("signingConfig1", "release", signingConfig1.name());
+    assertEquals("signingConfig1", "release.keystore", signingConfig1.storeFile());
+    assertEquals("signingConfig1", "password", signingConfig1.storePassword());
+    assertEquals("signingConfig1", "type1", signingConfig1.storeType());
+    assertEquals("signingConfig1", "myReleaseKey", signingConfig1.keyAlias());
+    assertEquals("signingConfig1", "releaseKeyPassword", signingConfig1.keyPassword());
 
-    signingConfig = signingConfigsIterator.next();
-    assertEquals("signingConfig", "debug.keystore", signingConfig.storeFile());
-    assertEquals("signingConfig", "debug_password", signingConfig.storePassword());
-    assertEquals("signingConfig", "type2", signingConfig.storeType());
-    assertEquals("signingConfig", "myDebugKey", signingConfig.keyAlias());
-    assertEquals("signingConfig", "debugKeyPassword", signingConfig.keyPassword());
+    SigningConfigModel signingConfig2 = signingConfigs.get(1);
+    assertEquals("signingConfig1", "debug.keystore", signingConfig2.storeFile());
+    assertEquals("signingConfig1", "debug_password", signingConfig2.storePassword());
+    assertEquals("signingConfig1", "type2", signingConfig2.storeType());
+    assertEquals("signingConfig1", "myDebugKey", signingConfig2.keyAlias());
+    assertEquals("signingConfig1", "debugKeyPassword", signingConfig2.keyPassword());
   }
 
   public void testSetAndApplySigningConfig() throws Exception {
@@ -192,10 +185,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -213,8 +205,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "debug.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "debug_password", signingConfig.storePassword());
@@ -227,8 +219,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "debug.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "debug_password", signingConfig.storePassword());
@@ -253,11 +245,10 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -275,8 +266,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
 
     assertNull(signingConfig.storeFile());
     assertNull(signingConfig.storePassword());
@@ -289,8 +280,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEmpty(signingConfigs); // empty blocks are deleted automatically.
+    assertThat(signingConfigs).isEmpty(); // empty blocks are deleted automatically.
   }
 
   public void testAddAndApplySigningConfig() throws Exception {
@@ -305,10 +295,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    Collection<SigningConfigModel> signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    assertEquals(1, signingConfigs.size());
-    SigningConfigModel signingConfig = signingConfigs.iterator().next();
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
 
     assertNull(signingConfig.storeFile());
     assertNull(signingConfig.storePassword());
@@ -325,8 +314,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());
@@ -338,8 +327,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();
-    assertNotNull(signingConfigs);
-    signingConfig = signingConfigs.iterator().next();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
 
     assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
     assertEquals("signingConfig", "password", signingConfig.storePassword());

@@ -25,7 +25,7 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -43,7 +43,7 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
     if (parsedModel != null) {
       AndroidModel android = parsedModel.android();
       if (android != null) {
-        Collection<BuildTypeModel> parsedBuildTypes = android.buildTypes();
+        List<BuildTypeModel> parsedBuildTypes = android.buildTypes();
         for (BuildTypeModel parsedBuildType : parsedBuildTypes) {
           String name = parsedBuildType.name();
           BuildType fromGradle = buildTypesFromGradle.remove(name);

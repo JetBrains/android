@@ -15,21 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-
-public final class SigningConfigsDslElement extends GradleDslElementMap {
-  @NonNls public static final String SIGNING_CONFIGS_BLOCK_NAME = "signingConfigs";
-
-  public SigningConfigsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, SIGNING_CONFIGS_BLOCK_NAME);
+public class SourceSetDslElement extends GradlePropertiesDslElement {
+  public SourceSetDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name);
   }
 
   @Override
@@ -37,12 +30,12 @@ public final class SigningConfigsDslElement extends GradleDslElementMap {
     return true;
   }
 
-  @NotNull
-  public List<SigningConfigModel> get() {
-    List<SigningConfigModel> result = Lists.newArrayList();
-    for (SigningConfigDslElement dslElement : getValues(SigningConfigDslElement.class)) {
-      result.add(new SigningConfigModel(dslElement));
+  @Override
+  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals("setRoot")) {
+      super.addParsedElement("root", element);
+      return;
     }
-    return result;
+    super.addParsedElement(property, element);
   }
 }
