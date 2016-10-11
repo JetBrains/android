@@ -100,6 +100,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
+    verify(mySummary, times(1)).setSyncErrorsFound(true);
     verify(mySyncListener, times(1)).syncFailed(myProject, msg);
   }
 

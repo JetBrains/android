@@ -188,7 +188,7 @@ public class PostProjectSetupTasksExecutor {
     }
     moduleValidator.fixAndReportFoundIssues();
 
-    if (syncState.getSummary().hasErrors() || syncState.lastSyncFailed()) {
+    if (syncState.lastSyncFailed()) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();

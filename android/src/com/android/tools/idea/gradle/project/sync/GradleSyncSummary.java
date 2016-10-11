@@ -62,7 +62,7 @@ public class GradleSyncSummary {
     myWrongJdkFound = wrongJdkFound;
   }
 
-  public boolean hasErrors() {
+  public boolean hasSyncErrors() {
     if (mySyncErrorsFound || myWrongJdkFound) {
       return true;
     }

@@ -79,7 +79,7 @@ public class JdkPostSyncProjectSetupStepTest extends AndroidGradleTestCase {
                                                                .hasGroup(DEFAULT_GROUP);
     // @formatter:on
 
-    assertTrue(GradleSyncState.getInstance(project).getSummary().hasErrors());
+    assertTrue(GradleSyncState.getInstance(project).getSummary().hasSyncErrors());
   }
 
   public void testDoSetUpProjectWithIdea() {

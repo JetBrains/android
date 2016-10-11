@@ -189,6 +189,8 @@ public class GradleSyncState {
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
+    mySummary.setSyncErrorsFound(true);
+
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_FAILURE);
     UsageTracker.getInstance().log(event);
   }
@@ -252,8 +254,23 @@ public class GradleSyncState {
     myChangeNotification.notifyStateChanged();
   }
 
+  /**
+   * Indicates whether the last Gradle sync failed. This method returns {@code false} if there is a sync task is currently running.
+   * <p>
+   * Possible failure causes:
+   * <ul>
+   * <li>An error occurred in Gradle (e.g. a missing dependency, or a missing Android platform in the SDK)</li>
+   * <li>An error occurred while setting up a project using the models obtained from Gradle during sync (e.g. invoking a method that
+   * doesn't exist in an old version of the Android plugin)</li>
+   * <li>An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)</li>
+   * </ul>
+   * </p>
+   *
+   * @return {@code true} if the last Gradle sync failed; {@code false} if the last sync was successful or if there is a sync task
+   * currently running.
+   */
   public boolean lastSyncFailed() {
-    return !isSyncInProgress() && isBuildWithGradle(myProject) && requiredAndroidModelMissing(myProject);
+    return !isSyncInProgress() && isBuildWithGradle(myProject) && (requiredAndroidModelMissing(myProject) || mySummary.hasSyncErrors());
   }
 
   public boolean isSyncInProgress() {
