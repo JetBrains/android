@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.model.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public final class ProductFlavorsDslElement extends GradleDslElementMap {
-  @NonNls public static final String PRODUCT_FLAVORS_BLOCK_NAME = "productFlavors";
+public final class SourceSetsDslElement extends GradleDslElementMap {
+  @NonNls public static final String SOURCE_SETS_BLOCK_NAME = "sourceSets";
 
-  public ProductFlavorsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, PRODUCT_FLAVORS_BLOCK_NAME);
+  public SourceSetsDslElement(@NotNull GradleDslElement parent) {
+    super(parent, SOURCE_SETS_BLOCK_NAME);
   }
 
   @Override
@@ -38,10 +38,10 @@ public final class ProductFlavorsDslElement extends GradleDslElementMap {
   }
 
   @NotNull
-  public List<ProductFlavorModel> get() {
-    List<ProductFlavorModel> result = Lists.newArrayList();
-    for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
-      result.add(new ProductFlavorModel(dslElement));
+  public List<SourceSetModel> get() {
+    List<SourceSetModel> result = new ArrayList<>();
+    for (SourceSetDslElement dslElement : getValues(SourceSetDslElement.class)) {
+      result.add(new SourceSetModel(dslElement));
     }
     return result;
   }

@@ -38,7 +38,7 @@ public final class BuildTypesDslElement extends GradleDslElementMap {
   }
 
   @NotNull
-  public Collection<BuildTypeModel> get() {
+  public List<BuildTypeModel> get() {
     List<BuildTypeModel> result = Lists.newArrayList();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
       result.add(new BuildTypeModel(dslElement));
