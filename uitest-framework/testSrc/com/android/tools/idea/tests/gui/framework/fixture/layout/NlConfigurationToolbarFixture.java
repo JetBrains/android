@@ -161,7 +161,7 @@ public class NlConfigurationToolbarFixture {
         return deviceName.equals(item.substring(0, item.lastIndexOf(FILE_ARROW)).trim());
       }
       else if (item.contains("(")) {
-        return deviceName.equals(item.substring(0, item.lastIndexOf('(')).trim());
+        return deviceName.equals(item.substring(item.lastIndexOf('(') + 1, item.lastIndexOf(')')));
       }
       return false;
     }
