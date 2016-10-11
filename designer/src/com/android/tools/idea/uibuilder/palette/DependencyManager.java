@@ -104,11 +104,7 @@ public class DependencyManager {
     }
     download.paintIcon(componentContext, g2, x, y);
     g2.dispose();
-    BufferedImage retina = ImageUtils.convertToRetina(image);
-    if (retina != null) {
-      image = retina;
-    }
-    return new JBImageIcon(image);
+    return new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image));
   }
 
   private boolean checkForNewMissingDependencies() {

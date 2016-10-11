@@ -221,10 +221,6 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
       scale = factor * getWidth() / image.getWidth();
     }
     image = ImageUtils.scale(image, scale);
-    BufferedImage retina = ImageUtils.convertToRetina(image);
-    if (retina != null) {
-      image = retina;
-    }
-    return image;
+    return ImageUtils.convertToRetinaIgnoringFailures(image);
   }
 }
