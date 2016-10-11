@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A logcat listener base class used by the run and debug console windows
  */
-public abstract class ApplicationLogListener implements AndroidLogcatService.LogLineListener {
+public abstract class ApplicationLogListener implements AndroidLogcatService.LogcatListener {
   @Nullable private LogCatHeader myActiveHeader;
   @NotNull private final String myPackageName;
   private final int myPid;
