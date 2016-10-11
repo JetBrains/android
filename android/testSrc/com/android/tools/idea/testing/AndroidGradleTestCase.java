@@ -72,6 +72,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -372,20 +373,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", CURRENT_BUILD_TOOLS_VERSION);
       contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
       contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
-      contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + getLocalRepositories());
 
       if (!contents.equals(contentsOrig)) {
         write(contents, file, Charsets.UTF_8);
       }
     }
-  }
-
-  private static String getLocalRepository(String dir) {
-    return "maven { url \"" + TestUtils.getWorkspaceFile(dir).getAbsolutePath() + "\" }\n";
-  }
-
-  protected static String getLocalRepositories() {
-    return getLocalRepository("prebuilts/tools/common/m2/repository") + getLocalRepository("prebuilts/tools/common/offline-m2");
   }
 
   /**
