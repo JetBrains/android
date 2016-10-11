@@ -71,8 +71,10 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
   public FlameGraphVisualTest() {
     this.mDataRange = new Range();
-    this.mAxis = new AxisComponent(mDataRange, mDataRange, "TIME",
-                                   AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
+
+    AxisComponent.Builder builder = new AxisComponent.Builder(mDataRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
+    this.mAxis = builder.build();
+
     this.mSelectionRange = new Range();
 
     this.mLineChart = new LineChart();
@@ -254,7 +256,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
                 case BOTTOM:
                 case RIGHT:
                 case TOP:
-                  axis.setBounds(0, dim.height - AXIS_SIZE, dim.width, AXIS_SIZE);
+                  axis.setBounds(AXIS_SIZE, dim.height - AXIS_SIZE, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
                   break;
               }
             }

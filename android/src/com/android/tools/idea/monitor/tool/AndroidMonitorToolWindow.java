@@ -162,9 +162,9 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     myScrollbar = new RangeScrollbar(monotonicTimeUsRangeUs, myTimeViewRange);
 
-    myTimeAxis =
-      new AxisComponent(myTimeViewRange, monotonicTimeUsRangeUs, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, TimeAxisFormatter.DEFAULT);
-    myTimeAxis.setLabelVisible(false);
+    AxisComponent.Builder builder = new AxisComponent.Builder(myTimeViewRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(monotonicTimeUsRangeUs);
+    myTimeAxis = builder.build();
 
     myDetailedViewContainer = new JBPanel(new BorderLayout());
     mySegmentsContainer = new JBPanel();
