@@ -291,23 +291,18 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     // Add Selection Overlay
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.gridx = 2;
+    gbc.gridx = 0;
     gbc.gridy = 0;
-    gbc.gridwidth = 1;
     gbc.weightx = 1;
     gbc.weighty = 1;
     gridBagPanel.add(mySelection, gbc);
 
     // Add Accordion Control
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.gridwidth = 4;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
     gridBagPanel.add(mySegmentsContainer, gbc);
 
-    // Add Scrollbar
+    // Add Horizontal Scrollbar
     gbc.gridy = 1;
+    gbc.weighty = 0;
     gridBagPanel.add(myScrollbar, gbc);
 
     // Setup profiler segments
@@ -323,26 +318,6 @@ public class AndroidMonitorToolWindow implements Disposable {
     timeSegment.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
     timeSegment.initializeComponents();
     mySegmentsContainer.add(timeSegment);
-
-    // Add left spacer
-    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + timeSegment.getLabelColumnWidth(), 0);
-    gbc.gridy = 0;
-    gbc.gridx = 0;
-    gbc.gridwidth = 2;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
-    gridBagPanel.add(new Box.Filler(leftSpacer, leftSpacer, leftSpacer), gbc);
-
-    // Add right spacer
-    Dimension rightSpacer = new Dimension(BaseSegment.getSpacerWidth(), 0);
-    gbc.gridy = 0;
-    gbc.gridx = 3;
-    gbc.gridwidth = 1;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
-    Component rightSpacerFiller = new Box.Filler(rightSpacer, rightSpacer, rightSpacer);
-    gridBagPanel.add(rightSpacerFiller, gbc);
-    rightSpacerFiller.setVisible(false);
 
     mySplitter.setFirstComponent(gridBagPanel);
     myComponent.add(mySplitter);
@@ -381,8 +356,6 @@ public class AndroidMonitorToolWindow implements Disposable {
         }
 
         if (firstExpansion) {
-          timeSegment.toggleView(true);
-          rightSpacerFiller.setVisible(true);
           myCollapseSegmentsButton.setVisible(true);
         }
       }
@@ -397,8 +370,6 @@ public class AndroidMonitorToolWindow implements Disposable {
         mySplitter.setSecondComponent(null);
         mySplitter.setProportion(1f);
 
-        timeSegment.toggleView(false);
-        rightSpacerFiller.setVisible(false);
         myCollapseSegmentsButton.setVisible(false);
         myExpandedProfiler = null;
       }
