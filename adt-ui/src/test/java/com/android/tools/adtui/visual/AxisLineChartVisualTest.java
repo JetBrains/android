@@ -84,16 +84,17 @@ public class AxisLineChartVisualTest extends VisualTest {
     mScrollbar = new RangeScrollbar(mXGlobalRange, xRange);
 
     // add horizontal time axis
-    mTimeAxis = new AxisComponent(xRange, mXGlobalRange, "TIME",
-                                  AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
-    mTimeAxis.setLabelVisible(false);
+    AxisComponent.Builder builder = new AxisComponent.Builder(xRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(mXGlobalRange);
+    mTimeAxis = builder.build();
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
-                                     AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
-                                     MemoryAxisFormatter.DEFAULT);
+    builder = new AxisComponent.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.LEFT)
+      .setLabel(SERIES1_LABEL)
+      .showMinMax(true);
+    mMemoryAxis1 = builder.build();
+
     LongDataSeries series1 = new LongDataSeries();
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable, series1);
     mRangedData.add(ranged1);
@@ -101,9 +102,11 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
-                                     AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
-                                     MemoryAxisFormatter.DEFAULT);
+    builder = new AxisComponent.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.RIGHT)
+      .setLabel(SERIES2_LABEL)
+      .showMinMax(true);
+    mMemoryAxis2 = builder.build();
+
     LongDataSeries series2 = new LongDataSeries();
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable, series2);
     mRangedData.add(ranged2);
@@ -249,16 +252,16 @@ public class AxisLineChartVisualTest extends VisualTest {
               AxisComponent axis = (AxisComponent)c;
               switch (axis.getOrientation()) {
                 case LEFT:
-                  axis.setBounds(0, 0, AXIS_SIZE, dim.height);
+                  axis.setBounds(0, AXIS_SIZE, AXIS_SIZE, dim.height - AXIS_SIZE * 2);
                   break;
                 case BOTTOM:
-                  axis.setBounds(0, dim.height - AXIS_SIZE, dim.width, AXIS_SIZE);
+                  axis.setBounds(AXIS_SIZE, dim.height - AXIS_SIZE, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
                   break;
                 case RIGHT:
-                  axis.setBounds(dim.width - AXIS_SIZE, 0, AXIS_SIZE, dim.height);
+                  axis.setBounds(dim.width - AXIS_SIZE, AXIS_SIZE, AXIS_SIZE, dim.height - AXIS_SIZE * 2);
                   break;
                 case TOP:
-                  axis.setBounds(0, 0, dim.width, AXIS_SIZE);
+                  axis.setBounds(AXIS_SIZE, 0, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
                   break;
               }
             }
