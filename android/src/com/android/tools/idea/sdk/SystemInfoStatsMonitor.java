@@ -20,6 +20,7 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
 import com.google.common.base.Joiner;
@@ -188,7 +189,7 @@ public class SystemInfoStatsMonitor {
 
   @NotNull
   private static File getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
-    return new File(handler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+    return AvdManagerConnection.getAvdManagerConnection(handler).getEmulatorCheckBinary();
   }
 
   @Nullable
