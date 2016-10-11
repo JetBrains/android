@@ -53,6 +53,21 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     return processActions((AndroidLogcatView.AndroidLogConsole) consoleImpl.getParent(), actions);
   }
 
+  @NotNull
+  @Override
+  public AnAction[] postProcessPopupActions(@NotNull ConsoleView console, @NotNull AnAction[] actions) {
+    if (!(console instanceof ConsoleViewImpl)) {
+      return actions;
+    }
+
+    ConsoleViewImpl consoleImpl = (ConsoleViewImpl)console;
+    if (!(consoleImpl.getParent() instanceof AndroidLogcatView.AndroidLogConsole)) {
+      return actions;
+    }
+
+    return processPopupActions((AndroidLogcatView.AndroidLogConsole) consoleImpl.getParent(), actions);
+  }
+
   /**
    * Moves "clear all" and "Scroll to End" actions to the toolbar start.
    *
@@ -90,6 +105,21 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     actionList.add(0, new ClearLogCatAction(console));
 
     return actionList.toArray(new AnAction[actionList.size()]);
+  }
+
+  /**
+   * Replaces standard "Clear All" action to "Clear Logcat" action
+   */
+  private AnAction[] processPopupActions(AndroidLogcatView.AndroidLogConsole console, AnAction[] actions) {
+    AnAction[] resultActions = new AnAction[actions.length];
+    for (int i = 0; i < actions.length; ++i) {
+      if (actions[i] instanceof ConsoleViewImpl.ClearAllAction) {
+        resultActions[i] = new ClearLogCatAction(console);
+      } else {
+        resultActions[i] = actions[i];
+      }
+    }
+    return resultActions;
   }
 
   private static final class ClearLogCatAction extends DumbAwareAction {
