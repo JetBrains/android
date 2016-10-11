@@ -79,7 +79,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (GradleSyncState.getInstance(myProject).getSummary().hasErrors()) {
+    if (GradleSyncState.getInstance(myProject).getSummary().hasSyncErrors()) {
       return NotificationPanel.Type.ERRORS;
     }
 

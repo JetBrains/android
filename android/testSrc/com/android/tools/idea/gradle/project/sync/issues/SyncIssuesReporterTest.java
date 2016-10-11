@@ -70,7 +70,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2).report(mySyncIssue, appModule, buildFile);
 
-    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
+    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
 
   public void testReportWarning() throws Exception {
@@ -112,7 +112,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy1, never()).report(mySyncIssue, appModule, buildFile);
     verify(myStrategy2, never()).report(mySyncIssue, appModule, buildFile);
 
-    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasErrors());
+    assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
 
   public void testStrategiesSetInConstructor() throws Exception {
