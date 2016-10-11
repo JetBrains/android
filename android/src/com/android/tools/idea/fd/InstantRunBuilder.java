@@ -31,6 +31,7 @@ import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.idea.run.util.MultiUserUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,9 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_OPTIONAL_COMPILATION_STEPS;
@@ -59,6 +58,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   private final RunAsValidator myRunAsValidator;
   private final InstalledApkCache myInstalledApkCache;
   private final InstantRunClientDelegate myInstantRunClientDelegate;
+  private final boolean myFlightRecorderEnabled;
 
   public InstantRunBuilder(@Nullable IDevice device,
                            @NotNull InstantRunContext instantRunContext,
@@ -69,6 +69,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
          instantRunContext,
          runConfigContext,
          tasksProvider,
+         InstantRunSettings.isInstantRunEnabled(),
          runAsValidator,
          ServiceManager.getService(InstalledApkCache.class),
          new InstantRunClientDelegate() {
@@ -80,6 +81,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
                     @NotNull InstantRunContext instantRunContext,
                     @NotNull AndroidRunConfigContext runConfigContext,
                     @NotNull InstantRunTasksProvider tasksProvider,
+                    boolean enableFlightRecorder,
                     @NotNull RunAsValidator runAsValidator,
                     @NotNull InstalledApkCache installedApkCache,
                     @NotNull InstantRunClientDelegate delegate) {
@@ -87,6 +89,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     myInstantRunContext = instantRunContext;
     myRunContext = runConfigContext;
     myTasksProvider = tasksProvider;
+    myFlightRecorderEnabled = enableFlightRecorder;
     myRunAsValidator = runAsValidator;
     myInstalledApkCache = installedApkCache;
     myInstantRunClientDelegate = delegate;
@@ -105,6 +108,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     args.addAll(getInstantRunArguments(buildSelection.getBuildMode()));
+    args.addAll(getFlightRecorderArguments());
 
     List<String> tasks = new LinkedList<>();
     if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
@@ -227,10 +231,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   private static List<String> getInstantRunArguments(@NotNull BuildMode buildMode) {
-    List<String> args = Lists.newArrayListWithExpectedSize(3);
-
-    // TODO: Add a user-level setting to disable this?
-
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
     sb.append(PROPERTY_OPTIONAL_COMPILATION_STEPS);
@@ -249,9 +249,12 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         break;
     }
 
-    args.add(sb.toString());
+    return Collections.singletonList(sb.toString());
+  }
 
-    return args;
+  @NotNull
+  private List<String> getFlightRecorderArguments() {
+    return myFlightRecorderEnabled ? ImmutableList.of("--info") : ImmutableList.of();
   }
 
   /**
