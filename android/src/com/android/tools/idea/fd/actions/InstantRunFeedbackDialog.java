@@ -16,11 +16,12 @@
 package com.android.tools.idea.fd.actions;
 
 import com.android.tools.idea.fd.FlightRecorder;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.*;
+import com.intellij.ui.SingleSelectionModel;
 import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -52,6 +55,22 @@ public class InstantRunFeedbackDialog extends DialogWrapper {
         append(value.toString());
       }
     });
+
+    myFilesList.setSelectionModel(new SingleSelectionModel());
+    myFilesList.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    new ClickListener() {
+      @Override
+      public boolean onClick(@NotNull MouseEvent event, int clickCount) {
+        if (event.getButton() == MouseEvent.BUTTON1) {
+          Object selectedValue = myFilesList.getSelectedValue();
+          if (selectedValue instanceof Path) {
+            ShowFilePathAction.openFile(((Path)selectedValue).toFile());
+            return true;
+          }
+        }
+        return false;
+      }
+    }.installOn(myFilesList);
 
     setTitle("Report Instant Run Issue");
     setModal(true);
