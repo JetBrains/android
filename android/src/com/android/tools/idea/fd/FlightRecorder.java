@@ -206,7 +206,7 @@ public class FlightRecorder {
     try (Stream<Path> stream = Files.list(logsHome)) {
       return stream
         .filter(p -> Files.isReadable(p) && p.getFileName().toString().startsWith("idea.log"))
-        .sorted()
+        .sorted((p1, p2) -> Long.compare(p2.toFile().lastModified(), p1.toFile().lastModified()))
         .limit(3)
         .collect(Collectors.toList());
     }
@@ -222,6 +222,11 @@ public class FlightRecorder {
       Files.walkFileTree(myBasePath, new SimpleFileVisitor<Path>() {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          Path fileName = file.getFileName();
+          if (fileName != null && fileName.toString().startsWith(".")) { // skip past .DS_Store etc
+            return FileVisitResult.CONTINUE;
+          }
+
           list.add(file);
           // arbitrary limit to avoid uploading tons of unnecessary files
           return list.size() > 100 ? FileVisitResult.TERMINATE : FileVisitResult.CONTINUE;

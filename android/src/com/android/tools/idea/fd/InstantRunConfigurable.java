@@ -77,10 +77,10 @@ public class InstantRunConfigurable
   private JBLabel myHavingTroubleLabel;
 
   public InstantRunConfigurable() {
-    myExtraInfoHyperlink.setHtmlText("See <a href=\"more\">what is logged.</a>");
+    myExtraInfoHyperlink.setHtmlText("Learn more about <a href=\"more\">what is logged</a>,");
     myExtraInfoHyperlink.addHyperlinkListener(e -> BrowserUtil.browse("https://developer.android.com/r/studio-ui/ir-flight-recorder.html"));
 
-    myPrivacyPolicyLink.setHtmlText("<a href=\"privacy\">Privacy Policy</a>");
+    myPrivacyPolicyLink.setHtmlText("and our <a href=\"privacy\">privacy policy.</a>");
     myPrivacyPolicyLink.addHyperlinkListener(e -> BrowserUtil.browse("https://www.google.com/policies/privacy/"));
 
     myHelpGooglePanel.setBackground(UIUtil.getPanelBackground().brighter());
