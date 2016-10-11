@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
@@ -64,7 +60,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,7 +85,7 @@ public class HtmlLinkManager {
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   private static final String URL_REFRESH_RENDER = "refreshRender";
-  private static final String URL_INSTALL_ARTIFACT = "installArtifact:";
+  private static final String URL_ADD_DEPENDENCY = "addDependency:";
   private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -117,7 +112,7 @@ public class HtmlLinkManager {
     else if (url.equals(URL_BUILD)) {
       assert dataContext != null;
       assert module != null;
-      handleCompileModuleUrl(url, module);
+      handleBuildProjectUrl(url, module.getProject());
     }
     else if (url.equals(URL_SYNC)) {
       assert dataContext != null;
@@ -182,9 +177,9 @@ public class HtmlLinkManager {
         linkRunnable.run();
       }
     }
-    else if (url.startsWith(URL_INSTALL_ARTIFACT)) {
+    else if (url.startsWith(URL_ADD_DEPENDENCY)) {
       if (module != null) {
-        handleInstallArtifact(url, module);
+        handleAddDependency(url, module);
       }
     }
     else if (url.startsWith(URL_COMMAND)) {
@@ -323,13 +318,16 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createCompileModuleUrl() {
+  public String createBuildProjectUrl() {
     return URL_BUILD;
   }
 
-  private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
+  private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
-    GradleProjectBuilder.getInstance(module.getProject()).compileJava();
+    BuildSystemService service = BuildSystemService.getInstance(project);
+    if (service != null) {
+      service.buildProject(project);
+    }
   }
 
   public String createSyncProjectUrl() {
@@ -338,8 +336,10 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    BuildVariantView.getInstance(project).projectImportStarted();
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    BuildSystemService service = BuildSystemService.getInstance(project);
+    if (service != null) {
+      service.syncProject(project);
+    }
   }
 
   public String createEditClassPathUrl() {
@@ -909,15 +909,16 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createInstallArtifactUrl(String artifact) {
-    return URL_INSTALL_ARTIFACT + artifact;
+  public String createAddDependencyUrl(String artifact) {
+    return URL_ADD_DEPENDENCY + artifact;
   }
 
-  private static void handleInstallArtifact(@NotNull String url, @NotNull final Module module) {
-    assert url.startsWith(URL_INSTALL_ARTIFACT) : url;
-    String artifact = url.substring(URL_INSTALL_ARTIFACT.length());
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
-    manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
+  private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
+    assert url.startsWith(URL_ADD_DEPENDENCY) : url;
+    BuildSystemService service = BuildSystemService.getInstance(module.getProject());
+    if (service != null) {
+      String dependency = url.substring(URL_ADD_DEPENDENCY.length());
+      service.addDependency(module, dependency);
+    }
   }
 }
