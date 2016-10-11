@@ -70,7 +70,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
          instantRunContext,
          runConfigContext,
          tasksProvider,
-         InstantRunSettings.isInstantRunEnabled(),
+         InstantRunSettings.isRecorderEnabled(),
          runAsValidator,
          ServiceManager.getService(InstalledApkCache.class),
          new InstantRunClientDelegate() {
