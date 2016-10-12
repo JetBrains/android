@@ -82,7 +82,7 @@ public class WindowPickerDialog extends DialogWrapper {
 
   private static class ClientWindowRenderer extends ColoredListCellRenderer {
     @Override
-    protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
       assert value instanceof ClientWindow;
       append(((ClientWindow)value).getDisplayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }

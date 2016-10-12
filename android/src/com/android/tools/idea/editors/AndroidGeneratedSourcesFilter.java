@@ -48,7 +48,8 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
     // is no AndroidFacet module). Unfortunately, this folder is not available in the
     // Gradle project model so we have to look for it by hardcoded name.
     VirtualFile baseDir = project.getBaseDir();
-    VirtualFile build = baseDir == null ? null : baseDir.findChild(GradleUtil.BUILD_DIR_DEFAULT_NAME);
+    if (baseDir == null) return false;
+    VirtualFile build = baseDir.findChild(GradleUtil.BUILD_DIR_DEFAULT_NAME);
     return build != null &&
            Projects.isBuildWithGradle(project) &&
            isAncestor(build, file, false);

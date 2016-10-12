@@ -57,7 +57,7 @@ public class AndroidLineMarkerProvider implements LineMarkerProvider {
     final String tooltip = info.myTooltip;
 
     return new LineMarkerInfo<PsiElement>(
-      anchor, anchor.getTextOffset(), info.myIcon, Pass.UPDATE_OVERRIDEN_MARKERS,
+      anchor, anchor.getTextOffset(), info.myIcon, Pass.UPDATE_OVERRIDDEN_MARKERS,
       new ConstantFunction<PsiElement, String>(tooltip), new MyNavigationHandler(info));
   }
 

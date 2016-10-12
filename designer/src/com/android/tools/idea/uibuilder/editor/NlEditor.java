@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.NlBackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.designer.LightToolWindowManager;
@@ -24,12 +22,13 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
@@ -79,12 +78,6 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public String getName() {
     return "Design";
-  }
-
-  @Override
-  @NotNull
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override

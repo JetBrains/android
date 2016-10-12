@@ -113,7 +113,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myThemeList.addListSelectionListener(this);
     myThemeList.setCellRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         setIcon(AndroidIcons.Themes);
 
         String style = (String)value;

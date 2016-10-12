@@ -122,7 +122,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
   @NotNull
   @Override
   public KeyDescriptor<String> getKeyDescriptor() {
-    return new EnumeratorStringDescriptor();
+    return EnumeratorStringDescriptor.INSTANCE;
   }
 
   @NotNull

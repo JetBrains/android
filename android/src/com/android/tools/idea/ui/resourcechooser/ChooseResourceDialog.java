@@ -2043,7 +2043,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       else {
         ColoredListCellRenderer<ResourceChooserItem> listRenderer = new ColoredListCellRenderer<ResourceChooserItem>() {
           @Override
-          protected void customizeCellRenderer(JList list, ResourceChooserItem value, int index, boolean selected, boolean hasFocus) {
+          protected void customizeCellRenderer(@NotNull JList list, ResourceChooserItem value, int index, boolean selected,
+                                               boolean hasFocus) {
             if (!hasFocus) {
               setBorder(new AbstractBorder() {
                 @Override

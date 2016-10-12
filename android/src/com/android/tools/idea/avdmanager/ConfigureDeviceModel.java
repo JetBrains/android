@@ -24,6 +24,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,6 +104,11 @@ public final class ConfigureDeviceModel extends WizardModel {
     }
 
     return state;
+  }
+
+  @Nullable
+  public Project getProject() {
+    return myProvider.getProject();
   }
 
   public AvdDeviceData getDeviceData() {

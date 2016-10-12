@@ -8,10 +8,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Dmitry Avdeev
@@ -63,11 +61,6 @@ public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
     assertEquals(3, ModuleManager.getInstance(myProject).getModules().length);
     assertNotNull(AndroidGradleFacet.getInstance(getModule("android")));
     assertNotNull(JavaGradleFacet.getInstance(getModule("lib")));
-  }
-
-  @Override
-  protected void collectAllowedRoots(List<String> roots) throws IOException {
-    super.collectAllowedRoots(roots);
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")

@@ -17,14 +17,11 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 public class EditAvdAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
-
   public EditAvdAction(AvdInfoProvider avdInfoProvider) {
     this(avdInfoProvider, "Edit", "Edit this AVD", AllIcons.Modules.Edit);
   }
@@ -35,7 +32,7 @@ public class EditAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), null, getAvdInfo());
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
       refreshAvds();
     }

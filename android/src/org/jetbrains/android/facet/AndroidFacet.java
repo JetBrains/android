@@ -682,8 +682,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   // TODO: correctly support classes from external non-platform jars
   @NotNull
   public Map<String, PsiClass> getClassMap(@NotNull String className) {
+    CachedValue<Map<String, PsiClass>> value;
     synchronized (myClassMapLock) {
-      CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
+      value = myClassMaps.get(className);
 
       if (value == null) {
         value = CachedValuesManager.getManager(getModule().getProject()).createCachedValue(
@@ -693,8 +694,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           }, false);
         myClassMaps.put(className, value);
       }
-      return value.getValue();
     }
+    return value.getValue();
   }
 
   @NotNull
