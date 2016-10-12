@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -51,6 +52,6 @@ public class AndroidDocumentationProviderTest extends AndroidTestCase {
     StringBuilder builder = new StringBuilder(1000);
     BufferedReader reader = new BufferedReader(new StringReader(input));
     filter.doBuildFromStream(url, reader, builder);
-    assertThat(builder.toString()).isEqualTo(expected);
+    assertThat(builder.toString()).isEqualTo(StringUtil.convertLineSeparators(expected));
   }
 }
