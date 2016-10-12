@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.intellij.execution.Executor;
@@ -55,6 +56,11 @@ public class ReRunAction extends AndroidStudioGradleAction implements AnAction.T
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
 
+    if (InstantRunSettings.USE_ALTERNATE_UI) {
+      presentation.setVisible(false);
+      return;
+    }
+
     RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     ProcessHandler processHandler = getActiveProcessHandler(project, settings);
 
@@ -86,7 +92,7 @@ public class ReRunAction extends AndroidStudioGradleAction implements AnAction.T
   }
 
   @Nullable
-  private static ProcessHandler getActiveProcessHandler(@Nullable Project project, @Nullable RunnerAndConfigurationSettings settings) {
+  public static ProcessHandler getActiveProcessHandler(@Nullable Project project, @Nullable RunnerAndConfigurationSettings settings) {
     if (project == null || settings == null) {
       return null;
     }
@@ -141,7 +147,7 @@ public class ReRunAction extends AndroidStudioGradleAction implements AnAction.T
   }
 
   @Nullable
-  private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
+  public static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
     RunConfiguration configuration = settings.getConfiguration();
     if (configuration == null) {
       return null;
@@ -156,7 +162,7 @@ public class ReRunAction extends AndroidStudioGradleAction implements AnAction.T
   }
 
   @Nullable
-  private static Executor getExecutor(@NotNull String executorId) {
+  public static Executor getExecutor(@NotNull String executorId) {
     for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensions()) {
       if (executorId.equals(executor.getId())) {
         return executor;
