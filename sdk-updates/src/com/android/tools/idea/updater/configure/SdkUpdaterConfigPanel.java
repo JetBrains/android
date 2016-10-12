@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
@@ -41,10 +42,12 @@ import com.google.common.collect.*;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
@@ -59,9 +62,12 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
+import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.awt.CausedFocusEvent;
@@ -75,6 +81,7 @@ import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -85,14 +92,19 @@ import java.util.Set;
  */
 public class SdkUpdaterConfigPanel {
   /**
-   * Main panel for the sdk configurable.
+   * Main panel for the SDK configurable.
    */
   private JPanel myRootPane;
 
   /**
-   * "Android SDK Location" text box at the top.
+   * "Android SDK Location" text box at the top, used in the single-SDK case (this is always the case in Studio).
    */
-  private JTextField mySdkLocation;
+  private JTextField mySdkLocationTextField;
+
+  /**
+   * SDK Location chooser for the multi-SDK case (for non-gradle projects in IJ).
+   */
+  private JComboBox<File> mySdkLocationChooser;
 
   /**
    * Label for SDK location.
@@ -100,7 +112,12 @@ public class SdkUpdaterConfigPanel {
   private JBLabel mySdkLocationLabel;
 
   /**
-   * Link to allow you to edit the sdk location.
+   * Panel for switching between the multi- and single-SDK cases.
+   */
+  private JPanel mySdkLocationPanel;
+
+  /**
+   * Link to allow you to edit the SDK location.
    */
   private HyperlinkLabel myEditSdkLink;
 
@@ -125,11 +142,6 @@ public class SdkUpdaterConfigPanel {
   private UpdateSitesPanel myUpdateSitesPanel;
 
   /**
-   * Link to launch the legacy standalone sdk manager.
-   */
-  private HyperlinkLabel myLaunchStandaloneLink;
-
-  /**
    * Link to let you switch to the preview channel if there are previews available.
    */
   private HyperlinkLabel myChannelLink;
@@ -150,7 +162,7 @@ public class SdkUpdaterConfigPanel {
   private final SettingsController mySettings;
 
   /**
-   * Reference to the {@link Configurable} that created us, for retrieving sdk state.
+   * Reference to the {@link Configurable} that created us, for retrieving SDK state.
    */
   private final SdkUpdaterConfigurable myConfigurable;
 
@@ -196,16 +208,15 @@ public class SdkUpdaterConfigPanel {
     myDownloader = downloader;
     mySettings = settings;
 
-    myLaunchStandaloneLink.setHyperlinkText("Launch Standalone SDK Manager");
-    myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
-        File path = IdeSdks.getInstance().getAndroidSdkPath();
-        assert path != null;
-
-        RunAndroidSdkManagerAction.runSpecificSdkManager(null, path);
-      }
-    });
+    Collection<File> sdkLocations = getSdkLocations();
+    if (sdkLocations.size() > 1) {
+      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "MultiSdk");
+      setUpMultiSdkChooser(sdkLocations);
+    }
+    else {
+      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
+      setUpSingleSdkChooser();
+    }
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -215,6 +226,68 @@ public class SdkUpdaterConfigPanel {
         channelChangedCallback.run();
       }
     });
+
+    myToolComponentsPanel.setConfigurable(myConfigurable);
+    myPlatformComponentsPanel.setConfigurable(myConfigurable);
+  }
+
+  public File getSelectedSdkLocation() {
+    if (getSdkLocations().size() > 1) {
+      return mySdkLocationChooser.getItemAt(mySdkLocationChooser.getSelectedIndex());
+    }
+    else {
+      return new File(mySdkLocationTextField.getText());
+    }
+  }
+
+  private void setUpMultiSdkChooser(Collection<File> sdkLocations) {
+    sdkLocations.forEach(location -> mySdkLocationChooser.addItem(location));
+    mySdkLocationChooser.addItemListener(event -> {
+      if (event.getStateChange() == ItemEvent.SELECTED) {
+        reset();
+      }
+    });
+  }
+
+  private Collection<File> getSdkLocations() {
+    if (AndroidUtils.isAndroidStudio()) {
+      File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
+      if (androidHome != null) {
+        return ImmutableList.of(androidHome);
+      }
+    }
+
+    Set<File> locations = new HashSet<>();
+    // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
+    // Gradle project.
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      try {
+        LocalProperties localProperties = new LocalProperties(project);
+        File androidSdkPath = localProperties.getAndroidSdkPath();
+        if (androidSdkPath != null) {
+          locations.add(androidSdkPath);
+          continue;
+        }
+      }
+      catch (IOException ignored) {
+        Logger.getInstance(SdkUpdaterConfigPanel.class)
+          .info("Unable to read local.properties file from project: " + project.getName(), ignored);
+      }
+
+      List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+      assert !facets.isEmpty();
+
+      for (AndroidFacet facet : facets) {
+        AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
+        if (sdkData != null) {
+          locations.add(sdkData.getLocation());
+        }
+      }
+    }
+    return locations;
+  }
+
+  private void setUpSingleSdkChooser() {
     myEditSdkLink.setHyperlinkText("Edit");
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -225,7 +298,7 @@ public class SdkUpdaterConfigPanel {
           public void init() {
             DownloadingComponentsStep progressStep = new DownloadingComponentsStep(myHost.getDisposable(), myHost);
 
-            String sdkPath = mySdkLocation.getText();
+            String sdkPath = mySdkLocationTextField.getText();
             File location;
             if (StringUtil.isEmpty(sdkPath)) {
               location = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
@@ -267,7 +340,7 @@ public class SdkUpdaterConfigPanel {
 
           private void setAndroidSdkLocationText(String text) {
             ApplicationManager.getApplication().invokeLater(() -> {
-              mySdkLocation.setText(text);
+              mySdkLocationTextField.setText(text);
               refresh();
             });
           }
@@ -287,9 +360,7 @@ public class SdkUpdaterConfigPanel {
         wizard.show();
       }
     });
-    mySdkLocation.setEditable(false);
-    myToolComponentsPanel.setConfigurable(myConfigurable);
-    myPlatformComponentsPanel.setConfigurable(myConfigurable);
+    mySdkLocationTextField.setEditable(false);
   }
 
   private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
@@ -444,7 +515,7 @@ public class SdkUpdaterConfigPanel {
   }
 
   /**
-   * Validates {@link #mySdkLocation} and shows appropriate errors in the UI if needed.
+   * Validates {@link #mySdkLocationTextField} and shows appropriate errors in the UI if needed.
    */
   private void validate() {
     File sdkLocation = myConfigurable.getRepoManager().getLocalPath();
@@ -518,9 +589,9 @@ public class SdkUpdaterConfigPanel {
    */
   public void reset() {
     refresh();
-    File path = IdeSdks.getInstance().getAndroidSdkPath();
-    if (path != null) {
-      mySdkLocation.setText(path.getPath());
+    Collection<File> sdkLocations = getSdkLocations();
+    if (getSdkLocations().size() == 1) {
+      mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
     }
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();
