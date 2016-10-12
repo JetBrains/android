@@ -7,6 +7,7 @@ public final class TestProjectPaths {
   public static final String BASIC = "projects/basic";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String EXPERIMENTAL_PLUGIN = "projects/experimentalPlugin";
+  public static final String HELLO_JNI = "projects/helloJni";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
