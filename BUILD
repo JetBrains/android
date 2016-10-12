@@ -124,7 +124,6 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:Eclipse[test]",
         "//tools:idea.properties-psi-api[module]",
-        "//tools/idea/.idea/libraries:asm4",
         "//tools:idea.platform-main[module, test]",
         "//tools:idea.bootstrap[module]",
         "//tools/idea/.idea/libraries:jcip",
@@ -186,13 +185,6 @@ iml_module(
     test_shard_count = 2,
     test_timeout = "long",
     javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
-)
-
-java_import(
-    name = "android/lib/commons-compress-1.8.1",
-    jars = ["android/lib/commons-compress-1.8.1.jar"],
     visibility = ["//visibility:public"],
     tags = ["managed"],
 )

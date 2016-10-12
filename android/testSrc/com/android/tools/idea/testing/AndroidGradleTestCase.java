@@ -381,7 +381,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   private static String getLocalRepository(String dir) {
-    return "maven { url \"" + TestUtils.getWorkspaceFile(dir).getAbsolutePath() + "\" }\n";
+    return "maven { url \"" + TestUtils.getWorkspaceFile(dir).toURI() + "\" }\n";
   }
 
   protected static String getLocalRepositories() {
