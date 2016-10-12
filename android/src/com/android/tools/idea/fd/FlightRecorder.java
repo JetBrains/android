@@ -18,6 +18,7 @@ package com.android.tools.idea.fd;
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.utils.FileUtils;
 import com.google.common.base.Charsets;
@@ -58,6 +59,9 @@ public class FlightRecorder {
   // A path specific to this project within which all flight recorder logs are saved
   private final Path myBasePath;
 
+  // Log buffer for runtime logs
+  private final LogcatRecorder myLogcatRecorder;
+
   // Time (in default timezone to match idea.log) at which the last build output was saved.
   private LocalDateTime myTimestamp;
 
@@ -69,6 +73,7 @@ public class FlightRecorder {
     Path logs = Paths.get(PathManager.getLogPath());
     Path flr = Paths.get(FD_FLR_LOGS, project.getLocationHash());
     myBasePath = logs.resolve(flr);
+    myLogcatRecorder = new LogcatRecorder(AndroidLogcatService.getInstance());
   }
 
   public void saveBuildOutput(@NotNull String gradleOutput, @NotNull InstantRunBuildProgressListener instantRunProgressListener) {
@@ -88,13 +93,24 @@ public class FlightRecorder {
       new BuildInfoRecorderTask(myBasePath, myTimestamp, instantRunBuildInfo));
   }
 
-  public void saveTargetDeviceInfo(@NotNull AndroidDevice device) {
+  public void setLaunchTarget(@NotNull AndroidDevice device) {
     try {
       Path deviceLog = myBasePath.resolve(timeStampToFolder(myTimestamp)).resolve(getDeviceLogFileName(device));
       Files.write(deviceLog, new byte[0]);
     }
     catch (IOException e) {
       Logger.getInstance(FlightRecorder.class).info("Unable to record deployment device info", e);
+    }
+
+    // start monitoring logcat if device is online
+    if (device.getLaunchedDevice().isDone()) {
+      try {
+        IDevice d = device.getLaunchedDevice().get();
+        myLogcatRecorder.startMonitoring(d, myTimestamp);
+      }
+      catch (InterruptedException | ExecutionException e) {
+        Logger.getInstance(FlightRecorder.class).info("Unable to start recording logcat", e);
+      }
     }
   }
 
@@ -197,6 +213,15 @@ public class FlightRecorder {
 
     logs.addAll(getIdeaLogs(logsHome));
     logs.addAll(getFlightRecorderLogs());
+
+    Path logcatPath = logsHome.resolve("logcat.txt");
+    try {
+      Files.write(logcatPath, myLogcatRecorder.getLogs(), Charsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+      logs.add(logcatPath);
+    }
+    catch (IOException e) {
+      Logger.getInstance(FlightRecorder.class).info("Unexpected error saving logcat", e);
+    }
 
     return logs;
   }
