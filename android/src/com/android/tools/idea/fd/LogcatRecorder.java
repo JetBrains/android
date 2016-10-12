@@ -60,7 +60,9 @@ public class LogcatRecorder {
   public void startMonitoring(@NotNull IDevice device, @NotNull LocalDateTime buildTimeStamp) {
     IDevice old = myDeviceRef.getAndSet(device);
     if (old != device) {
-      myLogcatService.removeListener(old, myLogListener);
+      if (old != null) {
+        myLogcatService.removeListener(old, myLogListener);
+      }
       myLogcatService.addListener(device, myLogListener);
 
       enableInstantRunLog(device);
