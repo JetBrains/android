@@ -25,6 +25,8 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
@@ -36,6 +38,7 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -223,11 +226,14 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
 
     mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
     myErrorPanel.setMinimizeListener((isMinimized) -> {
+      NlUsageTracker tracker = NlUsageTrackerManager.getInstance(this);
       if (isMinimized) {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL);
         mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
         myErrorPanelSplitter.setProportion(1f);
       }
       else {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
         myErrorPanelSplitter.setProportion(mySavedErrorPanelProportion);
       }
       updateErrorPanelSplitterUi(isMinimized);
@@ -639,6 +645,7 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
           if (tooltip != null) {
             JBPopup lintPopup = myLintTooltipPopup.get();
             if (lintPopup == null || !lintPopup.isVisible()) {
+              NlUsageTrackerManager.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.LINT_TOOLTIP);
               LintNotificationPanel lintPanel = new LintNotificationPanel(getCurrentScreenView(), lintModel);
               lintPanel.selectIssueAtPoint(Coordinates.getAndroidX(getCurrentScreenView(), x),
                                            Coordinates.getAndroidY(getCurrentScreenView(), y));

@@ -194,6 +194,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   @Nullable
   public XmlFile getFile() {
+    if (myFile == null && myPendingFile != null) {
+      return myPendingFile.file;
+    }
+
     return myFile;
   }
 
