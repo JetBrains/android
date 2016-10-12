@@ -1276,7 +1276,8 @@ Function fnc_InstallDirsPage_Leave
 
         ${fnc_ValidPath} $0 $s_SdkPath 1
         ${If} $0 != 0
-            MessageBox MB_OK|MB_ICONEXCLAMATION 'The SDK path must not contain any of ${BAD_CHARS} or space.' /SD IDOK
+            MessageBox MB_OK|MB_ICONEXCLAMATION 'In order for the SDK tools to work properly, the path must not \
+            contain any of ${BAD_CHARS} or space.' /SD IDOK
             Abort
         ${Endif}
 
