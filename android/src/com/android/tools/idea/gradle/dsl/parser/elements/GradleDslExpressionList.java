@@ -24,7 +24,9 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -130,6 +132,11 @@ public final class GradleDslExpressionList extends GradleDslElement {
       return psiElement;
     }
 
+    if (myParent instanceof GradleDslExpressionMap) {
+      // // This is a list in the map element and we need to create a named argument for it.
+      return createNamedArgumentList();
+    }
+
     psiElement = super.create();
     if (psiElement == null) {
       return null;
@@ -163,6 +170,43 @@ public final class GradleDslExpressionList extends GradleDslElement {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  private GroovyPsiElement createNamedArgumentList() {
+    assert myParent instanceof GradleDslExpressionMap;
+
+    GroovyPsiElement parentPsiElement = myParent.create();
+    if (parentPsiElement == null) {
+      return null;
+    }
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
+    GrExpression expressionFromText = factory.createExpressionFromText("[]");
+    if (expressionFromText instanceof GrListOrMap) {
+      // Elements need to be added to the list before adding the list to the named argument.
+      GrListOrMap list = (GrListOrMap)expressionFromText;
+      for (GradleDslExpression expression : myToBeAddedExpressions) {
+        expression.setPsiElement(list);
+        expression.applyChanges();
+        myExpressions.add(expression);
+      }
+      myToBeAddedExpressions.clear();
+    }
+    GrNamedArgument namedArgument = factory.createNamedArgument(myName, expressionFromText);
+    PsiElement added;
+    if (parentPsiElement instanceof GrArgumentList) {
+      added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
+    }
+    else {
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
+    if (added instanceof GrNamedArgument) {
+      GrNamedArgument addedNameArgument = (GrNamedArgument)added;
+      setPsiElement(addedNameArgument.getExpression());
+      return getPsiElement();
+    }
     return null;
   }
 

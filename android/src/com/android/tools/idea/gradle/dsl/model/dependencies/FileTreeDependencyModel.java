@@ -34,16 +34,85 @@ public class FileTreeDependencyModel extends DependencyModel {
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
+  @NotNull private String myConfigurationName;
   @NotNull private final GradleDslMethodCall myDslElement;
   @NotNull private final GradleDslExpression myDir;
 
   @Nullable private final GradleDslElement myIncludeElement;
   @Nullable private final GradleDslElement myExcludeElement;
 
-  public FileTreeDependencyModel(@NotNull GradleDslMethodCall dslElement,
-                                 @NotNull GradleDslExpression dir,
-                                 @Nullable GradleDslElement includeElement,
-                                 @Nullable GradleDslElement excludeElement) {
+  static Collection<? extends FileTreeDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+    List<FileTreeDependencyModel> result = Lists.newArrayList();
+    if (FILE_TREE.equals(methodCall.getName())) {
+      List<GradleDslElement> arguments = methodCall.getArguments();
+      for (GradleDslElement argument : arguments) {
+        if (argument instanceof GradleDslExpression) {
+          result.add(new FileTreeDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null, null));
+        }
+        else if (argument instanceof GradleDslExpressionMap) {
+          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
+          GradleDslExpression dirElement = dslMap.getProperty(DIR, GradleDslExpression.class);
+          if (dirElement == null) {
+            assert methodCall.getPsiElement() != null;
+            String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
+            LOG.warn(msg);
+            continue;
+          }
+          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE);
+          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE);
+          result.add(new FileTreeDependencyModel(configurationName, methodCall, dirElement, includeElement, excludeElement));
+        }
+      }
+    }
+    return result;
+  }
+
+  static void createAndAddToList(@NotNull GradleDslElementList list,
+                                 @NotNull String configurationName,
+                                 @NotNull String dir,
+                                 @Nullable List<String> includes,
+                                 @Nullable List<String> excludes) {
+    String methodName = FILE_TREE;
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
+    if ((includes == null || includes.isEmpty()) && (excludes == null || excludes.isEmpty())) {
+      GradleDslLiteral directory = new GradleDslLiteral(methodCall, methodName);
+      directory.setValue(dir);
+      methodCall.addNewArgument(directory);
+    }
+    else {
+      GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+      mapArguments.setNewLiteral(DIR, dir);
+      if (includes != null && !includes.isEmpty()) {
+        if (includes.size() == 1) {
+          mapArguments.setNewLiteral(INCLUDE, includes.get(0));
+        }
+        else {
+          for (String include : includes) {
+            mapArguments.addToNewLiteralList(INCLUDE, include);
+          }
+        }
+      }
+      if (excludes != null && !excludes.isEmpty()) {
+        if (excludes.size() == 1) {
+          mapArguments.setNewLiteral(EXCLUDE, excludes.get(0));
+        }
+        else {
+          for (String exclude : excludes) {
+            mapArguments.addToNewLiteralList(EXCLUDE, exclude);
+          }
+        }
+      }
+      methodCall.addNewArgument(mapArguments);
+    }
+    list.addNewElement(methodCall);
+  }
+
+  private FileTreeDependencyModel(@NotNull String configurationName,
+                                  @NotNull GradleDslMethodCall dslElement,
+                                  @NotNull GradleDslExpression dir,
+                                  @Nullable GradleDslElement includeElement,
+                                  @Nullable GradleDslElement excludeElement) {
+    myConfigurationName = configurationName;
     myDslElement = dslElement;
     myDir = dir;
     myIncludeElement = includeElement;
@@ -54,6 +123,12 @@ public class FileTreeDependencyModel extends DependencyModel {
   @NotNull
   protected GradleDslElement getDslElement() {
     return myDslElement;
+  }
+
+  @Override
+  @NotNull
+  public String configurationName() {
+    return myConfigurationName;
   }
 
   @NotNull
@@ -91,31 +166,5 @@ public class FileTreeDependencyModel extends DependencyModel {
     }
 
     return Collections.emptyList();
-  }
-
-  public static Collection<? extends FileTreeDependencyModel> create(@NotNull GradleDslMethodCall methodCall) {
-    List<FileTreeDependencyModel> result = Lists.newArrayList();
-    if (FILE_TREE.equals(methodCall.getName())) {
-      List<GradleDslElement> arguments = methodCall.getArguments();
-      for (GradleDslElement argument : arguments) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new FileTreeDependencyModel(methodCall, (GradleDslExpression)argument, null, null));
-        }
-        else if (argument instanceof GradleDslExpressionMap) {
-          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression dirElement = dslMap.getProperty(DIR, GradleDslExpression.class);
-          if (dirElement == null) {
-            assert methodCall.getPsiElement() != null;
-            String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
-            LOG.warn(msg);
-            continue;
-          }
-          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE);
-          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE);
-          result.add(new FileTreeDependencyModel(methodCall, dirElement, includeElement, excludeElement));
-        }
-      }
-    }
-    return result;
   }
 }
