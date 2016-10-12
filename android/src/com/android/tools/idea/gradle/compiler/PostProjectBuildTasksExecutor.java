@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
@@ -169,7 +169,7 @@ public class PostProjectBuildTasksExecutor {
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (requiresAndroidModel(myProject)) {
-      executeProjectChanges(myProject, () -> excludeOutputFolders());
+      executeProjectChanges(myProject, this::excludeOutputFolders);
 
       if (isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
@@ -194,13 +194,14 @@ public class PostProjectBuildTasksExecutor {
       syncJavaLangLevel();
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
+        GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, settings, null);
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
       }
     }
   }
@@ -225,10 +226,9 @@ public class PostProjectBuildTasksExecutor {
   }
 
   /**
-   * Even though {@link com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer} already excluded the folders
-   * "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of "$buildDir" and exclude any non-generated folders
-   * that may have been created by other plug-ins. We need to be aggressive when excluding folder to prevent over-indexing files, which
-   * will degrade the IDE's performance.
+   * Even though 'Project sync' already excluded the folders "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of
+   * "$buildDir" and exclude any non-generated folder that may have been created by other plug-ins. We need to be aggressive when excluding
+   * folder to prevent over-indexing files, which will degrade the IDE's performance.
    */
   private void excludeOutputFolders() {
     if (myProject.isDisposed()) {

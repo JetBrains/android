@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,7 +25,6 @@ import org.junit.runner.RunWith;
 /**
  * UI tests for the canvas resizing interaction
  */
-@RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
 public class CanvasResizeTest {
 

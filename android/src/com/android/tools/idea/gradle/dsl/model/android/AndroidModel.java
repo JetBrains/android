@@ -24,11 +24,12 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
@@ -73,9 +74,9 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public Collection<BuildTypeModel> buildTypes() {
+  public List<BuildTypeModel> buildTypes() {
     BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
-    return buildTypes == null ? ImmutableList.<BuildTypeModel>of() : buildTypes.get();
+    return buildTypes == null ? ImmutableList.of() : buildTypes.get();
   }
 
   @NotNull
@@ -222,9 +223,9 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public Collection<ProductFlavorModel> productFlavors() {
+  public List<ProductFlavorModel> productFlavors() {
     ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
-    return productFlavors == null ? ImmutableList.<ProductFlavorModel>of() : productFlavors.get();
+    return productFlavors == null ? ImmutableList.of() : productFlavors.get();
   }
 
   @NotNull
@@ -248,6 +249,68 @@ public final class AndroidModel extends GradleDslBlockModel {
     ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
     if (productFlavors != null) {
       productFlavors.removeProperty(flavor);
+    }
+    return this;
+  }
+
+  @NotNull
+  public List<SigningConfigModel> signingConfigs() {
+    SigningConfigsDslElement signingConfigs = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+  }
+
+  @NotNull
+  public AndroidModel addSigningConfig(@NotNull String config) {
+    SigningConfigsDslElement signingConfigs = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfigs == null) {
+      signingConfigs = new SigningConfigsDslElement(myDslElement);
+      myDslElement.setNewElement(SIGNING_CONFIGS_BLOCK_NAME, signingConfigs);
+    }
+
+    SigningConfigDslElement configElement = signingConfigs.getProperty(config, SigningConfigDslElement.class);
+    if (configElement == null) {
+      configElement = new SigningConfigDslElement(signingConfigs, config);
+      signingConfigs.setNewElement(config, configElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeSigningConfig(@NotNull String configName) {
+    SigningConfigsDslElement signingConfig = myDslElement.getProperty(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfig != null) {
+      signingConfig.removeProperty(configName);
+    }
+    return this;
+  }
+
+  @NotNull
+  public List<SourceSetModel> sourceSets() {
+    SourceSetsDslElement sourceSets = myDslElement.getProperty(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    return sourceSets == null ? ImmutableList.of() : sourceSets.get();
+  }
+
+  @NotNull
+  public AndroidModel addSourceSet(@NotNull String sourceSet) {
+    SourceSetsDslElement sourceSets = myDslElement.getProperty(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    if (sourceSets == null) {
+      sourceSets = new SourceSetsDslElement(myDslElement);
+      myDslElement.setNewElement(SOURCE_SETS_BLOCK_NAME, sourceSets);
+    }
+
+    SourceSetDslElement sourceSetElement = sourceSets.getProperty(sourceSet, SourceSetDslElement.class);
+    if (sourceSetElement == null) {
+      sourceSetElement = new SourceSetDslElement(sourceSets, sourceSet);
+      sourceSets.setNewElement(sourceSet, sourceSetElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeSourceSet(@NotNull String sourceSet) {
+    SourceSetsDslElement sourceSets = myDslElement.getProperty(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    if (sourceSets != null) {
+      sourceSets.removeProperty(sourceSet);
     }
     return this;
   }

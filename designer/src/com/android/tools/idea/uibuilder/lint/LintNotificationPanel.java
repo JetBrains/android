@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel.IssueData;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -28,7 +29,6 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -37,7 +37,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.MouseChecker;
 import com.intellij.openapi.util.DimensionService;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiEditorUtil;
@@ -51,7 +53,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +66,7 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -73,6 +76,7 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
 import static java.awt.RenderingHints.*;
@@ -81,6 +85,11 @@ import static java.awt.RenderingHints.*;
  * Pane which lets you see the current lint warnings and apply fix/suppress
  */
 public class LintNotificationPanel implements HyperlinkListener, ActionListener {
+  /**
+   * Margin around the popup to avoid accidental dismissals
+   */
+  private static final int DISMISS_MARGIN_PX = JBUI.scale(20);
+  private static final Dimension MIN_POPUP_SIZE = new Dimension(600, 300);
   private final ScreenView myScreenView;
   private JEditorPane myExplanationPane;
   private JBList myIssueList;
@@ -461,38 +470,116 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
     }
   }
 
-  public void show(AnActionEvent e) {
-    Project project = e.getProject();
-    Dimension minSize = new Dimension(600, 300);
+  /**
+   * Sets-up the panel popup and calls the passed {@link Consumer<JBPopup>} with the new {@link JBPopup} instance.
+   * This method will not display the popup.
+   */
+  public JBPopup setupPopup(@Nullable Project project, @NotNull Consumer<JBPopup> onPopupBuilt) {
     JBPopup builder = JBPopupFactory.getInstance().createComponentPopupBuilder(myPanel, myPanel)
       .setProject(project)
       .setDimensionServiceKey(project, DIMENSION_KEY, false)
       .setResizable(true)
       .setMovable(true)
-      .setMinSize(minSize)
+      .setMinSize(MIN_POPUP_SIZE)
       .setRequestFocus(true)
       .setTitle("Lint Warnings in Layout")
       .setCancelOnClickOutside(true)
       .setLocateWithinScreenBounds(true)
       .setShowShadow(true)
       .setCancelOnWindowDeactivation(true)
+      .setCancelOnMouseOutCallback(new MouseChecker() {
+        Rectangle myDismissRectangle;
+        double myPreviousDistance = 0;
+
+        @Override
+        public boolean check(MouseEvent event) {
+          if (myPopup == null) {
+            return false;
+          }
+
+          Point mousePosition = event.getPoint();
+          SwingUtilities.convertPointToScreen(mousePosition, event.getComponent());
+
+          Point popupPosition = myPopup.getLocationOnScreen();
+          Dimension popupDimension = myPopup.getSize();
+          int centerX = popupPosition.x + popupDimension.width / 2;
+          int centerY = popupPosition.y + popupDimension.height / 2;
+
+          // Is it the mouse getting closer to the center of the popup or moving away? We only close the dialog if the mouse is
+          // moving away.
+          double currentDistance = mousePosition.distance(centerX, centerY);
+          double previousDistance = myPreviousDistance;
+          myPreviousDistance = currentDistance;
+          boolean mouseMovingAway = previousDistance != 0 && currentDistance > previousDistance;
+
+          if (!mouseMovingAway) {
+            // We only dismiss the dialog if the mouse is moving away from the center
+            return false;
+          }
+
+          int dismissRectX = popupPosition.x - DISMISS_MARGIN_PX;
+          int dismissRectY = popupPosition.y - DISMISS_MARGIN_PX;
+          int dismissRectW = popupDimension.width + 2 * DISMISS_MARGIN_PX;
+          int dismissRectH = popupDimension.height + 2 * DISMISS_MARGIN_PX;
+          if (myDismissRectangle == null) {
+            myDismissRectangle = new Rectangle(dismissRectX, dismissRectY, dismissRectW, dismissRectH);
+          }
+          else {
+            myDismissRectangle.setBounds(dismissRectX, dismissRectY, dismissRectW, dismissRectH);
+          }
+
+          return !myDismissRectangle.contains(mousePosition);
+        }
+      })
       .createPopup();
 
-    Dimension preferredSize = DimensionService.getInstance().getSize(DIMENSION_KEY, project);
-    if (preferredSize == null) {
-      preferredSize = myPanel.getPreferredSize();
+    myPopup = builder;
+    Disposer.register(myScreenView.getSurface(), myPopup);
+    onPopupBuilt.accept(builder);
+    return builder;
+  }
+
+  @NotNull
+  public JBPopup showInScreenPosition(@Nullable Project project, @NotNull Component owner, @NotNull Point point) {
+    return setupPopup(project, popup -> popup.showInScreenCoordinates(owner, point));
+  }
+
+  @NotNull
+  public JBPopup showInScreenPosition(@Nullable Project project, @NotNull RelativePoint point) {
+    return setupPopup(project, popup -> popup.show(point));
+  }
+
+  @NotNull
+  public JBPopup showInBestPositionFor(@Nullable Project project, @NotNull DataContext dataContext) {
+    return setupPopup(project, popup -> popup.showInBestPositionFor(dataContext));
+  }
+
+  @NotNull
+  public JBPopup showInBestPositionFor(@Nullable Project project, @NotNull JComponent component) {
+    return setupPopup(project, popup -> {
+      Dimension preferredSize = DimensionService.getInstance().getSize(DIMENSION_KEY, project);
+      if (preferredSize == null) {
+        preferredSize = myPanel.getPreferredSize();
+      }
+
+      showInScreenPosition(project,
+                           new RelativePoint(component, new Point(component.getWidth() - preferredSize.width, component.getHeight())));
+    });
+  }
+
+  /**
+   * Selects a lint issue for the component located at x, y
+   */
+  public void selectIssueAtPoint(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    LintAnnotationsModel lintModel = myScreenView.getModel().getLintAnnotationsModel();
+    if (lintModel == null) {
+      return;
     }
 
-    Object source = e.getInputEvent().getSource();
-    if (source instanceof JComponent) {
-      JComponent component = (JComponent)source;
-      RelativePoint point = new RelativePoint(component, new Point(component.getWidth() - preferredSize.width, component.getHeight()));
-      builder.show(point);
-    }
-    else {
-      builder.showInBestPositionFor(e.getDataContext());
-    }
-    myPopup = builder;
+    lintModel.getIssues().stream()
+      .filter((issue) -> issue.component.containsX(x) && issue.component.containsY(y))
+      .findAny()
+      .ifPresent((issue) -> myIssueList.setSelectedValue(issue, true));
   }
 
   // ---- Implements HyperlinkListener ----

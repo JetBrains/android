@@ -41,12 +41,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 public class AndroidRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
   private static final String R_JAVA_PATH = "gen/p1/p2/R.java";
 
-  public AndroidRenameTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -541,7 +544,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     if ("testRenamePackageFromTestModule".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_APP);
     }
   }
 

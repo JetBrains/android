@@ -41,6 +41,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_FILE_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_OPACITY_CHANGED;
+
 /**
  * <p>
  * Parse and store the value from the mockup attributes in the xml.
@@ -79,16 +83,28 @@ import java.util.regex.Pattern;
  * <li> h : height of the mockup on the ScreenView (in dip). will be scaled if needed (default to component height)</li>
  * </ul>
  *
+ * <p>
+ * One Mockup object is associated with only one component.
+ * Instances of this class are created using the {@link #create(NlComponent, boolean)} methods which can return a cached instance
+ * if it was already created.
+ * </p>
+ *
+ * <p> To write value from the mockup to the xml, one can use the {@link MockupFileHelper} class</p>
+ *
  * @see MockupLayer
+ * @see com.android.tools.idea.uibuilder.mockup.editor.MockupEditor
+ * @see MockupFileHelper
  */
 public class Mockup implements ModelListener {
+
+  public static final boolean ENABLE_FEATURE = false;
 
   private final static Pattern REGEX_CROP = Pattern.compile("(([0-9]+|-1)\\s+([0-9]+|-1)\\s*){1,2}");
   private final static Pattern REGEX_CROP_BOUNDS = Pattern.compile(REGEX_CROP + "(\\s+[-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
 
   private final static Pattern REGEX_OPACITY = Pattern.compile("[01]|[01]?\\.\\d+");
-  public static final float DEFAULT_OPACITY = 0.5f;
-  public static final float DEFAULT_OPACITY_IF_ERROR = 1f;
+  static final float DEFAULT_OPACITY = 0.5f;
+  static final float DEFAULT_OPACITY_IF_ERROR = 1f;
 
   // Position string indexes for
   // x,y,weight,height of the positioning rectangle
@@ -110,13 +126,14 @@ public class Mockup implements ModelListener {
   private final Rectangle myBounds;
   private final Rectangle myCropping;
   private final Rectangle mySwingBounds;
-  private final Dimension myScreenSize;
   private NlModel myNlModel;
   @Nullable String myFilePath;
   @Nullable Image myImage;
   private float myAlpha = DEFAULT_OPACITY;
   private NlComponent myComponent;
   private boolean myIsFullScreen;
+  private int myChangingFlags = 0;
+  private Rectangle myRealCropping = new Rectangle();
 
   /**
    * Create a new MockupModel using the mockup file name attribute found in component.
@@ -145,7 +162,7 @@ public class Mockup implements ModelListener {
         return MOCKUP_CACHE.get(component);
       }
       else {
-        final Mockup mockup = new Mockup(component);
+        Mockup mockup = new Mockup(component);
         MOCKUP_CACHE.put(component, mockup);
         Disposer.register(component.getModel(), () -> MOCKUP_CACHE.remove(component));
         return mockup;
@@ -210,19 +227,18 @@ public class Mockup implements ModelListener {
     }
   }
 
-  public static boolean hasMockupAttribute(NlComponent component) {
-    return component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null;
+  public static boolean hasMockupAttribute(@Nullable NlComponent component) {
+    return component != null
+           && component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null;
   }
 
   private Mockup(NlComponent component) {
-    myBounds = new Rectangle();
+    myBounds = new Rectangle(0, 0, -1, -1);
     myCropping = new Rectangle(0, 0, -1, -1);
-    myScreenSize = new Dimension();
     mySwingBounds = new Rectangle();
     myComponent = component;
     myNlModel = component.getModel();
     myNlModel.addListener(this);
-    setDefaultBounds();
     parseComponent(component);
   }
 
@@ -240,20 +256,20 @@ public class Mockup implements ModelListener {
     final String fileName = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP);
     final String position = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_CROP);
     final String opacity = myComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_OPACITY);
-    if (fileName != null) {
+    if (fileName != null && (myChangingFlags & FLAG_FILE_CHANGED) == 0) {
       setFilePath(fileName);
     }
-    if (position != null) {
+    if (position != null && (myChangingFlags & FLAG_CROP_CHANGED) == 0) {
       myIsFullScreen = false;
       parsePositionString(position);
+    } else if(position == null && (myChangingFlags & FLAG_CROP_CHANGED) == 0) {
+      clearCrop();
     }
-    else if (component.isRoot()) {
-      myIsFullScreen = true;
-    }
-    if (opacity != null) {
+
+    if (opacity != null && (myChangingFlags & FLAG_OPACITY_CHANGED) == 0) {
       setAlpha(opacity);
     }
-    notifyListeners();
+    myChangingFlags = 0;
   }
 
   public void setAlpha(String opacity) {
@@ -263,6 +279,7 @@ public class Mockup implements ModelListener {
     else {
       setAlpha(DEFAULT_OPACITY_IF_ERROR);
     }
+    notifyListeners(FLAG_OPACITY_CHANGED);
   }
 
   /**
@@ -272,20 +289,23 @@ public class Mockup implements ModelListener {
    *
    * @param filePath The filePath read from the xml.
    */
-  private void setFilePath(@NotNull String filePath) {
+  private boolean setFilePath(@NotNull String filePath) {
     final Path path = MockupFileHelper.getFullFilePath(myNlModel.getProject(), filePath);
     if (path == null) {
-      return;
+      return false;
     }
 
     if (myFilePath == null || !Paths.get(myFilePath).equals(path)) {
+      if(myFilePath != null && !Paths.get(myFilePath).equals(path)) {
+        clearCrop();
+      }
       myFilePath = path.toString();
       myImage = MockupFileHelper.openImageFile(myFilePath);
 
-      //Update the cropping with the new image size
-      setCropping(myCropping.x, myCropping.y, myCropping.width, myCropping.height);
-      notifyListeners();
+      notifyListeners(FLAG_FILE_CHANGED);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -297,7 +317,6 @@ public class Mockup implements ModelListener {
     if (isPositionStringCorrect(position)) {
       position = position.trim();
       final String[] split = position.split("\\s+");
-
 
       // Parse cropping
       if (split.length >= 4) {
@@ -366,7 +385,7 @@ public class Mockup implements ModelListener {
         || myBounds.height != height) {
       myBounds.setBounds(x, y, width, height);
       myIsFullScreen = false;
-      notifyListeners();
+      notifyListeners(FLAG_CROP_CHANGED);
     }
   }
 
@@ -388,7 +407,7 @@ public class Mockup implements ModelListener {
         || myCropping.width != width
         || myCropping.height != height) {
       myCropping.setBounds(x, y, width, height);
-      notifyListeners();
+      notifyListeners(FLAG_CROP_CHANGED);
     }
     myIsFullScreen = false;
   }
@@ -411,30 +430,18 @@ public class Mockup implements ModelListener {
    */
   public Rectangle getScreenBounds(ScreenView screenView) {
 
-    // If mockup is in full screen, the mockup will cover the ScreenView
-    if (myIsFullScreen) {
-      final Dimension screenViewSize = screenView.getSize(myScreenSize);
-      mySwingBounds.x = screenView.getX();
-      mySwingBounds.y = screenView.getY();
-      mySwingBounds.width = screenViewSize.width;
-      mySwingBounds.height = screenViewSize.height;
-      return mySwingBounds;
-    }
-    else {
-      final int androidX = Coordinates.dpToPx(screenView, myBounds.x);
-      final int androidY = Coordinates.dpToPx(screenView, myBounds.y);
-      final int androidWidth = myBounds.width <= 0 ? myComponent.w : Coordinates.dpToPx(screenView, myBounds.width);
-      final int androidHeight = myBounds.height <= 0 ? myComponent.h : Coordinates.dpToPx(screenView, myBounds.height);
+    final int androidX = Coordinates.dpToPx(screenView, myBounds.x);
+    final int androidY = Coordinates.dpToPx(screenView, myBounds.y);
+    final int androidWidth = myBounds.width <= 0 ? myComponent.w : Coordinates.dpToPx(screenView, myBounds.width);
+    final int androidHeight = myBounds.height <= 0 ? myComponent.h : Coordinates.dpToPx(screenView, myBounds.height);
 
-      mySwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x + androidX);
-      mySwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y + androidY);
-      // if one of the dimension was not set in the xml.
-      // it had been set to -1 in the model, meaning we should
-      // use the ScreenView dimension and/or the Image dimension
-      mySwingBounds.width = Coordinates.getSwingDimension(screenView, androidWidth - androidX);
-      mySwingBounds.height = Coordinates.getSwingDimension(screenView, androidHeight - androidY);
-
-    }
+    mySwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x + androidX);
+    mySwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y + androidY);
+    // if one of the dimension was not set in the xml.
+    // it had been set to -1 in the model, meaning we should
+    // use the ScreenView dimension and/or the Image dimension
+    mySwingBounds.width = Coordinates.getSwingDimension(screenView, androidWidth - androidX);
+    mySwingBounds.height = Coordinates.getSwingDimension(screenView, androidHeight - androidY);
     return mySwingBounds;
   }
 
@@ -458,22 +465,22 @@ public class Mockup implements ModelListener {
    * @return the cropping rectangle with negative size values
    * replaced by the actual image dimensions or 0 if this Mockup has no image
    */
-  public Rectangle getRealCropping() {
+  public Rectangle getComputedCropping() {
     if (myCropping.width >= 0 && myCropping.height >= 0) {
       return myCropping;
     }
-    final Rectangle realCropping = new Rectangle(myCropping);
+    myRealCropping.setBounds(myCropping);
     if (myImage == null) {
-      realCropping.width = 0;
-      realCropping.height = 0;
+      myRealCropping.width = 0;
+      myRealCropping.height = 0;
     }
-    if (realCropping.width < 0) {
-      realCropping.width = myImage.getWidth();
+    if (myRealCropping.width < 0) {
+      myRealCropping.width = myImage.getWidth();
     }
-    if (realCropping.height < 0) {
-      realCropping.height = myImage.getHeight();
+    if (myRealCropping.height < 0) {
+      myRealCropping.height = myImage.getHeight();
     }
-    return realCropping;
+    return myRealCropping;
   }
 
   @Nullable
@@ -516,7 +523,7 @@ public class Mockup implements ModelListener {
   public void setAlpha(float alpha) {
     if (alpha != myAlpha) {
       myAlpha = Math.min(1, Math.max(0, alpha));
-      notifyListeners();
+      notifyListeners(FLAG_CROP_CHANGED | FLAG_FILE_CHANGED | FLAG_OPACITY_CHANGED);
     }
   }
 
@@ -544,9 +551,10 @@ public class Mockup implements ModelListener {
     myListeners.remove(listener);
   }
 
-  private void notifyListeners() {
+  private void notifyListeners(int changedFlags) {
+    myChangingFlags = changedFlags;
     for (int i = 0; i < myListeners.size(); i++) {
-      myListeners.get(i).mockupChanged(this);
+      myListeners.get(i).mockupChanged(this, changedFlags);
     }
   }
 
@@ -556,14 +564,17 @@ public class Mockup implements ModelListener {
 
   public void clearCrop() {
     setDefaultBounds();
+    setDefaultCrop();
     myIsFullScreen = true;
-  }
-
-  public void removeMockupModelListener(MockupModelListener listener) {
-    myListeners.remove(listener);
+    MockupFileHelper.writePositionToXML(this);
   }
 
   public interface MockupModelListener {
-    void mockupChanged(Mockup mockup);
+
+    int FLAG_FILE_CHANGED = 0x01;
+    int FLAG_CROP_CHANGED = 0x02;
+    int FLAG_OPACITY_CHANGED = 0x04;
+
+    void mockupChanged(Mockup mockup, int changedFlags);
   }
 }

@@ -41,8 +41,9 @@ public class InstantRunStatsService {
   private UUID mySessionId = UUID.randomUUID();
 
   /**
-   * Time (in ms) at which the build was started. The build & deploy is considered done when {@link #notifyDeployType(DeployType)} is
-   * invoked. It is possible for the deploy type notification to never show up (e.g. build failures).
+   * Time (in ms) at which the build was started. The build & deploy is considered done when
+   * {@link #notifyDeployType(DeployType, BuildCause, IDevice)} is invoked.
+   * It is possible for the deploy type notification to never show up (e.g. build failures).
    *
    * NOTE: the combination of a single variable for build start time, and this service being scoped at a project level could cause
    * conflicts if multiple launches from multiple modules are performed in parallel
@@ -67,6 +68,14 @@ public class InstantRunStatsService {
   }
 
   public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause, @NotNull IDevice device) {
+    notifyDeployType(type, buildCauseToProto(buildCause), device);
+  }
+
+  public void notifyNonInstantRunDeployType(@NotNull IDevice device) {
+    notifyDeployType(DeployType.LEGACY, InstantRunIdeBuildCause.NO_INSTANT_RUN, device);
+  }
+
+  private void notifyDeployType(@NotNull DeployType type, @NotNull InstantRunIdeBuildCause buildCause, @NotNull IDevice device) {
     long buildAndDeployTime;
     String sessionId;
 
@@ -89,9 +98,10 @@ public class InstantRunStatsService {
                        .setSessionId(sessionId)
                        .setBuildTime(buildAndDeployTime)
                        .setDeploymentKind(deployTypeToDeploymentKind(type))
-                       .setIdeBuildCause(buildCauseToProto(buildCause)));
-    if (buildCause == BuildCause.API_TOO_LOW_FOR_INSTANT_RUN || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_API21
-      || buildCause == BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS) {
+                       .setIdeBuildCause(buildCause));
+    if (buildCause == InstantRunIdeBuildCause.API_TOO_LOW_FOR_INSTANT_RUN
+        || buildCause == InstantRunIdeBuildCause.FREEZE_SWAP_REQUIRES_API21
+        || buildCause == InstantRunIdeBuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS) {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device));
     } else {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
@@ -104,7 +114,7 @@ public class InstantRunStatsService {
       return InstantRunIdeBuildCause.UNKNOWN_INSTANT_RUN_IDE_BUILD_CAUSE;
     }
     try {
-      return InstantRunIdeBuildCause.valueOf(buildCause.toString());
+      return InstantRunIdeBuildCause.valueOf(buildCause.name());
     } catch (IllegalArgumentException e) {
       return InstantRunIdeBuildCause.UNKNOWN_INSTANT_RUN_IDE_BUILD_CAUSE;
     }

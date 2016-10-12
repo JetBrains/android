@@ -21,24 +21,25 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettings;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
-  private final CompilerSettings myCompilerSettings = new CompilerSettings();
+  private final CompilerSettingsSetup myCompilerSettingsSetup = new CompilerSettingsSetup();
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     GradleVersion modelVersion = androidModel.getModelVersion();
     if (modelVersion == null) {
       // We are dealing with old model that does not have the 'class' folder.
@@ -52,12 +53,17 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
     ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
-    myCompilerSettings.setOutputPaths(rootModel, mainClassesFolder, testClassesFolder);
+    myCompilerSettingsSetup.setOutputPaths(rootModel, mainClassesFolder, testClassesFolder);
   }
 
   @Override
   @NotNull
   public String getDescription() {
     return "Compiler output setup";
+  }
+
+  @Override
+  public boolean invokeOnBuildVariantChange() {
+    return true;
   }
 }

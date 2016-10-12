@@ -16,58 +16,118 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.Modules;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
-import static com.android.SdkConstants.FD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 /**
  * Integration tests for 'Gradle Sync'.
  */
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
-  private Modules myModules;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    myModules = new Modules(project);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
-
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
   }
 
-  // See https://code.google.com/p/android/issues/detail?id=66880
-  public void testAutomaticCreationOfMissingWrapper() throws Exception {
+  public void testWithUserDefinedLibrarySources() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     loadSimpleApplication();
-    deleteGradleWrapper();
+
+    String libraryName = "guava-18.0";
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
+
+    // add an extra source path.
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
+    libraryModel.addRoot(url, SOURCES);
+    ApplicationManager.getApplication().runWriteAction(libraryModel::commit);
+
     requestSyncAndWait();
-    File wrapperDirPath = getGradleWrapperDirPath();
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
+
+    libraryTable = ProjectLibraryTable.getInstance(getProject());
+    library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    String[] urls = library.getUrls(SOURCES);
+    assertThat(urls).asList().contains(url);
   }
 
-  private void deleteGradleWrapper() {
-    File wrapperDirPath = getGradleWrapperDirPath();
-    delete(wrapperDirPath);
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
+  public void testSyncShouldNotChangeDependenciesInBuildFiles() throws Exception {
+    loadSimpleApplication();
+
+    File appBuildFilePath = getBuildFilePath("app");
+    long lastModified = appBuildFilePath.lastModified();
+
+    requestSyncAndWait();
+
+    // See https://code.google.com/p/android/issues/detail?id=78628
+    assertEquals(lastModified, appBuildFilePath.lastModified());
   }
 
-  @NotNull
-  private File getGradleWrapperDirPath() {
-    String basePath = getProject().getBasePath();
-    assertNotNull(basePath);
-    return new File(basePath, FD_GRADLE);
+  // See https://code.google.com/p/android/issues/detail?id=76444
+  public void testWithEmptyGradleSettingsFileInSingleModuleProject() throws Exception {
+    loadProject(BASIC);
+    createEmptyGradleSettingsFile();
+    // Sync should be successful for single-module projects with an empty settings.gradle file.
+    requestSyncAndWait();
+  }
+
+  public void testModuleJavaLanguageLevel() throws Exception {
+    loadProject(TRANSITIVE_DEPENDENCIES);
+    Module library1Module = myModules.getModule("library1");
+    LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
+    assertEquals(JDK_1_7, javaLanguageLevel);
+  }
+
+  @Nullable
+  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
+    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
+  }
+
+  private void createEmptyGradleSettingsFile() throws IOException {
+    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    assertTrue(delete(settingsFilePath));
+    writeToFile(settingsFilePath, " ");
+    assertAbout(file()).that(settingsFilePath).isFile();
+    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 }

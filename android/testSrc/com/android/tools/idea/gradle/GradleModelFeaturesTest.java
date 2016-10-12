@@ -30,11 +30,11 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(null);
     assertFalse(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
   }
 
   @Test
@@ -43,11 +43,11 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertFalse(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
   }
 
   @Test
@@ -56,11 +56,50 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertFalse(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
+  }
+
+  @Test
+  public void withPluginVersion1_2_0() {
+    GradleVersion version = GradleVersion.parse("1.2.0");
+    GradleModelFeatures features = new GradleModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertFalse(features.isShadersSupported());
+    assertFalse(features.isTestedTargetVariantsSupported());
+    assertFalse(features.isProductFlavorVersionSuffixSupported());
+    assertFalse(features.isExternalBuildSupported());
+    assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isLayoutRenderingIssuePresent());
+  }
+
+  @Test
+  public void withPluginVersion1_2_1() {
+    GradleVersion version = GradleVersion.parse("1.2.1");
+    GradleModelFeatures features = new GradleModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertFalse(features.isShadersSupported());
+    assertFalse(features.isTestedTargetVariantsSupported());
+    assertFalse(features.isProductFlavorVersionSuffixSupported());
+    assertFalse(features.isExternalBuildSupported());
+    assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isLayoutRenderingIssuePresent());
+  }
+
+  @Test
+  public void withPluginVersion1_2_2() {
+    GradleVersion version = GradleVersion.parse("1.2.2");
+    GradleModelFeatures features = new GradleModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertFalse(features.isShadersSupported());
+    assertFalse(features.isTestedTargetVariantsSupported());
+    assertFalse(features.isProductFlavorVersionSuffixSupported());
+    assertFalse(features.isExternalBuildSupported());
+    assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isLayoutRenderingIssuePresent());
   }
 
   @Test
@@ -69,11 +108,11 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertTrue(features.isShadersSupported());
-    assertFalse(features.isDependencyGraphSupported());
     assertFalse(features.isTestedTargetVariantsSupported());
     assertFalse(features.isProductFlavorVersionSuffixSupported());
     assertFalse(features.isExternalBuildSupported());
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
   }
 
   @Test
@@ -82,10 +121,10 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertTrue(features.isShadersSupported());
-    assertTrue(features.isDependencyGraphSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
     assertTrue(features.isProductFlavorVersionSuffixSupported());
     assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
   }
 }

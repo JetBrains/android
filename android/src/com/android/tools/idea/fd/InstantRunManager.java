@@ -76,14 +76,11 @@ public final class InstantRunManager implements ProjectComponent {
                     ":background_crash"); // firebase uses a :background_crash process for crash reporting
 
   @NotNull private final Project myProject;
-  @NotNull private final FileChangeListener myFileChangeListener;
 
   /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
   @SuppressWarnings("WeakerAccess") // Called by infrastructure
   public InstantRunManager(@NotNull Project project) {
     myProject = project;
-    myFileChangeListener = new FileChangeListener(project);
-    myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   /** Returns the per-project instance of the fast deploy manager */
@@ -146,16 +143,6 @@ public final class InstantRunManager implements ProjectComponent {
 
   @Override
   public void disposeComponent() {
-  }
-
-  public FileChangeListener.Changes getChangesAndReset() {
-    return myFileChangeListener.getChangesAndReset();
-  }
-
-  /** Synchronizes the file listening state with whether instant run is enabled */
-  static void updateFileListener(@NotNull Project project) {
-    InstantRunManager manager = get(project);
-    manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   @Nullable

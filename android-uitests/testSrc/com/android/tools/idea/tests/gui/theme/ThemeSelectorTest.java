@@ -145,7 +145,6 @@ public class ThemeSelectorTest {
    * Tests the theme creation functionality of the theme selector
    * and that IntelliJ's Undo can revert this action
    */
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/273")
   @Test
   public void testCreateNewTheme() throws IOException {
     guiTest.importSimpleApplication();

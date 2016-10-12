@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.UseEmbeddedJdkHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -36,6 +42,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -52,13 +59,18 @@ public class Jdks {
 
   private static final LanguageLevel DEFAULT_LANG_LEVEL = JDK_1_8;
 
+  @NotNull
+  public static Jdks getInstance() {
+    return ServiceManager.getService(Jdks.class);
+  }
+
   @Nullable
-  public static Sdk chooseOrCreateJavaSdk() {
+  public Sdk chooseOrCreateJavaSdk() {
     return chooseOrCreateJavaSdk(null);
   }
 
   @Nullable
-  public static Sdk chooseOrCreateJavaSdk(@Nullable LanguageLevel langLevel) {
+  public Sdk chooseOrCreateJavaSdk(@Nullable LanguageLevel langLevel) {
     if (langLevel == null) {
       langLevel = DEFAULT_LANG_LEVEL;
     }
@@ -79,11 +91,11 @@ public class Jdks {
     return null;
   }
 
-  public static boolean isApplicableJdk(@NotNull Sdk jdk) {
+  public boolean isApplicableJdk(@NotNull Sdk jdk) {
     return isApplicableJdk(jdk, null);
   }
 
-  public static boolean isApplicableJdk(@NotNull Sdk jdk, @Nullable LanguageLevel langLevel) {
+  public boolean isApplicableJdk(@NotNull Sdk jdk, @Nullable LanguageLevel langLevel) {
     if (!(jdk.getSdkType() instanceof JavaSdk)) {
       return false;
     }
@@ -98,7 +110,7 @@ public class Jdks {
   }
 
   @Nullable
-  public static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
+  private static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
     Collection<String> jdkHomePaths = new ArrayList<>(JavaSdk.getInstance().suggestHomePaths());
     if (jdkHomePaths.isEmpty()) {
       return null;
@@ -190,7 +202,7 @@ public class Jdks {
   }
 
   @Nullable
-  public static JavaSdkVersion findVersion(@NotNull File jdkRoot) {
+  public JavaSdkVersion findVersion(@NotNull File jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot.getPath());
     if (isEmpty(version)) {
       return null;
@@ -209,7 +221,7 @@ public class Jdks {
   }
 
   @Nullable
-  public static Sdk createJdk(@NotNull String jdkHomePath) {
+  public Sdk createJdk(@NotNull String jdkHomePath) {
     Sdk jdk = createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
     if (jdk == null) {
       String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
@@ -219,12 +231,35 @@ public class Jdks {
   }
 
   @Nullable
-  public static Sdk createEmbeddedJdk() {
+  public Sdk createEmbeddedJdk() {
     if (isAndroidStudio()) {
       Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
       assert jdk != null;
       return jdk;
     }
     return null;
+  }
+
+  public void setJdk(@NotNull Project project, @NotNull Sdk jdk) {
+    applyJdkToProject(project, jdk);
+  }
+
+  @NotNull
+  public List<NotificationHyperlink> getWrongJdkQuickFixes(@NotNull Project project) {
+    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+
+    NotificationHyperlink useEmbeddedJdkHyperlink = UseEmbeddedJdkHyperlink.create();
+    if (useEmbeddedJdkHyperlink != null) {
+      quickFixes.add(useEmbeddedJdkHyperlink);
+    }
+
+    quickFixes.add(new DownloadJdk8Hyperlink());
+
+    NotificationHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
+    if (selectJdkHyperlink != null) {
+      quickFixes.add(selectJdkHyperlink);
+    }
+
+    return quickFixes;
   }
 }

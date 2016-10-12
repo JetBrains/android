@@ -44,6 +44,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
@@ -52,11 +53,11 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.DOT_XML;
-import static com.android.SdkConstants.DRAWABLE_FOLDER;
+import static com.android.SdkConstants.*;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -137,13 +138,33 @@ public class ViewEditorImpl extends ViewEditor {
     }
 
     try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(AssetStudio.getPathForBasename(asset))) {
-      VirtualFile drawableDirectory = getDrawableDirectory();
+      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, ByteStreams.toByteArray(in));
+    }
+    catch (IOException exception) {
+      Logger.getInstance(ViewEditorImpl.class).warn(exception);
+    }
+  }
 
-      if (drawableDirectory == null) {
+  @Override
+  public void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml) {
+    String message = "Do you want to copy layout " + layout + " to your main module source set?";
+
+    if (Messages.showYesNoDialog(myScreen.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
+      return;
+    }
+
+    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private void createResourceFile(@NotNull String resourceDirectory, @NotNull String resourceFile, @NotNull byte[] resourceFileContent) {
+    try {
+      VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
+
+      if (directory == null) {
         return;
       }
 
-      drawableDirectory.createChildData(this, asset + DOT_XML).setBinaryContent(ByteStreams.toByteArray(in));
+      directory.createChildData(this, resourceFile).setBinaryContent(resourceFileContent);
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);
@@ -151,7 +172,7 @@ public class ViewEditorImpl extends ViewEditor {
   }
 
   @Nullable
-  private VirtualFile getDrawableDirectory() throws IOException {
+  private VirtualFile getResourceDirectoryChild(@NotNull String child) throws IOException {
     VirtualFile resourceDirectory = myScreen.getModel().getFacet().getPrimaryResourceDir();
 
     if (resourceDirectory == null) {
@@ -159,13 +180,13 @@ public class ViewEditorImpl extends ViewEditor {
       return null;
     }
 
-    VirtualFile drawableDirectory = resourceDirectory.findChild(DRAWABLE_FOLDER);
+    VirtualFile resourceDirectoryChild = resourceDirectory.findChild(child);
 
-    if (drawableDirectory == null) {
-      return resourceDirectory.createChildDirectory(this, DRAWABLE_FOLDER);
+    if (resourceDirectoryChild == null) {
+      return resourceDirectory.createChildDirectory(this, child);
     }
 
-    return drawableDirectory;
+    return resourceDirectoryChild;
   }
 
   @Nullable

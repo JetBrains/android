@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -41,7 +41,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
     }
     finally {
       presentation.setEnabled(true);

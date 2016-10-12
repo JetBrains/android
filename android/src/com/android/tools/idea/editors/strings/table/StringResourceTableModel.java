@@ -22,45 +22,50 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.List;
 
 public class StringResourceTableModel extends AbstractTableModel {
   @Nullable private StringResourceData myData;
+  @Nullable private List<String> myKeys;
+  @Nullable private List<Locale> myLocales;
 
   public void setData(@NotNull StringResourceData data) {
     myData = data;
+    myKeys = data.getKeys();
+    myLocales = data.getLocales();
   }
 
   @NotNull
   public String keyOfRow(int row) {
-    return myData == null ? "" : myData.getKeys().get(row);
+    return myKeys == null ? "" : myKeys.get(row);
   }
 
   @Nullable
   public Locale localeOfColumn(int column) {
-    return (column < ConstantColumn.COUNT || myData == null) ? null : myData.getLocales().get(column - ConstantColumn.COUNT);
+    return (column < ConstantColumn.COUNT || myLocales == null) ? null : myLocales.get(column - ConstantColumn.COUNT);
   }
 
   @Override
   public int getRowCount() {
-    return myData == null ? 0 : myData.getKeys().size();
+    return myKeys == null ? 0 : myKeys.size();
   }
 
   @Override
   public int getColumnCount() {
-    return myData == null ? 0 : myData.getLocales().size() + ConstantColumn.COUNT;
+    return myLocales == null ? 0 : myLocales.size() + ConstantColumn.COUNT;
   }
 
   @Override
   public void setValueAt(Object value, int row, int column) {
-    assert myData != null;
+    assert myData != null && myKeys != null;
 
     if (ConstantColumn.KEY.ordinal() == column) {
-      myData.changeKeyName(row, (String)value);
-      fireTableRowsUpdated(0, myData.getKeys().size());
+      myData.changeKeyName(myKeys.get(row), (String)value);
+      fireTableRowsUpdated(0, myKeys.size());
     }
     else if (ConstantColumn.UNTRANSLATABLE.ordinal() == column) {
       Boolean doNotTranslate = (Boolean)value;
-      if (myData.setDoNotTranslate(keyOfRow(row), doNotTranslate)) {
+      if (myData.setTranslatable(keyOfRow(row), !doNotTranslate)) {
         fireTableCellUpdated(row, column);
       }
     }
@@ -82,15 +87,15 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     if (column >= ConstantColumn.COUNT) {
       Locale locale = localeOfColumn(column);
-      return locale == null ? "" : myData.resourceToString(key, locale);
+      return locale == null ? "" : myData.getStringResource(key).getTranslationAsString(locale);
     }
     switch (ConstantColumn.values()[column]) {
       case KEY:
         return key;
       case DEFAULT_VALUE:
-        return myData.resourceToString(key);
+        return myData.getStringResource(key).getDefaultValueAsString();
       case UNTRANSLATABLE:
-        return myData.getUntranslatableKeys().contains(key);
+        return !myData.getStringResource(key).isTranslatable();
       default:
         return "";
     }

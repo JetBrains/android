@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -52,7 +50,7 @@ public class BuildTypesTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()

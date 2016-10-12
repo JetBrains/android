@@ -85,6 +85,14 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(mySyncListener, times(1)).syncSkipped(myProject);
   }
 
+  public void testSyncSkippedAfterSyncStarted() {
+    long timestamp = -1231231231299L; // Some random number
+
+    mySyncState.syncStarted(false);
+    mySyncState.syncSkipped(timestamp);
+    assertFalse(mySyncState.isSyncInProgress());
+  }
+
   public void testSyncFailed() {
     String msg = "Something went wrong";
 
@@ -92,6 +100,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
+    verify(mySummary, times(1)).setSyncErrorsFound(true);
     verify(mySyncListener, times(1)).syncFailed(myProject, msg);
   }
 

@@ -48,9 +48,9 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static com.android.tools.idea.sdk.Jdks.createEmbeddedJdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.google.common.base.Preconditions.checkState;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
@@ -60,12 +60,17 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
-
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
+
+  @NotNull private final Jdks myJdks;
 
   @NotNull
   public static IdeSdks getInstance() {
     return ServiceManager.getService(IdeSdks.class);
+  }
+
+  public IdeSdks(@NotNull Jdks jdks) {
+    myJdks = jdks;
   }
 
   /**
@@ -121,7 +126,7 @@ public class IdeSdks {
     if (androidSdks.isEmpty() && createJdkIfNeeded) {
       // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
       // populate the text field with the existing JDK.
-      Sdk jdk = Jdks.chooseOrCreateJavaSdk();
+      Sdk jdk = myJdks.chooseOrCreateJavaSdk();
       if (jdk != null) {
         String jdkPath = jdk.getHomePath();
         if (jdkPath != null) {
@@ -393,9 +398,8 @@ public class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public void setUseEmbeddedJdk() {
-    if (isAndroidStudio()) {
-      setJdkPath(getEmbeddedJdkPath());
-    }
+    checkState(isAndroidStudio(), "This method is for use in Android Studio only.");
+    setJdkPath(getEmbeddedJdkPath());
   }
 
   /**
@@ -431,7 +435,7 @@ public class IdeSdks {
 
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
     if (isAndroidStudio()) {
-      Sdk jdk = createEmbeddedJdk();
+      Sdk jdk = myJdks.createEmbeddedJdk();
       assert isJdkCompatible(jdk, preferredVersion);
       return jdk;
     }
@@ -446,7 +450,7 @@ public class IdeSdks {
       if (SystemInfo.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
           if (child.isDirectory() && checkForJdk(child)) {
-            Sdk jdk = Jdks.createJdk(child.getPath());
+            Sdk jdk = myJdks.createJdk(child.getPath());
             if (isJdkCompatible(jdk, preferredVersion)) {
               return jdk;
             }
@@ -507,8 +511,8 @@ public class IdeSdks {
    * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
    */
   @Nullable
-  private static Sdk createJdk(@NotNull File homeDirectory) {
-    return Jdks.createJdk(homeDirectory.getPath());
+  private Sdk createJdk(@NotNull File homeDirectory) {
+    return myJdks.createJdk(homeDirectory.getPath());
   }
 
   public interface AndroidSdkEventListener {

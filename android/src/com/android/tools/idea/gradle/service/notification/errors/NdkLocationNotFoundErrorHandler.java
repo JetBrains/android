@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.SelectNdkDialog;
@@ -63,7 +63,7 @@ public class NdkLocationNotFoundErrorHandler extends AbstractSyncErrorHandler {
         dialog.setModal(true);
         if(dialog.showAndGet()) { // User clicked OK.
           if (setNdkPath(project, dialog.getAndroidNdkPath())) { // Saving NDK path is successful.
-            GradleProjectImporter.getInstance().requestProjectSync(project, null);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
           }
         }
       }

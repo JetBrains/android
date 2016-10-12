@@ -28,7 +28,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleCache;
+import com.android.tools.idea.gradle.util.GradleLocalCache;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
@@ -41,7 +41,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import com.android.tools.idea.lint.LintIdeClient;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -418,7 +418,7 @@ public class RepositoryUrlManager {
       }
     }
     // Regular Gradle dependency? Look in Gradle cache
-    GradleVersion versionFound = GradleCache.getInstance().findLatestArtifactVersion(coordinate, project, filter);
+    GradleVersion versionFound = GradleLocalCache.getInstance().findLatestArtifactVersion(coordinate, project, filter);
     if (versionFound != null) {
       return versionFound.toString();
     }
@@ -435,7 +435,7 @@ public class RepositoryUrlManager {
 
     // Perform network lookup to resolve current best version, if possible
     if (project != null) {
-      LintClient client = new IntellijLintClient(project);
+      LintClient client = new LintIdeClient(project);
       Revision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
       if (latest != null) {
         String version = latest.toShortString();

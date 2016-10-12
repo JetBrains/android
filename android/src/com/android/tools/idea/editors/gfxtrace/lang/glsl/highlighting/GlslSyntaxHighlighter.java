@@ -54,6 +54,7 @@ public class GlslSyntaxHighlighter extends SyntaxHighlighterBase {
     addAttribute(TokenKind.BINARY_OP, OPERATION_SIGN);
     addAttribute(TokenKind.KEYWORD, KEYWORD);
     addAttribute(TokenKind.COMPONENTS, STATIC_FIELD);
+    addAttribute(TokenKind.GL_IDENTIFIER, INSTANCE_FIELD);
   }
 
   private static void addAttribute(TokenKind kind, TextAttributesKey key) {

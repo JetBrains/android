@@ -2487,6 +2487,10 @@ public class CFGBuilder {
         }
         SynthesizedLocal synLocal = createSynthesizeTemporalVariable(instanceInvoke);
         return synLocal;
+      } else {
+        //Unexpected
+        PsiCFGDebugUtil.LOG.warning(
+          "Did not recognize PsiMethodCallExpression: " + expression.getText() + " of type " + qualifier.getClass().getName());
       }
     }
     else {

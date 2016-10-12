@@ -27,11 +27,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Changes the attribute name.
  */
-class RenameAttributeQuickFix implements AndroidLintQuickFix {
+public class RenameAttributeQuickFix implements AndroidLintQuickFix {
   private final String myNamespace;
   private final String myLocalName;
 
-  RenameAttributeQuickFix(@Nullable String namespace, @NotNull String localName) {
+  public RenameAttributeQuickFix(@Nullable String namespace, @NotNull String localName) {
     myNamespace = namespace;
     myLocalName = localName;
   }

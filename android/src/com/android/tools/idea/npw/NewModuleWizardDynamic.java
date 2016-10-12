@@ -18,7 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.wizard.WizardConstants.ALSO_CREATE_IAPK_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
@@ -96,6 +97,9 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     if (project != null) {
       state.put(WizardConstants.PROJECT_LOCATION_KEY, project.getBasePath());
     }
+
+    // Todo: check if we need an IAPK in the project
+    state.put(ALSO_CREATE_IAPK_KEY, false);
   }
 
   @NotNull
@@ -163,14 +167,11 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       return;
     }
 
-    GradleProjectImporter.getInstance().requestProjectSync(project, new PostStartupGradleSyncListener(new Runnable() {
-      @Override
-      public void run() {
-        Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-        assert filesToOpen != null;
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, new PostStartupGradleSyncListener(() -> {
+      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+      assert filesToOpen != null;
 
-        TemplateUtils.openEditors(project, filesToOpen, true);
-      }
+      TemplateUtils.openEditors(project, filesToOpen, true);
     }));
   }
 

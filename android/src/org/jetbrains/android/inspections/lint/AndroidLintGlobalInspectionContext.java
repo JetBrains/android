@@ -1,6 +1,10 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeProject;
+import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
@@ -82,8 +86,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return;
     }
 
-    final IntellijLintClient client = IntellijLintClient.forBatch(project, problemMap, scope, issues);
-    final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
+    final LintIdeClient client = LintIdeClient.forBatch(project, problemMap, scope, issues);
+    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
 
     final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     if (indicator != null) {
@@ -92,7 +96,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     EnumSet<Scope> lintScope;
     //noinspection ConstantConditions
-    if (!IntellijLintProject.SUPPORT_CLASS_FILES) {
+    if (!LintIdeProject.SUPPORT_CLASS_FILES) {
       lintScope = EnumSet.copyOf(Scope.ALL);
       // Can't run class file based checks
       lintScope.remove(Scope.CLASS_FILE);
@@ -214,7 +218,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    LintRequest request = new IntellijLintRequest(client, project, files, modules, false);
+    LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
 
     lint.analyze(request);

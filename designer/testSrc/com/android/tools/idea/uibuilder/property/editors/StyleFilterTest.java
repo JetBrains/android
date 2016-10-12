@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.testing.TestProjectPaths.UIBUILDER_PROPERTY;
+
 public class StyleFilterTest extends AndroidGradleTestCase {
   private static final boolean FRAMEWORK = true;
   private static final boolean USER_DEFINED = true;
@@ -43,11 +45,10 @@ public class StyleFilterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("projects/uibuilder/property");
-    generateSources(false);
+    loadProject(UIBUILDER_PROPERTY);
+    generateSources();
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    assertNotNull(file);
     Configuration configuration = myAndroidFacet.getConfigurationManager().getConfiguration(file);
     myResolver = configuration.getResourceResolver();
     assertNotNull(myResolver);

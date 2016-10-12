@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,6 +111,8 @@ public abstract class ViewEditor {
   public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
 
   public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
+
+  public abstract void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml);
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.

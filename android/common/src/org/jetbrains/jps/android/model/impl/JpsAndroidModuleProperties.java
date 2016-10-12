@@ -27,7 +27,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static org.jetbrains.android.util.AndroidCommonUtils.*;
 
 /**
@@ -67,8 +67,7 @@ public class JpsAndroidModuleProperties {
 
   public String APK_PATH = "";
 
-  public boolean LIBRARY_PROJECT = false;
-  public int PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
+  public int PROJECT_TYPE = PROJECT_TYPE_APP;
 
   public boolean RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
 

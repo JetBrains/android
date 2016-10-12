@@ -185,6 +185,7 @@ public class AndroidIcons {
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
     public static final Icon Theme = load("/icons/nele/theme.png");
+    public static final Icon Variants = load("/icons/nele/variants.png");
 
     public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
     public static final Icon ZoomOut = load("/icons/nele/zoom-out.png");
@@ -299,6 +300,7 @@ public class AndroidIcons {
     public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
     public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraints.png");
     public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");
+    public static final Icon Margin = load("/icons/sherpa/margin.png");
     public static final Icon GuidelineVertical = load("/icons/sherpa/guideline_vertical.png");
     public static final Icon GuidelineHorizontal = load("/icons/sherpa/guideline_horizontal.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
@@ -459,6 +461,10 @@ public class AndroidIcons {
     public static final Icon InjectSpy = load("/icons/gfxtrace/inject_spy.png"); // 16x16
     public static final Icon DepthBuffer = load("/icons/gfxtrace/depth_buffer.png"); // 16x16
     public static final Icon ColorBuffer = load("/icons/gfxtrace/color_buffer.png"); // 16x16
+    public static final Icon ColorBuffer0 = load("/icons/gfxtrace/color_buffer0.png"); // 16x16
+    public static final Icon ColorBuffer1 = load("/icons/gfxtrace/color_buffer1.png"); // 16x16
+    public static final Icon ColorBuffer2 = load("/icons/gfxtrace/color_buffer2.png"); // 16x16
+    public static final Icon ColorBuffer3 = load("/icons/gfxtrace/color_buffer3.png"); // 16x16
     public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
     public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
     public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
@@ -493,9 +499,12 @@ public class AndroidIcons {
   }
 
   public static class Mockup {
-    public static final Icon Crop = load("/icons/mockup/crop.png"); // 18x18
-    public static final Icon CreateWidget = load("/icons/mockup/mockup_add.png"); // 18x18
-    public static final Icon CreateLayout = load("/icons/mockup/new_layout.png"); // 18x18
-    public static final Icon MatchWidget = load("/icons/mockup/aspect_ratio.png"); // 18x18
+    public static final Icon Mockup = load("/icons/mockup/mockup.png"); // 16x16
+    public static final Icon Crop = load("/icons/mockup/crop.png"); // 16x16
+    public static final Icon CreateWidget = load("/icons/mockup/mockup_add.png"); // 16x16
+    public static final Icon CreateLayout = load("/icons/mockup/new_layout.png"); // 16x16
+    public static final Icon MatchWidget = load("/icons/mockup/aspect_ratio.png"); // 16x16
+    public static final Icon NoMockup = load("/icons/mockup/no_mockup.png"); // 100x100
+    public static final Icon ExtractBg = load("/icons/mockup/extract_bg.png"); // 16x16
   }
 }

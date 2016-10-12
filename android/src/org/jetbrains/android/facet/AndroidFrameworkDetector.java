@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.intellij.facet.FacetType;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FacetBasedFrameworkDetector;
@@ -41,7 +42,6 @@ import com.intellij.patterns.ElementPattern;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
-import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 
 /**
@@ -121,23 +122,32 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     if (dexDisableMergerProp != null) {
       facet.getProperties().ENABLE_PRE_DEXING = !Boolean.parseBoolean(dexDisableMergerProp.getFirst());
     }
+
+    // Left here for compatibility with loading older projects
     final Pair<String, VirtualFile> androidLibraryProp =
       AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_LIBRARY_PROPERTY);
-
     if (androidLibraryProp != null && Boolean.parseBoolean(androidLibraryProp.getFirst())) {
-      facet.setLibraryProject(true);
-      return;
-    }
-    final Pair<String,VirtualFile> dexForceJumboProp =
-      AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
-    if (dexForceJumboProp != null) {
-      showDexOptionNotification(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
+      facet.setProjectType(PROJECT_TYPE_LIBRARY);
     }
 
-    Manifest manifest = facet.getManifest();
-    if (manifest != null) {
-      if (DefaultActivityLocator.getDefaultLauncherActivityName(module.getProject(), manifest) != null) {
-        AndroidUtils.addRunConfiguration(facet, null, false, null, null);
+    final Pair<String, VirtualFile> androidProjectTypeProp =
+      AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_PROJECT_TYPE_PROPERTY);
+    if (androidProjectTypeProp != null) {
+      facet.setProjectType(Integer.parseInt(androidProjectTypeProp.getFirst()));
+    }
+
+    if (facet.isAppProject()) {
+      final Pair<String,VirtualFile> dexForceJumboProp =
+        AndroidRootUtil.getProjectPropertyValue(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
+      if (dexForceJumboProp != null) {
+        showDexOptionNotification(module, AndroidUtils.ANDROID_DEX_FORCE_JUMBO_PROPERTY);
+      }
+
+      Manifest manifest = facet.getManifest();
+      if (manifest != null) {
+        if (DefaultActivityLocator.getDefaultLauncherActivityName(module.getProject(), manifest) != null) {
+          AndroidUtils.addRunConfiguration(facet, null, false, null, null);
+        }
       }
     }
   }

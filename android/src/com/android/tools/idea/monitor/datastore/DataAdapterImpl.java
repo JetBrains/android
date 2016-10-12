@@ -47,8 +47,9 @@ public class DataAdapterImpl<T> implements DataAdapter<T> {
   }
 
   @Override
-  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
-    // TODO: implement
+  public void reset() {
+    myTimestampData.clear();
+    myValues.clear();
   }
 
   @Override

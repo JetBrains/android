@@ -21,17 +21,11 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 
 public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> {
 
@@ -108,7 +102,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   }
 
   private void selectTab(@NotNull String tabName) {
-    JTabbedPane tabbedPane = myRobot.finder().findByType(myDialog, JTabbedPane.class);
+    JTabbedPane tabbedPane = GuiTests.waitUntilFound(myRobot, myDialog, Matchers.byType(JTabbedPane.class));
     new JTabbedPaneFixture(myRobot, tabbedPane).selectTab(tabName);
   }
 }

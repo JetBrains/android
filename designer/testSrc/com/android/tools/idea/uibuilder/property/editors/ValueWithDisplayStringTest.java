@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -46,6 +45,19 @@ public class ValueWithDisplayStringTest {
   }
 
   @Test
+  public void testGetters() {
+    ValueWithDisplayString value = new ValueWithDisplayString("bread", "cookies");
+    assertThat(value.getDisplayString()).isEqualTo("bread");
+    assertThat(value.getValue()).isEqualTo("cookies");
+    assertThat(value.toString()).isEqualTo("bread");
+
+    value.setUseValueForToString(true);
+    assertThat(value.getDisplayString()).isEqualTo("bread");
+    assertThat(value.getValue()).isEqualTo("cookies");
+    assertThat(value.toString()).isEqualTo("cookies");
+  }
+
+  @Test
   public void testCreateFromPropertyValue() {
     assertThat(ValueWithDisplayString.create("100dp", mockProperty(ATTR_LAYOUT_WIDTH)))
       .isEqualTo(new ValueWithDisplayString("100dp", "100dp"));
@@ -53,7 +65,8 @@ public class ValueWithDisplayStringTest {
     assertThat(ValueWithDisplayString.create("MyText", mockProperty(ATTR_TEXT)))
       .isEqualTo(new ValueWithDisplayString("MyText", "MyText"));
 
-    assertThat(ValueWithDisplayString.create(null, mockProperty(ATTR_TEXT))).isEqualTo(new ValueWithDisplayString("none", null));
+    assertThat(ValueWithDisplayString.create(null, mockProperty(ATTR_TEXT)))
+      .isEqualTo(new ValueWithDisplayString("none", null));
 
     assertThat(ValueWithDisplayString.create("?attr/textAppearanceSmall", mockProperty(ATTR_TEXT_APPEARANCE)))
       .isEqualTo(new ValueWithDisplayString("Material.Small", "?attr/textAppearanceSmall"));
@@ -70,14 +83,11 @@ public class ValueWithDisplayStringTest {
 
   @Test
   public void testCreateFromStyleValue() {
-    assertThat(ValueWithDisplayString.createStyleValue("TextAppearance.AppCompat", "@style/", null))
+    assertThat(ValueWithDisplayString.createStyleValue("TextAppearance.AppCompat", "@style/TextAppearance.AppCompat"))
       .isEqualTo(new ValueWithDisplayString("AppCompat", "@style/TextAppearance.AppCompat"));
 
-    assertThat(ValueWithDisplayString.createStyleValue("@style/TextAppearance.AppCompat", "@whatever/", null))
-      .isEqualTo(new ValueWithDisplayString("AppCompat", "@style/TextAppearance.AppCompat"));
-
-    assertThat(ValueWithDisplayString.createStyleValue("Widget.AppCompat.Button", "@whatever/", "@style/Widget.AppCompat.Button"))
-      .isEqualTo(new ValueWithDisplayString("Widget.AppCompat.Button", "@style/Widget.AppCompat.Button"));
+    assertThat(ValueWithDisplayString.createStyleValue("@style/TextAppearance.AppCompat", null))
+      .isEqualTo(new ValueWithDisplayString("AppCompat", null));
   }
 
   @Test
@@ -92,8 +102,11 @@ public class ValueWithDisplayStringTest {
   private static NlProperty mockProperty(@NotNull String attribute) {
     NlProperty property = Mockito.mock(NlProperty.class);
     Mockito.when(property.getName()).thenReturn(attribute);
-    Mockito.when(property.resolveValue(anyString())).thenAnswer((Answer<String>)invocation -> {
+    Mockito.when(property.resolveValue(anyString())).thenAnswer(invocation -> {
       String value = (String)invocation.getArguments()[0];
+      if (value == null) {
+        return null;
+      }
       switch (value) {
         case "?attr/textAppearanceSmall":
           return "@android:style/TextAppearance.Material.Small";

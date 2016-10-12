@@ -15,22 +15,44 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.base.MoreObjects;
+import com.intellij.openapi.util.IconLoader;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
-public final class MenuHandler extends MenuHandlerBase {
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+
+public class MenuHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent menu,
+                                       @NotNull NlComponent group,
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
-    return new GroupDragHandler(editor, this, menu, items, type);
+    return new GroupDragHandler(editor, this, group, items, type);
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+
+    return true;
+  }
+
+  @NotNull
+  @Override
+  protected final Icon loadBuiltinIcon(@NotNull String tagName) {
+    return MoreObjects.firstNonNull(IconLoader.findIcon("AndroidIcons.MenuIcons." + tagName, getClass()), AndroidIcons.Views.Unknown);
   }
 }

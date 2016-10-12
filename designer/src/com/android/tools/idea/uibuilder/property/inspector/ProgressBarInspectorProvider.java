@@ -54,6 +54,11 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     return myComponent;
   }
 
+  @Override
+  public void resetCache() {
+    myComponent = null;
+  }
+
   /**
    * ProgressBar inspector component. Has a dual view depending on the value of determinate.
    */
@@ -135,28 +140,23 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     @Override
     public void refresh() {
       myStyleEditor.setProperty(myStyle);
-      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
-      if (indeterminate) {
-        myDrawableEditor.setProperty(myIndeterminateDrawable);
-        myTintEditor.setProperty(myIndeterminateTint);
-      }
-      else {
-        myIndeterminateDrawableEditor.setProperty(myProgressDrawable);
-        myIndeterminateTintEditor.setProperty(myProgressTint);
-        myMaxEditor.setProperty(myMax);
-        myProgressEditor.setProperty(myProgress);
-      }
-      myDrawableEditor.setVisible(indeterminate);
-      myTintEditor.setVisible(indeterminate);
-
-      myIndeterminateDrawableEditor.setVisible(!indeterminate);
-      myIndeterminateTintEditor.setVisible(!indeterminate);
-      myMaxEditor.setVisible(!indeterminate);
-      myProgressEditor.setVisible(!indeterminate);
-
+      myDrawableEditor.setProperty(myProgressDrawable);
+      myIndeterminateDrawableEditor.setProperty(myIndeterminateDrawable);
+      myTintEditor.setProperty(myProgressTint);
+      myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      myMaxEditor.setProperty(myMax);
+      myProgressEditor.setProperty(myProgress);
       myVisibilityEditor.setProperty(myVisibility);
       myDesignVisibilityEditor.setProperty(myDesignVisibility);
       myIndeterminateEditor.setProperty(myIndeterminate);
+
+      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
+      myDrawableEditor.setVisible(!indeterminate);
+      myTintEditor.setVisible(!indeterminate);
+      myIndeterminateDrawableEditor.setVisible(indeterminate);
+      myIndeterminateTintEditor.setVisible(indeterminate);
+      myMaxEditor.setVisible(!indeterminate);
+      myProgressEditor.setVisible(!indeterminate);
     }
 
     @Override

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.intellij.openapi.editor.Caret;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.ui.EditorTextField;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.driver.TextDisplayDriver;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,13 +57,7 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @Nullable
   @Override
   public String textOf(@NotNull final EditorTextField component) {
-    return execute(new GuiQuery<String>() {
-      @Nullable
-      @Override
-      protected String executeInEDT() throws Throwable {
-        return component.getText();
-      }
-    });
+    return execute(GuiQuery.from(component::getText));
   }
 
   @RunsInEDT
@@ -95,15 +88,10 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
     if (!component.isFocusOwner()) {
       focusAndWaitForFocusGain(component);
     }
-    execute(new GuiQuery<Void>() {
-      @Nullable
+    execute(new GuiTask() {
       @Override
-      protected Void executeInEDT() throws Throwable {
-        Editor editor = component.getEditor();
-        assert editor!= null;
-        Caret caret = editor.getCaretModel().getCurrentCaret();
-        caret.setSelection(start, end);
-        return null;
+      protected void executeInEDT() throws Throwable {
+        component.getEditor().getCaretModel().getCurrentCaret().setSelection(start, end);
       }
     });
   }

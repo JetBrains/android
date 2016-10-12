@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A logcat listener base class used by the run and debug console windows
  */
-public abstract class ApplicationLogListener implements AndroidLogcatService.LogLineListener {
+public abstract class ApplicationLogListener implements AndroidLogcatService.LogcatListener {
   @Nullable private LogCatHeader myActiveHeader;
   @NotNull private final String myPackageName;
   private final int myPid;
@@ -38,7 +38,7 @@ public abstract class ApplicationLogListener implements AndroidLogcatService.Log
   }
 
   @Override
-  public void receiveLogLine(@NotNull LogCatMessage line) {
+  public void onLogLineReceived(@NotNull LogCatMessage line) {
     if (!myPackageName.equals(line.getHeader().getAppName()) || myPid != line.getHeader().getPid()) {
       myActiveHeader = null;
       return;

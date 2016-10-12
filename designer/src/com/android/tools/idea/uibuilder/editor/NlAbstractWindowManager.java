@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -34,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
@@ -108,5 +111,36 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
         return myManager == propertiesManager ? paletteManager : propertiesManager;
       }
     };
+  }
+
+  @Nullable
+  public abstract Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer);
+
+  public void activateToolWindow(@NotNull DesignerEditorPanelFacade designer, @NotNull Runnable runnable) {
+    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
+    if (toolWindow != null) {
+      restore(toolWindow);
+      runnable.run();
+    }
+    else {
+      myToolWindow.show(runnable);
+    }
+  }
+
+  // TODO: Add a restore method in LightToolWindow
+  private static void restore(@NotNull LightToolWindow toolWindow) {
+    try {
+      // When LightToolWindow#restore() is added to the base platform and upstreamed,
+      // replace this:
+      Method updateContent = LightToolWindow.class.getDeclaredMethod("updateContent", Boolean.TYPE, Boolean.TYPE);
+      if (updateContent != null) {
+        updateContent.setAccessible(true);
+        updateContent.invoke(toolWindow, Boolean.TRUE, Boolean.TRUE);
+      }
+      // with toolWindow.restore();
+    }
+    catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      // ignore...
+    }
   }
 }

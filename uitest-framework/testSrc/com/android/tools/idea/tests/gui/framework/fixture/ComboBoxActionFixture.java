@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.JBListWithHintProvider;
@@ -27,7 +28,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,38 +73,23 @@ public class ComboBoxActionFixture {
 
   public void selectItem(@NotNull String itemName) {
     click();
-    selectItemByText(getPopupList(), itemName);
+    selectItemByText(itemName);
   }
 
+  @NotNull
   public String getSelectedItemText() {
-    return execute(new GuiQuery<String>() {
-      @Nullable
-      @Override
-      protected String executeInEDT() throws Throwable {
-        return myTarget.getText();
-      }
-    });
+    return GuiQuery.getNonNull(myTarget::getText);
   }
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    Wait.minutes(2).expecting("comboBoxButton to be enabled").until(
-      () -> execute(
-        new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return comboBoxButtonFixture.target().isEnabled();
-          }
-        }));
+    Wait.minutes(2).expecting("comboBoxButton to be enabled")
+      .until(() -> GuiQuery.getNonNull(() -> comboBoxButtonFixture.target().isEnabled()));
     comboBoxButtonFixture.click();
   }
 
-  @NotNull
-  private JList getPopupList() {
-    return myRobot.finder().findByType(JBListWithHintProvider.class);
-  }
-
-  private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
+  private void selectItemByText(@NotNull final String text) {
+    JList list = GuiTests.waitUntilFound(myRobot, Matchers.byType(JBListWithHintProvider.class));
     Wait.minutes(2).expecting("the list to be populated")
       .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
@@ -118,9 +103,8 @@ public class ComboBoxActionFixture {
         return false;
       });
 
-    final Integer appIndex = execute(new GuiQuery<Integer>() {
-      @Override
-      protected Integer executeInEDT() throws Throwable {
+    int appIndex = GuiQuery.getNonNull(
+      () -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
@@ -130,9 +114,7 @@ public class ComboBoxActionFixture {
           }
         }
         return -1;
-      }
-    });
-    //noinspection ConstantConditions
+      });
     assertThat(appIndex).isAtLeast(0);
 
     execute(new GuiTask() {

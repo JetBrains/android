@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
@@ -28,10 +29,13 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.android.tools.swing.util.BigSpinnerNumberModel;
+import com.android.tools.swing.util.HexFormatter;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.UnsignedLong;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -51,6 +55,7 @@ import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.reference.SoftReference;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
 import com.intellij.util.containers.EmptyIterator;
@@ -61,11 +66,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.Segment;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.math.BigInteger;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -240,7 +248,37 @@ public class MemoryController extends Controller {
 
   private void update() {
     myLoading.stopLoading();
-    myScrollPane.setViewportView(new MemoryPanel(myDataType.getMemoryModel(myMemoryData)));
+    MemoryPanel memoryPanel = new MemoryPanel(myDataType.getMemoryModel(myMemoryData));
+    myScrollPane.setViewportView(memoryPanel);
+
+    setNavigableComponentAction(memoryPanel, new AbstractAction("Jump to address") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // we can't use Long as then comparison with other Longs will fail, and we NEED to compare to numbers, not just Comparable
+        JSpinner spinner = new JSpinner(
+          new BigSpinnerNumberModel(UnsignedLong.fromLongBits(myMemoryData.getAddress()).bigIntegerValue(), BigInteger.ZERO,
+                                    UnsignedLong.MAX_VALUE.bigIntegerValue(), 1));
+        ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setFormatterFactory(new DefaultFormatterFactory(){
+          @Override
+          public JFormattedTextField.AbstractFormatter getDefaultFormatter() {
+            return new HexFormatter();
+          }
+        });
+
+        int result = JOptionPane.showOptionDialog(myEditor.getComponent(), spinner, (String)getValue(Action.NAME),
+                                                  JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                                                  null, null, null);
+        if (result == JOptionPane.OK_OPTION) {
+          myEditor.activatePath(
+            myAtomPath.memoryAfter(MemoryProtos.PoolNames.Application_VALUE, new MemoryRange().setBase(((Number)spinner.getValue()).longValue())), this);
+        }
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return myEditor.getAtomStream().isLoaded();
+      }
+    });
   }
 
   private enum DataType {
@@ -314,6 +352,15 @@ public class MemoryController extends Controller {
   }
 
   private static class MemoryPanel extends JComponent implements Scrollable, DataProvider, CopyProvider {
+    /**
+     * @see com.intellij.execution.testframework.LvcsHelper#RED
+     */
+    private static final Color RED = new JBColor(new Color(250, 220, 220), new Color(104, 67, 67));
+    /**
+     * @see com.intellij.execution.testframework.LvcsHelper#GREEN
+     */
+    private static final Color GREEN = new JBColor(new Color(220, 250, 220), new Color(44, 66, 60));
+
     private MemoryModel myModel;
     private final EditorColorsScheme myTheme;
     private Range<Integer> mySelectionRange = null;
@@ -499,6 +546,23 @@ public class MemoryController extends Controller {
       return result;
     }
 
+    private void highlight(@NotNull Graphics g, @NotNull Range<Integer> col, @NotNull Point start, @NotNull Point end) {
+      int lineHeight = getLineHeight();
+      int charWidth = getCharWidth();
+      if (start.y == end.y) {
+        g.fillRect(start.x * charWidth, start.y * lineHeight, (end.x - start.x) * charWidth, lineHeight);
+      }
+      else {
+        g.fillRect(start.x * charWidth, start.y * lineHeight,
+                   (col.getTo() - start.x) * charWidth, lineHeight);
+        g.fillRect(col.getFrom() * charWidth, end.y * lineHeight,
+                   (end.x - col.getFrom()) * charWidth, lineHeight);
+        g.fillRect(col.getFrom() * charWidth, (start.y + 1) * lineHeight,
+                   (col.getTo() - col.getFrom()) * charWidth,
+                   (end.y - start.y - 1) * lineHeight);
+      }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
@@ -519,31 +583,32 @@ public class MemoryController extends Controller {
       int endRow = Math.max(0, Math.min(myModel.getLineCount(), (clip.y + clip.height + lineHeight - 1) / lineHeight));
       boolean selectionVisible = false;
 
+      g.setColor(GREEN);
+      Selection[] reads = myModel.getReads(startRow, endRow, myRepainter);
+      for (Selection read : reads) {
+        highlight(g, read.myRange, read.getStartAsPoint(), read.getEndAsPoint());
+      }
+
+      g.setColor(RED);
+      Selection[] writes = myModel.getWrites(startRow, endRow, myRepainter);
+      for (Selection write : writes) {
+        highlight(g, write.myRange, write.getStartAsPoint(), write.getEndAsPoint());
+      }
+
       if (mySelectionRange != null && startRow <= mySelectionEnd.y && mySelectionStart.y <= endRow) {
         selectionVisible = true;
         g.setColor(myTheme.getColor(EditorColors.SELECTION_BACKGROUND_COLOR));
-        if (mySelectionStart.y == mySelectionEnd.y) {
-          g.fillRect(mySelectionStart.x * charWidth, mySelectionStart.y * lineHeight, (mySelectionEnd.x - mySelectionStart.x) * charWidth,
-                     lineHeight);
-        }
-        else {
-          g.fillRect(mySelectionStart.x * charWidth, mySelectionStart.y * lineHeight,
-                     (mySelectionRange.getTo() - mySelectionStart.x) * charWidth, lineHeight);
-          g.fillRect(mySelectionRange.getFrom() * charWidth, mySelectionEnd.y * lineHeight,
-                     (mySelectionEnd.x - mySelectionRange.getFrom()) * charWidth, lineHeight);
-          g.fillRect(mySelectionRange.getFrom() * charWidth, (mySelectionStart.y + 1) * lineHeight,
-                     (mySelectionRange.getTo() - mySelectionRange.getFrom()) * charWidth,
-                     (mySelectionEnd.y - mySelectionStart.y - 1) * lineHeight);
-        }
-        g.setColor(getForeground());
+        highlight(g, mySelectionRange, mySelectionStart, mySelectionEnd);
       }
+      g.setColor(getForeground());
 
       // Drawing fonts in swing appears to use floating point math. Thus, y-cordinates greater than 16,777,217 cause issues.
       g.translate(0, startRow * lineHeight);
 
       int y = getAscent();
+      Iterator<Segment> it = myModel.getLines(startRow, endRow, myRepainter);
       if (!selectionVisible) {
-        for (Iterator<Segment> it = myModel.getLines(startRow, endRow, myRepainter); it.hasNext(); y += lineHeight) {
+        for (; it.hasNext(); y += lineHeight) {
           Segment segment = it.next();
           g.drawChars(segment.array, segment.offset, segment.count, 0, y);
         }
@@ -552,7 +617,7 @@ public class MemoryController extends Controller {
         int row = startRow;
         int rangeWidth = mySelectionRange.getTo() - mySelectionRange.getFrom();
         int fromWidth = mySelectionRange.getFrom() * charWidth, toWidth = mySelectionRange.getTo() * charWidth;
-        Iterator<Segment> it = myModel.getLines(startRow, endRow, myRepainter);
+
         // Lines before selection.
         for (; it.hasNext() && row < mySelectionStart.y; row++, y += lineHeight) {
           Segment segment = it.next();
@@ -688,7 +753,7 @@ public class MemoryController extends Controller {
 
     public ImmediateMemoryDataModel(long address, MemoryInfo info) {
       this.address = address;
-      this.memory = new MemorySegment(info.getData(), computeKnown(info), 0, info.getData().length);
+      this.memory = new MemorySegment(info);
     }
 
     private ImmediateMemoryDataModel(long address, MemorySegment data) {
@@ -837,17 +902,26 @@ public class MemoryController extends Controller {
     private final int myOffset;
     private final int myLength;
 
-    private MemorySegment(byte[] data, BitSet known, int offset, int length) {
+    private final MemoryRange[] myReads;
+    private final MemoryRange[] myWrites;
+
+    private MemorySegment(byte[] data, BitSet known, int offset, int length, MemoryRange[] reads, MemoryRange[] writes) {
       myData = data;
       myOffset = offset;
       myLength = length;
       myKnown = known;
+      myReads = reads;
+      myWrites = writes;
     }
 
     public MemorySegment(List<MemorySegment> segments, int length) {
       byte[] data = new byte[length];
       BitSet known = new BitSet(length);
       int done = 0;
+
+      List<MemoryRange> newReads = new ArrayList<>();
+      List<MemoryRange> newWrites = new ArrayList<>();
+
       for (Iterator<MemorySegment> it = segments.iterator(); it.hasNext() && done < length; ) {
         MemorySegment segment = it.next();
         int count = Math.min(length - done, segment.myLength);
@@ -855,12 +929,23 @@ public class MemoryController extends Controller {
         for (int i = 0; i < count; ++i) {
           known.set(done + i, segment.myKnown.get(segment.myOffset + i));
         }
+
+        for (MemoryRange range : segment.myReads) {
+          newReads.add(done == 0 && segment.myOffset == 0 ? range : new MemoryRange().setBase(done - segment.myOffset + range.getBase()).setSize(range.getSize()));
+        }
+        for (MemoryRange range : segment.myWrites) {
+          newWrites.add(done == 0 && segment.myOffset == 0 ? range : new MemoryRange().setBase(done - segment.myOffset + range.getBase()).setSize(range.getSize()));
+        }
+
         done += count;
       }
       myData = data;
       myKnown = known;
       myOffset = 0;
       myLength = done;
+
+      myReads = newReads.toArray(new MemoryRange[newReads.size()]);
+      myWrites = newWrites.toArray(new MemoryRange[newWrites.size()]);
     }
 
     public MemorySegment(MemoryInfo info) {
@@ -868,10 +953,12 @@ public class MemoryController extends Controller {
       myOffset = 0;
       myKnown = computeKnown(info);
       myLength = info.getData().length;
+      myReads = info.getReads();
+      myWrites = info.getWrites();
     }
 
     public MemorySegment subSegment(int start, int count) {
-      return new MemorySegment(myData, myKnown, myOffset + start, Math.min(count, myLength - start));
+      return new MemorySegment(myData, myKnown, myOffset + start, Math.min(count, myLength - start), myReads, myWrites);
     }
 
     public String asString(int start, int count) {
@@ -931,10 +1018,41 @@ public class MemoryController extends Controller {
     Range<Integer> getSelectableRegion(int column);
 
     ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, Point start, Point end);
+
+    Selection[] getReads(int startRow, int endRow, Runnable repainter);
+
+    Selection[] getWrites(int startRow, int endRow, Runnable repainter);
+  }
+
+  private static class Selection {
+    @NotNull public final Range<Integer> myRange;
+
+    public final int myStartCol;
+    public final int myStartRow;
+
+    public final int myEndCol;
+    public final int myEndRow;
+
+    public Selection(@NotNull Range<Integer> range, int startCol, int startRow, int endCol, int endRow) {
+      myRange = range;
+      myStartCol = startCol;
+      myStartRow = startRow;
+      myEndCol = endCol;
+      myEndRow = endRow;
+    }
+
+    public Point getStartAsPoint() {
+      return new Point(myStartCol, myStartRow);
+    }
+
+    public Point getEndAsPoint() {
+      return new Point(myEndCol, myEndRow);
+    }
   }
 
   private static abstract class FixedMemoryModel implements MemoryModel {
     protected static final int BYTES_PER_ROW = 16;
+    private final static Selection[] NO_SELECTIONS = new Selection[0];
 
     protected final MemoryDataModel myData;
     protected final int myRows;
@@ -949,17 +1067,28 @@ public class MemoryController extends Controller {
       return myRows;
     }
 
-    @Override
-    public Iterator<Segment> getLines(int start, int end, Runnable onChange) {
+    @Nullable
+    private MemorySegment getMemorySegment(int start, int end, Runnable onChange) {
       if (start < 0 || end < start || end > getLineCount()) {
         throw new IndexOutOfBoundsException("[" + start + ", " + end + ") outside of [0, " + getLineCount() + ")");
       }
       ListenableFuture<MemorySegment> future = myData.get(start * BYTES_PER_ROW, (end - start) * BYTES_PER_ROW);
       if (future.isDone()) {
-        return getLines(start, end, Futures.getUnchecked(future));
+        return Futures.getUnchecked(future);
       }
       else {
         future.addListener(onChange, EdtExecutor.INSTANCE);
+        return null;
+      }
+    }
+
+    @Override
+    public Iterator<Segment> getLines(int start, int end, Runnable onChange) {
+      MemorySegment segment = getMemorySegment(start, end, onChange);
+      if (segment != null) {
+        return getLines(start, end, segment);
+      }
+      else {
         return EmptyIterator.getInstance();
       }
     }
@@ -994,6 +1123,44 @@ public class MemoryController extends Controller {
     }
 
     protected abstract void getLine(Segment segment, MemorySegment memory, int line);
+
+    protected abstract Range<Integer>[] getDataRanges();
+
+    @Override
+    public Selection[] getReads(int startRow, int endRow, Runnable repainter) {
+      MemorySegment memory = getMemorySegment(startRow, endRow, repainter);
+      return memory == null || memory.myReads == null || memory.myReads.length == 0 ? NO_SELECTIONS
+                                                                                    : getSelections(memory.myReads, (startRow * BYTES_PER_ROW) - memory.myOffset);
+    }
+
+    @Override
+    public Selection[] getWrites(int startRow, int endRow, Runnable repainter) {
+      MemorySegment memory = getMemorySegment(startRow, endRow, repainter);
+      return memory == null || memory.myWrites == null || memory.myWrites.length == 0 ? NO_SELECTIONS
+                                                                                      : getSelections(memory.myWrites, (startRow * BYTES_PER_ROW) - memory.myOffset);
+    }
+
+    @NotNull
+    private Selection[] getSelections(@NotNull MemoryRange[] operation, int offset) {
+      assert operation.length > 0;
+      Range<Integer>[] ranges = getDataRanges();
+      Selection[] shapes = new Selection[operation.length * ranges.length];
+      for (int ri = 0; ri < ranges.length; ri++) {
+        for (int oi = 0; oi < operation.length; oi++) {
+          MemoryRange memoryRange = operation[oi];
+          Point start = getCharForOffset(ranges[ri], offset + memoryRange.getBase(), true);
+          Point end = getCharForOffset(ranges[ri], offset + memoryRange.getBase() + memoryRange.getSize(), false);
+          shapes[ri * operation.length + oi] = new Selection(ranges[ri], start.x, start.y, end.x, end.y);
+        }
+      }
+      return shapes;
+    }
+
+    @NotNull
+    private Point getCharForOffset(@NotNull Range<Integer> range, long offset, boolean start) {
+      double positionOffset = (range.getTo() - range.getFrom()) * (offset % (float)BYTES_PER_ROW) / BYTES_PER_ROW;
+      return new Point(range.getFrom() + (int)(start ? Math.ceil(positionOffset) : positionOffset), (int)offset / BYTES_PER_ROW);
+    }
   }
 
   private static abstract class CharBufferMemoryModel extends FixedMemoryModel {
@@ -1087,6 +1254,12 @@ public class MemoryController extends Controller {
           }
         });
     }
+
+    @Override
+    public Range<Integer>[] getDataRanges() {
+      //noinspection unchecked
+      return new Range[] { myMemoryRange };
+    }
   }
 
   private static class BytesMemoryModel extends CharBufferMemoryModel {
@@ -1152,6 +1325,12 @@ public class MemoryController extends Controller {
         int b = memory.getByte(i);
         buffer[j] = memory.getByteKnown(i) && (b >= 32 && b < 127) ? (char)b : '.';
       }
+    }
+
+    @Override
+    public Range<Integer>[] getDataRanges() {
+      //noinspection unchecked
+      return new Range[] { myMemoryRange, ASCII_RANGE };
     }
   }
 
@@ -1512,6 +1691,18 @@ public class MemoryController extends Controller {
         }
       }
       return Futures.immediateFuture((Transferable)new StringSelection(result.toString()));
+    }
+
+    @Override
+    public Selection[] getReads(int startRow, int endRow, Runnable repainter) {
+      // TODO
+      return FixedMemoryModel.NO_SELECTIONS;
+    }
+
+    @Override
+    public Selection[] getWrites(int startRow, int endRow, Runnable repainter) {
+      // TODO
+      return FixedMemoryModel.NO_SELECTIONS;
     }
   }
 }

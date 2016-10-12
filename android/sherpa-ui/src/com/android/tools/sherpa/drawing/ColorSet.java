@@ -68,6 +68,7 @@ public class ColorSet {
     protected Color mInspectorBackgroundColor;
     protected Color mInspectorFillColor;
     protected Color mInspectorTrackBackgroundColor;
+    protected Color mInspectorConstraintColor;
     protected Color mInspectorTrackColor;
     protected Color mInspectorHighlightsStrokeColor;
 
@@ -157,6 +158,8 @@ public class ColorSet {
     public Color getInspectorTrackColor() { return mInspectorTrackColor; }
 
     public Color getInspectorHighlightsStrokeColor() { return mInspectorHighlightsStrokeColor; }
+
+    public Color getInspectorConstraintColor() { return mInspectorConstraintColor; }
 
     public Color getHighlightedConstraints() { return mHighlightedConstraints; }
 

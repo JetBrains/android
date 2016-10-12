@@ -36,14 +36,13 @@ public class InstantRunNotificationProvider {
     BuildCause.APP_NOT_INSTALLED
   );
 
-  private static final Map<BuildCause, String> ourNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
+  private static final Map<BuildCause, String> ourFullBuildNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
     .put(BuildCause.USER_REQUESTED_CLEAN_BUILD, AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"))
-    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.cleanbuild.mismatching.timestamps"))
+    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.fullbuild.mismatching.timestamps"))
     .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.15"))
     .put(BuildCause.MANIFEST_RESOURCE_CHANGED, AndroidBundle.message("instant.run.notification.fullbuild.manifestresourcechanged"))
     .put(BuildCause.FREEZE_SWAP_REQUIRES_API21, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.21"))
     .put(BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS, AndroidBundle.message("instant.run.notification.fullbuild.broken.runas"))
-    .put(BuildCause.APP_USES_MULTIPLE_PROCESSES, AndroidBundle.message("instant.run.notification.coldswap.multiprocess"))
     .build();
 
   private final BuildSelection myBuildSelection;
@@ -60,15 +59,14 @@ public class InstantRunNotificationProvider {
 
   @Nullable
   public String getNotificationText() {
-    BuildMode buildMode = myBuildSelection.mode;
     BuildCause buildCause = myBuildSelection.why;
 
     if (ourCausesThatDontNeedNotifications.contains(buildCause)) {
       return null;
     }
 
-    if (ourNotificationsByCause.containsKey(buildCause)) {
-      return ourNotificationsByCause.get(buildCause);
+    if (ourFullBuildNotificationsByCause.containsKey(buildCause)) {
+      return ourFullBuildNotificationsByCause.get(buildCause);
     }
 
     if (buildCause == BuildCause.APP_NOT_RUNNING) {
@@ -90,7 +88,7 @@ public class InstantRunNotificationProvider {
       case SPLITAPK:
       case DEX: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
-        if (buildMode == BuildMode.HOT) {
+        if (buildCause.getBuildMode() == BuildMode.HOT) {
           // we requested a hot swap build, but we got cold swap artifacts
           if (!myVerifierStatus.isEmpty()) {
             sb.append(' ');
@@ -99,7 +97,11 @@ public class InstantRunNotificationProvider {
             sb.append('.');
           }
         }
-        else if (buildMode == BuildMode.COLD) {
+        else if (buildCause.getBuildMode() == BuildMode.COLD) {
+          if (buildCause == BuildCause.APP_USES_MULTIPLE_PROCESSES) {
+            return AndroidBundle.message("instant.run.notification.coldswap.multiprocess");
+          }
+
           // we requested a cold swap build, so mention why we requested such a build
           sb.append(' ').append(buildCause).append('.');
         }

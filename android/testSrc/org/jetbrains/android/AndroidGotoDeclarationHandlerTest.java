@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * Note: There are some additional tests for goto declaration in {@link AndroidValueResourcesTest} such
  * as {@link AndroidValueResourcesTest#testDeclareStyleableNameNavigation1}, as well as in
@@ -45,7 +47,7 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", true);
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY);
   }
 
   public void testGotoString() throws Exception {

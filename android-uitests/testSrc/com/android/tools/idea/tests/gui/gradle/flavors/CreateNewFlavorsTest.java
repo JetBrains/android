@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle.flavors;
 
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -52,7 +50,7 @@ public class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createNewFlavors() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
@@ -61,8 +59,8 @@ public class CreateNewFlavorsTest {
       .selectFlavorsTab()
       .clickAddButton()
       .setFlavorName("flavor1")
-      .setMinSdkVersion("API 18: Android 4.3 (Jelly Bean)")
-      .setTargetSdkVersion("API 22: Android 5.1 (Lollipop)")
+      .setMinSdkVersion("API 24: Android 7.0 (Nougat)")
+      .setTargetSdkVersion("API 24: Android 7.0 (Nougat)")
       .clickAddButton()
       .setFlavorName("flavor2")
       .setVersionCode("2")
@@ -71,7 +69,7 @@ public class CreateNewFlavorsTest {
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();
-    assertThat(gradleFileContents).contains("flavor1 {\n            minSdkVersion 18\n            targetSdkVersion 22\n        }");
+    assertThat(gradleFileContents).contains("flavor1 {\n            minSdkVersion 24\n            targetSdkVersion 24\n        }");
     assertThat(gradleFileContents).contains("flavor2 {\n            versionCode 2\n            versionName '2.3'\n        }");
   }
 }

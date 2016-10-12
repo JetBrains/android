@@ -18,17 +18,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
-import com.android.tools.idea.editors.gfxtrace.service.ContextID;
 import com.android.tools.idea.editors.gfxtrace.service.ContextList;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.ContextPath;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.util.Objects;
 
 /**
  * Controller for the currently selected context.
@@ -42,14 +38,13 @@ public class ContextController extends Controller implements AtomStream.Listener
 
   @NotNull private Context mySelectedContext = Context.ALL;
 
-  private ContextList myContexts;
-  private CapturePath myCapturePath;
   private boolean mySuspendUiUpdates;
 
 
   private ContextController(@NotNull GfxTraceEditor editor) {
     super(editor);
     editor.getAtomStream().addListener(this);
+    myComboBox.setName("ContextCombo"); // for ui tests
     myComboBox.addItemListener(event -> {
       if (event.getStateChange() == ItemEvent.SELECTED) {
         selectContext((Context)(event.getItem()));
@@ -57,35 +52,15 @@ public class ContextController extends Controller implements AtomStream.Listener
     });
   }
 
-  private void selectContext(Context context) {
-    if (mySuspendUiUpdates || Objects.equals(context, mySelectedContext)) {
+  private void selectContext(@NotNull Context context) {
+    if (mySuspendUiUpdates) {
       return;
     }
-    mySelectedContext = context;
-    if (context != null) {
-      myEditor.activatePath(myCapturePath.contexts().context(context.getID()), this);
-    } else {
-      myEditor.activatePath(myCapturePath.contexts(), this);
-    }
+    myEditor.getAtomStream().selectContext(context);
   }
 
   @Override
   public void notifyPath(PathEvent event) {
-    ContextPath contextPath = event.findContextPath();
-    // someone has changed the context externally, so we want to update our view, but not fire any events
-    if (contextPath != null) {
-      Context context = myContexts.find(contextPath.getID(), Context.ALL);
-      if (!Objects.equals(context, mySelectedContext)) {
-        mySuspendUiUpdates = true;
-        try {
-          mySelectedContext = context;
-          myComboBox.setSelectedItem(mySelectedContext);
-        }
-        finally {
-          mySuspendUiUpdates = false;
-        }
-      }
-    }
   }
 
   @Override
@@ -100,22 +75,21 @@ public class ContextController extends Controller implements AtomStream.Listener
     Context contextToSelect;
     mySuspendUiUpdates = true;
     try {
-      myCapturePath = atoms.getPath().getCapture();
-      myContexts = atoms.getContexts();
+      ContextList contexts = atoms.getContexts();
       myComboBox.removeAllItems();
-      if (myContexts.count() == 1) {
-        contextToSelect = myContexts.getContexts()[0];
+      if (contexts.count() == 1) {
+        contextToSelect = contexts.getContexts()[0];
       }
       else {
         myComboBox.addItem(Context.ALL);
-        contextToSelect = myContexts.find(mySelectedContext.getID(), Context.ALL);
+        contextToSelect = contexts.find(mySelectedContext.getID(), Context.ALL);
       }
 
-      for (Context context : myContexts) {
+      for (Context context : contexts) {
         myComboBox.addItem(context);
       }
       myComboBox.setSelectedItem(contextToSelect);
-      myComboBox.setVisible(myContexts.count() > 0);
+      myComboBox.setVisible(contexts.count() > 0);
     } finally {
       mySuspendUiUpdates = false;
     }
@@ -125,4 +99,10 @@ public class ContextController extends Controller implements AtomStream.Listener
 
   @Override
   public void onAtomsSelected(AtomRangePath path, Object source) {}
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
+    mySelectedContext = context;
+    myComboBox.setSelectedItem(context);
+  }
 }

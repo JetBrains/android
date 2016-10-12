@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,7 +56,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StringResourceViewPanel implements HyperlinkListener {
@@ -148,67 +148,76 @@ public class StringResourceViewPanel implements HyperlinkListener {
     };
 
     group.add(addKeyAction);
-
-    final AnAction addLocaleAction = new AnAction("Add Locale", "", AndroidIcons.Globe) {
-      @Override
-      public void update(AnActionEvent e) {
-        e.getPresentation().setEnabled(myData != null);
-      }
-
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        List<Locale> currentLocales = myData.getLocales();
-        List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
-        missingLocales.removeAll(currentLocales);
-        Collections.sort(missingLocales, Locale.LANGUAGE_NAME_COMPARATOR);
-
-        final JBList list = new JBList(missingLocales);
-        list.setFixedCellHeight(20);
-        list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, Locale value, int index, boolean selected, boolean hasFocus) {
-            append(LocaleMenuAction.getLocaleLabel(value, false));
-            setIcon(value.getFlagImage());
-          }
-        });
-        new ListSpeedSearch(list) {
-          @Override
-          protected String getElementText(Object element) {
-            if (element instanceof Locale) {
-              return LocaleMenuAction.getLocaleLabel((Locale)element, false);
-            }
-            return super.getElementText(element);
-          }
-        };
-
-        JBPopupFactory.getInstance().createListPopupBuilder(list).setItemChoosenCallback(new Runnable() {
-          @Override
-          public void run() {
-            // TODO(juancnuno) Ask the user to pick a source set instead of defaulting to the primary resource directory
-            VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
-            assert primaryResourceDir != null;
-
-            // Pick a value to add to this locale
-            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
-            String key = "app_name";
-
-            if (!defaultValues.containsKey(key)) {
-              key = defaultValues.keySet().iterator().next();
-            }
-
-            String string = myData.resourceToString(key);
-
-            StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), key, string, true);
-            reloadData();
-          }
-        }).createPopup().showUnderneathOf(toolbar.getComponent());
-      }
-    };
-
-    group.add(addLocaleAction);
+    group.add(new AddLocaleAction(toolbar.getComponent()));
     group.add(newShowOnlyKeysNeedingTranslationsAction());
+    group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
 
     return toolbar;
+  }
+
+  private final class AddLocaleAction extends AnAction {
+    private final JComponent myComponent;
+
+    private AddLocaleAction(@NotNull JComponent component) {
+      super("Add Locale", "", AndroidIcons.Globe);
+      myComponent = component;
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      e.getPresentation().setEnabled(myData != null);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      List<Locale> currentLocales = myData.getLocales();
+      List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
+      missingLocales.removeAll(currentLocales);
+      Collections.sort(missingLocales, Locale.LANGUAGE_NAME_COMPARATOR);
+
+      final JBList list = new JBList(missingLocales);
+      list.setFixedCellHeight(20);
+      list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
+        @Override
+        protected void customizeCellRenderer(@NotNull JList list, Locale value, int index, boolean selected, boolean hasFocus) {
+          append(LocaleMenuAction.getLocaleLabel(value, false));
+          setIcon(value.getFlagImage());
+        }
+      });
+      new ListSpeedSearch(list) {
+        @Override
+        protected String getElementText(Object element) {
+          if (element instanceof Locale) {
+            return LocaleMenuAction.getLocaleLabel((Locale)element, false);
+          }
+          return super.getElementText(element);
+        }
+      };
+
+      showPopupUnderneathOf(list);
+    }
+
+    private void showPopupUnderneathOf(@NotNull JList list) {
+      Runnable runnable = () -> {
+        // TODO Ask the user to pick a source set instead of defaulting to the primary resource directory
+        VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
+        assert primaryResourceDir != null;
+
+        // Pick a value to add to this locale
+        String key = "app_name";
+
+        String string = myData.getStringResource(key).getDefaultValueAsString();
+
+        StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), key, string, true);
+        reloadData();
+      };
+
+      JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
+        .setItemChoosenCallback(runnable)
+        .createPopup();
+
+      popup.showUnderneathOf(myComponent);
+    }
   }
 
   private AnAction newShowOnlyKeysNeedingTranslationsAction() {
@@ -236,7 +245,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
     DefaultRowSorter<StringResourceTableModel, Integer> rowSorter;
 
     if (showingOnlyKeysNeedingTranslations) {
-      rowSorter = new TableRowSorter<StringResourceTableModel>(myTableModel);
+      rowSorter = new TableRowSorter<>(myTableModel);
       rowSorter.setRowFilter(new NeedsTranslationsRowFilter());
     }
     else {
@@ -306,7 +315,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     String value = component.getText();
     model.setValueAt(value, row, column);
-    // TODO(juancnuno) If you refilter here change the key listener to update the model on Enter
+    // TODO If you refilter here change the key listener to update the model on Enter
   }
 
   private void initTable() {
@@ -406,8 +415,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
   }
 
   private class ParseTask extends Task.Backgroundable {
-    private final AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<LocalResourceRepository>(null);
-    private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<StringResourceData>(null);
+    private final AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<>(null);
+    private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<>(null);
 
     public ParseTask(String description) {
       super(myFacet.getModule().getProject(), description, false);

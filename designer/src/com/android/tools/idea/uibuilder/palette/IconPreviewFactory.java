@@ -106,7 +106,7 @@ public class IconPreviewFactory {
       return null;
     }
     if (scale != 1.0) {
-      image = ImageUtils.scale(image, scale, scale);
+      image = ImageUtils.scale(image, scale);
     }
     return image;
   }

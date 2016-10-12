@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.structure;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -84,14 +84,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
+import static com.android.tools.idea.gradle.project.sync.setup.project.idea.ProjectStructureUsageTracker.getApplicationId;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -124,88 +122,58 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   public boolean showDialogAndChooseJdkLocation() {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        mySidePanel.chooseJdkLocation();
-      }
-    });
+    return doShowDialog(() -> mySidePanel.chooseJdkLocation());
   }
 
   public boolean showDialogAndSelectSdksPage() {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        mySidePanel.selectSdk();
-      }
-    });
+    return doShowDialog(() -> mySidePanel.selectSdk());
   }
 
   public boolean showDialogAndSelect(@NotNull final Module module) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        mySidePanel.select(module);
-      }
-    });
+    return doShowDialog(() -> mySidePanel.select(module));
   }
 
   public boolean showDialogAndOpenSigningConfiguration(@NotNull final Module module) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        AndroidModuleConfigurable configurable = mySidePanel.select(module);
-        if (configurable != null) {
-          configurable.openSigningConfiguration();
-        }
+    return doShowDialog(() -> {
+      AndroidModuleConfigurable configurable = mySidePanel.select(module);
+      if (configurable != null) {
+        configurable.openSigningConfiguration();
       }
     });
   }
 
   public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final GradleCoordinate dependency) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        AndroidModuleConfigurable configurable = mySidePanel.select(module);
-        if (configurable != null) {
-          configurable.selectDependency(dependency);
-        }
+    return doShowDialog(() -> {
+      AndroidModuleConfigurable configurable = mySidePanel.select(module);
+      if (configurable != null) {
+        configurable.selectDependency(dependency);
       }
     });
   }
 
   public boolean showDialogAndSelectBuildTypesEditor(@NotNull final Module module) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        AndroidModuleConfigurable configurable = mySidePanel.select(module);
-        if (configurable != null) {
-          configurable.selectBuildTypesTab();
-        }
+    return doShowDialog(() -> {
+      AndroidModuleConfigurable configurable = mySidePanel.select(module);
+      if (configurable != null) {
+        configurable.selectBuildTypesTab();
       }
     });
   }
 
   public boolean showDialogAndSelectFlavorsEditor(@NotNull final Module module) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        AndroidModuleConfigurable configurable = mySidePanel.select(module);
-        if (configurable != null) {
-          configurable.selectFlavorsTab();
-        }
+    return doShowDialog(() -> {
+      AndroidModuleConfigurable configurable = mySidePanel.select(module);
+      if (configurable != null) {
+        configurable.selectFlavorsTab();
       }
     });
   }
 
   public boolean showDialogAndSelectDependenciesEditor(@NotNull final Module module) {
-    return doShowDialog(new Runnable() {
-      @Override
-      public void run() {
-        AndroidModuleConfigurable configurable = mySidePanel.select(module);
-        if (configurable != null) {
-          configurable.selectDependenciesTab();
-        }
+    return doShowDialog(() -> {
+      AndroidModuleConfigurable configurable = mySidePanel.select(module);
+      if (configurable != null) {
+        configurable.selectDependenciesTab();
       }
     });
   }
@@ -238,10 +206,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     mySettingsFile = GradleSettingsFile.get(project);
 
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
+    myDisposable = () -> {
     };
   }
 
@@ -336,7 +301,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
 
@@ -467,12 +432,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     myErrorsPanel.removeAllErrors();
     List<ProjectConfigurationError> errors = mySdksConfigurable.validateState();
     if (!errors.isEmpty()) {
-      Runnable navigationTask = new Runnable() {
-        @Override
-        public void run() {
-          selectConfigurable(mySdksConfigurable);
-        }
-      };
+      Runnable navigationTask = () -> selectConfigurable(mySdksConfigurable);
       for (ProjectConfigurationError error : errors) {
         error.setNavigationTask(navigationTask);
       }
@@ -572,12 +532,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   public void requestValidation() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (myErrorsPanel != null) {
-          validateState();
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (myErrorsPanel != null) {
+        validateState();
       }
     });
   }
@@ -656,16 +613,13 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
       myList.setCellRenderer(new GroupedItemsListRenderer(descriptor));
       myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      myList.addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-          if (e.getValueIsAdjusting()) {
-            return;
-          }
-          Object selection = myList.getSelectedValue();
-          if (selection instanceof Configurable) {
-            selectConfigurable((Configurable)selection);
-          }
+      myList.addListSelectionListener(e -> {
+        if (e.getValueIsAdjusting()) {
+          return;
+        }
+        Object selection = myList.getSelectedValue();
+        if (selection instanceof Configurable) {
+          selectConfigurable((Configurable)selection);
         }
       });
 
@@ -840,7 +794,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
       myConfigurables.remove(configurable);
       mySidePanel.reset();
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
 
     @NotNull

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestProjectPaths;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;

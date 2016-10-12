@@ -19,14 +19,33 @@ import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DynamicAtom extends Atom {
   @NotNull private final Dynamic myValue;
   @NotNull private final AtomMetadata myMetadata;
+  @Nullable private final Observations myObservations;
 
   public DynamicAtom(Dynamic value) {
     myValue = value;
     myMetadata = AtomMetadata.find(value.type());
+    if (myMetadata.myExtrasIndex >= 0) {
+      myObservations = getObservations(getFieldValue(myMetadata.myExtrasIndex));
+      myValue.setFieldValue(myMetadata.myExtrasIndex, null); // Dump the extras to save RAM.
+    }
+    else {
+      myObservations = null;
+    }
+  }
+
+  private static Observations getObservations(Object extras) {
+    assert (extras instanceof Object[]);
+    for (Object extra : (Object[])extras) {
+      if (extra instanceof Observations) {
+        return (Observations)extra;
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -62,16 +81,7 @@ public class DynamicAtom extends Atom {
 
   @Override
   public Observations getObservations() {
-    if (myMetadata.myExtrasIndex >= 0) {
-      Object extras = getFieldValue(myMetadata.myExtrasIndex);
-      assert (extras instanceof Object[]);
-      for (Object extra : (Object[])extras) {
-        if (extra instanceof Observations) {
-          return (Observations)extra;
-        }
-      }
-    }
-    return null;
+    return myObservations;
   }
 
   @Override

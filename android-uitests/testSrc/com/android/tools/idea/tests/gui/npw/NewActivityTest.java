@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -27,10 +26,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -74,7 +71,7 @@ public class NewActivityTest {
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
   }
 
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createDefaultActivity() {
     myDialog.clickFinish();
@@ -119,6 +116,7 @@ public class NewActivityTest {
     );
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createActivityWithHierarchicalParent() throws Exception{
     myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivity");
@@ -131,7 +129,6 @@ public class NewActivityTest {
     assertEquals(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\">"), 1);
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/290")
   @Test
   public void createActivityWithInvalidHierarchicalParent() throws Exception {
     myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivityWrong");
@@ -179,7 +176,6 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/272")
   @Test
   public void changeLayoutNameUndo() throws Exception {
     // Changing "Layout Name" causes "Activity Name" and "Title" to change

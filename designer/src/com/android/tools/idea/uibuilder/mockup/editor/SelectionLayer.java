@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.mockup.editor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,10 +40,11 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private static final JBColor HOVERED_KNOB_COLOR = new JBColor(new Color(0x551955A8, true), new Color(0x554D83CD, true));
   private static final JBColor KNOB_COLOR = JBColor.BLACK;
   private static final Color KNOB_OUTLINE = JBColor.WHITE;
-  private static final BasicStroke DASH = new BasicStroke(1.0f,
+  private static final BasicStroke DASH = new BasicStroke(0f,
                                                           BasicStroke.CAP_BUTT,
                                                           BasicStroke.JOIN_MITER,
                                                           10.0f, new float[]{5.0f}, 0.0f);
+  private static final Color SELECTION_OVERLAY_COLOR = JBColor.GRAY;
 
   // Index of the Knobs in myKnobs
   // depending the position
@@ -57,6 +59,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private final static int MOVE = KNOB_COUNT - 1;
 
   private final static Cursor[] CURSORS = new Cursor[KNOB_COUNT];
+  public static final float OVERLAY_ALPHA = 0.5f;
 
   static {
     CURSORS[N] = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
@@ -109,7 +112,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
   private boolean myFixedRatio;
   private double myRatioWidth;
   private double myRatioHeight;
-  private int myConvertedKnobSize;
+  private Rectangle myHolderRectangle = new Rectangle();
 
   public SelectionLayer(JPanel parent, AffineTransform affineTransform) {
     myParent = parent;
@@ -122,26 +125,98 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void paint(Graphics2D g) {
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     if (!mySelection.isEmpty() && mySelection.x >= 0 && mySelection.y >= 0) {
       drawSelection(g);
+      drawSelectionOverlay(g);
+      drawHoveredKnob(g);
     }
   }
 
-  private void drawSelection(Graphics2D g) {
+  /**
+   * Draw the selection rectangle
+   */
+  private void drawSelection(@NotNull Graphics2D g) {
+    Rectangle scaledSelection = transformRect(myAffineTransform, mySelection, myHolderRectangle);
     g.setColor(KNOB_COLOR);
-    g.draw(mySelection);
+    g.draw(scaledSelection);
     g.setColor(KNOB_OUTLINE);
-    final Stroke oldStroke = g.getStroke();
     g.setStroke(DASH);
-    g.draw(mySelection);
+    g.draw(scaledSelection);
+  }
 
+  /**
+   * Draw the hovered know if one of the know is hovered
+   * @param g the graphics context
+   */
+  private void drawHoveredKnob(@NotNull Graphics2D g) {
+    Composite composite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
     if (myHoveredKnob >= 0 && myHoveredKnob != MOVE) {
-      g.setStroke(oldStroke);
       g.setColor(HOVERED_KNOB_COLOR);
-      g.fill(myKnobs[myHoveredKnob]);
+      g.fill(transformRect(myAffineTransform, myKnobs[myHoveredKnob], myHolderRectangle));
       g.setColor(KNOB_OUTLINE);
-      g.draw(myKnobs[myHoveredKnob]);
+      g.draw(transformRect(myAffineTransform, myKnobs[myHoveredKnob], myHolderRectangle));
     }
+    g.setComposite(composite);
+  }
+
+  /**
+   * Draw an overlay around the selection
+   * @param g the graphics context
+   */
+  private void drawSelectionOverlay(@NotNull Graphics2D g) {
+    Composite composite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, OVERLAY_ALPHA));
+    g.setColor(SELECTION_OVERLAY_COLOR);
+
+    // Top
+    myHolderRectangle.setBounds(myBounds.x, myBounds.y, myBounds.width, mySelection.y);
+    g.fill(transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle));
+
+    // Left
+    myHolderRectangle.setBounds(myBounds.x, mySelection.y, mySelection.x, mySelection.height);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(0, 1);
+    g.fill(myHolderRectangle);
+
+    // Right
+    int x = mySelection.x + mySelection.width;
+    myHolderRectangle.setBounds(x, mySelection.y, myBounds.width - x, mySelection.height);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(1, 1);
+    myHolderRectangle.grow(-1, 0);
+    g.fill(myHolderRectangle);
+
+    // Bottom
+    int y = mySelection.y + mySelection.height;
+    myHolderRectangle.setBounds(0, y, myBounds.width, myBounds.height - y - 1);
+    transformRect(myAffineTransform, myHolderRectangle, myHolderRectangle);
+    myHolderRectangle.translate(0, 2);
+    g.fill(myHolderRectangle);
+
+    g.setComposite(composite);
+  }
+
+
+  /**
+   * Scale the source Rectangle using the provided affine transform and set the converted
+   * bounds to the destination rectangle. The source and destination rectangle can be the same.
+   *
+   * @param transform The transform used to transform the rectangle
+   * @param src       The rectangle that will be transformed
+   * @param dst       The resulting transformed rectangle
+   * @return the destination rectangle
+   */
+  private static Rectangle transformRect(@NotNull AffineTransform transform, @NotNull Rectangle src, @NotNull Rectangle dst) {
+    final double[] location = {src.x, src.y, src.x + src.width, src.y + src.height};
+    transform.transform(location, 0, location, 0, 2);
+    double x1 = location[0];
+    double y1 = location[1];
+    double x2 = location[2];
+    double y2 = location[3];
+    dst.setRect(x1, y1, x2 - x1, y2 - y1);
+    return dst;
   }
 
   public void contentResized() {
@@ -152,12 +227,12 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
    * Set the knobs position regarding the values of the current selection
    */
   private void updateKnobPosition() {
-    myConvertedKnobSize = (int)Math.round(KNOB_SIZE / myAffineTransform.getScaleX());
+    int convertedKnobSize = (int)Math.round(KNOB_SIZE / myAffineTransform.getScaleX());
 
     final int x1, y1, x2, y2, hSize, vSize;
-    if (mySelection.height < myConvertedKnobSize * 3 || mySelection.width < myConvertedKnobSize * 3) {
-      x1 = mySelection.x - myConvertedKnobSize;
-      y1 = mySelection.y - myConvertedKnobSize;
+    if (mySelection.height < convertedKnobSize * 3 || mySelection.width < convertedKnobSize * 3) {
+      x1 = mySelection.x - convertedKnobSize;
+      y1 = mySelection.y - convertedKnobSize;
       x2 = mySelection.x + mySelection.width;
       y2 = mySelection.y + mySelection.height;
       hSize = mySelection.width;
@@ -167,29 +242,28 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     else {
       x1 = mySelection.x;
       y1 = mySelection.y;
-      x2 = x1 + mySelection.width - myConvertedKnobSize;
-      y2 = y1 + mySelection.height - myConvertedKnobSize;
-      hSize = mySelection.width - myConvertedKnobSize * 2;
-      vSize = mySelection.height - myConvertedKnobSize * 2;
-      myKnobs[MOVE].setBounds(x1 + myConvertedKnobSize, y1 + myConvertedKnobSize, hSize, vSize);
+      x2 = x1 + mySelection.width - convertedKnobSize;
+      y2 = y1 + mySelection.height - convertedKnobSize;
+      hSize = mySelection.width - convertedKnobSize * 2;
+      vSize = mySelection.height - convertedKnobSize * 2;
+      myKnobs[MOVE].setBounds(x1 + convertedKnobSize, y1 + convertedKnobSize, hSize, vSize);
     }
 
-    myKnobs[NW].setBounds(x1, y1, myConvertedKnobSize, myConvertedKnobSize);
-    myKnobs[NE].setBounds(x2, y1, myConvertedKnobSize, myConvertedKnobSize);
-    myKnobs[SE].setBounds(x2, y2, myConvertedKnobSize, myConvertedKnobSize);
-    myKnobs[SW].setBounds(x1, y2, myConvertedKnobSize, myConvertedKnobSize);
+    myKnobs[NW].setBounds(x1, y1, convertedKnobSize, convertedKnobSize);
+    myKnobs[NE].setBounds(x2, y1, convertedKnobSize, convertedKnobSize);
+    myKnobs[SE].setBounds(x2, y2, convertedKnobSize, convertedKnobSize);
+    myKnobs[SW].setBounds(x1, y2, convertedKnobSize, convertedKnobSize);
 
-    myKnobs[N].setBounds((x1 + myConvertedKnobSize), y1, hSize, myConvertedKnobSize);
-    myKnobs[E].setBounds(x2, y1 + myConvertedKnobSize, myConvertedKnobSize, vSize);
-    myKnobs[S].setBounds(x1 + myConvertedKnobSize, y2, hSize, myConvertedKnobSize);
-    myKnobs[W].setBounds(x1, y1 + myConvertedKnobSize, myConvertedKnobSize, vSize);
+    myKnobs[N].setBounds((x1 + convertedKnobSize), y1, hSize, convertedKnobSize);
+    myKnobs[E].setBounds(x2, y1 + convertedKnobSize, convertedKnobSize, vSize);
+    myKnobs[S].setBounds(x1 + convertedKnobSize, y2, hSize, convertedKnobSize);
+    myKnobs[W].setBounds(x1, y1 + convertedKnobSize, convertedKnobSize, vSize);
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
     try {
       myAffineTransform.inverseTransform(e.getPoint(), myClickOrigin);
-
       myClickOrigin.x = Math.max(myBounds.x, Math.min(myBounds.x + myBounds.width, myClickOrigin.x));
       myClickOrigin.y = Math.max(myBounds.y, Math.min(myBounds.y + myBounds.height, myClickOrigin.y));
       myOriginalSelection.setBounds(mySelection);
@@ -225,18 +299,29 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    resetSelectionLocation();
+  }
+
+  /**
+   * Reset the location of the selection to the location of the bounds if it is empty
+   */
+  private void resetSelectionLocation() {
+    if (mySelection.isEmpty()) {
+      mySelection.setLocation(myBounds.x, myBounds.y);
+      updateKnobPosition();
+    }
     mySelectedKnob = -1;
   }
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    if(mySelectedKnob < 0) {
+    if (mySelectedKnob < 0) {
       // happens if the user began to do a PanAction in the MockupViewPanel
       // then release the shift key and continue to drag
-      if(myHoveredKnob < 0) {
+      if (myHoveredKnob < 0) {
         return;
       }
-     mySelectedKnob = myHoveredKnob;
+      mySelectedKnob = myHoveredKnob;
     }
     try {
       myAffineTransform.inverseTransform(e.getPoint(), myConvertedMousePoint);
@@ -350,6 +435,10 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
    * @see #getBounds()
    */
   public void setSelection(int x, int y, int width, int height) {
+    x = Math.min(myBounds.width, Math.max(0, x));
+    y = Math.min(myBounds.height, Math.max(0, y));
+    width = Math.min(myBounds.width - x, Math.max(0, width));
+    height = Math.min(myBounds.height - y, Math.max(0, height));
     mySelection.setBounds(x, y, width, height);
     updateKnobPosition();
     myParent.repaint();
@@ -440,6 +529,7 @@ public class SelectionLayer extends MouseAdapter implements MockupViewLayer {
     }
     updateKnobPosition();
     myParent.repaint();
+    resetSelectionLocation();
   }
 
   /**

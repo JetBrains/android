@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.Revision;
-import com.android.repository.api.Dependency;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -29,10 +27,8 @@ import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -80,7 +76,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
     builder.put("tag.id", "google_apis");
-    builder.put("vm.heapSize", "64");
+    builder.put("vm.heapSize", "256"); // Matches CDD Minimum Application Memory
     return builder.build();
   }
 
@@ -114,7 +110,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File(new File("/sdk").getAbsolutePath()), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
-    FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
+    FakePackage remotePlatform = new FakePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();

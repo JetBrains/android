@@ -304,6 +304,9 @@ public class WidgetResize {
             ArrayList<SnapCandidate> snapCandidates) {
         SnapCandidate candidate = new SnapCandidate();
         ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
+        if (handle == null) {
+            return position;
+        }
         handle.setDrawX(position);
         SnapPlacement.snapAnchor(widgets, widget, anchor, candidate);
         if (candidate.target != null) {

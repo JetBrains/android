@@ -25,13 +25,11 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Collection;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
@@ -70,19 +68,9 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
-    Wait.minutes(2).expecting("action to be enabled and showing").until(
-      () -> execute(
-        new GuiQuery<Boolean>() {
-          @Nullable
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            ActionButton target = target();
-            if (target.getAction().getTemplatePresentation().isEnabledAndVisible()) {
-              return target.isShowing() && target.isVisible() && target.isEnabled();
-            }
-            return false;
-          }
-        }));
+    Wait.minutes(2).expecting("action to be enabled and showing").until(() -> GuiQuery.getNonNull(
+      () -> target().getAction().getTemplatePresentation().isEnabledAndVisible()
+            && target().isShowing() && target().isVisible() && target().isEnabled()));
     return this;
   }
 

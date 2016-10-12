@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
+import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
@@ -123,7 +125,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       configureGradleProject();
     }
     else if (isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
 
@@ -143,8 +145,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       for (Module module : moduleManager.getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && !facet.requiresAndroidModel()) {
-          boolean library = facet.isLibraryProject();
-          if (!library) {
+          if (facet.isAppProject()) {
             // Prefer the package name from an app module.
             packageName = getPackageNameInLegacyIdeaAndroidModule(facet);
             if (packageName != null) {

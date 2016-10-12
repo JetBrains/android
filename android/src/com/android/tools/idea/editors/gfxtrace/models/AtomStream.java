@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public class AtomStream implements PathListener {
@@ -95,10 +96,12 @@ public class AtomStream implements PathListener {
     if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
       myListeners.onAtomsSelected(myAtomPath.getPath(), event.source);
     }
+  }
 
-    ContextPath contextPath = event.findContextPath();
-    if (contextPath != null) {
-      mySelectedContext = myContexts.find(contextPath.getID(), Context.ALL);
+  public void selectContext(@NotNull Context context) {
+    if (!Objects.equals(context, mySelectedContext)) {
+      mySelectedContext = context;
+      myListeners.onContextChanged(context);
     }
   }
 
@@ -271,6 +274,8 @@ public class AtomStream implements PathListener {
     void onAtomLoadingComplete(AtomStream atoms);
 
     void onAtomsSelected(AtomRangePath path, Object source);
+
+    void onContextChanged(@NotNull Context context);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -295,6 +300,13 @@ public class AtomStream implements PathListener {
     public void onAtomsSelected(AtomRangePath path, Object source) {
       for (Listener listener : toArray(new Listener[size()])) {
         listener.onAtomsSelected(path, source);
+      }
+    }
+
+    @Override
+    public void onContextChanged(@NotNull Context context) {
+      for (Listener listener : toArray(new Listener[size()])) {
+        listener.onContextChanged(context);
       }
     }
 

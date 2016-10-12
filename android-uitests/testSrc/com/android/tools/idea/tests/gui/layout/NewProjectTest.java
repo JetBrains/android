@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
@@ -36,10 +35,8 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -69,48 +66,44 @@ public class NewProjectTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
       .getEditor()
       .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
     String text = editor.getCurrentFileContents();
-    assertThat(text.contains("Test Application"));
+    assertThat(text).contains("Test Application");
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
-  @Category(GuiSanityTestSuite.class)
+  /**
+   * Verify creating a new project from default template.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. From the welcome screen, click on "Start a new Android Studio project".
+   *   2. Enter a unique project name.
+   *   3. Accept all other defaults.
+   *   Verify:
+   *   1. Check that the project contains 2 module.
+   *   2. Check that MainActivity is in AndroidManifest.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
 
-    // Verify state of project
     guiTest.ideFrame().requireModuleCount(2);
-    AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
-    assertThat(appAndroidModel.getVariantNames()).named("variants").containsExactly("debug", "release");
-    assertThat(appAndroidModel.getSelectedVariant().getName()).named("selected variant").isEqualTo("debug");
-
-    AndroidProject model = appAndroidModel.getAndroidProject();
-    ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertThat(minSdkVersion.getApiString()).named("minSdkVersion API").isEqualTo("19");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     assertThat(editor.getCurrentFileContents()).contains("\".MainActivity\"");
-
-    // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
-    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
-    }
   }
 
   @Test
@@ -159,7 +152,7 @@ public class NewProjectTest {
 
       // This warning is wrong: http://b.android.com/192605
       "    Android > Lint > Usability",
-      "        Missing support for Google App Indexing",
+      "        Missing support for Firebase App Indexing",
       "            app",
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
   }
@@ -172,7 +165,7 @@ public class NewProjectTest {
     return sb.toString();
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
@@ -191,6 +184,7 @@ public class NewProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
@@ -209,7 +203,6 @@ public class NewProjectTest {
     }
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
@@ -325,8 +318,6 @@ public class NewProjectTest {
 
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
       newProjectWizard.clickFinish();
-
-      guiTest.ideFrame().requestFocusIfLost();
 
       if (myWaitForSync) {
         guiTest.ideFrame().waitForGradleProjectSyncToFinish();

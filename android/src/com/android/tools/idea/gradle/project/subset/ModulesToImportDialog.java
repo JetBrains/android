@@ -65,8 +65,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODEL;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;

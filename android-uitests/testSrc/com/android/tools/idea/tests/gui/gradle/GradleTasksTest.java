@@ -22,9 +22,11 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.fest.swing.util.TextMatcher;
@@ -37,7 +39,6 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.regex.Pattern.DOTALL;
 import static org.fest.swing.util.Strings.match;
@@ -108,8 +109,7 @@ public class GradleTasksTest {
     // Add a long-running task and refresh the project.
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
-    final Document document = getDocument(buildFile);
-    assertNotNull(document);
+    Document document = GuiQuery.getNonNull(() -> FileDocumentManager.getInstance().getDocument(buildFile));
     runWriteCommandAction(
       guiTest.ideFrame().getProject(), () -> {
         document.insertString(document.getTextLength(), textToAdd);

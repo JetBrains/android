@@ -20,7 +20,7 @@ public class ResourceMergerTest extends BaseProjectViewTestCase {
   @Override
   protected Module createMainModule() throws IOException {
     Module result = super.createMainModule();
-    AndroidTestCase.addAndroidFacet(result, AndroidTestCase.getRecentSdkPath(), AndroidTestCase.getRecentPlatformDir());
+    AndroidTestCase.addAndroidFacet(result);
     return result;
   }
 

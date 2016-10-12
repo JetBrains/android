@@ -29,6 +29,7 @@ public class GapisFeatures {
   private static final String FEATURE_RESOURCE_BUNDLES = "resource-bundles";
   private static final String FEATURE_REPORT = "report";
   private static final String FEATURE_FRAMEBUFFER_ATTACHMENT = "framebuffer-attachment";
+  private static final String FEATURE_SHADER_SOURCE_SET = "shader-source-set";
 
   private final Set<String> myFeatures = new HashSet<String>();
 
@@ -95,5 +96,14 @@ public class GapisFeatures {
   /**
    * @return whether GAPIS supports the getFramebufferAttachment RPC method.
    */
-  public boolean hasFramebufferAttachment() { return myFeatures.contains(FEATURE_FRAMEBUFFER_ATTACHMENT); }
+  public boolean hasFramebufferAttachment() {
+    return myFeatures.contains(FEATURE_FRAMEBUFFER_ATTACHMENT);
+  }
+
+  /**
+   * @return whether GAPIS supports the Set() method with Shader as a value.
+   */
+  public boolean hasShaderSourceSet() {
+    return myFeatures.contains(FEATURE_SHADER_SOURCE_SET);
+  }
 }

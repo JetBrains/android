@@ -37,7 +37,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
-import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class ScrubberController extends ImageCellController<ScrubberController.Data> implements AtomStream.Listener {
   private static final Dimension PREVIEW_SIZE = JBUI.size(192, 192);
@@ -84,6 +83,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   public void loadCell(final Data cell, final Runnable onLoad) {
     final DevicePath devicePath = myRenderDevice.getPath();
     if (devicePath == null) {
+      cell.stopLoading(null);
       return;
     }
     final ServiceClient client = myEditor.getClient();
@@ -114,7 +114,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   }
 
 
-  @Nullable
+  @NotNull
   public List<Data> prepareData(@NotNull AtomsPath path, @NotNull AtomList atoms, @NotNull Context context) {
     List<Data> generatedList = new ArrayList<>();
     int frameCount = 0;
@@ -140,13 +140,6 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     AtomStream atoms = myEditor.getAtomStream();
 
     boolean doUpdate = false;
-
-    ContextPath contextPath = event.findContextPath();
-    if (contextPath != null && atoms.isLoaded()) {
-      Context context = atoms.getContexts().find(contextPath.getID(), Context.ALL);
-      doUpdate = !Objects.equals(context, mySelectedContext);
-      mySelectedContext = context;
-    }
 
     if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
       doUpdate = true; // Update the thumbnails.
@@ -178,11 +171,18 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     }
   }
 
+  @Override
+  public void onContextChanged(@NotNull Context context) {
+    mySelectedContext = context;
+    update(myEditor.getAtomStream(), true);
+  }
+
   private void update(AtomStream atoms, boolean expectAtomsAreLoaded) {
     if (atoms.isLoaded()) {
-      final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext);
-      myList.setData(cells);
-    } else if (expectAtomsAreLoaded) {
+      ((ImageCellList)myList).setEmptyText(GfxTraceEditor.NO_FRAMES_IN_CONTEXT);
+      myList.setData(prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext));
+    }
+    else if (expectAtomsAreLoaded) {
       ((ImageCellList<?>)myList).setEmptyText("Failed to load capture");
     }
   }

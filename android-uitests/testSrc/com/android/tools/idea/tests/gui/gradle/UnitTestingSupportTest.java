@@ -29,7 +29,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.TEST_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class UnitTestingSupportTest {
 

@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
+import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,12 +41,16 @@ import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
  */
 public class ConstraintUtilities {
+
+  final static int MINIMUM_SIZE = 48; // in dp
+  final static int MINIMUM_SIZE_EXPAND = 6; // in dp
 
   /**
    * Return the corresponding margin attribute for the given anchor
@@ -505,7 +510,7 @@ public class ConstraintUtilities {
   public static void setDimension(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
     String width;
     switch (widget.getHorizontalDimensionBehaviour()) {
-      case ANY: {
+      case MATCH_CONSTRAINT: {
         width = "0dp";
       }
       break;
@@ -521,7 +526,7 @@ public class ConstraintUtilities {
                             width);
     String height;
     switch (widget.getVerticalDimensionBehaviour()) {
-      case ANY: {
+      case MATCH_CONSTRAINT: {
         height = "0dp";
       }
       break;
@@ -538,8 +543,22 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Update the attributes Dimension Ratio
+   *
+   * @param attributes the attributes we work on
+   * @param widget     the widget we use as a model
+   */
+  static void setRatio(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    attributes.setAttribute(SdkConstants.SHERPA_URI,
+                            SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO,
+                            companion.getWidgetProperties().getDimensionRatio());
+  }
+
+  /**
    * Update the attributes horizontal bias
-   *  @param attributes the attributes we work on
+   *
+   * @param attributes the attributes we work on
    * @param widget     the widget we use as a model
    */
   static void setHorizontalBias(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
@@ -655,29 +674,7 @@ public class ConstraintUtilities {
   static void setDimensionRatio(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String dimensionRatioString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
-    float dimensionRatio = 0f;
-    if (dimensionRatioString == null || dimensionRatioString.length() == 0) {
-      widget.setDimensionRatio(dimensionRatio);
-      return;
-    }
-
-    int colonIndex = dimensionRatioString.indexOf(':');
-    if (colonIndex >= 0 && colonIndex < dimensionRatioString.length() - 1) {
-      String nominator = dimensionRatioString.substring(0, colonIndex);
-      String denominator = dimensionRatioString.substring(colonIndex + 1);
-      if (nominator.length() > 0 && denominator.length() > 0) {
-        try {
-          float nominatorValue = Float.parseFloat(nominator);
-          float denominatorValue = Float.parseFloat(denominator);
-          if (denominatorValue > 0) {
-            dimensionRatio = nominatorValue / denominatorValue;
-          }
-        }
-        catch (NumberFormatException e) {
-        }
-      }
-    }
-    widget.setDimensionRatio(dimensionRatio);
+    widget.setDimensionRatio(dimensionRatioString);
   }
 
   /**
@@ -905,12 +902,13 @@ public class ConstraintUtilities {
    * @param constraintModel the constraint model we are working with
    * @param widget          constraint widget
    * @param component       the model component
+   * @return true if need to save the xml
    */
-  static void updateWidgetFromComponent(@NotNull ConstraintModel constraintModel,
-                                        @Nullable ConstraintWidget widget,
-                                        @Nullable NlComponent component) {
+  static boolean updateWidgetFromComponent(@NotNull ConstraintModel constraintModel,
+                           @Nullable ConstraintWidget widget,
+                           @Nullable NlComponent component) {
     if (component == null || widget == null) {
-      return;
+      return false;
     }
 
     AttributesTransaction attributes = component.startAttributeTransaction();
@@ -922,8 +920,10 @@ public class ConstraintUtilities {
     WidgetsScene scene = constraintModel.getScene();
     Insets padding = component.getPadding(true);
     if (widget instanceof ConstraintWidgetContainer) {
-      widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
-                          constraintModel.pxToDp(component.h - padding.height()));
+      ((ConstraintWidgetContainer)widget).setPadding(constraintModel.pxToDp(padding.left),
+                                                     constraintModel.pxToDp(padding.top),
+                                                     constraintModel.pxToDp(padding.right),
+                                                     constraintModel.pxToDp(padding.bottom));
     }
     else {
       widget.setDimension(constraintModel.pxToDp(component.w),
@@ -964,53 +964,7 @@ public class ConstraintUtilities {
       }
     }
 
-    // FIXME: need to agree on the correct magic value for this rather than simply using zero.
-    String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
-    if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-    }
-    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setWrapWidth(widget.getWidth());
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-    }
-    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
-      widget.setWrapWidth(widget.getWidth());
-      if (isWidgetInsideConstraintLayout(widget)) {
-        if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
-            && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-        }
-        else {
-          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-        }
-      }
-    }
-    else {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-    }
-    String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
-    if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-    }
-    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setWrapHeight(widget.getHeight());
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-    }
-    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
-      widget.setWrapHeight(widget.getHeight());
-      if (isWidgetInsideConstraintLayout(widget)) {
-        if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
-             && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
-          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
-        }
-        else {
-          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-        }
-      }
-    }
-    else {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-    }
+    // First set the origin of the widget
 
     int x = constraintModel.pxToDp(component.x);
     int y = constraintModel.pxToDp(component.y);
@@ -1053,6 +1007,92 @@ public class ConstraintUtilities {
       widget.forceUpdateDrawPosition();
     }
 
+    boolean overrideDimension = false;
+
+    // FIXME: need to agree on the correct magic value for this rather than simply using zero.
+    String layout_width = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+    }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      if (widget.getWidth() < MINIMUM_SIZE && widget instanceof WidgetContainer
+          && ((WidgetContainer) widget).getChildren().size() == 0) {
+        widget.setWidth(MINIMUM_SIZE);
+        widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        overrideDimension = true;
+      } else {
+        widget.setWrapWidth(widget.getWidth());
+        widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      }
+    }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
+            && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+        }
+        else {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+          widget.setWidth(MINIMUM_SIZE_EXPAND);
+          int height = widget.getHeight();
+          ConstraintWidget.DimensionBehaviour verticalBehaviour = widget.getVerticalDimensionBehaviour();
+          if (height <= 1 && widget instanceof WidgetContainer) {
+            widget.setHeight(MINIMUM_SIZE_EXPAND);
+          }
+          ArrayList<ConstraintWidget> widgets = new ArrayList<>();
+          widgets.add(widget);
+          Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, widgets, true);
+          widget.setHeight(height);
+          widget.setVerticalDimensionBehaviour(verticalBehaviour);
+          overrideDimension = true;
+        }
+      }
+    }
+    else {
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+    }
+    String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      if (widget.getHeight() < MINIMUM_SIZE && widget instanceof WidgetContainer
+          && ((WidgetContainer) widget).getChildren().size() == 0) {
+        widget.setHeight(MINIMUM_SIZE);
+        widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        overrideDimension = true;
+      } else {
+        widget.setWrapHeight(widget.getHeight());
+        widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      }
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
+             && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+        }
+        else {
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+          widget.setHeight(MINIMUM_SIZE_EXPAND);
+          int width = widget.getWidth();
+          ConstraintWidget.DimensionBehaviour horizontalBehaviour = widget.getHorizontalDimensionBehaviour();
+          if (width <= 1 && widget instanceof WidgetContainer) {
+            widget.setWidth(MINIMUM_SIZE_EXPAND);
+          }
+          ArrayList<ConstraintWidget> widgets = new ArrayList<>();
+          widgets.add(widget);
+          Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, widgets, true);
+          widget.setWidth(width);
+          widget.setHorizontalDimensionBehaviour(horizontalBehaviour);
+          overrideDimension = true;
+        }
+      }
+    }
+    else {
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+    }
+
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
     widget.resetAnchors();
 
@@ -1066,9 +1106,11 @@ public class ConstraintUtilities {
     String bottom1 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     String bottom2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     String baseline = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    String ratio = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
 
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     companion.getWidgetProperties().clear();
+    companion.getWidgetProperties().setDimensionRatio(ratio);
     setMarginType(ConstraintAnchor.Type.LEFT, component, widget);
     setMarginType(ConstraintAnchor.Type.RIGHT, component, widget);
     setMarginType(ConstraintAnchor.Type.TOP, component, widget);
@@ -1131,6 +1173,8 @@ public class ConstraintUtilities {
       //noinspection ConstantConditions
       textWidget.setTextSize(constraintModel.pxToDp(size));
     }
+
+    return overrideDimension; // if true, need to update the XML
   }
 
   /**
@@ -1277,44 +1321,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Utility class to gather all attributes and their values in one go.
-   * This avoid clearing then resetting the attributes in AttributesTransaction,
-   * which would trigger unnecessary work and relayouts.
-   */
-  static class MemoryAttributesTransaction implements NlAttributesHolder {
-    HashMap<String, HashMap<String, String>> myAttributes = new HashMap<>();
-
-    @Override
-    public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-      HashMap<String, String> attributes = myAttributes.get(namespace);
-      if (attributes == null) {
-        attributes = new HashMap<>();
-        myAttributes.put(namespace, attributes);
-      }
-      attributes.put(attribute, value);
-    }
-
-    @Override
-    public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-      HashMap<String, String> attributes = myAttributes.get(namespace);
-      if (attributes == null) {
-        return null;
-      }
-      return attributes.get(attribute);
-    }
-
-    public void commit(@NotNull NlComponent component) {
-      AttributesTransaction transaction = component.startAttributeTransaction();
-      for (String namespace : myAttributes.keySet()) {
-        HashMap<String, String> attributes = myAttributes.get(namespace);
-        for (String key : attributes.keySet()) {
-          transaction.setAttribute(namespace, key, attributes.get(key));
-        }
-      }
-    }
-  }
-
-  /**
    * Utility function committing the given ConstraintModel to NlComponent,
    * either directly an AttributesTransaction to commit to disk, or via
    * a MemoryAttributesTransaction (which internally use AttributesTransaction
@@ -1328,16 +1334,11 @@ public class ConstraintUtilities {
     for (ConstraintWidget widget : widgets) {
       NlComponent component = getValidComponent(model, widget);
       if (component != null) {
+        AttributesTransaction transaction = component.startAttributeTransaction();
+        updateComponentFromWidget(model, widget, transaction);
         if (commit) {
           assert ApplicationManager.getApplication().isWriteAccessAllowed();
-          AttributesTransaction transaction = component.startAttributeTransaction();
-          updateComponentFromWidget(model, widget, transaction);
           transaction.commit();
-        }
-        else {
-          MemoryAttributesTransaction transaction = new MemoryAttributesTransaction();
-          updateComponentFromWidget(model, widget, transaction);
-          transaction.commit(component);
         }
       }
     }
@@ -1426,6 +1427,7 @@ public class ConstraintUtilities {
     for (ConstraintAnchor anchor : widget.getAnchors()) {
       setConnection(transaction, anchor);
     }
+    setRatio(transaction, widget);
     setHorizontalBias(transaction, widget);
     setVerticalBias(transaction, widget);
     if (widget instanceof Guideline) {

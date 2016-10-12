@@ -55,14 +55,14 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
  */
 @SuppressWarnings("unchecked")
 public class DeviceSelectionPopup extends DialogWrapper {
-  private static final Logger LOG = Logger.getInstance(DeviceSelectionPopup.class);
   private static final String OK_BUTTON_TEXT = "OK";
   private static final String TITLE = "Change Device to Match Mockup";
   private static final String PROMPT_HELP_TEXT = "Only displaying devices with same aspect ratio as the image.";
-  public static final JBColor ERROR_COLOR = JBColor.RED;
-  public static final String NO_DEVICE_MESSAGE = "No device or AVD matching the image dimension has been found.\n" +
-                                                 "Create a new AVD with the same aspect ratio as the image or choose another image for better result.";
-  public static final Color MESSAGE_COLOR = JBColor.foreground();
+  private static final JBColor ERROR_COLOR = JBColor.RED;
+  private static final String NO_DEVICE_MESSAGE = "No device or AVD matching the image dimension has been found.\n" +
+                                                  "Create a new AVD with the same aspect ratio as the image or choose another image for better result.";
+  private static final Color MESSAGE_COLOR = JBColor.foreground();
+  private static final Logger LOGGER = Logger.getInstance(DeviceSelectionPopup.class);
 
   private final Configuration myConfiguration;
   private final Dimension myImageSize;
@@ -167,12 +167,8 @@ public class DeviceSelectionPopup extends DialogWrapper {
       myNoMatchingDevice = true;
     }
 
-    mySelectedDevice = myMatchingDevices.get(0);
     for (Device device : myMatchingDevices) {
       String deviceLabel;
-      if (device == myConfiguration.getDevice()) {
-
-      }
       if (isNexus(device)) {
         deviceLabel = getNexusLabel(device);
       }
@@ -186,12 +182,11 @@ public class DeviceSelectionPopup extends DialogWrapper {
         // Set a special label for the current device
         // and display it on top if it matches the image ratio
         deviceLabel = String.format("* %s (current)", deviceLabel);
-        myDevicesComboBox.insertItemAt(deviceLabel, 0);
       }
-      else {
-        myDevicesComboBox.addItem(deviceLabel);
-      }
+      myDevicesComboBox.addItem(deviceLabel);
     }
+    mySelectedDevice = myMatchingDevices.get(0);
+    myDevicesComboBox.setSelectedIndex(0);
     updateDevicePreview();
   }
 
@@ -307,11 +302,19 @@ public class DeviceSelectionPopup extends DialogWrapper {
       final DeviceArtPainter deviceArtPainter = DeviceArtPainter.getInstance();
       if (deviceArtPainter.hasDeviceFrame(mySelectedDevice)) {
         new Thread(() -> {
-          myDeviceFrame = deviceArtPainter.createFrame(
-            myImage, mySelectedDevice, myScreenOrientation,
-            true /*show effect*/, 1, null);
-          UIUtil.invokeLaterIfNeeded(
-            () -> myPreviewPanel.repaint());
+          try {
+            myDeviceFrame = deviceArtPainter.createFrame(
+              myImage, mySelectedDevice, myScreenOrientation,
+              true /*show effect*/, 1, null);
+          }
+          catch (IllegalStateException artDescriptorException) {
+            LOGGER.warn(artDescriptorException);
+            myDeviceFrame = myImage;
+          }
+          finally {
+            UIUtil.invokeLaterIfNeeded(
+              () -> myPreviewPanel.repaint());
+          }
         }).start();
       }
       else {
@@ -330,9 +333,8 @@ public class DeviceSelectionPopup extends DialogWrapper {
 
   private void setConfigurationDevice(@NotNull Device selectedDevice) {
     final State state = selectedDevice.getDefaultState().deepCopy();
-    state.setOrientation(myScreenOrientation);
-    myConfiguration.setDevice(selectedDevice, false);
-    myConfiguration.setDeviceState(state);
+    myConfiguration.setDeviceStateName(state.getName());
+    myConfiguration.getConfigurationManager().selectDevice(selectedDevice);
   }
 
   private void createUIComponents() {

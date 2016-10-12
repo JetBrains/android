@@ -112,7 +112,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     final List<String> javaSdks = Lists.newArrayList();
     final Sdk[] sdks = sdkModel.getSdks();
     for (Sdk jdk : sdks) {
-      if (Jdks.isApplicableJdk(jdk)) {
+      if (Jdks.getInstance().isApplicableJdk(jdk)) {
         javaSdks.add(jdk.getName());
       }
     }

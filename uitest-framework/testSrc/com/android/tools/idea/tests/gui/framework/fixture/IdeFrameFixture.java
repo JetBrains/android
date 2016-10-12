@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.testing.Modules;
@@ -89,9 +90,7 @@ import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -127,11 +126,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     };
 
-    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
-      .until(() -> !robot.finder().findAll(matcher).isEmpty());
-
-    IdeFrameImpl ideFrame = robot.finder().find(matcher);
-    return new IdeFrameFixture(robot, ideFrame, projectPath);
+    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, matcher), projectPath);
   }
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
@@ -634,7 +629,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleProjectSettings getGradleSettings() {
-    GradleProjectSettings settings = getGradleProjectSettings(getProject());
+    GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
     assertNotNull(settings);
     return settings;
   }
@@ -671,7 +666,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    return showPropertiesDialog(robot(), libraryName, getProject());
+    return getProjectView().showPropertiesForLibrary(libraryName);
   }
 
   @NotNull
@@ -737,14 +732,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public void selectApp(@NotNull String appName) {
     ActionButtonFixture runButton = findRunApplicationButton();
-    Container actionToolbarContainer = execute(new GuiQuery<Container>() {
-      @Override
-      protected Container executeInEDT() throws Throwable {
-        return runButton.target().getParent();
-      }
-    });
-    assertNotNull(actionToolbarContainer);
-
+    Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
     ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
@@ -756,14 +744,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        if (keyboardFocusManager.getFocusOwner() == null) {
-          target().requestFocus();
-        }
+    Wait.seconds(10).expecting("a component to have the focus").until(() -> {
+      // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
+      // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
+      if (keyboardFocusManager.getFocusOwner() == null) {
+        execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            target().requestFocus();
+          }
+        });
+        return false;
       }
+      return true;
     });
-    Wait.seconds(30).expecting("a component to have the focus").until(() -> keyboardFocusManager.getFocusOwner() != null);
   }
 }

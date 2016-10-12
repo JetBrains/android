@@ -34,6 +34,7 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
@@ -131,7 +132,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final SelectionModel mySelectionModel;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
-  private final Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
   private final ModelVersion myModelVersion = new ModelVersion();
@@ -152,7 +152,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @VisibleForTesting
   protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     mySurface = surface;
-    myParent = parent;
     myFacet = facet;
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
@@ -1581,6 +1580,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
       removeNamespaceAttributes(component);
+      TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
     }
   }
 
@@ -1715,8 +1715,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     XmlTag tag = null;
     if (XmlUtils.parseDocumentSilently(text, false) != null) {
       try {
-        String xml = addAndroidNamespaceIfMissing(text);
-        tag = elementFactory.createTagFromText(xml);
+        tag = elementFactory.createTagFromText(text);
+
+        setNamespaceUri(tag, ANDROID_NS_NAME, ANDROID_URI);
+        setNamespaceUri(tag, APP_PREFIX, AUTO_URI);
       }
       catch (IncorrectOperationException ignore) {
         // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
@@ -1735,28 +1737,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return tag;
   }
 
-  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
-    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
-    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
-    // a component handler will correctly set namespace prefixes)
+  private static void setNamespaceUri(@NotNull XmlTag tag, @NotNull String prefix, @NotNull String uri) {
+    boolean anyMatch = Arrays.stream(tag.getAttributes())
+      .anyMatch(attribute -> attribute.getNamespacePrefix().equals(prefix));
 
-    if (!xml.contains(ANDROID_URI)) {
-      int index = xml.indexOf('<');
-      if (index != -1) {
-        index = xml.indexOf(' ', index);
-        if (index == -1) {
-          index = xml.indexOf("/>");
-          if (index == -1) {
-            index = xml.indexOf('>');
-          }
-        }
-        if (index != -1) {
-          xml =
-            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
-        }
-      }
+    if (anyMatch) {
+      tag.setAttribute("xmlns:" + prefix, uri);
     }
-    return xml;
   }
 
   @NotNull
@@ -1808,14 +1795,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
     for (ResourceNotificationManager.Reason r : reason) {
       switch (r) {
-        case RESOURCE_EDIT: {
+        case RESOURCE_EDIT:
           notifyModified(ChangeType.RESOURCE_EDIT);
-        }
-        break;
-        case EDIT: {
+          break;
+        case EDIT:
           notifyModified(ChangeType.EDIT);
-        }
-        break;
+          break;
+        case IMAGE_RESOURCE_CHANGED:
+          RefreshRenderAction.clearCache(mySurface);
+          break;
         default:
           notifyModified(ChangeType.RESOURCE_CHANGED);
       }

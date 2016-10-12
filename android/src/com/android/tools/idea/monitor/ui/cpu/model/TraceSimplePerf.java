@@ -2,6 +2,7 @@ package com.android.tools.idea.monitor.ui.cpu.model;
 
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.chart.hchart.Separators;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.utils.SparseArray;
 
@@ -23,6 +24,16 @@ public class TraceSimplePerf extends AppTrace {
   public TraceSimplePerf(File traceFile) {
     myTraceFile = traceFile;
     forest = new SparseArray<>();
+  }
+
+  @Override
+  public Source getSource() {
+    return Source.SIMPLEPERF;
+  }
+
+  @Override
+  public String getSeparator() {
+    return Separators.NATIVE_CODE;
   }
 
   @Override

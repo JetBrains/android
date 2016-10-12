@@ -33,11 +33,6 @@ import static org.junit.Assert.*;
 public class GraphicsLayoutRendererTest extends AndroidTestCase {
   private static Dimension EMPTY_DIMENSION = new Dimension();
 
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
-
   public void testInflateAndRender() throws InitializationException, ParserConfigurationException, IOException, SAXException {
     VirtualFile layout = myFixture.copyFileToProject("themeEditor/theme_preview_layout.xml", "res/layout/theme_preview_layout.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(layout);

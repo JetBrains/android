@@ -22,21 +22,145 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public abstract class TreeController extends Controller implements CopyEnabledTree.ColumnTextProvider {
   public static final int TREE_ROW_HEIGHT = JBUI.scale(19);
+  private static final @NotNull Logger LOG = Logger.getInstance(TreeController.class);
+
+  /**
+   * Renderer used for Nodes to allow them compose another component on the right.
+   * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer}.
+   */
+  public abstract static class CompositeCellRenderer extends ColoredTreeCellRenderer {
+    protected final RightCellRenderer myRightComponent = new RightCellRenderer();
+    protected int myRightComponentOffset;
+    protected boolean myRightComponentShow;
+
+    public CompositeCellRenderer() {
+      super();
+      setSupportFontFallback(true);
+      getIpad().right = 0;
+      myRightComponent.getIpad().left = 0;
+    }
+
+    public void setup(@NotNull JTree tree, @NotNull TreePath treePath) {
+      getTreeCellRendererComponent(tree, treePath.getLastPathComponent(),
+                                   tree.isPathSelected(treePath), tree.isExpanded(treePath),
+                                   true/*has no effect*/, tree.getRowForPath(treePath), tree.hasFocus());
+    }
+
+    public RightCellRenderer getRightComponent() {
+      return myRightComponent;
+    }
+
+    @Override
+    protected void doPaint(Graphics2D g) {
+      if (myRightComponentShow) {
+        Graphics2D textGraphics = (Graphics2D)g.create(0, 0, myRightComponentOffset, g.getClipBounds().height);
+        try {
+          super.doPaint(textGraphics);
+        }
+        finally {
+          textGraphics.dispose();
+        }
+        g.translate(myRightComponentOffset, 0);
+        myRightComponent.setHeight(getHeight());
+        myRightComponent.invokeDoPaint(g);
+        g.translate(-myRightComponentOffset, 0);
+      }
+      else {
+        super.doPaint(g);
+      }
+    }
+
+    @NotNull
+    @Override
+    public Dimension getPreferredSize() {
+      Dimension size = super.getPreferredSize();
+      if (myRightComponentShow) {
+        size.width += myRightComponent.getPreferredSize().width;
+      }
+      return size;
+    }
+
+    public int getRightComponentOffset() {
+      return myRightComponentOffset;
+    }
+
+    @Override
+    public int findFragmentAt(int x) {
+      if (myRightComponentShow && x > myRightComponentOffset) {
+        return myRightComponent.findFragmentAt(x - myRightComponentOffset);
+      }
+      return super.findFragmentAt(x);
+    }
+
+    @Nullable
+    @Override
+    public Object getFragmentTagAt(int x) {
+      if (myRightComponentShow) {
+        return myRightComponent.getFragmentTagAt(x - myRightComponentOffset);
+      }
+      return super.getFragmentTagAt(x);
+    }
+
+    @Nullable
+    public Object getFragmentTag(int index, int x) {
+      if (myRightComponentShow && x > myRightComponentOffset) {
+        return myRightComponent.getFragmentTag(index);
+      }
+      // Synchronized call
+      return super.getFragmentTag(index);
+    }
+  }
+
+  public static class RightCellRenderer extends ColoredTreeCellRenderer {
+    private int myHeight;
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+    }
+
+    public void invokeDoPaint(Graphics2D g) {
+      super.doPaint(g);
+    }
+
+    /**
+     * Allow customization of height. See
+     * {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer.MyColoredTreeCellRenderer}.
+     */
+    public void setHeight(int height) {
+      myHeight = height;
+    }
+
+    @Override
+    public int getHeight() {
+      return myHeight;
+    }
+  }
 
   @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());

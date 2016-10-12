@@ -149,7 +149,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
 
-    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVertically, Lists.newArrayList(
+    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVerticallyB, Lists.newArrayList(
 
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
@@ -848,6 +848,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
+      // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
         ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);

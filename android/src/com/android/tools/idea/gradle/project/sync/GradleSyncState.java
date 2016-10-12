@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -48,7 +49,6 @@ import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind.*;
@@ -157,6 +157,7 @@ public class GradleSyncState {
   public void syncSkipped(long lastSyncTimestamp) {
     LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
 
+    stopSyncInProgress();
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
@@ -175,6 +176,7 @@ public class GradleSyncState {
       }
     }
   }
+
   public void syncFailed(@NotNull String message) {
     LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
 
@@ -186,6 +188,8 @@ public class GradleSyncState {
 
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
+
+    mySummary.setSyncErrorsFound(true);
 
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_FAILURE);
     UsageTracker.getInstance().log(event);
@@ -204,7 +208,7 @@ public class GradleSyncState {
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
-    GradleVersion gradleVersion = getGradleVersion(myProject);
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
     // @formatter:off
@@ -224,12 +228,16 @@ public class GradleSyncState {
   }
 
   private void syncFinished() {
-    synchronized (myLock) {
-      mySyncInProgress = false;
-    }
+    stopSyncInProgress();
     mySummary.setSyncTimestamp(System.currentTimeMillis());
     enableNotifications();
     notifyStateChanged();
+  }
+
+  private void stopSyncInProgress() {
+    synchronized (myLock) {
+      mySyncInProgress = false;
+    }
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
@@ -246,8 +254,23 @@ public class GradleSyncState {
     myChangeNotification.notifyStateChanged();
   }
 
+  /**
+   * Indicates whether the last Gradle sync failed. This method returns {@code false} if there is a sync task is currently running.
+   * <p>
+   * Possible failure causes:
+   * <ul>
+   * <li>An error occurred in Gradle (e.g. a missing dependency, or a missing Android platform in the SDK)</li>
+   * <li>An error occurred while setting up a project using the models obtained from Gradle during sync (e.g. invoking a method that
+   * doesn't exist in an old version of the Android plugin)</li>
+   * <li>An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)</li>
+   * </ul>
+   * </p>
+   *
+   * @return {@code true} if the last Gradle sync failed; {@code false} if the last sync was successful or if there is a sync task
+   * currently running.
+   */
   public boolean lastSyncFailed() {
-    return !isSyncInProgress() && isBuildWithGradle(myProject) && requiredAndroidModelMissing(myProject);
+    return !isSyncInProgress() && isBuildWithGradle(myProject) && (requiredAndroidModelMissing(myProject) || mySummary.hasSyncErrors());
   }
 
   public boolean isSyncInProgress() {

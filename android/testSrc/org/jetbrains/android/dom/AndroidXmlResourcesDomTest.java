@@ -26,7 +26,12 @@ import java.util.List;
 
 public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public AndroidXmlResourcesDomTest() {
-    super(false, "dom/xml");
+    super("dom/xml");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -114,7 +119,7 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   }
 
   public void testPreferenceIntent1() throws Throwable {
-    toTestCompletion("pref_intent1.xml", "pref_intent1_after.xml");
+    toTestFirstCompletion("pref_intent1.xml", "pref_intent1_after.xml");
   }
 
   public void testPreferenceIntentDoc() throws Throwable {

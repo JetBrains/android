@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
@@ -76,9 +77,11 @@ public class MemoryProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    long startTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range xRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, startTimeUs);
+    long startTimeUs = mDataStore.getLatestTimeUs();
+    Range xRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, 0);
+    xRange.setOffset(startTimeUs);
+
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new MemorySegment(xRange, mDataStore, dummyDispatcher);
     mRoot = new MemoryInfoTreeNode("Root");

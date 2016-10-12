@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.templates;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -106,20 +108,17 @@ public abstract class GradleFileMergerTestCase extends AndroidTestCase {
     String golden = "";
     if (destPath != null) {
       File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
-      dest = TemplateUtils.readTextFromDisk(destFile);
-      assertNotNull(dest);
+      dest = Files.toString(destFile, Charsets.UTF_8);
     }
 
     if (srcPath != null) {
       File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
-      source = TemplateUtils.readTextFromDisk(srcFile);
-      assertNotNull(source);
+      source = Files.toString(srcFile, Charsets.UTF_8);
     }
 
     if (goldenPath != null) {
       File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
-      golden = TemplateUtils.readTextFromDisk(goldenFile);
-      assertNotNull(golden);
+      golden = Files.toString(goldenFile, Charsets.UTF_8);
     }
 
     String result = mergeGradleFile(source, dest, getProject(), null);

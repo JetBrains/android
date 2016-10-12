@@ -25,6 +25,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final class CallGet implements BinaryObject {
+
+  @Override
+  public String toString() {
+    return "CallGet: " + myP;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myP;
 

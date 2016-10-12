@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -33,6 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -43,11 +43,17 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   private static final String SEPARATOR = "/";
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
+    ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
+    removeAllFacetsOfType(AndroidFacet.ID, facetModel);
+  }
+
+  @Override
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
     if (facet == null) {
       facet = createAndAddFacet(module, ideModelsProvider);
@@ -58,7 +64,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   @Override
   @NotNull
   public String getDescription() {
-    return "AndroidFacet setup";
+    return "Android Facet setup";
   }
 
   @NotNull
@@ -74,8 +80,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    facetProperties.LIBRARY_PROJECT = androidProject.isLibrary();
+    facetProperties.PROJECT_TYPE = androidModel.getProjectType();
 
     File modulePath = androidModel.getRootDirPath();
     SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();

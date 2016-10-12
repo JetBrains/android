@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.google.common.base.Strings.nullToEmpty;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements MessagesFixture.Delegate {
   @NotNull
@@ -61,12 +60,6 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
   @NotNull
   public String getMessage() {
     final JTextPane textPane = robot().finder().findByType(target(), JTextPane.class);
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        return nullToEmpty(textPane.getText());
-      }
-    });
+    return GuiQuery.getNonNull(() -> nullToEmpty(textPane.getText()));
   }
 }

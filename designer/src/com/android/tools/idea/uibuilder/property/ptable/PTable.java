@@ -16,12 +16,28 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,12 +46,17 @@ import javax.swing.plaf.TableUI;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
-public class PTable extends JBTable {
+public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
   private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
@@ -88,6 +109,15 @@ public class PTable extends JBTable {
 
   public void setEditorProvider(PTableCellEditorProvider editorProvider) {
     myEditorProvider = editorProvider;
+  }
+
+  // Bug: 221565
+  // Without this line it is impossible to get focus to a combo box editor.
+  // The code in JBTable will move the focus to the JPanel that includes
+  // the combo box, the resource button, and the design button.
+  @Override
+  public boolean surrendersFocusOnKeyStroke() {
+    return false;
   }
 
   @Override
@@ -210,6 +240,152 @@ public class PTable extends JBTable {
       return null;
     }
     return preferredComponent;
+  }
+
+  @Nullable
+  private PTableItem getSelectedItem() {
+    int selectedRow = getSelectedRow();
+    if (isEditing() || selectedRow == -1) {
+      return null;
+    }
+    return (PTableItem)myModel.getValueAt(selectedRow, 0);
+  }
+
+  @Nullable
+  private PTableItem getSelectedNonGroupItem() {
+    PTableItem item = getSelectedItem();
+    return item instanceof PTableGroupItem ? null : item;
+  }
+
+  // ---- Implements DataProvider ----
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  // ---- Implements CopyProvider ----
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return getSelectedNonGroupItem() != null;
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedNonGroupItem();
+    if (item == null) {
+      return;
+    }
+    CopyPasteManager.getInstance().setContents(new StringSelection(item.getValue()));
+  }
+
+  // ---- Implements CutProvider ----
+
+  @Override
+  public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    return getSelectedNonGroupItem() != null;
+  }
+
+  @Override
+  public boolean isCutVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCut(@NotNull DataContext dataContext) {
+    if (getSelectedNonGroupItem() == null) {
+      return;
+    }
+    performCopy(dataContext);
+    deleteElement(dataContext);
+  }
+
+  // ---- Implements DeleteProvider ----
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return getSelectedItem() != null;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedItem();
+    if (item == null) {
+      return;
+    }
+    if (item instanceof PTableGroupItem) {
+      deleteGroupValues(dataContext, (PTableGroupItem)item);
+    }
+    else {
+      item.setValue(null);
+    }
+  }
+
+  private static void deleteGroupValues(@NotNull DataContext dataContext, @NotNull PTableGroupItem group) {
+    Project project = CommonDataKeys.PROJECT.getData(dataContext);
+    if (project == null) {
+      return;
+    }
+    VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    if (file == null) {
+      return;
+    }
+    PsiFile containingFile = PsiManager.getInstance(project).findFile(file);
+    if (containingFile == null) {
+      return;
+    }
+    new WriteCommandAction.Simple(project, "Delete " + group.getName(), containingFile) {
+      @Override
+      protected void run() throws Throwable {
+        group.getChildren().forEach(item -> item.setValue(null));
+      }
+    }.execute();
+  }
+
+  // ---- Implements PasteProvider ----
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    if (getSelectedNonGroupItem() == null) {
+      return false;
+    }
+    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    return transferable != null && transferable.isDataFlavorSupported(DataFlavor.stringFlavor);
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedNonGroupItem();
+    if (item == null) {
+      return;
+    }
+    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    if (transferable == null || !transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+      return;
+    }
+    try {
+      item.setValue(transferable.getTransferData(DataFlavor.stringFlavor));
+    }
+    catch (IOException | UnsupportedFlavorException exception) {
+      Logger.getInstance(PTable.class).warn(exception);
+    }
   }
 
   // Expand/Collapse if it is a group property, start editing otherwise

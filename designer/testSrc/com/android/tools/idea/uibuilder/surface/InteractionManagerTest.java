@@ -28,10 +28,6 @@ import java.awt.datatransfer.Transferable;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -73,10 +69,10 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    android:orientation=\"vertical\">\n" +
                       "\n" +
                       "    <TextView\n" +
+                      "        android:id=\"@+id/textView\"\n" +
                       "        android:layout_width=\"match_parent\"\n" +
                       "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:text=\"Hello World\"\n" +
-                      "        android:id=\"@+id/textView\" />\n" +
+                      "        android:text=\"Hello World\" />\n" +
                       "</LinearLayout>\n";
     assertEquals(expected, xmlFile.getText());
   }

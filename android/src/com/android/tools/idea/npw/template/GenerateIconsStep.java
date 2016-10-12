@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.template;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -30,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Locale;
-import java.util.Optional;
 
 /**
  * Step for supporting a template.xml's {@code <icon>} tag if one exists (which tells the template
@@ -48,11 +45,9 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
 
     AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
     assert iconType != null; // It's an error to create <icon> tags w/o types
-    myGenerateIconsPanel = new GenerateIconsPanel(this, getModel().getFacet(), iconType);
+    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), iconType);
 
-    myListeners.receiveAndFire(model.getSourceSet(), value -> {
-      myGenerateIconsPanel.setProjectPaths(value.map(AndroidSourceSet::getPaths).orElse(null));
-    });
+    myListeners.receiveAndFire(model.getSourceSet(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 
     myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel,
                                               "Convert a source asset into " + iconType.getDisplayName().toLowerCase(Locale.getDefault()));

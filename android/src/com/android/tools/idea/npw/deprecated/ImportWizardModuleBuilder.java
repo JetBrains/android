@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.npw.ChooseTemplateStep;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
@@ -171,7 +171,7 @@ public class ImportWizardModuleBuilder
     WizardPath path = myWizardState.getActiveWizardPath();
     path.createModule();
     if (performGradleSync && myProject != null) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
 

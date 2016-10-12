@@ -16,8 +16,9 @@ import java.io.IOException;
 public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/resNavigation/";
 
-  public AndroidResourcesLineMarkerTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -101,7 +102,7 @@ public class  AndroidResourcesLineMarkerTest extends AndroidTestCase {
   }
 
   public void testJavaFileNavigationToSystemResource1() throws Exception {
-    doJavaFileNavigationTest(1, true, XmlAttributeValue.class);
+    doJavaFileNavigationTest(82, true, XmlAttributeValue.class);
   }
 
   public void testJavaFileNavigationToSystemResource2() throws Exception {

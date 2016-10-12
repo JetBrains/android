@@ -21,26 +21,30 @@ import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
+import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
- * Other classes can call {@link AndroidLogcatService#addListener(IDevice, LogLineListener)} to listen for logs of specific device/emulator.
+ * Other classes can call {@link AndroidLogcatService#addListener(IDevice, LogcatListener)} to listen for logs of specific device/emulator.
  * Listeners invoked in a pooled thread and this class is thread safe.
  */
 @ThreadSafe
@@ -69,14 +73,15 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
-  public interface LogLineListener {
-    void receiveLogLine(@NotNull LogCatMessage line);
+  public interface LogcatListener {
+    default void onLogLineReceived(@NotNull LogCatMessage line) {}
+    default void onCleared() {}
   }
 
   private final Object myLock = new Object();
 
   @GuardedBy("myLock")
-  private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<>();
+  private final Map<IDevice, List<LogcatListener>> myListeners = new HashMap<>();
 
   @GuardedBy("myLock")
   private final Map<IDevice, LogcatBuffer> myLogBuffers = new HashMap<>();
@@ -97,7 +102,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     return ServiceManager.getService(AndroidLogcatService.class);
   }
 
-  private AndroidLogcatService() {
+  @TestOnly
+  AndroidLogcatService() {
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
@@ -128,13 +134,13 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   @NotNull
   private AndroidLogcatReceiver createReceiver(@NotNull final IDevice device) {
-    final LogLineListener logLineListener = new LogLineListener() {
+    final LogcatListener logcatListener = new LogcatListener() {
       @Override
-      public void receiveLogLine(@NotNull LogCatMessage line) {
+      public void onLogLineReceived(@NotNull LogCatMessage line) {
         synchronized (myLock) {
           if (myListeners.containsKey(device)) {
-            for (LogLineListener listener : myListeners.get(device)) {
-              listener.receiveLogLine(line);
+            for (LogcatListener listener : myListeners.get(device)) {
+              listener.onLogLineReceived(line);
             }
           }
           if (myLogBuffers.containsKey(device)) {
@@ -143,7 +149,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         }
       }
     };
-    return new AndroidLogcatReceiver(device, logLineListener);
+    return new AndroidLogcatReceiver(device, logcatListener);
   }
 
   private void connect(@NotNull IDevice device) {
@@ -187,7 +193,27 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       // If someone keeps a reference to a device that is disconnected, executor will be null.
       if (executor != null) {
         stopReceiving(device);
-        executor.submit(() -> AndroidLogcatUtils.clearLogcat(project, device));
+
+        executor.submit(() -> {
+          try {
+            AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), false);
+          }
+          catch (final Exception e) {
+            getLog().info(e);
+            ApplicationManager.getApplication().invokeLater(() -> Messages
+              .showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title")));
+          }
+
+          synchronized (myLock) {
+            if (myListeners.containsKey(device)) {
+              for (LogcatListener listener : myListeners.get(device)) {
+                listener.onCleared();
+              }
+            }
+          }
+        });
+
+
         startReceiving(device);
       }
     }
@@ -202,11 +228,11 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    * Listeners are invoked in a pooled thread, and they are triggered A LOT. You should be very careful if delegating this text
    * to a UI thread. For example, don't directly invoke a runnable on the UI thread per line, but consider batching many log lines first.
    */
-  public void addListener(@NotNull IDevice device, @NotNull LogLineListener listener, boolean addOldLogs) {
+  public void addListener(@NotNull IDevice device, @NotNull LogcatListener listener, boolean addOldLogs) {
     synchronized (myLock) {
       if (addOldLogs && myLogBuffers.containsKey(device)) {
         for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
-          listener.receiveLogLine(line);
+          listener.onLogLineReceived(line);
         }
       }
 
@@ -223,13 +249,13 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   }
 
   /**
-   * @see #addListener(IDevice, LogLineListener, boolean)
+   * @see #addListener(IDevice, LogcatListener, boolean)
    */
-  public void addListener(@NotNull IDevice device, @NotNull LogLineListener listener) {
+  public void addListener(@NotNull IDevice device, @NotNull LogcatListener listener) {
     addListener(device, listener, false);
   }
 
-  public void removeListener(@NotNull IDevice device, @NotNull LogLineListener listener) {
+  public void removeListener(@NotNull IDevice device, @NotNull LogcatListener listener) {
     synchronized (myLock) {
       if (myListeners.containsKey(device)) {
         myListeners.get(device).remove(listener);

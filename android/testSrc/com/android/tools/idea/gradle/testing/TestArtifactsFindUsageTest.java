@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
@@ -45,6 +46,11 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   }
 
   public void testFindUsagesOnlyInUnitTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setUnitTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
@@ -55,6 +61,11 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
   }
 
   public void testFindUsagesInOnlyAndroidTest() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     setAndroidTestFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
 
