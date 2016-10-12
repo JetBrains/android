@@ -16,9 +16,10 @@
 package com.android.tools.idea.updater;
 
 import com.android.repository.Revision;
+import com.android.repository.api.*;
 import com.android.repository.impl.manager.RepoManagerImpl;
+import com.android.repository.testframework.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.AndroidStudioUpdateStrategyCustomization;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -30,7 +31,6 @@ import com.intellij.mock.MockApplicationEx;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.updateSettings.UpdateStrategyCustomization;
 import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.net.URL;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -64,6 +65,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
+    //noinspection Convert2Lambda Since otherwise it desn't create new instances.
     myDisposable = new Disposable() {
       @Override
       public void dispose() {}
@@ -71,7 +73,6 @@ public class SdkComponentSourceTest extends UsefulTestCase {
     MockApplicationEx instance = new MockApplicationEx(myDisposable);
     instance.registerService(ExternalComponentManager.class, ExternalComponentManagerImpl.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
-    instance.registerService(UpdateStrategyCustomization.class, AndroidStudioUpdateStrategyCustomization.class);
     ApplicationManager.setApplication(instance, myDisposable);
 
     myFileOp = new MockFileOp();
