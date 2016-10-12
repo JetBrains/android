@@ -61,8 +61,6 @@ import java.util.Locale;
 @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
 public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> {
 
-  // TODO: Add ModelWizard support for a help link
-  private final static String HELP_LINK = "http://developer.android.com/tools/help/vector-asset-studio.html";
   private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
   private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
