@@ -194,9 +194,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     // a changing-language-level-requires-reopening modal dialog box and have to reload
     // the project
     LanguageLevel initialLanguageLevel = null;
-    Iterator<FormFactor> iterator = FormFactor.iterator();
-    while (iterator.hasNext()) {
-      FormFactor factor = iterator.next();
+    for (FormFactor factor : FormFactor.values()) {
       Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
       if (version != null) {
         LanguageLevel level = LanguageLevel.parse(version.toString());

@@ -234,7 +234,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @NotNull
   private String updateDefaultModuleName(int enabledFormfactorsCount, @Nullable String currentModuleName) {
     if (currentModuleName == null || currentModuleName.equals(myDefaultModuleName)) {
-      myDefaultModuleName = enabledFormfactorsCount == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor);
+      myDefaultModuleName = enabledFormfactorsCount == 1 ? "app" : getModuleName(myFormFactor);
       return myDefaultModuleName;
     }
     else {
@@ -273,6 +273,17 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   public boolean performFinishingActions() {
     return performFinishingOperation(false);
+  }
+
+  @NotNull
+  private static String getModuleName(@NotNull FormFactor formFactor) {
+    if (formFactor.baseFormFactor != null) {
+      // Form factors like Android Auto build upon another form factor
+      formFactor = formFactor.baseFormFactor;
+    }
+    String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
+    name = name.replaceAll("\\s", "_");
+    return name.toLowerCase();
   }
 
   private boolean performFinishingOperation(boolean dryRun) {
@@ -327,7 +338,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
       // Note, this naming is provisional until the instant app workflow is better sorted out.
       String iapkName = "instant-" +
-                        (myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : FormFactorUtils.getModuleName(myFormFactor));
+                        (myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : getModuleName(myFormFactor));
 
       Map<String, Object> iapkTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
       iapkTemplateState.put(ATTR_ATOM_NAME, moduleName);
