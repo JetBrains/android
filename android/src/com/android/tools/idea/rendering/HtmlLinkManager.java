@@ -18,10 +18,11 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -90,7 +91,7 @@ public class HtmlLinkManager {
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   private static final String URL_REFRESH_RENDER = "refreshRender";
   private static final String URL_INSTALL_ARTIFACT = "installArtifact:";
-  static final String URL_ACTION_CLOSE = "action:close";
+  private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -193,6 +194,12 @@ public class HtmlLinkManager {
       }
     } else if (url.startsWith(URL_REFRESH_RENDER)) {
       handleRefreshRenderUrl(result);
+    } else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
+      // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
+      // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
+      // of clicking that link that has something to do with the cache being cleared.
+      handleRefreshRenderUrl(result);
+      RenderErrorPanel.showNotification("Cache cleared");
     }
     else {
       assert false : "Unexpected URL: " + url;
@@ -262,7 +269,7 @@ public class HtmlLinkManager {
   public String createCommandLink(@NotNull WriteCommandAction command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<WriteCommandAction>(5);
+      myLinkCommands = new SparseArray<>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;
@@ -282,7 +289,7 @@ public class HtmlLinkManager {
   public String createRunnableLink(@NotNull Runnable runnable) {
     String url = URL_RUNNABLE + myNextLinkId;
     if (myLinkRunnables == null) {
-      myLinkRunnables = new SparseArray<Runnable>(5);
+      myLinkRunnables = new SparseArray<>(5);
     }
     myLinkRunnables.put(myNextLinkId, runnable);
     myNextLinkId++;
@@ -332,7 +339,7 @@ public class HtmlLinkManager {
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
     BuildVariantView.getInstance(project).projectImportStarted();
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 
   public String createEditClassPathUrl() {
@@ -875,6 +882,8 @@ public class HtmlLinkManager {
   public String createRefreshRenderUrl() {
     return URL_REFRESH_RENDER;
   }
+
+  public String createClearCacheUrl() { return URL_CLEAR_CACHE_AND_NOTIFY; }
 
   private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
     if (result != null) {

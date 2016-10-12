@@ -21,7 +21,9 @@ import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
@@ -40,6 +42,22 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   }
 
   private void checkJavadoc(String fileName, String targetName, @Nullable String expectedDoc) {
+    checkJavadoc(fileName, targetName, actualDoc -> assertEquals(expectedDoc, actualDoc));
+  }
+
+  private void checkJavadocContains(String fileName, String targetName, @NotNull String docFragment) {
+    checkJavadoc(fileName, targetName, actualDoc -> {
+      boolean isContained = actualDoc.contains(docFragment);
+      assertTrue("\nExpected: " + docFragment + "\nContained By: " + actualDoc, isContained);
+    });
+  }
+
+    /**
+     * Test that the project can fetch documentation at the caret point (which is expected to be set
+     * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
+     * the actual documentation returned and will be responsible for asserting expected values.
+     */
+  private void checkJavadoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
     final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
@@ -48,7 +66,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
       myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
-    assertEquals(expectedDoc, provider.generateDoc(docTargetElement, originalElement));
+    javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));
   }
 
   public void testString1() {
@@ -257,46 +275,14 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "            is a period then it is appended to your package name. </body></html>");
   }
 
-  // @formatter:off
-  /**
-   * This test requires {@link #requireRecentSdk} to return true (since we need a real SDK to resolve this
-   * framework color, but unfortunately that doesn't work for other tests; the testLocalAttributes tests don't
-   * pass on a recent SDK
-   * <pre>
-  public void testFrameworkColors1() {
-    checkJavadoc("/javadoc/colors/layout.xml", "res/layout/layout.xml",
-                 "<html><body>" +
-                 "<table style=\"background-color:rgb(255,255,255);color:black;width:200px;text-align:center;" +
-                 "vertical-align:middle;\" border=\"0\">" +
-                 "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\">" +
-                 "#ffffff" +
-                 "</td>" +
-                 "</tr><" +
-                 "/table><BR/>\n" +
-                 "@color/primary_text_dark => primary_text_dark.xml => @android:color/background_light => #ffffffff<BR/>\n" +
-                 "</body></html>");
-  }
-  </pre>
-  */ // @formatter:on
   public void testFrameworkColors2() {
-    // @android:color/my_white is defined in
-    // testData/sdk1.5/platforms/android-1.5/data/res/values
-    // We're testing this because the bundled test platform isn't a complete framework so it doesn't
-    // have the real framework attributes (and the one it does, @android:string/cancel, has a different
-    // value than in the real platform. If we ever update the unit tests to use a more modern
-    // platform, the below should be changed to a real framework color.
     checkJavadoc("/javadoc/colors/layout2.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" " +
-                 "border=\"0\">" +
-                 "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">" +
-                 "#ffffff" +
-                 "</td>" +
-                 "</tr>" +
-                 "</table><BR/>" +
-                 "@android:color/my_white => #ffffff<BR/>" +
+                 "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +
+                 "<tr height=\"100\">" + "" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#ffffff</td>" +
+                 "</tr></table><BR/>" +
+                 "@android:color/white => #ffffffff<BR/>" +
                  "</body></html>");
   }
 
@@ -323,21 +309,30 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_disabled</B></FONT></td><td>Not enabled</td></tr>" +
-                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark</B></FONT></td><td>Not window_focused</td></tr>" +
-                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_inverse</B></FONT></td><td>Pressed</td></tr>" +
-                 "<tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Selected</td><td><BR/>@android:color/my_white => #ffffff<BR/></td></tr>" +
-                 "<tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>@android:color/primary_text_dark => #000000<BR/></td></tr>" +
-                 "<tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;" +
-                 "vertical-align:middle;\" border=\"0\">" +
-                 "<tr height=\"33\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">" +
-                 "#aa44aa" +
-                 "</td>" +
-                 "</tr>" +
-                 "</table>" +
-                 "</td><td>Default</td><td><BR/>@color/fourth => #aa44aa<BR/></td></tr></table>" +
-                 "<BR/>@color/first => @color/second => @color/third => third.xml<BR/>" +
+                 "<table><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
+                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Selected</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
+                 "</td></tr></table></td><td>Activated</td><td><BR/>" +
+                 "@android:color/primary_text_dark => primary_text_dark.xml<BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#aa44aa</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "@color/fourth => #aa44aa<BR/>" +
+                 "</td></tr></table><BR/>" +
+                 "@color/first => @color/second => @color/third => third.xml<BR/>" +
                  "</body></html>");
   }
 
@@ -346,16 +341,16 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
     checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
                  "<html><body><B>android:textAppearanceMedium</B><br/> Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color. <br/><hr/><BR/>" +
-                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
+                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" + "" +
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary => #ff000000" +
-                 "<BR/><BR/>" +
+                 "<BR/>" +
                  "Inherits from: @android:style/TextAppearance:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = ?textColorLink => #ff33b5e5<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = ?textColorHighlight => 6633b5e5<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary => #ff000000<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => #808080<BR/>" +
                  "</body></html>");
   }
@@ -363,16 +358,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testFrameworkStyleResolution() {
     // Checks that references in framework styles are always understood to point to framework resources,
     // even if the android: prefix is not explicitly written.
-    checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml",
-                 "<html><body><BR/>" +
-                 "@android:style/Theme.FrameworkTheme<BR/>" +
-                 "<BR/>" +
-                 "<hr><B>Theme.FrameworkTheme</B>:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorPrimary</B> = @color/state_list<BR/>" +
-                 "<table><tr><td>" +
-                 "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table>" +
-                 "</td><td>Default</td></tr></table>" +
-                 "</body></html>");
+    checkJavadocContains("/javadoc/styles/styles.xml", "res/values/styles.xml",
+                         "@android:style/Theme.Holo<BR/>");
   }
 
   public void testStyleName() {

@@ -17,7 +17,7 @@ package org.jetbrains.android.dom;
 
 public class AndroidLintDomTest extends AndroidDomTestCase {
   public AndroidLintDomTest() {
-    super(false, "dom/lint");
+    super("dom/lint");
   }
 
   public void testIssueAttributeCompletion() throws Throwable {

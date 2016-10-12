@@ -455,7 +455,6 @@
   </group>
   <group name="Custom - Google">
     <item tag="com.google.android.gms.ads.AdView"/>
-    <item tag="com.google.android.gms.maps.MapFragment"/>
     <item tag="com.google.android.gms.maps.MapView"/>
   </group>
   <group name="Custom - Design">

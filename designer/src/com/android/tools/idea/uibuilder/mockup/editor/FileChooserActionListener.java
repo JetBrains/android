@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.util.io.FileUtil;
@@ -45,8 +46,12 @@ import java.util.List;
  */
 public class FileChooserActionListener implements ActionListener {
 
+  private static final Logger LOGGER = Logger.getInstance(FileChooserActionListener.class);
+  private static VirtualFile ourLastOpenedFile = null;
+
   @Nullable private NlComponent myComponent;
   @Nullable private NlProperty myFilePathProperty;
+  private NlProperty myCropProperty;
 
   @Override
   public void actionPerformed(ActionEvent e) {
@@ -57,16 +62,20 @@ public class FileChooserActionListener implements ActionListener {
     final FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
     VirtualFile selectedFile = myFilePathProperty.getValue() != null
                                ? VfsUtil.findFileByIoFile(new File(FileUtil.toSystemIndependentName(myFilePathProperty.getValue())), false)
-                               : null;
+                               : ourLastOpenedFile;
 
     FileChooser.chooseFile(
       descriptor, null, null, selectedFile,
       (virtualFile) -> {
+        ourLastOpenedFile = virtualFile;
         if (myComponent != null && myComponent.isRoot()) {
-          openDeviceChoiceDialog(virtualFile, myFilePathProperty);
+          openDeviceChoiceDialog(virtualFile, myFilePathProperty, myCropProperty);
         }
         else {
-          saveMockupFile(virtualFile, myFilePathProperty);
+          saveMockupFile(virtualFile, myFilePathProperty, myCropProperty);
+          if (e == null) {
+            return;
+          }
           final TextAccessor textAccessor = e.getSource() instanceof TextAccessor ? ((TextAccessor)e.getSource()) : null;
           if (textAccessor != null) {
             textAccessor.setText(virtualFile.getPath());
@@ -78,7 +87,7 @@ public class FileChooserActionListener implements ActionListener {
   /**
    * Open a dialog asking to choose a device whose dimensions match those of the image
    */
-  private static void openDeviceChoiceDialog(VirtualFile virtualFile, @NotNull NlProperty property) {
+  private static void openDeviceChoiceDialog(VirtualFile virtualFile, @NotNull NlProperty fileProperty, @Nullable NlProperty cropProperty) {
     if (virtualFile.exists() && !virtualFile.isDirectory()) {
       try {
         final Image probe = PixelProbe.probe(virtualFile.getInputStream());
@@ -86,7 +95,7 @@ public class FileChooserActionListener implements ActionListener {
         if (image == null) {
           return;
         }
-        final NlModel model = property.getModel();
+        final NlModel model = fileProperty.getModel();
         final Configuration configuration = model.getConfiguration();
         final Device device = configuration.getDevice();
         if (device == null) {
@@ -97,17 +106,20 @@ public class FileChooserActionListener implements ActionListener {
           final DeviceSelectionPopup deviceSelectionPopup =
             new DeviceSelectionPopup(model.getProject(), configuration, image);
           if (deviceSelectionPopup.showAndGet()) {
-            saveMockupFile(virtualFile, property);
+            saveMockupFile(virtualFile, fileProperty, cropProperty);
           }
         });
       }
       catch (IOException e1) {
-        MockupEditor.LOG.warn("Unable to open this file\n" + e1.getMessage());
+        LOGGER.warn("Unable to open this file\n" + e1.getMessage());
       }
     }
   }
 
-  private static void saveMockupFile(@NotNull VirtualFile virtualFile, @NotNull NlProperty filePath) {
+  private static void saveMockupFile(@NotNull VirtualFile virtualFile, @NotNull NlProperty filePath, NlProperty cropProperty) {
+    if (cropProperty != null) {
+      cropProperty.setValue("");
+    }
     filePath.setValue(MockupFileHelper.getXMLFilePath(filePath.getModel().getProject(), virtualFile.getPath()));
   }
 
@@ -121,5 +133,9 @@ public class FileChooserActionListener implements ActionListener {
     if (!components.isEmpty()) {
       myComponent = components.get(0);
     }
+  }
+
+  public void setCropProperty(@Nullable NlProperty cropProperty) {
+    myCropProperty = cropProperty;
   }
 }

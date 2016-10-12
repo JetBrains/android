@@ -17,22 +17,16 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
-import org.junit.runner.notification.RunNotifier;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
-import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
@@ -40,22 +34,28 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNN
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
-/** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}, limited by {@link IncludeTestGroups} if present. */
+/** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}. */
 public class GuiTestSuiteRunner extends Suite {
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface IncludeTestGroups {
-    TestGroup[] value();
-  }
+
+  /** The name of a property specifying a {@link TestGroup} to run. If unspecified, all tests are run regardless of group. */
+  private static final String TEST_GROUP_PROPERTY_NAME = "ui.test.group";
 
   public GuiTestSuiteRunner(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError {
     super(builder, suiteClass, getGuiTestClasses(suiteClass));
     System.setProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, "true");
+    try {
+      String testGroupProperty = System.getProperty(TEST_GROUP_PROPERTY_NAME);
+      if (testGroupProperty != null) {
+        filter(new TestGroupFilter(TestGroup.valueOf(testGroupProperty)));
+      }
+    } catch (NoTestsRemainException e) {
+      throw new InitializationError(e);
+    }
   }
 
   @NotNull
-  public static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
+  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
-    List<TestGroup> suiteGroups = getSuiteGroups(suiteClass);
     File parentDir = getParentDir(suiteClass);
 
     String packagePath = suiteClass.getPackage().getName().replace('.', File.separatorChar);
@@ -71,7 +71,7 @@ public class GuiTestSuiteRunner extends Suite {
       String className = path.substring(testDirPath.length(), path.indexOf(DOT_CLASS)).replace(File.separatorChar, '.');
       try {
         Class<?> testClass = classLoader.loadClass(className);
-        if (isGuiTest(testClass) && isInGroup(testClass, suiteGroups)) {
+        if (isGuiTest(testClass)) {
           guiTestClasses.add(testClass);
         }
       }
@@ -85,20 +85,6 @@ public class GuiTestSuiteRunner extends Suite {
   private static boolean isGuiTest(Class<?> testClass) {
     RunWith runWith = testClass.getAnnotation(RunWith.class);
     return runWith != null && runWith.value().getSimpleName().equals(GuiTestRunner.class.getSimpleName());
-  }
-
-  @NotNull
-  private static List<TestGroup> getSuiteGroups(@NotNull Class<?> suiteClass) {
-    for (Annotation annotation : suiteClass.getAnnotations()) {
-      if (annotation instanceof IncludeTestGroups) {
-        TestGroup[] values = ((IncludeTestGroups)annotation).value();
-        if (values != null) {
-          return Lists.newArrayList(values);
-        }
-        break;
-      }
-    }
-    return Collections.emptyList();
   }
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {
@@ -125,38 +111,4 @@ public class GuiTestSuiteRunner extends Suite {
     }
   }
 
-  private static boolean isInGroup(@NotNull Class<?> testClass, List<TestGroup> suiteGroups) {
-    if (suiteGroups.isEmpty()) {
-      return true;
-    }
-    if (suiteGroups.contains(getTestGroup(testClass))) {
-      return true;
-    }
-    return false;
-  }
-
-  @Nullable
-  public static TestGroup getTestGroup(@NotNull Class<?> suiteClass) {
-    for (Annotation annotation : suiteClass.getAnnotations()) {
-      if (annotation instanceof RunIn) {
-        return ((RunIn)annotation).value();
-      }
-    }
-    return null;
-  }
-
-  @Override
-  @NotNull
-  protected Statement childrenInvoker(final RunNotifier notifier) {
-    return new Statement() {
-      @Override
-      public void evaluate() {
-        // Run all the tests and dispose IdeTestApplication at the end.
-        for (final Runner child : getChildren()) {
-          runChild(child, notifier);
-        }
-        IdeTestApplication.disposeInstance();
-      }
-    };
-  }
 }

@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -102,8 +102,8 @@ public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase 
     try (JarOutputStream jar = new JarOutputStream(buffer, manifest)) {
       jar.putNextEntry(new JarEntry("/dummy.txt"));
       jar.write(TOP_LEVEL_BUILD_GRADLE.getBytes(Charset.defaultCharset()));
-      return buffer.toByteArray();
     }
+    return buffer.toByteArray();
   }
 
   @NotNull
@@ -205,8 +205,7 @@ public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase 
 
       AtomicReference<String> error = Atomics.newReference();
       AtomicBoolean done = new AtomicBoolean(false);
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
-
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, new GradleSyncListener.Adapter() {
         private void createFacet(String moduleName,
                                  String gradlePath,
                                  VirtualFile gradleFile) {

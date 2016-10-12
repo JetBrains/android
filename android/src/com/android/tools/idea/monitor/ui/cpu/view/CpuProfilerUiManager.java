@@ -69,7 +69,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private JPanel myBottomupJPanel;
 
-  private CPUTraceController myCPUTraceControlsUI;
+  private CPUTraceController myCpuTraceControlsUi;
 
   private Range myFlameChartRange;
 
@@ -90,11 +90,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private void createDetailedViewCharts() {
     myExecutionChart = new HTreeChart<>();
-    myExecutionChart.setHRenderer(new MethodHRenderer());
     myExecutionChart.setXRange(myTimeSelectionRange);
 
     myFlameChart = new HTreeChart<>(HTreeChart.Orientation.BOTTOM_UP);
-    myFlameChart.setHRenderer(new MethodUsageHRenderer());
   }
 
   @NotNull
@@ -123,8 +121,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private void createTracingButton(@NotNull JPanel toolbar) {
     TraceRequestHandler traceRequestHandler = new TraceRequestHandler(mySelectedDeviceProfilerService, myDeviceContext, myProject);
-    myCPUTraceControlsUI = new CPUTraceController(traceRequestHandler);
-    toolbar.add(myCPUTraceControlsUI);
+    myCpuTraceControlsUi = new CPUTraceController(traceRequestHandler);
+    toolbar.add(myCpuTraceControlsUi);
   }
 
   @Override
@@ -166,11 +164,13 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
       detailPanel.remove(myTabbedPane);
     }
 
+    if (myCpuTraceControlsUi != null) {
+      toolbar.remove(myCpuTraceControlsUi);
+      myCpuTraceControlsUi = null;
+    }
+
     myChoreographer.unregister(myFlameChart);
     myChoreographer.unregister(myExecutionChart);
-    overviewPanel.remove(myThreadSegment);
-    detailPanel.remove(myTabbedPane);
-    toolbar.remove(myCPUTraceControlsUI);
   }
 
   private void resetDetailedComponents() {
@@ -221,6 +221,11 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     // Setup execution panel
     HNode<Method> executionTree = availableThreads.get(threadId);
     myExecutionChart.setHTree(executionTree);
+    if (AppTrace.Source.ART == trace.getSource()) {
+      myExecutionChart.setHRenderer(new NativeMethodHRenderer());
+    } else {
+      myExecutionChart.setHRenderer(new JavaMethodHRenderer());
+    }
 
     // Setup flame graph
     SparseArray<HNode<MethodUsage>> usageTrees = trace.getTopdownStats();
@@ -228,6 +233,11 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myFlameChart.setHTree(usageTree);
     myFlameChartRange.set(usageTree.getStart(), usageTree.getEnd());
     myFlameChart.setXRange(myFlameChartRange);
+    if (AppTrace.Source.ART == trace.getSource()) {
+      myFlameChart.setHRenderer(new NativeMethodUsageHRenderer());
+    } else {
+      myFlameChart.setHRenderer(new JavaMethodUsageHRenderer());
+    }
 
     // Setup selection (blue highlight)
     myTimeSelectionRange.set(executionTree.getStart(), executionTree.getEnd());

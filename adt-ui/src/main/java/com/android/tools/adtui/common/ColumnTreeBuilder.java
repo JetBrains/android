@@ -81,14 +81,14 @@ public class ColumnTreeBuilder {
     myTableModel = new DefaultTableModel();
     myTable = new JBTable(myTableModel);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
-    myRowSorter = new TableRowSorter<TableModel>(myTable.getModel());
-    myColumBuilders = new LinkedList<ColumnBuilder>();
+    myRowSorter = new TableRowSorter<>(myTable.getModel());
+    myColumBuilders = new LinkedList<>();
   }
 
   /**
    * Sets the tree sorter to call when a column wants to be sorted.
    */
-  public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter sorter) {
+  public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter<?> sorter) {
     myTreeSorter = sorter;
     return this;
   }
@@ -124,19 +124,16 @@ public class ColumnTreeBuilder {
     });
 
     myTable.setRowSorter(myRowSorter);
-    myRowSorter.addRowSorterListener(new RowSorterListener() {
-      @Override
-      public void sorterChanged(RowSorterEvent event) {
-        if (myTreeSorter != null && !myRowSorter.getSortKeys().isEmpty()) {
-          RowSorter.SortKey key = myRowSorter.getSortKeys().get(0);
-          Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
-          Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
-          comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
-          myTreeSorter.sort(comparator, key.getSortOrder());
-          if (expanded != null) {
-            while (expanded.hasMoreElements()) {
-              myTree.expandPath(expanded.nextElement());
-            }
+    myRowSorter.addRowSorterListener(event -> {
+      if (myTreeSorter != null && !myRowSorter.getSortKeys().isEmpty()) {
+        RowSorter.SortKey key = myRowSorter.getSortKeys().get(0);
+        Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
+        Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
+        comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
+        myTreeSorter.sort(comparator, key.getSortOrder());
+        if (expanded != null) {
+          while (expanded.hasMoreElements()) {
+            myTree.expandPath(expanded.nextElement());
           }
         }
       }

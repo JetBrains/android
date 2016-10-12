@@ -143,7 +143,7 @@ public final class ImageDiffUtil {
    * Converts a BufferedImage type to {@link TYPE_INT_ARGB},
    * which is the only type accepted by {@link ImageDiffUtil#assertImageSimilar}.
    */
-  private static BufferedImage convertToARGB(@NotNull BufferedImage inputImg) {
+  public static BufferedImage convertToARGB(@NotNull BufferedImage inputImg) {
     if (inputImg.getType() == TYPE_INT_ARGB) {
       return inputImg; // Early return in case the image has already the correct type
     }

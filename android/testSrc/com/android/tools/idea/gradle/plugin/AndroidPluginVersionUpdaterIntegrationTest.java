@@ -49,7 +49,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdatePluginVersion() throws Throwable {
-    loadProject(SYNC_MULTIPROJECT, false);
+    loadProject(SYNC_MULTIPROJECT);
     setAndroidPluginVersion("1.0.0");
 
     UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
@@ -60,7 +60,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdateExperimentalPluginVersion() throws Throwable {
-    loadProject(EXPERIMENTAL_PLUGIN, false);
+    loadProject(EXPERIMENTAL_PLUGIN);
     setAndroidPluginVersion("1.0.0");
 
     UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
@@ -71,7 +71,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   }
 
   public void testUpdatePluginVersionWhenPluginHasAlreadyUpdatedVersion() throws Throwable {
-    loadProject(SYNC_MULTIPROJECT, false);
+    loadProject(SYNC_MULTIPROJECT);
 
     setAndroidPluginVersion("20.0.0");
 

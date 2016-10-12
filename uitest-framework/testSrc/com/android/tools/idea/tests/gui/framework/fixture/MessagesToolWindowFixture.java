@@ -94,20 +94,10 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private ErrorTreeElement doFindMessage(@NotNull ErrorTreeElementKind kind, @NotNull MessageMatcher matcher) {
-      ErrorTreeElement found = execute(new GuiQuery<ErrorTreeElement>() {
-        @Override
-        @Nullable
-        protected ErrorTreeElement executeInEDT() throws Throwable {
-          NewErrorTreeViewPanel component = (NewErrorTreeViewPanel)myContent.getComponent();
-          ErrorViewStructure errorView = component.getErrorViewStructure();
-
-          Object root = errorView.getRootElement();
-          return findMessage(errorView, errorView.getChildElements(root), matcher, kind);
-        }
+      return GuiQuery.getNonNull(() -> {
+        ErrorViewStructure errorView = ((NewErrorTreeViewPanel)myContent.getComponent()).getErrorViewStructure();
+        return findMessage(errorView, errorView.getChildElements(errorView.getRootElement()), matcher, kind);
       });
-
-      assertNotNull(String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()), found);
-      return found;
     }
 
     @Nullable
@@ -269,22 +259,11 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // HyperlinkEvent, simulating a click on the actual hyperlink.
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
 
-      JEditorPane editorComponent = checkNotNull(execute(new GuiQuery<JEditorPane>() {
-        @Override
-        protected JEditorPane executeInEDT() throws Throwable {
-          EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
-          TreeCellEditor cellEditor = message.getRightSelfEditor();
-          return field("editorComponent").ofType(JEditorPane.class).in(cellEditor).get();
-        }
-      }));
-
-      String text = checkNotNull(execute(new GuiQuery<String>() {
-        @Override
-        protected String executeInEDT() throws Throwable {
-          return editorComponent.getText();
-        }
-      }));
-
+      JEditorPane editorComponent = GuiQuery.getNonNull(() -> {
+        TreeCellEditor cellEditor = ((EditableNotificationMessageElement)myTarget).getRightSelfEditor();
+        return field("editorComponent").ofType(JEditorPane.class).in(cellEditor).get();
+      });
+      String text = GuiQuery.getNonNull(editorComponent::getText);
       return Pair.create(editorComponent, text);
     }
   }

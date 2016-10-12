@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -31,6 +32,11 @@ public class AndroidDocumentationProviderTest extends AndroidTestCase {
   }
 
   public void testExternalFilterOldFormat() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Copied from SDK docs v23 rev 1
     String input = readTestFile("oldPoint.html");
     String output = readTestFile("oldPointSummary.html");
@@ -39,6 +45,11 @@ public class AndroidDocumentationProviderTest extends AndroidTestCase {
   }
 
   public void testExternalFilterNewFormat() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     // Downloaded July 2016 with curl -o <output> https://developer.android.com/reference/android/graphics/Point.html
     String input = readTestFile("newPoint.html");
     String output = readTestFile("newPointSummary.html");

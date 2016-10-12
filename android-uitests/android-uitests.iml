@@ -11,6 +11,8 @@
     <orderEntry type="library" name="JUnit4" level="project" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="community-main" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" />
     <orderEntry type="module" module-name="debugger-openapi" scope="TEST" />
     <orderEntry type="module" module-name="analysis-api" scope="TEST" />
@@ -21,6 +23,6 @@
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
     <orderEntry type="module" module-name="java-impl" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
-    <orderEntry type="library" name="hamcrest" level="project" />
+    <orderEntry type="module" module-name="rpclib" scope="TEST" />
   </component>
 </module>

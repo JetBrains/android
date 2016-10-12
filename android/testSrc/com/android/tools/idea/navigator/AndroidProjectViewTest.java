@@ -258,7 +258,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
           }
         });
       }
-    }, false);
+    });
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);

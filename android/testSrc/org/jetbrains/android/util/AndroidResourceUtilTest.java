@@ -17,25 +17,39 @@ package org.jetbrains.android.util;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidResourceUtilTest extends AndroidTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", true);
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY);
   }
 
   public void testCaseSensitivityInChangeColorResource() {
@@ -68,12 +82,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
                       "values-en/other.png\n";
 
     List<PsiFile> list = Lists.newArrayList(f1, f2, f3, f4, f5, f6, f7, f8);
-    Collections.sort(list, new Comparator<PsiFile>() {
-      @Override
-      public int compare(PsiFile file1, PsiFile file2) {
-        return AndroidResourceUtil.compareResourceFiles(file1, file2);
-      }
-    });
+    Collections.sort(list, AndroidResourceUtil::compareResourceFiles);
     StringBuilder sb1 = new StringBuilder();
     for (PsiFile file : list) {
       if (file.getParent() != null && ResourceHelper.getFolderType(file) != null) {
@@ -87,12 +96,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     List<VirtualFile> list2 = Lists.newArrayList(f1.getVirtualFile(), f2.getVirtualFile(), f3.getVirtualFile(),
                                                  f4.getVirtualFile(), f5.getVirtualFile(), f6.getVirtualFile(),
                                                  f7.getVirtualFile(), f8.getVirtualFile());
-    Collections.sort(list2, new Comparator<VirtualFile>() {
-      @Override
-      public int compare(VirtualFile file1, VirtualFile file2) {
-        return AndroidResourceUtil.compareResourceFiles(file1, file2);
-      }
-    });
+    Collections.sort(list2, AndroidResourceUtil::compareResourceFiles);
     StringBuilder sb2 = new StringBuilder();
     for (VirtualFile file : list2) {
       if (file.getParent() != null && ResourceHelper.getFolderType(file) != null) {
@@ -164,8 +168,9 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // Add some lib string resources.
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
 
-    PsiField[] fields = AndroidResourceUtil.findResourceFields(
-      AndroidFacet.getInstance(libModule), "string", "lib_hello", false /* onlyInOwnPackages */);
+    AndroidFacet facet = AndroidFacet.getInstance(libModule);
+    assertThat(facet).isNotNull();
+    PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
 
     Set<String> dirNames = Sets.newHashSet();
     for (PsiField field : fields) {
@@ -190,8 +195,9 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     deleteManifest(myModule);
 
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
-    PsiField[] mainFields = AndroidResourceUtil.findResourceFields(
-      AndroidFacet.getInstance(myModule), "string", "lib_hello", false /* onlyInOwnPackages */);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertThat(facet).isNotNull();
+    PsiField[] mainFields = AndroidResourceUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
     assertEmpty(mainFields);
 
     // However, if the main module happens to get a handle on the lib's R class
@@ -205,5 +211,42 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testValidResourceFileName() {
     assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
+  }
+
+  public void testEnsureNamespaceImportedAddAuto() {
+    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", AUTO_URI, null);
+    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  }
+
+  public void testEnsureNamespaceImportedAddAutoWithPrefixSuggestion() {
+    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", AUTO_URI, "sherpa");
+    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:sherpa=\"http://schemas.android.com/apk/res-auto\" />");
+  }
+
+  public void testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThere() {
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
+    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", AUTO_URI, null);
+    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  }
+
+  public void testEnsureNamespaceImportedDoNotAddAutoIfAlreadyThereWithPrefixSuggestion() {
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
+    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />", AUTO_URI, "sherpa");
+    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");
+  }
+
+  public void testEnsureNamespaceImportedAddEmptyNamespaceForStyleAttribute() {
+    XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", "", null);
+    assertThat(xmlFile.getText()).isEqualTo("<LinearLayout/>");
+  }
+
+  private XmlFile ensureNamespaceImported(@Language("XML") @NotNull String text, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("res/layout/layout.xml", text);
+
+    CommandProcessor.getInstance().executeCommand(getProject(), () -> ApplicationManager.getApplication().runWriteAction(() -> {
+      AndroidResourceUtil.ensureNamespaceImported(xmlFile, namespaceUri, suggestedPrefix);
+    }), "", "");
+
+    return xmlFile;
   }
 }

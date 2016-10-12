@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -24,6 +26,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
@@ -43,6 +46,7 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -66,25 +70,36 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
 
   private final JPanel myPanel;
-  private final JComboBox<ValueWithDisplayString> myCombo;
+  private final CustomComboBox myCombo;
+  private final JTextField myEditor;
+  private final BrowsePanel myBrowsePanel;
 
   private NlProperty myProperty;
   private String myApiVersion;
   private int myAddedValueIndex;
-  private boolean myValueChanged;
+  private boolean myPopupValueChanged;
+  private boolean myDisplayRealValue;
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, false, true));
+    cellEditor.init(new NlEnumEditor(cellEditor, new CustomComboBox(), new BrowsePanel(cellEditor, true), false));
     return cellEditor;
   }
 
   public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, true, false);
+    return new NlEnumEditor(listener, new CustomComboBox(), null, true);
   }
 
   public static NlEnumEditor createForInspectorWithBrowseButton(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, true, true);
+    BrowsePanel.ContextDelegate delegate = new BrowsePanel.ContextDelegate();
+    NlEnumEditor editor = new NlEnumEditor(listener, new CustomComboBox(), new BrowsePanel(delegate, false), true);
+    delegate.setEditor(editor);
+    return editor;
+  }
+
+  @TestOnly
+  public static NlEnumEditor createForTest(@NotNull NlEditingListener listener, CustomComboBox comboBox) {
+    return new NlEnumEditor(listener, comboBox, null, false);
   }
 
   /**
@@ -106,6 +121,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
       case ATTR_ON_CLICK:
         return true;
+      case ATTR_ID:
+        return false;
       case ATTR_STYLE:
         String tagName = property.getTagName();
         return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
@@ -123,42 +140,59 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
-                       @Nullable BrowsePanel.Context context,
-                       boolean includeBorder,
-                       boolean includeBrowseButton) {
+                       @NotNull CustomComboBox comboBox,
+                       @Nullable BrowsePanel browsePanel,
+                       boolean includeBorder) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
     myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
 
-    //noinspection unchecked
-    myCombo = new CustomComboBox(includeBorder ? myPanel : null);
-    myCombo.setEditable(true);
-    myPanel.add(myCombo, BorderLayout.CENTER);
+    myBrowsePanel = browsePanel;
 
-    if (includeBrowseButton || context != null) {
-      myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
-    }
+    myCombo = comboBox;
+    myCombo.setEditable(true);
 
     myCombo.addPopupMenuListener(new PopupMenuHandler());
     myCombo.addActionListener(this::comboValuePicked);
-    JTextField editor = (JTextField)myCombo.getEditor().getEditorComponent();
-    editor.registerKeyboardAction(event -> enter(),
-                                  KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                  JComponent.WHEN_FOCUSED);
-    editor.registerKeyboardAction(event -> cancel(),
-                                  KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                                  JComponent.WHEN_FOCUSED);
-    editor.addFocusListener(new FocusAdapter() {
+    if (includeBorder) {
+      myCombo.setBorderPanel(myPanel);
+    }
+
+    myPanel.add(myCombo, BorderLayout.CENTER);
+    if (browsePanel != null) {
+      myPanel.add(browsePanel, BorderLayout.LINE_END);
+    }
+
+    myEditor = (JTextField)myCombo.getEditor().getEditorComponent();
+    myEditor.registerKeyboardAction(event -> enter(),
+                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                    JComponent.WHEN_FOCUSED);
+    myEditor.registerKeyboardAction(event -> cancel(),
+                                    KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                                    JComponent.WHEN_FOCUSED);
+    myEditor.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        editor.selectAll();
+        myDisplayRealValue = true;
+        ValueWithDisplayString value = myCombo.getSelectedItem();
+        value.setUseValueForToString(myDisplayRealValue);
+        myEditor.setText(value.toString());
+        myEditor.selectAll();
+        myEditor.setForeground(CHANGED_VALUE_TEXT_COLOR);
       }
 
       @Override
       public void focusLost(FocusEvent event) {
-        stopEditing(getText());
-        // Remove the selection after we lose focus for feedback on which editor is the active editor
-        editor.select(0, 0);
+        myDisplayRealValue = false;
+        ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
+        if (!Objects.equals(value.getValue(), myProperty.getValue())) {
+          stopEditing(value.getValue());
+        }
+
+        value.setUseValueForToString(myDisplayRealValue);
+        myEditor.setText(value.toString());
+        myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
+        myEditor.select(0, 0);
       }
     });
     //noinspection unchecked
@@ -168,13 +202,15 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Override
   public void setEnabled(boolean en) {
     myCombo.setEnabled(en);
-    createBrowsePanel(null);
   }
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
     if (property != myProperty || !getApiVersion(property).equals(myApiVersion)) {
       setModel(property);
+    }
+    if (myBrowsePanel != null) {
+      myBrowsePanel.setProperty(property);
     }
     selectItem(ValueWithDisplayString.create(property.getValue(), property));
   }
@@ -238,13 +274,22 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       @Override
       public void setSelectedItem(Object object) {
         if (object instanceof String) {
-          String newValue = (String)object;
-          object = new ValueWithDisplayString(newValue, newValue);
+          // This is a weird callback from Swing.
+          // It seems to happen when we are losing focus.
+          // We need to convert this string to a ValueWithDisplayString.
+          // Also note that the toString() value will be set in the editor and we want the real value.
+          object = createFromEditorValue((String)object);
+        }
+        if (object instanceof ValueWithDisplayString) {
+          ValueWithDisplayString value = (ValueWithDisplayString)object;
+          value.setUseValueForToString(myDisplayRealValue);
         }
         super.setSelectedItem(object);
       }
     };
-    newModel.insertElementAt(ValueWithDisplayString.UNSET, 0);
+    newModel.insertElementAt(ValueWithDisplayString.create(null, myProperty), 0);
+
+    //noinspection unchecked
     myCombo.setModel(newModel);
     myAddedValueIndex = -1; // nothing added
   }
@@ -272,14 +317,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       model.insertElementAt(value, myAddedValueIndex);
     }
     if (!value.equals(model.getSelectedItem())) {
+      value.setUseValueForToString(myDisplayRealValue);
       model.setSelectedItem(value);
+      myEditor.setText(value.toString());
     }
-    if (!myProperty.isDefaultValue(value.getValue())) {
-      myCombo.getEditor().getEditorComponent().setForeground(CHANGED_VALUE_TEXT_COLOR);
-    }
-    else {
-      myCombo.getEditor().getEditorComponent().setForeground(DEFAULT_VALUE_TEXT_COLOR);
-    }
+    myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
   }
 
   private int findBestInsertionPoint(@NotNull ValueWithDisplayString newValue) {
@@ -289,7 +331,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (!isDimension) {
       return startIndex;
     }
-    String newTextValue = newValue.toString();
+    String newTextValue = newValue.getDisplayString();
+    if (StringUtil.isEmpty(newTextValue)) {
+      return startIndex;
+    }
+
     Quantity newQuantity = Quantity.parse(newTextValue);
     if (newQuantity == null) {
       return startIndex;
@@ -311,7 +357,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Override
   @Nullable
   public Object getValue() {
-    ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getSelectedItem();
+    ValueWithDisplayString value = myCombo.getSelectedItem();
     if (value == null) {
       return null;
     }
@@ -332,56 +378,122 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
    */
   @NotNull
   public Component getKeySource() {
-    return myCombo.getEditor().getEditorComponent();
-  }
-
-  private void comboValuePicked(@NotNull ActionEvent event) {
-    if ("comboBoxChanged".equals(event.getActionCommand())) {
-      myValueChanged = true;
-    }
+    return myEditor;
   }
 
   private void enter() {
     if (!myCombo.isPopupVisible()) {
-      String newValue = getText();
-      selectItem(ValueWithDisplayString.create(newValue, myProperty));
-      stopEditing(newValue);
-      if (hasFocus()) {
-        myCombo.getEditor().selectAll();
-      }
-    }
-    myCombo.hidePopup();
-  }
-
-  private void cancel() {
-    myValueChanged = false;
-    String text = myProperty.getValue();
-    if (text == null) {
-      text = ValueWithDisplayString.UNSET.toString();
-    }
-    myCombo.getEditor().setItem(text);
-    selectItem(ValueWithDisplayString.create(myProperty.getValue(), myProperty));
-    stopEditing(myProperty.getValue());
-    if (hasFocus()) {
+      ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
+      selectItem(value);
+      stopEditing(value.getValue());
       myCombo.getEditor().selectAll();
     }
     myCombo.hidePopup();
   }
 
-  private boolean hasFocus() {
-    if (myCombo.hasFocus()) {
-      return true;
+  private void cancel() {
+    String text = myProperty.getValue();
+    myCombo.getEditor().setItem(text);
+    selectItem(ValueWithDisplayString.create(myProperty.getValue(), myProperty));
+    myPopupValueChanged = false;
+    cancelEditing();
+    myCombo.getEditor().selectAll();
+    myCombo.hidePopup();
+  }
+
+  private ValueWithDisplayString createFromEditorValue(@Nullable String editorValue) {
+    ValueWithDisplayString value = getValueFromModel(editorValue);
+    if (value != null) {
+      return value;
     }
-    return myCombo.getEditor().getEditorComponent().hasFocus();
+    String text = editorValue;
+    if (text != null) {
+      text = addStylePrefix(text);
+      text = addIdPrefix(text);
+      text = Quantity.addUnit(myProperty, text);
+    }
+    return ValueWithDisplayString.create(text, myProperty);
+  }
+
+  @NotNull
+  private String addStylePrefix(@NotNull String value) {
+    if (myProperty == null) {
+      return value;
+    }
+
+    // This only applies to Style and TextAppearance:
+    switch (myProperty.getName()) {
+      case ATTR_STYLE:
+      case ATTR_TEXT_APPEARANCE:
+        break;
+      default:
+        if (myProperty.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          break;
+        }
+        return value;
+    }
+
+    if (value.startsWith(STYLE_RESOURCE_PREFIX) || value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+      return value;
+    }
+
+    ResourceResolver resolver = myProperty.getResolver();
+    ResourceValue resource = resolver.getStyle(value, true);
+    String prefix = resource != null ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
+    return prefix + value;
+  }
+
+  @NotNull
+  private String addIdPrefix(@NotNull String value) {
+    if (myProperty == null) {
+      return value;
+    }
+    if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(myProperty.getName()) != ResourceType.ID) {
+      return value;
+    }
+    if (value.startsWith(NEW_ID_PREFIX) || value.startsWith(ID_PREFIX)) {
+      return value;
+    }
+    return NEW_ID_PREFIX + value;
   }
 
   @Nullable
-  private String getText() {
-    String text = myCombo.getEditor().getItem().toString();
-    if (StringUtil.isEmpty(text) || text.equals(ValueWithDisplayString.UNSET.toString())) {
-      return null;
+  private ValueWithDisplayString getValueFromModel(@Nullable String value) {
+    ValueWithDisplayString item = lookUpByValue(value);
+    return item != null ? item : lookUpByDisplayValue(value);
+  }
+
+  @Nullable
+  private ValueWithDisplayString lookUpByValue(@Nullable String value) {
+    String valueToLookUp = StringUtil.notNullize(value);
+    ValueWithDisplayString selected = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
+    if (selected != null && valueToLookUp.equals(StringUtil.notNullize(selected.getValue()))) {
+      return selected;
     }
-    return Quantity.addUnit(myProperty, text);
+    for (int index=0; index < myCombo.getModel().getSize(); index++) {
+      ValueWithDisplayString item = myCombo.getModel().getElementAt(index);
+      if (item != null && valueToLookUp.equals(StringUtil.notNullize(item.getValue()))) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private ValueWithDisplayString lookUpByDisplayValue(@Nullable String value) {
+    String valueToLookUp = StringUtil.notNullize(value);
+    valueToLookUp = StringUtil.trimStart(valueToLookUp, "TextAppearance.");
+    ValueWithDisplayString selected = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
+    if (selected != null && valueToLookUp.equals(selected.getDisplayString()) && selected.getValue() != null) {
+      return selected;
+    }
+    for (int index=0; index < myCombo.getModel().getSize(); index++) {
+      ValueWithDisplayString item = myCombo.getModel().getElementAt(index);
+      if (item != null && valueToLookUp.equals(item.getDisplayString()) && item.getValue() != null) {
+        return item;
+      }
+    }
+    return null;
   }
 
   private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {
@@ -445,18 +557,33 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private static ValueWithDisplayString[] createChoicesForId(@NotNull NlProperty property) {
     return IdAnalyzer.findIdsForProperty(property).stream()
-      .map(id -> new ValueWithDisplayString(id, ID_PREFIX + id))
+      .map(id -> new ValueWithDisplayString(id, NEW_ID_PREFIX + id))
       .toArray(ValueWithDisplayString[]::new);
   }
 
-  private static class CustomComboBox extends ComboBox {
-    private final JPanel myBorderPanel;
+  public static class CustomComboBox extends ComboBox {
+    private JPanel myBorderPanel;
     private boolean myUseDarculaUI;
 
-    public CustomComboBox(@Nullable JPanel borderPanel) {
+    public CustomComboBox() {
       super(SMALL_WIDTH);
+      setBorders();
+    }
+
+    public void setBorderPanel(@NotNull JPanel borderPanel) {
       myBorderPanel = borderPanel;
       setBorders();
+    }
+
+    @Override
+    public ComboBoxModel<ValueWithDisplayString> getModel() {
+      //noinspection unchecked
+      return super.getModel();
+    }
+
+    @Override
+    public ValueWithDisplayString getSelectedItem() {
+      return (ValueWithDisplayString)super.getSelectedItem();
     }
 
     private void setBorders() {
@@ -469,7 +596,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
     @Override
     public void setUI(ComboBoxUI ui) {
-      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI);
+      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI) && !ApplicationManager.getApplication().isUnitTestMode();
       if (myUseDarculaUI) {
         // There are multiple reasons for hardcoding the ComboBoxUI here:
         // 1) Some LAF will draw a beveled border which does not look good in the table grid.
@@ -484,7 +611,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
-    
+
     public CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
       super(comboBox);
     }
@@ -513,7 +640,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         myValues.add(ValueWithDisplayString.SEPARATOR);
       }
       myPreviousStyle = style;
-      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style), null));
+      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style) + style.getName()));
     }
 
     @NotNull
@@ -546,15 +673,34 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     @Override
     protected void customizeCellRenderer(@NotNull JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value != null) {
-        boolean isDefaultValue = myProperty.isDefaultValue(value.getValue());
-        if (!selected && !isDefaultValue && Objects.equals(value.getValue(), getValue())) {
+        String displayString = value.getDisplayString();
+        String actualValue = value.getValue();
+        boolean isDefaultValue = myProperty.isDefaultValue(actualValue);
+        if (!selected && !isDefaultValue && Objects.equals(actualValue, getValue())) {
           myForeground = CHANGED_VALUE_TEXT_COLOR;
         }
         else if (index == 0 || isDefaultValue) {
           myForeground = DEFAULT_VALUE_TEXT_COLOR;
         }
-        append(value.toString());
+        if (!StringUtil.isEmpty(displayString)) {
+          append(displayString);
+          if (actualValue == null || !actualValue.endsWith(displayString)) {
+            myForeground = DEFAULT_VALUE_TEXT_COLOR;
+            append(" [");
+            append(actualValue != null ? actualValue : "default");
+            append("]");
+          }
+        }
+        else if (actualValue != null) {
+          append(actualValue);
+        }
       }
+    }
+  }
+
+  private void comboValuePicked(@NotNull ActionEvent event) {
+    if ("comboBoxChanged".equals(event.getActionCommand())) {
+      myPopupValueChanged = true;
     }
   }
 
@@ -562,21 +708,22 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
     @Override
     public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
-      myValueChanged = false;
+      myPopupValueChanged = false;
     }
 
     @Override
     public void popupMenuWillBecomeInvisible(PopupMenuEvent event) {
-      if (myValueChanged) {
-        myValueChanged = false;
+      if (myPopupValueChanged) {
+        myPopupValueChanged = false;
         ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
+        value.setUseValueForToString(myDisplayRealValue);
         stopEditing(value.getValue());
       }
     }
 
     @Override
     public void popupMenuCanceled(PopupMenuEvent event) {
-      myValueChanged = false;
+      myPopupValueChanged = false;
     }
   }
 }

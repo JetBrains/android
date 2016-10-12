@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.editors.gfxtrace.forms;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.widgets.TextField;
+import com.android.tools.idea.editors.gfxtrace.widgets.TreeUtil;
 import com.android.tools.idea.logcat.RegexFilterComponent;
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.CommonBundle;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.compiler.CompilerBundle;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.MessageDialogBuilder;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.*;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +45,9 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -51,12 +63,15 @@ public class ActivitySelector extends JDialog {
   private JBLabel myStatus;
   private RegexFilterComponent mySearchBox;
   private TextField myTraceName;
+  private AsyncProcessIcon mySpinner;
 
   private DeviceInfo.Package mySelectedPackage;
   private DeviceInfo.Activity mySelectedActivity;
   private boolean myUserHasChangedTraceName = false;
 
   @NotNull private Listener myListener = NULL_LISTENER;
+
+  @NotNull private static final Logger LOG = Logger.getInstance(ActivitySelector.class);
 
   private static final Listener NULL_LISTENER = new Listener() {
     @Override
@@ -75,7 +90,7 @@ public class ActivitySelector extends JDialog {
     void OnCancel();
   }
 
-  public ActivitySelector(DeviceInfo.Provider dip) {
+  public ActivitySelector(DeviceInfo.PkgInfoProvider dip) {
     setContentPane(contentPane);
     // setModal(true);
     getRootPane().setDefaultButton(buttonOK);
@@ -124,25 +139,6 @@ public class ActivitySelector extends JDialog {
     myStatus.setText("Loading...");
     myTree.setVisible(false);
     buttonOK.setEnabled(false);
-
-    final ListenableFuture<DeviceInfo> future = getDeviceInfo(dip);
-    future.addListener(new Runnable() {
-      @Override
-      public void run() {
-        DeviceInfo deviceInfo = null;
-        try {
-          deviceInfo = future.get();
-        }
-        catch (Exception e) {
-          myStatus.setText("Error: " + e.getMessage());
-          return;
-        }
-        myStatus.setVisible(false);
-        myTree.setModel(new DeviceTreeModel(mySearchBox, deviceInfo));
-        myTree.setVisible(true);
-        pack();
-      }
-    }, EdtExecutor.INSTANCE);
 
     myTree.setRowHeight(JBUI.scale(20));
     myTree.setCellRenderer(new ColoredTreeCellRenderer() {
@@ -203,6 +199,69 @@ public class ActivitySelector extends JDialog {
     });
 
     pack();
+
+    dip.getDeviceInfo(18, 18, new DeviceInfo.Listener() {
+      @Override
+      public void onDeviceInfoReceived(DeviceInfo deviceInfo) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          // Filter out packages with no activities.
+          DeviceInfo transformed = deviceInfo.transform(obj -> (obj.myActivities.length != 0) ? obj : null);
+
+          myStatus.setVisible(false);
+
+          if (myTree.getModel() instanceof DeviceTreeModel) {
+            DeviceTreeModel model = ((DeviceTreeModel)myTree.getModel());
+            TreePath previousSelection = myTree.getSelectionPath();
+            Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(model.getRoot()));
+
+            model.applyDeviceInfoPreservingIcons(transformed);
+
+            if (previousSelection != null) {
+              TreePath newSelection = TreeUtil.getTreePathInTree(previousSelection, myTree);
+              if (newSelection != null) {
+                myTree.setSelectionPath(newSelection);
+              }
+            }
+            while (expanded.hasMoreElements()) {
+              TreePath newPath = TreeUtil.getTreePathInTree(expanded.nextElement(), myTree);
+              if (newPath != null) {
+                myTree.expandPath(newPath);
+              }
+            }
+            ApplicationManager.getApplication().invokeLater(() -> myTree.repaint());
+          }
+          else {
+            myTree.setModel(new DeviceTreeModel(mySearchBox, transformed));
+            myTree.setVisible(true);
+            pack();
+          }
+        });
+      }
+
+      @Override
+      public void onFinished() {
+        ApplicationManager.getApplication().invokeLater(() -> { mySpinner.setVisible(false); });
+      }
+
+      @Override
+      public void onException(Exception e) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          mySpinner.setVisible(false);
+          LOG.warn(e);
+          if (myStatus.isVisible()) {
+            myStatus.setText("Error: " + e.getMessage());
+          }
+          else {
+            Messages.showMessageDialog(
+              myTree,
+              "Cannot fetch package info\n" + e.getMessage(),
+              CommonBundle.getErrorTitle(),
+              Messages.getErrorIcon());
+          }
+
+        });
+      }
+    });
   }
 
   public void setListener(@Nullable Listener listener) {
@@ -216,33 +275,7 @@ public class ActivitySelector extends JDialog {
 
   private void createUIComponents() {
     mySearchBox = new RegexFilterComponent(ActivitySelector.class.getName(), 10);
-  }
-
-  /**
-   * getDeviceInfo returns a {@link ListenableFuture<DeviceInfo>} derived from the
-   * {@link DeviceInfo.Provider}. All packages with no activities will be stripped
-   * from the resolved {@link DeviceInfo}.
-   *
-   * @param dip The {@link DeviceInfo} provider.
-   */
-  private ListenableFuture<DeviceInfo> getDeviceInfo(DeviceInfo.Provider dip) {
-    ListenableFuture<DeviceInfo> future = dip.getDeviceInfo(18, 18);
-
-    // Filter out packages with no activities.
-    return Futures.transform(future, new Function<DeviceInfo, DeviceInfo>() {
-      @Override
-      public DeviceInfo apply(DeviceInfo deviceInfo) {
-        return deviceInfo.transform(new DeviceInfo.Transform<DeviceInfo.Package>() {
-          @Override
-          public DeviceInfo.Package transform(DeviceInfo.Package obj) {
-            if (obj.myActivities.length == 0) {
-              return null; // filter out packages with no activities.
-            }
-            return obj;
-          }
-        });
-      }
-    });
+    mySpinner = new AsyncProcessIcon("Populating package list");
   }
 
   /**
@@ -250,9 +283,38 @@ public class ActivitySelector extends JDialog {
    */
   private static class DeviceTreeModel implements TreeModel {
     private final RegexFilterComponent myFilter;
-    private final DeviceInfo myDevice;
+    private DeviceInfo myDevice;
     private DeviceInfo myFilteredDevice;
     private final List<TreeModelListener> listeners = Lists.newArrayList();
+
+    /**
+     * Updates the tree model with new package information, preserving existing icons
+     * for packages and activities where the new data doesn't provide any.
+     */
+    public void applyDeviceInfoPreservingIcons(DeviceInfo newDeviceInfo) {
+      DeviceInfo previous = myDevice;
+
+      myDevice = newDeviceInfo.transform(pkg -> {
+        DeviceInfo.Package previousPkg = previous.getPackage(pkg.myName);
+        if (previousPkg != null) {
+          pkg = pkg.transform(act -> {
+            DeviceInfo.Activity previousAct = previousPkg.getActivity(act.myName);
+            if (act.myIcon == null && previousAct != null && previousAct.myIcon != null) {
+              act.myIcon = previousAct.myIcon;
+            }
+            return act;
+          });
+
+          if (pkg.myIcon == null && previousPkg.myIcon != null) {
+            pkg.myIcon = previousPkg.myIcon;
+          }
+        }
+        return pkg;
+      });
+
+      filter();
+      fireTreeChanged();
+    }
 
     public DeviceTreeModel(RegexFilterComponent filter, DeviceInfo device) {
       myFilter = filter;

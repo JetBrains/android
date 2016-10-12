@@ -17,75 +17,23 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * PsiElementFinder extensions that finds classes generated for layout files.
  */
 public class DataBindingClassFinder extends PsiElementFinder {
-  private final CachedValue<Map<String, PsiPackage>> myPackageCache;
   private final DataBindingProjectComponent myComponent;
   public DataBindingClassFinder(DataBindingProjectComponent component) {
     myComponent = component;
-    myPackageCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(
-      new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
-
-        @NotNull
-        @Override
-        protected Map<String, PsiPackage> merge(List<Set<String>> results) {
-          Map<String, PsiPackage> merged = Maps.newHashMap();
-          for (Set<String> result : results) {
-            for (String qualifiedPackage : result) {
-              if (!merged.containsKey(qualifiedPackage)) {
-                merged.put(qualifiedPackage, myComponent.getOrCreateDataBindingPsiPackage(qualifiedPackage));
-              }
-            }
-          }
-          return merged;
-        }
-
-        @Override
-        ResourceCacheValueProvider<Set<String>> createCacheProvider(AndroidFacet facet) {
-          return new ResourceCacheValueProvider<Set<String>>(facet) {
-            @Override
-            Set<String> doCompute() {
-              LocalResourceRepository moduleResources = getFacet().getModuleResources(true);
-              if (moduleResources == null) {
-                return Collections.emptySet();
-              }
-              Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
-              if (dataBindingResourceFiles == null) {
-                return Collections.emptySet();
-              }
-              Set<String> result = Sets.newHashSet();
-              for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-                result.add(info.getPackageName());
-              }
-              return result;
-            }
-
-            @Override
-            Set<String> defaultValue() {
-              return Collections.emptySet();
-            }
-          };
-        }
-      }, false);
   }
 
   @Nullable
@@ -128,9 +76,8 @@ public class DataBindingClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
-      return null;
-    }
-    return myPackageCache.getValue().get(qualifiedName);
+    // data binding packages are found only if corresponding java packages does not exists. For those, we have DataBindingPackageFinder
+    // which has a low priority.
+    return null;
   }
 }

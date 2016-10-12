@@ -79,7 +79,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
-        if (facet.isLibraryProject()) {
+        if (facet.canBeDependency()) {
           libTargetIds.add(module.getName());
         }
         else {

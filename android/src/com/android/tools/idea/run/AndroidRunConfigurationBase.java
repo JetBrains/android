@@ -61,7 +61,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import icons.AndroidIcons;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -158,10 +157,15 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (facet.isLibraryProject()) {
-      Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
-      if (!result.getFirst()) {
-        errors.add(ValidationError.fatal(result.getSecond()));
+    if (!facet.isAppProject()) {
+      if (facet.isLibraryProject()) {
+        Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
+        if (!result.getFirst()) {
+          errors.add(ValidationError.fatal(result.getSecond()));
+        }
+      }
+      else {
+        errors.add(ValidationError.fatal(AndroidBundle.message("run.error.apk.not.valid")));
       }
     }
     if (facet.getConfiguration().getAndroidPlatform() == null) {
@@ -416,7 +420,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler,
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions, processHandler,
                                             instantRunContext);
 
     InstantRunStatsService.get(project).notifyBuildStarted();

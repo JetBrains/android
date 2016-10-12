@@ -19,9 +19,14 @@ package org.jetbrains.android.inspections;
 import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.lint.AddTargetApiQuickFix;
+import com.android.tools.idea.lint.AddTargetVersionCheckQuickFix;
+import com.android.tools.idea.lint.LintIdeJavaParser;
+import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.checks.*;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
@@ -186,7 +191,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return new JavaElementVisitor() {
-      private LombokPsiParser.LintPsiJavaEvaluator myEvaluator = new LombokPsiParser.LintPsiJavaEvaluator(holder.getProject());
+      private LintIdeJavaParser.LintPsiJavaEvaluator myEvaluator = new LintIdeJavaParser.LintPsiJavaEvaluator(holder.getProject());
 
       @Override
       public void visitCallExpression(PsiCallExpression callExpression) {
@@ -604,7 +609,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
     }
 
-    if (IntellijLintUtils.isSuppressed(methodCall, methodCall.getContainingFile(), UNSUPPORTED)) {
+    if (LintIdeUtils.isSuppressed(methodCall, UNSUPPORTED)) {
       return;
     }
 
@@ -866,7 +871,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   /** Attempts to infer the current thread context at the site of the given method call */
   @Nullable
   private static List<String> getThreadContext(PsiCall methodCall) {
-    PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
+    //noinspection unchecked
+    PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true,
+                                                   PsiAnonymousClass.class, PsiLambdaExpression.class);
     return getThreads(method);
   }
 
@@ -945,7 +952,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       Project project = methodCall.getProject();
       final AndroidFacet facet = AndroidFacet.getInstance(methodCall);
       assert facet != null; // already checked early on in the inspection visitor
-      PermissionHolder lookup = DeclaredPermissionsLookup.getPermissionHolder(facet.getModule());
+      PermissionHolder lookup = MergedManifest.get(facet.getModule()).getPermissionHolder();
       if (!requirement.isSatisfied(lookup)) {
         // See if it looks like we're holding the permission implicitly by @RequirePermission
         // annotations in the surrounding context
@@ -969,13 +976,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         LocalQuickFix[] fixes = LocalQuickFix.EMPTY_ARRAY;
         List<LocalQuickFix> list = Lists.newArrayList();
         for (String permissionName : requirement.getMissingPermissions(lookup)) {
-          list.add(new AddPermissionFix(facet, permissionName));
+          list.add(new AddPermissionFix(facet, permissionName, requirement));
         }
         if (!list.isEmpty()) {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
         registerProblem(holder, MISSING_PERMISSION, methodCall, message, fixes);
-      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
+      } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23
+          && requirement.getLastApplicableApi() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
         if (securityException != null &&
@@ -1055,10 +1063,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static class AddPermissionFix implements LocalQuickFix {
     private final AndroidFacet myFacet;
     private final String myPermissionName;
+    private PermissionRequirement myRequirement;
 
-    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName) {
+    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, @NotNull PermissionRequirement requirement) {
       myFacet = facet;
       myPermissionName = permissionName;
+      myRequirement = requirement;
     }
 
     @Nls
@@ -1134,9 +1144,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         // namespace prefix will not work correctly
         permissionTag.setAttribute(ATTR_NAME, ANDROID_URI, myPermissionName);
 
+        // Some permissions only apply for a range of API levels - for example,
+        // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
+        // case set a maxSdkVersion attribute on the uses-permission element.
+        if (myRequirement.getLastApplicableApi() != Integer.MAX_VALUE
+            && myRequirement.getLastApplicableApi() >= AndroidModuleInfo.get(myFacet).getMinSdkVersion().getApiLevel()) {
+          permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myRequirement.getLastApplicableApi()));
+        }
+
         CodeStyleManager.getInstance(project).reformat(permissionTag);
 
-        DeclaredPermissionsLookup.getInstance(project).reset();
         FileDocumentManager.getInstance().saveAllDocuments();
         PsiFile containingFile = permissionTag.getContainingFile();
         // No edits were made to the current document, so trigger a rescan to ensure
@@ -1993,7 +2010,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
       if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) || qualifiedName.startsWith("test.pkg.")) {
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
-          if (type != null) {
+          if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
         }
@@ -2227,7 +2244,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
       if (!thenAllowed) return InspectionResult.invalid(thenExpression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(elseExpression);
     }
     else if (expression instanceof PsiNewExpression) {
@@ -2404,7 +2421,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
       if (!thenAllowed) return InspectionResult.invalid(expression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid()) ? InspectionResult
         .valid() : InspectionResult.invalid(expression);
     }
 
@@ -2565,12 +2582,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      if (thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
+      if (thenExpression != null && isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
         return InspectionResult.invalid(expression);
       }
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
-        .valid() : InspectionResult.invalid(expression);
+      return (elseExpression == null || !isAllowed(scope, elseExpression, allowedValues, manager, visited).isInvalid())
+             ? InspectionResult.valid() : InspectionResult.invalid(expression);
     }
 
     if (e != argument && argument instanceof PsiReferenceExpression) {

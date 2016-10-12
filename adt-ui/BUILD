@@ -15,7 +15,15 @@ iml_module(
         "//tools/base/common:studio.common[module]",
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/idea/.idea/libraries:mockito",
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
+    tags = ["managed"],
+)
+
+java_binary(
+    name = "baseline-images-generator",
+    runtime_deps = [":adt-ui_testlib.javas"],
+    main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
 )

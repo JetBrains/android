@@ -21,12 +21,15 @@ import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
+import com.google.common.base.Objects;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,7 +40,8 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class TextInspectorProvider implements InspectorProvider {
-  private static final List<String> TEXT_PROPERTIES = ImmutableList.of(
+  @VisibleForTesting
+  static final List<String> TEXT_PROPERTIES = ImmutableList.of(
     ATTR_TEXT,
     ATTR_CONTENT_DESCRIPTION,
     ATTR_TEXT_APPEARANCE,
@@ -74,9 +78,9 @@ public class TextInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public TextInspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
+                                                      @NotNull Map<String, NlProperty> properties,
+                                                      @NotNull NlPropertiesManager propertiesManager) {
     if (myComponent == null) {
       myComponent = new TextInspectorComponent(propertiesManager);
     }
@@ -84,10 +88,15 @@ public class TextInspectorProvider implements InspectorProvider {
     return myComponent;
   }
 
+  @Override
+  public void resetCache() {
+    myComponent = null;
+  }
+
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
-  private static class TextInspectorComponent implements InspectorComponent {
+  static class TextInspectorComponent implements InspectorComponent {
     private final NlReferenceEditor myTextEditor;
     private final NlReferenceEditor myDesignTextEditor;
     private final NlReferenceEditor myDescriptionEditor;
@@ -130,8 +139,8 @@ public class TextInspectorProvider implements InspectorProvider {
       myStyleEditor = NlEnumEditor.createForInspector(createEnumStyleListener());
       myFontFamilyEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myTypefaceEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
-      myFontSizeEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
-      mySpacingEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myFontSizeEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
+      mySpacingEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myBoldEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleBold, "Bold");
       myItalicsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleItalics, "Italics");
       myAllCapsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAllCaps, "All Caps");
@@ -233,25 +242,47 @@ public class TextInspectorProvider implements InspectorProvider {
         myColorEditor);
     }
 
+    @TestOnly
+    public List<NlBooleanIconEditor> getTextStyleEditors() {
+      return ImmutableList.of(
+        myBoldEditor,
+        myItalicsEditor,
+        myAllCapsEditor
+      );
+    }
+
+    @TestOnly
+    public List<NlBooleanIconEditor> getTextAlignmentEditors() {
+      return ImmutableList.of(
+        myStartEditor,
+        myLeftEditor,
+        myCenterEditor,
+        myRightEditor,
+        myEndEditor
+      );
+    }
+
     private NlEditingListener createEnumStyleListener() {
       return new NlEditingListener() {
         @Override
         public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
           // TODO: Create a write transaction here to include all these changes in one undo event
-          myStyle.setValue(value);
-          myFontFamily.setValue(null);
-          myFontSize.setValue(null);
-          mySpacing.setValue(null);
-          myTextStyle.setValue(null);
-          myTextAllCaps.setValue(null);
-          myAlignment.setValue(null);
-          myColor.setValue(null);
-          refresh();
+          if (!Objects.equal(value, myStyle.getValue())) {
+            myStyle.setValue(value);
+            myTypeface.setValue(null);
+            myFontFamily.setValue(null);
+            myFontSize.setValue(null);
+            mySpacing.setValue(null);
+            myTextStyle.setValue(null);
+            myTextAllCaps.setValue(null);
+            myAlignment.setValue(null);
+            myColor.setValue(null);
+            refresh();
+          }
         }
 
         @Override
         public void cancelEditing(@NotNull NlComponentEditor editor) {
-
         }
       };
     }

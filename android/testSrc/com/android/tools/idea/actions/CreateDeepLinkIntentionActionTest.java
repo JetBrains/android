@@ -33,8 +33,9 @@ public class CreateDeepLinkIntentionActionTest extends AndroidTestCase {
       "outsideactivity/AndroidManifest.xml";
   private static final String JAVA_FILE = "Class.java";
 
-  public CreateDeepLinkIntentionActionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

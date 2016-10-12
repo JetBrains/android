@@ -19,16 +19,5 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 abstract class ProjectCleanUpTask {
-  @NotNull private final Project myProject;
-
-  ProjectCleanUpTask(@NotNull Project project) {
-    myProject = project;
-  }
-
-  abstract void execute();
-
-  @NotNull
-  Project getProject() {
-    return myProject;
-  }
+  abstract void cleanUp(@NotNull Project project);
 }

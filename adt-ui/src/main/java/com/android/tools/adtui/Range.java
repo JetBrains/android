@@ -16,6 +16,12 @@
 
 package com.android.tools.adtui;
 
+/**
+ * An {@link Animatable} object representing a pair of min/max values.
+ * TODO: Right now there's no guarantee that max is greater than, or equal to min.
+ * {@link #flip()} even swap these values. We should come up with a way to either use a better naming than min/max or make sure that
+ * the invariant min <= max is always kept.
+ */
 public class Range implements Animatable {
 
   private static final float DEFAULT_LERP_FRACTION = 0.95f;
@@ -40,9 +46,6 @@ public class Range implements Animatable {
   private float mLerpThreshold;
 
   public Range(double min, double max) {
-    // TODO: Right now there's no guarantee that max is greater than, or equal to min. The flip() method even swap these values.
-    // That doesn't sound right, so we should come up with a way to either use a better naming than min/max or make sure that
-    // the invariant min <= max is always kept.
     mCurrentMin = mTargetMin = min;
     mInitMax = mCurrentMax = mTargetMax = max;
     mLerpFraction = DEFAULT_LERP_FRACTION;
@@ -53,6 +56,10 @@ public class Range implements Animatable {
     this(0, 0);
   }
 
+  /**
+   * There are cases where an external component (e.g. Axis) does not care about the absolute min/max values, but instead it needs to see
+   * the relative values. This method allows this Range object to zero on any arbitrary offset when calling the "relative" APIs.
+   */
   public void setOffset(long offset) {
     mOffset = offset;
   }

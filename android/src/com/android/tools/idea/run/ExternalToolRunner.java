@@ -34,11 +34,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Locale;
+import java.util.*;
+import java.util.List;
 
 /**
- * {@link com.android.tools.idea.run.ExternalToolRunner} allows running the given
- * {@link com.intellij.execution.configurations.GeneralCommandLine} in an external process while attaching a console to it. The console
+ * {@link ExternalToolRunner} allows running the given
+ * {@link GeneralCommandLine} in an external process while attaching a console to it. The console
  * shows up inside the Run tool window with the given title. By default, a single stop action is provided in the toolbar attached to
  * the console that allows for killing the running command.
  *
@@ -50,6 +51,7 @@ public class ExternalToolRunner {
   private final GeneralCommandLine myCommandLine;
 
   private ProcessHandler myProcessHandler;
+  private final List<ProcessListener> myExtraListeners = new ArrayList<>();
 
   public ExternalToolRunner(@NotNull Project project, @NotNull String consoleTitle, @NotNull GeneralCommandLine commandLine) {
     myProject = project;
@@ -60,15 +62,23 @@ public class ExternalToolRunner {
   public ProcessHandler start() throws ExecutionException {
     final Process process = createProcess();
     myProcessHandler = createProcessHandler(process, myCommandLine);
+    myExtraListeners.stream().forEach(myProcessHandler::addProcessListener);
 
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        initConsoleUi();
-      }
-    });
+    UIUtil.invokeLaterIfNeeded(this::initConsoleUi);
 
     return myProcessHandler;
+  }
+
+  /**
+   * Adds a listener to our process (if it's started already), or saves the listener away to be added when the process is started.
+   */
+  public void addProcessListener(ProcessListener listener) {
+    if (myProcessHandler != null) {
+      myProcessHandler.addProcessListener(listener);
+    }
+    else {
+      myExtraListeners.add(listener);
+    }
   }
 
   @NotNull

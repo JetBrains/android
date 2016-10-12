@@ -35,38 +35,38 @@ public class UpdateResultTest {
   @Test
   public void versionUpdateSuccessfulWithPluginVersionUpdate() {
     myResult.pluginVersionUpdated();
-    assertTrue(myResult.versionUpdateSuccessful());
+    assertTrue(myResult.versionUpdateSuccess());
   }
 
   @Test
   public void versionUpdateSuccessfulWithGradleVersionUpdate() {
     myResult.gradleVersionUpdated();
-    assertTrue(myResult.versionUpdateSuccessful());
+    assertTrue(myResult.versionUpdateSuccess());
   }
 
   @Test
   public void versionUpdateSuccessfulWithPluginVersionUpdateError() {
     myResult.setPluginVersionUpdateError(new Throwable());
-    assertFalse(myResult.versionUpdateSuccessful());
+    assertFalse(myResult.versionUpdateSuccess());
   }
 
   @Test
   public void versionUpdateSuccessfulWithGradleVersionUpdateError() {
     myResult.setGradleVersionUpdateError(new Throwable());
-    assertFalse(myResult.versionUpdateSuccessful());
+    assertFalse(myResult.versionUpdateSuccess());
   }
 
   @Test
   public void versionUpdateSuccessfulWithPluginVersionUpdateAndGradleVersionUpdateError() {
     myResult.pluginVersionUpdated();
     myResult.setGradleVersionUpdateError(new Throwable());
-    assertFalse(myResult.versionUpdateSuccessful());
+    assertFalse(myResult.versionUpdateSuccess());
   }
 
   @Test
   public void versionUpdateSuccessfulWithGradleVersionUpdateAndPluginVersionUpdateError() {
     myResult.gradleVersionUpdated();
     myResult.setPluginVersionUpdateError(new Throwable());
-    assertFalse(myResult.versionUpdateSuccessful());
+    assertFalse(myResult.versionUpdateSuccess());
   }
 }

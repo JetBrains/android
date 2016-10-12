@@ -17,12 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
-import com.android.SdkConstants;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +50,24 @@ public class WidgetConstraintPanel extends JPanel {
   private boolean mWidgetModified;
   public static final int UNCONNECTED = -1;
 
-  private String mWidgetWidthCache;
-  private String mWidgetHeightCache;
-
   ColorSet mColorSet = new InspectorColorSet();
+
+  /**
+   * When true, updates to the panel are ignored and won't update the widget.
+   * This is usually set when the panel is being updated from the widget so there is no need to
+   * feed the changes back to the widget.
+   */
+  private boolean mDisableWidgetUpdates = false;
 
   public void setProperty(NlProperty property) {
     updateComponents(property.getComponents());
+  }
+
+  public void setAspect(String aspect) {
+    mWidget.setDimensionRatio(aspect);
+    WidgetCompanion companion = (WidgetCompanion)mWidget.getCompanionWidget();
+    companion.getWidgetProperties().setDimensionRatio(aspect);
+    widgetModified();
   }
 
   static class InspectorColorSet extends BlueprintColorSet {
@@ -68,6 +78,7 @@ public class WidgetConstraintPanel extends JPanel {
       mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
       mInspectorHighlightsStrokeColor = JBColor.border();
       mInspectorStrokeColor = JBColor.foreground();
+      mInspectorConstraintColor = new JBColor(0x4481d8, 0x496784);
     }
   }
 
@@ -114,7 +125,10 @@ public class WidgetConstraintPanel extends JPanel {
    * Called when mWidget is being changed
    */
   private void widgetChanged() {
+    // Ignore the the updates to the UI components since we are just going to read them from the widget
+    mDisableWidgetUpdates = true;
     configureUI();
+    mDisableWidgetUpdates = false;
     repaint();
   }
 
@@ -129,6 +143,10 @@ public class WidgetConstraintPanel extends JPanel {
     int left = getMargin(ConstraintAnchor.Type.LEFT);
     int right = getMargin(ConstraintAnchor.Type.RIGHT);
     int bottom = getMargin(ConstraintAnchor.Type.BOTTOM);
+    float ratio = mWidget.getDimensionRatio();
+    int side = mWidget.getDimensionRatioSide();
+    WidgetCompanion companion = (WidgetCompanion)mWidget.getCompanionWidget();
+    String ratioString = companion.getWidgetProperties().getDimensionRatio();
     boolean baseline = hasBaseline();
 
     boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
@@ -153,7 +171,7 @@ public class WidgetConstraintPanel extends JPanel {
 
     int widthVal = convert(mWidget.getHorizontalDimensionBehaviour());
     int heightValue = convert(mWidget.getVerticalDimensionBehaviour());
-    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue);
+    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue, ratioString);
   }
 
   /**
@@ -168,8 +186,8 @@ public class WidgetConstraintPanel extends JPanel {
         return SingleWidgetView.FIXED;
       case WRAP_CONTENT:
         return SingleWidgetView.WRAP_CONTENT;
-      case ANY:
-        return SingleWidgetView.ANY;
+      case MATCH_CONSTRAINT:
+        return SingleWidgetView.MATCH_CONSTRAINT;
     }
     return SingleWidgetView.FIXED;
   }
@@ -217,125 +235,6 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   /*-----------------------------------------------------------------------*/
-  // values from widget & NL component to ui
-  /*-----------------------------------------------------------------------*/
-
-  /**
-   * Read the values off of the NLcomponent and set up the UI
-   *
-   * @param component
-   */
-  public void configureUI(NlComponent component) {
-    mComponent = component;
-    if (component == null) return;
-
-    String mWidgetName = component.getId();
-    int bottom = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-    int top = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    int left = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_START);
-    int right = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_END);
-
-    String rl = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    String rr = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
-    String ll = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    String lr = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-    String tt = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    String tb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-    String bt = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    String bb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    String basline = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
-    String hbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
-    String vbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
-    String widthStr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
-    String heightStr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
-    if (rl == null && rr == null) {
-      right = -1;
-    }
-    if (ll == null && lr == null) {
-      left = -1;
-    }
-    if (tt == null && tb == null) {
-      top = -1;
-    }
-    if (bb == null && bt == null) {
-      bottom = -1;
-    }
-
-    boolean showVerticalSlider = bottom >= 0 && top >= 0;
-    boolean showHorizontalSlider = left >= 0 && right >= 0;
-    mVerticalSlider.setEnabled(showVerticalSlider);
-    mHorizontalSlider.setEnabled(showHorizontalSlider);
-    mHorizontalSlider.invalidate();
-    mVerticalSlider.invalidate();
-    mVerticalSlider.setToolTipText(showVerticalSlider ? VERTICAL_TOOL_TIP_TEXT : null);
-    mHorizontalSlider.setToolTipText(showHorizontalSlider ? HORIZONTAL_TOOL_TIP_TEXT : null);
-
-    float horizBias = 0.5f;
-    if (hbias != null && hbias.length() > 0) {
-      try {
-        horizBias = Float.parseFloat(hbias);
-      }
-      catch (NumberFormatException e) {
-        horizBias = 0.5f;
-      }
-    }
-    float vertBias = 0.5f;
-    if (vbias != null && vbias.length() > 0) {
-      try {
-        vertBias = Float.parseFloat(vbias);
-      }
-      catch (NumberFormatException e) {
-        vertBias = 0.5f;
-      }
-    }
-    mHorizontalSlider.setValue((int)(horizBias * 100));
-    mVerticalSlider.setValue(100 - (int)(vertBias * 100));
-    int widthVal = SingleWidgetView.FIXED;
-    int heightValue = SingleWidgetView.FIXED;
-    if (SdkConstants.VALUE_WRAP_CONTENT.equals(widthStr)) {
-      widthVal = SingleWidgetView.WRAP_CONTENT;
-    }
-    else if (SIZE_ANY.equals(widthStr)) {
-      widthVal = SingleWidgetView.ANY;
-    }
-    else {
-      mWidgetWidthCache = widthStr;
-    }
-
-    updateCacheSize(heightStr, heightValue);
-
-    mMain.configureUi(bottom, top, left, right, basline != null, widthVal, heightValue);
-  }
-
-  private int updateCacheSize(String heightStr, int heightValue) {
-    Configuration configuration = mComponent.getModel().getConfiguration();
-    float scale = configuration.getDensity().getDpiValue() / 160.0f;
-
-    // We don't have a width cache, which means the widget was initially
-    // created in spring or wrap_content mode, we can just use the current
-    // widget model's width as a fallback
-    if (mWidgetWidthCache == null) {
-      mWidgetWidthCache = String.valueOf((int)Math.max(mComponent.w / scale, 1.0)) + "dp";
-    }
-
-    if (SdkConstants.VALUE_WRAP_CONTENT.equals(heightStr)) {
-      heightValue = SingleWidgetView.WRAP_CONTENT;
-    }
-    else if (SIZE_ANY.equals(heightStr)) {
-      heightValue = SingleWidgetView.ANY;
-    }
-    else {
-      mWidgetHeightCache = heightStr;
-    }
-
-    // See width above
-    if (mWidgetHeightCache == null) {
-      mWidgetHeightCache = String.valueOf((int)Math.max(mComponent.h / scale, 1.0)) + "dp";
-    }
-    return heightValue;
-  }
-
-  /*-----------------------------------------------------------------------*/
   // values from ui to widget & NL component
   /*-----------------------------------------------------------------------*/
 
@@ -343,7 +242,7 @@ public class WidgetConstraintPanel extends JPanel {
    * Method is called when ever we modify the widget
    */
   private void widgetModified() {
-    if (mWidget == null) {
+    if (mWidget == null || mDisableWidgetUpdates) {
       return;
     }
     if (!mWidgetModified) {
@@ -467,8 +366,8 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     switch (horizontalConstraint) {
-      case SingleWidgetView.ANY:
-        mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      case SingleWidgetView.MATCH_CONSTRAINT:
+        mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         break;
       case SingleWidgetView.FIXED:
         mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -485,8 +384,8 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     switch (verticalConstraint) {
-      case SingleWidgetView.ANY:
-        mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      case SingleWidgetView.MATCH_CONSTRAINT:
+        mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
         break;
       case SingleWidgetView.FIXED:
         mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);

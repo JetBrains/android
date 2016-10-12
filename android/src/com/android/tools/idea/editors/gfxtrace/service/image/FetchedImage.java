@@ -89,7 +89,7 @@ public class FetchedImage implements MultiLevelImage {
   @Override
   public ListenableFuture<BufferedImage> getLevel(int index) {
     return (index < 0 || index >= myLevels.length) ?
-           Futures.<BufferedImage>immediateFailedFuture(new IllegalArgumentException("Invalid image level")) : myLevels[index].get();
+           Futures.immediateFailedFuture(new IllegalArgumentException("Invalid image level " + index)) : myLevels[index].get();
   }
 
   public static ListenableFuture<BufferedImage> loadLevel(ListenableFuture<FetchedImage> futureImage, final int level) {

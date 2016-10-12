@@ -50,9 +50,6 @@ import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +66,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.google.common.base.Joiner.on;
@@ -403,20 +401,19 @@ public final class GuiTests {
    * @param robot       the robot to drive it with
    */
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull Component component, @NotNull Robot robot) {
-    clickPopupMenuItemMatching(new PrefixMatcher(labelPrefix), component, robot);
+    clickPopupMenuItemMatching(s -> s.startsWith(labelPrefix), component, robot);
   }
 
-  public static void clickPopupMenuItemMatching(@NotNull Matcher<String> labelMatcher, @NotNull Component component, @NotNull Robot robot) {
+  public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
     // IntelliJ doesn't seem to use a normal JPopupMenu, so this won't work:
     //    JPopupMenu menu = myRobot.findActivePopupMenu();
     // Instead, it uses a JList (technically a JBList), which is placed somewhere
     // under the root pane.
 
-    Container root = getRootContainer(component);
+    Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
 
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    assertNotNull(root);
     JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
@@ -439,7 +436,7 @@ public final class GuiTests {
         s = elementAt.toString();
       }
 
-      if (labelMatcher.matches(s)) {
+      if (predicate.test(s)) {
         new JListFixture(robot, list).clickItem(i);
         robot.waitForIdle();
         return;
@@ -450,21 +447,7 @@ public final class GuiTests {
     if (items.isEmpty()) {
       fail("Could not find any menu items in popup");
     }
-    fail("Did not find menu item '" + labelMatcher + "' among " + on(", ").join(items));
-  }
-
-  /**
-   * Returns the root container containing the given component
-   */
-  @Nullable
-  public static Container getRootContainer(@NotNull Component component) {
-    return execute(new GuiQuery<Container>() {
-      @Override
-      @Nullable
-      protected Container executeInEDT() throws Throwable {
-        return (Container)SwingUtilities.getRoot(component);
-      }
-    });
+    fail("Did not find the correct menu item among " + on(", ").join(items));
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
@@ -487,17 +470,6 @@ public final class GuiTests {
     Wait.minutes(2).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
-  }
-
-  /**
-   * Fest API bug work-around - Double click on FEST moves the mouse between clicks (to the same location), and that fails on Mac.
-   */
-  public static void doubleClick(Robot robot, Point clickLocation) {
-    robot.moveMouse(clickLocation);
-    robot.pressMouse(LEFT_BUTTON);
-    robot.releaseMouse(LEFT_BUTTON);
-    robot.pressMouse(LEFT_BUTTON);
-    robot.releaseMouse(LEFT_BUTTON);
   }
 
   /**
@@ -680,24 +652,6 @@ public final class GuiTests {
     @Override
     public void projectOpened(Project project) {
       myNotified = true;
-    }
-  }
-
-  private static class PrefixMatcher extends BaseMatcher<String> {
-    private final String prefix;
-
-    public PrefixMatcher(String prefix) {
-      this.prefix = prefix;
-    }
-
-    @Override
-    public boolean matches(Object item) {
-      return item instanceof String && ((String)item).startsWith(prefix);
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText("with prefix '" + prefix + "'");
     }
   }
 }

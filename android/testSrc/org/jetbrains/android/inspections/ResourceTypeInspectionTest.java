@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -55,9 +54,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Module must have Android facet or resource type inspection will become a no-op
     if (AndroidFacet.getInstance(myModule) == null) {
-      String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
-      String platform = AndroidTestBase.getDefaultPlatformDir();
-      AndroidTestCase.addAndroidFacet(myModule, sdkPath, platform, true);
+      AndroidTestCase.addAndroidFacet(myModule);
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
       assertNotNull(sdk);
       @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
@@ -936,16 +933,11 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "import android.net.Uri;\n" +
             "import android.support.annotation.RequiresPermission;\n" +
             "\n" +
-            "import static android.Manifest.permission.READ_HISTORY_BOOKMARKS;\n" +
-            "import static android.Manifest.permission.WRITE_HISTORY_BOOKMARKS;\n" +
-            "\n" +
             "@SuppressWarnings({\"deprecation\", \"unused\"})\n" +
             "public class X {\n" +
             "    @RequiresPermission(Manifest.permission.CALL_PHONE)\n" +
             "    public static final String ACTION_CALL = \"android.intent.action.CALL\";\n" +
             "\n" +
-            "    @RequiresPermission.Read(@RequiresPermission(READ_HISTORY_BOOKMARKS))\n" +
-            "    @RequiresPermission.Write(@RequiresPermission(WRITE_HISTORY_BOOKMARKS))\n" +
             "    public static final Uri BOOKMARKS_URI = Uri.parse(\"content://browser/bookmarks\");\n" +
             "\n" +
             "    public static final Uri COMBINED_URI = Uri.withAppendedPath(BOOKMARKS_URI, \"bookmarks\");\n" +
@@ -988,18 +980,15 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "    public static void contentResolvers(Context context, ContentResolver resolver) {\n" +
             "        // read\n" +
-            "        /*Missing permissions required to read X.BOOKMARKS_URI: com.android.browser.permission.READ_HISTORY_BOOKMARKS*/resolver.query(BOOKMARKS_URI, null, null, null, null)/**/;\n" +
+            "        resolver.query(BOOKMARKS_URI, null, null, null, null);\n" +
             "\n" +
             "        // write\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(BOOKMARKS_URI, null)/**/;\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.delete(BOOKMARKS_URI, null, null)/**/;\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(BOOKMARKS_URI, null, null, null)/**/;\n" +
-            "\n" +
-            "        // Framework (external) annotation\n" +
-            "        /*Missing permissions required to write Browser.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(android.provider.Browser.BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "        resolver.insert(BOOKMARKS_URI, null);\n" +
+            "        resolver.delete(BOOKMARKS_URI, null, null);\n" +
+            "        resolver.update(BOOKMARKS_URI, null, null, null);\n" +
             "\n" +
             "        // URI manipulations\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(COMBINED_URI, null)/**/;\n" +
+            "        resolver.insert(COMBINED_URI, null);\n" +
             "    }\n" +
             "\n" +
             "    public static void startActivity(Object other) {\n" +
@@ -1321,6 +1310,49 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void method(@IntRange(from=0) int parameter) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testIntRangeOnTernaryOperators() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "import java.util.ArrayList;\n" +
+            "import java.util.List;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    @SuppressWarnings(\"MismatchedQueryAndUpdateOfCollection\")\n" +
+            "    private List<String> mItems = new ArrayList<>();\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test1() {\n" +
+            "        return mItems == null ? 0 : mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test2() {\n" +
+            "        return 0; // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test3() {\n" +
+            "        return mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test4() {\n" +
+            "        if (mItems == null) {\n" +
+            "            return 0;\n" +
+            "        } else {\n" +
+            "            return mItems.size();\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int testError() {\n" +
+            "        return /*Value must be ≥ 0*/mItems == null ? -1 : mItems.size()/**/; // ERROR\n\n" +
             "    }\n" +
             "}\n");
   }

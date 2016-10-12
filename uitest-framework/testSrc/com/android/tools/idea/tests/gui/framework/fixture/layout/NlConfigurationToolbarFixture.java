@@ -23,15 +23,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import icons.AndroidIcons;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
@@ -85,7 +85,7 @@ public class NlConfigurationToolbarFixture {
    * Requires the API level to be the given API level
    */
   @NotNull
-  public NlConfigurationToolbarFixture requireApi(int apiLevel)  {
+  public NlConfigurationToolbarFixture requireApi(int apiLevel) {
     Wait.seconds(30).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
@@ -103,10 +103,8 @@ public class NlConfigurationToolbarFixture {
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */
   public void chooseDevice(@NotNull String label) {
-    JButton menuButton = findToolbarButton("The virtual device to render the layout with");
-    myRobot.click(menuButton);
-
-    clickPopupMenuItemMatching(new DeviceNameMatcher(label), myToolBar.getComponent(), myRobot);
+    new JButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
+    clickPopupMenuItemMatching(new DeviceNamePredicate(label), myToolBar.getComponent(), myRobot);
   }
 
   /**
@@ -149,30 +147,23 @@ public class NlConfigurationToolbarFixture {
     });
   }
 
-  private static class DeviceNameMatcher extends BaseMatcher<String> {
+  private static class DeviceNamePredicate implements Predicate<String> {
     private static final String FILE_ARROW = "\u2192"; // Same as com.android.tools.idea.configurations.ConfigurationAction#FILE_ARROW
     private final String deviceName;
 
-    DeviceNameMatcher(@NotNull String deviceName) {
+    DeviceNamePredicate(@NotNull String deviceName) {
       this.deviceName = deviceName;
     }
 
     @Override
-    public boolean matches(Object other) {
-      if (other instanceof String) {
-        String item = (String) other;
-        if (item.contains(FILE_ARROW)) {
-          return deviceName.equals(item.substring(0, item.lastIndexOf(FILE_ARROW)).trim());
-        } else if (item.contains("(")) {
-          return deviceName.equals(item.substring(0, item.lastIndexOf('(')).trim());
-        }
+    public boolean test(String item) {
+      if (item.contains(FILE_ARROW)) {
+        return deviceName.equals(item.substring(0, item.lastIndexOf(FILE_ARROW)).trim());
+      }
+      else if (item.contains("(")) {
+        return deviceName.equals(item.substring(item.lastIndexOf('(') + 1, item.lastIndexOf(')')));
       }
       return false;
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText("matching device name " + deviceName);
     }
   }
 }

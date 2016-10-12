@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
@@ -84,14 +85,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
   @NotNull
   public String getNewName() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        String text = robot().finder().findByType(target(), EditorTextField.class).getText();
-        return text == null ? "" : text;
-      }
-    });
+    return GuiQuery.getNonNull(() -> Strings.nullToEmpty(robot().finder().findByType(target(), EditorTextField.class).getText()));
   }
 
   public void setNewName(@NotNull final String newName) {
@@ -112,10 +106,8 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
    *                     rules described above; <code>false</code> otherwise
    */
   public boolean warningExists(@Nullable final String warningText) {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         JComponent errorTextPane = field("myErrorText").ofType(JComponent.class).in(getDialogWrapper()).get();
         assertNotNull(errorTextPane);
         if (!errorTextPane.isVisible()) {
@@ -128,7 +120,6 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
           return false;
         }
         return warningText == null || text.contains(warningText);
-      }
     });
   }
 }

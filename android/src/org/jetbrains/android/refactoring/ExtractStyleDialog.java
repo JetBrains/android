@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.application.options.ModulesComboBox;
@@ -82,7 +83,7 @@ class ExtractStyleDialog extends DialogWrapper {
       myStyleNameField.setText(parentStyleName + ".");
       myStyleNameField.selectAll();
     } else {
-      String prefix = ResourceHelper.prependResourcePrefix(module, null);
+      String prefix = ResourceHelper.prependResourcePrefix(module, null, ResourceFolderType.VALUES);
       if (prefix != null) {
         myStyleNameField.setText(prefix);
       }

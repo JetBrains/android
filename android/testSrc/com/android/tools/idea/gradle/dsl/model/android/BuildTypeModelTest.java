@@ -23,9 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -1052,7 +1051,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
-    assertEmpty(android.buildTypes());
+    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testEditAndApplyLiteralElements() throws Exception {
@@ -1490,7 +1489,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
-    assertEmpty(android.buildTypes());
+    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testSetAndApplyMapElements() throws Exception {
@@ -1586,10 +1585,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    Collection<BuildTypeModel> buildTypeModels = android.buildTypes();
-    assertSize(1, buildTypeModels);
+    List<BuildTypeModel> buildTypeModels = android.buildTypes();
+    assertThat(buildTypeModels).hasSize(1);
 
-    BuildTypeModel buildType = getOnlyElement(buildTypeModels);
+    BuildTypeModel buildType = buildTypeModels.get(0);
     assertEquals("name", "xyz", buildType.name());
     return buildType;
   }

@@ -20,7 +20,12 @@ import com.android.SdkConstants;
 
 public class AndroidAnimationDomTest extends AndroidDomTestCase {
   public AndroidAnimationDomTest() {
-    super(false, "dom/anim");
+    super("dom/anim");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

@@ -36,21 +36,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
-  public ConfiguredThemeEditorStyleTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
   }
 
   public void testGetStyleResourceUrl() {
@@ -434,11 +432,11 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
     // Add moduleA for the tests below
     if (testName.equals("getParentNamesWithDependency") || testName.equals("themeOverride")) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", PROJECT_TYPE_LIBRARY);
     }
     else if (testName.equals("getConfiguredValues")) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", true);
-      addModuleWithAndroidFacet(projectBuilder, modules, "moduleB", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleA", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "moduleB", PROJECT_TYPE_LIBRARY);
     }
   }
 

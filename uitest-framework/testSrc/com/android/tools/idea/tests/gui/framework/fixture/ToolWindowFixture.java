@@ -28,7 +28,6 @@ import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -112,13 +111,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected boolean isActive() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        return myToolWindow.isActive();
-      }
-    });
+    return GuiQuery.getNonNull(myToolWindow::isActive);
   }
 
   public void activate() {
@@ -146,21 +139,8 @@ public abstract class ToolWindowFixture {
         if (!isActive()) {
           activate();
         }
-        return isVisible();
+        return GuiQuery.getNonNull(
+          () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
       });
-  }
-
-  private boolean isVisible() {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        if (!myToolWindow.isVisible()) {
-          return false;
-        }
-        JComponent component = myToolWindow.getComponent();
-        return component.isVisible() && component.isShowing();
-      }
-    });
   }
 }

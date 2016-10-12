@@ -19,6 +19,7 @@ package com.android.tools.idea.monitor.ui.visual;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
@@ -49,8 +50,6 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   private ThreadsSegment mThreadsSegment;
 
-  private long mStartTimeUs;
-
   @Override
   protected void initialize() {
     mDataStore = new VisualTestSeriesDataStore();
@@ -72,9 +71,10 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range timeRange = new Range();
-    AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeUs);
+    long startTimeUs = mDataStore.getLatestTimeUs();
+    Range timeRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, 0);
+    timeRange.setOffset(startTimeUs);
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
@@ -85,7 +85,7 @@ public class CpuProfilerVisualTest extends VisualTest {
     });
 
     List<Animatable> animatables = new ArrayList<>();
-    animatables.add(AnimatedTimeRange);
+    animatables.add(animatedTimeRange);
     animatables.add(mThreadsSegment);
     mCPULevel2Segment.createComponentsList(animatables);
     mThreadsSegment.createComponentsList(animatables);
@@ -143,7 +143,7 @@ public class CpuProfilerVisualTest extends VisualTest {
 
     @Override
     public SeriesData<CpuProfiler.ThreadActivity.State> get(int index) {
-      return new SeriesData<>(mTime.get(index) - mStartTimeUs, mStates.get(index));
+      return new SeriesData<>(mTime.get(index), mStates.get(index));
     }
 
     @Override

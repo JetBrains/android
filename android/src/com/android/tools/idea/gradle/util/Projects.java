@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -132,7 +132,7 @@ public final class Projects {
                                                                      boolean selectModulesToImport) {
     Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
     ProjectSubset subview = ProjectSubset.getInstance(project);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.getInstance(project).isFeatureEnabled() && modules.size() > 1) {
       if (selectModulesToImport) {
         // Importing a project. Allow user to select which modules to include in the project.
         Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);

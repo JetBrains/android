@@ -44,7 +44,7 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
 
   @Override
   public void init() {
-    myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.of(), getDisposable());
+    myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, getDisposable());
     addPath(myPath);
     super.init();
     myHost.setPreferredWindowSize(JBUI.size(800, 640));

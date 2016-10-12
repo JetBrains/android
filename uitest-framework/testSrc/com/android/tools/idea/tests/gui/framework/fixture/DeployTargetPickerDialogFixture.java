@@ -31,6 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -64,23 +65,18 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
    * {@code getListCellRendererComponent} method returns {@code this}, which is also a {@code SimpleColoredComponent}, whose
    * {@code toString} method returns what gets rendered to the cell. You may vomit now.
    */
-  private static final JListCellReader DEVICE_PICKER_CELL_READER =
-      (jList, index) -> {
-        String deviceName =
-            jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
-        int i = deviceName.lastIndexOf("(");
-        return i > 0 ? deviceName.substring(0, i).trim() : deviceName;
-      };
+  private static final JListCellReader DEVICE_PICKER_CELL_READER = (jList, index) ->
+    jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
 
+  /* Selects a device whose entry in the devices list begins with {@code text}. */
   @NotNull
   public DeployTargetPickerDialogFixture selectDevice(String text) {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
-    Wait.seconds(5)
-        .expecting(String.format("Deployment Target list to contain %s", text))
-        .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
-    jListFixture.selectItem(text);
+    Wait.seconds(5).expecting(String.format("Deployment Target list to contain %s", text))
+      .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
+    jListFixture.selectItem(Pattern.compile(text + ".*"));
     return this;
   }
 

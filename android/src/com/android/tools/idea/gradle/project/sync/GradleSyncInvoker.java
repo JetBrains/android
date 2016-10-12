@@ -15,304 +15,319 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.NativeAndroidProject;
-import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
+import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
-import com.google.common.collect.Lists;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
-import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.util.Function;
-import org.gradle.tooling.BuildActionExecuter;
-import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.gradle.GradleBuild;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLibrariesAndStoreAttachments;
 import static com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
+import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
+import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.openapi.ui.Messages.showErrorDialog;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 public class GradleSyncInvoker {
-  @NotNull private final Project myProject;
-  @NotNull private final PreSyncProjectCleanUp myProjectCleanUp;
+  @NotNull private final FileDocumentManager myFileDocumentManager;
+  @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
-  @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
-  @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   @NotNull
-  public static GradleSyncInvoker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleSyncInvoker.class);
+  public static GradleSyncInvoker getInstance() {
+    return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull Project project, @NotNull PreSyncChecks preSyncChecks, @NotNull PreSyncProjectCleanUp projectCleanUp) {
-    this(project, preSyncChecks, projectCleanUp, new ProjectSetup.Factory());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
+    this(fileDocumentManager, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   @VisibleForTesting
-  GradleSyncInvoker(@NotNull Project project,
-                    @NotNull PreSyncChecks preSyncChecks,
-                    @NotNull PreSyncProjectCleanUp projectCleanUp,
-                    @NotNull ProjectSetup.Factory projectSetupFactory) {
-    myProject = project;
+  GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
+                    @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
+                    @NotNull PreSyncChecks preSyncChecks) {
+    myFileDocumentManager = fileDocumentManager;
+    myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
-    myProjectSetupFactory = projectSetupFactory;
-    myProjectCleanUp = projectCleanUp;
   }
 
-  public void sync(@NotNull ProgressExecutionMode mode, @Nullable GradleSyncListener syncListener) {
-    PreSyncCheckResult canSync = myPreSyncChecks.canSync(myProject);
-    if (!canSync.isSuccess()) {
-      String cause = nullToEmpty(canSync.getFailureCause());
-      handlePreSyncCheckFailure(cause, syncListener);
+  public void requestProjectSyncAndSourceGeneration(@NotNull Project project, @Nullable GradleSyncListener listener) {
+    requestProjectSync(project, RequestSettings.DEFAULT_INSTANCE, listener);
+  }
+
+  public void requestProjectSync(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener) {
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
+    if (isBuildInProgress(project)) {
+      setSyncRequestedDuringBuild(project, true);
       return;
     }
 
-    myProjectCleanUp.execute();
-
-    String title = String.format("Syncing project '%1$s' with Gradle", myProject.getName());
-    Task task;
-    switch (mode) {
-      case MODAL_SYNC:
-        task = new Task.Modal(myProject, title, true) {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            sync(indicator, syncListener);
-          }
-        };
-        break;
-      case IN_BACKGROUND_ASYNC:
-        task = new Task.Backgroundable(myProject, title, true) {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            sync(indicator, syncListener);
-          }
-        };
-        break;
-      default:
-        throw new IllegalArgumentException(mode + " is not a supported execution mode");
-    }
-    invokeAndWaitIfNeeded((Runnable)task::queue);
-  }
-
-  private void handlePreSyncCheckFailure(@NotNull String failureCause, @Nullable GradleSyncListener syncListener) {
-    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-    if (syncState.syncStarted(true)) {
-      createTopLevelProjectAndOpen(myProject);
-      syncState.syncFailed(failureCause);
-      if (syncListener != null) {
-        syncListener.syncFailed(myProject, failureCause);
-      }
-    }
-  }
-
-  private void sync(@NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
-    Callback callback = sync();
-    // @formatter:off
-    callback.doWhenDone(() -> onSyncFinished(callback, indicator, syncListener))
-            .doWhenRejected(() -> onSyncFailed(callback, syncListener));
-    // @formatter:on
-  }
-
-  @NotNull
-  private Callback sync() {
-    Callback callback = new Callback();
-
-    if (myProject.isDisposed()) {
-      callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
-    }
-
-    // TODO: Handle sync cancellation.
-    // TODO: Show Gradle output.
-
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
-
-    Function<ProjectConnection, Void> syncFunction = connection -> {
-      //noinspection deprecation
-      List<Class<?>> modelTypes = Lists.newArrayList(
-        AndroidProject.class, // Android Java
-        NativeAndroidProject.class, // Android Native
-        GradleBuild.class,
-        ModuleExtendedModel.class // Java libraries. TODO: contribute the Java model back to Gradle.
-      );
-      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction(modelTypes));
-
-      ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
-        // TODO: implement
-      };
-      List<String> commandLineArgs = new CommandLineArgs(myProject).get();
-
-      // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
-      // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
-      // daemons are expensive (memory-wise) and slow to start.
-      prepare(executor, createId(), executionSettings, listener, Collections.emptyList() /* JVM args */, commandLineArgs, connection);
-
-      CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
-      executor.withCancellationToken(cancellationTokenSource.token());
-
+    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID));
+    Runnable syncTask = () -> {
       try {
-        SyncAction.ProjectModels models = executor.run();
-        callback.setDone(models);
+        if (prepareProject(project, settings, listener)) {
+          sync(project, settings, listener);
+        }
       }
-      catch (RuntimeException e) {
-        callback.setRejected(e);
+      catch (ConfigurationException e) {
+        showErrorDialog(project, e.getMessage(), e.getTitle());
       }
-
-      return null;
     };
 
-    myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
-    return callback;
+    if (settings.isRunInBackground()) {
+      invokeLaterIfProjectAlive(project, syncTask);
+    }
+    else {
+      invokeAndWaitIfNeeded(syncTask);
+    }
   }
 
-  @NotNull
-  private ExternalSystemTaskId createId() {
-    return ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
-  }
-
-  private static boolean useEmbeddedGradle() {
-    // Do not use the Gradle distribution embedded in Android Studio, but the one set in the project's preference ("local" or "wrapper.")
+  private static boolean isBuildInProgress(@NotNull Project project) {
+    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
+    if (statusBar == null) {
+      return false;
+    }
+    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
+      TaskInfo task = backgroundProcess.getFirst();
+      if (task instanceof GradleTasksExecutor) {
+        ProgressIndicator second = backgroundProcess.getSecond();
+        if (second.isRunning()) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
-  private void onSyncFinished(@NotNull Callback callback,
-                              @NotNull ProgressIndicator indicator,
-                              @Nullable GradleSyncListener syncListener) {
-    SyncAction.ProjectModels models = callback.getModels();
-    if (models != null) {
-      try {
-        ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
-        projectSetup.setUpProject(models, indicator);
-        projectSetup.commit(true /* synchronous */);
+  private boolean prepareProject(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener)
+    throws ConfigurationException {
+    if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
+      if (!settings.isNewProject()) {
+        myFileDocumentManager.saveAllDocuments();
+      }
+      return true; // continue with sync.
+    }
+    invokeLaterIfProjectAlive(project, () -> {
+      String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
+      AndroidGradleNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
 
-        if (syncListener != null) {
-          syncListener.syncSucceeded(myProject);
+      if (listener != null) {
+        listener.syncFailed(project, msg);
+      }
+    });
+    return false; // stop sync.
+  }
+
+  private static boolean hasTopLevelGradleBuildFile(@NotNull Project project) {
+    String projectFolderPath = project.getBasePath();
+    if (projectFolderPath != null) {
+      File buildFile = new File(projectFolderPath, FN_BUILD_GRADLE);
+      return buildFile.isFile();
+    }
+    return false;
+  }
+
+  private void sync(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener) {
+    if (isAndroidStudio()) {
+      // See https://code.google.com/p/android/issues/detail?id=169743
+      // TODO move this method out of GradleUtil.
+      clearStoredGradleJvmArgs(project);
+    }
+
+    PreSyncCheckResult canSync = myPreSyncChecks.canSync(project);
+    if (!canSync.isSuccess()) {
+      // User should have already warned that something is not right and sync cannot continue.
+      String cause = nullToEmpty(canSync.getFailureCause());
+      handlePreSyncCheckFailure(project, cause, listener);
+      return;
+    }
+
+    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
+    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
+    boolean started = GradleSyncState.getInstance(project).syncStarted(!settings.isNewProject());
+    if (!started) {
+      return;
+    }
+
+    boolean useNewGradleSync = GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
+    if (!useNewGradleSync) {
+      resetProject(project);
+    }
+    myPreSyncProjectCleanUp.cleanUp(project);
+
+    GradleSync gradleSync;
+    if (useNewGradleSync) {
+      gradleSync = new NewGradleSync();
+    }
+    else {
+      gradleSync = new IdeaGradleSync();
+    }
+    gradleSync.sync(project, settings, listener);
+  }
+
+  private static void handlePreSyncCheckFailure(@NotNull Project project,
+                                                @NotNull String failureCause,
+                                                @Nullable GradleSyncListener syncListener) {
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    if (syncState.syncStarted(true)) {
+      createTopLevelProjectAndOpen(project);
+      syncState.syncFailed(failureCause);
+      if (syncListener != null) {
+        syncListener.syncFailed(project, failureCause);
+      }
+    }
+  }
+
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void resetProject(@NotNull Project project) {
+    executeProjectChanges(project, () -> {
+      removeLibrariesAndStoreAttachments(project);
+
+      // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+      // failure.
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          facet.setAndroidModel(null);
         }
       }
-      catch (Throwable e) {
-        notifyAndLogSyncError(syncListener, nullToUnknownErrorCause(getRootCauseMessage(e)));
+    });
+  }
+
+  public static class RequestSettings {
+    private static final RequestSettings DEFAULT_INSTANCE = new RequestSettings();
+
+    private boolean myRunInBackground = true;
+    private boolean myGenerateSourcesOnSuccess = true;
+    private boolean myCleanProject;
+    private boolean myUseCachedGradleModels;
+    private boolean myNewProject;
+
+    public boolean isRunInBackground() {
+      return myRunInBackground;
+    }
+
+    @NotNull
+    public RequestSettings setRunInBackground(boolean runInBackground) {
+      myRunInBackground = runInBackground;
+      return this;
+    }
+
+    public boolean isGenerateSourcesOnSuccess() {
+      return myGenerateSourcesOnSuccess;
+    }
+
+    @NotNull
+    public RequestSettings setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
+      myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
+      return this;
+    }
+
+    public boolean isCleanProject() {
+      return myCleanProject;
+    }
+
+    @NotNull
+    public RequestSettings setCleanProject(boolean cleanProject) {
+      myCleanProject = cleanProject;
+      return this;
+    }
+
+    public boolean isUseCachedGradleModels() {
+      return myUseCachedGradleModels;
+    }
+
+    @NotNull
+    public RequestSettings setUseCachedGradleModels(boolean useCachedGradleModels) {
+      myUseCachedGradleModels = useCachedGradleModels;
+      return this;
+    }
+
+    public boolean isNewProject() {
+      return myNewProject;
+    }
+
+    @NotNull
+    public RequestSettings setNewProject(boolean newProject) {
+      myNewProject = newProject;
+      return this;
+    }
+
+    @NotNull
+    public ProgressExecutionMode getProgressExecutionMode() {
+      return isRunInBackground() ? IN_BACKGROUND_ASYNC : MODAL_SYNC;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
       }
-    }
-    else {
-      // SyncAction.ProjectModels should not be null. Something went wrong.
-      notifyAndLogSyncError(syncListener, "Gradle did not return any project models");
-    }
-  }
-
-  private void notifyAndLogSyncError(@Nullable GradleSyncListener syncListener, @NotNull String errorMessage) {
-    if (syncListener != null) {
-      syncListener.syncFailed(myProject, errorMessage);
-    }
-    logSyncFailure(errorMessage);
-  }
-
-  private void onSyncFailed(@NotNull Callback callback, @Nullable GradleSyncListener syncListener) {
-    Throwable error = callback.getSyncError();
-    //noinspection ThrowableResultOfMethodCallIgnored
-    String errorMessage = error != null ? getRootCauseMessage(error) : callback.getError();
-    errorMessage = nullToUnknownErrorCause(errorMessage);
-
-    if (syncListener != null) {
-      syncListener.syncFailed(myProject, errorMessage);
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      RequestSettings settings = (RequestSettings)o;
+      return myRunInBackground == settings.myRunInBackground &&
+             myCleanProject == settings.myCleanProject &&
+             myGenerateSourcesOnSuccess == settings.myGenerateSourcesOnSuccess &&
+             myUseCachedGradleModels == settings.myUseCachedGradleModels &&
+             myNewProject == settings.myNewProject;
     }
 
-    if (error != null) {
-      getLog().warn("Gradle sync failed", error);
-    }
-    else {
-      logSyncFailure(errorMessage);
-    }
-  }
-
-  // Made 'public' to avoid duplication with ProjectSetUpTask#onFailure.
-  // TODO: make 'private' once the new Gradle sync is the default one.
-  public void handleSyncFailure(@NotNull String errorMessage, @Nullable GradleSyncListener syncListener) {
-    String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-    getLog().info(newMessage);
-
-    // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
-    // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
-    // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
-    GradleProjectSyncData.removeFrom(myProject);
-    GradleSyncState.getInstance(myProject).syncFailed(newMessage);
-
-    if (syncListener != null) {
-      syncListener.syncFailed(myProject, newMessage);
-    }
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(GradleSyncInvoker.class);
-  }
-
-  @Nullable
-  private static String getRootCauseMessage(@NotNull Throwable error) {
-    //noinspection ThrowableResultOfMethodCallIgnored
-    Throwable rootCause = getRootCause(error);
-    String message = rootCause.getMessage();
-    return isEmpty(message) ? rootCause.getClass().getName() : message;
-  }
-
-  @NotNull
-  private static String nullToUnknownErrorCause(@Nullable String errorMessage) {
-    return isEmpty(errorMessage) ? "<Unknown cause>" : errorMessage;
-  }
-
-  private static void logSyncFailure(@NotNull String errorMessage) {
-    getLog().warn("Gradle sync failed: " + errorMessage);
-  }
-
-  private static class Callback extends ActionCallback {
-    @Nullable private SyncAction.ProjectModels myModels;
-    @Nullable private Throwable mySyncError;
-
-    @Nullable
-    SyncAction.ProjectModels getModels() {
-      return myModels;
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels, myNewProject);
     }
 
-    void setDone(@Nullable SyncAction.ProjectModels models) {
-      myModels = models;
-      setDone();
-    }
-
-    @Nullable
-    Throwable getSyncError() {
-      return mySyncError;
-    }
-
-    void setRejected(@NotNull Throwable error) {
-      mySyncError = error;
-      setRejected();
+    @Override
+    public String toString() {
+      return "RequestSettings{" +
+             "myRunInBackground=" + myRunInBackground +
+             ", myCleanProject=" + myCleanProject +
+             ", myGenerateSourcesOnSuccess=" + myGenerateSourcesOnSuccess +
+             ", myUseCachedGradleModels=" + myUseCachedGradleModels +
+             ", myNewProject=" + myNewProject +
+             '}';
     }
   }
 }

@@ -29,6 +29,7 @@ import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
@@ -99,6 +100,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private final StudioWizardStepPanel myStudioPanel;
 
+  @Nullable private final AndroidFacet myFacet;
+
   /**
    * All parameters are calculated for validity every time any of them changes, and the first error
    * found is set here. This is then registered as its own validator with {@link #myStudioPanel}.
@@ -118,18 +121,23 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private EvaluationState myEvaluationState = EvaluationState.NOT_EVALUATING;
 
+  /**
+   * @param facet If present, affects some of the UI components (e.g. autocomplete by other
+   *              objects in the same scope/knowledge of android manifest details). Can be null if
+   *              your UI doesn't need the information provided by the module, for example creating
+   *              things at project creation time.
+   */
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
                                          @NotNull String initialPackageName,
-                                         @NotNull List<AndroidSourceSet> sourceSets) {
+                                         @NotNull List<AndroidSourceSet> sourceSets,
+                                         @Nullable AndroidFacet facet) {
     super(model, title);
+
+    myFacet = facet;
 
     mySourceSets = sourceSets;
     myPackageName.set(initialPackageName);
-
-    if (mySourceSets.size() > 0) {
-      getModel().getSourceSet().setValue(mySourceSets.get(0));
-    }
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
@@ -222,7 +230,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     final Collection<Parameter> parameters = templateHandle.getMetadata().getParameters();
     for (final Parameter parameter : parameters) {
-      RowEntry row = createRowForParameter(getModel().getModule(), parameter);
+      RowEntry row = createRowForParameter(myFacet.getModule(), parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
         property.addListener(sender -> {
@@ -260,7 +268,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
       assert sourceSet != null; // SourceSetComboProvider always sets this
-      myBindings.bind(getModel().getSourceSet(), sourceSet);
+      myBindings.bind(getModel().getSourceSet(), new OptionalToValuePropertyAdapter<>(sourceSet));
 
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
@@ -301,9 +309,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   private RowEntry<?> createRowForParameter(@Nullable final Module module, @NotNull Parameter parameter) {
 
-    /**
-     * Handle custom parameter types first.
-     */
+    // Handle custom parameter types first.
     // TODO: Should we extract this logic into an extension point at some point, in order to be
     // more friendly to third-party plugins with templates? Do they need custom UI components?
     if (ATTR_PACKAGE_NAME.equals(parameter.id)) {
@@ -335,9 +341,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    /**
-     * Handle standard parameter types
-     */
+    // Handle standard parameter types
     switch (parameter.type) {
       case STRING:
         assert parameter.name != null;
@@ -386,10 +390,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-      OptionalProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
-      if (sourceSet.get().isPresent()) {
-        additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getValue().getName());
-      }
+      ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
+      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
@@ -455,8 +457,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     String message = null;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
-    Module module = getModel().getModule();
-    SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
+    Module module = myFacet.getModule();
+    SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -500,7 +502,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return getModel().getSourceSet().isPresent().and(myValidatorPanel.hasErrors().not());
+    return myValidatorPanel.hasErrors().not();
   }
 
   private void createUIComponents() {
@@ -525,11 +527,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @Override
   protected void onProceeding() {
 
-    AndroidFacet facet = getModel().getFacet();
-    Module module = getModel().getModule();
+    Module module = myFacet != null ? myFacet.getModule() : null;
 
     // canGoForward guarantees this optional value is present
-    AndroidSourceSet sourceSet = getModel().getSourceSet().getValue();
+    AndroidSourceSet sourceSet = getModel().getSourceSet().get();
     AndroidProjectPaths paths = sourceSet.getPaths();
 
     File moduleRoot = paths.getModuleRoot();
@@ -539,16 +540,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       return;
     }
 
-    /**
-     * Some parameter values should be saved for later runs through this wizard, so do that first.
-     */
+    // Some parameter values should be saved for later runs through this wizard, so do that first.
     for (RowEntry rowEntry : myParameterRows.values()) {
       rowEntry.accept();
     }
 
-    /**
-     * Prepare the template data-model, starting from scratch and filling in all values we know
-     */
+    // Prepare the template data-model, starting from scratch and filling in all values we know
     Map<String, Object> templateValues = getModel().getTemplateValues();
     templateValues.clear();
 
@@ -565,84 +562,84 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    try {
-      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(facet)));
+    // TODO: Handle adding these paths for when we don't have a facet yet (e.g project creation
+    // time)
+    if (myFacet != null) {
+      try {
+        templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(myFacet)));
+      }
+      catch (Exception e) {
+        getLog().info("Could not compute SHA1 hash of debug keystore.", e);
+        templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
+      }
+
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      if (platform != null) {
+        templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
+        templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
+      }
+
+      // Register the resource directories associated with the active source provider
+      templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
+
+      String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
+      File srcDir = paths.getSrcDirectory();
+      if (srcDir != null) {
+        srcDir = new File(srcDir, packageAsDir);
+
+        templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
+        templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
+      }
+
+      File testDir = paths.getTestDirectory();
+      if (testDir != null) {
+        testDir = new File(testDir, packageAsDir);
+
+        templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
+        templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
+      }
+
+      File resDir = paths.getResDirectory();
+      if (resDir != null) {
+        templateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
+        templateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
+      }
+
+      File manifestDir = paths.getManifestDirectory();
+      if (manifestDir != null) {
+        templateValues.put(ATTR_MANIFEST_DIR, getRelativePath(moduleRoot, manifestDir));
+        templateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
+      }
+
+      File aidlDir = paths.getAidlDirectory();
+      if (aidlDir != null) {
+        templateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
+        templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
+      }
+
+      // Register application-wide settings
+      String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
+      if (!myPackageName.get().equals(applicationPackage)) {
+        templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
+      }
+
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+      AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
+      String minSdkName = minSdkVersion.getApiString();
+
+      templateValues.put(ATTR_MIN_API, minSdkName);
+      templateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
+      templateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
+
+      templateValues.put(ATTR_IS_LIBRARY_MODULE, myFacet.isLibraryProject());
+
+      templateValues.put(PROJECT_LOCATION_ID, module.getProject().getBasePath());
+
+      // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
+      // name as its containing project.
+      String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
+      templateValues.put(ATTR_MODULE_NAME, moduleName);
     }
-    catch (Exception e) {
-      getLog().info("Could not compute SHA1 hash of debug keystore.", e);
-      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
-    }
-
-    AndroidPlatform platform = AndroidPlatform.getInstance(getModel().getModule());
-    if (platform != null) {
-      templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
-      templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
-    }
-
-    /**
-     * Register the resource directories associated with the active source provider
-     */
-    templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
-
-    String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
-    File srcDir = paths.getSrcDirectory();
-    if (srcDir != null) {
-      srcDir = new File(srcDir, packageAsDir);
-
-      templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
-      templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
-    }
-
-    File testDir = paths.getTestDirectory();
-    if (testDir != null) {
-      testDir = new File(testDir, packageAsDir);
-
-      templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
-      templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
-    }
-
-    File resDir = paths.getResDirectory();
-    if (resDir != null) {
-      templateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
-      templateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
-    }
-
-    File manifestDir = paths.getManifestDirectory();
-    if (manifestDir != null) {
-      templateValues.put(ATTR_MANIFEST_DIR, getRelativePath(moduleRoot, manifestDir));
-      templateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
-    }
-
-    File aidlDir = paths.getAidlDirectory();
-    if (aidlDir != null) {
-      templateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
-      templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
-    }
-
-    /**
-     * Register application-wide settings
-     */
-    String applicationPackage = AndroidPackageUtils.getPackageForApplication(getModel().getFacet());
-    if (!myPackageName.get().equals(applicationPackage)) {
-      templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(facet));
-    }
-
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
-    String minSdkName = minSdkVersion.getApiString();
-
-    templateValues.put(ATTR_MIN_API, minSdkName);
-    templateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
-    templateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
-
-    templateValues.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
-
-    templateValues.put(PROJECT_LOCATION_ID, module.getProject().getBasePath());
-
-    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
-    // name as its containing project.
-    String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-    templateValues.put(ATTR_MODULE_NAME, moduleName);
   }
 
   /**
@@ -783,10 +780,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Joiner filenameJoiner = Joiner.on('.').skipNulls();
 
       int suffix = 2;
-      Module module = getModel().getModule();
+      Module module = myFacet.getModule();
       Project project = module.getProject();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceProvider = getModel().getSourceSet().get().map(AndroidSourceSet::toSourceProvider).orElse(null);
+      SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
       while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;

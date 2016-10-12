@@ -125,7 +125,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
 
     if (chooseFileName) {
-      filename = ResourceHelper.prependResourcePrefix(module, filename);
+      filename = ResourceHelper.prependResourcePrefix(module, filename, folderType);
     }
 
     boolean validateImmediately = false;
@@ -193,14 +193,16 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   }
 
   @Nullable
+  private ResourceFolderType getSelectedFolderType() {
+    return ResourceFolderType.getFolderType(myResourceTypeCombo.getSelectedName());
+  }
+
+  @Nullable
   private String getNameError(@NotNull String fileName) {
-    String typeName = myResourceTypeCombo.getSelectedName();
-    if (typeName != null) {
-      ResourceFolderType type = ResourceFolderType.getFolderType(typeName);
-      if (type != null) {
-        ResourceNameValidator validator = ResourceNameValidator.create(true, type);
-        return validator.getErrorText(fileName);
-      }
+    ResourceFolderType type = getSelectedFolderType();
+    if (type != null) {
+      ResourceNameValidator validator = ResourceNameValidator.create(true, type);
+      return validator.getErrorText(fileName);
     }
 
     return null;
@@ -328,7 +330,9 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   @Override
   public JComponent getPreferredFocusedComponent() {
     String name = myFileNameField.getText();
-    if (name.length() == 0 || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null)) || getNameError(name) != null) {
+    if (name.length() == 0
+        || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
+        || getNameError(name) != null) {
       return myFileNameField;
     }
     else if (myResourceTypeCombo.isVisible()) {

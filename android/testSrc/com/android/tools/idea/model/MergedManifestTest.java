@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.lint.checks.PermissionHolder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -238,6 +240,25 @@ public class MergedManifestTest extends AndroidTestCase {
                              "</manifest>\n");
     assertEquals("JellyBean", info.getMinSdkVersion().getApiString());
     assertEquals("JellyBean", info.getMinSdkVersion().getCodename());
+  }
+
+  public void testGetPermissionHolder() throws Exception {
+    MergedManifest info = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                             "    package='com.android.unittest'>\n" +
+                             "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                             "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                             "    <uses-permission\n" +
+                             "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                             "    <permission\n" +
+                             "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                             "        android:protectionLevel=\"dangerous\" />\n" +
+                             "</manifest>\n");
+
+    PermissionHolder permissionHolder = info.getPermissionHolder();
+    assertNotNull(permissionHolder);
+    assertTrue(permissionHolder.hasPermission("android.permission.BLUETOOTH"));
+    assertTrue(permissionHolder.hasPermission("android.permission.WRITE_EXTERNAL_STORAGE"));
+    assertTrue(permissionHolder.isRevocable("com.android.unittest.permission.DEADLY"));
   }
 
   @SuppressWarnings("ConstantConditions")

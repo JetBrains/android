@@ -45,11 +45,6 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
     "        android:text=\"@string/hello\" />\n" +
     "</FrameLayout>";
 
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
-
   // This test is here to make sure we generate a preview image for each component that is supposed to have a preview.
   // If LayoutLib has trouble with a component (or a combination of components) we may start missing previews of several components.
   // Also make sure we have unique IDs for all preview components.

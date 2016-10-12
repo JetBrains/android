@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
@@ -56,7 +57,7 @@ import java.util.List;
 /**
  * Assembles a designer editor from various components
  */
-public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, DataProvider {
+public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade {
   private final XmlFile myFile;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
@@ -74,8 +75,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
-    MockupEditor mockupEditor = new MockupEditor(mySurface, model);
-    mySurface.setMockupEditor(mockupEditor);
 
     JPanel contentPanel = new JPanel(new BorderLayout());
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
@@ -85,9 +84,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // Hold the surface and MockupEditor
     AnimatedComponentSplitter surfaceMockupWrapper = new AnimatedComponentSplitter(false, true);
     surfaceMockupWrapper.setInnerComponent(contentPanel);
-    surfaceMockupWrapper.setLastComponent(mockupEditor);
-    surfaceMockupWrapper.setDividerWidth(1);
-    surfaceMockupWrapper.setDividerMouseZoneSize(1);
+
+    if (Mockup.ENABLE_FEATURE) {
+      MockupEditor mockupEditor = new MockupEditor(mySurface, model);
+      mySurface.setMockupEditor(mockupEditor);
+      surfaceMockupWrapper.setLastComponent(mockupEditor);
+    }
+
     Disposer.register(editor, surfaceMockupWrapper);
 
     /**
@@ -138,154 +141,8 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   }
 
   @Override
-  public Object getData(@NonNls String dataId) {
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
-        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
-        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return new ActionHandler(this);
-    }
-    return null;
-  }
-
-  @Override
   public ThreeComponentsSplitter getContentSplitter() {
     return myContentSplitter;
-  }
-
-  private static class ActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-    private final NlEditorPanel myEditor;
-
-    public ActionHandler(NlEditorPanel panel) {
-      myEditor = panel;
-    }
-
-    @Override
-    public void performCopy(@NotNull DataContext dataContext) {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      if (screenView == null) {
-        return;
-      }
-      CopyPasteManager.getInstance().setContents(screenView.getModel().getSelectionAsTransferable());
-    }
-
-    @Override
-    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-      return hasNonEmptySelection();
-    }
-
-    @Override
-    public boolean isCopyVisible(@NotNull DataContext dataContext) {
-      return true;
-    }
-
-    @Override
-    public void performCut(@NotNull DataContext dataContext) {
-      performCopy(dataContext);
-      deleteElement(dataContext);
-    }
-
-    @Override
-    public boolean isCutEnabled(@NotNull DataContext dataContext) {
-      return hasNonEmptySelection();
-    }
-
-    @Override
-    public boolean isCutVisible(@NotNull DataContext dataContext) {
-      return true;
-    }
-
-    @Override
-    public void deleteElement(@NotNull DataContext dataContext) {
-      DesignSurface surface = myEditor.getSurface();
-      ScreenView screenView = surface.getCurrentScreenView();
-      if (screenView == null) {
-        return;
-      }
-      SelectionModel selectionModel = screenView.getSelectionModel();
-      NlModel model = screenView.getModel();
-      model.delete(selectionModel.getSelection());
-    }
-
-    @Override
-    public boolean canDeleteElement(@NotNull DataContext dataContext) {
-      return hasNonEmptySelection();
-    }
-
-    @Override
-    public void performPaste(@NotNull DataContext dataContext) {
-      pasteOperation(false /* check and perform the actual paste */);
-    }
-
-    @Override
-    public boolean isPastePossible(@NotNull DataContext dataContext) {
-      return true;
-    }
-
-    @Override
-    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
-      return pasteOperation(true /* check only */);
-    }
-
-    private boolean hasNonEmptySelection() {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      return screenView != null && !screenView.getSelectionModel().isEmpty();
-    }
-
-    private boolean pasteOperation(boolean checkOnly) {
-      ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
-      if (screenView == null) {
-        return false;
-      }
-      List<NlComponent> selection = screenView.getSelectionModel().getSelection();
-      if (selection.size() != 1) {
-        return false;
-      }
-      NlComponent receiver = selection.get(0);
-      NlComponent before;
-      NlModel model = screenView.getModel();
-      ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getProject());
-      ViewHandler handler = handlerManager.getHandler(receiver);
-      if (handler instanceof ViewGroupHandler) {
-        before = receiver.getChild(0);
-      }
-      else {
-        before = receiver.getNextSibling();
-        receiver = receiver.getParent();
-        if (receiver == null) {
-          return false;
-        }
-      }
-
-      DnDTransferItem item = getClipboardData();
-      if (item == null) {
-        return false;
-      }
-      InsertType insertType = model.determineInsertType(DragType.PASTE, item, checkOnly);
-      List<NlComponent> pasted = model.createComponents(screenView, item, insertType);
-      if (!model.canAddComponents(pasted, receiver, before)) {
-        return false;
-      }
-      if (checkOnly) {
-        return true;
-      }
-      model.addComponents(pasted, receiver, before, insertType);
-      return true;
-    }
-
-    @Nullable
-    private static DnDTransferItem getClipboardData() {
-      try {
-        Object data = CopyPasteManager.getInstance().getContents(ItemTransferable.DESIGNER_FLAVOR);
-        if (!(data instanceof DnDTransferItem)) {
-          return null;
-        }
-        return (DnDTransferItem)data;
-      }
-      catch (Exception e) {
-        return null;
-      }
-    }
   }
 
   /**

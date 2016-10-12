@@ -23,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +35,9 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 public final class GradleWrapper {
@@ -175,6 +178,17 @@ public final class GradleWrapper {
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     savePropertiesToFile(properties, myPropertiesFilePath, null);
     return true;
+  }
+
+  @TestOnly
+  public void updateDistributionUrl(@NotNull File gradleDistribution) throws IOException {
+    String path = gradleDistribution.getPath();
+    if (!extensionEquals(path, "zip")) {
+      throw new IllegalArgumentException("'" + path + "' should be a zip file");
+    }
+    Properties properties = getProperties();
+    properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistribution.toURI().toURL().toString());
+    savePropertiesToFile(properties, myPropertiesFilePath, null);
   }
 
   @NotNull

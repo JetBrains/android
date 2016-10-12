@@ -98,7 +98,8 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   }
 
   public void setInterface(@NotNull String iface) {
-    EditorTextFieldFixture.findByLabel(robot(), target(), "Interface(s):").replaceText(iface);
+    EditorTextFieldFixture.findByLabel(robot(), target(), "Interface(s):").replaceText(iface)
+      .requireText(iface);  // for debugging; this UI field appears to misbehave sometimes
   }
 
   public void setSuperclass(@NotNull String superclass) {

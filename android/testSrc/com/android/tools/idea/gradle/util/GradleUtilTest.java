@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Dependencies;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
@@ -32,8 +29,10 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -68,54 +67,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void supportsDependencyGraph() {
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.1")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3.0")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3+")));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
-  }
-
-  @Test
-  public void supportsDependencyGraphWithTextVersion() {
-    assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0-dev"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.1"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3.0"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3+"));
-    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
-  }
-
-  @Test
-  public void getDependenciesWithModelThatSupportsDependencyGraph() {
-    BaseArtifact artifact = mock(BaseArtifact.class);
-    Dependencies dependencies = mock(Dependencies.class);
-
-    when(artifact.getCompileDependencies()).thenReturn(dependencies);
-
-    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("2.2.0"));
-    assertSame(dependencies, actual);
-
-    verify(artifact).getCompileDependencies();
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void getDependenciesWithModelThatDoesNotSupportDependencyGraph() {
-    BaseArtifact artifact = mock(BaseArtifact.class);
-    Dependencies dependencies = mock(Dependencies.class);
-
-    when(artifact.getDependencies()).thenReturn(dependencies);
-
-    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("1.2.0"));
-    assertSame(dependencies, actual);
-
-    verify(artifact).getDependencies();
-  }
-
-  @Test
   public void getGradleInvocationJvmArgWithNullBuildMode() {
     assertNull(GradleUtil.getGradleInvocationJvmArg(null));
   }
@@ -142,38 +93,6 @@ public class GradleUtilTest {
     myTempDir = createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
-  }
-
-  @Test
-  public void getGradleVersionFromJarUsingGradleLibraryJar() {
-    File jarFile = new File("gradle-core-2.0.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.0"), gradleVersion);
-  }
-
-  @Test
-  public void rc() {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=179838
-    File jarFile = new File("gradle-core-2.5-rc-1.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.5"), gradleVersion);
-  }
-
-  @Test
-  public void nightly() {
-    File jarFile = new File("gradle-core-2.10-20151029230024+0000.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNotNull(gradleVersion);
-    assertEquals(GradleVersion.parse("2.10"), gradleVersion);
-  }
-
-  @Test
-  public void getGradleVersionFromJarUsingNonGradleLibraryJar() {
-    File jarFile = new File("ant-1.9.3.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNull(gradleVersion);
   }
 
   @Test
@@ -231,25 +150,5 @@ public class GradleUtilTest {
     url = "http://myown.com/gradle-2.2.1-bin.zip";
     version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
-  }
-
-  @Test
-  public void hasLayoutRenderingIssue() {
-    AndroidProjectStub model = new AndroidProjectStub("app");
-
-    model.setModelVersion("1.1.0");
-    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.0");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.1");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.2");
-    assertTrue(GradleUtil.hasLayoutRenderingIssue(model));
-
-    model.setModelVersion("1.2.3");
-    assertFalse(GradleUtil.hasLayoutRenderingIssue(model));
   }
 }

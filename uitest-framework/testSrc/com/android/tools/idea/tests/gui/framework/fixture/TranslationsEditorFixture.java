@@ -30,8 +30,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public class TranslationsEditorFixture extends JTableFixture {
   public TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor target) {
     super(robot, target.getTranslationsTable());
@@ -57,18 +55,15 @@ public class TranslationsEditorFixture extends JTableFixture {
 
   @NotNull
   private static List<String> getColumnHeaderValues(@NotNull final JTable table) {
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<List<String>>() {
-      @Override
-      protected List<String> executeInEDT() throws Throwable {
+    return GuiQuery.getNonNull(
+      () -> {
         int columnCount = table.getColumnModel().getColumnCount();
         List<String> columns = Lists.newArrayListWithExpectedSize(columnCount);
         for (int i = 0; i < columnCount; i++) {
           columns.add(table.getColumnName(i));
         }
         return columns;
-      }
-    });
+      });
   }
 
   private static class StringsCellRendererReader implements CellRendererReader {

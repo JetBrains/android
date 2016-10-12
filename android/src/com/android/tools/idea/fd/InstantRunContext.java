@@ -55,16 +55,6 @@ public interface InstantRunContext {
   boolean usesMultipleProcesses();
 
   /**
-   * Returns the changes that have happened in the IDE since the previous call to this method. If the IDE knows that only certain
-   * parts of the application have changed, then it can provide that information to the build system to help speed up which tasks
-   * of the build system are run. This method is optional and can return null if this information is not available.
-   *
-   * @return the changes that have happened in this project since the last build, or null if change information is not available.
-   */
-  @Nullable
-  FileChangeListener.Changes getFileChangesAndReset();
-
-  /**
    * Returns the {@link InstantRunBuildInfo} that is generated once an IR build has completed.
    */
   @Nullable

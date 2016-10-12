@@ -24,12 +24,20 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +52,8 @@ import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
-public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model {
+public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model,
+                                                         DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
@@ -107,6 +116,14 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   public void removeNotify() {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
+  }
+
+  public void activatePropertySheet() {
+    setAllPropertiesPanelVisible(true);
+  }
+
+  public void activateInspector() {
+    setAllPropertiesPanelVisible(false);
   }
 
   public void setItems(@NotNull List<NlComponent> components,
@@ -246,5 +263,81 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
         parent1.scrollRectToVisible(bounds);
       }
     }
+  }
+
+  // ---- Implements DataProvider ----
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  // ---- Implements CopyProvider ----
+  // Avoid the copying of components while editing the properties.
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements CutProvider ----
+  // Avoid the deletion of components while editing the properties.
+
+  @Override
+  public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isCutVisible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performCut(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements DeleteProvider ----
+  // Avoid the deletion of components while editing the properties.
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements PasteProvider ----
+  // Avoid the paste of components while editing the properties.
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
   }
 }

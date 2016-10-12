@@ -25,10 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
@@ -57,7 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -67,8 +63,6 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -87,9 +81,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 import static com.intellij.openapi.ui.Messages.getQuestionIcon;
-import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -100,7 +92,6 @@ import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -114,8 +105,6 @@ public final class GradleUtil {
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
-  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(.*)\\.jar");
-
   /**
    * Finds characters that shouldn't be used in the Gradle path.
    * <p/>
@@ -125,58 +114,6 @@ public final class GradleUtil {
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
 
   private GradleUtil() {
-  }
-
-  public static boolean updateGradleVersion(@NotNull Project project, @NotNull GradleVersion gradleVersion) throws IOException {
-    // The project is using a version of Gradle with security issue. Prompt user to upgrade.
-    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
-    if (gradleSettings != null) {
-      DistributionType distributionType = gradleSettings.getDistributionType();
-
-      if (distributionType == DEFAULT_WRAPPED) {
-        GradleWrapper gradleWrapper = GradleWrapper.find(project);
-        if (gradleWrapper != null) {
-          return gradleWrapper.updateDistributionUrlAndDisplayFailure(gradleVersion.toString());
-        }
-      }
-      else if (distributionType == LOCAL) {
-        String title = "Update Gradle Version";
-
-        String msg = "Would you like the project to use the Gradle wrapper?\n" +
-                     "(The wrapper will automatically download version " + gradleVersion.toString() + ").\n\n" +
-                     "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
-        int answer = showOkCancelDialog(project, msg, title, getQuestionIcon());
-        if (answer == Messages.OK) {
-          // Create wrapper.
-          return createGradleWrapper(project, gradleVersion.toString(), gradleSettings);
-        }
-        ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(title, gradleVersion.toString());
-        if (dialog.showAndGet()) {
-          String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
-          gradleSettings.setGradleHome(enteredGradleHomePath);
-          gradleSettings.setDistributionType(LOCAL);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean createGradleWrapper(@NotNull Project project,
-                                             @NotNull String gradleVersion,
-                                             @NotNull GradleProjectSettings gradleSettings) throws IOException {
-    File projectDirPath = getBaseDirPath(project);
-
-    // attempt to delete the whole gradle wrapper folder.
-    File gradleDirPath = new File(projectDirPath, FD_GRADLE);
-    if (!delete(gradleDirPath)) {
-      // deletion failed. Let sync continue.
-      return false;
-    }
-
-    createGradleWrapper(projectDirPath, gradleVersion);
-    gradleSettings.setDistributionType(DEFAULT_WRAPPED);
-    return true;
   }
 
   @NotNull
@@ -195,20 +132,7 @@ public final class GradleUtil {
 
   @NotNull
   public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
-    if (modelVersion != null && androidModelSupportsDependencyGraph(modelVersion)) {
-      return artifact.getCompileDependencies();
-    }
-    //noinspection deprecation
     return artifact.getDependencies();
-  }
-
-  public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
-    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
-    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
-  }
-
-  public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
   public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
@@ -478,26 +402,8 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
-    GradleSettings settings = (GradleSettings)getSettings(project, GRADLE_SYSTEM_ID);
-
-    GradleSettings.MyState state = settings.getState();
-    assert state != null;
-    Set<GradleProjectSettings> allProjectsSettings = state.getLinkedExternalProjectsSettings();
-
-    return getFirstNotNull(allProjectsSettings);
-  }
-
-  @Nullable
-  private static GradleProjectSettings getFirstNotNull(@Nullable Set<GradleProjectSettings> allProjectSettings) {
-    if (allProjectSettings != null) {
-      for (GradleProjectSettings settings : allProjectSettings) {
-        if (settings != null) {
-          return settings;
-        }
-      }
-    }
-    return null;
+  private static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
   }
 
   @VisibleForTesting
@@ -580,127 +486,6 @@ public final class GradleUtil {
     }
   }
 
-  @Nullable
-  public static GradleVersion getGradleVersion(@NotNull Project project) {
-    GradleVersion gradleVersion = GradleSyncState.getInstance(project).getSummary().getGradleVersion();
-    if (gradleVersion != null) {
-      // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
-      // settings.
-      GradleVersion revision = GradleVersion.tryParse(removeTimestampFromGradleVersion(gradleVersion.toString()));
-      if (revision != null) {
-        return revision;
-      }
-    }
-
-    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
-    if (gradleSettings != null) {
-      DistributionType distributionType = gradleSettings.getDistributionType();
-      if (distributionType == DEFAULT_WRAPPED) {
-        GradleWrapper gradleWrapper = GradleWrapper.find(project);
-        if (gradleWrapper != null) {
-          try {
-            String wrapperVersion = gradleWrapper.getGradleVersion();
-            if (wrapperVersion != null) {
-              return GradleVersion.tryParse(removeTimestampFromGradleVersion(wrapperVersion));
-            }
-          }
-          catch (IOException e) {
-            LOG.info("Failed to read Gradle version in wrapper", e);
-          }
-        }
-      }
-      else if (distributionType == LOCAL) {
-        String gradleHome = gradleSettings.getGradleHome();
-        if (isNotEmpty(gradleHome)) {
-          File gradleHomePath = new File(gradleHome);
-          return getGradleVersion(gradleHomePath);
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Attempts to figure out the Gradle version of the given distribution.
-   *
-   * @param gradleHomePath the path of the directory containing the Gradle distribution.
-   * @return the Gradle version of the given distribution, or {@code null} if it was not possible to obtain the version.
-   */
-  @Nullable
-  public static GradleVersion getGradleVersion(@NotNull File gradleHomePath) {
-    File libDirPath = new File(gradleHomePath, "lib");
-
-    for (File child : notNullize(libDirPath.listFiles())) {
-      GradleVersion version = getGradleVersionFromJar(child);
-      if (version != null) {
-        return version;
-      }
-    }
-
-    return null;
-  }
-
-  @VisibleForTesting
-  @Nullable
-  static GradleVersion getGradleVersionFromJar(@NotNull File libraryJarFile) {
-    String fileName = libraryJarFile.getName();
-    Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
-    if (matcher.matches()) {
-      // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      String version = matcher.group(1);
-      return GradleVersion.tryParse(removeTimestampFromGradleVersion(version));
-    }
-    return null;
-  }
-
-  @NotNull
-  private static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
-    int dashIndex = gradleVersion.indexOf('-');
-    if (dashIndex != -1) {
-      // in case this is a nightly (e.g. "2.4-20150409092851+0000").
-      return gradleVersion.substring(0, dashIndex);
-    }
-    return gradleVersion;
-  }
-
-  /**
-   * Creates the Gradle wrapper in the project at the given directory.
-   *
-   * @param projectDirPath the project's root directory.
-   * @param gradleVersion  the version of Gradle to use.
-   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
-   * not created (e.g. the template files for the wrapper were not found.)
-   * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
-   */
-  @VisibleForTesting
-  static boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
-    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
-    if (!projectWrapperDirPath.isDirectory()) {
-      File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-      if (!wrapperSrcDirPath.exists()) {
-        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-          wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
-          if (wrapperSrcDirPath.exists()) {
-            break;
-          }
-          else {
-            wrapperSrcDirPath = null;
-          }
-        }
-      }
-      if (wrapperSrcDirPath == null) {
-        return false;
-      }
-      copyDirContent(wrapperSrcDirPath, projectDirPath);
-    }
-
-    File wrapperPropertiesFile = GradleWrapper.getDefaultPropertiesFilePath(projectDirPath);
-    GradleWrapper gradleWrapper = GradleWrapper.get(wrapperPropertiesFile);
-    gradleWrapper.updateDistributionUrl(gradleVersion);
-    return true;
-  }
-
   /**
    * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
    * modules in the project or if the last sync has failed.
@@ -752,7 +537,7 @@ public final class GradleUtil {
         }
         if (gradleVersion != null &&
             isCompatibleWithEmbeddedGradleVersion(gradleVersion) &&
-            !GradleCache.getInstance().containsGradleWrapperVersion(gradleVersion, project)) {
+            !GradleLocalCache.getInstance().containsGradleWrapperVersion(gradleVersion, project)) {
           File embeddedGradlePath = findEmbeddedGradleDistributionPath();
           if (embeddedGradlePath != null) {
             GradleProjectSettings gradleSettings = getGradleProjectSettings(project);

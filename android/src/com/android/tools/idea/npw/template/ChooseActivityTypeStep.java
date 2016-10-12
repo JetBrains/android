@@ -16,10 +16,8 @@
 package com.android.tools.idea.npw.template;
 
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.ActivityGalleryStep;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -32,6 +30,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 
@@ -63,24 +61,50 @@ import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUM
  * that renders "Gallery items"?
  */
 public class ChooseActivityTypeStep extends ModelWizardStep<RenderTemplateModel> {
-  private final @NotNull TemplateHandle[] myTemplateList;
-  private final @NotNull VirtualFile myTargetDirectory;
+  private @NotNull String myInitialPackageSuggestion;
+  private @NotNull TemplateHandle[] myTemplateList;
+  private @NotNull List<AndroidSourceSet> mySourceSets;
 
-  private final @NotNull ASGallery<TemplateHandle> myActivityGallery;
-  private final @NotNull JComponent myRootPanel;
+  private @NotNull ASGallery<TemplateHandle> myActivityGallery;
+  private @NotNull JComponent myRootPanel;
 
+  private @Nullable AndroidFacet myFacet;
 
-  public ChooseActivityTypeStep(@NotNull VirtualFile targetDirectory,
-                                @NotNull RenderTemplateModel renderModel,
-                                @NotNull List<TemplateHandle> templateList) {
+  @SuppressWarnings("unused") // TODO: This is the version without an AndroidFacet, to be used in project creation
+  public ChooseActivityTypeStep(@NotNull RenderTemplateModel renderModel,
+                                @NotNull String initialPackageSuggestion,
+                                @NotNull List<TemplateHandle> templateList,
+                                @NotNull List<AndroidSourceSet> sourceSets) {
+    this(renderModel);
+    init(initialPackageSuggestion, templateList, sourceSets, null);
+  }
+
+  public ChooseActivityTypeStep(@NotNull RenderTemplateModel renderModel,
+                                @NotNull AndroidFacet facet,
+                                @NotNull List<TemplateHandle> templateList,
+                                @NotNull VirtualFile targetDirectory) {
+    this(renderModel);
+    List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+    init(initialPackageSuggestion, templateList, sourceSets, facet);
+  }
+
+  private ChooseActivityTypeStep(@NotNull RenderTemplateModel renderModel) {
     super(renderModel, "Add an Activity to " + renderModel.getTemplateHandle().getMetadata().getFormFactor());
+  }
 
-    myTargetDirectory = targetDirectory;
+  private void init(@NotNull String initialPackageSuggestion,
+                    @NotNull List<TemplateHandle> templateList,
+                    @NotNull List<AndroidSourceSet> sourceSets,
+                    @Nullable AndroidFacet facet) {
+    myInitialPackageSuggestion = initialPackageSuggestion;
     myTemplateList = templateList.toArray(new TemplateHandle[templateList.size()]);
+    mySourceSets = sourceSets;
 
     myActivityGallery = createGallery(getTitle());
     myRootPanel = new JBScrollPane(myActivityGallery);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myFacet = facet;
   }
 
   @NotNull
@@ -98,14 +122,8 @@ public class ChooseActivityTypeStep extends ModelWizardStep<RenderTemplateModel>
   @NotNull
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
-    List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(getModel().getFacet(), myTargetDirectory);
-    List<AndroidSourceSet> sourceSets =
-      sourceProviders.stream().map(provider -> new AndroidSourceSet(getModel().getFacet(), provider)).collect(
-        Collectors.toList());
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(getModel().getFacet(), sourceProviders, myTargetDirectory);
     String title = AndroidBundle.message("android.wizard.config.activity.title");
-
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(getModel(), title, initialPackageSuggestion, sourceSets));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(getModel(), title, myInitialPackageSuggestion, mySourceSets, myFacet));
   }
 
   private static ASGallery<TemplateHandle> createGallery(String title) {

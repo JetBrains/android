@@ -25,7 +25,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -56,13 +55,7 @@ public class GradleBuildModelFixture {
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
     DependenciesModel dependenciesModel = myTarget.dependencies();
     for (final ModuleDependencyModel dependency : dependenciesModel.modules()) {
-      String path = execute(new GuiQuery<String>() {
-        @Nullable
-        @Override
-        protected String executeInEDT() throws Throwable {
-          return dependency.path();
-        }
-      });
+      String path = GuiQuery.getNonNull(dependency::path);
       if (expected.path.equals(path) && expected.configurationName.equals(dependency.configurationName())) {
         return;
       }

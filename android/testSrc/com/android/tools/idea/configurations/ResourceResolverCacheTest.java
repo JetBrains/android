@@ -31,10 +31,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.FrameworkResourceLoader;
 
 public class ResourceResolverCacheTest extends AndroidTestCase {
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
 
   public void test() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");

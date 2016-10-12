@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.java;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettings;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -34,7 +34,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
-  private final CompilerSettings myCompilerSettings = new CompilerSettings();
+  private final CompilerSettingsSetup myCompilerSettingsSetup = new CompilerSettingsSetup();
 
   @Override
   public void setUpModule(@NotNull Module module,
@@ -61,7 +61,7 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
       ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-      myCompilerSettings.setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
+      myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
     }
   }
 

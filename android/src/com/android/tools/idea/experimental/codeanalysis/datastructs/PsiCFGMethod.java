@@ -30,7 +30,6 @@ public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
   protected PsiCFGClass mParentClass;
   protected int modifers;
   protected MethodGraph mCFG;
-  protected PsiElement mBody;
   protected boolean mIsLambdaMethod;
   protected PsiMethod mLamdaOverridenMethod;
   protected PsiCFGPartialMethodSignature mSignature;
@@ -93,7 +92,7 @@ public class PsiCFGMethod implements ClassMember, PsiAnnotationOwner {
    * @return
    */
   public PsiElement getBody() {
-    return mBody;
+    return mIsLambdaMethod ? mLambdaExprRef.getBody() : mMethodRef.getBody();
   }
 
   public PsiMethod getMethodRef() {

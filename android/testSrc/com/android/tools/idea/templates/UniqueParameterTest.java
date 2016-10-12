@@ -70,7 +70,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(myAppFacet);
 
-    addAndroidSdk(myAppModule, getTestSdkPath(), getPlatformDir());
+    addLatestAndroidSdk(myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 

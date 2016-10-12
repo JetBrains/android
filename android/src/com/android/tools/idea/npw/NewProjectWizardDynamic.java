@@ -17,8 +17,8 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
@@ -27,7 +27,6 @@ import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -115,33 +114,34 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   }
 
   static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {
-    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, gradlePluginVersion);
-    state.put(WizardConstants.GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
-    state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
-    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<>());
-    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<>());
-    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
+    state.put(GRADLE_PLUGIN_VERSION_KEY, gradlePluginVersion);
+    state.put(GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
+    state.put(IS_GRADLE_PROJECT_KEY, true);
+    state.put(IS_NEW_PROJECT_KEY, true);
+    state.put(TARGET_FILES_KEY, new HashSet<>());
+    state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
+    state.put(USE_PER_MODULE_REPOS_KEY, false);
+    state.put(ALSO_CREATE_IAPK_KEY, true);
 
     try {
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
+      state.put(DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
     }
     catch (Exception exception) {
       LOG.warn("Could not create debug keystore", exception);
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, "");
+      state.put(DEBUG_KEYSTORE_SHA_1_KEY, "");
     }
 
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
 
     if (mavenUrl != null) {
-      state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
+      state.put(MAVEN_URL_KEY, mavenUrl);
     }
 
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
 
     if (data != null) {
       File sdkLocation = data.getLocation();
-      state.put(WizardConstants.SDK_DIR_KEY, sdkLocation.getPath());
+      state.put(SDK_DIR_KEY, sdkLocation.getPath());
 
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
                                                                              SupportLibrary.ESPRESSO_CORE.getArtifactId(),
@@ -210,37 +210,27 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     if (!AndroidStudioInitializer.isAndroidStudio()) {
       final Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            ProjectRootManager.getInstance(myProject).setProjectSdk(jdk);
-          }
-        });
+        ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(myProject).setProjectSdk(jdk));
       }
     }
     try {
-      GradleSyncListener listener = new PostStartupGradleSyncListener(new Runnable() {
-        @Override
-        public void run() {
-          Iterable<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-          assert targetFiles != null;
+      GradleSyncListener listener = new PostStartupGradleSyncListener(() -> {
+        Iterable<File> targetFiles = myState.get(TARGET_FILES_KEY);
+        assert targetFiles != null;
 
-          TemplateUtils.reformatAndRearrange(myProject, targetFiles);
+        TemplateUtils.reformatAndRearrange(myProject, targetFiles);
 
-          Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-          assert filesToOpen != null;
+        Collection<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+        assert filesToOpen != null;
 
-          TemplateUtils.openEditors(myProject, filesToOpen, true);
-        }
+        TemplateUtils.openEditors(myProject, filesToOpen, true);
       });
 
-      projectImporter.importNewlyCreatedProject(projectName, rootLocation, listener, myProject, initialLanguageLevel);
+      GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
+      requestSettings.setLanguageLevel(initialLanguageLevel).setProject(myProject);
+      projectImporter.importProject(projectName, rootLocation, requestSettings, listener);
     }
-    catch (IOException e) {
-      Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
-      LOG.error(e);
-    }
-    catch (ConfigurationException e) {
+    catch (IOException | ConfigurationException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
@@ -308,12 +298,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     final String name = myState.get(APPLICATION_NAME_KEY);
     assert projectLocation != null && name != null;
 
-    myProject = UIUtil.invokeAndWaitIfNeeded(new Computable<Project>() {
-      @Override
-      public Project compute() {
-        return ProjectManager.getInstance().createProject(name, projectLocation);
-      }
-    });
+    myProject = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(name, projectLocation));
     super.doFinish();
   }
 

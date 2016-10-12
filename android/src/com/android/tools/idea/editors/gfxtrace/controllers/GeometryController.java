@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
@@ -207,6 +208,10 @@ public class GeometryController extends Controller implements AtomStream.Listene
         layout.show(myPanel, CARD_EMPTY);
       }
     }
+  }
+
+  @Override
+  public void onContextChanged(@NotNull Context context) {
   }
 
   private void fetchMeshes(AtomPath path) {

@@ -15,22 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableSet;
-import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class NlFlagPropertyItemTest extends PropertyTestCase {
-  private NlComponent myTextView;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myTextView = findComponent(createModel(), "text", 100);
-  }
 
   public void testGetters() {
     NlFlagPropertyItem gravity = (NlFlagPropertyItem)createFrom(myTextView, ATTR_GRAVITY);
@@ -85,22 +75,5 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
       ImmutableSet.of(GRAVITY_VALUE_CENTER, GRAVITY_VALUE_START),
       ImmutableSet.of(GRAVITY_VALUE_BOTTOM, GRAVITY_VALUE_START));
     assertThat(gravity.getValue()).isEqualTo("fill_horizontal|center|start");
-  }
-
-  @NotNull
-  private NlModel createModel() {
-    return model("merge.xml",
-                 component(VIEW_MERGE)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(TEXT_VIEW)
-                       .withBounds(100, 100, 100, 100)
-                       .id("@id/text")
-                       .width("100dp")
-                       .height("100dp")
-                       .text("Text")
-                   )).build();
   }
 }

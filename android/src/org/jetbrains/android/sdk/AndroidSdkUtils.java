@@ -24,6 +24,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -77,8 +78,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.sdk.Jdks.chooseOrCreateJavaSdk;
-import static com.android.tools.idea.sdk.Jdks.createJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -109,6 +108,7 @@ public final class AndroidSdkUtils {
   public static final String DEFAULT_PLATFORM_NAME_PROPERTY = "AndroidPlatformName";
   public static final String SDK_NAME_PREFIX = "Android ";
   public static final String DEFAULT_JDK_NAME = "JDK";
+  public static final String ADB_PATH_PROPERTY = "android.adb.path";
 
   private static AndroidSdkData ourSdkData;
 
@@ -273,7 +273,7 @@ public final class AndroidSdkUtils {
    */
   @Nullable
   public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
-    Sdk jdk = chooseOrCreateJavaSdk();
+    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
     if (sdkPath != null && jdk != null) {
       sdkPath = toSystemIndependentName(sdkPath);
       IAndroidTarget target = findBestTarget(sdkPath);
@@ -325,7 +325,7 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkPath,
                                              @NotNull String sdkName,
                                              boolean addRoots) {
-    Sdk jdk = chooseOrCreateJavaSdk();
+    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
     return jdk != null ? createNewAndroidPlatform(target, sdkPath, sdkName, jdk, addRoots) : null;
   }
 
@@ -623,7 +623,7 @@ public final class AndroidSdkUtils {
   private static Sdk createNewAndroidPlatform(@Nullable IAndroidTarget target, @NotNull String androidSdkPath, @NotNull String jdkPath) {
     if (isNotEmpty(jdkPath)) {
       jdkPath = toSystemIndependentName(jdkPath);
-      Sdk jdk = createJdk(jdkPath);
+      Sdk jdk = Jdks.getInstance().createJdk(jdkPath);
       if (jdk != null) {
         androidSdkPath = toSystemIndependentName(androidSdkPath);
         if (target == null) {
@@ -718,6 +718,16 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static File getAdb(@NotNull Project project) {
+    String path = System.getProperty(ADB_PATH_PROPERTY);
+    if (path != null) {
+      File adb = new File(path);
+      if (adb.exists()) {
+        return adb;
+      }
+      else {
+        LOG.warn(String.format("%1$s was set to \"%2$s\", but no such file exists.", ADB_PATH_PROPERTY, path));
+      }
+    }
     AndroidSdkData data = getProjectSdkData(project);
     if (data == null) {
       data = getFirstAndroidModuleSdkData(project);
@@ -836,6 +846,19 @@ public final class AndroidSdkUtils {
 
   public static void setSdkData(@Nullable AndroidSdkData data) {
     ourSdkData = data;
+  }
+
+  public static boolean isGlassInstalled() {
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidSdkUtils.class);
+    AndroidSdkHandler handler = tryToChooseSdkHandler();
+    Collection<IAndroidTarget> targets = handler.getAndroidTargetManager(progress).getTargets(progress);
+    for (IAndroidTarget target : targets) {
+      if (!target.isPlatform() && target.getName().startsWith("Glass Development Kit")) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

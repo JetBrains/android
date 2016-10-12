@@ -17,50 +17,95 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
-import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.msg.Arg;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.*;
+import com.google.common.collect.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class Report implements BinaryObject {
-  private Map<Long, List<Integer>> myAtomReportItemIdMap;
+
+  // Reusable static map for mapping between string table keys and values.
+  @NotNull private final static Map<String, BinaryObject> myArgMap = new HashMap<>();
+
+  // Cache of constructed messages.
+  @Nullable private Map<MsgRef, String> myConstructedMessages;
 
   @Nullable("there's no report item associated to a given atom id")
-  public List<Integer> getForAtom(long atomId) {
-    return myAtomReportItemIdMap.get(atomId);
+  public Range<Integer> getForAtom(long atomId) {
+    final ReportItem key = new ReportItem();
+    key.setAtom(atomId);
+    int index = Arrays.binarySearch(myItems, key, (lhs, rhs) -> Long.compare(lhs.getAtom(), rhs.getAtom()));
+    if (index < 0 || index >= myItems.length) {
+      return null;
+    }
+    int start = index;
+    while (start >= 0 && myItems[start].getAtom() == atomId) {
+      start--;
+    }
+    int end = index;
+    while (end < myItems.length && myItems[end].getAtom() == atomId) {
+      end++;
+    }
+    return Range.closed(start + 1, end - 1);
+  }
+
+  @Nullable("there's no report items associated to a given atom range")
+  public Range<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
+    final ReportItem key = new ReportItem();
+    key.setAtom(firstAtomId);
+    int index = Arrays.binarySearch(myItems, key, (lhs, rhs) -> (int)(lhs.getAtom() - rhs.getAtom()));
+    if (index < 0 || index >= myItems.length) {
+      return null;
+    }
+    int start = index;
+    while (start >= 0 && myItems[start].getAtom() == firstAtomId) {
+      start--;
+    }
+    int end = index;
+    while (end < myItems.length && myItems[end].getAtom() <= lastAtomId) {
+      end++;
+    }
+    return Range.closed(start + 1, end - 1);
   }
 
   @NotNull
-  public List<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
-    List<Integer> list = new ArrayList<>();
-    for (long i = firstAtomId; i <= lastAtomId; ++i) {
-      List<Integer> value = myAtomReportItemIdMap.get(i);
-      if (value != null) {
-        list.addAll(value);
-      }
-    }
-    return list;
+  public String getOrConstructMessage(int reportItemIndex) {
+    return getOrConstructMessage(myItems[reportItemIndex].getMessage());
   }
 
-  public void buildMap() {
-    myAtomReportItemIdMap = new HashMap<>();
-    for (int i = 0; i < myItems.length; ++i) {
-      ReportItem item = myItems[i];
-      List<Integer> items = myAtomReportItemIdMap.get(item.getAtom());
-      if (items == null) {
-        items = new ArrayList<>();
-        myAtomReportItemIdMap.put(item.getAtom(), items);
-      }
-      items.add(i);
+  @NotNull
+  public String getOrConstructMessage(@NotNull final MsgRef ref) {
+    if (myConstructedMessages != null && myConstructedMessages.containsKey(ref)) {
+      return myConstructedMessages.get(ref);
     }
+    myArgMap.clear();
+    Arg.constructMap(myMsgArguments, ref.getArguments(), myArgMap);
+    String message = StringTable.getMessage(myMsgIdentifiers[ref.getIdentifier()], myArgMap);
+    if (myConstructedMessages == null) {
+      myConstructedMessages = new HashMap<>();
+    }
+    myConstructedMessages.put(ref, message);
+    return message;
+  }
+
+  // Groups are children for now, structure may change...
+  public int getChildCount() {
+    return myGroups.length;
   }
 
   //<<<Start:Java.ClassBody:1>>>
   private ReportItem[] myItems;
+  private ReportGroup[] myGroups;
+  private String[] myMsgIdentifiers;
+  private Arg[] myMsgArguments;
 
   // Constructs a default-initialized {@link Report}.
   public Report() {}
@@ -75,6 +120,33 @@ public final class Report implements BinaryObject {
     return this;
   }
 
+  public ReportGroup[] getGroups() {
+    return myGroups;
+  }
+
+  public Report setGroups(ReportGroup[] v) {
+    myGroups = v;
+    return this;
+  }
+
+  public String[] getMsgIdentifiers() {
+    return myMsgIdentifiers;
+  }
+
+  public Report setMsgIdentifiers(String[] v) {
+    myMsgIdentifiers = v;
+    return this;
+  }
+
+  public Arg[] getMsgArguments() {
+    return myMsgArguments;
+  }
+
+  public Report setMsgArguments(Arg[] v) {
+    myMsgArguments = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -84,6 +156,9 @@ public final class Report implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Items", new Slice("", new Struct(ReportItem.Klass.INSTANCE.entity()))),
+      new Field("Groups", new Slice("", new Struct(ReportGroup.Klass.INSTANCE.entity()))),
+      new Field("MsgIdentifiers", new Slice("", new Primitive("string", Method.String))),
+      new Field("MsgArguments", new Slice("", new Struct(Arg.Klass.INSTANCE.entity()))),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -106,6 +181,18 @@ public final class Report implements BinaryObject {
       for (int i = 0; i < o.myItems.length; i++) {
         e.value(o.myItems[i]);
       }
+      e.uint32(o.myGroups.length);
+      for (int i = 0; i < o.myGroups.length; i++) {
+        e.value(o.myGroups[i]);
+      }
+      e.uint32(o.myMsgIdentifiers.length);
+      for (int i = 0; i < o.myMsgIdentifiers.length; i++) {
+        e.string(o.myMsgIdentifiers[i]);
+      }
+      e.uint32(o.myMsgArguments.length);
+      for (int i = 0; i < o.myMsgArguments.length; i++) {
+        e.value(o.myMsgArguments[i]);
+      }
     }
 
     @Override
@@ -115,6 +202,20 @@ public final class Report implements BinaryObject {
       for (int i = 0; i <o.myItems.length; i++) {
         o.myItems[i] = new ReportItem();
         d.value(o.myItems[i]);
+      }
+      o.myGroups = new ReportGroup[d.uint32()];
+      for (int i = 0; i <o.myGroups.length; i++) {
+        o.myGroups[i] = new ReportGroup();
+        d.value(o.myGroups[i]);
+      }
+      o.myMsgIdentifiers = new String[d.uint32()];
+      for (int i = 0; i <o.myMsgIdentifiers.length; i++) {
+        o.myMsgIdentifiers[i] = d.string();
+      }
+      o.myMsgArguments = new Arg[d.uint32()];
+      for (int i = 0; i <o.myMsgArguments.length; i++) {
+        o.myMsgArguments[i] = new Arg();
+        d.value(o.myMsgArguments[i]);
       }
     }
     //<<<End:Java.KlassBody:2>>>

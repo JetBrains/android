@@ -47,7 +47,6 @@ import static com.intellij.openapi.util.text.StringUtil.*;
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
-  public static final String USE_JDK_8 = "Please use JDK 8 or newer.";
   public static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
   public static final String CONNECTION_PERMISSION_DENIED_PREFIX = "Connection to the Internet denied.";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
@@ -101,19 +100,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
                                        .setGradleMissingSignature(method));
 
       return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
-    }
-
-    if (rootCause instanceof UnsupportedClassVersionError) {
-      // Example:
-      // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
-      String message = rootCause.getMessage();
-      if (isNotEmpty(message) && message.contains("Unsupported major.minor version 52.0")) {
-        if (!message.endsWith(".")) {
-          message += ".";
-        }
-        message += " " + USE_JDK_8;
-        return createUserFriendlyError(message, rootCauseAndLocation.getSecond());
-      }
     }
 
     if (rootCause instanceof SocketException) {

@@ -58,9 +58,7 @@ public class ColorExtractorTool implements MockupTool, ColorPanel.ColorHoveredLi
     myImageCache = new HashMap<>();
     myMainPanel = new MainPanel();
 
-    myMockup.addMockupListener(mockup1 -> {
-      myImage = mockup1.getImage();
-    });
+    myMockup.addMockupListener((mockup1, changedFlags) -> myImage = mockup1.getImage());
 
     myColors = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 5, true, false));
     JComponent scrollPane = new JBScrollPane(myColors,

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,8 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
     if (isBuildWithGradle(project)) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, true, true, false, null);
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setUseCachedGradleModels(true);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, settings, null);
     }
   }
 }

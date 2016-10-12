@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
@@ -38,12 +39,12 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
-                 "  compileSdkVersion 19\n" +
-                 "  buildToolsVersion '23.0.2'\n" +
+                 "  compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "  buildToolsVersion '" + GradleImport.CURRENT_BUILD_TOOLS_VERSION + "'\n" +
                  "\n" +
                  "  defaultConfig {\n" +
                  "    minSdkVersion 15\n" +
-                 "    targetSdkVersion 19\n" +
+                 "    targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
                  "    applicationId 'com.example.android.app'\n" +
                  "  }\n" +
                  "}\n" +

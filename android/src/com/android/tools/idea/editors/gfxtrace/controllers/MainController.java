@@ -31,6 +31,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -97,14 +98,14 @@ public class MainController extends Controller {
     // Configure the image tabs.
     // we use RunnerLayoutUi to allow the user to drag the tabs out of the JBRunnerTabs
     myLayoutUi = RunnerLayoutUi.Factory.getInstance(editor.getProject()).create("gfx-trace-runnerId", editor.getName(), editor.getSessionName(), this);
-    myAtomTab = addTab(myLayoutUi, AtomController.createUI(editor), "GPU Commands", PlaceInGrid.left);
-    addTab(myLayoutUi, FrameBufferController.createUI(editor), "Framebuffer", PlaceInGrid.center);
-    addTab(myLayoutUi, TexturesController.createUI(editor), "Textures", PlaceInGrid.center);
-    addTab(myLayoutUi, ShadersController.createUI(editor), "Shaders", PlaceInGrid.center);
-    myGeoTab = addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
-    myStateTab = addTab(myLayoutUi, StateController.createUI(editor), "GPU State", PlaceInGrid.center);
-    myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
-    myReportTab = addTab(myLayoutUi, ReportController.createUI(editor), "Report", PlaceInGrid.right);
+    myAtomTab = addTab(myLayoutUi, AtomController.createUI(editor), null, "GPU Commands", PlaceInGrid.left);
+    FrameBufferController.createUI(editor, (component, toFocus) -> addTab(myLayoutUi, component, toFocus, "Framebuffer", PlaceInGrid.center));
+    TexturesController.createUI(editor, (component, toFocus) -> addTab(myLayoutUi, component, toFocus, "Textures", PlaceInGrid.center));
+    addTab(myLayoutUi, ShadersController.createUI(editor), null, "Shaders", PlaceInGrid.center);
+    myGeoTab = addTab(myLayoutUi, GeometryController.createUI(editor), null, "Geometry", PlaceInGrid.center);
+    myStateTab = addTab(myLayoutUi, StateController.createUI(editor), null, "GPU State", PlaceInGrid.center);
+    myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), null, "Memory", PlaceInGrid.center);
+    myReportTab = addTab(myLayoutUi, ReportController.createUI(editor), null, "Report", PlaceInGrid.right);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
 
@@ -123,8 +124,8 @@ public class MainController extends Controller {
     setInitialSizeRecursive(splitter);
   }
 
-  private static Content addTab(@NotNull RunnerLayoutUi layoutUi, @NotNull JComponent component, @NotNull String name, @NotNull PlaceInGrid defaultPlace) {
-    Content content = layoutUi.createContent(name + "-contentId", component, name, null, null);
+  private static Content addTab(@NotNull RunnerLayoutUi layoutUi, @NotNull JComponent component, @Nullable JComponent toFocus, @NotNull String name, @NotNull PlaceInGrid defaultPlace) {
+    Content content = layoutUi.createContent(name + "-contentId", component, name, null, toFocus);
     content.setCloseable(false);
     layoutUi.addContent(content, -1, defaultPlace, false);
     return content;
@@ -182,5 +183,10 @@ public class MainController extends Controller {
   @Override
   public void clear() {
     myPanel.removeAll();
+  }
+
+  @FunctionalInterface
+  public interface ContentCreator {
+    Content create(JComponent component, JComponent toFocus);
   }
 }

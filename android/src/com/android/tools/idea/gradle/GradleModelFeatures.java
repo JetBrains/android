@@ -19,34 +19,31 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsDependencyGraph;
-
 public class GradleModelFeatures {
   @Nullable private final GradleVersion myModelVersion;
 
-  private boolean myDependencyGraphSupported;
-  private boolean myIssueReportingSupported;
-  private boolean myShadersSupported;
-  private boolean myTestedTargetVariantsSupported;
-  private boolean myProductFlavorVersionSuffixSupported;
-  private boolean myExternalBuildSupported;
-  private boolean myConstraintLayoutSdkLocationSupported;
+  private final boolean myIssueReportingSupported;
+  private final boolean myShadersSupported;
+  private final boolean myTestedTargetVariantsSupported;
+  private final boolean myProductFlavorVersionSuffixSupported;
+  private final boolean myExternalBuildSupported;
+  private final boolean myConstraintLayoutSdkLocationSupported;
+  private final boolean myLayoutRenderingIssuePresent;
 
   GradleModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
-    myDependencyGraphSupported = myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");
     myShadersSupported = modelVersionIsAtLeast("2.1.0");
     myConstraintLayoutSdkLocationSupported = myModelVersion != null && myModelVersion.compareTo("2.1.0") > 0;
     myTestedTargetVariantsSupported = myProductFlavorVersionSuffixSupported = myExternalBuildSupported = modelVersionIsAtLeast("2.2.0");
+
+    // https://code.google.com/p/android/issues/detail?id=170841
+    myLayoutRenderingIssuePresent =
+      modelVersion != null && modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
-  }
-
-  public boolean isDependencyGraphSupported() {
-    return myDependencyGraphSupported;
   }
 
   public boolean isIssueReportingSupported() {
@@ -71,5 +68,9 @@ public class GradleModelFeatures {
 
   public boolean isConstraintLayoutSdkLocationSupported() {
     return myConstraintLayoutSdkLocationSupported;
+  }
+
+  public boolean isLayoutRenderingIssuePresent() {
+    return myLayoutRenderingIssuePresent;
   }
 }

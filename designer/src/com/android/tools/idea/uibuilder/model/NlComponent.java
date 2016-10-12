@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
@@ -393,7 +394,7 @@ public class NlComponent implements NlAttributesHolder {
 
     Module module = component.getModel().getModule();
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue);
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
 
     String nextIdValue = idValue;
     int index = 0;
@@ -575,6 +576,9 @@ public class NlComponent implements NlAttributesHolder {
   public boolean isOrHasSuperclass(@NotNull String className) {
     if (viewInfo != null) {
       Object viewObject = viewInfo.getViewObject();
+      if (viewObject == null) {
+        return ApplicationManager.getApplication().isUnitTestMode() && myTagName.equals(className);
+      }
       Class<?> viewClass = viewObject.getClass();
       while (viewClass != Object.class) {
         if (className.equals(viewClass.getName())) {
@@ -704,7 +708,7 @@ public class NlComponent implements NlAttributesHolder {
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link DragHandler#commit(int, int, int)}.
+   * and {@link DragHandler#commit}.
    *
    * @param editor     The editor showing the component
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}

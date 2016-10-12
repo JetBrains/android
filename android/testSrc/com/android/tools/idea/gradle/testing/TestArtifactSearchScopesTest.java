@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -46,6 +47,16 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
+
+  @Override
+  protected boolean shouldRunTest() {
+    if (SystemInfo.isWindows) {
+      System.out.println("Class '" + getClass().getName() +
+                         "' is skipped because it does not run on Windows (http://b.android.com/222904).");
+      return false;
+    }
+    return super.shouldRunTest();
+  }
 
   public void testSrcFolderIncluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
@@ -73,7 +84,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.getAndroidTestExcludeScope().accept(module3RsRoot));
   }
 
-  public void testLibrariesExcluding() throws Exception {
+  // See http://b.android.com/221883.
+  public void ignore_testLibrariesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -125,7 +137,10 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
-    runWriteCommandAction(getProject(), () -> GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null));
+    runWriteCommandAction(getProject(), () -> {
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, null);
+    });
 
     latch.await();
 
@@ -138,7 +153,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
-    loadProject(SHARED_TEST_FOLDER, false);
+    loadProject(SHARED_TEST_FOLDER);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
 
@@ -161,7 +176,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   @NotNull
   private TestArtifactSearchScopes loadMultiProjectAndTestScopes() throws Exception {
-    loadProject(SYNC_MULTIPROJECT, false);
+    loadProject(SYNC_MULTIPROJECT);
     Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
     assertNotNull(module1);
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -29,8 +30,8 @@ import static com.android.SdkConstants.*;
  */
 public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParser {
 
-  // List of attributes to omit.
-  private static final String[] FILTERS = {"onClick", "actionViewClass", "actionLayout"};
+  // Some attributes are not supported by layoutlib and will throw an exception.
+  private static final ImmutableSet<String> UNSUPPORTED_ATTRIBUTES = ImmutableSet.of("onClick", "actionViewClass");
 
   public MenuPsiPullParser(XmlFile file, LayoutLog logger) {
     super(file, logger, new RenderTask.AttributeFilter() {
@@ -41,11 +42,13 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
           if (localName.equals(ATTR_SHOW_AS_ACTION)) {
             return getShowAsActionValue(node);
           }
-          for (String filter : FILTERS) {
-            if (filter.equals(localName)) {
-              // An empty return value means, remove the attribute and null means no preference.
-              return "";
-            }
+          else if (localName.equals("actionLayout")) {
+            // Check if the attribute is in the app namespace
+            XmlAttribute actionLayout = node.getAttribute("actionLayout", AUTO_URI);
+            return actionLayout != null ? actionLayout.getValue() : null;
+          }
+          else if (UNSUPPORTED_ATTRIBUTES.contains(localName)) {
+            return "";
           }
         }
         return null;

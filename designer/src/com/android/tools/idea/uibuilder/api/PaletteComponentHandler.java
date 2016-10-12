@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 import static com.android.SdkConstants.*;
 
@@ -65,6 +72,18 @@ public abstract class PaletteComponentHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return loadBuiltinIcon(tagName);
+  }
+
+  /**
+   * Returns a 24x24 icon used to represent this component as a larger image on the palette.<br>
+   * This default implementation assumes the icon is one of the builtin icons.
+   *
+   * @param tagName the tag name of the component
+   * @return an icon to identify the component
+   */
+  @NotNull
+  public Icon getLargeIcon(@NotNull String tagName) {
+    return loadBuiltinLargeIcon(tagName);
   }
 
   /**
@@ -126,6 +145,30 @@ public abstract class PaletteComponentHandler {
     String path = "AndroidIcons.Views." + getSimpleTagName(tagName);
     Icon icon = IconLoader.findIcon(path, getClass());
     return icon != null ? icon : AndroidIcons.Views.Unknown;
+  }
+
+  @NotNull
+  protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
+    // Temporary: Scale the 2x image to 24x24
+    // TODO: Remove this code when we have 24x24 images.
+    String path = "/icons/views/" + StringUtil.capitalize(getSimpleTagName(tagName)) + "@2x.png";
+    Icon icon = IconLoader.findIcon(path, AndroidIcons.class, false, false);
+    if (icon == null) {
+      icon = AndroidIcons.Views.Unknown;
+    }
+    int size = 24;
+    BufferedImage image = UIUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = (Graphics2D)image.getGraphics();
+    g2.scale(24.0 / icon.getIconWidth(), 24.0 / icon.getIconHeight());
+    icon.paintIcon(null, g2, 0, 0);
+    g2.dispose();
+    if (UIUtil.isRetina()) {
+      BufferedImage retina = ImageUtils.convertToRetina(image);
+      if (retina != null) {
+        image = retina;
+      }
+    }
+    return new JBImageIcon(image);
   }
 
   @NotNull

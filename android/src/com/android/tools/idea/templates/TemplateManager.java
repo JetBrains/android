@@ -19,6 +19,7 @@ import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -470,10 +471,16 @@ public class TemplateManager {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             assert facet != null && facet.getAndroidModel() != null;
 
-            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+            List<TemplateHandle> templateList =
+              getTemplateList(FormFactor.MOBILE, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+            List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
+            assert (sourceSets.size() > 0);
+
             // TODO: Missing logic to select the default template
-            RenderTemplateModel renderModel = new RenderTemplateModel(facet, templateList.get(0), "Add an Activity to Mobile");
-            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(targetDirectory, renderModel, templateList);
+            RenderTemplateModel renderModel =
+              new RenderTemplateModel(facet.getModule().getProject(), templateList.get(0), sourceSets.get(0), "Add an Activity to Mobile");
+
+            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(renderModel, facet, templateList, targetDirectory);
             ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
             new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();

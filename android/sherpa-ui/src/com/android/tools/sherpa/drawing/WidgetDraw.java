@@ -26,6 +26,7 @@ import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
@@ -57,6 +58,9 @@ public class WidgetDraw {
     public static Image sGuidelineArrowRight = null;
     public static Image sGuidelineArrowUp = null;
     public static Image sGuidelineArrowDown = null;
+
+    private static final RoundRectangle2D.Float sCachedRoundRect = new RoundRectangle2D.Float();
+
 
     /**
      * Enum encapsulating the policy deciding how to display anchors
@@ -183,9 +187,9 @@ public class WidgetDraw {
         // Now, let's draw the widget's frame
 
         boolean horizontalSpring =
-                widget.getHorizontalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.ANY;
+                widget.getHorizontalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
         boolean verticalSpring =
-                widget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.ANY;
+                widget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT;
         Graphics2D g2 = (Graphics2D) g.create();
         if (widget instanceof ConstraintWidgetContainer) {
             g2.setStroke(SnapDraw.sLongDashedStroke);
@@ -664,14 +668,16 @@ public class WidgetDraw {
             triangleY = rectY;
         }
 
+        sCachedRoundRect.setRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
+
         g.setColor(colorSet.getBackground());
         g.setStroke(sLineShadowStroke);
         triangle.translate(x, triangleY);
         g.fillPolygon(triangle);
         g.draw(triangle);
         triangle.translate(-x, -triangleY);
-        g.fillRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
-        g.drawRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
+        g.fill(sCachedRoundRect);
+        g.draw(sCachedRoundRect);
 
         g.setColor(colorSet.getTooltipBackground());
         g.setStroke(sBasicStroke);
@@ -679,8 +685,8 @@ public class WidgetDraw {
         g.fillPolygon(triangle);
         g.draw(triangle);
         triangle.translate(-x, -triangleY);
-        g.fillRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
-        g.drawRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
+        g.fill(sCachedRoundRect);
+        g.draw(sCachedRoundRect);
 
         int ty = rectY + padding;
         for (int i = 0; i < lines.length; i++) {

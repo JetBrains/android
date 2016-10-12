@@ -18,6 +18,7 @@ package com.android.tools.idea.ddms.adb;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
@@ -26,14 +27,14 @@ import java.util.concurrent.ExecutionException;
 public class AdbServiceTest extends AndroidTestCase {
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(getProject()));
     AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
     assertTrue(bridge.isConnected());
     AdbService.getInstance().terminateDdmlib();
-  }
-
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
   }
 }

@@ -22,7 +22,7 @@ public class GlslLanguage extends Language {
   public static final GlslLanguage INSTANCE = new GlslLanguage();
 
   protected GlslLanguage() {
-    super("GLSL");
+    super("GAPID GLSL");
   }
 
   @Override

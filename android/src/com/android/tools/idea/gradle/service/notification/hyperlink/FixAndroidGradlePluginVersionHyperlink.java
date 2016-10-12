@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,6 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}. This constructor updates the Gradle model to the version in
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
-   *
    */
   public FixAndroidGradlePluginVersionHyperlink() {
     this(GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION), GradleVersion.parse(GRADLE_LATEST_VERSION));
@@ -40,11 +40,25 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
 
   /**
    * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}.
-   *  @param pluginVersion  the version to update the Android Gradle plugin to.
+   *
+   * @param pluginVersion the version to update the Android Gradle plugin to.
    * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
    */
   public FixAndroidGradlePluginVersionHyperlink(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    super("fixGradleElements", "Fix plugin version and sync project");
+    this("Fix plugin version and sync project", pluginVersion, gradleVersion);
+  }
+
+  /**
+   * Creates a new {@link FixAndroidGradlePluginVersionHyperlink}.
+   *
+   * @param text          the text to display in the hyperlink.
+   * @param pluginVersion the version to update the Android Gradle plugin to.
+   * @param gradleVersion the version of Gradle to update to. This can be {@code null} if only the model version needs to be updated.
+   */
+  public FixAndroidGradlePluginVersionHyperlink(@NotNull String text,
+                                                @NotNull GradleVersion pluginVersion,
+                                                @Nullable GradleVersion gradleVersion) {
+    super("fixGradleElements", text);
     myPluginVersion = pluginVersion;
     myGradleVersion = gradleVersion;
   }
@@ -53,5 +67,17 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
   public void execute(@NotNull Project project) {
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
     updater.updatePluginVersionAndSync(myPluginVersion, myGradleVersion, false);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public GradleVersion getPluginVersion() {
+    return myPluginVersion;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public GradleVersion getGradleVersion() {
+    return myGradleVersion;
   }
 }

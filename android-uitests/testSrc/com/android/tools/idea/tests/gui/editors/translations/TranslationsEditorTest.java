@@ -34,7 +34,6 @@ import javax.swing.*;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
@@ -62,7 +61,6 @@ public class TranslationsEditorTest {
 
     // Now obtain the fixture for the displayed translations editor
     TranslationsEditorFixture txEditor = editor.getTranslationsEditor();
-    assertNotNull(txEditor);
 
     assertThat(txEditor.locales()).containsExactly(
       "English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)").inOrder();
@@ -76,12 +74,7 @@ public class TranslationsEditorTest {
     // Note: this test will always pass on Mac, but will fail on Windows & Linux if the appropriate fonts were not set by the renderer
     // See FontUtil.getFontAbleToDisplay()
     final FontFixture font = cancel.font();
-    //noinspection ConstantConditions
-    assertTrue("Font " + font.target().getName() + " cannot display Chinese characters.", execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        return font.target().canDisplay('消');
-      }
-    }));
+    assertThat(GuiQuery.getNonNull(() -> font.target().canDisplay('消')))
+      .named("Font " + font.target().getName() + " can display Chinese characters").isTrue();
   }
 }

@@ -70,7 +70,7 @@ import java.util.Set;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
@@ -124,7 +124,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
                                        .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
                                        .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION)
-                                     .setGradleVersion(androidProject.getModelVersion()));
+                                       .setGradleVersion(androidProject.getModelVersion()));
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
@@ -330,9 +330,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // TODO replace with AndroidProject#PROPERTY_STUDIO_VERSION once builder-model gets updated.
     args.add(createProjectProperty("android.injected.studio.version", ideVersion));
 
-    // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
-
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
       if (refreshExternalNativeModels != null) {
@@ -425,12 +422,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s).", modelVersion.toString()))
-             .append(" ")
-             .append(recommendedVersion);
+        .append(" ")
+        .append(recommendedVersion);
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
         builder.append("\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
-               .append(READ_MIGRATION_GUIDE_MSG)
-               .append(" to learn how to update your project.");
+          .append(READ_MIGRATION_GUIDE_MSG)
+          .append(" to learn how to update your project.");
       }
     }
     else {

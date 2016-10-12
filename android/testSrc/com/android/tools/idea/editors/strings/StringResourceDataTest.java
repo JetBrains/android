@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.builder.model.ClassField;
-import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -91,26 +90,24 @@ public class StringResourceDataTest extends AndroidTestCase {
     }));
     assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
 
-    assertEquals(ImmutableSet.of("dynamic_key1", "key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
+    assertNotNull(data.getStringResource("key1").getDefaultValueAsResourceItem());
 
-    Set<String> untranslatableKeys = data.getUntranslatableKeys();
-    assertSameElements(untranslatableKeys, Lists.newArrayList("key5", "key6"));
+    assertFalse(data.getStringResource("key5").isTranslatable());
 
-    Table<String, Locale, ResourceItem> translations = data.getTranslations();
-    assertNull(translations.get("key1", Locale.create("hi")));
-    assertEquals("Key 2 hi", data.resourceToString("key2", Locale.create("hi")));
+    assertNull(data.getStringResource("key1").getTranslationAsResourceItem(Locale.create("hi")));
+    assertEquals("Key 2 hi", data.getStringResource("key2").getTranslationAsString(Locale.create("hi")));
   }
 
   public void testResourceToStringPsi() {
     Locale locale = Locale.create("fr");
 
-    assertEquals("L'Étranger", data.resourceToString("key8", locale));
-    assertEquals("<![CDATA[L'Étranger]]>", data.resourceToString("key9", locale));
-    assertEquals("<xliff:g>L'Étranger</xliff:g>", data.resourceToString("key10", locale));
+    assertEquals("L'Étranger", data.getStringResource("key8").getTranslationAsString(locale));
+    assertEquals("<![CDATA[L'Étranger]]>", data.getStringResource("key9").getTranslationAsString(locale));
+    assertEquals("<xliff:g>L'Étranger</xliff:g>", data.getStringResource("key10").getTranslationAsString(locale));
   }
 
   public void testResourceToStringDynamic() {
-    assertEquals("L'Étranger", data.resourceToString("dynamic_key1"));
+    assertEquals("L'Étranger", data.getStringResource("dynamic_key1").getDefaultValueAsString());
   }
 
   public void testValidation() {
@@ -144,39 +141,39 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testIsTranslationMissing() {
-    assertTrue(data.isTranslationMissing("key7", Locale.create("fr")));
+    assertTrue(data.getStringResource("key7").isTranslationMissing(Locale.create("fr")));
   }
 
   public void testRegionQualifier() {
     Locale en_rGB = Locale.create("en-rGB");
-    assertTrue(data.isTranslationMissing("key4", en_rGB));
-    assertFalse(data.isTranslationMissing("key3", en_rGB));
-    assertFalse(data.isTranslationMissing("key8", en_rGB));
+    assertTrue(data.getStringResource("key4").isTranslationMissing(en_rGB));
+    assertFalse(data.getStringResource("key3").isTranslationMissing(en_rGB));
+    assertFalse(data.getStringResource("key8").isTranslationMissing(en_rGB));
   }
 
   public void testEditingDoNotTranslate() {
     VirtualFile stringsFile = resourceDirectory.findFileByRelativePath("values/strings.xml");
     assertNotNull(stringsFile);
 
-    assertFalse(data.getUntranslatableKeys().contains("key1"));
+    assertTrue(data.getStringResource("key1").isTranslatable());
     XmlTag tag = getNthXmlTag(stringsFile, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    data.setDoNotTranslate("key1", true);
+    data.setTranslatable("key1", false);
 
-    assertTrue(data.getUntranslatableKeys().contains("key1"));
+    assertFalse(data.getStringResource("key1").isTranslatable());
     tag = getNthXmlTag(stringsFile, 0);
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    assertTrue(data.getUntranslatableKeys().contains("key5"));
+    assertFalse(data.getStringResource("key5").isTranslatable());
     tag = getNthXmlTag(stringsFile, 3);
     assertEquals("key5", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
-    data.setDoNotTranslate("key5", false);
+    data.setTranslatable("key5", true);
 
-    assertFalse(data.getUntranslatableKeys().contains("key5"));
+    assertTrue(data.getStringResource("key5").isTranslatable());
     tag = getNthXmlTag(stringsFile, 3);
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
   }
@@ -185,7 +182,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     final Locale locale = Locale.create("en-rIN");
     final String key = "key1";
 
-    String currentData = data.resourceToString(key, locale);
+    String currentData = data.getStringResource(key).getTranslationAsString(locale);
     assertEquals("<![CDATA[\n" +
                  "        <b>Google I/O 2014</b><br>\n" +
                  "        Version %s<br><br>\n" +
@@ -198,7 +195,7 @@ public class StringResourceDataTest extends AndroidTestCase {
                             "        Version %1$s<br><br>\n" +
                             "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
                             "  ]]>";
-    assertEquals(expected, data.resourceToString(key, locale));
+    assertEquals(expected, data.getStringResource(key).getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
@@ -211,13 +208,13 @@ public class StringResourceDataTest extends AndroidTestCase {
   public void testEditingXliff() {
     String key = "key3";
     Locale locale = Locale.create("en-rIN");
-    String currentData = data.resourceToString(key, locale);
+    String currentData = data.getStringResource(key).getTranslationAsString(locale);
 
     assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
     assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
 
     String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
-    assertEquals(expected, data.resourceToString(key, locale));
+    assertEquals(expected, data.getStringResource(key).getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
@@ -230,7 +227,7 @@ public class StringResourceDataTest extends AndroidTestCase {
   public void testAddingTranslation() {
     final Locale locale = Locale.create("en");
     final String key = "key4";
-    assertNull(data.getTranslations().get(key, locale));
+    assertNull(data.getStringResource(key).getTranslationAsResourceItem(locale));
 
     assertTrue(data.setTranslation(key, locale, "Hello"));
 
@@ -241,7 +238,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
 
-    assertEquals("Hello", data.resourceToString(key, locale));
+    assertEquals("Hello", data.getStringResource(key).getTranslationAsString(locale));
   }
 
   private XmlTag getNthXmlTag(@NotNull VirtualFile file, int index) {

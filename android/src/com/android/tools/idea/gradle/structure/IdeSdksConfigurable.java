@@ -249,15 +249,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       // to take effect during the sync.
       saveAndroidNdkPath();
 
-      boolean useEmbeddedJdk = useEmbeddedJdk();
       IdeSdks ideSdks = IdeSdks.getInstance();
-      if (useEmbeddedJdk) {
-        ideSdks.setUseEmbeddedJdk();
-      }
-      else {
-        ideSdks.setJdkPath(getUserSelectedJdkLocation());
-      }
-
+      ideSdks.setJdkPath(useEmbeddedJdk() ? getEmbeddedJdkPath() : getUserSelectedJdkLocation());
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -603,7 +596,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
         errors.add(error);
       }
       else {
-        JavaSdkVersion version = Jdks.findVersion(jdkLocation);
+        JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
         if (version == null || !version.isAtLeast(JDK_1_8)) {
           ProjectConfigurationError error =
             new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());

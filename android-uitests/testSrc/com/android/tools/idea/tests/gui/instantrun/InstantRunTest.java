@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.instantrun;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
@@ -34,7 +35,6 @@ import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -98,7 +98,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Ignore("http://b.android.com/221581")
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -150,7 +150,8 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @Ignore("hangs entire suite in continuous build a few times per day")
+  @RunIn(TestGroup.QA)
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -205,7 +206,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Ignore("failed consistently from http://go/aj/builders/studio-uitests_master-dev/builds/1271")
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();

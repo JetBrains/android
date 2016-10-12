@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
@@ -79,7 +79,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (GradleSyncState.getInstance(myProject).getSummary().hasErrors()) {
+    if (GradleSyncState.getInstance(myProject).getSummary().hasSyncErrors()) {
       return NotificationPanel.Type.ERRORS;
     }
 
@@ -153,7 +153,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Sync Now", () -> GradleProjectImporter.getInstance().requestProjectSync(project, null));
+      createActionLabel("Sync Now", () -> {
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      });
     }
   }
 
@@ -161,7 +163,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Try Again", () -> GradleProjectImporter.getInstance().requestProjectSync(project, null));
+      createActionLabel("Try Again", () -> {
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      });
 
       createActionLabel("Open 'Messages' View", () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));
 

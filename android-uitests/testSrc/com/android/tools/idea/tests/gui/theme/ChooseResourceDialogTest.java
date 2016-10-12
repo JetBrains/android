@@ -330,8 +330,6 @@ public class ChooseResourceDialogTest {
 
     dialog.clickOK();
 
-    // Confirm that the layout property now points to the new resource value
-    String value = property.getValue();
-    assertEquals("@drawable/ic_launcher", value);
+    Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@drawable/ic_launcher"));
   }
 }

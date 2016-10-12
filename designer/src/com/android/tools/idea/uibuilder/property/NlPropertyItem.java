@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
@@ -155,7 +156,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     ApplicationManager.getApplication().assertIsDispatchThread();
     String prev = null;
     for (NlComponent component : myComponents) {
-      String value = getValue(component);
+      String value = component.getAttribute(myNamespace, myName);
       if (value == null) {
         return null;
       }
@@ -169,19 +170,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return prev;
   }
 
-  private String getValue(@NotNull NlComponent component) {
-    String value = component.getAttribute(myNamespace, myName);
-    return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
-  }
-
   @Override
   @Nullable
   public String getResolvedValue() {
-    String value = getValue();
-    if (value != null) {
-      value = resolveValue(value);
-    }
-    return value;
+    return resolveValue(getValue());
   }
 
   @Override
@@ -196,15 +188,15 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  @NotNull
-  public String resolveValue(@NotNull String value) {
+  @Nullable
+  public String resolveValue(@Nullable String value) {
     if (myDefaultValue != null && isDefaultValue(value)) {
       if (myDefaultValue.value == null) {
         myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
       }
       return myDefaultValue.value;
     }
-    return resolveValueUsingResolver(value);
+    return value != null ? resolveValueUsingResolver(value) : null;
   }
 
   public void delete() {
@@ -334,6 +326,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         for (NlComponent component : myComponents) {
           String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
           component.setAttribute(myNamespace, myName, v);
+          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
         }
       }
     }.execute();

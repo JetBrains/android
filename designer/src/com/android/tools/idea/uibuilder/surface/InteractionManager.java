@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -269,8 +270,20 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
+    ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
+    if (screenView != null) {
+      Dimension size = screenView.getSize();
+      Rectangle resizeZone =
+        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
+
     // We don't hover on the root since it's not a widget per see and it is always there.
-    ScreenView screenView = mySurface.getScreenView(x, y);
+    screenView = mySurface.getScreenView(x, y);
     if (screenView == null) {
       mySurface.setCursor(null);
       return;
@@ -342,19 +355,6 @@ public class InteractionManager {
           if (viewGroupHandler.updateCursor(screenView, mx, my)) {
             mySurface.repaint();
           }
-        }
-      }
-
-      // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-      screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
-      if (screenView != null) {
-        Dimension size = screenView.getSize();
-        // TODO: use constants for those numbers
-        Rectangle resizeZone =
-          new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(x, y)) {
-          mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-          return;
         }
       }
     }
@@ -587,6 +587,9 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = event.getModifiers();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        mySurface.getLayeredPane().scrollRectToVisible(
+          new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                        2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
         mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to

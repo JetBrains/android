@@ -23,11 +23,12 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -37,8 +38,10 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
@@ -65,9 +68,37 @@ public class InstantRunConfigurable
   private JBCheckBox myShowToastCheckBox;
   private JBCheckBox myShowIrStatusNotifications;
 
+  private JBCheckBox myEnableRecorder;
+  private HyperlinkLabel myExtraInfoHyperlink;
+  private HyperlinkLabel myPrivacyPolicyLink;
+
+  private HyperlinkLabel myReenableLink;
+  private JPanel myHelpGooglePanel;
+  private JBLabel myHavingTroubleLabel;
+
   public InstantRunConfigurable() {
+    myExtraInfoHyperlink.setHtmlText("Learn more about <a href=\"more\">what is logged</a>,");
+    myExtraInfoHyperlink.addHyperlinkListener(e -> BrowserUtil.browse("https://developer.android.com/r/studio-ui/ir-flight-recorder.html"));
+
+    myPrivacyPolicyLink.setHtmlText("and our <a href=\"privacy\">privacy policy.</a>");
+    myPrivacyPolicyLink.addHyperlinkListener(e -> BrowserUtil.browse("https://www.google.com/policies/privacy/"));
+
+    myHelpGooglePanel.setBackground(UIUtil.getPanelBackground().brighter());
+    myHelpGooglePanel.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+    myHavingTroubleLabel.setFont(JBUI.Fonts.label().asBold().biggerOn(1.2f));
+
+    myReenableLink.setHtmlText("<a href=\"reenable\">Re-enable and activate extra logging</a>");
+    myReenableLink.addHyperlinkListener(e -> {
+      myInstantRunCheckBox.setSelected(true);
+      enableIrOptions(true);
+      myEnableRecorder.setSelected(true);
+    });
+
+    myInstantRunCheckBox.addActionListener(e -> enableIrOptions(myInstantRunCheckBox.isSelected()));
+
     myBuildConfiguration = InstantRunConfiguration.getInstance();
     updateLinkState();
+    enableIrOptions(myBuildConfiguration.INSTANT_RUN);
   }
 
   @NotNull
@@ -105,7 +136,8 @@ public class InstantRunConfigurable
     return myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
            myBuildConfiguration.SHOW_TOAST != isShowToast() ||
-           myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications();
+           myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications() ||
+           myBuildConfiguration.ENABLE_RECORDER != isEnableRecorder();
   }
 
   @Override
@@ -114,13 +146,7 @@ public class InstantRunConfigurable
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
-
-    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (project.isDefault()) {
-        continue;
-      }
-      InstantRunManager.updateFileListener(project);
-    }
+    myBuildConfiguration.ENABLE_RECORDER = isEnableRecorder();
   }
 
   @Override
@@ -129,6 +155,7 @@ public class InstantRunConfigurable
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
+    myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
   }
 
   @Override
@@ -149,6 +176,10 @@ public class InstantRunConfigurable
 
   private boolean isShowStatusNotifications() {
     return myShowIrStatusNotifications.isSelected();
+  }
+
+  private boolean isEnableRecorder() {
+    return myEnableRecorder.isSelected();
   }
 
   private void createUIComponents() {
@@ -188,9 +219,17 @@ public class InstantRunConfigurable
     boolean enabled = isGradle && isCurrentPlugin;
 
     myInstantRunCheckBox.setEnabled(isGradle); // allow turning off instant run even if the plugin is not the latest
+    enableIrOptions(enabled);
+  }
+
+  private void enableIrOptions(boolean enabled) {
     myRestartActivityCheckBox.setEnabled(enabled);
     myShowToastCheckBox.setEnabled(enabled);
     myShowIrStatusNotifications.setEnabled(enabled);
+    myEnableRecorder.setEnabled(enabled);
+    myExtraInfoHyperlink.setEnabled(enabled);
+
+    myHelpGooglePanel.setVisible(!enabled);
   }
 
   @Override
@@ -216,7 +255,7 @@ public class InstantRunConfigurable
     // Update plugin version
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
     UpdateResult result = updater.updatePluginVersion(GradleVersion.parse(pluginVersion), GradleVersion.parse(GRADLE_LATEST_VERSION));
-    if (result.isPluginVersionUpdated() && result.versionUpdateSuccessful()) {
+    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
       AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
@@ -238,7 +277,8 @@ public class InstantRunConfigurable
       }
 
       // Request a sync
-      GradleProjectImporter.getInstance().syncProjectSynchronously(project, true, listener);
+      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setRunInBackground(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
       return true;
     }
     else {

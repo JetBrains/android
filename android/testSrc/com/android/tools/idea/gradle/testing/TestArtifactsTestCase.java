@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIPROJECT;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -29,7 +30,7 @@ public abstract class TestArtifactsTestCase extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("projects/testArtifacts/multiproject", false);
+    loadProject(TEST_ARTIFACTS_MULTIPROJECT);
   }
 
   @NotNull

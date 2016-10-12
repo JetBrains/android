@@ -269,6 +269,30 @@ public class RenderingContext {
     return !myDryRun;
   }
 
+  @Override
+  public String toString() {
+    return "RenderingContext{" +
+           "myProject=" + myProject +
+           ", myTitle='" + myTitle + '\'' +
+           ", myParamMap=" + myParamMap +
+           ", myOutputRoot=" + myOutputRoot +
+           ", myModuleRoot=" + myModuleRoot +
+           ", myGradleSync=" + myGradleSync +
+           ", myFindOnlyReferences=" + myFindOnlyReferences +
+           ", myLoader=" + myLoader +
+           ", myFreemarker=" + myFreemarker +
+           ", mySourceFiles=" + mySourceFiles +
+           ", myTargetFiles=" + myTargetFiles +
+           ", myFilesToOpen=" + myFilesToOpen +
+           ", myPlugins=" + myPlugins +
+           ", myClasspathEntries=" + myClasspathEntries +
+           ", myDependencies=" + myDependencies +
+           ", myWarnings=" + myWarnings +
+           ", myDryRun=" + myDryRun +
+           ", myShowErrors=" + myShowErrors +
+           '}';
+  }
+
   @NotNull
   private static Project useDefaultProjectIfNeeded(@Nullable Project project) {
     // Project creation: no current project to read code style settings from yet, so use defaults

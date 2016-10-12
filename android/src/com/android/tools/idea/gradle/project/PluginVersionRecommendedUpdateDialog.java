@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
@@ -34,8 +35,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.intellij.ide.BrowserUtil.browse;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.JBUI.Borders.empty;
 import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
@@ -46,15 +48,17 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
 
   @NotNull private final Project myProject;
+  @NotNull private final GradleVersion myCurrentPluginVersion;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
   private JPanel myCenterPanel;
   private JEditorPane myMessagePane;
   private JButton[] myButtons;
 
-  public PluginVersionRecommendedUpdateDialog(@NotNull Project project, @NotNull String currentPluginVersion) {
+  public PluginVersionRecommendedUpdateDialog(@NotNull Project project, @NotNull GradleVersion current, @NotNull GradleVersion recommended) {
     super(project);
     myProject = project;
+    myCurrentPluginVersion = current;
     setTitle("Android Gradle Plugin Update Recommended");
     myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
       @Override
@@ -62,15 +66,30 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
       public String getDoNotShowMessage() {
         return "Don't remind me again for this project";
       }
+
+      @Override
+      public boolean isToBeShown() {
+        // Read the stored value. If none is found, return "true" to display the checkbox the first time.
+        return shouldDisplayDialog();
+      }
+
+      @Override
+      public void setToBeShown(boolean toBeShown, int exitCode) {
+        // Stores the state of the checkbox into the property.
+        String valueToSave = "";
+        if (!toBeShown) {
+          valueToSave = myCurrentPluginVersion.toString();
+        }
+        PropertiesComponent.getInstance(myProject).setValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, valueToSave);
+      }
     };
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    String msg = "<b>The project is using an old version of the Android Gradle plugin (" + currentPluginVersion + ").</b><br/<br/>" +
-                 "To take advantage of all the latest features, such as " +
-                 "<b><a href='http://tools.android.com/tech-docs/instant-run'>Instant Run</a></b>, we strongly recommend " +
-                 "that you update the Android Gradle plugin to version " +
-                 GRADLE_PLUGIN_LATEST_VERSION + ".<br/><br/>" +
+    String msg = "To take advantage of all the latest features (such as " +
+                 "<b><a href='https://developer.android.com/studio/run/index.html#instant-run\"'>Instant Run</a></b>), improvements and " +
+                 "security fixes, we strongly recommend that you update the Android Gradle plugin to version " +
+                 recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
                  "<a href='http://developer.android.com/tools/revisions/gradle-plugin.html'>release notes</a>.<br/><br/>";
     myMessagePane.setText(msg);
@@ -156,12 +175,18 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
 
   @Override
   public void show() {
-    if (PropertiesComponent.getInstance(myProject).getBoolean(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, true)) {
+    if (shouldDisplayDialog()) {
       super.show();
     }
     else {
       doCancelAction();
     }
+  }
+
+  private boolean shouldDisplayDialog() {
+    String value = PropertiesComponent.getInstance(myProject).getValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, "");
+    boolean storedVersionMatching = isNotEmpty(value) && myCurrentPluginVersion.compareTo(value) == 0;
+    return !storedVersionMatching;
   }
 
   @Override

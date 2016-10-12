@@ -44,13 +44,12 @@ import static org.junit.Assume.assumeTrue;
 /**
  * UI test for the layout preview window
  */
-@RunIn(TestGroup.LAYOUT)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/259")
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");

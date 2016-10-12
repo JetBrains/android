@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.ReportController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
+import com.android.tools.idea.editors.gfxtrace.controllers.TreeController;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
@@ -55,6 +56,8 @@ public final class Render {
   public static final int STATE_VALUE_TAG = 0;
   public static final int REPORT_ITEM_ATOM_ID_TAG = 0;
   public static final int REPORT_MESSAGE_VIEW_TAG = 100;
+  public static final int TAG_ITEM_TAG = 101;
+  private static final int TAG_STR_LENGTH = 40;
 
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
@@ -167,39 +170,70 @@ public final class Render {
     }
   }
 
-  public static void render(@NotNull ReportController.Node node,
+  public static void render(@NotNull ReportController.Group group,
                             @NotNull SimpleColoredComponent component) {
-    if (node.isLeaf()) {
-      render(node.getMessage(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    render(group.getName(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    int actualCount = group.getDelegateChildCount();
+    int displayedCount = group.getChildCount();
+    if (actualCount != displayedCount) {
+      render(" " + actualCount + " (showing " + displayedCount + ")", component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
     }
     else {
-      render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
-      render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-      switch (node.getSeverity()) {
-        case Emergency:
-        case Alert:
-        case Critical:
-        case Error:
-        case Warning:
-          render(node.getSeverity().name(), component, SimpleTextAttributes.ERROR_ATTRIBUTES, NO_TAG);
-          break;
-        case Notice:
-        case Info:
-        case Debug:
-          render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
-          break;
-      }
-      render(" - " + node.getMessagePreview(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+      render(" " + displayedCount, component, SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
     }
   }
 
+  public static void render(@NotNull ReportController.Node node,
+                            @NotNull SimpleColoredComponent component) {
+    render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
+    render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    switch (node.getSeverity()) {
+      case Emergency:
+      case Alert:
+      case Critical:
+      case Error:
+      case Warning:
+        render(node.getSeverity().name(), component, SimpleTextAttributes.ERROR_ATTRIBUTES, NO_TAG);
+        break;
+      case Notice:
+      case Info:
+      case Debug:
+        render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+        break;
+    }
+    if (node.hasTags()) {
+      render(" ", component, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES, NO_TAG);
+      List<String> l = node.getTagStrings();
+      for (int i = 0; i < l.size() - 1; ++i) {
+        render(trimTagString(l.get(i)) + ", ", component, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, NO_TAG);
+      }
+      render(trimTagString(l.get(l.size() - 1)), component, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, NO_TAG);
+    }
+  }
+
+  private static String trimTagString(@NotNull final String str) {
+    String result = str;
+    if (result.charAt(result.length() - 1) == '.') {
+      result = result.substring(0, result.length() - 1);
+    }
+    if (result.length() > TAG_STR_LENGTH) {
+      result = result.substring(0, TAG_STR_LENGTH - 1) + "\u2026";
+    }
+    return result;
+  }
+
+  public static void render(@NotNull ReportController.Tag tag,
+                            @NotNull SimpleColoredComponent component) {
+    render(tag.getString(), component, SimpleTextAttributes.LINK_ATTRIBUTES, TAG_ITEM_TAG);
+  }
+
   public static void render(@NotNull AtomController.Node node,
-                            @NotNull SimpleColoredComponent component,
+                            @NotNull TreeController.CompositeCellRenderer component,
                             @NotNull SimpleTextAttributes attributes) {
     render(node.index, component, attributes, NO_TAG);
     if (node.atom != null) {
       component.append(": ", attributes);
-      render(node.atom, component, node.hoveredParameter);
+      render(node.atom, component.getRightComponent(), node.hoveredParameter);
     }
   }
 
@@ -211,14 +245,15 @@ public final class Render {
   }
 
   public static void render(@NotNull AtomController.Group group,
-                            @NotNull final SimpleColoredComponent component,
+                            @NotNull final TreeController.CompositeCellRenderer component,
                             @NotNull SimpleTextAttributes attributes) {
     render(group.group.getRange().getStart(), component, attributes, NO_TAG);
     component.append(": ", attributes);
-    component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    SimpleColoredComponent rightComponent = component.getRightComponent();
+    rightComponent.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     long count = group.group.getRange().getCount();
     String range = "  (" + count + " Command" + (count != 1 ? "s" : "") + ")";
-    component.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    rightComponent.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
   public static void render(@NotNull Atom atom,
@@ -619,7 +654,7 @@ public final class Render {
     }
   }
 
-  private static final int MAX_DISPLAY = 3;
+  private static final int MAX_DISPLAY = 4;
 
   public static void render(@NotNull SnippetObject obj,
                             @NotNull Object[] array,
@@ -635,8 +670,9 @@ public final class Render {
       render(obj.elem(array[index]), valueType, component, attributes, NO_TAG);
     }
     if (count < array.length) {
-      component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      component.append(", ...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+    component.append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   public static void render(@NotNull SnippetObject obj,
@@ -653,8 +689,9 @@ public final class Render {
       render(obj.elem(array[index]), valueType, component, attributes, NO_TAG);
     }
     if (count < array.length) {
-      component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      component.append(", ...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+    component.append("]", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   public static void render(@NotNull SnippetObject obj, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {
@@ -669,15 +706,11 @@ public final class Render {
    * See {@link #render(DynamicAtom, SimpleColoredComponent, SimpleTextAttributes, int)}
    */
   public static int getNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
-    return getFieldIndex(tree, node, x, expanded, 2);
-  }
-
-  /**
-   * NodeCellRenderer has to be handled in a specific way.
-   */
-  public static int getReportNodeFieldIndex(@NotNull ReportController.NodeCellRenderer renderer, int x) {
-    for (int index = renderer.findFragmentAt(x); index >= 0; index--) {
-      Object tag = renderer.getFragmentTag(index, x);
+    ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
+    // Setup the renderer to have the Node we have selected as its value
+    renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
+    for (int index = renderer.findFragmentAt(x); index >= 2; index--) {
+      Object tag = renderer.getFragmentTag(index);
       if (tag != null && tag instanceof Integer) {
         return (Integer)tag;
       }
@@ -685,12 +718,12 @@ public final class Render {
     return NO_TAG;
   }
 
-  private static int getFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded, int minIndex) {
-    ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
-    // Setup the renderer to have the Node we have selected as its value
-    renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
-    for (int index = renderer.findFragmentAt(x); index >= minIndex; index--) {
-      Object tag = renderer.getFragmentTag(index);
+  /**
+   * CompositeCellRenderer has to be handled in a specific way.
+   */
+  public static int getFieldIndex(@NotNull ReportController.CompositeCellRenderer renderer, int x) {
+    for (int index = renderer.findFragmentAt(x); index >= 0; index--) {
+      Object tag = renderer.getFragmentTag(index, x);
       if (tag != null && tag instanceof Integer) {
         return (Integer)tag;
       }

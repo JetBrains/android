@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -36,6 +37,16 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      ConstraintModel.clearCache();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")

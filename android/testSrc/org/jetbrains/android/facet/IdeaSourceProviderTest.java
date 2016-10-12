@@ -75,8 +75,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(myAppFacet);
     assertNotNull(myLibFacet);
 
-    addAndroidSdk(myLibModule, getTestSdkPath(), getPlatformDir());
-    addAndroidSdk(myAppModule, getTestSdkPath(), getPlatformDir());
+    addLatestAndroidSdk(myLibModule);
+    addLatestAndroidSdk(myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
     assertNotNull(AndroidPlatform.getInstance(myLibModule));

@@ -67,7 +67,7 @@ public class ExtractedColor implements Comparable<ExtractedColor> {
 
   @Override
   public int compareTo(ExtractedColor o) {
-    return myOccurrence - o.getOccurrence();
+    return o.getOccurrence() - myOccurrence;
   }
 
   @Override

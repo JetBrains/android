@@ -15,26 +15,29 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.mockup.old.MockupEditorPopup;
-import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
+import com.android.tools.idea.uibuilder.mockup.editor.FileChooserActionListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.awt.event.ActionEvent;
+import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Shows the popup for editing the mockup of the selected component
  */
 public class MockupEditAction extends AnAction {
 
+  private static FileChooserActionListener ourFileChooserActionListener = new FileChooserActionListener();
   private final static String EDIT_ACTION_TITLE = "Edit Mockup";
   private final static String ADD_ACTION_TITLE = "Add Mockup";
   private final MockupToggleAction myMockupToggleAction;
@@ -54,12 +57,22 @@ public class MockupEditAction extends AnAction {
 
         // If the selected component already has a mockup attribute, display the Edit text
         // else display the add text
-        if (nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null) {
+        if (nlComponent.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null) {
           presentation.setText(EDIT_ACTION_TITLE);
         }
         else {
           presentation.setText(ADD_ACTION_TITLE);
         }
+
+        // When changing the mockup, we want to change both the file and reset the cropping
+        // so we add the two properties
+        ourFileChooserActionListener.setFilePathProperty(new NlPropertyItem(
+          Collections.singletonList(nlComponent),
+          TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP)));
+
+        ourFileChooserActionListener.setCropProperty(new NlPropertyItem(
+          Collections.singletonList(nlComponent),
+          TOOLS_URI, ToolsAttributeUtil.getAttrDefByName(ATTR_MOCKUP_CROP)));
       }
       else {
         getTemplatePresentation().setEnabled(false);
@@ -68,7 +81,13 @@ public class MockupEditAction extends AnAction {
   }
 
   @Override
+  public void update(AnActionEvent e) {
+    e.getPresentation().setEnabledAndVisible(Mockup.ENABLE_FEATURE);
+  }
+
+  @Override
   public void actionPerformed(AnActionEvent e) {
     myMockupToggleAction.setSelected(e, true);
+    ourFileChooserActionListener.actionPerformed(null);
   }
 }

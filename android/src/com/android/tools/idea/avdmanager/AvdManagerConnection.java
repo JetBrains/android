@@ -360,6 +360,9 @@ public class AvdManagerConnection {
     addParameters(info, commandLine);
 
     EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
+    ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
+    runner.addProcessListener(collector);
+
     final ProcessHandler processHandler;
     try {
       processHandler = runner.start();
@@ -380,9 +383,6 @@ public class AvdManagerConnection {
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
     // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
-      processHandler.addProcessListener(collector);
-
       try {
         p.start();
         p.setText("Starting AVD...");

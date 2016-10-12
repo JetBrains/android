@@ -133,7 +133,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
 
     iterator = google.getItems().iterator();
     assertAdView(iterator.next());
-    assertMapFragment(iterator.next());
     assertMapView(iterator.next());
     assertFalse(iterator.hasNext());
 

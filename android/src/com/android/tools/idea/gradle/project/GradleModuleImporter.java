@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
@@ -80,10 +81,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     try {
       importModules(this, projects, myProject, null);
     }
-    catch (IOException e) {
-      LOG.error(e);
-    }
-    catch (ConfigurationException e) {
+    catch (IOException | ConfigurationException e) {
       LOG.error(e);
     }
   }
@@ -233,7 +231,7 @@ public final class GradleModuleImporter extends ModuleImporter {
    */
   @Nullable
   private static String validateProjectsForImport(@NotNull Map<String, VirtualFile> modules) {
-    Set<String> projects = new TreeSet<String>();
+    Set<String> projects = new TreeSet<>();
     for (Map.Entry<String, VirtualFile> mapping : modules.entrySet()) {
       if (mapping.getValue() == null) {
         projects.add(mapping.getKey());
@@ -295,7 +293,8 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       gradleSettingsFile.addModule(name, targetFile);
     }
-    GradleProjectImporter.getInstance().requestProjectSync(project, false, listener);
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
   }
 
   /**

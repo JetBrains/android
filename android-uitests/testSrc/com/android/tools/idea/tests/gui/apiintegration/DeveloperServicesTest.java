@@ -18,9 +18,10 @@ package com.android.tools.idea.tests.gui.apiintegration;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,7 +30,6 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
@@ -93,7 +93,7 @@ public class DeveloperServicesTest {
    * <p>
    *   The test checks both the presence of the string and that the build.gradle file is written correctly by parsing it.
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void toggleDevServicesDependencies() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -223,7 +223,7 @@ public class DeveloperServicesTest {
    *      which shows that the server is running. After that it verifies the test can connect to port 8080 on localhost.
    *   </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createAppEngineJavaServletModule() throws Exception {
     createGoogleCloudModule("App Engine Java Servlet Module", "MyServlet.java", false);
@@ -254,7 +254,7 @@ public class DeveloperServicesTest {
    *      which shows that the server is running. After that it verifies the test can connect to port 8080 on localhost.
    *   </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createAppEngineJavaEndpointsModule() throws Exception {
     createGoogleCloudModule("App Engine Java Endpoints Module", "MyEndpoint.java", true);
@@ -285,7 +285,7 @@ public class DeveloperServicesTest {
    *      which shows that the server is running. After that it verifies the test can connect to port 8080 on localhost.
    *   </pre>
    */
-  @Category(GuiSanityTestSuite.class)
+  @RunIn(TestGroup.QA)
   @Test
   public void createAppEngineBackendWithCloudMessaging() throws Exception {
     createGoogleCloudModule("App Engine Backend with Google Cloud Messaging", "MessagingEndpoint.java", true);

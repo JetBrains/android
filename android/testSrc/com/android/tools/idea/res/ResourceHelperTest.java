@@ -225,13 +225,12 @@ public class ResourceHelperTest extends AndroidTestCase {
       ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE));
     List<String> dimenOnly = ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.DIMEN));
 
-    assertThat(colorOnly).containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
-    assertThat(drawableOnly)
-      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@android:drawable/menuitem_background");
+    assertThat(colorOnly).containsAllOf("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
+    assertThat(drawableOnly).containsAllOf("@color/myColor1", "@color/myColor2", "@android:drawable/menuitem_background");
     assertThat(colorAndDrawable)
-      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
+      .containsAllOf("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
                        "@android:drawable/menuitem_background");
-    assertThat(dimenOnly).containsExactly("@dimen/myAlpha", "@dimen/myDimen");
+    assertThat(dimenOnly).containsAllOf("@dimen/myAlpha", "@dimen/myDimen");
   }
 
   public void testResolveEmptyStatelist() {

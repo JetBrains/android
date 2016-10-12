@@ -20,15 +20,17 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,17 +49,23 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull AndroidGradleModel androidModel,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull AndroidGradleModel androidModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     File androidSdkHomePath = IdeSdks.getInstance().getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
       assert !isAndroidStudio();
       logAndroidSdkHomeNotFound();
       return;
+    }
+
+    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+    LanguageLevel languageLevel = androidModel.getJavaLanguageLevel();
+    if (languageLevel != null) {
+      moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
     AndroidProject androidProject = androidModel.getAndroidProject();
@@ -77,7 +85,6 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
       return;
     }
 
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
     moduleModel.setSdk(sdk);
     String sdkPath = sdk.getHomePath();
     if (sdkPath == null) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -53,9 +53,7 @@ import java.util.Locale;
 
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Static utility methods used by the New Project/New Module wizards
@@ -108,7 +106,7 @@ public class WizardUtils {
    * @return true if the given module name is unique inside the given project. Returns true if the given
    * project is null.
    */
-  private static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
+  public static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
     if (project == null) {
       return true;
     }
@@ -208,19 +206,16 @@ public class WizardUtils {
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        projectImporter.importNewlyCreatedProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
+        GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
+        requestSettings.setProject(project).setLanguageLevel(initialLanguageLevel);
+        projectImporter.importProject(projectName, projectRoot, requestSettings, new NewProjectImportGradleSyncListener() {
           @Override
           public void syncSucceeded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
             // the layout editor won't add Design tabs to the file
             StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
             if (!manager.postStartupActivityPassed()) {
-              manager.registerPostStartupActivity(new Runnable() {
-                @Override
-                public void run() {
-                  openTemplateFiles(project);
-                }
-              });
+              manager.registerPostStartupActivity(() -> openTemplateFiles(project));
             }
             else {
               openTemplateFiles(project);
@@ -230,7 +225,7 @@ public class WizardUtils {
           private boolean openTemplateFiles(Project project) {
             return TemplateUtils.openEditors(project, context.getFilesToOpen(), true);
           }
-        }, project, initialLanguageLevel);
+        });
       } else {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
