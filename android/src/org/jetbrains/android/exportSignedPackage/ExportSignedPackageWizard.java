@@ -83,6 +83,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private boolean mySigned;
   private CompileScope myCompileScope;
   private String myApkPath;
+  private boolean myV1Signature;
+  private boolean myV2Signature;
 
   // build type, list of flavors and gradle signing info are valid only for Gradle projects
   private String myBuildType;
@@ -179,6 +181,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+
+        // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
         assert myProject != null;
 
@@ -338,6 +344,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setApkPath(@NotNull String apkPath) {
     myApkPath = apkPath;
+  }
+
+  public void setV1Signature(boolean v1Signature) {
+    myV1Signature = v1Signature;
+  }
+
+  public void setV2Signature(boolean v2Signature) {
+    myV2Signature = v2Signature;
   }
 
   public void setGradleOptions(String buildType, @NotNull List<String> flavors) {
