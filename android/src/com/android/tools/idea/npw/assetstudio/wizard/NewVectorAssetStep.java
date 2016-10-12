@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.ui.ExpensiveTask;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -263,8 +264,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    */
   private final class VectorPreviewUpdater {
 
-    @Nullable private SwingWorker<Void, Void> myCurrentWorker;
-    @Nullable private SwingWorker<Void, Void> myEnqueuedWorker;
+    final ExpensiveTask.Runner myTaskRunner = new ExpensiveTask.Runner();
 
     /**
      * Begin parsing the current file in {@link #myActiveAsset} and, if it's valid, update the UI
@@ -278,55 +278,43 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
      */
     public void enqueueUpdate() {
       ApplicationManager.getApplication().assertIsDispatchThread();
-
-      if (myCurrentWorker == null) {
-        myCurrentWorker = createWorker();
-        myCurrentWorker.execute();
-      }
-      else if (myEnqueuedWorker == null) {
-        myEnqueuedWorker = createWorker();
-      }
-    }
-
-    private SwingWorker<Void, Void> createWorker() {
-      return new SwingWorker<Void, Void>() {
+      myTaskRunner.setTask(new ExpensiveTask() {
         VectorAsset.ParseResult myParseResult;
 
         @Override
-        protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
-          return null;
+        public void onStarting() {
+          updatePreview(null);
         }
 
         @Override
-        protected void done() {
+        public void doBackgroundWork() throws Exception {
+          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
+        }
+
+        @Override
+        public void onFinished() {
           assert myParseResult != null;
-          isValidAsset.set(myParseResult.isValid());
-          if (myParseResult.isValid()) {
-            myImagePreview.setIcon(new ImageIcon(myParseResult.getImage()));
-            myOriginalSize.setValue(new Dimension(myParseResult.getOriginalWidth(), myParseResult.getOriginalHeight()));
+          updatePreview(myParseResult);
+          ApplicationManager.getApplication().invokeLater(() -> {
+            myErrorsScrollPane.getVerticalScrollBar().setValue(0);
+          }, ModalityState.any());
+        }
+
+        private void updatePreview(@Nullable VectorAsset.ParseResult parseResult) {
+          isValidAsset.set(parseResult != null && parseResult.isValid());
+          if (parseResult != null && parseResult.isValid()) {
+            myImagePreview.setIcon(new ImageIcon(parseResult.getImage()));
+            myOriginalSize.setValue(new Dimension(parseResult.getOriginalWidth(), parseResult.getOriginalHeight()));
           }
           else {
             myImagePreview.setIcon(null);
             myOriginalSize.clear();
           }
 
-          myErrorPanel.setVisible(!myParseResult.getErrors().isEmpty());
-          myErrorsTextArea.setText(myParseResult.getErrors());
-          ApplicationManager.getApplication().invokeLater(() -> {
-            myErrorsScrollPane.getVerticalScrollBar().setValue(0);
-          }, ModalityState.any());
-
-          myCurrentWorker = null;
-          if (myEnqueuedWorker != null) {
-            myCurrentWorker = myEnqueuedWorker;
-            myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(() -> {
-              myCurrentWorker.execute();
-            }, ModalityState.any());
-          }
+          myErrorPanel.setVisible(parseResult != null && !parseResult.getErrors().isEmpty());
+          myErrorsTextArea.setText(parseResult != null ? parseResult.getErrors() : null);
         }
-      };
+      });
     }
   }
 }
