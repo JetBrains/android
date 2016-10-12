@@ -37,7 +37,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -677,14 +676,22 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the bias on
    */
-  static void setChainPack(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    String chainPackString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
-    boolean pack = false;
-    pack = Boolean.parseBoolean(chainPackString);
-     if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED.equals(attribute)) {
-      widget.setHorizontalChainPacked(pack);
-    } else {
-       widget.setVerticalChainPacked(pack);
+  static void setChainStyle(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String chainStyleString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    if (chainStyleString != null) {
+      int style = ConstraintWidget.CHAIN_SPREAD;
+      if (chainStyleString.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD)) {
+        style = ConstraintWidget.CHAIN_SPREAD;
+      } else if (chainStyleString.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE)) {
+        style = ConstraintWidget.CHAIN_SPREAD_INSIDE;
+      } else if (chainStyleString.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_CHAIN_PACKED)) {
+        style = ConstraintWidget.CHAIN_PACKED;
+      }
+      if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE.equals(attribute)) {
+        widget.setHorizontalChainStyle(style);
+      } else {
+        widget.setVerticalChainStyle(style);
+      }
     }
   }
 
@@ -699,7 +706,7 @@ public class ConstraintUtilities {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String chainWeightString = attributes.getAttribute(SdkConstants.SHERPA_URI, attribute);
     float weight = parseFloat(chainWeightString, 0.f);
-    if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED.equals(attribute)) {
+    if (SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT.equals(attribute)) {
       widget.setHorizontalWeight(weight);
     }
     else {
@@ -1181,8 +1188,8 @@ public class ConstraintUtilities {
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
 
     setDimensionRatio(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, component, widget);
-    setChainPack(SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_PACKED, component, widget);
-    setChainPack(SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_PACKED, component, widget);
+    setChainStyle(SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, component, widget);
+    setChainStyle(SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, component, widget);
     setChainWeight(SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT, component, widget);
     setChainWeight(SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT, component, widget);
 
