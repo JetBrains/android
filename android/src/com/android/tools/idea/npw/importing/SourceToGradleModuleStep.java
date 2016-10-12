@@ -28,6 +28,7 @@ import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
@@ -74,7 +75,7 @@ import static com.intellij.openapi.ui.MessageType.WARNING;
  * Wizard Step that allows the user to point to an existing source directory (ADT or Gradle) to import as a new Android Gradle module.
  * Also allows selection of sub-modules to import. Most functionality is contained within existing {@link ModulesTable} class.
  */
-public final class SourceToGradleModuleStep extends ModelWizardStep<SourceToGradleModuleModel> {
+public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceToGradleModuleModel> {
   private final ListenerManager myListeners = new ListenerManager();
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -231,16 +232,13 @@ public final class SourceToGradleModuleStep extends ModelWizardStep<SourceToGrad
     if (!importer.isValid()) {
       return PathValidationResult.ofType(NOT_ADT_OR_GRADLE);
     }
-    Collection<ModuleToImport> modules = ApplicationManager.getApplication().runReadAction(new Computable<Collection<ModuleToImport>>() {
-      @Override
-      public Collection<ModuleToImport> compute() {
-        try {
-          return importer.findModules(vFile);
-        }
-        catch (IOException e) {
-          Logger.getInstance(SourceToGradleModuleStep.class).error(e);
-          return null;
-        }
+    Collection<ModuleToImport> modules = ApplicationManager.getApplication().runReadAction((Computable<Collection<ModuleToImport>>)() -> {
+      try {
+        return importer.findModules(vFile);
+      }
+      catch (IOException e) {
+        Logger.getInstance(SourceToGradleModuleStep.class).error(e);
+        return null;
       }
     });
     if (modules == null) {
