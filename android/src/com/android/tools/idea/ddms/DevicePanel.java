@@ -27,7 +27,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +39,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +55,18 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   public boolean myIgnoreActionEvents;
   @NotNull private JComboBox myDeviceCombo;
   @NotNull private JComboBox myClientCombo;
-  @Nullable private String myCandidateClientName;
+  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
+    @Nullable
+    @Override
+    protected String compute() {
+      return getApplicationName();
+    }
+  };
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
     myDeviceContext = context;
     myPreferredClients = Maps.newHashMap();
-    myCandidateClientName = getApplicationName();
     Disposer.register(myProject, this);
 
     initializeDeviceCombo();
@@ -150,12 +156,14 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        myBridge = bridge;
-        updateDeviceCombo();
-      }
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myBridge = bridge;
+          updateDeviceCombo();
+        }
+      });
     });
   }
 
@@ -289,6 +297,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable
   private String getPreferredClientForDevice(String deviceName) {
     String client = myPreferredClients.get(deviceName);
-    return client == null ? myCandidateClientName : client;
+    return client == null ? myCandidateClientName.getValue() : client;
   }
 }
