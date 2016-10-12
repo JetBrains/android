@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.BuildSignedApkDialogKeystoreStepFixture;
+import org.jetbrains.android.exportSignedPackage.GradleSignStep;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +35,9 @@ import java.io.IOException;
 import java.util.zip.ZipFile;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.TruthJUnit.assume;
+import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.assumeTrue;
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
@@ -74,6 +80,135 @@ public class BuildSignedApkTest {
       .apkDestinationFolder(dstFolder.getAbsolutePath())
       .clickFinish();
 
+    File[] apks = dstFolder.listFiles();
+    assertThat(apks).hasLength(1);
+    File apk = apks[0];
+    try (ZipFile zf = new ZipFile(apk)) {
+      assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();
+    }
+  }
+
+  @Test
+  public void openAndSignUsingV1Only() throws IOException {
+    GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
+    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+
+    File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
+    File dstFolder = myTemporaryFolder.newFolder("dst");
+
+    guiTest.importSimpleApplication()
+      .openFromMenu(BuildSignedApkDialogKeystoreStepFixture::find, "Build", "Generate Signed APK...")
+      .createNew()
+      .keyStorePath(jksFile.getAbsolutePath())
+      .password("passwd")
+      .passwordConfirm("passwd")
+      .alias("key")
+      .keyPassword("passwd2")
+      .keyPasswordConfirm("passwd2")
+      .validity("3")
+      .firstAndLastName("Android Studio")
+      .organizationalUnit("Android")
+      .organization("Google")
+      .cityOrLocality("Mountain View")
+      .stateOrProvince("California")
+      .countryCode("US")
+      .clickOk()
+      .keyStorePassword("passwd")
+      .keyAlias("key")
+      .keyPassword("passwd2")
+      .clickNext()
+      .apkDestinationFolder(dstFolder.getAbsolutePath())
+      .setV1SignatureEnabled(true)
+      .setV2SignatureEnabled(false)
+      .clickFinish();
+
+    // We should verify that a V2 signature is not present, but that is hard to do here.
+    File[] apks = dstFolder.listFiles();
+    assertThat(apks).hasLength(1);
+    File apk = apks[0];
+    try (ZipFile zf = new ZipFile(apk)) {
+      assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();
+    }
+  }
+
+  @Test
+  public void openAndSignUsingV2Only() throws IOException {
+    GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
+    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+
+    File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
+    File dstFolder = myTemporaryFolder.newFolder("dst");
+
+    guiTest.importSimpleApplication()
+      .openFromMenu(BuildSignedApkDialogKeystoreStepFixture::find, "Build", "Generate Signed APK...")
+      .createNew()
+      .keyStorePath(jksFile.getAbsolutePath())
+      .password("passwd")
+      .passwordConfirm("passwd")
+      .alias("key")
+      .keyPassword("passwd2")
+      .keyPasswordConfirm("passwd2")
+      .validity("3")
+      .firstAndLastName("Android Studio")
+      .organizationalUnit("Android")
+      .organization("Google")
+      .cityOrLocality("Mountain View")
+      .stateOrProvince("California")
+      .countryCode("US")
+      .clickOk()
+      .keyStorePassword("passwd")
+      .keyAlias("key")
+      .keyPassword("passwd2")
+      .clickNext()
+      .apkDestinationFolder(dstFolder.getAbsolutePath())
+      .setV1SignatureEnabled(false)
+      .setV2SignatureEnabled(true)
+      .clickFinish();
+
+    // We should verify that a V2 signature is present, but that is hard to do here.
+    File[] apks = dstFolder.listFiles();
+    assertThat(apks).hasLength(1);
+    File apk = apks[0];
+    try (ZipFile zf = new ZipFile(apk)) {
+      assertThat(zf.getEntry("META-INF/CERT.SF")).isNull();
+    }
+  }
+
+  @Test
+  public void openAndSignUsingV1AndV2() throws IOException {
+    GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
+    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+
+    File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
+    File dstFolder = myTemporaryFolder.newFolder("dst");
+
+    guiTest.importSimpleApplication()
+      .openFromMenu(BuildSignedApkDialogKeystoreStepFixture::find, "Build", "Generate Signed APK...")
+      .createNew()
+      .keyStorePath(jksFile.getAbsolutePath())
+      .password("passwd")
+      .passwordConfirm("passwd")
+      .alias("key")
+      .keyPassword("passwd2")
+      .keyPasswordConfirm("passwd2")
+      .validity("3")
+      .firstAndLastName("Android Studio")
+      .organizationalUnit("Android")
+      .organization("Google")
+      .cityOrLocality("Mountain View")
+      .stateOrProvince("California")
+      .countryCode("US")
+      .clickOk()
+      .keyStorePassword("passwd")
+      .keyAlias("key")
+      .keyPassword("passwd2")
+      .clickNext()
+      .apkDestinationFolder(dstFolder.getAbsolutePath())
+      .setV1SignatureEnabled(true)
+      .setV2SignatureEnabled(true)
+      .clickFinish();
+
+    // We should verify that a V2 signature is present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
