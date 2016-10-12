@@ -29,6 +29,11 @@ public class InstantRunSettings {
     return configuration.INSTANT_RUN;
   }
 
+  public static void setInstantRunEnabled(boolean en) {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    configuration.INSTANT_RUN = en;
+  }
+
   /** Is showing toasts enabled in the given project */
   public static boolean isShowToastEnabled() {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
