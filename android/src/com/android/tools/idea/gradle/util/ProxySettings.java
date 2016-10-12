@@ -69,7 +69,7 @@ public class ProxySettings {
     myHost = ideProxySettings.PROXY_HOST;
     myPort = ideProxySettings.PROXY_PORT;
     if (ideProxySettings.PROXY_AUTHENTICATION) {
-      myUser = ideProxySettings.PROXY_LOGIN;
+      myUser = ideProxySettings.getProxyLogin();
       myPassword = ideProxySettings.getPlainProxyPassword();
     }
     myExceptions = ideProxySettings.PROXY_EXCEPTIONS;

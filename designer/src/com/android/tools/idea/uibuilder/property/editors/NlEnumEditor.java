@@ -658,9 +658,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {
-
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+    public Component getListCellRendererComponent(JList<? extends ValueWithDisplayString> list,
+                                                  ValueWithDisplayString value,
+                                                  int index,
+                                                  boolean selected,
+                                                  boolean hasFocus) {
       if (value == ValueWithDisplayString.SEPARATOR) {
         return new JSeparator();
       }
@@ -668,7 +671,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
 
     @Override
-    protected void customizeCellRenderer(JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value != null) {
         String displayString = value.getDisplayString();
         String actualValue = value.getValue();

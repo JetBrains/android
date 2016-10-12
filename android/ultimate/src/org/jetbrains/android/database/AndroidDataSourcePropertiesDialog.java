@@ -76,16 +76,10 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
     myNameField.setLabelText("Name:");
     myNameField.createComponent();
-    myNameField.setChangeListener(new Runnable() {
-      @Override
-      public void run() {
-        fireStateChanged();
-      }
-    });
 
     myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof String) {
           append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
         }

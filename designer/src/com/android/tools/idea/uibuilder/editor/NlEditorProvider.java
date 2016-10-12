@@ -21,14 +21,11 @@ import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
@@ -63,21 +60,6 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
     AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
     assert facet != null; // checked by accept
     return new NlEditor(facet, file, project);
-  }
-
-  @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
-    Disposer.dispose(editor);
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    return FileEditorState.INSTANCE;
-  }
-
-  @Override
-  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
   }
 
   @NotNull

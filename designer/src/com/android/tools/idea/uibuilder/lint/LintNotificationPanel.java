@@ -139,7 +139,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
   private void configureCellRenderer() {
     myIssueList.setCellRenderer(new ColoredListCellRenderer<IssueData>() {
       @Override
-      protected void customizeCellRenderer(JList list, IssueData value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, IssueData value, int index, boolean selected, boolean hasFocus) {
         if (value.level == HighlightDisplayLevel.ERROR) {
           append("Error: ", SimpleTextAttributes.ERROR_ATTRIBUTES);
         } else if (value.level == HighlightDisplayLevel.WARNING) {
