@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -485,7 +486,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     }
 
     private static void delete(@Nullable PsiElement element) {
-      if (element != null) {
+      if (element != null && FileModificationService.getInstance().preparePsiElementForWrite(element)) {
         element.delete();
       }
     }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.editor.parser;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.editor.entity.*;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -44,11 +45,6 @@ import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTest
 public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestCase {
 
   public static final String GRADLE_EDITOR_TEST_DATA_ROOT = "editor";
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-  }
 
   public void testSingleFile_hardCodedProperties() throws Exception {
     prepare("singleFileHardCodedProperties");
@@ -181,7 +177,9 @@ public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestC
 
     for (ExternalDependencyGradleEditorEntity dependency : dependencies) {
       if ("compile".equals(dependency.getScope())) {
-        GradleEditorModelUtil.removeEntity(dependency, true);
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+          GradleEditorModelUtil.removeEntity(dependency, true);
+        });
         break;
       }
     }

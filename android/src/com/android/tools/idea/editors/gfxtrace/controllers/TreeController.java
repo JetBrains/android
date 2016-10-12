@@ -55,7 +55,6 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
 
     public CompositeCellRenderer() {
       super();
-      setSupportFontFallback(true);
       getIpad().right = 0;
       myRightComponent.getIpad().left = 0;
     }
