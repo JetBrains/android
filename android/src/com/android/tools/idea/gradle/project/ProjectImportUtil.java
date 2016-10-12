@@ -80,7 +80,7 @@ public final class ProjectImportUtil {
   private static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
     File dotProjectFile = new File(projectFile.getPath());
     try {
-      Element naturesElement = JDOMUtil.loadDocument(dotProjectFile).getRootElement().getChild("natures");
+      Element naturesElement = JDOMUtil.load(dotProjectFile).getChild("natures");
       if (naturesElement != null) {
         List<Element> naturesList = naturesElement.getChildren("nature");
         for (Element nature : naturesList) {

@@ -244,6 +244,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void doFinishAction() {
+    if (!checkFinish()) return;
+
     final String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     assert projectLocation != null;
 
@@ -281,7 +283,13 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       return;
     }
 
-    super.doFinishAction();
+    // Create project in the dispatch thread. (super.doFinishAction also calls doFinish, but in other thread.)
+    try {
+      doFinish();
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
   }
 
   @Override

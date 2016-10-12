@@ -20,8 +20,8 @@ import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -58,7 +58,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
@@ -108,7 +107,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBList myResultList;
   private final List<Artifact> myShownItems = Lists.newArrayList();
-  private final ExecutorService mySearchWorker = Executors.newSingleThreadExecutor(ConcurrencyUtil.newNamedThreadFactory("Maven dependency lookup"));
+  private final ExecutorService mySearchWorker = ConcurrencyUtil.newSingleThreadExecutor("Maven dependency lookup");
   private final boolean myAndroidModule;
 
   private final List<String> myAndroidSdkLibraries = Lists.newArrayList();

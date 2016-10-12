@@ -33,7 +33,6 @@ import com.intellij.openapi.ui.OptionAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
-import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;
@@ -150,8 +149,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
       setDefaultButton(null);
       // Delegating to the default WelcomeScreen. We support both "Flat" and "New", until
       // the "ide.new.welcome.screen.force" system property is not needed anymore.
-      WelcomeScreen welcomeScreen =
-        (myFrame instanceof FlatWelcomeFrame) ? ((FlatWelcomeFrame)myFrame).createWelcomeScreen() : new NewWelcomeScreen();
+      WelcomeScreen welcomeScreen = new NewWelcomeScreen();
       Disposer.register(getDisposable(), welcomeScreen);
       myFrame.setContentPane(welcomeScreen.getWelcomePanel());
       if (myFrameSize != null)
@@ -232,7 +230,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
-    final Insets insets = SystemInfo.isMacOSLeopard ? new Insets(0, 0, 0, 0) : new Insets(8, 0, 0, 0);
+    final Insets insets = SystemInfo.isMacOSLeopard ? JBUI.emptyInsets() : JBUI.insetsTop(8);
 
     if (actions.length > 0) {
       int gridX = 0;
