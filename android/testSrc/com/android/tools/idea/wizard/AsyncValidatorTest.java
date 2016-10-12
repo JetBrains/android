@@ -19,62 +19,41 @@ import com.android.tools.idea.npw.AsyncValidator;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ConcurrencyUtil;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test asynchronous validator class.
  */
-public final class AsyncValidatorTest extends TestCase {
-  private static final int TIMEOUT = 1000; // ms
-
-  @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-  private static void assertResult(Integer[] val, Integer expected) throws InterruptedException {
-    synchronized (val) {
-      final long start = System.currentTimeMillis();
-      while (val[0] == null) {
-        val.wait(TIMEOUT);
-        if ((System.currentTimeMillis() - start) > TIMEOUT) {
-          fail("Validator hang");
-        }
-      }
-      assertEquals(expected, val[0]);
-    }
-  }
-
-  @Override
+public final class AsyncValidatorTest {
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     // This should happen on some other thread - it will become the AWT event queue thread.
     ThreadPoolExecutor executor = ConcurrencyUtil.newSingleThreadExecutor("async validator test");
     Future<IdeaTestApplication> application = executor.
-      submit(new Callable<IdeaTestApplication>() {
-        @Override
-        public IdeaTestApplication call() throws Exception {
-          return IdeaTestApplication.getInstance();
-        }
-      });
-    try {
-      application.get(100, TimeUnit.SECONDS); // Wait for the application instantiation
-    }
-    finally {
-      executor.shutdownNow();
-    }
+      submit((Callable<IdeaTestApplication>)IdeaTestApplication::getInstance);
+    application.get(); // Wait for the application instantiation
   }
 
+  @Test
   public void testBasicValidation() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+
     final Integer[] val = { null };
     AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(Integer result) {
+      protected void showValidationResult(@NotNull Integer result) {
         synchronized (val) {
           val[0] = result;
-          val.notifyAll();
+          latch.countDown();
         }
       }
 
@@ -85,24 +64,29 @@ public final class AsyncValidatorTest extends TestCase {
       }
     };
     validator.invalidate();
-    assertResult(val, 3);
+    latch.await();
+
+    assertThat(val[0]).isEqualTo(3);
   }
 
-  @SuppressWarnings("BusyWait")
-  public void testNoSpuriousResults() throws InterruptedException {
-    final int EXPECTED_RESULT = 1000;
+  @Test
+  public void validationCanBeInterruptedByInvalidation() throws InterruptedException {
 
-    final Integer[] output = { null };
-    final int[] counter = {0};
+    final CountDownLatch allowValidationLatch = new CountDownLatch(1);
+    final CountDownLatch outputSetLatch = new CountDownLatch(1);
+
+    final Integer[] output = {null};
+    final int[] value = {0};
 
     AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
-      protected void showValidationResult(Integer result) {
+      protected void showValidationResult(@NotNull Integer result) {
         synchronized (output) {
-          if (output[0] == null) {
-            output[0] = result;
-          }
-          output.notifyAll();
+          // Although we call invalidate multiple times below, it keeps interrupting validation
+          // each time, so the output is set only once.
+          assertThat(output[0]).isNull();
+          output[0] = result;
+          outputSetLatch.countDown();
         }
       }
 
@@ -110,18 +94,26 @@ public final class AsyncValidatorTest extends TestCase {
       @Override
       protected Integer validate() {
         try {
-          Thread.sleep(100);
-          return counter[0];
+          allowValidationLatch.await();
         }
-        catch (InterruptedException e) {
-          throw new RuntimeException(e);
+        catch (InterruptedException ignored) {
         }
+        return value[0];
       }
     };
-    for (counter[0] = 0; counter[0] < EXPECTED_RESULT; counter[0]++) {
+
+    // Make multiple invalidation requests, but make sure (using our latch) that validation takes
+    // a long time. By the time first validation will be done, it will need to be recomputed again.
+    int MAX_VALUE = 10;
+    for (int i = 0; i <= MAX_VALUE; i++) {
       validator.invalidate();
-      Thread.sleep(2);
+      value[0] = i;
     }
-    assertResult(output, EXPECTED_RESULT); // Validation happens after loop exit - hence, 100 and not 99 which is in-loop max
+
+    assertThat(output[0]).isNull(); // Not yet set; should only happen after we release the latch
+    allowValidationLatch.countDown();
+
+    outputSetLatch.await();
+    assertThat(output[0]).isEqualTo(MAX_VALUE); // Equals the last value set in the above for-loop
   }
 }
