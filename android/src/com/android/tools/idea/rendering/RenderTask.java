@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
@@ -30,6 +31,8 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.diagnostics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -41,7 +44,6 @@ import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -63,10 +65,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -143,6 +143,7 @@ public class RenderTask implements IImageFactory {
   private SoftReference<BufferedImage> myCachedImageReference;
 
   private boolean isSecurityManagerEnabled = true;
+  private CrashReporter myCrashReporter;
 
   /**
    * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
@@ -152,11 +153,13 @@ public class RenderTask implements IImageFactory {
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Device device,
-             @NotNull Object credential) {
+             @NotNull Object credential,
+             @NotNull CrashReporter crashReporter) {
     myRenderService = renderService;
     myLogger = logger;
     myCredential = credential;
     myConfiguration = configuration;
+    myCrashReporter = crashReporter;
 
     AndroidFacet facet = renderService.getFacet();
     Module module = facet.getModule();
@@ -707,6 +710,16 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
+   * Method used to report unhandled layoutlib exceptions to the crash reporter
+   */
+  private void reportException(@NotNull Throwable e) {
+    // This in an unhandled layoutlib exception, pass it to the crash reporter
+    myCrashReporter.submit(
+      CrashReport.Builder.createForException(e)
+        .build());
+  }
+
+  /**
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
    */
   private RenderResult renderInner() {
@@ -718,6 +731,9 @@ public class RenderTask implements IImageFactory {
       Result result = renderResult != null ? renderResult.getRenderResult() : null;
       if (result == null || !result.isSuccess()) {
         if (result != null) {
+          if (result.getException() != null) {
+            reportException(result.getException());
+          }
           myLogger.error(null, result.getErrorMessage(), result.getException(), null);
         }
         return renderResult;
@@ -728,10 +744,15 @@ public class RenderTask implements IImageFactory {
     try {
       return RenderService.runRenderAction(() -> {
         myRenderSession.render();
-        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
+        RenderResult result = RenderResult.create(this, myRenderSession, myPsiFile, myLogger);
+        if (result.getRenderResult().getException() != null) {
+          reportException(result.getRenderResult().getException());
+        }
+        return result;
       });
     }
     catch (final Exception e) {
+      reportException(e);
       String message = e.getMessage();
       if (message == null) {
         message = e.toString();
@@ -1136,6 +1157,11 @@ public class RenderTask implements IImageFactory {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  @VisibleForTesting
+  void setCrashReporter(@NotNull CrashReporter crashReporter) {
+    myCrashReporter = crashReporter;
   }
 
   /**
