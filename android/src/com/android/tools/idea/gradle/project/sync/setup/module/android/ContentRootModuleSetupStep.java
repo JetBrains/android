@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -37,6 +39,17 @@ import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
 public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
+  @NotNull private final AndroidContentEntriesSetup.Factory myContentEntriesSetupFactory;
+
+  public ContentRootModuleSetupStep() {
+    this(new AndroidContentEntriesSetup.Factory());
+  }
+
+  @VisibleForTesting
+  ContentRootModuleSetupStep(@NotNull AndroidContentEntriesSetup.Factory contentEntriesSetupFactory) {
+    myContentEntriesSetupFactory = contentEntriesSetupFactory;
+  }
+
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
@@ -44,8 +57,8 @@ public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
                                @Nullable SyncAction.ModuleModels gradleModels,
                                @Nullable ProgressIndicator indicator) {
     ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-    boolean hasNativeModel = hasNativeModel(module, gradleModels);
-    AndroidContentEntriesSetup setup = new AndroidContentEntriesSetup(androidModel, moduleModel, hasNativeModel);
+    boolean hasNativeModel = hasNativeModel(module, ideModelsProvider, gradleModels);
+    AndroidContentEntriesSetup setup = myContentEntriesSetupFactory.create(androidModel, moduleModel, hasNativeModel);
     List<ContentEntry> contentEntries = findContentEntries(moduleModel, androidModel, hasNativeModel);
     setup.execute(contentEntries);
   }
@@ -69,8 +82,14 @@ public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
     return contentEntries;
   }
 
-  private static boolean hasNativeModel(@NotNull Module module, @Nullable SyncAction.ModuleModels gradleModels) {
-    return (gradleModels != null ? gradleModels.findModel(NativeAndroidProject.class) : NativeAndroidGradleModel.get(module)) == null;
+  private static boolean hasNativeModel(@NotNull Module module,
+                                        @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                                        @Nullable SyncAction.ModuleModels gradleModels) {
+    if (gradleModels != null) {
+      return gradleModels.findModel(NativeAndroidProject.class) != null;
+    }
+    NativeAndroidGradleFacet facet = Facets.findFacet(module, ideModelsProvider, NativeAndroidGradleFacet.getFacetType().getId());
+    return facet != null && facet.getNativeAndroidGradleModel() != null;
   }
 
   @Override

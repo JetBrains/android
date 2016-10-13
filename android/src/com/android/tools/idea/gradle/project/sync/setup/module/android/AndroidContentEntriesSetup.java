@@ -39,12 +39,24 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 class AndroidContentEntriesSetup extends ContentEntriesSetup {
+
+  static class Factory {
+    @NotNull
+    AndroidContentEntriesSetup create(@NotNull AndroidGradleModel androidModel,
+                                      @NotNull ModifiableRootModel moduleModel,
+                                      boolean hasNativeModel) {
+      return new AndroidContentEntriesSetup(androidModel, moduleModel, hasNativeModel);
+    }
+  }
+
   @NotNull private final AndroidGradleModel myAndroidModel;
 
   // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
   private final boolean myHasNativeModel;
 
-  AndroidContentEntriesSetup(@NotNull AndroidGradleModel androidModel, @NotNull ModifiableRootModel moduleModel, boolean hasNativeModel) {
+  private AndroidContentEntriesSetup(@NotNull AndroidGradleModel androidModel,
+                                     @NotNull ModifiableRootModel moduleModel,
+                                     boolean hasNativeModel) {
     super(moduleModel);
     myAndroidModel = androidModel;
     myHasNativeModel = hasNativeModel;
