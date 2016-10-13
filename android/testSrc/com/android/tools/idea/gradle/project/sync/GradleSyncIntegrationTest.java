@@ -37,8 +37,7 @@ import java.util.Collections;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
-import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
@@ -59,6 +58,13 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=224985
+  // Disabled until the prebuilt SDK has CMake.
+  public void /*test*/ExternalSystemSourceFolderSync() throws Exception {
+    loadProject(HELLO_JNI);
+    Module appModule = myModules.getAppModule();
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {
