@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.SdkConstants;
+import com.android.builder.model.Version;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
@@ -25,6 +27,7 @@ import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,6 +52,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.SystemProperties;
 import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
@@ -92,6 +96,17 @@ public class AndroidStudioInitializer implements Runnable {
   public static boolean isAndroidSdkManagerEnabled() {
     boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
     return !sdkManagerDisabled;
+  }
+
+  @NotNull
+  public static String getGradlePluginRecommendedVersion() {
+    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+        !ApplicationManager.getApplication().isInternal() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
+      // In a release build, Android Studio will use the same version as the builder-model shipping with it (in plugins/android/lib).
+      return Version.ANDROID_GRADLE_PLUGIN_VERSION;
+    }
+    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
   @Override
