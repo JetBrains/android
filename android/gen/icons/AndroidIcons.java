@@ -297,6 +297,7 @@ public class AndroidIcons {
     public static final Icon BottomAlign = load("/icons/sherpa/bottom-aligned_b.png");
     public static final Icon CenterAlignedB = load("/icons/sherpa/center-aligned.png");
     public static final Icon CenterAligned = load("/icons/sherpa/center-aligned_b.png");
+    public static final Icon ChainStyle = load("/icons/sherpa/chain_style.png");
     public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
     public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraints.png");
     public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");

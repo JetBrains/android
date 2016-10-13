@@ -51,6 +51,7 @@ public class WidgetDecorator {
     public static Image sLockImageIcon = null;
     public static Image sUnlockImageIcon = null;
     public static Image sDeleteConnectionsImageIcon = null;
+    public static Image sPackChainImageIcon = null;
 
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
@@ -203,6 +204,7 @@ public class WidgetDecorator {
         mShowBaseline.setDelay(1000);
         mShowBaseline.setDuration(1000);
         mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
+        mWidgetActions.add(new ToggleChainStyleWidgetAction(mWidget));
         mHideActions.setRepeats(false);
     }
 
@@ -1403,6 +1405,108 @@ public class WidgetDecorator {
             WidgetDecorator decorator = companion.getWidgetDecorator(BLUEPRINT_STYLE);
             decorator.getStateModel().save(decorator);
             repaint();
+            return true;
+        }
+
+    }
+
+    /**
+     * Action implementing a deletion of all constraints of the widget
+     */
+    private class ToggleChainStyleWidgetAction extends WidgetAction {
+        String[] mPackChainText = { "Toggle chain style" };
+        boolean mIsVisible = false;
+
+        ToggleChainStyleWidgetAction(ConstraintWidget widget) {
+            super(widget);
+        }
+
+        @Override
+        String[] getText() {
+            return mPackChainText;
+        }
+
+        @Override
+        void update() {
+            mIsVisible = mWidget.isInVerticalChain() || mWidget.isInHorizontalChain();
+        }
+
+        @Override
+        public boolean isVisible() {
+            return mIsVisible;
+        }
+
+        @Override
+        boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
+            if (!super.onPaint(transform, g, x, y)) {
+                return false;
+            }
+            int m = 4;
+            int rect = ACTION_SIZE - 2 * m;
+            if (sPackChainImageIcon != null) {
+                g.drawImage(sPackChainImageIcon, x + m, y + m,
+                            rect, rect, null, null);
+            }
+            return true;
+        }
+
+        @Override
+        public boolean click() {
+            if (mWidget.isInHorizontalChain()) {
+                ConstraintWidget tmp = mWidget;
+                ConstraintWidget found = null;
+                while (found == null && tmp != null) {
+                    ConstraintAnchor anchor = tmp.getAnchor(ConstraintAnchor.Type.LEFT);
+                    ConstraintAnchor targetOwner = (anchor==null)?null:anchor.getTarget();
+                    ConstraintWidget target = (targetOwner==null)?null:targetOwner.getOwner();
+                    if (target == mWidget.getParent()) {
+                        found = tmp;
+                        break;
+                    }
+                    ConstraintAnchor targetAnchor = (target == null)?null: target.getAnchor(ConstraintAnchor.Type.RIGHT).getTarget();
+                    if (targetAnchor != null && targetAnchor.getOwner() != tmp) {
+                        found = tmp;
+                    } else {
+                        tmp = target;
+                    }
+                }
+
+              if (found != null) {
+                  int[] cycle = {ConstraintWidget.CHAIN_SPREAD_INSIDE,ConstraintWidget.CHAIN_PACKED,ConstraintWidget.CHAIN_SPREAD};
+                  found.setHorizontalChainStyle(cycle[found.getHorizontalChainStyle()]);
+                  WidgetCompanion companion = (WidgetCompanion)found.getCompanionWidget();
+                  WidgetDecorator decorator = companion.getWidgetDecorator(BLUEPRINT_STYLE);
+                  decorator.getStateModel().save(decorator);
+              }
+            }
+            if (mWidget.isInVerticalChain()) {
+                ConstraintWidget tmp = mWidget;
+                ConstraintWidget found = null;
+                while (found == null && tmp != null) {
+                    ConstraintAnchor anchor = tmp.getAnchor(ConstraintAnchor.Type.TOP);
+                    ConstraintAnchor targetOwner = (anchor==null)?null:anchor.getTarget();
+                    ConstraintWidget target = (targetOwner==null)?null:targetOwner.getOwner();
+                    if (target == mWidget.getParent()) {
+                        found = tmp;
+                        break;
+                    }
+                    ConstraintAnchor targetAnchor = (target == null)?null: target.getAnchor(ConstraintAnchor.Type.BOTTOM).getTarget();
+                    if (targetAnchor != null && targetAnchor.getOwner() != tmp) {
+                        found = tmp;
+                    } else {
+                        tmp = target;
+                    }
+                }
+
+                if (found != null) {
+                    int[] cycle = {ConstraintWidget.CHAIN_SPREAD_INSIDE,ConstraintWidget.CHAIN_PACKED,ConstraintWidget.CHAIN_SPREAD};
+                    found.setVerticalChainStyle(cycle[found.getVerticalChainStyle()]);
+                    WidgetCompanion companion = (WidgetCompanion)found.getCompanionWidget();
+                    WidgetDecorator decorator = companion.getWidgetDecorator(BLUEPRINT_STYLE);
+                    decorator.getStateModel().save(decorator);
+                }
+            }
+
             return true;
         }
 

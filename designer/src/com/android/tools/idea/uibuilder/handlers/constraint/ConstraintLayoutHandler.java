@@ -111,6 +111,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
       WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraintB);
     }
+    if (WidgetDecorator.sPackChainImageIcon == null) {
+      WidgetDecorator.sPackChainImageIcon = iconToImage(AndroidIcons.SherpaIcons.ChainStyle);
+    }
     if (WidgetDraw.sGuidelineArrowLeft == null) {
       WidgetDraw.sGuidelineArrowLeft = iconToImage(AndroidIcons.SherpaIcons.ArrowLeft);
     }
