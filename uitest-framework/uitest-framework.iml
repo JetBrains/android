@@ -11,9 +11,9 @@
     <orderEntry type="module" module-name="android" scope="TEST" />
     <orderEntry type="module" module-name="platform-api" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="module" module-name="fest-swing" />
-    <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="module" module-name="fest-swing" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="gradle" scope="TEST" />
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
@@ -23,7 +23,7 @@
     <orderEntry type="module" module-name="bootstrap" scope="TEST" />
     <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../android/lib/spantable.jar!/" />
