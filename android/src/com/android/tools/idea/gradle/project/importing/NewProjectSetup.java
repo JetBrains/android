@@ -20,6 +20,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
@@ -33,9 +34,11 @@ import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NA
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static org.jetbrains.android.newProject.AndroidModuleBuilder.ANDROID_PROJECT_TYPE;
 
 class NewProjectSetup {
+
+  public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
+
   @NotNull
   Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
     ProjectManager projectManager = ProjectManager.getInstance();
