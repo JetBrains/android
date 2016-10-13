@@ -40,8 +40,8 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -176,8 +176,8 @@ public class MemoryController extends Controller {
     final MemoryRangePath memoryPath = typedMemoryPath != null ? typedMemoryPath.getRange() : event.findMemoryPath();
     if (memoryPath != null) {
 
-      UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-                                     .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.GPU_PROFILER)
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioEvent.EventCategory.GPU_PROFILER)
                                      .setKind(EventKind.GFX_TRACE_MEMORY_VIEWED));
 
       final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;

@@ -31,10 +31,10 @@ import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +108,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.GPU_PROFILER)
                                    .setKind(EventKind.GFX_TRACE_COMMAND_SELECTED)
-                                   .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                   .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                          .setTracePath("Scrubber")));
     myEditor.getAtomStream().selectAtoms(cell.range, this);
   }

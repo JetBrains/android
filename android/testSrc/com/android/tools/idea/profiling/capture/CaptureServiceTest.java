@@ -16,7 +16,7 @@
 package com.android.tools.idea.profiling.capture;
 
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.ProfilerCaptureType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
 import com.intellij.openapi.extensions.Extensions;

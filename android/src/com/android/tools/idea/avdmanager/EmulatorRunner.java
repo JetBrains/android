@@ -20,8 +20,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.run.ExternalToolRunner;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
@@ -48,7 +48,7 @@ public class EmulatorRunner extends ExternalToolRunner {
       .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_TO_EMULATOR);
 
     if (avdInfo != null) {
-      event.setDeviceInfo(AndroidStudioStats.DeviceInfo.newBuilder()
+      event.setDeviceInfo(DeviceInfo.newBuilder()
         .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(avdInfo.getAbiType()))
         .setBuildApiLevelFull(Integer.toString(image.getAndroidVersion().getApiLevel())));
     }

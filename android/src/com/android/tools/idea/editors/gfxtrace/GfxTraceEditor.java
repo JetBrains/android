@@ -46,10 +46,10 @@ import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.Application;
@@ -197,7 +197,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                          .setCategory(EventCategory.GPU_PROFILER)
                                          .setKind(EventKind.GFX_TRACE_INIT_ERROR)
-                                         .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                         .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                                .setErrorMessage(Strings.nullToEmpty(e.getMessage()))));
           setLoadingErrorTextOnEdt(e.getLocalizedMessage(), null);
 
@@ -503,7 +503,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.GPU_PROFILER)
                                    .setKind(EventKind.GFX_TRACE_CLOSED)
-                                   .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                   .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                          .setTotalTime(totalTime)));
 
     if (myGapisConnection != null) {

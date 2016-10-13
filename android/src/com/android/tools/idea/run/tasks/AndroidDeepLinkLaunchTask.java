@@ -20,9 +20,9 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -51,7 +51,7 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
-    UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.APP_INDEXING)
                                    .setKind(EventKind.APP_INDEXING_DEEP_LINK_LAUNCHED));
     // Enable AppIndexing API log
