@@ -77,17 +77,17 @@ public class MemoryProfilerVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long startTimeUs = mDataStore.getLatestTimeUs();
-    Range xRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, 0);
-    xRange.setOffset(startTimeUs);
+    Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
+    timeCurrentRangeUs.setOffset(startTimeUs);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    mSegment = new MemorySegment(xRange, mDataStore, dummyDispatcher);
+    mSegment = new MemorySegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
     mRoot = new MemoryInfoTreeNode("Root");
-    mDetailSegment = new MemoryDetailSegment(xRange, mRoot, dummyDispatcher);
+    mDetailSegment = new MemoryDetailSegment(timeCurrentRangeUs, mRoot, dummyDispatcher);
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);
-    animatables.add(xRange);
+    animatables.add(timeCurrentRangeUs);
     mSegment.createComponentsList(animatables);
     mDetailSegment.createComponentsList(animatables);
 

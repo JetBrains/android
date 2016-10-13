@@ -54,8 +54,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private Sampler mSampler;
   private HNode<Method> mtree;
 
-  private Range mSelectionRange;
-  private Range mDataRange;
+  private Range mTimeSelectionRangeUs;
+  private Range mTimeGlobalRangeUs;
 
   private SelectionComponent mSelector;
   private AxisComponent mAxis;
@@ -69,20 +69,20 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private JScrollBar mScrollBar;
 
   public ThreadCallsVisualTest() {
-    this.mDataRange = new Range();
+    this.mTimeGlobalRangeUs = new Range();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(mDataRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
+    AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
     this.mAxis = builder.build();
 
-    this.mSelectionRange = new Range();
+    this.mTimeSelectionRangeUs = new Range();
 
     this.mChart = new HTreeChart<Method>();
     this.mChart.setHRenderer(new JavaMethodHRenderer());
-    this.mChart.setXRange(mSelectionRange);
+    this.mChart.setXRange(mTimeSelectionRangeUs);
 
     mLineChart = new LineChart();
 
-    this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
+    this.mSelector = new SelectionComponent(mLineChart, mAxis, mTimeSelectionRangeUs, mTimeGlobalRangeUs, mTimeGlobalRangeUs);
   }
 
   @Override
@@ -97,7 +97,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     list.add(mSelector);
     list.add(mAxis);
     list.add(mLineChart);
-    list.add(mSelectionRange);
+    list.add(mTimeSelectionRangeUs);
     return list;
   }
 
@@ -199,16 +199,16 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
         double start = mtree.getFirstChild().getStart();
         double end = mtree.getLastChild().getEnd();
 
-        mDataRange.setMin(start);
-        mDataRange.setMax(end);
-        mSelectionRange.setMin(start);
-        mSelectionRange.setMax(end);
+        mTimeGlobalRangeUs.setMin(start);
+        mTimeGlobalRangeUs.setMax(end);
+        mTimeSelectionRangeUs.setMin(start);
+        mTimeSelectionRangeUs.setMax(end);
 
         // Generate dummy values to simulate CPU Load.
         LongDataSeries series = new LongDataSeries();
-        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mDataRange,
-                                                                   new Range(0.0, 200.0),
-                                                                   series);
+        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mTimeGlobalRangeUs,
+                                                                         new Range(0.0, 200.0),
+                                                                         series);
         Random r = new Random(System.currentTimeMillis());
         for (int i = 0; i < 100; i++) {
           series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));

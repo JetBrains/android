@@ -21,7 +21,6 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -101,13 +100,12 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   private Point mMousePressedPosition;
 
   /**
-   *
    * @param rightAxisFormatter if it is null, chart will have a left axis only
    * @param leftAxisRange if it is null, a default range is going to be used
    * @param rightAxisRange if it is null, a default range is going to be used
    */
   public BaseLineChartSegment(@NotNull String name,
-                              @NotNull Range xRange,
+                              @NotNull Range timeCurrentRangeUs,
                               @NotNull SeriesDataStore dataStore,
                               @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
@@ -115,7 +113,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
                               @Nullable Range leftAxisRange,
                               @Nullable Range rightAxisRange,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(name, xRange, dispatcher);
+    super(name, timeCurrentRangeUs, dispatcher);
     mLeftAxisFormatterSimple = leftAxisFormatterSimple;
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
@@ -128,13 +126,13 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   }
 
   public BaseLineChartSegment(@NotNull String name,
-                              @NotNull Range xRange,
+                              @NotNull Range timeCurrentRangeUs,
                               @NotNull SeriesDataStore dataStore,
                               @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    this(name, xRange, dataStore, leftAxisFormatterSimple, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
+    this(name, timeCurrentRangeUs, dataStore, leftAxisFormatterSimple, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
   }
 
   public abstract BaseProfilerUiManager.ProfilerType getProfilerType();
@@ -346,7 +344,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
    * Adds a line to {@link #mLineChart} that is associated with the left axis.
    */
   protected void addLeftAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
-    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mLeftAxisRange, new DataStoreSeries(mSeriesDataStore, type),
+    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mLeftAxisRange, new DataStoreSeries(mSeriesDataStore, type),
                                                   TimeAxisFormatter.DEFAULT, mLeftAxisFormatter), lineConfig);
   }
 
@@ -357,7 +355,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     if (mRightAxisFormatter == null) {
       throw new IllegalComponentStateException("Right axis formatter is not defined, cannot add right axis line.");
     }
-    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mRightAxisRange, new DataStoreSeries(mSeriesDataStore, type),
+    mLineChart.addLine(new RangedContinuousSeries(label, myTimeCurrentRangeUs, mRightAxisRange, new DataStoreSeries(mSeriesDataStore, type),
                                                   TimeAxisFormatter.DEFAULT, mRightAxisFormatter), lineConfig);
     mRightAxis.setVisible(true);
   }
@@ -366,6 +364,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
    * Adds an event series to {@link #mLineChart}.
    */
   protected void addEvent(SeriesDataType type, @NotNull EventConfig eventConfig) {
-    mLineChart.addEvent(new RangedSeries<>(mXRange, new DataStoreSeries<>(mSeriesDataStore, type)), eventConfig);
+    mLineChart.addEvent(new RangedSeries<>(myTimeCurrentRangeUs, new DataStoreSeries<>(mSeriesDataStore, type)), eventConfig);
   }
 }

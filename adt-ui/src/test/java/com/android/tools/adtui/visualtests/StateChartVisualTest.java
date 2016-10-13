@@ -54,7 +54,7 @@ public class StateChartVisualTest extends VisualTest {
 
   private static final int AXIS_SIZE = 100;
 
-  private Range mXRange;
+  private Range mTimeGlobalRangeUs;
 
   private AnimatedTimeRange mAnimatedTimeRange;
 
@@ -89,13 +89,13 @@ public class StateChartVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    mXRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
-    mAnimatedTimeRange = new AnimatedTimeRange(mXRange, 0);
+    mTimeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
+    mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, 0);
     DefaultDataSeries<MockFruitState> networkSeries = new DefaultDataSeries<>();
     DefaultDataSeries<MockStrengthState> radioSeries = new DefaultDataSeries<>();
 
-    RangedSeries<MockFruitState> networkData = new RangedSeries<>(mXRange, networkSeries);
-    RangedSeries<MockStrengthState> radioData = new RangedSeries<>(mXRange, radioSeries);
+    RangedSeries<MockFruitState> networkData = new RangedSeries<>(mTimeGlobalRangeUs, networkSeries);
+    RangedSeries<MockStrengthState> radioData = new RangedSeries<>(mTimeGlobalRangeUs, radioSeries);
 
     mNetworkStatusChart = new StateChart<>(getFruitStateColor());
     mNetworkStatusChart.addSeries(networkData);
@@ -105,7 +105,7 @@ public class StateChartVisualTest extends VisualTest {
     mRadioStateChart.addSeries(radioData);
     mRadioDataEntries.add(radioSeries);
 
-    return Arrays.asList(mAnimatedTimeRange, mXRange, mNetworkStatusChart, mRadioStateChart);
+    return Arrays.asList(mAnimatedTimeRange, mTimeGlobalRangeUs, mNetworkStatusChart, mRadioStateChart);
   }
 
   @Override
@@ -251,13 +251,13 @@ public class StateChartVisualTest extends VisualTest {
     }));
     controls.add(VisualTest.createButton("Add Fruit Series", e -> {
       DefaultDataSeries<MockFruitState> networkSeries = new DefaultDataSeries<>();
-      RangedSeries<MockFruitState> networkData = new RangedSeries(mXRange, networkSeries);
+      RangedSeries<MockFruitState> networkData = new RangedSeries(mTimeGlobalRangeUs, networkSeries);
       mNetworkStatusChart.addSeries(networkData);
       mNetworkDataEntries.add(networkSeries);
     }));
     controls.add(VisualTest.createButton("Add Strength Series", e -> {
       DefaultDataSeries<MockStrengthState> radioSeries = new DefaultDataSeries<>();
-      RangedSeries<MockStrengthState> radioData = new RangedSeries(mXRange, radioSeries);
+      RangedSeries<MockStrengthState> radioData = new RangedSeries(mTimeGlobalRangeUs, radioSeries);
       mRadioStateChart.addSeries(radioData);
       mRadioDataEntries.add(radioSeries);
     }));

@@ -80,9 +80,9 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   private File myNextHeapDumpFile;
   private Snapshot myNextHeapDump;
 
-  public MemoryProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
+  public MemoryProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, datastore, eventDispatcher);
+    super(timeCurrentRangeUs, choreographer, datastore, eventDispatcher);
     myMemoryEventDispatcher = EventDispatcher.create(MemoryEventListener.class);
   }
 
@@ -116,10 +116,10 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
   @Override
   @NotNull
-  protected BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new MemorySegment(xRange, dataStore, eventDispatcher);
+    return new MemorySegment(timeCurrentRangeUs, dataStore, eventDispatcher);
   }
 
   @Override
@@ -146,7 +146,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     }
 
     if (myMemoryDetailSegment == null) {
-      myMemoryDetailSegment = new MemoryDetailSegment(myTimeViewRange, myRoot, myEventDispatcher);
+      myMemoryDetailSegment = new MemoryDetailSegment(myTimeCurrentRangeUs, myRoot, myEventDispatcher);
       List<Animatable> animatables = new ArrayList<>();
       myMemoryDetailSegment.createComponentsList(animatables);
       myChoreographer.register(animatables);
