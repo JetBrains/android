@@ -69,16 +69,6 @@ public class TreeGridTest {
     when(application.getAnyModalityState()).thenReturn(ModalityState.NON_MODAL);
     when(application.getComponent(eq(DataManager.class))).thenReturn(dataManager);
     when(dataManager.getDataContext(any(Component.class))).thenReturn(dataContext);
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        Object[] arguments = invocation.getArguments();
-        Runnable runnable = (Runnable)arguments[0];
-        runnable.run();
-        return null;
-      }
-    }).when(application).invokeLater(any(Runnable.class), any(ModalityState.class));
-
     myGrid = new TreeGrid<>();
     myGrid.setSize(140, 800);
     myGrid.setModel(createTree());
