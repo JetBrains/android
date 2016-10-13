@@ -656,6 +656,7 @@ public class GradleSyncTest {
     assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
   }
 
+  @Ignore("http://ag/1519100")
   @Test
   public void androidPluginAndGradleVersionCompatibility() throws IOException {
     guiTest.importMultiModule();
