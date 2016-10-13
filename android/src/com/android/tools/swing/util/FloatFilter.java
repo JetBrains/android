@@ -23,24 +23,39 @@ public class FloatFilter extends DocumentFilter {
   @Override
   public void insertString(FilterBypass fb, int offset, String text, AttributeSet attrs)
     throws BadLocationException {
-    fb.insertString(offset, cleanString(getText(fb), text), attrs);
+    String current = getText(fb);
+    fb.insertString(offset, cleanString(current.substring(0, offset), text, current.substring(offset, current.length())), attrs);
   }
 
   @Override
   public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
     throws BadLocationException {
-    String currentText = getText(fb);
-    currentText = currentText.substring(0, offset) + currentText.substring(offset + length, currentText.length());
-    fb.replace(offset, length, cleanString(currentText, text), attrs);
+    String current = getText(fb);
+    fb.replace(offset, length, cleanString(current.substring(0, offset) , text, current.substring(offset + length, current.length())), attrs);
   }
 
-  private static String cleanString(String currentText, String text) {
-    if (currentText.contains(".") || !text.contains(".")) {
-      return text.replaceAll("\\D++", ""); // remove non-digits
+  private static String cleanString(String before, String text, String after) {
+    boolean allowSign = before.isEmpty() && (after.isEmpty() || (after.charAt(0) != '+' && after.charAt(0) != '-'));
+    boolean allowDot = !before.contains(".") && !after.contains(".");
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (c == '+' || c == '-') {
+        if (i == 0 && allowSign) {
+          allowSign = false;
+          sb.append(c);
+        }
+      }
+      else if (c == '.') {
+        if (allowDot) {
+          sb.append('.');
+          allowDot = false;
+        }
+      } else if (c >= '0' && c <= '9') {
+        sb.append(c);
+      }
     }
-    text = text.replaceAll("[^0-9.]", "");
-    int afterFirstDot = text.indexOf('.') + 1;
-    return text.substring(0, afterFirstDot) + text.substring(afterFirstDot).replaceAll("\\.", "");
+    return sb.toString();
   }
 
   private static String getText(FilterBypass fb) throws BadLocationException {

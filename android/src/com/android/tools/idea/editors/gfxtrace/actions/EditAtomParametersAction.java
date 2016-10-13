@@ -62,6 +62,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -93,7 +94,10 @@ public class EditAtomParametersAction extends AbstractAction {
       Dynamic newAtom = ((Dynamic)myNode.atom.unwrap()).copy();
       for (Editor editor : myEditors) {
         if (editor.hasEditComponent()) {
-          newAtom.setFieldValue(editor.myFieldIndex, editor.getValue());
+          JComponent editorComponent = editor.getComponent();
+          if (editor.isValid()) {
+            newAtom.setFieldValue(editor.myFieldIndex, editor.getValue());
+          }
         }
       }
 
@@ -271,6 +275,10 @@ public class EditAtomParametersAction extends AbstractAction {
 
     @Nullable
     abstract Object getValue();
+
+    public boolean isValid() {
+      return true;
+    }
   }
 
   private static class NoEditor extends Editor {
@@ -423,6 +431,16 @@ public class EditAtomParametersAction extends AbstractAction {
     Number getValue() {
       String text = myFloatBox.getText();
       return Double.parseDouble(text);
+    }
+
+    @Override
+    public boolean isValid() {
+      try {
+        getValue();
+        return true;
+      } catch (NumberFormatException ex) {
+        return false;
+      }
     }
   }
 
