@@ -46,9 +46,9 @@ public class EnergyProfilerUiManager extends BaseProfilerUiManager {
   // and total power usage.  We use this variable to keep track which one it's currently displaying.
   private boolean myIsDisplayingInstantaneousEnergyUsage = true;
 
-  public EnergyProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
+  public EnergyProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, datastore, eventDispatcher);
+    super(timeCurrentRangeUs, choreographer, datastore, eventDispatcher);
   }
 
   @Nullable
@@ -78,10 +78,10 @@ public class EnergyProfilerUiManager extends BaseProfilerUiManager {
 
   @NotNull
   @Override
-  protected BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new EnergySegment(xRange, dataStore, eventDispatcher);
+    return new EnergySegment(timeCurrentRangeUs, dataStore, eventDispatcher);
   }
 
   @Override

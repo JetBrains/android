@@ -60,14 +60,14 @@ public abstract class BaseSegment extends JComponent {
   protected final String myName;
 
   @NotNull
-  protected Range mXRange;
+  protected Range myTimeCurrentRangeUs;
 
   @NotNull
   protected final EventDispatcher<ProfilerEventListener> mEventDispatcher;
 
-  public BaseSegment(@NotNull String name, @NotNull Range xRange, @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+  public BaseSegment(@NotNull String name, @NotNull Range timeCurrentRangeUs, @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     myName = name;
-    mXRange = xRange;
+    myTimeCurrentRangeUs = timeCurrentRangeUs;
     mEventDispatcher = dispatcher;
   }
 

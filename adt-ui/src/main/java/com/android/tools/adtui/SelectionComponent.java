@@ -106,14 +106,14 @@ public final class SelectionComponent extends AnimatedComponent {
    * The global range for clamping selection.
    */
   @NotNull
-  private final Range mDataRange;
+  private final Range mGlobalRange;
 
   /**
    * The current viewing range which gets shifted when user drags the selection box beyond the
    * component's dimension.
    */
   @NotNull
-  private final Range mViewRange;
+  private final Range mCurrentRange;
 
   /**
    * Value used when moving the selection as a block: The user never click right in the middle of
@@ -143,12 +143,12 @@ public final class SelectionComponent extends AnimatedComponent {
   public SelectionComponent(@NotNull Component host,
                             @NotNull AxisComponent axis,
                             @NotNull Range selectionRange,
-                            @NotNull Range dataRange,
-                            @NotNull Range viewRange) {
+                            @NotNull Range globalRange,
+                            @NotNull Range currentRange) {
     mHost = host;
     mAxis = axis;
-    mDataRange = dataRange;
-    mViewRange = viewRange;
+    mGlobalRange = globalRange;
+    mCurrentRange = currentRange;
     mode = Mode.NO_SELECTION;
     mSelectionRange = selectionRange;
     mReportingData = new HashMap<>();
@@ -201,12 +201,12 @@ public final class SelectionComponent extends AnimatedComponent {
 
     mHost.addMouseWheelListener(e -> {
       // TODO: extract this logic to reuse it in other components (e.g. HTreeChart)
-      double anchor = (double) e.getX() / mHost.getWidth() * mViewRange.getLength() + mViewRange.getMin();
+      double anchor = (double) e.getX() / mHost.getWidth() * mCurrentRange.getLength() + mCurrentRange.getMin();
       float zoomPercentage = MOUSE_WHEEL_ZOOM_FACTOR * e.getWheelRotation();
-      double minDelta = (anchor - mViewRange.getMin()) / zoomPercentage;
-      double maxDelta = (mViewRange.getMax() - anchor) / zoomPercentage;
+      double minDelta = (anchor - mCurrentRange.getMin()) / zoomPercentage;
+      double maxDelta = (mCurrentRange.getMax() - anchor) / zoomPercentage;
 
-      mViewRange.set(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
+      mCurrentRange.set(mCurrentRange.getMin() - minDelta, mCurrentRange.getMax() + maxDelta);
     });
   }
 
@@ -252,16 +252,16 @@ public final class SelectionComponent extends AnimatedComponent {
    * Zoom by a percentage of the current view range using the center as the anchor
    */
   public void zoom(float percentage) {
-    double zoomDelta = mViewRange.getLength() * percentage;
-    requestZoom(mViewRange.getMin() - zoomDelta, mViewRange.getMax() + zoomDelta);
+    double zoomDelta = mCurrentRange.getLength() * percentage;
+    requestZoom(mCurrentRange.getMin() - zoomDelta, mCurrentRange.getMax() + zoomDelta);
   }
 
   /*
    * Resets the view range to match the data range.
-   * TODO this does not animate at the moment because we have a running mDataRange max value.
+   * TODO this does not animate at the moment because we have a running mGlobalRange max value.
    */
   public void resetZoom() {
-    mViewRange.set(mDataRange.getMin(), mDataRange.getMax());
+    mCurrentRange.set(mGlobalRange.getMin(), mGlobalRange.getMax());
   }
 
   public void clear() {
@@ -285,9 +285,9 @@ public final class SelectionComponent extends AnimatedComponent {
 
     if (mZoomRequested) {
       // TODO clamp zooming if a min range is reached.
-      if (mZoomMinTarget != mViewRange.getMin() || mZoomMaxTarget != mViewRange.getMax()) {
-        mViewRange.setTarget(mZoomMinTarget, mZoomMaxTarget);
-        mViewRange.lockValues();
+      if (mZoomMinTarget != mCurrentRange.getMin() || mZoomMaxTarget != mCurrentRange.getMax()) {
+        mCurrentRange.setTarget(mZoomMinTarget, mZoomMaxTarget);
+        mCurrentRange.lockValues();
       }
       mZoomRequested = false;
     }
@@ -295,7 +295,7 @@ public final class SelectionComponent extends AnimatedComponent {
     Point mousePosition = getMouseLocation();
     double valueAtCursor = mAxis.getValueAtPosition(mousePosition.x);
     // Clamp to data range.
-    valueAtCursor = mDataRange.clamp(valueAtCursor);
+    valueAtCursor = mGlobalRange.clamp(valueAtCursor);
 
     // Gather any series data that need to be shown in the overlay.
     mReportingContainer = null;
@@ -321,13 +321,13 @@ public final class SelectionComponent extends AnimatedComponent {
 
     // Extend view range if necessary
     // If extended, lock range to force Scrollbar to quit STREAMING mode.
-    if (valueAtCursor > mViewRange.getMax()) {
-      mViewRange.setMax(valueAtCursor);
-      mViewRange.lockValues();
+    if (valueAtCursor > mCurrentRange.getMax()) {
+      mCurrentRange.setMax(valueAtCursor);
+      mCurrentRange.lockValues();
     }
-    else if (valueAtCursor < mViewRange.getMin()) {
-      mViewRange.setMin(valueAtCursor);
-      mViewRange.lockValues();
+    else if (valueAtCursor < mCurrentRange.getMin()) {
+      mCurrentRange.setMin(valueAtCursor);
+      mCurrentRange.lockValues();
     }
 
     // Check if selection was inverted (min > max or max < min)
@@ -355,12 +355,12 @@ public final class SelectionComponent extends AnimatedComponent {
                             valueAtCursor + mSelectionBlockClickOffset + length);
 
         // Limit the selection block to viewRange Min
-        if (mSelectionRange.getMin() < mViewRange.getMin()) {
-          mSelectionRange.shift(mViewRange.getMin() - mSelectionRange.getMin());
+        if (mSelectionRange.getMin() < mCurrentRange.getMin()) {
+          mSelectionRange.shift(mCurrentRange.getMin() - mSelectionRange.getMin());
         }
         // Limit the selection block to viewRange Max
-        if (mSelectionRange.getMax() > mViewRange.getMax()) {
-          mSelectionRange.shift(mViewRange.getMax() - mSelectionRange.getMax());
+        if (mSelectionRange.getMax() > mCurrentRange.getMax()) {
+          mSelectionRange.shift(mCurrentRange.getMax() - mSelectionRange.getMax());
         }
         break;
     }
@@ -496,17 +496,17 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   private void requestZoom(double minTarget, double maxTarget) {
-    mZoomMinTarget = Math.max(mDataRange.getMin(), minTarget);
-    mZoomMaxTarget = Math.min(mDataRange.getMax(), maxTarget);
+    mZoomMinTarget = Math.max(mGlobalRange.getMin(), minTarget);
+    mZoomMaxTarget = Math.min(mGlobalRange.getMax(), maxTarget);
 
     // Clamp zoom to minimum range by distributing the delta evenly between the min and max.
     double zoomLength = mZoomMaxTarget - mZoomMinTarget;
     if (zoomLength < MINIMUM_VIEW_LENGTH_US) {
       double delta = (MINIMUM_VIEW_LENGTH_US - zoomLength) / 2;
-      double clampedZoomMin = Math.max(mDataRange.getMin(), mZoomMinTarget - delta);
-      double clampedZoomMax = Math.min(mDataRange.getMax(), mZoomMaxTarget + delta);
+      double clampedZoomMin = Math.max(mGlobalRange.getMin(), mZoomMinTarget - delta);
+      double clampedZoomMax = Math.min(mGlobalRange.getMax(), mZoomMaxTarget + delta);
 
-      // Distribute any extra delta to the other side if the clamped zooms were bounded by mDataRange.
+      // Distribute any extra delta to the other side if the clamped zooms were bounded by mGlobalRange.
       if (mZoomMinTarget - clampedZoomMin < delta) {
         clampedZoomMax += delta - (mZoomMinTarget - clampedZoomMin);
       }

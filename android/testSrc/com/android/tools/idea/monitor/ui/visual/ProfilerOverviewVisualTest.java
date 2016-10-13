@@ -57,13 +57,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private SeriesDataStore mDataStore;
 
   @NotNull
-  private Range mXRange;
+  private Range mTimeCurrentRange;
 
   @NotNull
-  private Range mXGlobalRange;
+  private Range mTimeGlobalRange;
 
   @NotNull
-  private Range mXSelectionRange;
+  private Range mTimeSelectionRange;
 
   @NotNull
   private AxisComponent mTimeAxis;
@@ -101,20 +101,20 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long startTimeUs = mDataStore.getLatestTimeUs();
-    mXRange = new Range();
-    mXGlobalRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
-    mXSelectionRange = new Range();
+    mTimeCurrentRange = new Range();
+    mTimeGlobalRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    mTimeSelectionRange = new Range();
 
-    mXRange.setOffset(startTimeUs);
-    mXGlobalRange.setOffset(startTimeUs);
-    mXSelectionRange.setOffset(startTimeUs);
+    mTimeCurrentRange.setOffset(startTimeUs);
+    mTimeGlobalRange.setOffset(startTimeUs);
+    mTimeSelectionRange.setOffset(startTimeUs);
 
-    mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
+    mScrollbar = new RangeScrollbar(mTimeGlobalRange, mTimeCurrentRange);
 
 
     // add horizontal time axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(mXRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mXGlobalRange);
+    AxisComponent.Builder builder = new AxisComponent.Builder(mTimeCurrentRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(mTimeGlobalRange);
     mTimeAxis = builder.build();
 
     mSegmentsContainer = new JBPanel();
@@ -125,20 +125,20 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     mSelection = new SelectionComponent(mSegmentsContainer,
                                         mTimeAxis,
-                                        mXSelectionRange,
-                                        mXGlobalRange,
-                                        mXRange);
+                                        mTimeSelectionRange,
+                                        mTimeGlobalRange,
+                                        mTimeCurrentRange);
 
     List<Animatable> componentsList = new ArrayList<>();
     componentsList.add(mLayout);
     // Get latest data time from the data store.
-    componentsList.add(frameLength -> mXGlobalRange.setMaxTarget(mDataStore.getLatestTimeUs()));
+    componentsList.add(frameLength -> mTimeGlobalRange.setMaxTarget(mDataStore.getLatestTimeUs()));
     componentsList.add(mSelection);            // Update selection range immediate.
     componentsList.add(mScrollbar);            // Update current range immediate.
     componentsList.add(mTimeAxis);             // Read ranges.
-    componentsList.add(mXRange);               // Reset flags.
-    componentsList.add(mXGlobalRange);         // Reset flags.
-    componentsList.add(mXSelectionRange);      // Reset flags.
+    componentsList.add(mTimeCurrentRange);               // Reset flags.
+    componentsList.add(mTimeGlobalRange);         // Reset flags.
+    componentsList.add(mTimeSelectionRange);      // Reset flags.
     return componentsList;
   }
 
@@ -190,21 +190,21 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(mScrollbar, gbc);
 
     // Mock event segment
-    BaseSegment eventSegment = new EventSegment(mXRange, mDataStore, ICONS, mEventDispatcher);
+    BaseSegment eventSegment = new EventSegment(mTimeCurrentRange, mDataStore, ICONS, mEventDispatcher);
     setupAndRegisterSegment(eventSegment, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
     // Mock monitor segments
-    BaseSegment networkSegment = new NetworkSegment(mXRange, mDataStore, mEventDispatcher);
+    BaseSegment networkSegment = new NetworkSegment(mTimeCurrentRange, mDataStore, mEventDispatcher);
     setupAndRegisterSegment(networkSegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
-    BaseSegment memorySegment = new MemorySegment(mXRange, mDataStore, mEventDispatcher);
+    BaseSegment memorySegment = new MemorySegment(mTimeCurrentRange, mDataStore, mEventDispatcher);
     setupAndRegisterSegment(memorySegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
-    BaseSegment cpuSegment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
+    BaseSegment cpuSegment = new CpuUsageSegment(mTimeCurrentRange, mDataStore, mEventDispatcher);
     setupAndRegisterSegment(cpuSegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
     // Timeline segment
-    BaseSegment timeSegment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
+    BaseSegment timeSegment = new TimeAxisSegment(mTimeCurrentRange, mTimeAxis, mEventDispatcher);
     setupAndRegisterSegment(timeSegment, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
     // Add left spacer

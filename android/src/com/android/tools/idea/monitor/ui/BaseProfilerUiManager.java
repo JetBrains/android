@@ -57,7 +57,7 @@ public abstract class BaseProfilerUiManager {
   protected BaseSegment myOverviewSegment;
 
   @NotNull
-  protected final Range myTimeViewRange;
+  protected final Range myTimeCurrentRangeUs;
 
   @NotNull
   protected final Choreographer myChoreographer;
@@ -71,9 +71,9 @@ public abstract class BaseProfilerUiManager {
   @Nullable
   protected Set<Poller> myPollerSet;
 
-  public BaseProfilerUiManager(@NotNull Range timeViewRange, @NotNull Choreographer choreographer,
+  public BaseProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
                                @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    myTimeViewRange = timeViewRange;
+    myTimeCurrentRangeUs = timeCurrentRangeUs;
     myChoreographer = choreographer;
     myDataStore = dataStore;
     myEventDispatcher = eventDispatcher;
@@ -105,7 +105,7 @@ public abstract class BaseProfilerUiManager {
    * Sets up the profiler's Level1 view in the overviewPanel.
    */
   public void setupOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
-    myOverviewSegment = createOverviewSegment(myTimeViewRange, myDataStore, myEventDispatcher);
+    myOverviewSegment = createOverviewSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher);
 
     setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myOverviewSegment);
@@ -150,7 +150,7 @@ public abstract class BaseProfilerUiManager {
   }
 
   @NotNull
-  protected abstract BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected abstract BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                                        @NotNull SeriesDataStore dataStore,
                                                        @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher);
 

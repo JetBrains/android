@@ -64,8 +64,8 @@ public class AccordionVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range xRange = new Range();
-    mAnimatedTimeRange = new AnimatedTimeRange(xRange, mStartTimeUs);
+    Range timeGlobalRangeUs = new Range();
+    mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, mStartTimeUs);
 
     mPanelX = new JBPanel();
     mPanelY = new JBPanel();
@@ -79,7 +79,7 @@ public class AccordionVisualTest extends VisualTest {
     componentsList.add(mAccordionX);
     componentsList.add(mAccordionY);
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(xRange);
+    componentsList.add(timeGlobalRangeUs);
 
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
@@ -91,7 +91,7 @@ public class AccordionVisualTest extends VisualTest {
         componentsList.add(mYRange);
       }
       LongDataSeries series = new LongDataSeries();
-      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange, series);
+      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", timeGlobalRangeUs, mYRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }
