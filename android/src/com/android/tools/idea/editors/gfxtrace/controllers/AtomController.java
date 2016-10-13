@@ -43,10 +43,10 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -543,7 +543,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(EventCategory.GPU_PROFILER)
                                        .setKind(EventKind.GFX_TRACE_COMMAND_SELECTED)
-                                       .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                       .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                              .setCommand(object.getClass().getSimpleName())));
 
         if (object instanceof Group) {
@@ -855,7 +855,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
             UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                            .setCategory(EventCategory.GPU_PROFILER)
                                            .setKind(EventKind.GFX_TRACE_LINK_CLICKED)
-                                           .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                           .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                                 .setTracePath(path.toString())));
 
             myEditor.activatePath(path, AtomController.this);

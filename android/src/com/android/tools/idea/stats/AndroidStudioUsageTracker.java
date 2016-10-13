@@ -21,11 +21,11 @@ import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.base.Strings;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails.SoftwareLifeCycleChannel;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.StudioProjectChange;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
+import com.google.wireless.android.sdk.stats.ProductDetails;
+import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel;
+import com.google.wireless.android.sdk.stats.StudioProjectChange;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -106,11 +106,11 @@ public class AndroidStudioUsageTracker {
   }
 
   /**
-   * Creates a {@link AndroidStudioStats.DeviceInfo} from a {@link IDevice} instance.
+   * Creates a {@link DeviceInfo} from a {@link IDevice} instance.
    */
   @NotNull
-  public static AndroidStudioStats.DeviceInfo deviceToDeviceInfo(@NotNull IDevice device) {
-    return AndroidStudioStats.DeviceInfo.newBuilder()
+  public static DeviceInfo deviceToDeviceInfo(@NotNull IDevice device) {
+    return DeviceInfo.newBuilder()
       .setAnonymizedSerialNumber(anonymizeUtf8(device.getSerialNumber()))
       .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
       .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
@@ -122,12 +122,12 @@ public class AndroidStudioUsageTracker {
   }
 
   /**
-   * Creates a {@link AndroidStudioStats.DeviceInfo} from a {@link IDevice} instance
+   * Creates a {@link DeviceInfo} from a {@link IDevice} instance
    * containing api level only.
    */
   @NotNull
-  public static AndroidStudioStats.DeviceInfo deviceToDeviceInfoApilLevelOnly(@NotNull IDevice device) {
-    return AndroidStudioStats.DeviceInfo.newBuilder()
+  public static DeviceInfo deviceToDeviceInfoApilLevelOnly(@NotNull IDevice device) {
+    return DeviceInfo.newBuilder()
       .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
       .build();
   }

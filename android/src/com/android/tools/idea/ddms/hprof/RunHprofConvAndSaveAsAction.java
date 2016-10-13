@@ -22,7 +22,7 @@ import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.view.CapturesToolWindow;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;

@@ -30,7 +30,7 @@ import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.filters.HyperlinkInfo;
@@ -127,9 +127,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         Content selectedContent = event.getContent();
         BaseMonitorView view = selectedContent.getUserData(BaseMonitorView.MONITOR_VIEW_KEY);
         if (view != null && event.getOperation() == ContentManagerEvent.ContentOperation.add) {
-          UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROFILING)
-                                           .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.MONITOR_RUNNING)
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
+                                           .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
                                            .setMonitorType(view.getMonitorType()));
 
         }

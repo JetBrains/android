@@ -22,7 +22,7 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -108,9 +108,9 @@ public class DeployApkTask implements LaunchTask {
     if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       return;
     }
-    UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-       .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.DEPLOYMENT)
-       .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+       .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+       .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
   }
 }
