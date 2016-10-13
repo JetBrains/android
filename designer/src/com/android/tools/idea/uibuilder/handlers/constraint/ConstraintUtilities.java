@@ -541,6 +541,50 @@ public class ConstraintUtilities {
                             height);
   }
 
+  private static String chainStyleToString(int style) {
+    switch (style) {
+      case ConstraintWidget.CHAIN_SPREAD:
+        return SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD;
+      case ConstraintWidget.CHAIN_SPREAD_INSIDE:
+        return SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
+      case ConstraintWidget.CHAIN_PACKED:
+        return SdkConstants.ATTR_LAYOUT_CHAIN_PACKED;
+    }
+    return null;
+  }
+
+  /**
+   * @param attributes
+   * @param widget
+   */
+  static void setHorizontalChainStyle(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
+    int style = widget.getHorizontalChainStyle();
+    if (style == ConstraintWidget.CHAIN_SPREAD) {
+      // If it's the default, remove it
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, null);
+    } else {
+      attributes.setAttribute(SdkConstants.SHERPA_URI,
+                              SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
+                              chainStyleToString(style));
+    }
+  }
+
+  /**
+   * @param attributes
+   * @param widget
+   */
+  static void setVerticalChainStyle(@NotNull NlAttributesHolder attributes, @NotNull ConstraintWidget widget) {
+    int style = widget.getVerticalChainStyle();
+    if (style == ConstraintWidget.CHAIN_SPREAD) {
+      // If it's the default, remove it
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, null);
+    } else {
+      attributes.setAttribute(SdkConstants.SHERPA_URI,
+                              SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
+                              chainStyleToString(style));
+    }
+  }
+
   /**
    * Update the attributes Dimension Ratio
    *
@@ -1481,6 +1525,8 @@ public class ConstraintUtilities {
     }
 
     setDimension(transaction, widget);
+    setHorizontalChainStyle(transaction, widget);
+    setVerticalChainStyle(transaction, widget);
     for (ConstraintAnchor anchor : widget.getAnchors()) {
       setConnection(transaction, anchor);
     }
