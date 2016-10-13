@@ -129,13 +129,6 @@ public class NewProjectTest {
       .clickOk()
       .getResults();
 
-    // Temporary issue
-    inspectionResults = inspectionResults.replace(
-      "    Android > Lint > Correctness\n" +
-      "        Missing Constraints in ConstraintLayout\n" +
-      "            app\n" +
-      "                Using version 1.0.0-alpha3 of the constraint library, which is obsolete\n", "");
-
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
