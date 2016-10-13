@@ -472,18 +472,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers,
-                                   boolean selected) {
-      presentation
-        .setIcon(ConstraintModel.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
-    }
-
-    @Override
     public boolean affectsUndo() {
       return false;
     }
@@ -583,8 +571,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
     public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show Constraints",
-            "Hide Constraints");
+      super(AndroidIcons.SherpaIcons.Hide, AndroidIcons.SherpaIcons.Unhide, "Show Constraints", "Hide Constraints");
       myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
     }
 
@@ -604,17 +591,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             boolean selected) {
       myShowAllConstraints = selected;
       PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers,
-                                   boolean selected) {
-      presentation.setIcon(myShowAllConstraints ? AndroidIcons.SherpaIcons.Unhide : AndroidIcons.SherpaIcons.Hide);
     }
   }
 
