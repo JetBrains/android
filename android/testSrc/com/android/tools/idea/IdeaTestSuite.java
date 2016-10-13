@@ -105,20 +105,11 @@ import java.nio.file.Paths;
   org.jetbrains.android.dom.AndroidXmlResourcesDomTest.class,
   org.jetbrains.android.facet.IdeaSourceProviderTest.class,
 
-// Test failing after IntelliJ 2016.2 merge
+  // Require resources with spaces (HTML File template)
+  // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
-  org.jetbrains.android.AndroidGotoRelatedTest.class,
-  org.jetbrains.android.AndroidJavaHighlightingTest.class,
-  org.jetbrains.android.actions.RegisterComponentsTest.class,
-  org.jetbrains.android.dom.AndroidDrawableResourcesDomTest.class,
-  org.jetbrains.android.dom.AndroidLayoutDomTest.class,
-  org.jetbrains.android.dom.AndroidLibraryProjectTest.class,
-  org.jetbrains.android.dom.AndroidMenuTest.class,
   org.jetbrains.android.dom.AndroidValueResourcesTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
-  org.jetbrains.android.inspections.ResourceTypeInspectionTest.class,
-  org.jetbrains.android.intentions.AndroidIntentionsTest.class,
-  org.jetbrains.android.sdk.AndroidSdkSourcesBrowsingTest.class,
 })
 public class IdeaTestSuite {
 
