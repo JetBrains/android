@@ -85,9 +85,10 @@ public class EventVisualTest extends VisualTest {
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivities = new ArrayList<>();
+
     // add horizontal time axis
-    myTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE,
-                                   false, TimeAxisFormatter.DEFAULT);
+    AxisComponent.Builder builder = new AxisComponent.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
+    myTimeAxis = builder.build();
     List<Animatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);

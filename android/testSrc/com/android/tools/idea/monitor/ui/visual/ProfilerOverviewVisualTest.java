@@ -113,14 +113,9 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
 
     // add horizontal time axis
-    mTimeAxis = new AxisComponent(mXRange,
-                                  mXGlobalRange,
-                                  "TIME",
-                                  AxisComponent.AxisOrientation.BOTTOM,
-                                  0,
-                                  0,
-                                  false,
-                                  TimeAxisFormatter.DEFAULT);
+    AxisComponent.Builder builder = new AxisComponent.Builder(mXRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(mXGlobalRange);
+    mTimeAxis = builder.build();
 
     mSegmentsContainer = new JBPanel();
     mLayout = new AccordionLayout(mSegmentsContainer, AccordionLayout.Orientation.VERTICAL);

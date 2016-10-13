@@ -26,7 +26,6 @@ import java.util.Arrays;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
 public class TimelineDataTest {
 
   private static final int TYPE_DATA = 0;
