@@ -60,7 +60,7 @@ public class SubmitFeedback extends DumbAwareAction {
       return;
     }
 
-    if (!InstantRunSettings.isRecorderEnabled()) {
+    if (!InstantRunSettings.isInstantRunEnabled() || !InstantRunSettings.isRecorderEnabled()) {
       int result = Messages.showYesNoDialog(
         project,
         AndroidBundle.message("instant.run.flr.would.you.like.to.enable"),
