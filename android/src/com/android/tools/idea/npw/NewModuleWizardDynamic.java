@@ -119,7 +119,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
         }
       }
     }
-    return AndroidStudioInitializer.getGradlePluginRecommendedVersion();
+    return AndroidStudioInitializer.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
   @NotNull
