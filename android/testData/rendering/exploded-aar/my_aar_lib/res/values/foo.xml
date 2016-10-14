@@ -22,6 +22,9 @@
     <declare-styleable name="Styleable1">
         <attr name="some_attr" />
     </declare-styleable>
+    <declare-styleable name="Styleable.with.dots">
+        <attr name="some_attr" />
+    </declare-styleable>
     <declare-styleable name="Styleable_with_underscore">
         <attr name="app_attr1" />
         <attr name="app_attr2" />

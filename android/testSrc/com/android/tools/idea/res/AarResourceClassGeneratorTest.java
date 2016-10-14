@@ -274,7 +274,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     }
     assertSameElements(fieldNames, "id1", "id2", "id3");
     styleableTestWithAars(generator);
-    // Run same test again to ensure that caching is working as exptected.
+    // Run same test again to ensure that caching is working as expected.
     styleableTestWithAars(generator);
   }
 
@@ -282,9 +282,10 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     Class<?> clz = generateClass(generator, "pkg.R$styleable");
     assertNotNull(clz);
     assertNotNull(clz.newInstance());
-    Field styleable2 = clz.getDeclaredField("Styleable_with_underscore");
-    assertEquals(styleable2.getType(), (new int[0]).getClass());
-    int[] array = (int[])styleable2.get(null);
+    assertNotNull(clz.getDeclaredField("Styleable_with_dots"));
+    Field styleable3 = clz.getDeclaredField("Styleable_with_underscore");
+    assertEquals(styleable3.getType(), (new int[0]).getClass());
+    int[] array = (int[])styleable3.get(null);
     int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr1").get(null);
     assertEquals(0x01010125, array[idx]);
     idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr2").get(null);
