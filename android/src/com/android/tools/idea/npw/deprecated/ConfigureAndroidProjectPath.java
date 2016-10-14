@@ -26,6 +26,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.npw.ConfigureFormFactorStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -103,7 +104,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * @param state the state store to populate with the values stored in the SDK
    */
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
-    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class);
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);

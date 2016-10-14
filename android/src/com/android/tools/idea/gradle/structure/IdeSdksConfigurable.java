@@ -21,11 +21,8 @@ import com.android.repository.api.RepoManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -91,8 +88,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseSdkHandler;
 
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
@@ -153,7 +148,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     layout.show(myNdkDownloadPanel, "loading");
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RepoManager repoManager = tryToChooseSdkHandler().getSdkManager(logger);
+    RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", true, project);
     RepoManager.RepoLoadedCallback onComplete = packages -> {
       if (packages.getRemotePackages().get(FD_NDK) != null) {
@@ -476,7 +471,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     if (!create) {
       return null;
     }
-    AndroidSdkData sdkData = tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData == null) {
       return null;
     }

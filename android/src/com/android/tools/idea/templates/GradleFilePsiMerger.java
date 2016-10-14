@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.*;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,7 +33,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -165,7 +165,7 @@ public class GradleFilePsiMerger {
 
     ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk != null) {
       for (String configurationName : configurations) {
         List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configurationName),

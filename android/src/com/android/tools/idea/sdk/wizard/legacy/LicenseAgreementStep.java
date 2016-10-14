@@ -18,10 +18,11 @@ package com.android.tools.idea.sdk.wizard.legacy;
 import com.android.repository.api.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,7 +35,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,7 +102,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
     setBodyComponent(mainPanel);
 
-    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     mySdkRoot = mySdkHandler.getLocation();
   }
 

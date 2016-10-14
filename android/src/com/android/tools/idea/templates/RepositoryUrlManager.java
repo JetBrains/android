@@ -29,6 +29,8 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleLocalCache;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
@@ -41,9 +43,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
-import com.android.tools.idea.lint.LintIdeClient;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -95,7 +95,7 @@ public class RepositoryUrlManager {
 
   @Nullable
   public String getLibraryStringCoordinate(SupportLibrary library, boolean preview) {
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
     }
@@ -312,7 +312,7 @@ public class RepositoryUrlManager {
 
   @Nullable
   public GradleCoordinate resolveDynamicCoordinate(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    return resolveDynamicCoordinate(coordinate, project, AndroidSdkUtils.tryToChooseSdkHandler());
+    return resolveDynamicCoordinate(coordinate, project, AndroidSdks.getInstance().tryToChooseSdkHandler());
   }
 
   /**
@@ -371,7 +371,7 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    return resolveDynamicCoordinateVersion(coordinate, project, AndroidSdkUtils.tryToChooseSdkHandler());
+    return resolveDynamicCoordinateVersion(coordinate, project, AndroidSdks.getInstance().tryToChooseSdkHandler());
   }
 
   @Nullable

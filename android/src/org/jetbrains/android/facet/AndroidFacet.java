@@ -27,14 +27,15 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
@@ -97,7 +98,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtilRt.find;
 import static org.jetbrains.android.compiler.AndroidCompileUtil.generate;
 import static org.jetbrains.android.facet.AndroidRootUtil.*;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
@@ -108,7 +108,7 @@ import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidFacet");
 
-  public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
+  public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
   private static final Object APP_RESOURCES_LOCK = new Object();
@@ -540,7 +540,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return;
     }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !isAndroidSdk(sdk)) {
+    if (sdk == null || !AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return;
     }
 

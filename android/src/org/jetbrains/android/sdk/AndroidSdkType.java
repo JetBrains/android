@@ -17,6 +17,7 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -43,7 +44,7 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 /**
  * @author Eugene.Kudelevsky
@@ -164,8 +165,8 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());
     Sdk jdk = sdkModel.findSdk(name);
     IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
-    String sdkName = chooseNameForNewLibrary(target);
-    setUpSdk(sdk, sdkName, sdks, target, jdk, true);
+    String sdkName = AndroidSdks.getInstance().chooseNameForNewLibrary(target);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdks), jdk, true);
 
     return true;
   }
@@ -223,7 +224,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Nullable
   private static Sdk getInternalJavaSdk(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
     return data != null ? data.getJavaSdk() : null;
   }
 

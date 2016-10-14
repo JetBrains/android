@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
@@ -23,7 +25,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +33,22 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class FailedToParseSdkErrorHandler extends AbstractSyncErrorHandler {
   @NonNls public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
+
+  private final AndroidSdks myAndroidSdks;
+
+  public FailedToParseSdkErrorHandler() {
+    this(AndroidSdks.getInstance());
+  }
+
+  @VisibleForTesting
+  FailedToParseSdkErrorHandler(AndroidSdks androidSdks) {
+    myAndroidSdks = androidSdks;
+  }
 
   @Override
   public boolean handleError(@NotNull List<String> message,
@@ -64,16 +77,16 @@ public class FailedToParseSdkErrorHandler extends AbstractSyncErrorHandler {
   }
 
   @Nullable
-  private static File findPathOfSdkMissingOrEmptyAddonsFolder(@NotNull Project project) {
+  private File findPathOfSdkMissingOrEmptyAddonsFolder(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-      if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
+      if (moduleSdk != null && myAndroidSdks.isAndroidSdk(moduleSdk)) {
         String homePath = moduleSdk.getHomePath();
         if (homePath != null) {
-          File sdkHomeDirPath = new File(FileUtil.toSystemDependentName(homePath));
+          File sdkHomeDirPath = new File(toSystemDependentName(homePath));
           File addonsDir = new File(sdkHomeDirPath, SdkConstants.FD_ADDONS);
-          if (!addonsDir.isDirectory() || FileUtil.notNullize(addonsDir.listFiles()).length == 0) {
+          if (!addonsDir.isDirectory() || (notNullize(addonsDir.listFiles()).length == 0)) {
             return sdkHomeDirPath;
           }
         }

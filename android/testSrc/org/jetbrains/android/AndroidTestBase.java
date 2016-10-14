@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -48,8 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
@@ -139,11 +138,12 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   protected void ensureSdkManagerAvailable() {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdks androidSdks = AndroidSdks.getInstance();
+    AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
     if (sdkData == null) {
       sdkData = createTestSdkManager();
       if (sdkData != null) {
-        AndroidSdkUtils.setSdkData(sdkData);
+        androidSdks.setSdkData(sdkData);
       }
     }
     assertNotNull(sdkData);
@@ -152,7 +152,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   @Nullable
   protected AndroidSdkData createTestSdkManager() {
     Sdk androidSdk = createLatestAndroidSdk();
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {

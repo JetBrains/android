@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -45,9 +46,14 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class SdkModuleSetupStep extends AndroidModuleSetupStep {
+  @NotNull private final AndroidSdks myAndroidSdks;
+
+  public SdkModuleSetupStep(@NotNull AndroidSdks androidSdks) {
+    myAndroidSdks = androidSdks;
+  }
+
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,
@@ -70,9 +76,9 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
 
     AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
-    Sdk sdk = findSuitableAndroidSdk(compileTarget);
+    Sdk sdk = myAndroidSdks.findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
-      sdk = tryToCreateAndroidSdk(androidSdkHomePath, compileTarget);
+      sdk = myAndroidSdks.tryToCreate(androidSdkHomePath, compileTarget);
 
       if (sdk == null) {
         // If SDK was not created, this might be an add-on.
@@ -118,7 +124,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Nullable
-  private static Sdk findMatchingSdkForAddon(@NotNull AndroidProject androidProject) {
+  private Sdk findMatchingSdkForAddon(@NotNull AndroidProject androidProject) {
     Collection<String> bootClasspath = androidProject.getBootClasspath();
     if (bootClasspath.size() > 1) {
       File androidJarPath = findAndroidJarFilePath(bootClasspath);
@@ -144,8 +150,8 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Nullable
-  private static Sdk findSdk(@NotNull File androidJarPath) {
-    for (Sdk sdk : getAllAndroidSdks()) {
+  private Sdk findSdk(@NotNull File androidJarPath) {
+    for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
       if (containsPath(sdk, androidJarPath)) {
         return sdk;
       }

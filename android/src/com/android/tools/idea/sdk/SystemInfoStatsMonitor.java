@@ -37,7 +37,6 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,7 +134,7 @@ public class SystemInfoStatsMonitor {
     }
 
     if (mySdkHandler == null) {
-      mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+      mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     }
 
     if (SystemInfo.isWindows) {

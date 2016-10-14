@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
@@ -43,7 +44,6 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -258,7 +258,7 @@ public class InstantRunConfigurable
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
-      AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
+      AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
       BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class), false);
       if (latestBuildTool != null) {
         Revision revision = latestBuildTool.getRevision();

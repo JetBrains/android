@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -73,7 +74,8 @@ import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 /** Performs Gradle-specific IDE initialization */
 public class GradleSpecificInitializer implements Runnable {
@@ -313,13 +315,14 @@ public class GradleSpecificInitializer implements Runnable {
       Sdk sdk1 = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
       if (sdk1 != null) {
         // Rename the SDK to fit our default naming convention.
-        if (sdk1.getName().startsWith(SDK_NAME_PREFIX)) {
+        String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
+        if (sdk1.getName().startsWith(sdkNamePrefix)) {
           SdkModificator sdkModificator = sdk1.getSdkModificator();
-          sdkModificator.setName(SDK_NAME_PREFIX + sdk1.getName().substring(SDK_NAME_PREFIX.length()));
+          sdkModificator.setName(sdkNamePrefix + sdk1.getName().substring(sdkNamePrefix.length()));
           sdkModificator.commitChanges();
 
           // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk1);
+          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk1);
           if (additionalData != null) {
             Sdk jdk = additionalData.getJavaSdk();
             if (jdk != null) {
@@ -347,7 +350,7 @@ public class GradleSpecificInitializer implements Runnable {
 
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
-    List<Sdk> sdks = getAllAndroidSdks();
+    List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
     for (Sdk sdk : sdks) {
       String sdkPath = sdk.getHomePath();
       if (isCompatibleVersion(sdkPath)) {
@@ -441,7 +444,7 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void checkAndSetAndroidSdkSources() {
-    for (Sdk sdk : getAllAndroidSdks()) {
+    for (Sdk sdk : AndroidSdks.getInstance().getAllAndroidSdks()) {
       checkAndSetSources(sdk);
     }
   }
@@ -456,7 +459,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (platform != null) {
       SdkModificator sdkModificator = sdk.getSdkModificator();
       IAndroidTarget target = platform.getTarget();
-      findAndSetPlatformSources(target, sdkModificator);
+      AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
   }

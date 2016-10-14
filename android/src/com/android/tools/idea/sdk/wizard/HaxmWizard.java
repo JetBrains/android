@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
@@ -26,11 +27,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +73,7 @@ public class HaxmWizard extends DynamicWizard {
     // Have to ensure the SDK package is removed
     if (!myInvokedToUninstall) {
       try {
-        AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+        AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
         ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
@@ -153,7 +152,7 @@ public class HaxmWizard extends DynamicWizard {
 
     private void setupHaxm() throws IOException {
       final InstallContext installContext = new InstallContext(FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
-      final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+      final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       myHaxm.updateState(sdkHandler);
       final ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);

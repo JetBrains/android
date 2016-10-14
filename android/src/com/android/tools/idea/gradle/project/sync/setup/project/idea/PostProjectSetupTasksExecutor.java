@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -121,7 +122,6 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
   private static final GradleVersion GRADLE_VERSION_WITH_SECURITY_FIX = GradleVersion.parse("2.14.1");
@@ -141,6 +141,7 @@ public class PostProjectSetupTasksExecutor {
   private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
+  @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
@@ -153,13 +154,16 @@ public class PostProjectSetupTasksExecutor {
     return ServiceManager.getService(project, PostProjectSetupTasksExecutor.class);
   }
 
-  public PostProjectSetupTasksExecutor(@NotNull Project project) {
-    this(project, new CommonModuleValidator.Factory());
+  public PostProjectSetupTasksExecutor(@NotNull Project project, @NotNull AndroidSdks androidSdks) {
+    this(project, androidSdks, new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
-  PostProjectSetupTasksExecutor(@NotNull Project project, @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
+  PostProjectSetupTasksExecutor(@NotNull Project project,
+                                @NotNull AndroidSdks androidSdks,
+                                @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
+    myAndroidSdks = androidSdks;
     myModuleValidatorFactory = moduleValidatorFactory;
   }
 
@@ -396,7 +400,7 @@ public class PostProjectSetupTasksExecutor {
 
       Sdk sdk = model.getSdk();
       if (sdk != null) {
-        if (isAndroidSdk(sdk)) {
+        if (myAndroidSdks.isAndroidSdk(sdk)) {
           androidSdks.add(sdk);
         }
         continue;
@@ -413,7 +417,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     for (Sdk sdk : androidSdks) {
-      refreshLibrariesIn(sdk);
+      myAndroidSdks.refreshLibrariesIn(sdk);
     }
 
     removeAllModuleCompiledArtifacts(myProject);
@@ -616,7 +620,7 @@ public class PostProjectSetupTasksExecutor {
         Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
         if (sdk != null && !invalidAndroidSdks.contains(sdk) && (isMissingAndroidLibrary(sdk) || shouldRemoveAnnotationsJar(sdk))) {
           // First try to recreate SDK; workaround for issue 78072
-          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+          AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
           AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
@@ -630,7 +634,7 @@ public class PostProjectSetupTasksExecutor {
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
               sdkModificator.removeAllRoots();
-              for (OrderRoot orderRoot : getLibraryRootsForTarget(target, sdk.getHomePath(), true)) {
+              for (OrderRoot orderRoot : myAndroidSdks.getLibraryRootsForTarget(target, sdk, true)) {
                 sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
               }
               attachJdkAnnotations(sdkModificator);
@@ -653,8 +657,8 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  private static boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
-    if (isAndroidSdk(sdk)) {
+  private boolean isMissingAndroidLibrary(@NotNull Sdk sdk) {
+    if (myAndroidSdks.isAndroidSdk(sdk)) {
       for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
         // This code does not through the classes in the Android SDK. It iterates through a list of 3 files in the IDEA SDK: android.jar,
         // annotations.jar and res folder.
@@ -676,15 +680,15 @@ public class PostProjectSetupTasksExecutor {
    * From now on, creating IDEA Android SDKs will not include annotations.jar if API level is 16 or above, but we still need to remove
    * this jar from existing IDEA Android SDKs.
    */
-  private static boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
-    if (isAndroidSdk(sdk)) {
-      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+  private boolean shouldRemoveAnnotationsJar(@NotNull Sdk sdk) {
+    if (myAndroidSdks.isAndroidSdk(sdk)) {
+      AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
       boolean needsAnnotationsJar = false;
       if (additionalData != null && sdkData != null) {
         IAndroidTarget target = additionalData.getBuildTarget(sdkData);
         if (target != null) {
-          needsAnnotationsJar = needsAnnotationsJarInClasspath(target);
+          needsAnnotationsJar = myAndroidSdks.needsAnnotationsJarInClasspath(target);
         }
       }
       for (VirtualFile library : sdk.getRootProvider().getFiles(CLASSES)) {
@@ -705,7 +709,7 @@ public class PostProjectSetupTasksExecutor {
     List<String> missingPlatforms = Lists.newArrayList();
 
     for (Sdk sdk : invalidAndroidSdks) {
-      AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
+      AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       if (additionalData != null) {
         String platform = additionalData.getBuildTargetHashString();
         if (platform != null) {

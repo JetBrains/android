@@ -23,6 +23,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -33,7 +34,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
 
       AndroidSdkHandler sdkHandler = null;
-      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (androidSdkData != null) {
         sdkHandler = androidSdkData.getSdkHandler();
       }
