@@ -39,9 +39,7 @@ public class CpuUsageSegment extends BaseLineChartSegment {
 
   private static final String THREADS_SERIES_LABEL = "Threads";
 
-  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS_SIMPLE = new SingleUnitAxisFormatter(1, 5, 10, "%");
-
-  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(10, 10, 10, "%");
+  private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(1, 5, 10, "%");
 
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(5, 10, 1, "");
 
@@ -60,12 +58,17 @@ public class CpuUsageSegment extends BaseLineChartSegment {
    */
   public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore,
                          @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS_SIMPLE, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
   }
 
   @Override
   public BaseProfilerUiManager.ProfilerType getProfilerType() {
     return BaseProfilerUiManager.ProfilerType.CPU;
+  }
+
+  @Override
+  protected String getRightContentLabel() {
+    return THREADS_SERIES_LABEL;
   }
 
   @Override

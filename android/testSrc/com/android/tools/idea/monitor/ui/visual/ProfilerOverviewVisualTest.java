@@ -114,7 +114,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     // add horizontal time axis
     AxisComponent.Builder builder = new AxisComponent.Builder(mXRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mXGlobalRange);
+      .setGlobalRange(mXGlobalRange)
+      .showAxisLine(false);
     mTimeAxis = builder.build();
 
     mSegmentsContainer = new JBPanel();
@@ -162,31 +163,24 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridy = 0;
     gbc.gridx = 0;
-    gbc.gridwidth = 4;
     gbc.weightx = 0;
     gbc.weighty = 0;
     gridBagPanel.add(createToolbarPanel(), gbc);
 
     // Add Selection Overlay
-    // TODO define sizes for x columns 0 and 1
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridy = 1;
-    gbc.gridx = 2;
-    gbc.gridwidth = 1;
     gbc.weightx = 1;
     gbc.weighty = 1;
     gridBagPanel.add(mSelection, gbc);
 
     // Add Accordion Control
-    gbc.gridx = 0;
-    gbc.gridwidth = 4;
-    gbc.gridy = 1;
-    gbc.weighty = 0;
-    gbc.weightx = 0;
     gridBagPanel.add(mSegmentsContainer, gbc);
 
     // Add Scrollbar
     gbc.gridy = 2;
+    gbc.weightx = 0;
+    gbc.weighty = 0;
     gridBagPanel.add(mScrollbar, gbc);
 
     // Mock event segment
@@ -207,26 +201,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     BaseSegment timeSegment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
     setupAndRegisterSegment(timeSegment, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
-    // Add left spacer
-    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + eventSegment.getLabelColumnWidth(), 0);
-    gbc.gridy = 0;
-    gbc.gridx = 0;
-    gbc.gridwidth = 2;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
-    gridBagPanel.add(new Box.Filler(leftSpacer, leftSpacer, leftSpacer), gbc);
-
-    // Add right spacer
-    Dimension rightSpacerWidth = new Dimension(BaseSegment.getSpacerWidth(), 0);
-    Box.Filler rightSpacer = new Box.Filler(rightSpacerWidth, rightSpacerWidth, rightSpacerWidth);
-    gbc.gridy = 0;
-    gbc.gridx = 3;
-    gbc.gridwidth = 1;
-    gbc.weightx = 0;
-    gbc.weighty = 0;
-    gridBagPanel.add(rightSpacer, gbc);
-    rightSpacer.setVisible(false);  // hide right space in L1 by default.
-
     // Resize the SelectionComponent based on whether we are in L1 or L2 view.
     // TODO construct/destroyed Level3 segment/elements as we expand/collapse segments
     mEventDispatcher.addListener(new ProfilerEventListener() {
@@ -244,7 +218,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
             break;
         }
 
-        rightSpacer.setVisible(true);
         mResetProfilersButton.setEnabled(true);
       }
 
@@ -252,7 +225,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
       public void profilersReset() {
         // Sets all the components back to their preferred states.
         mLayout.resetComponents();
-        rightSpacer.setVisible(false);
         mResetProfilersButton.setEnabled(false);
         backProfilersToL1();
       }
@@ -294,7 +266,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     segment.setMinimumSize(new Dimension(0, minHeight));
     segment.setPreferredSize(new Dimension(0, preferredHeight));
     segment.setMaximumSize(new Dimension(0, maxHeight));
-    segment.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    segment.setBorder(BaseSegment.SEGMENT_BORDER);
 
     List<Animatable> segmentAnimatables = new ArrayList<>();
     segment.createComponentsList(segmentAnimatables);

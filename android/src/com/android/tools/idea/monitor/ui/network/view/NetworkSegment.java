@@ -39,20 +39,24 @@ public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String CONNECTIONS = "Connections";
 
-  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 5, 5); // Do not show minor ticks in L1.
+  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5); // Do not show minor ticks.
 
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
   public NetworkSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, NetworkTrafficFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
-          dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER, CONNECTIONS_AXIS_FORMATTER, dispatcher);
   }
 
   @Override
   public BaseProfilerUiManager.ProfilerType getProfilerType() {
     return BaseProfilerUiManager.ProfilerType.NETWORK;
+  }
+
+  @Override
+  protected String getRightContentLabel() {
+    return CONNECTIONS;
   }
 
   @Override
