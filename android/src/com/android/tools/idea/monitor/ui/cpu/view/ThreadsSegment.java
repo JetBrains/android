@@ -284,7 +284,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
       // Cell content (state chart containing the thread states)
       StateChart<CpuProfiler.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStatesDataModel);
       // State chart should be aligned with CPU Usage line charts and, therefore, with center content
-      threadStateChart.setBounds(getOverlayContentWidth(), mThreadsChartY, list.getWidth() - getOverlayContentWidth(), mThreadsChartHeight);
+      threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mThreadsChartHeight);
 
       cellPane.add(threadName);
       cellPane.add(threadStateChart);

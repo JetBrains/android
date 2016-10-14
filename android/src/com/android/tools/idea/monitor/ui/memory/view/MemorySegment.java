@@ -21,6 +21,9 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -37,9 +40,7 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "Memory";
 
-  private static final String RIGHT_AXIS_LABEL = "Objects";
-
-  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5); // Do not show minor ticks.
+  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER_L1 = new MemoryAxisFormatter(1, 5, 5); // Do not show minor ticks in L1.
 
   private static final BaseAxisFormatter COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
@@ -74,17 +75,12 @@ public class MemorySegment extends BaseLineChartSegment {
   public MemorySegment(@NotNull Range timeRange,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER, COUNT_AXIS_FORMATTER, dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, COUNT_AXIS_FORMATTER, dispatcher);
   }
 
   @Override
   public BaseProfilerUiManager.ProfilerType getProfilerType() {
     return BaseProfilerUiManager.ProfilerType.MEMORY;
-  }
-
-  @Override
-  protected String getRightContentLabel() {
-    return RIGHT_AXIS_LABEL;
   }
 
   @Override
@@ -103,7 +99,9 @@ public class MemorySegment extends BaseLineChartSegment {
       addLeftAxisLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, new LineConfig(MEMORY_TOTAL_COLOR));
 
       // Right axis series
-      addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT, JAVA_OBJECTS_COUNT, new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
+      addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
+                       JAVA_OBJECTS_COUNT,
+                       new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
 
       // Add the heap dump event series
       addEvent(SeriesDataType.MEMORY_HEAPDUMP_EVENT,
