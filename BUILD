@@ -4,21 +4,36 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "android-rt",
     srcs = ["android/rt/src"],
+    javacopts = ["-extra_checks:off"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
     deps = [
         "//tools:idea.annotations[module]",
         "//tools:idea.util-rt[module]",
     ],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
 
 iml_module(
     name = "android-common",
     srcs = ["android/common/src"],
-    test_srcs = ["android/common/testSrc"],
+    javacopts = ["-extra_checks:off"],
     resources = ["android/common/resources"],
+    tags = ["managed"],
     test_resources = ["android/common/testResources"],
+    test_srcs = ["android/common/testSrc"],
+    visibility = ["//visibility:public"],
+    exports = [
+        "//tools/idea/.idea/libraries:android-sdk-tools-jps",
+        "//tools/base/common:studio.common",
+        "//tools/base/ddmlib:studio.ddmlib",
+        "//tools/base/device_validator:studio.dvlib",
+        "//tools/base/layoutlib-api:studio.layoutlib-api",
+        "//tools/base/lint:studio.lint-api",
+        "//tools/base/lint:studio.lint-checks",
+        "//tools/base/ninepatch:studio.ninepatch",
+        "//tools/base/sdk-common:studio.sdk-common",
+        "//tools/base/sdklib:studio.sdklib",
+    ],
     deps = [
         "//tools:idea.util[module]",
         "//tools/idea/.idea/libraries:android-sdk-tools-jps",
@@ -34,27 +49,16 @@ iml_module(
         "//tools/base/sdklib:studio.sdklib[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
     ],
-    exports = [
-        "//tools/idea/.idea/libraries:android-sdk-tools-jps",
-        "//tools/base/common:studio.common",
-        "//tools/base/ddmlib:studio.ddmlib",
-        "//tools/base/device_validator:studio.dvlib",
-        "//tools/base/layoutlib-api:studio.layoutlib-api",
-        "//tools/base/lint:studio.lint-api",
-        "//tools/base/lint:studio.lint-checks",
-        "//tools/base/ninepatch:studio.ninepatch",
-        "//tools/base/sdk-common:studio.sdk-common",
-        "//tools/base/sdklib:studio.sdklib",
-    ],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
 
 iml_module(
     name = "layoutlib",
     srcs = ["layoutlib/src"],
+    javacopts = ["-extra_checks:off"],
     resources = ["layoutlib/resources"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+    exports = ["//tools/idea/.idea/libraries:layoutlib"],
     deps = [
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.sdk-common[module]",
@@ -62,19 +66,15 @@ iml_module(
         "//tools/adt/idea:android-common[module]",
         "//tools:idea.platform-api[module]",
     ],
-    exports = ["//tools/idea/.idea/libraries:layoutlib"],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
 
 iml_module(
     name = "sherpa-ui",
     srcs = ["android/sherpa-ui/src"],
-    deps = ["//tools/sherpa:sherpa-solver[module]"],
     javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
+    deps = ["//tools/sherpa:sherpa-solver[module]"],
 )
 
 iml_module(
@@ -85,11 +85,39 @@ iml_module(
         "android/gen",
         "designer/src",
     ],
+    javacopts = ["-extra_checks:off"],
+    resources = ["designer/resources"],
+    tags = ["managed"],
+    test_class = "com.android.tools.idea.IdeaTestSuite",
+    test_data = glob([
+        "android/annotations/**",
+        "android/device-art-resources/**",
+        "android/testData/**/*",
+        "designer/testData/**/*",
+    ]) + [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:licenses",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/m2:guava-18",
+        "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
+        "//tools/base/templates",
+        "//tools/external/gradle:gradle",
+        "//tools:idea/java/jdkAnnotations",
+    ],
+    test_runtime_deps = ["//tools/adt/idea/adt-branding"],
+    test_shard_count = 2,
     test_srcs = [
         "android/testSrc",
         "designer/testSrc",
     ],
-    resources = ["designer/resources"],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//tools/idea/.idea/libraries:asm",
+        "//tools/adt/idea:android-common",
+    ],
     deps = [
         "//tools:idea.openapi[module]",
         "//tools:idea.MM_RegExpSupport[module]",
@@ -159,221 +187,195 @@ iml_module(
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:studio.common[module]",
     ],
-    test_runtime_deps = ["//tools/adt/idea/adt-branding"],
-    exports = [
-        "//tools/idea/.idea/libraries:asm",
-        "//tools/adt/idea:android-common",
-    ],
-    test_data = glob([
-        "android/annotations/**",
-        "android/device-art-resources/**",
-        "android/testData/**/*",
-        "designer/testData/**/*",
-    ]) + [
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/layoutlib:data/res",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:licenses",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/m2:guava-18",
-        "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
-        "//tools/base/templates",
-        "//tools/external/gradle:gradle",
-        "//tools:idea/java/jdkAnnotations",
-    ],
-    test_class = "com.android.tools.idea.IdeaTestSuite",
-    test_shard_count = 2,
-    test_timeout = "long",
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
 
 java_import(
     name = "android/lib/commons-io-2.4",
     jars = ["android/lib/commons-io-2.4.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/juniversalchardet-1.0.3",
     jars = ["android/lib/juniversalchardet-1.0.3.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/antlr4-runtime-4.5.3",
     jars = ["android/lib/antlr4-runtime-4.5.3.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-5.0.3",
     jars = ["android/lib/asm-5.0.3.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-analysis-5.0.3",
     jars = ["android/lib/asm-analysis-5.0.3.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/asm-tree-5.0.3",
     jars = ["android/lib/asm-tree-5.0.3.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jarutils",
     jars = ["android/lib/jarutils.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/GoogleFeedback",
     jars = ["android/lib/GoogleFeedback.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/spantable",
     jars = ["android/lib/spantable.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jsr305-1.3.9",
     jars = ["android/lib/jsr305-1.3.9.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jgraphx-3.4.0.1",
     jars = ["android/lib/jgraphx-3.4.0.1.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all",
     jars = ["android/lib/jogl-all.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-linux-amd64",
     jars = ["android/lib/jogl-all-natives-linux-amd64.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-linux-i586",
     jars = ["android/lib/jogl-all-natives-linux-i586.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-macosx-universal",
     jars = ["android/lib/jogl-all-natives-macosx-universal.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-windows-amd64",
     jars = ["android/lib/jogl-all-natives-windows-amd64.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/jogl-all-natives-windows-i586",
     jars = ["android/lib/jogl-all-natives-windows-i586.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt",
     jars = ["android/lib/gluegen-rt.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-linux-amd64",
     jars = ["android/lib/gluegen-rt-natives-linux-amd64.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-linux-i586",
     jars = ["android/lib/gluegen-rt-natives-linux-i586.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-macosx-universal",
     jars = ["android/lib/gluegen-rt-natives-macosx-universal.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-windows-amd64",
     jars = ["android/lib/gluegen-rt-natives-windows-amd64.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/gluegen-rt-natives-windows-i586",
     jars = ["android/lib/gluegen-rt-natives-windows-i586.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/libwebp",
     jars = ["android/lib/libwebp.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/dexlib2-2.0.8-dev",
     jars = ["android/lib/dexlib2-2.0.8-dev.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 java_import(
     name = "android/lib/dexlib2-util-2.0.8-dev",
     jars = ["android/lib/dexlib2-util-2.0.8-dev.jar"],
-    visibility = ["//visibility:public"],
     tags = ["managed"],
+    visibility = ["//visibility:public"],
 )
 
 iml_module(
     name = "uitest-framework",
+    tags = ["managed"],
     test_srcs = ["uitest-framework/testSrc"],
+    visibility = ["//visibility:public"],
     deps = [
         "//tools/base/common:studio.common[module, test]",
         "//tools/adt/idea:android[module, test]",
@@ -392,6 +394,4 @@ iml_module(
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
         "//tools/base/rpclib:studio.rpclib[module, test]",
     ],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
