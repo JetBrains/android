@@ -74,6 +74,9 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   private AxisComponent mRightAxis;
 
   @NotNull
+  private final BaseAxisFormatter mLeftAxisFormatterSimple;
+
+  @NotNull
   private final BaseAxisFormatter mLeftAxisFormatter;
 
   @Nullable
@@ -106,12 +109,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
                               @NotNull SeriesDataStore dataStore,
+                              @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter,
                               @Nullable Range leftAxisRange,
                               @Nullable Range rightAxisRange,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(name, xRange, dispatcher);
+    mLeftAxisFormatterSimple = leftAxisFormatterSimple;
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
     mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
@@ -125,10 +130,11 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
                               @NotNull SeriesDataStore dataStore,
+                              @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    this(name, xRange, dataStore, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
+    this(name, xRange, dataStore, leftAxisFormatterSimple, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
   }
 
   public abstract BaseProfilerUiManager.ProfilerType getProfilerType();
@@ -136,19 +142,18 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
     // left axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(mLeftAxisRange, mLeftAxisFormatter, AxisComponent.AxisOrientation.RIGHT)
+    AxisComponent.Builder builder = new AxisComponent.Builder(mLeftAxisRange, mLeftAxisFormatterSimple, AxisComponent.AxisOrientation.LEFT)
       .showMinMax(true)
-      .showAxisLine(false)
       .clampToMajorTicks(true);
     mLeftAxis = builder.build();
 
     // right axis
     if (mRightAxisFormatter != null) {
-      builder = new AxisComponent.Builder(mRightAxisRange, mRightAxisFormatter, AxisComponent.AxisOrientation.LEFT)
+      builder = new AxisComponent.Builder(mRightAxisRange, mRightAxisFormatter, AxisComponent.AxisOrientation.RIGHT)
         .showMinMax(true)
-        .showAxisLine(false)
         .setParentAxis(mLeftAxis);
       mRightAxis = builder.build();
+      mRightAxis.setParentAxis(mLeftAxis);
       mRightAxis.setVisible(false);
     }
 
@@ -207,6 +212,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   protected void setRightContent(@NotNull JPanel panel) {
     if (mRightAxisFormatter != null) {
       panel.add(mRightAxis, BorderLayout.CENTER);
+      setRightSpacerVisible(true);
     }
   }
 
@@ -312,6 +318,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public void toggleView(boolean isExpanded) {
     super.toggleView(isExpanded);
     mGrid.setVisible(isExpanded);
+    mLeftAxis.setAxisFormatter(isExpanded ? mLeftAxisFormatter : mLeftAxisFormatterSimple);
     mLineChart.clearConfigs();
     updateChartLines(isExpanded);
     mLegendComponent.setLegendData(getLegendRenderDataList());

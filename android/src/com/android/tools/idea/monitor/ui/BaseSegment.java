@@ -18,8 +18,7 @@ package com.android.tools.idea.monitor.ui;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBLayeredPane;
+import com.android.tools.adtui.common.RotatedLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -30,37 +29,32 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.List;
 
 public abstract class BaseSegment extends JComponent {
 
+  private static final int SPACER_WIDTH = 100;
+
   /**
    * Top/bottom border between segments.
    */
-  public static final Border SEGMENT_BORDER = new CompoundBorder(new MatteBorder(0, 0, 1, 0, AdtUiUtils.DEFAULT_BORDER_COLOR),
-                                                                  new EmptyBorder(0, 0, 0, 0));
+  private static final Border SEGMENT_BORDER = new CompoundBorder(new MatteBorder(0, 0, 1, 0, AdtUiUtils.DEFAULT_BORDER_COLOR),
+                                                                   new EmptyBorder(0, 0, 0, 0));
+
+  private static final int LABEL_BORDER_WIDTH = 2;
 
   /**
-   * Padding for the header labels.
+   * Border around the segment label.
    */
-  private static final Border LABEL_BORDER = BorderFactory.createEmptyBorder(4, 4, 4, 4);
-
-  private static final int OVERLAY_CONTENT_WIDTH = 100;
-
-  @NotNull
-  private JBLayeredPane mLayeredPane;
-
-  private JLabel mLeftLabel;
-
-  private JPanel mLeftPanel;
-
-  private JLabel mRightLabel;
+  private static final Border LABEL_BORDER = new MatteBorder(0, 0, 0, LABEL_BORDER_WIDTH, AdtUiUtils.DEFAULT_BORDER_COLOR);
 
   private JPanel mRightPanel;
 
-  private JPanel mCenterPanel;
+  private JPanel mLeftPanel;
+
+  private JPanel mLabelPanel;
+
+  private RotatedLabel mLabel;
 
   @NotNull
   protected final String myName;
@@ -77,103 +71,86 @@ public abstract class BaseSegment extends JComponent {
     mEventDispatcher = dispatcher;
   }
 
-  public static int getOverlayContentWidth() {
-    return OVERLAY_CONTENT_WIDTH;
+  public static int getSpacerWidth() {
+    return SPACER_WIDTH;
   }
 
   public void initializeComponents() {
     setLayout(new BorderLayout());
 
-    // The layout of a segment is a 2x3 grid, with the main content spanning the entire second row. Optional content (left/right
-    // axes) are layered on top of the main content in the first/third columns. The three columns in the first row are used to display
-    // additional info associated with the left/main/right content respectively.
-    JBPanel panel = new JBPanel();
-    panel.setLayout(new GridBagLayout());
+    FontMetrics metrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
+    mLabelPanel = createSpacerPanel(metrics.getHeight() + LABEL_BORDER_WIDTH);
+    mLabelPanel.setBorder(LABEL_BORDER);
+    mLabel = new RotatedLabel();
+    mLabel.setFont(AdtUiUtils.DEFAULT_FONT);
+    mLabel.setText(myName);
+    mLabel.setBorder(SEGMENT_BORDER);
+    mLabelPanel.add(mLabel);
+    this.add(mLabelPanel, BorderLayout.WEST);
 
-    // Setup the top center panel.
-    JBPanel topPanel = new JBPanel();
-    topPanel.setLayout(new BorderLayout());
+    JBPanel panels = new JBPanel();
+    panels.setBorder(SEGMENT_BORDER);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    gbc.weightx = 1;
-    gbc.weighty = 0;
-    panel.add(topPanel, gbc);
-    setTopCenterContent(topPanel);
+    panels.setLayout(new GridBagLayout());
 
-    mLayeredPane = new JBLayeredPane();
+    gbc.weightx = 0;
+    gbc.weighty = 0;
+
     //Setup the left panel
     if (hasLeftContent()) {
-      mLeftPanel = new JBPanel();
-      mLeftPanel.setLayout(new BorderLayout());
-      mLeftPanel.setOpaque(false);
-      mLayeredPane.add(mLeftPanel);
-      setLeftContent(mLeftPanel);
-
-      mLeftLabel = new JBLabel(getLeftContentLabel());
-      mLeftLabel.setBorder(LABEL_BORDER);
+      mLeftPanel = createSpacerPanel(getSpacerWidth());
       gbc.gridx = 0;
-      gbc.gridy = 0;
-      gbc.weightx = 0;
-      gbc.weighty = 0;
-      panel.add(mLeftLabel, gbc);
+      gbc.gridy = 1;
+      panels.add(mLeftPanel, gbc);
+      setLeftContent(mLeftPanel);
     }
+
+    //Setup the top center panel.
+    JBPanel topPanel = new JBPanel();
+    topPanel.setLayout(new BorderLayout());
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    panels.add(topPanel, gbc);
+    setTopCenterContent(topPanel);
 
     //Setup the right panel
     if (hasRightContent()) {
-      mRightPanel = new JBPanel();
-      mRightPanel.setLayout(new BorderLayout());
-      mRightPanel.setOpaque(false);
-      mLayeredPane.add(mRightPanel);
-      setRightContent(mRightPanel);
-
-      mRightLabel = new JBLabel(getRightContentLabel());
-      mRightLabel.setBorder(LABEL_BORDER);
+      mRightPanel = createSpacerPanel(getSpacerWidth());
       gbc.gridx = 2;
-      gbc.gridy = 0;
-      gbc.weightx = 0;
-      gbc.weighty = 0;
-      panel.add(mRightLabel, gbc);
+      gbc.gridy = 1;
+      panels.add(mRightPanel, gbc);
+      setRightContent(mRightPanel);
     }
 
     //Setup the center panel, the primary component.
-    mCenterPanel = new JBPanel();
-    mCenterPanel.setLayout(new BorderLayout());
-    mLayeredPane.add(mCenterPanel);
-    setCenterContent(mCenterPanel);
-
-    mLayeredPane.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        JLayeredPane host = (JLayeredPane)e.getComponent();
-        if (host != null) {
-          Dimension dim = host.getSize();
-          for (Component c : host.getComponents()) {
-            if (c == mLeftPanel) {
-              c.setBounds(0, 0, OVERLAY_CONTENT_WIDTH, dim.height);
-            }
-            else if (c == mRightPanel) {
-              c.setBounds(dim.width - OVERLAY_CONTENT_WIDTH, 0, OVERLAY_CONTENT_WIDTH, dim.height);
-            }
-            else if (c == mCenterPanel) {
-              c.setBounds(0, 0, dim.width, dim.height);
-            }
-          }
-        }
-      }
-    });
-
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    gbc.gridwidth = 3;
+    //This component should consume all available space.
+    JBPanel centerPanel = new JBPanel();
+    centerPanel.setLayout(new BorderLayout());
     gbc.weightx = 1;
     gbc.weighty = 1;
-    panel.add(mLayeredPane, gbc);
-    add(panel, BorderLayout.CENTER);
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    panels.add(centerPanel, gbc);
+    setCenterContent(centerPanel);
 
-    // By default, starts in L1, this gives the Segment a chance to determine what it should rendered.
+    add(panels, BorderLayout.CENTER);
+
+    // By default, starts in L1, this gives the Segment a chance to hide the right spacer panel and determine what it should rendered.
     toggleView(false);
+  }
+
+  public int getLabelColumnWidth() {
+    return mLabelPanel.getPreferredSize().width;
+  }
+
+  private JPanel createSpacerPanel(int spacerWidth) {
+    JBPanel panel = new JBPanel();
+    panel.setLayout(new BorderLayout());
+    Dimension spacerDimension = new Dimension(spacerWidth, 0);
+    panel.setPreferredSize(spacerDimension);
+    panel.setMinimumSize(spacerDimension);
+    return panel;
   }
 
   /**
@@ -184,8 +161,26 @@ public abstract class BaseSegment extends JComponent {
   public void setRightSpacerVisible(boolean isVisible) {
     if (hasRightContent()) {
       mRightPanel.setVisible(isVisible);
-      mRightLabel.setVisible(isVisible);
     }
+  }
+
+  public boolean isRightSpacerVisible() {
+    return hasRightContent() && mRightPanel.isVisible();
+  }
+
+  /**
+   * This enables segments to toggle the visibility of the left panel.
+   *
+   * @param isVisible True indicates the panel is visible, false hides it.
+   */
+  public void setLeftSpacerVisible(boolean isVisible) {
+    if (hasLeftContent()) {
+      mLeftPanel.setVisible(isVisible);
+    }
+  }
+
+  public boolean isLeftSpacerVisible() {
+    return hasLeftContent() && mLeftPanel.isVisible();
   }
 
   public void toggleView(boolean isExpanded) {
@@ -195,9 +190,10 @@ public abstract class BaseSegment extends JComponent {
   public void createComponentsList(@NotNull List<Animatable> animatables) {}
 
   /**
-   * A read-only flag that indicates whether this segment has left overlay content. If true, {@link #setLeftContent(JPanel)} will be
-   * invoked. Subclasses of {@link BaseSegment} can override this to change how the segment is laid out and whether it will participate in
-   * any transitions toggling between the overview and detailed view.
+   * A read-only flag that indicates whether this segment has content in the left spacer. If true, the segment will construct and reverse
+   * space left of the center content, and {@link #setLeftContent(JPanel)} will be invoked. Subclasses of {@link BaseSegment} can override
+   * this to change how the segment is laid out and whether it will participate in any transitions toggling between the overview and
+   * detailed view.
    */
   protected boolean hasLeftContent() {
     return true;
@@ -205,33 +201,19 @@ public abstract class BaseSegment extends JComponent {
 
   protected void setLeftContent(@NotNull JPanel panel) {}
 
-  /**
-   * Label for the left overlay content which is rendered at the top left corner of the segment.
-   */
-  protected String getLeftContentLabel() {
-    return myName;
-  }
-
   protected abstract void setCenterContent(@NotNull JPanel panel);
 
   /**
-   * A read-only flag that indicates whether this segment has right overlay content. If true, {@link #setRightContent(JPanel)} will be
-   * invoked. Subclasses of {@link BaseSegment} can override this to change how the segment is laid out and whether it will participate in
-   * any transitions toggling between the overview and detailed view.
+   * A read-only flag that indicates whether this segment has content in the right spacer. If true, the segment will construct and reverse
+   * space right of the center content, and {@link #setRightContent(JPanel)} will be invoked. Subclasses of {@link BaseSegment} can override
+   * this to change how the segment is laid out and whether it will participate in any transitions toggling between the overview and
+   * detailed view.
    */
   protected boolean hasRightContent() {
     return true;
   }
 
   protected void setRightContent(@NotNull JPanel panel) {}
-
-  /**
-   * Label for the right overlay content which is rendered at the top right corner of the segment. By default, subclasses need to override
-   * this to return an non-empty string, and it is only used if {@link #hasRightContent()} returns true.
-   */
-  protected String getRightContentLabel() {
-    return "";
-  }
 
   protected void setTopCenterContent(@NotNull JPanel panel) {}
 }

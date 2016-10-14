@@ -43,7 +43,7 @@ public class EnergySegment extends BaseLineChartSegment {
   public EnergySegment(@NotNull Range timeRange,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, EnergyAxisFormatter.SIMPLE, null, dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, EnergyAxisFormatter.SIMPLE, EnergyAxisFormatter.DETAILED, null, dispatcher);
   }
 
   @Override
