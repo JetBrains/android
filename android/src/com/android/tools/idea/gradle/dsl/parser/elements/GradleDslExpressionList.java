@@ -133,7 +133,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
 
     if (myParent instanceof GradleDslExpressionMap) {
-      // // This is a list in the map element and we need to create a named argument for it.
+      // This is a list in the map element and we need to create a named argument for it.
       return createNamedArgumentList();
     }
 
