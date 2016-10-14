@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.targets.SystemImage;
 import org.junit.Test;
 
