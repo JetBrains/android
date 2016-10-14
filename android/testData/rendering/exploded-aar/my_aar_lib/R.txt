@@ -6,6 +6,8 @@ int id id3 0x7f0b0002
 int style style1 0x7f070000
 int[] styleable Styleable1 { 0x7f010000 }
 int styleable Styleable1_some_attr 0
+int[] styleable Styleable_with_dots { 0x7f010000 }
+int styleable Styleable_with_dots_some_attr 0
 int[] styleable Styleable_with_underscore { 0x7f010000, 0x01010125, 0x01010142, 0x7f010068, 0x7f010069 }
 int styleable Styleable_with_underscore_app_attr2 3
 int styleable Styleable_with_underscore_app_attr1 0

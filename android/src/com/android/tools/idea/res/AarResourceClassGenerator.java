@@ -170,7 +170,8 @@ public class AarResourceClassGenerator {
       if (items == null || items.isEmpty()) {
         continue;
       }
-      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableName, "[I", null, null);
+      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
+      cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, fieldName, "[I", null, null);
       ResourceValue resourceValue = items.get(0).getResourceValue(false);
       assert resourceValue instanceof DeclareStyleableResourceValue;
       DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
@@ -178,7 +179,7 @@ public class AarResourceClassGenerator {
       int idx = 0;
       for (AttrResourceValue value : attributes) {
         Integer initialValue = idx++;
-        String styleableEntryName = getResourceName(styleableName, value);
+        String styleableEntryName = getResourceName(fieldName, value);
         cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, styleableEntryName, "I", null, initialValue);
         styleableIntCache.put(styleableEntryName, initialValue);
       }
@@ -204,14 +205,15 @@ public class AarResourceClassGenerator {
         valuesArray = new Integer[attributes.size()];
       }
       List<Integer> values = Arrays.asList(valuesArray);
-      myStyleableCache.put(styleableName, values);
+      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
+      myStyleableCache.put(fieldName, values);
       int idx = -1;
       for (AttrResourceValue value : attributes) {
         if (valuesArray[++idx] == null || !value.isFramework()) {
           valuesArray[idx] = myAppResources.getResourceId(ResourceType.ATTR, value.getName());
         }
       }
-      generateArrayInitialization(mv, className, styleableName, values);
+      generateArrayInitialization(mv, className, fieldName, values);
     }
     mv.visitInsn(RETURN);
     mv.visitMaxs(4, 0);
