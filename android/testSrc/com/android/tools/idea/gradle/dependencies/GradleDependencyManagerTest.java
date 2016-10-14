@@ -22,28 +22,29 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleDependencyManager}.
  */
 public class GradleDependencyManagerTest extends AndroidGradleTestCase {
-  private static final GradleCoordinate existingDependency = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
-  private static final GradleCoordinate dummyDependency = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
-  private static final List<GradleCoordinate> dependencies = ImmutableList.of(existingDependency, dummyDependency);
+  private static final GradleCoordinate EXISTING_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
+  private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
+  private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(EXISTING_DEPENDENCY, DUMMY_DEPENDENCY);
 
   public void testFindMissingDependenciesWithRegularProject() throws Exception {
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies);
-    assertEquals(1, missingDependencies.size());
-    assertEquals(dummyDependency, missingDependencies.get(0));
+    List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), DEPENDENCIES);
+    assertThat(missingDependencies).hasSize(1);
+    assertEquals(DUMMY_DEPENDENCY, missingDependencies.get(0));
   }
 
   public void testFindMissingDependenciesInProjectWithSplitBuildFiles() throws Exception {
     loadProject(SPLIT_BUILD_FILES);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
-    List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies);
-    assertEquals(1, missingDependencies.size());
-    assertEquals(dummyDependency, missingDependencies.get(0));
+    List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), DEPENDENCIES);
+    assertThat(missingDependencies).hasSize(1);
+    assertEquals(DUMMY_DEPENDENCY, missingDependencies.get(0));
   }
 }

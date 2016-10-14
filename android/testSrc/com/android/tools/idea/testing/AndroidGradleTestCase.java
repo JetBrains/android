@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testing;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -25,6 +24,7 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
@@ -43,7 +43,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -70,18 +69,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 import static com.android.tools.idea.gradle.util.Projects.isLegacyIdeaAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.google.common.io.Files.append;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
@@ -151,7 +152,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
-    File androidSdkPath = TestUtils.getSdk();
+    File androidSdkPath = getSdk();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(getProject(), () -> {
@@ -308,7 +309,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     createGradleWrapper(projectRoot);
 
     // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties(projectRoot);
+    updateLocalProperties();
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateGradleVersions(projectRoot);
@@ -353,11 +354,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {
+    updateGradleVersions(file, getLocalRepositories());
+  }
+
+  private static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {
         for (File child : files) {
-          updateGradleVersions(child);
+          updateGradleVersions(child, localRepositories);
         }
       }
     }
@@ -372,7 +377,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", CURRENT_BUILD_TOOLS_VERSION);
       contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
       contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", Integer.toString(CURRENT_COMPILE_VERSION));
-      contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + getLocalRepositories());
+      contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
 
       if (!contents.equals(contentsOrig)) {
         write(contents, file, Charsets.UTF_8);
@@ -380,12 +385,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static String getLocalRepository(String dir) {
-    return "maven { url \"" + TestUtils.getWorkspaceFile(dir).toURI() + "\" }\n";
-  }
-
+  @NotNull
   protected static String getLocalRepositories() {
     return getLocalRepository("prebuilts/tools/common/m2/repository") + getLocalRepository("prebuilts/tools/common/offline-m2");
+  }
+
+  @NotNull
+  private static String getLocalRepository(@NotNull String dir) {
+    String uri = getWorkspaceFile(dir).toURI().toString();
+    return "maven { url \"" + uri + "\" }\n";
   }
 
   /**
@@ -419,17 +427,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return contents;
   }
 
-  private static void updateLocalProperties(File projectRoot) throws IOException {
-    File localProperties = new File(projectRoot, FN_LOCAL_PROPERTIES);
-    if (localProperties.exists()) {
-      append("\n", localProperties, Charsets.UTF_8);
-    }
-    append("sdk.dir=" + TestUtils.getSdk(), localProperties, Charsets.UTF_8);
+  private void updateLocalProperties() throws IOException {
+    LocalProperties localProperties = new LocalProperties(getProject());
+    File sdkPath = getSdk();
+    assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
+    localProperties.setAndroidSdkPath(sdkPath.getPath());
+    localProperties.save();
   }
 
   protected static void createGradleWrapper(File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    wrapper.updateDistributionUrl(TestUtils.getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip"));
+    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+    wrapper.updateDistributionUrl(path);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
@@ -508,7 +518,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     SyncListener syncListener = requestSync();
     if (!syncListener.success) {
       String cause = syncListener.failureMessage;
-      if (StringUtil.isEmpty(cause)) {
+      if (isEmpty(cause)) {
         cause = "<Unknown>";
       }
       fail(cause);
