@@ -19,7 +19,6 @@ import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 /**
  * Studio-specific utilities for interacting with the SDK.
@@ -29,7 +28,7 @@ public class StudioSdkUtil {
    * Convenience method to reload the local and remote SDK, showing a modal, non-cancellable progress window.
    */
   public static void reloadRemoteSdkWithModalProgress() {
-    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "Refreshing SDK", false, null);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(StudioSdkUtil.class);
     RepoManager sdkManager = sdkHandler.getSdkManager(progress);

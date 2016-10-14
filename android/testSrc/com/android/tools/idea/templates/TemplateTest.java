@@ -24,6 +24,7 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -54,7 +55,6 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -170,7 +170,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       ourValidatedTemplateManager = true;
       File templateRootFolder = TemplateManager.getTemplateRootFolder();
       if (templateRootFolder == null) {
-        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
         if (sdkData == null) {
           fail("Couldn't find SDK manager");
         }
@@ -439,7 +439,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (DISABLED) {
       return;
     }
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
     if (IdeSdks.getInstance().isJdk7Supported(sdkData)) {
@@ -466,7 +466,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (DISABLED) {
       return;
     }
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
     IAndroidTarget[] targets = sdkData.getTargets();
@@ -625,7 +625,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       return;
     }
 
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
     final NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);

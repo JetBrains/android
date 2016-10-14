@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -56,7 +57,10 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Static utility methods pertaining to templates for projects, modules, and activities.
@@ -191,7 +195,7 @@ public class TemplateUtils {
    */
   @NotNull
   public static String[] getKnownVersions() {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    final AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assert sdkData != null;
     int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     IAndroidTarget[] targets = sdkData.getTargets();

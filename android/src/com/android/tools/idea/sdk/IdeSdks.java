@@ -43,11 +43,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Preconditions.checkState;
@@ -56,12 +58,12 @@ import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
 
+  @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
 
   @NotNull
@@ -69,7 +71,8 @@ public class IdeSdks {
     return ServiceManager.getService(IdeSdks.class);
   }
 
-  public IdeSdks(@NotNull Jdks jdks) {
+  public IdeSdks(@NotNull AndroidSdks androidSdks, @NotNull Jdks jdks) {
+    myAndroidSdks = androidSdks;
     myJdks = jdks;
   }
 
@@ -110,7 +113,7 @@ public class IdeSdks {
 
   @Nullable
   public File getAndroidNdkPath() {
-    AndroidSdkHandler sdkHandler = tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     LocalPackage ndk = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
     return ndk == null ? null : ndk.getLocation();
   }
@@ -136,7 +139,7 @@ public class IdeSdks {
     }
     else {
       for (Sdk sdk : androidSdks) {
-        AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+        AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
         assert data != null;
         Sdk jdk = data.getJavaSdk();
         if (jdk != null) {
@@ -163,9 +166,7 @@ public class IdeSdks {
     return null;
   }
 
-  /**
-   * Must run inside a WriteAction
-   */
+  // Must run inside a WriteAction
   public void setJdkPath(@NotNull File path) {
     if (checkForJdk(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
@@ -218,9 +219,9 @@ public class IdeSdks {
   /**
    * Iterates through all Android SDKs and makes them point to the given JDK.
    */
-  private static void updateAndroidSdks(@NotNull Sdk jdk) {
-    for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData oldData = getAndroidSdkAdditionalData(sdk);
+  private  void updateAndroidSdks(@NotNull Sdk jdk) {
+    for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
+      AndroidSdkAdditionalData oldData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
       if (oldData == null) {
         continue;
       }
@@ -259,19 +260,19 @@ public class IdeSdks {
       }
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
-      // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
+      // If we don't force this update, AndroidSdks will still use the old SDK until all SDKs are properly deleted.
       AndroidSdkData oldSdkData = getSdkData(path);
-      setSdkData(oldSdkData);
+      myAndroidSdks.setSdkData(oldSdkData);
 
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
-      List<Sdk> sdksToDelete = Lists.newArrayList();
+      List<Sdk> sdksToDelete = new ArrayList<>();
 
       File resolved = resolvePath(path);
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
       AndroidSdkData sdkData = getSdkData(resolved, true);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
-        for (Sdk sdk : getAllAndroidSdks()) {
+        for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
           if (sdk.getName().startsWith(SDK_NAME_PREFIX)) {
             sdksToDelete.add(sdk);
           }
@@ -337,14 +338,16 @@ public class IdeSdks {
     if (targets.length == 0) {
       return Collections.emptyList();
     }
-    List<Sdk> sdks = Lists.newArrayList();
-    Sdk ideSdk = javaSdk != null ? javaSdk : getJdk();
-    for (IAndroidTarget target : targets) {
-      if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
-        String name = chooseNameForNewLibrary(target);
-        Sdk sdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, ideSdk, true);
-        if (sdk != null) {
-          sdks.add(sdk);
+    List<Sdk> sdks = new ArrayList<>();
+    Sdk ideJdk = javaSdk != null ? javaSdk : getJdk();
+    if (ideJdk != null) {
+      for (IAndroidTarget target : targets) {
+        if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
+          String name = myAndroidSdks.chooseNameForNewLibrary(target);
+          Sdk sdk = myAndroidSdks.create(target, sdkData.getLocation(), name, ideJdk, true);
+          if (sdk != null) {
+            sdks.add(sdk);
+          }
         }
       }
     }
@@ -415,7 +418,7 @@ public class IdeSdks {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
-      AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(androidSdk);
+      AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(androidSdk);
       assert data != null;
       Sdk jdk = data.getJavaSdk();
       if (isJdkCompatible(jdk, preferredVersion)) {
@@ -462,7 +465,7 @@ public class IdeSdks {
   }
 
   /**
-   * Find all potential folders that may contain Java SDKs.
+   * Finds all potential folders that may contain Java SDKs.
    * Those folders are guaranteed to exist but they may not be valid Java homes.
    */
   @NotNull
@@ -498,8 +501,8 @@ public class IdeSdks {
    */
   @NotNull
   public List<Sdk> getEligibleAndroidSdks() {
-    List<Sdk> sdks = Lists.newArrayList();
-    for (Sdk sdk : getAllAndroidSdks()) {
+    List<Sdk> sdks = new ArrayList<>();
+    for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
       if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatform.getInstance(sdk) != null) {
         sdks.add(sdk);
       }

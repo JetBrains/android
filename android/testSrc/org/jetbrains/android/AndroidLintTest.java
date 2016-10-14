@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.lint.*;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
@@ -370,17 +371,17 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testGradlePlus() throws Exception {
     // Needs a valid SDK; can't use the mock one in the test data.
-    AndroidSdkData prevSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData prevSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (prevSdkData == null) {
       Sdk androidSdk = createLatestAndroidSdk();
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.
-      AndroidSdkUtils.setSdkData(androidPlatform.getSdkData());
+      AndroidSdks.getInstance().setSdkData(androidPlatform.getSdkData());
     }
 
     //noinspection ConstantConditions
-    File sdk = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+    File sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk().getLocation();
     File appcompat = new File(sdk, "extras/android/m2repository/com/android/support/appcompat-v7/19.0.1".replace('/', File.separatorChar));
     if (!appcompat.exists()) {
       System.out.println("Not running " + this.getClass() + "#" + getName() + ": Needs SDK with Support Repo installed and " +
@@ -392,7 +393,7 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintGradleDynamicVersionInspection(),
                   "Replace with specific version", "build.gradle", "gradle");
 
-    AndroidSdkUtils.setSdkData(prevSdkData);
+    AndroidSdks.getInstance().setSdkData(prevSdkData);
   }
 
   public void testObsoleteDependency() throws Exception {

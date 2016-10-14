@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -25,12 +26,8 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -115,7 +112,7 @@ public class FirstRunWizardDefaults {
       return dest;
     }
     else {
-      List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+      List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
       Sdk sdk = Iterables.getFirst(sdks, null);
       if (sdk != null) {
         VirtualFile homeDirectory = sdk.getHomeDirectory();

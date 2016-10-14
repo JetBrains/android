@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.newProject;
 
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -28,11 +29,7 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -47,7 +44,7 @@ public class AndroidSdkComboBoxWithBrowseButton extends ComboboxWithBrowseButton
         if (value instanceof Sdk) {
           final Sdk sdk = (Sdk)value;
           setText(sdk.getName());
-          setIcon(((SdkType) sdk.getSdkType()).getIcon());
+          setIcon(((SdkType)sdk.getSdkType()).getIcon());
         }
         else {
           setText("<html><font color='red'>[none]</font></html>");
@@ -55,18 +52,15 @@ public class AndroidSdkComboBoxWithBrowseButton extends ComboboxWithBrowseButton
       }
     });
 
-    addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ProjectJdksEditor editor =
-          new ProjectJdksEditor(null, ProjectManager.getInstance().getDefaultProject(), AndroidSdkComboBoxWithBrowseButton.this);
-        if (editor.showAndGet()) {
-          final Sdk selectedJdk = editor.getSelectedJdk();
-          rebuildSdksListAndSelectSdk(selectedJdk);
-          if (selectedJdk == null || !isAndroidSdk(selectedJdk)) {
-            Messages.showErrorDialog(AndroidSdkComboBoxWithBrowseButton.this, AndroidBundle.message("select.platform.error"),
-                                     CommonBundle.getErrorTitle());
-          }
+    addActionListener(e -> {
+      ProjectJdksEditor editor =
+        new ProjectJdksEditor(null, ProjectManager.getInstance().getDefaultProject(), this);
+      if (editor.showAndGet()) {
+        final Sdk selectedJdk = editor.getSelectedJdk();
+        rebuildSdksListAndSelectSdk(selectedJdk);
+        if (selectedJdk == null || !AndroidSdks.getInstance().isAndroidSdk(selectedJdk)) {
+          Messages.showErrorDialog(this, AndroidBundle.message("select.platform.error"),
+                                   CommonBundle.getErrorTitle());
         }
       }
     });

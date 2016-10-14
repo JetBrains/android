@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,7 +24,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -167,7 +167,7 @@ public class LintIdeApiDetectorTest extends AndroidTestCase {
   }
 
   public void testReflectiveOperationException() throws Exception {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData == null || !IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       System.out.println("Skipping LintIdeApiDetectorTest#testReflectiveOperationException: Test JDK must be JDK 7 or higher");
       return;
@@ -183,7 +183,7 @@ public class LintIdeApiDetectorTest extends AndroidTestCase {
   public void testTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without
 
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdkData == null || !IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       System.out.println("Skipping LintIdeApiDetectorTest#testTryWithResources: Test JDK must be JDK 7 or higher");
       return;

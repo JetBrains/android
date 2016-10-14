@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.eclipse;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,7 +47,6 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
@@ -84,7 +84,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         File wrapper = TemplateManager.getWrapperLocation(templates);
         if (wrapper.exists()) {
           importer.setGradleWrapperLocation(wrapper);
-          AndroidSdkData sdkData = tryToChooseAndroidSdk();
+          AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
           if (sdkData != null) {
             importer.setSdkLocation(sdkData.getLocation());
           }

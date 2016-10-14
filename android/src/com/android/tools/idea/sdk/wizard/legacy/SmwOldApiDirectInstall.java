@@ -27,10 +27,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.LoggerProgressIndicatorWrapper;
 import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.sdklib.repository.legacy.descriptors.PkgType;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
@@ -50,7 +47,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,7 +100,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
   private void startSdkInstallUsingNonSwtOldApi() {
     // Get the SDK instance.
-    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     if (sdkHandler.getLocation() == null) {
       myErrorLabel.setText("Error: can't get SDK instance.");
       myErrorLabel.setIcon(AllIcons.General.BalloonError);
