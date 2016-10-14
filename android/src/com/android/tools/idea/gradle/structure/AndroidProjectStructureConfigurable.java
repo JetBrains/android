@@ -36,9 +36,9 @@ import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurabl
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;

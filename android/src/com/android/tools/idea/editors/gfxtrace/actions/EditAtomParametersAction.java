@@ -34,10 +34,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.UnsignedInteger;
 import com.google.common.primitives.UnsignedLong;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.undo.DocumentReference;
@@ -102,7 +102,7 @@ public class EditAtomParametersAction extends AbstractAction {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.GPU_PROFILER)
                                      .setKind(EventKind.GFX_TRACE_PARAMETER_EDITED)
-                                     .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                     .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                            .setTracePath(oldPath.toString())));
 
       Rpc.listen(myGfxTraceEditor.getClient().set(oldPath, newAtom), new UiCallback<Path, Path>(myGfxTraceEditor, LOG) {

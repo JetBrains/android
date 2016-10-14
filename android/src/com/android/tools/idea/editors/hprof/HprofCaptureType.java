@@ -17,8 +17,7 @@ package com.android.tools.idea.editors.hprof;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.ProfilerCaptureType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

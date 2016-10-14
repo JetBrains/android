@@ -22,7 +22,7 @@ import com.android.tools.adtui.EventData;
 import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -245,7 +245,7 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   @NotNull
   public abstract String getDescription();
 
-  public abstract AndroidStudioStats.AndroidStudioEvent.MonitorType getMonitorType();
+  public abstract AndroidStudioEvent.MonitorType getMonitorType();
 
 
   @NotNull

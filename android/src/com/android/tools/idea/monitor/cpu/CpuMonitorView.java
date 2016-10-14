@@ -21,7 +21,7 @@ import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.MonitorType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;

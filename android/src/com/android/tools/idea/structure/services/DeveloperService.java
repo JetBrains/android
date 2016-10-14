@@ -16,8 +16,8 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.tools.analytics.UsageTracker;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.DeveloperServiceKind;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.DeveloperServiceKind;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

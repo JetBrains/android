@@ -24,12 +24,12 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
 import com.google.common.base.Joiner;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.Hypervisor;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.Hypervisor.HyperVState;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.EmulatorHost;
+import com.google.wireless.android.sdk.stats.Hypervisor;
+import com.google.wireless.android.sdk.stats.Hypervisor.HyperVState;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -161,7 +161,7 @@ public class SystemInfoStatsMonitor {
     UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.SYSTEM)
                                      .setKind(EventKind.EMULATOR_HOST)
-                                     .setEmulatorHost(AndroidStudioStats.EmulatorHost.newBuilder()
+                                     .setEmulatorHost(EmulatorHost.newBuilder()
                                                       .setCpuManufacturer(Joiner.on(',').join(myCpuInfo))
                                      ));
   }
