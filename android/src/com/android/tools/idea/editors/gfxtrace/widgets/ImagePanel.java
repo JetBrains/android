@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
@@ -34,6 +35,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import icons.ImagesIcons;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +78,14 @@ public class ImagePanel extends JPanel {
     setFocusable(true);
 
     MouseAdapter mouseHandler = new MouseAdapter() {
+      private boolean fixed = false;
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        fixed = e.isShiftDown();
+        myImage.setPreviewPixel(myImage.getPixel(e.getX(), e.getY()));
+      }
+
       @Override
       public void mouseEntered(MouseEvent e) {
         update(e.getX(), e.getY());
@@ -84,6 +94,9 @@ public class ImagePanel extends JPanel {
       @Override
       public void mouseExited(MouseEvent e) {
         myStatus.setText(" ");
+        if (!fixed) {
+          myImage.setPreviewPixel(Pixel.OUT_OF_BOUNDS);
+        }
       }
 
       @Override
@@ -97,7 +110,11 @@ public class ImagePanel extends JPanel {
       }
 
       private void update(int x, int y) {
-        myImage.getPixel(x, y).formatTo(myStatus);
+        Pixel pixel = myImage.getPixel(x, y);
+        pixel.formatTo(myStatus);
+        if (!fixed) {
+          myImage.setPreviewPixel(pixel);
+        }
       }
     };
     scrollPane.getViewport().addMouseListener(mouseHandler);
@@ -136,7 +153,11 @@ public class ImagePanel extends JPanel {
     private static final Border BORDER = new LineBorder(JBColor.border(), BORDER_SIZE);
     private static final Paint CHECKER_PAINT = new CheckerboardPaint();
     private static final int CHANNEL_RED = 0, CHANNEL_GREEN = 1, CHANNEL_BLUE = 2, CHANNEL_ALPHA = 3;
+    private static final int PREVIEW_WIDTH = 19; // Should be odd, so center pixel looks nice.
+    private static final int PREVIEW_HEIGHT = 11; // Should be odd, so center pixel looks nice.
+    private static final int PREVIEW_SIZE = JBUI.scale(7);
 
+    @NotNull private final GfxTraceEditor myEditor;
     private final JViewport parent;
     private final StatusText emptyText;
     private final LevelChooser levelChooser = new LevelChooser();
@@ -148,7 +169,7 @@ public class ImagePanel extends JPanel {
     private boolean drawCheckerBoard = true;
     private boolean flipped = false;
     private boolean[] channels = new boolean[] { true, true, true, true };
-    @NotNull private final GfxTraceEditor myEditor;
+    @NotNull private Pixel previewPixel = Pixel.OUT_OF_BOUNDS;
 
     public ImageComponent(JBScrollPane scrollPane, GfxTraceEditor editor) {
       scrollPane.setViewportView(this);
@@ -399,7 +420,13 @@ public class ImagePanel extends JPanel {
       // of the image used as a texture.
       int pixelX = (int)(pos.x / scale), pixelY = (int)(pos.y / scale);
       float u = (pos.x + 0.5f) / w, v = (pos.y + 0.5f) / h; // This is actually flipped v.
-      return new Pixel(pixelX, level.getHeight() - pixelY - 1, u, flipped ? v : 1 - v , level.getRGB(pixelX, pixelY));
+      return new Pixel(pixelX, level.getHeight() - pixelY - 1, u, flipped ? v : 1 - v,
+          level.getRGB(pixelX, flipped ? level.getHeight() - pixelY - 1 : pixelY));
+    }
+
+    public void setPreviewPixel(@NotNull Pixel previewPixel) {
+      this.previewPixel = previewPixel;
+      repaint();
     }
 
     @Override
@@ -466,6 +493,41 @@ public class ImagePanel extends JPanel {
       g.drawImage(displayed, x, y, x + w, y + h, 0, flipped ? levelHeight : 0, levelWidth, flipped ? 0 : levelHeight, this);
 
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
+
+      drawPreview(g);
+    }
+
+    private void drawPreview(Graphics g) {
+      if (displayed == null || previewPixel == Pixel.OUT_OF_BOUNDS) {
+        return;
+      }
+
+      Point viewPos = parent.getViewPosition();
+      int sx = viewPos.x + BORDER_SIZE, sy = viewPos.y + parent.getHeight() - PREVIEW_HEIGHT * PREVIEW_SIZE - BORDER_SIZE;
+      int w = displayed.getWidth(this), h = displayed.getHeight(this);
+      g.setColor(JBColor.border());
+      for (int i = 1; i <= BORDER_SIZE; i++) {
+        g.drawRect(sx - i, sy - i, PREVIEW_WIDTH * PREVIEW_SIZE + 2 * i - 1, PREVIEW_HEIGHT * PREVIEW_SIZE + 2 * i - 1);
+      }
+
+      Color background = UIUtil.getPanelBackground();
+      int y = flipped ? (previewPixel.y + PREVIEW_HEIGHT / 2) : (h - previewPixel.y - 1 - PREVIEW_HEIGHT / 2);
+      for (int i = 0; i < PREVIEW_HEIGHT; i++, y += flipped ? -1 : 1) {
+        if (y < 0 || y >= h) {
+          g.setColor(background);
+          g.fillRect(sx, sy + i * PREVIEW_SIZE, PREVIEW_WIDTH * PREVIEW_SIZE, PREVIEW_SIZE);
+        }
+        else {
+          for (int j = 0, x = previewPixel.x - PREVIEW_WIDTH / 2; j < PREVIEW_WIDTH; j++, x++) {
+            g.setColor((x < 0 || x >= w) ? background : new Color(displayed.getRGB(x, y)));
+            g.fillRect(sx + j * PREVIEW_SIZE, sy + i * PREVIEW_SIZE, PREVIEW_SIZE, PREVIEW_SIZE);
+          }
+        }
+      }
+
+      g.setColor(GfxTraceUtil.getLuminance(previewPixel.rgba) < 0.65 ? Color.WHITE : Color.BLACK);
+      g.drawRect(
+          sx + (PREVIEW_WIDTH / 2) * PREVIEW_SIZE - 1, sy + (PREVIEW_HEIGHT / 2) * PREVIEW_SIZE - 1, PREVIEW_SIZE + 1, PREVIEW_SIZE + 1);
     }
 
     private void loadLevel(int index) {
