@@ -4,8 +4,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "adt-ui",
     srcs = ["src/main/java"],
-    test_srcs = ["src/test/java"],
+    javacopts = ["-extra_checks:off"],
+    tags = ["managed"],
     test_resources = ["src/test/resources"],
+    test_srcs = ["src/test/java"],
+    visibility = ["//visibility:public"],
     deps = [
         "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
@@ -17,13 +20,10 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito",
     ],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
 
 java_binary(
     name = "baseline-images-generator",
-    runtime_deps = [":adt-ui_testlib.javas"],
     main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
+    runtime_deps = [":adt-ui_testlib.javas"],
 )

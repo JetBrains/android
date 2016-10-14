@@ -3,7 +3,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "android-jps-plugin",
     srcs = ["src"],
+    tags = ["managed"],
     test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
     deps = [
         "//tools/adt/idea:android-common[module]",
         "//tools/adt/idea:android-rt[module]",
@@ -17,6 +19,4 @@ iml_module(
         "//tools/base/build-system:studio.manifest-merger[module]",
         "//tools:idea.MM_RegExpSupport[module]",
     ],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
