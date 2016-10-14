@@ -55,6 +55,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -331,8 +332,18 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(
-      () -> GuiQuery.getNonNull(() -> file.equals(getCurrentFile())));
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+      if (!file.equals(getCurrentFile())) {
+        return false;
+      }
+
+      FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
+      JComponent editorComponent = fileEditor.getComponent();
+      if (editorComponent instanceof JBLoadingPanel) {
+        return !((JBLoadingPanel)editorComponent).isLoading();
+      }
+      return true;
+    });
 
     myFrame.requestFocusIfLost();
     robot.waitForIdle();
