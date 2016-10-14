@@ -177,6 +177,29 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyDependencyConfiguration(hibernate.configuration());
   }
 
+  public void testGetOnlyArtifacts() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    compile('com.google.guava:guava:18.0')\n" +
+                  "    compile project(':javaLib')\n" +
+                  "    compile fileTree('libs')\n" +
+                  "    compile files('lib.jar')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
+  }
+
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +

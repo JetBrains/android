@@ -170,6 +170,27 @@ public class DependenciesModel extends GradleDslBlockModel {
   }
 
   @NotNull
+  public List<FileDependencyModel> files() {
+    List<FileDependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(FileDependencyModel.create(configurationName, element));
+        }
+      }
+    }
+    return dependencies;
+  }
+
+  @NotNull
+  public DependenciesModel addFile(@NotNull String configurationName, @NotNull String file) {
+    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
+    FileDependencyModel.createAndAddToList(list, configurationName, file);
+    return this;
+  }
+
+  @NotNull
   private GradleDslElementList getOrCreateGradleDslElementList(@NotNull String configurationName) {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list == null) {
