@@ -181,14 +181,25 @@ public class AvdManagerConnection {
     return true;
   }
 
-  private File getEmulatorBinary() {
+  private File getBinaryLocation(String filename) {
     assert mySdkHandler != null;
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
+    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
+    if (sdkPackage == null) {
+      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, REPO_LOG);
+    }
+    if (sdkPackage != null) {
+      return new File(sdkPackage.getLocation(), filename);
+    }
+    // Fallback to old behavior, in the weird case nothing is installed.
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
   }
 
-  private File getEmulatorCheckBinary() {
-    assert mySdkHandler != null;
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+  private File getEmulatorBinary() {
+    return getBinaryLocation(SdkConstants.FN_EMULATOR);
+  }
+
+  public File getEmulatorCheckBinary() {
+    return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
   }
 
   /**

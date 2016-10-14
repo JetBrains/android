@@ -33,9 +33,8 @@ import java.util.List;
 /**
  * <p>Checks SDK install to ensure install may proceed.</p>
  * <p/>
- * <p>This is done by trying to run mksdcard executable from the SDK tools
- * directory. This ensures that the tools are installed and that necessary
- * shared libraries are present.</p>
+ * <p>This is done by trying to run the mksdcard executable from the SDK emulator directory (falling back to the older tools directory).
+ * This ensures that the tools are installed and that necessary shared libraries are present.</p>
  */
 public class CheckSdkOperation extends InstallOperation<File, File> {
   public static final String ERROR_CANT_EXECUTE = "%1$s file is not a valid executable";
@@ -117,7 +116,10 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   @NotNull
   @Override
   protected File perform(@NotNull ProgressIndicator indicator, @NotNull File file) throws WizardException, InstallationCancelledException {
-    File tool = new File(file, SdkConstants.FD_TOOLS + File.separator + TOOL_NAME);
+    File tool = new File(file, SdkConstants.FD_EMULATOR + File.separator + TOOL_NAME);
+    if (!tool.isFile()) {
+      tool = new File(file, SdkConstants.FD_TOOLS + File.separator + TOOL_NAME);
+    }
     if (!tool.isFile()) {
       throw new WizardException(ERROR_NO_TOOLS_DIR);
     }
