@@ -154,11 +154,19 @@ public class WidgetConstraintPanel extends JPanel {
 
     if (showHorizontalSlider) {
       float bias = mWidget.getHorizontalBiasPercent();
+      if (mWidget.isInHorizontalChain()) {
+        ConstraintWidget ctl = mWidget.getHorizontalChainControlWidget();
+        bias = ctl.getHorizontalBiasPercent();
+      }
       mHorizontalSlider.setValue((int)(bias * 100));
     }
 
     if (showVerticalSlider) {
       float bias = mWidget.getVerticalBiasPercent();
+      if (mWidget.isInVerticalChain()) {
+        ConstraintWidget ctl = mWidget.getVerticalChainControlWidget();
+        bias = ctl.getVerticalBiasPercent();
+      }
       mVerticalSlider.setValue(100 - (int)(bias * 100));
     }
 
@@ -288,8 +296,19 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     float bias = (mHorizontalSlider.getValue() / 100f);
-    mWidget.setHorizontalBiasPercent(bias);
-    widgetModified();
+    if (mWidget.isInHorizontalChain()) {
+      ConstraintWidget ctl = mWidget.getHorizontalChainControlWidget();
+      ctl.setHorizontalBiasPercent(bias);
+
+      mWidgetModified = true;
+      mConstraintModel.getSelection().addModifiedWidget(ctl);
+      mConstraintModel.getDrawConstraintModels().forEach(DrawConstraintModel::repaint);
+      saveWidget();
+    }
+    else {
+      mWidget.setHorizontalBiasPercent(bias);
+      widgetModified();
+    }
   }
 
   public void setVerticalBias() {
@@ -297,8 +316,19 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
-    mWidget.setVerticalBiasPercent(bias);
-    widgetModified();
+    if (mWidget.isInVerticalChain()) {
+      ConstraintWidget ctl = mWidget.getVerticalChainControlWidget();
+      ctl.setVerticalBiasPercent(bias);
+
+      mWidgetModified = true;
+      mConstraintModel.getSelection().addModifiedWidget(ctl);
+      mConstraintModel.getDrawConstraintModels().forEach(DrawConstraintModel::repaint);
+      saveWidget();
+    }
+    else {
+      mWidget.setVerticalBiasPercent(bias);
+      widgetModified();
+    }
   }
 
   public void setTopMargin(int margin) {
