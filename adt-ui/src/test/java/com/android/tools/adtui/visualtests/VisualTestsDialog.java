@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;

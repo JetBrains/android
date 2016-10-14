@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.adtui.visual.treegrid.TreeGrid;
+import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.*;

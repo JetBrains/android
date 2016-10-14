@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.adtui.visual.treegrid.TreeGrid;
+import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleSyncListener;

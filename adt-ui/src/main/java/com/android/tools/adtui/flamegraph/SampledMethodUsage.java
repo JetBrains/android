@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual.flamegraph;
+package com.android.tools.adtui.flamegraph;
 
 public class SampledMethodUsage {
 

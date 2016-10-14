@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.visual.flamegraph.FlameGraphVisualTest;
-import com.android.tools.adtui.visual.threadgraph.ThreadCallsVisualTest;
+import com.android.tools.adtui.visualtests.flamegraph.FlameGraphVisualTest;
+import com.android.tools.adtui.visualtests.threadgraph.ThreadCallsVisualTest;
 
 import javax.swing.*;
 

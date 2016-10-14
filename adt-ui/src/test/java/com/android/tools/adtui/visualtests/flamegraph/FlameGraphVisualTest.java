@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual.threadgraph;
+package com.android.tools.adtui.visualtests.flamegraph;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.hchart.Method;
-import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.Range;
+import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.flamegraph.SampledMethodUsage;
+import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class ThreadCallsVisualTest extends VisualTest implements ActionListener {
+public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
   private static final String ACTION_START_RECORDING = "start_recording";
   private static final String ACTION_STOP_RECORDING = "stop_recording";
@@ -46,13 +50,13 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
 
   private HTreeChart mChart;
-  private HashMap<String, HNode<Method>> forest;
+  private HashMap<String, HNode<SampledMethodUsage>> furnace;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
   private JComboBox mComboBox;
   private Sampler mSampler;
-  private HNode<Method> mtree;
+  private HNode<SampledMethodUsage> mtree;
 
   private Range mSelectionRange;
   private Range mDataRange;
@@ -65,10 +69,9 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   @NotNull
   private LineChart mLineChart;
 
-  @NotNull
   private JScrollBar mScrollBar;
 
-  public ThreadCallsVisualTest() {
+  public FlameGraphVisualTest() {
     this.mDataRange = new Range();
 
     AxisComponent.Builder builder = new AxisComponent.Builder(mDataRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
@@ -76,18 +79,17 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
     this.mSelectionRange = new Range();
 
-    this.mChart = new HTreeChart<Method>();
-    this.mChart.setHRenderer(new JavaMethodHRenderer());
-    this.mChart.setXRange(mSelectionRange);
-
-    mLineChart = new LineChart();
-
+    this.mLineChart = new LineChart();
     this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
+
+    this.mChart = new HTreeChart<SampledMethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
+    this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
+    this.mChart.setXRange(mSelectionRange);
   }
 
   @Override
   public String getName() {
-    return "Thread stacks";
+    return "Flame Graph";
   }
 
   @Override
@@ -155,7 +157,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
       @Override
       public void adjustmentValueChanged(AdjustmentEvent e) {
         Range yRange = mChart.getYRange();
-        int yOffset = e.getValue();
+        int yOffset = mChart.getMaximumHeight() - (e.getValue() + mScrollBar
+          .getVisibleAmount());
         yRange.setMin(yOffset);
       }
     });
@@ -194,7 +197,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
       int selected = mComboBox.getSelectedIndex();
       if (selected >= 0 && selected < mComboBox.getItemCount()) {
         String threadName = (String)mComboBox.getSelectedItem();
-        mtree = forest.get(threadName);
+        mtree = furnace.get(threadName);
         mChart.setHTree(mtree);
         double start = mtree.getFirstChild().getStart();
         double end = mtree.getLastChild().getEnd();
@@ -206,23 +209,25 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
         // Generate dummy values to simulate CPU Load.
         LongDataSeries series = new LongDataSeries();
-        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mDataRange,
-                                                                   new Range(0.0, 200.0),
-                                                                   series);
+        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("CPU Load", mDataRange,
+                                                                         new Range(0.0, (float)Sampler.MAX_VALUE),
+                                                                         series);
         Random r = new Random(System.currentTimeMillis());
         for (int i = 0; i < 100; i++) {
           series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
         }
         mLineChart.addLine(rangedSeries);
-        mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());
+
+        mScrollBar.setValues(mChart.getMaximumHeight() - mChart.getHeight(),
+                             mChart.getHeight(), 0, mChart.getMaximumHeight());
       }
     }
   }
 
-  public void setData(HashMap<String, HNode<Method>> forest) {
-    this.forest = forest;
+  public void setData(HashMap<String, HNode<SampledMethodUsage>> furnace) {
+    this.furnace = furnace;
     mComboBox.removeAllItems();
-    for (String threadName : forest.keySet()) {
+    for (String threadName : furnace.keySet()) {
       mComboBox.addItem(threadName);
     }
   }

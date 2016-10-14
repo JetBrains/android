@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
