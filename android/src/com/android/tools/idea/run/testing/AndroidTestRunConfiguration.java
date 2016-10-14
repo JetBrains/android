@@ -60,7 +60,10 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: Eugene.Kudelevsky
@@ -312,6 +315,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
+    Map<String, String> runnerArguments = getRunnerArguments(facet);
     String testPackage;
     try {
       testPackage = applicationIdProvider.getTestPackageName();
@@ -325,7 +329,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger);
+    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments);
   }
 
   @Nullable
@@ -343,6 +347,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     return runner;
+  }
+
+  @NotNull
+  public static Map<String, String> getRunnerArguments(@NotNull AndroidFacet facet) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    if(androidModel != null) {
+      return new HashMap<>(androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunnerArguments());
+    }
+    return Collections.emptyMap();
   }
 
   @Nullable
@@ -470,11 +483,16 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     @Nullable private final String myInstrumentationTestRunner;
     @NotNull private final String myTestApplicationId;
     private final boolean myWaitForDebugger;
+    @NotNull private final Map<String, String> myInstrumentationTestRunnerArguments;
 
-    public MyApplicationLaunchTask(@Nullable String runner, @NotNull String testPackage, boolean waitForDebugger) {
+    public MyApplicationLaunchTask(@Nullable String runner,
+                                   @NotNull String testPackage,
+                                   boolean waitForDebugger,
+                                   @NotNull Map<String, String> arguments) {
       myInstrumentationTestRunner = runner;
       myWaitForDebugger = waitForDebugger;
       myTestApplicationId = testPackage;
+      myInstrumentationTestRunnerArguments = arguments;
     }
 
     @NotNull
@@ -506,6 +524,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
       runner.setDebug(myWaitForDebugger);
       runner.setRunOptions(EXTRA_OPTIONS);
+
+      for (Map.Entry<String, String> entry : myInstrumentationTestRunnerArguments.entrySet()) {
+        runner.addInstrumentationArg(entry.getKey(), entry.getValue());
+      }
 
       printer.stdout("$ adb shell " + runner.getAmInstrumentCommand());
 
