@@ -40,17 +40,19 @@ public final class TimeAxisSegment extends BaseSegment {
   }
 
   @Override
+  protected boolean hasLeftContent() {
+    return false;
+  }
+
+  @Override
+  protected boolean hasRightContent() {
+    return false;
+  }
+
+  @Override
   protected void setCenterContent(@NonNull JPanel panel) {
     panel.add(mTimeAxis);
   }
 
-  @Override
-  protected void setLeftContent(@NonNull JPanel panel) {
-    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AdtUiUtils.DEFAULT_BORDER_COLOR));
-  }
 
-  @Override
-  protected void setRightContent(@NonNull JPanel panel) {
-    panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR));
-  }
 }
