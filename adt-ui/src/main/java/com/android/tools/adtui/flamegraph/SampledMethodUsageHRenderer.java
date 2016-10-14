@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.visual.flamegraph;
+package com.android.tools.adtui.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.intellij.ui.JBColor;
