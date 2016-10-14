@@ -35,9 +35,9 @@ import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.content.Content;
@@ -89,7 +89,7 @@ public class TexturesController extends ImagePanelController {
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                          .setCategory(EventCategory.GPU_PROFILER)
                                          .setKind(AndroidStudioEvent.EventKind.GFX_TRACE_TEXTURE_VIEWED)
-                                         .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                         .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                                .setImageFormat(format)
                                                                .setImageWidth(width)
                                                                .setImageHeight(height)));

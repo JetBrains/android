@@ -31,7 +31,8 @@ import com.android.utils.SparseArray;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GfxTracingDetails;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.SimpleColoredComponent;
@@ -749,10 +750,10 @@ public class ReportController extends TreeController implements ReportStream.Lis
       private void onReportItemNodeClick(@NotNull Node node) {
         Path path = node.getFollowPath();
         if (path != null && path != Path.EMPTY) {
-          UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.GPU_PROFILER)
-                                           .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.GFX_TRACE_LINK_CLICKED)
-                                           .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.GPU_PROFILER)
+                                           .setKind(AndroidStudioEvent.EventKind.GFX_TRACE_LINK_CLICKED)
+                                           .setGfxTracingDetails(GfxTracingDetails.newBuilder()
                                                                    .setTracePath(path.toString())));
           myEditor.activatePath(path, ReportController.this);
         }

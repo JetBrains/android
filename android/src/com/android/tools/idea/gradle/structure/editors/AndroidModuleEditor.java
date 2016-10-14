@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
@@ -128,9 +128,9 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
         String appId = getApplicationId(myProject);
         if (appId != null) {
-            UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                           .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
+            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                           .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
                                            .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
         }
       });
@@ -162,9 +162,9 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
       if (appId != null) {
-        UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                       .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                       .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
                                        .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
       }
       editor.saveData();

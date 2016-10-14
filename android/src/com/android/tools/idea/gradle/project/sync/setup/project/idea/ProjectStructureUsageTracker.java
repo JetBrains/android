@@ -26,10 +26,9 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.Sets;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.*;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioStats.GradleNativeAndroidModule.NativeBuildSystemType;
+import com.google.wireless.android.sdk.stats.*;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -81,7 +80,7 @@ public class ProjectStructureUsageTracker {
     int appCount = 0;
     int libCount = 0;
 
-    List<AndroidStudioStats.GradleLibrary> gradleLibraries = new ArrayList<>();
+    List<GradleLibrary> gradleLibraries = new ArrayList<>();
 
     for (Module module : modules) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
