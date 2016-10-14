@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.RenderSecurityException;
-import com.android.tools.idea.rendering.webp.NativeLibHelper;
+import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 
 import java.io.File;
@@ -298,7 +298,7 @@ public class RenderSecurityManager extends SecurityManager {
         return; // Allow loading JRE libraries
       }
       // Allow loading webp library
-      if (lib.equals(new File(NativeLibHelper.getLibLocation(), NativeLibHelper.getLibName()).getAbsolutePath())) {
+      if (lib.equals(new File(WebpNativeLibHelper.getLibLocation(), WebpNativeLibHelper.getLibName()).getAbsolutePath())) {
         return;
       }
       throw RenderSecurityException.create("Link", lib);

@@ -17,27 +17,47 @@ package com.android.tools.idea.rendering.webp;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PluginPathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 
 import java.io.File;
+import java.io.IOException;
 
-import static com.android.tools.idea.rendering.webp.WebpImageReaderSpi.getLogger;
-
-public class NativeLibHelper {
+public class WebpNativeLibHelper {
 
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized") private static boolean sJniLibLoaded;
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized") private static boolean sJniLibLoadAttempted;
 
-  private NativeLibHelper() {
+  private WebpNativeLibHelper() {
   }
 
-  static boolean loadNativeLibraryIfNeeded() {
+  static void requireNativeLibrary() throws IOException {
+    if (!loadNativeLibraryIfNeeded()) {
+      throw new IOException("The WebP decoder library could not be loaded");
+    }
+  }
+
+  public static String getDecoderVersion() {
+    // This is the current result of calling
+    //     libwebp.WebPGetEncoderVersion()
+    // but we don't want to have to load the native library just to get this constant
+    // (since it doesn't change until we change the bundled version of the library anyway).
+    //
+    // And more importantly, NOBODY looks at this version anyway.
+    return "1280";
+  }
+
+  public static String getEncoderVersion() {
+    return getDecoderVersion();
+  }
+
+  public static boolean loadNativeLibraryIfNeeded() {
     if (!sJniLibLoadAttempted) {
       try {
         loadNativeLibrary();
       }
       catch (UnsatisfiedLinkError e) {
-        getLogger().warn(e);
+        Logger.getInstance(WebpImageReaderSpi.class).warn(e);
       }
     }
     return sJniLibLoaded;
