@@ -35,19 +35,19 @@ import com.intellij.testFramework.MapDataContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS;
 import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 
 /**
  * Test for {@link com.android.tools.idea.run.testing.AndroidTestConfigurationProducer}
  */
 public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase {
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    loadSimpleApplication();
-  }
 
   public void testCanCreateConfigurationFromFromAndroidTestClass() throws Exception {
+    loadSimpleApplication();
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -56,11 +56,23 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNotNull(createConfigurationFromClass("google.simpleapplication.ApplicationTest"));
   }
 
+  public void testRunnerArgumentsSet() throws Exception {
+    loadProject(RUN_CONFIG_RUNNER_ARGUMENTS);
+    Map<String, String> expectedArguments = new HashMap<>();
+    expectedArguments.put("size", "medium");
+    expectedArguments.put("foo", "bar");
+
+    Map<String, String> runnerArguments = AndroidTestRunConfiguration.getRunnerArguments(myAndroidFacet);
+    assertTrue(runnerArguments.equals(expectedArguments));
+  }
+
   public void testCannotCreateConfigurationFromFromUnitTestClass() throws Exception {
+    loadSimpleApplication();
     assertNull(createConfigurationFromClass("google.simpleapplication.UnitTest"));
   }
 
   public void testCanCreateConfigurationFromFromAndroidTestDirectory() throws Exception {
+    loadSimpleApplication();
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -70,6 +82,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   }
 
   public void testCannotCreateConfigurationFromFromUnitTestDirectory() throws Exception {
+    loadSimpleApplication();
     assertNull(createConfigurationFromDirectory("app/src/test/java"));
   }
 

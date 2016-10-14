@@ -31,6 +31,7 @@ public final class TestProjectPaths {
   public static final String RUN_CONFIG_DEFAULT = "projects/runConfig/default";
   public static final String RUN_CONFIG_ENABLED = "projects/runConfig/enabled";
   public static final String RUN_CONFIG_MANIFESTS = "projects/runConfig/manifests";
+  public static final String RUN_CONFIG_RUNNER_ARGUMENTS = "projects/runConfig/runnerArguments";
   public static final String RUN_CONFIG_TV = "projects/runConfig/tv";
   public static final String RUN_CONFIG_UNDECLARED = "projects/runConfig/undeclared";
   public static final String RUN_CONFIG_WATCHFACE = "projects/runConfig/watchface";
