@@ -209,22 +209,18 @@ public class NlOldPalettePanel extends JPanel
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
     myStructureTree.setDesignSurface(designSurface);
     Module prevModule = null;
-    if (myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        prevModule = configuration.getModule();
-        configuration.removeListener(this);
-      }
+    if (myConfiguration != null) {
+      prevModule = myConfiguration.getModule();
+      myConfiguration.removeListener(this);
     }
     Module newModule = null;
     myDesignSurface = designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface : null;
     if (myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        newModule = configuration.getModule();
-        configuration.addListener(this);
-      }
       updateConfiguration();
+      if (myConfiguration != null) {
+        newModule = myConfiguration.getModule();
+        myConfiguration.addListener(this);
+      }
       initItems();
       checkForNewMissingDependencies();
       repaint();
