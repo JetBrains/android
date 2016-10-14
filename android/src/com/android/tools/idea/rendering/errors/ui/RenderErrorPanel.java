@@ -185,7 +185,7 @@ public class RenderErrorPanel extends JPanel implements ListDataListener, Dispos
     myListScrollPane.setBorder(JBUI.Borders.empty());
 
     myHtmlScrollPane = createScrollPane(myHtmlDetailPane);
-    myHtmlScrollPane.setBorder(JBUI.Borders.emptyTop(5));
+    myHtmlScrollPane.setBorder(JBUI.Borders.customLine(UIUtil.getPanelBackground(), 5, 0, 0, 0));
 
     Box rootPanel = Box.createVerticalBox();
     titlePanel.setAlignmentX(CENTER_ALIGNMENT);
