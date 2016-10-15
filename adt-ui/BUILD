@@ -3,7 +3,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "adt-ui",
     srcs = ["src/main/java"],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
