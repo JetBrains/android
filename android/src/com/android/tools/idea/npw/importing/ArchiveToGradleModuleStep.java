@@ -17,35 +17,30 @@ package com.android.tools.idea.npw.importing;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -57,17 +52,16 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   private final ListenerManager myListeners = new ListenerManager();
   private final BindingsManager myBindings = new BindingsManager();
 
-  // An empty string means no validation errors.
-  private final StringProperty myValidationString = new StringValueProperty();
-
+  private ValidatorPanel myValidatorPanel;
   private JPanel myPanel;
   private JTextField myGradlePath;
   private TextFieldWithBrowseButton myArchivePath;
-  private JBLabel myValidationStatus;
   private JCheckBox myRemoveOriginalFileCheckBox;
 
   public ArchiveToGradleModuleStep(@NotNull ArchiveToGradleModuleModel model) {
     super(model, AndroidBundle.message("android.wizard.module.import.library.title"));
+
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
 
     myArchivePath.addBrowseFolderListener(AndroidBundle.message("android.wizard.module.import.library.browse.title"),
                                           AndroidBundle.message("android.wizard.module.import.library.browse.description"),
@@ -79,17 +73,9 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
     myBindings.bindTwoWay(model.gradlePath(), new TextProperty(myGradlePath));
     myBindings.bindTwoWay(model.moveArchive(), new SelectedProperty(myRemoveOriginalFileCheckBox));
 
-    myBindings.bind(new IconProperty(myValidationStatus),
-                    myValidationString.isEmpty().transform(
-                      isEmpty -> Optional.ofNullable(isEmpty ? null : MessageType.ERROR.getDefaultIcon())));
-    myBindings.bind(new TextProperty(myValidationStatus), myValidationString);
     myBindings.bind(new VisibleProperty(myRemoveOriginalFileCheckBox), model.inModule());
 
     myListeners.listen(model.archive(), updated -> model.gradlePath().set(Files.getNameWithoutExtension(model.archive().get())));
-
-    //noinspection TestOnlyProblems
-    UserInputValidator validator = new UserInputValidator(model.getProject());
-    myListeners.listenAll(model.archive(), model.gradlePath()).with(validator::copyDataAndInvalidate);
   }
 
   static boolean isValidExtension(VirtualFile file) {
@@ -98,9 +84,16 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   }
 
   @Override
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    ArchiveToGradleModuleModel model = getModel();
+    myValidatorPanel.registerValidator(model.archive(), new ArchiveValidator());
+    myValidatorPanel.registerValidator(model.gradlePath(), new GradleValidator(model.getProject()));
+  }
+
+  @Override
   @NotNull
   public JComponent getComponent() {
-    return myPanel;
+    return myValidatorPanel;
   }
 
   @Override
@@ -112,7 +105,7 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   @Override
   @NotNull
   protected ObservableBool canGoForward() {
-    return myValidationString.isEmpty();
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
@@ -122,68 +115,54 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   }
 
   @VisibleForTesting
-  void setValidationString(String result) {
-    myValidationString.set(result);
+  final static class ArchiveValidator implements Validator<String> {
+    @NotNull
+    @Override
+    public Result validate(@NotNull String archive) {
+      if (Strings.isNullOrEmpty(archive)) {
+        return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.no.path"));
+      }
+
+      File archiveFile = new File(archive);
+      if (!archiveFile.isFile()) {
+        return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.bad.path"));
+      }
+
+      VirtualFile archiveVirtualFile = VfsUtil.findFileByIoFile(archiveFile, true);
+      if (!isValidExtension(archiveVirtualFile)) {
+        return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.bad.extension"));
+      }
+
+      return Result.OK;
+    }
   }
 
   @VisibleForTesting
-  final class UserInputValidator extends AsyncValidator<String> {
+  final static class GradleValidator implements Validator<String> {
+    private Project myProject;
 
-    private final Project myProject;
-    private String myArchive;
-    private String myGradlePath;
-
-    public UserInputValidator(@NotNull Project project) {
-      super(ApplicationManager.getApplication());
+    GradleValidator(@NotNull Project project) {
       myProject = project;
-    }
-
-    public void copyDataAndInvalidate() {
-      setData(getModel().archive().get(), getModel().gradlePath().get());
-      invalidate();
-    }
-
-    /**
-     * Synchronized to ensure validate will always see up-to-date data when it runs.
-     */
-    @VisibleForTesting
-    synchronized void setData(String archive, String gradlePath) {
-      myArchive = archive;
-      myGradlePath = gradlePath;
-    }
-
-    @Override
-    protected void showValidationResult(@NotNull String result) {
-      setValidationString(result);
     }
 
     @NotNull
     @Override
-    protected synchronized String validate() {
-      if (Strings.isNullOrEmpty(myArchive)) {
-        return AndroidBundle.message("android.wizard.module.import.library.no.path");
-      }
-      File archiveFile = new File(myArchive);
-      if (!archiveFile.isFile()) {
-        return AndroidBundle.message("android.wizard.module.import.library.bad.path");
-      }
-      VirtualFile archiveVirtualFile = VfsUtil.findFileByIoFile(archiveFile, true);
-      if (!isValidExtension(archiveVirtualFile)) {
-        return AndroidBundle.message("android.wizard.module.import.library.bad.extension");
+    public Result validate(@NotNull String gradlePath) {
+      if (Strings.isNullOrEmpty(gradlePath)) {
+        return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.no.name"));
       }
 
-      if (Strings.isNullOrEmpty(myGradlePath)) {
-        return AndroidBundle.message("android.wizard.module.import.library.no.name");
-      }
-      int invalidCharIndex = GradleUtil.isValidGradlePath(myGradlePath);
+      int invalidCharIndex = GradleUtil.isValidGradlePath(gradlePath);
       if (invalidCharIndex >= 0) {
-        return AndroidBundle.message("android.wizard.module.import.library.bad.name", myGradlePath.charAt(invalidCharIndex));
+        return new Result(Severity.ERROR,
+                          AndroidBundle.message("android.wizard.module.import.library.bad.name", gradlePath.charAt(invalidCharIndex)));
       }
 
-      if (GradleUtil.hasModule(myProject, myGradlePath, true)) {
-        return AndroidBundle.message("android.wizard.module.import.library.taken.name", myGradlePath);
+      if (GradleUtil.hasModule(myProject, gradlePath, true)) {
+        return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.taken.name", gradlePath));
       }
-      return "";
+
+      return Result.OK;
     }
   }
 }
