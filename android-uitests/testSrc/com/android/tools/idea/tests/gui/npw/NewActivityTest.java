@@ -136,6 +136,7 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createActivityWithNonDefaultPackage() throws Exception{
     myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
