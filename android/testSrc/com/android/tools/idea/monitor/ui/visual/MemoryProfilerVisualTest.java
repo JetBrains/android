@@ -21,7 +21,7 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.RangeScrollbar;
-import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerVisualTest extends VisualTest {
 

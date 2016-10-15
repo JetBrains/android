@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual.flamegraph;
+package com.android.tools.adtui.visualtests.flamegraph;
 
 import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 
 import java.util.HashMap;
 import java.util.Set;
