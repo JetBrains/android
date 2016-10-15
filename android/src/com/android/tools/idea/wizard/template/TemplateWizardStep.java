@@ -127,7 +127,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     if (!s.startsWith("<html>")) {
       s = "<html>" + s + "</html>";
-      s.replaceAll("\n", "<br>");
+      s = s.replaceAll("\n", "<br>");
     }
     JLabel label = getDescription();
     if (label != null) {
@@ -146,7 +146,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     if (!s.startsWith("<html>")) {
       s = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
-      s.replaceAll("\n", "<br>");
+      s = s.replaceAll("\n", "<br>");
     }
     JLabel label = getError();
     if (label != null) {
