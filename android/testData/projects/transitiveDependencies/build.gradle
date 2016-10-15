@@ -2,7 +2,7 @@
 
 buildscript {
     repositories {
-        jcenter()
+        // This will be populated by AndroidGradleTestCase
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.0-alpha3'
@@ -14,7 +14,7 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        // This will be populated by AndroidGradleTestCase
     }
 }
 
