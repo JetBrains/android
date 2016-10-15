@@ -649,7 +649,7 @@ public final class Render {
         return;
       default:
         Number number = RenderUtils.toJavaIntType(type.getMethod(), (Number)value);
-        component.append(String.format("%d", number), attributes, tag);
+        component.append(String.format("%d", number.intValue()), attributes, tag);
         break;
     }
   }
