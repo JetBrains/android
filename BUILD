@@ -3,7 +3,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "android-rt",
     srcs = ["android/rt/src"],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     deps = [
@@ -15,7 +14,6 @@ iml_module(
 iml_module(
     name = "android-common",
     srcs = ["android/common/src"],
-    javacopts = ["-extra_checks:off"],
     resources = ["android/common/resources"],
     tags = ["managed"],
     test_resources = ["android/common/testResources"],
@@ -53,7 +51,6 @@ iml_module(
 iml_module(
     name = "layoutlib",
     srcs = ["layoutlib/src"],
-    javacopts = ["-extra_checks:off"],
     resources = ["layoutlib/resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
@@ -70,7 +67,6 @@ iml_module(
 iml_module(
     name = "sherpa-ui",
     srcs = ["android/sherpa-ui/src"],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     deps = ["//tools/sherpa:sherpa-solver[module]"],
