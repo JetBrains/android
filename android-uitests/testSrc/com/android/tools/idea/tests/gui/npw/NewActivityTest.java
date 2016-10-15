@@ -116,7 +116,6 @@ public class NewActivityTest {
     );
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createActivityWithHierarchicalParent() throws Exception{
     myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivity");

@@ -34,7 +34,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class ManifestEditorTest {
 
@@ -127,6 +126,7 @@ public class ManifestEditorTest {
     assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRemoveFromManifest() throws IOException {
     guiTest.importMultiModule();
