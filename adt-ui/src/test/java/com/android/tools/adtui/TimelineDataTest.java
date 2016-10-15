@@ -16,7 +16,9 @@
 package com.android.tools.adtui;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -24,9 +26,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 public class TimelineDataTest {
+
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private static final int TYPE_DATA = 0;
 
@@ -69,12 +72,8 @@ public class TimelineDataTest {
     assertThat(mData.getStreamCount()).isEqualTo(3);
     mData.addStreams(new ArrayList<>(Arrays.asList("duplicateStream", "dynamicStream2")));
     assertThat(mData.getStreamCount()).isEqualTo(5);
-    try {
-      mData.addStreams(new ArrayList<>(Arrays.asList("duplicateStream", "dynamicStream3")));
-      fail();
-    }
-    catch (AssertionError expected) {
-    }
+    thrown.expect(AssertionError.class);
+    mData.addStreams(new ArrayList<>(Arrays.asList("duplicateStream", "dynamicStream3")));
   }
 
   @Test
