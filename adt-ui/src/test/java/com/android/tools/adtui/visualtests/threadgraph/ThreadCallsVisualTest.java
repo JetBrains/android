@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual.flamegraph;
+package com.android.tools.adtui.visualtests.threadgraph;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Range;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.LongDataSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class FlameGraphVisualTest extends VisualTest implements ActionListener {
+public class ThreadCallsVisualTest extends VisualTest implements ActionListener {
 
   private static final String ACTION_START_RECORDING = "start_recording";
   private static final String ACTION_STOP_RECORDING = "stop_recording";
@@ -48,13 +46,13 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
 
   private HTreeChart mChart;
-  private HashMap<String, HNode<SampledMethodUsage>> furnace;
+  private HashMap<String, HNode<Method>> forest;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
   private JComboBox mComboBox;
   private Sampler mSampler;
-  private HNode<SampledMethodUsage> mtree;
+  private HNode<Method> mtree;
 
   private Range mSelectionRange;
   private Range mDataRange;
@@ -67,9 +65,10 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   @NotNull
   private LineChart mLineChart;
 
+  @NotNull
   private JScrollBar mScrollBar;
 
-  public FlameGraphVisualTest() {
+  public ThreadCallsVisualTest() {
     this.mDataRange = new Range();
 
     AxisComponent.Builder builder = new AxisComponent.Builder(mDataRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
@@ -77,17 +76,18 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
     this.mSelectionRange = new Range();
 
-    this.mLineChart = new LineChart();
-    this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
-
-    this.mChart = new HTreeChart<SampledMethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
-    this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
+    this.mChart = new HTreeChart<Method>();
+    this.mChart.setHRenderer(new JavaMethodHRenderer());
     this.mChart.setXRange(mSelectionRange);
+
+    mLineChart = new LineChart();
+
+    this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
   }
 
   @Override
   public String getName() {
-    return "Flame Graph";
+    return "Thread stacks";
   }
 
   @Override
@@ -155,8 +155,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
       @Override
       public void adjustmentValueChanged(AdjustmentEvent e) {
         Range yRange = mChart.getYRange();
-        int yOffset = mChart.getMaximumHeight() - (e.getValue() + mScrollBar
-          .getVisibleAmount());
+        int yOffset = e.getValue();
         yRange.setMin(yOffset);
       }
     });
@@ -195,7 +194,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
       int selected = mComboBox.getSelectedIndex();
       if (selected >= 0 && selected < mComboBox.getItemCount()) {
         String threadName = (String)mComboBox.getSelectedItem();
-        mtree = furnace.get(threadName);
+        mtree = forest.get(threadName);
         mChart.setHTree(mtree);
         double start = mtree.getFirstChild().getStart();
         double end = mtree.getLastChild().getEnd();
@@ -207,25 +206,23 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
         // Generate dummy values to simulate CPU Load.
         LongDataSeries series = new LongDataSeries();
-        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("CPU Load", mDataRange,
-                                                                         new Range(0.0, (float)Sampler.MAX_VALUE),
-                                                                         series);
+        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mDataRange,
+                                                                   new Range(0.0, 200.0),
+                                                                   series);
         Random r = new Random(System.currentTimeMillis());
         for (int i = 0; i < 100; i++) {
           series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
         }
         mLineChart.addLine(rangedSeries);
-
-        mScrollBar.setValues(mChart.getMaximumHeight() - mChart.getHeight(),
-                             mChart.getHeight(), 0, mChart.getMaximumHeight());
+        mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());
       }
     }
   }
 
-  public void setData(HashMap<String, HNode<SampledMethodUsage>> furnace) {
-    this.furnace = furnace;
+  public void setData(HashMap<String, HNode<Method>> forest) {
+    this.forest = forest;
     mComboBox.removeAllItems();
-    for (String threadName : furnace.keySet()) {
+    for (String threadName : forest.keySet()) {
       mComboBox.addItem(threadName);
     }
   }

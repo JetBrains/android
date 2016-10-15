@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.monitor.ui.visual;
 
-import com.android.tools.adtui.visual.VisualTestsDialog;
+import com.android.tools.adtui.visualtests.VisualTestsDialog;
 
 import javax.swing.*;
 
