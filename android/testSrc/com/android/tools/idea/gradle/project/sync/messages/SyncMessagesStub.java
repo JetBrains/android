@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
@@ -70,5 +71,9 @@ public class SyncMessagesStub extends SyncMessages {
   @Nullable
   public NotificationData getNotification() {
     return myNotification;
+  }
+
+  public void clearReportedMessages() {
+    myMessages.clear();
   }
 }
