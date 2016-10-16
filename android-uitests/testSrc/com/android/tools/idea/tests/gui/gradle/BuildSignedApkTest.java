@@ -36,8 +36,6 @@ import java.util.zip.ZipFile;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
-import static org.junit.Assume.assumeThat;
-import static org.junit.Assume.assumeTrue;
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
@@ -81,6 +79,7 @@ public class BuildSignedApkTest {
       .clickFinish();
 
     File[] apks = dstFolder.listFiles();
+    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -91,7 +90,7 @@ public class BuildSignedApkTest {
   @Test
   public void openAndSignUsingV1Only() throws IOException {
     GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
-    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+    assume().that(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION)).isAtLeast(0);
 
     File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
     File dstFolder = myTemporaryFolder.newFolder("dst");
@@ -124,6 +123,7 @@ public class BuildSignedApkTest {
 
     // We should verify that a V2 signature is not present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
+    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -134,7 +134,7 @@ public class BuildSignedApkTest {
   @Test
   public void openAndSignUsingV2Only() throws IOException {
     GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
-    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+    assume().that(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION)).isAtLeast(0);
 
     File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
     File dstFolder = myTemporaryFolder.newFolder("dst");
@@ -167,6 +167,7 @@ public class BuildSignedApkTest {
 
     // We should verify that a V2 signature is present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
+    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -177,7 +178,7 @@ public class BuildSignedApkTest {
   @Test
   public void openAndSignUsingV1AndV2() throws IOException {
     GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
-    assumeTrue(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION) >= 0);
+    assume().that(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION)).isAtLeast(0);
 
     File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
     File dstFolder = myTemporaryFolder.newFolder("dst");
@@ -211,6 +212,7 @@ public class BuildSignedApkTest {
     // We should verify that a V2 signature is present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
     assertThat(apks).hasLength(1);
+    assertThat(apks).isNotNull();
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
       assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();
