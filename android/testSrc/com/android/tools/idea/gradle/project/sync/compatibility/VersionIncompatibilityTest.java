@@ -44,6 +44,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
 
   public void testReportMessagesWithWarning() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -72,6 +73,7 @@ public class VersionIncompatibilityTest extends AndroidGradleTestCase {
 
   public void testReportMessagesWithError() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     Module appModule = myModules.getAppModule();
 
