@@ -52,7 +52,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
-    return GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.JAVA_TESTS);
+    return GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.UNIT_TESTS);
   }
 
   @NotNull
