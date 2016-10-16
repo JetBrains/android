@@ -189,7 +189,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         assert myProject != null;
 
         GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-        gradleInvoker.addAfterGradleInvocationTask(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
+        gradleInvoker.add(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
         gradleInvoker.executeTasks(assembleTasks, projectProperties);
 
         LOG.info("Export APK command: " +

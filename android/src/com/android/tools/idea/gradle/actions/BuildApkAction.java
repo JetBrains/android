@@ -59,7 +59,7 @@ public class BuildApkAction extends DumbAwareAction {
 
       GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
       if (task != null) {
-        gradleInvoker.addAfterGradleInvocationTask(task);
+        gradleInvoker.add(task);
       }
       gradleInvoker.assemble(modules, TestCompileType.NONE);
     }

@@ -338,13 +338,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       latch.countDown();
     };
 
-    gradleInvoker.addAfterGradleInvocationTask(task);
+    gradleInvoker.add(task);
 
     try {
       gradleInvocationTask.consume(gradleInvoker);
     }
     finally {
-      gradleInvoker.removeAfterGradleInvocationTask(task);
+      gradleInvoker.remove(task);
     }
 
     latch.await();

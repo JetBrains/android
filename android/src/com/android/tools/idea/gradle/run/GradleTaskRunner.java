@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -28,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -55,7 +52,7 @@ public interface GradleTaskRunner {
           @Override
           public void execute(@NotNull GradleInvocationResult result) {
             success.set(result.isBuildSuccessful());
-            gradleInvoker.removeAfterGradleInvocationTask(this);
+            gradleInvoker.remove(this);
             done.up();
           }
         };
@@ -63,7 +60,7 @@ public interface GradleTaskRunner {
         // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
         // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
         SwingUtilities.invokeAndWait(() -> {
-          gradleInvoker.addAfterGradleInvocationTask(afterTask);
+          gradleInvoker.add(afterTask);
           gradleInvoker.executeTasks(tasks, buildMode, commandLineArguments);
         });
 
