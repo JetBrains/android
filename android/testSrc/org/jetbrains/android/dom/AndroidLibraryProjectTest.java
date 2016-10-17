@@ -86,7 +86,7 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
           file.rename(myFixture.getProject(), newName);
         }
         catch (IOException e) {
-          new RuntimeException(e);
+          throw new RuntimeException(e);
         }
       }
     });
