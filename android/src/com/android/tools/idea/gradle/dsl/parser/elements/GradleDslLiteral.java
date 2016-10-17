@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -231,8 +232,9 @@ public final class GradleDslLiteral extends GradleDslExpression {
     }
     else {
       PsiElement added;
-      if (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList)) { // Method call arguments in ().
-        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before )
+      if (psiElement instanceof GrListOrMap || // Entries in [].
+          (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
+        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before ) or ]
       }
       else {
         added = psiElement.addAfter(newLiteral, psiElement.getLastChild());

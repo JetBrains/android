@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.List;
@@ -141,5 +142,112 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     dependency = dependencies.get(0);
     assertEquals("jars", dependency.dir());
+  }
+
+  public void testAddFileTreeWithDirOnly() throws IOException {
+    String text = "dependencies {\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).isEmpty();
+
+    dependencies.addFileTree("compile", "libs");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies();
+    fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir());
+  }
+
+  public void testAddFileTreeWithDirAndIncludeAttributePattern() throws IOException {
+    String text = "dependencies {\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).isEmpty();
+
+    dependencies.addFileTree("compile", "libs", ImmutableList.of("*.jar"), null);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies();
+    fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir());
+    assertThat(fileTree.include()).containsExactly("*.jar");
+  }
+
+  public void testAddFileTreeWithDirAndIncludeAttributeList() throws IOException {
+    String text = "dependencies {\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).isEmpty();
+
+    dependencies.addFileTree("compile", "libs", ImmutableList.of("*.jar", "*.aar"), null);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies();
+    fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir());
+    assertThat(fileTree.include()).containsExactly("*.jar", "*.aar");
+  }
+
+  public void testAddFileTreeWithDirAndExcludeAttributeList() throws IOException {
+    String text = "dependencies {\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).isEmpty();
+
+    dependencies.addFileTree("compile", "libs", ImmutableList.of("*.jar"), ImmutableList.of("*.aar"));
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    dependencies = buildModel.dependencies();
+    fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir());
+    assertThat(fileTree.include()).containsExactly("*.jar");
+    assertThat(fileTree.exclude()).containsExactly("*.aar");
+  }
+
+  public void testRemoveFileTreeDependency() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile fileTree(dir: 'libs', include: ['*.jar'], exclude: ['*.aar'])\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertThat(fileTrees).hasSize(1);
+
+    FileTreeDependencyModel fileTree = fileTrees.get(0);
+    assertEquals("libs", fileTree.dir());
+    assertThat(fileTree.include()).containsExactly("*.jar");
+    assertThat(fileTree.exclude()).containsExactly("*.aar");
+
+    dependencies.remove(fileTree);
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    assertThat(buildModel.dependencies().fileTrees()).isEmpty();
   }
 }

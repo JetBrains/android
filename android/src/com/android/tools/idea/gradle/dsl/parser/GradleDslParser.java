@@ -618,6 +618,14 @@ public final class GradleDslParser {
         else if (resultElement instanceof SourceSetsDslElement) {
           newElement = new SourceSetDslElement(resultElement, nestedElementName);
         }
+        else if (resultElement instanceof SourceSetDslElement) {
+          if ("manifest".equals(nestedElementName)) {
+            newElement = new SourceFileDslElement(resultElement, nestedElementName);
+          }
+          else {
+            newElement = new SourceDirectoryDslElement(resultElement, nestedElementName);
+          }
+        }
         else {
           return null;
         }

@@ -30,6 +30,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
@@ -327,7 +328,13 @@ public abstract class GradleDslElement {
     }
     else if (element instanceof GrMethodCallExpression) {
       GrMethodCallExpression call = ((GrMethodCallExpression)element);
-      GrArgumentList argumentList = call.getArgumentList();
+      GrArgumentList argumentList;
+      try {
+        argumentList = call.getArgumentList();
+      } catch (AssertionError e) {
+        // We will get this exception if the argument list is already deleted.
+        argumentList = null;
+      }
       GrClosableBlock[] closureArguments = call.getClosureArguments();
       if ((argumentList == null || argumentList.getAllArguments().length == 0)
           && closureArguments.length == 0) {

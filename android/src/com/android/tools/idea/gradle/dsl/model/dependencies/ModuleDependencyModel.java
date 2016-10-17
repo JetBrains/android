@@ -43,7 +43,7 @@ public class ModuleDependencyModel extends DependencyModel {
   @Nullable private GradleDslExpression myConfiguration;
 
   @NotNull
-  protected static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+  static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<ModuleDependencyModel> result = Lists.newArrayList();
     if (PROJECT.equals(methodCall.getName())) {
       for (GradleDslElement argument : methodCall.getArguments()) {
@@ -67,10 +67,10 @@ public class ModuleDependencyModel extends DependencyModel {
     return result;
   }
 
-  public static void createAndAddToList(@NotNull GradleDslElementList list,
-                                        @NotNull String configurationName,
-                                        @NotNull String path,
-                                        @Nullable String config) {
+  static void createAndAddToList(@NotNull GradleDslElementList list,
+                                 @NotNull String configurationName,
+                                 @NotNull String path,
+                                 @Nullable String config) {
     String methodName = PROJECT;
     GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
     GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
