@@ -14,24 +14,57 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 public final class NewModuleModel extends WizardModel {
+  private final StringProperty myApplicationName = new StringValueProperty();
+  private final StringProperty myModuleName = new StringValueProperty();
+  private final StringProperty myPackageName = new StringValueProperty();
+  private final BoolProperty myIsLibrary = new BoolValueProperty();
+
   @NotNull private final OptionalProperty<Project> myProject;
 
   public NewModuleModel(@Nullable Project project) {
     myProject = OptionalValueProperty.fromNullable(project);
+
+    myApplicationName.set(message("android.wizard.module.config.new.application"));
+    myIsLibrary.addListener(sender -> myApplicationName.set(
+      message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
+
+    myApplicationName.addConstraint(String::trim);
+    myModuleName.addConstraint(String::trim);
   }
 
   @NotNull
   public OptionalProperty<Project> getProject() {
     return myProject;
+  }
+
+  @NotNull
+  public StringProperty applicationName() {
+    return myApplicationName;
+  }
+
+  @NotNull
+  public StringProperty moduleName() {
+    return myModuleName;
+  }
+
+  @NotNull
+  public StringProperty packageName() {
+    return myPackageName;
+  }
+
+  @NotNull
+  public BoolProperty isLibrary() {
+    return myIsLibrary;
   }
 
   @Override

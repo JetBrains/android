@@ -46,6 +46,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         continue;
       }
 
+      int minSdk = metadata.getMinSdk();
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
       if (formFactor == FormFactor.CAR) {
         // Auto is not a standalone module (but rather a modification to a mobile module)
@@ -54,15 +55,15 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         // Hidden if not installed
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
-        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, false, AndroidIcons.ModuleTemplates.Mobile,
+        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
-        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, true, AndroidIcons.ModuleTemplates.Android,
+        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
       }
       else {
         res.add(new AndroidModuleTemplateGalleryEntry(
-          formFactor, false, getModuleTypeIcon(formFactor), metadata.getTitle(), metadata.getDescription()));
+          formFactor, minSdk, false, getModuleTypeIcon(formFactor), metadata.getTitle(), metadata.getDescription()));
       }
     }
 
@@ -88,13 +89,15 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
 
   private static class AndroidModuleTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
     private final FormFactor myFormFactor;
+    private final int myMinSdkLevel;
     private final boolean myIsLibrary;
     private final Icon myIcon;
     private final String myName;
     private final String myDescription;
 
-    AndroidModuleTemplateGalleryEntry(FormFactor formFactor, boolean isLibrary, Icon icon, String name, String description) {
+    AndroidModuleTemplateGalleryEntry(FormFactor formFactor, int minSdkLevel, boolean isLibrary, Icon icon, String name, String description) {
       this.myFormFactor = formFactor;
+      this.myMinSdkLevel = minSdkLevel;
       this.myIsLibrary = isLibrary;
       this.myIcon = icon;
       this.myName = name;
@@ -133,7 +136,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myName);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, myName);
     }
   }
 }

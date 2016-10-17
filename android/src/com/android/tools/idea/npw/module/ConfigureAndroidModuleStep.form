@@ -71,7 +71,7 @@
           <text value="Minimum SDK"/>
         </properties>
       </component>
-      <component id="9427e" class="com.android.tools.idea.npw.FormFactorApiComboBox" binding="mySdkControls" custom-create="true">
+      <component id="9427e" class="com.android.tools.idea.npw.module.FormFactorApiComboBox" binding="mySdkControls" custom-create="true">
         <constraints>
           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>

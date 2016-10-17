@@ -66,7 +66,9 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
 * A labeled combo box of SDK options for a given FormFactor.
+* @deprecated by {@link com.android.tools.idea.npw.module.FormFactorApiComboBox}
 */
+@Deprecated
 public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox.AndroidTargetComboBoxItem> {
 
   // Set of installed targets and versions. TODO: These fields should not be static; that causes
