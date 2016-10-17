@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+
 /**
  * A data class which, when initialized with a {@link SourceProvider} and some other relevant
  * parameters, exposes paths which are useful when instantiating an Android project. In cases
@@ -60,20 +62,20 @@ public final class AndroidProjectPaths {
 
   /**
    * Create an instance of this class manually. You may wish to use one of the other
-   * convenience constructors instead, however.
+   * convenience constructors instead, however. It assumes the 'main' flavor and default android locations for the source, test, res,
+   * aidl and manifest.
    */
-  public AndroidProjectPaths(@Nullable File moduleRoot,
-                             @Nullable File srcDirectory,
-                             @Nullable File testDirectory,
-                             @Nullable File resDirectory,
-                             @Nullable File aidlDirectory,
-                             @Nullable File manifestDirectory) {
+  public AndroidProjectPaths(@NotNull File moduleRoot) {
     myModuleRoot = moduleRoot;
-    mySrcDirectory = srcDirectory;
-    myTestDirectory = testDirectory;
-    myResDirectory = resDirectory;
-    myAidlDirectory = aidlDirectory;
-    myManifestDirectory = manifestDirectory;
+
+    File baseSrcDir = new File(moduleRoot, FD_SOURCES);
+    File baseFlavourDir = new File(baseSrcDir, FD_MAIN);
+
+    mySrcDirectory = new File(baseFlavourDir, FD_JAVA);
+    myTestDirectory = new File(baseSrcDir, FD_TEST);
+    myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
+    myAidlDirectory = new File(baseFlavourDir, FD_AIDL);
+    myManifestDirectory = baseFlavourDir;
   }
 
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet) {

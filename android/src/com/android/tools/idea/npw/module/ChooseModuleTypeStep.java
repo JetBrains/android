@@ -134,6 +134,9 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
     if (moduleGalleryEntry != null) {
       myModuleDescriptionToStepMap.get(moduleGalleryEntry).setShouldShow(true);
     }
+
+    getModel().isLibrary().set(moduleGalleryEntry instanceof ModuleTemplateGalleryEntry
+                               && ((ModuleTemplateGalleryEntry) moduleGalleryEntry).isLibrary());
   }
 
   @Nullable

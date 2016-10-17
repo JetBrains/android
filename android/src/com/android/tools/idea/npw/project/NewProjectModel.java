@@ -19,20 +19,14 @@ import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.wizard.model.WizardModel;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
@@ -55,20 +49,6 @@ public class NewProjectModel extends WizardModel {
     });
   }
 
-  /**
-   * Loads saved company domain, or generates a dummy one if no domain has been saved
-   */
-  @NotNull
-  private static String getInitialDomain() {
-    String domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY);
-    if (domain != null) {
-      return domain;
-    }
-
-    String userName = System.getProperty("user.name");
-    return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
-  }
-
   public StringProperty packageName() {
     return myPackageName;
   }
@@ -87,6 +67,20 @@ public class NewProjectModel extends WizardModel {
 
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
+  }
+
+  /**
+   * Loads saved company domain, or generates a dummy one if no domain has been saved
+   */
+  @NotNull
+  public static String getInitialDomain() {
+    String domain = PropertiesComponent.getInstance().getValue(PROPERTIES_DOMAIN_KEY);
+    if (domain != null) {
+      return domain;
+    }
+
+    String userName = System.getProperty("user.name");
+    return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
   }
 
   @NotNull
