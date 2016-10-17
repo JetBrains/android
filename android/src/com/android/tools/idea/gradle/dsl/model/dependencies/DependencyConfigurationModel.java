@@ -39,7 +39,7 @@ public class DependencyConfigurationModel {
 
   @NotNull
   public List<ExcludedDependencyModel> excludes() {
-    GradleDslElementList elementList = myConfigurationElement.getProperty(EXCLUDE, GradleDslElementList.class);
+    GradleDslElementList elementList = myConfigurationElement.getPropertyElement(EXCLUDE, GradleDslElementList.class);
     if (elementList == null) {
       return ImmutableList.of();
     }
@@ -53,11 +53,11 @@ public class DependencyConfigurationModel {
 
   @NotNull
   public GradleNullableValue<Boolean> force() {
-    return myConfigurationElement.getPropertyValue(FORCE, Boolean.class);
+    return myConfigurationElement.getLiteralProperty(FORCE, Boolean.class);
   }
 
   @NotNull
   public GradleNullableValue<Boolean> transitive() {
-    return myConfigurationElement.getPropertyValue(TRANSITIVE, Boolean.class);
+    return myConfigurationElement.getLiteralProperty(TRANSITIVE, Boolean.class);
   }
 }

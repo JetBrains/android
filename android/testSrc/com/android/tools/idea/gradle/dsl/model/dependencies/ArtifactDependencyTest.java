@@ -643,7 +643,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
     assertNotNull(appcompatVariable);
-    verifyGradleValue(appcompatVariable, "ext.appcompat", "appcompat = 'com.android.support:appcompat-v7:22.1.1'");
+    verifyGradleValue(appcompatVariable, "ext.appcompat", "'com.android.support:appcompat-v7:22.1.1'");
     assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
     assertEquals(0, appcompatVariable.getResolvedVariables().size());
 
@@ -659,7 +659,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
@@ -690,7 +690,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
 
@@ -705,14 +705,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     // and thee guavaVersion variable is reported for version property.
     GradleNullableValue<String> version = guavaDependencyModel.version();
-    verifyGradleValue(version, "dependencies.compile.version", "group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"");
+    verifyGradleValue(version, "dependencies.compile.version", "\"$guavaVersion\"");
     assertEquals("18.0", version.value());
     guavaResolvedVariables = version.getResolvedVariables();
     assertEquals(1, guavaResolvedVariables.size());
 
     guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
@@ -745,7 +745,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
     assertNotNull(appcompatVariable);
-    verifyGradleValue(appcompatVariable, "ext.appcompat", "appcompat = 'com.android.support:appcompat-v7:22.1.1'");
+    verifyGradleValue(appcompatVariable, "ext.appcompat", "'com.android.support:appcompat-v7:22.1.1'");
     assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
     assertEquals(0, appcompatVariable.getResolvedVariables().size());
 
@@ -761,7 +761,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
@@ -794,7 +794,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
 
@@ -809,15 +809,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     // and thee guavaVersion variable is reported for version property.
     GradleNullableValue<String> version = guavaDependencyModel.version();
-    verifyGradleValue(version, "dependencies.compile.compile.version",
-                      "(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\")");
+    verifyGradleValue(version, "dependencies.compile.compile.version", "\"$guavaVersion\"");
     assertEquals("18.0", version.value());
     guavaResolvedVariables = version.getResolvedVariables();
     assertEquals(1, guavaResolvedVariables.size());
 
     guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
     assertNotNull(guavaVersionVariable);
-    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "guavaVersion = '18.0'");
+    verifyGradleValue(guavaVersionVariable, "ext.guavaVersion", "'18.0'");
     assertEquals("18.0", guavaVersionVariable.value());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
   }
