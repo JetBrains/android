@@ -16,14 +16,14 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.legacy.ILegacyPullParser;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.InputStream;
 import java.io.Reader;
 
-public abstract class LayoutPullParser implements ILegacyPullParser {
+public abstract class LayoutPullParser implements ILayoutPullParser {
   protected int myParsingState = START_DOCUMENT;
 
   @Override
