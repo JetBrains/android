@@ -85,7 +85,7 @@ public class ResizeFixture {
     myInteraction = new ResizeInteraction(myScreen, component, handle);
 
     int startX = Coordinates.getSwingX(myScreen, handle.getCenterX());
-    int startY = Coordinates.getSwingX(myScreen, handle.getCenterY());
+    int startY = Coordinates.getSwingY(myScreen, handle.getCenterY());
     myInteraction.begin(startX, startY, 0);
     myCurrentX = startX;
     myCurrentY = startY;
