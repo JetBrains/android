@@ -54,6 +54,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportError() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -75,6 +76,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWarning() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
@@ -94,6 +96,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportUsingDefaultStrategy() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
@@ -117,6 +120,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testStrategiesSetInConstructor() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
     Module appModule = myModules.getAppModule();

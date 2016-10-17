@@ -74,6 +74,8 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
 
   public void testReportWithWarning() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     String nativeToolOutput = "Failed to compile something";
@@ -116,6 +118,8 @@ public class ExternalNativeBuildIssuesReporterTest extends AndroidGradleTestCase
     }
 
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     String nativeToolOutput = "Failed to compile something";

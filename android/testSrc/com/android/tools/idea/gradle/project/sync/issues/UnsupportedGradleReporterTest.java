@@ -55,6 +55,8 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
   public void testReport() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     String expectedText = "Hello World!";

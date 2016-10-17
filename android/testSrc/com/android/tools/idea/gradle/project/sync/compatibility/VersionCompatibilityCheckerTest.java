@@ -52,6 +52,7 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
 
   public void testCheckAndReportComponentIncompatibilities() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
     assertNotNull(gradleWrapper);
@@ -86,8 +87,8 @@ public class VersionCompatibilityCheckerTest extends AndroidGradleTestCase {
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
 
-    String firstLine =
-      "Gradle 2.14.1 requires Android Gradle plugin 100.0.0 (or newer) but project is using version " + currentModelVersion + ".";
+    String firstLine = String.format("Gradle %1$s requires Android Gradle plugin 100.0.0 (or newer) but project is using version %2$s.",
+                                     gradleVersion, currentModelVersion);
 
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Gradle Sync Issue")

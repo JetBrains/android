@@ -38,6 +38,6 @@ model {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:+'
     compile 'com.android.support:appcompat-v7:+'
 }
