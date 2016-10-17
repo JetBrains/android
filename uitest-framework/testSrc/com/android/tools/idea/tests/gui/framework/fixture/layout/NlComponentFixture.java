@@ -62,7 +62,7 @@ public class NlComponentFixture {
     ScreenView screenView = mySurface.getCurrentScreenView();
     assertNotNull(screenView);
     int midX = Coordinates.getSwingX(screenView, myComponent.x + myComponent.w / 2);
-    int midY = Coordinates.getSwingX(screenView, myComponent.y + myComponent.h / 2);
+    int midY = Coordinates.getSwingY(screenView, myComponent.y + myComponent.h / 2);
     return new Point(midX, midY);
   }
 
