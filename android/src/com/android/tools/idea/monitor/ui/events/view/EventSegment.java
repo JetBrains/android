@@ -26,6 +26,7 @@ import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.events.model.SimpleEventDataSeries;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,8 +74,7 @@ public class EventSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    DataStoreSeries<EventAction<SimpleEventComponent.Action, EventActionType>> systemEventData =
-        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_SIMPLE_ACTION);
+    SimpleEventDataSeries systemEventData = new SimpleEventDataSeries(mDataStore.getDeviceProfilerService());
     DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData =
         new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_FRAGMENT_ACTION);
     DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData =
