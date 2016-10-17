@@ -63,6 +63,7 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithRegularJavaLibrary() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
@@ -90,6 +91,8 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithConstraintLayout() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     when(mySyncIssue.getData()).thenReturn("com.android.support.constraint:constraint-layout:+");
@@ -119,6 +122,8 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithAppCompat() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
@@ -151,6 +156,8 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithPlayServices() throws Exception {
     loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
     Module appModule = myModules.getAppModule();
 
     when(mySyncIssue.getData()).thenReturn("com.google.android.gms:play-services:9.4.0");
