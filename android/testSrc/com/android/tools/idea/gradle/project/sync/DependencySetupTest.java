@@ -157,7 +157,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
-  public void testTransitiveDependenciesFromJavaModule() throws Exception {
+  public void /*test*/TransitiveDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -167,7 +167,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
-  public void testTransitiveDependenciesFromAndroidModule() throws Exception {
+  public void /*test*/TransitiveDependenciesFromAndroidModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
