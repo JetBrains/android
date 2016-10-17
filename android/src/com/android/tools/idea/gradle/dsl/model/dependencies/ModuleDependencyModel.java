@@ -52,14 +52,14 @@ public class ModuleDependencyModel extends DependencyModel {
         }
         else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression pathElement = dslMap.getProperty(PATH, GradleDslExpression.class);
+          GradleDslExpression pathElement = dslMap.getPropertyElement(PATH, GradleDslExpression.class);
           if (pathElement == null) {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
             LOG.warn(msg);
             continue;
           }
-          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION, GradleDslExpression.class);
+          GradleDslExpression configuration = dslMap.getPropertyElement(CONFIGURATION, GradleDslExpression.class);
           result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));
         }
       }

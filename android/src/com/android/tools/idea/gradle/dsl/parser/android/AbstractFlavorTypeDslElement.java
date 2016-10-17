@@ -53,7 +53,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradlePropertiesDslEl
         return;
       }
 
-      GradleDslElementList elementList = getProperty("resValue", GradleDslElementList.class);
+      GradleDslElementList elementList = getPropertyElement("resValue", GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, "resValue");
         setParsedElement("resValue", elementList);

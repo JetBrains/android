@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -39,7 +42,7 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
         return;
       }
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
+        getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
         setParsedElement("testInstrumentationRunnerArguments", element);
       }
@@ -70,7 +73,7 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
       GradleDslExpression value = elements.get(1);
 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
+        getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
         testInstrumentationRunnerArgumentsElement = new GradleDslExpressionMap(this, "testInstrumentationRunnerArguments");
       }

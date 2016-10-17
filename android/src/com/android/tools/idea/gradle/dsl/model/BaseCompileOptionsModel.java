@@ -37,7 +37,8 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
 
   @Nullable
   public LanguageLevel sourceCompatibility() {
-    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+    JavaVersionDslElement javaVersionElement =
+      myDslElement.getPropertyElement(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
@@ -54,7 +55,8 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
 
   @Nullable
   public LanguageLevel targetCompatibility() {
-    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+    JavaVersionDslElement javaVersionElement =
+      myDslElement.getPropertyElement(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
@@ -71,7 +73,7 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
 
   @NotNull
   private BaseCompileOptionsModel setLanguageLevel(@NotNull String type, @NotNull LanguageLevel languageLevel) {
-    JavaVersionDslElement element = myDslElement.getProperty(type, JavaVersionDslElement.class);
+    JavaVersionDslElement element = myDslElement.getPropertyElement(type, JavaVersionDslElement.class);
     if (element == null) {
       element = new JavaVersionDslElement(myDslElement, type, myUseAssignment);
       myDslElement.setNewElement(type, element);
