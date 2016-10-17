@@ -404,7 +404,7 @@ public class EditorFixture {
 
   @NotNull
   public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
-    JLabel label = GuiTests.waitUntilShowing(robot, JLabelMatcher.withText(text));
+    JLabel label = waitUntilShowing(robot, JLabelMatcher.withText(text));
     EditorNotificationPanel notificationPanel = (EditorNotificationPanel)label.getParent().getParent();
     return new EditorNotificationPanelFixture(myFrame, notificationPanel);
   }
@@ -565,7 +565,7 @@ public class EditorFixture {
    */
   @NotNull
   public ThemeEditorFixture getThemeEditor() {
-    return new ThemeEditorFixture(robot, GuiTests.waitUntilFound(robot, Matchers.byType(ThemeEditorComponent.class)));
+    return new ThemeEditorFixture(robot, waitUntilFound(robot, Matchers.byType(ThemeEditorComponent.class)));
   }
 
   @NotNull
