@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.fd.crash;
 
-import com.android.SdkConstants;
 import com.android.tools.analytics.Anonymizer;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.zip.ZipEntry;
@@ -152,9 +151,7 @@ public class GoogleCrash {
     // key names recognized by crash
     builder.addTextBody(KEY_PRODUCT_ID, "AndroidStudio");
     builder.addTextBody(KEY_VERSION, strictVersion);
-    builder.addTextBody("exception_info",
-                        "com.android.InstantRunException: Flight Recorder Information\n" +
-                        "\tat not.a.crash.FlightRecorder.report(FlightRecorder.java:500)");
+    builder.addTextBody("exception_info", getUniqueStackTrace());
     builder.addTextBody("user_report", issueText);
 
     if (ANONYMIZED_UID != null) {
@@ -186,6 +183,26 @@ public class GoogleCrash {
 
     post.setEntity(new GzipCompressingEntity(builder.build()));
     return post;
+  }
+
+  static String getUniqueStackTrace() {
+    StringBuilder sb = new StringBuilder(100);
+    sb.append("com.android.InstantRunException: Flight Recorder Information: ");
+    sb.append(System.currentTimeMillis());
+    sb.append('\n');
+    sb.append("\tat ");
+
+    int i = 0;
+    for (String u : Splitter.on('-').split(UUID.randomUUID().toString())) {
+      sb.append('p');
+      sb.append(u);
+      sb.append('.');
+    }
+    sb.append("FlightRecorder.report(Flight");
+    sb.append(System.currentTimeMillis());
+    sb.append("Recorder.java:500)");
+
+    return sb.toString();
   }
 
   private static void addFlightRecorderLogs(@NotNull MultipartEntityBuilder builder,
