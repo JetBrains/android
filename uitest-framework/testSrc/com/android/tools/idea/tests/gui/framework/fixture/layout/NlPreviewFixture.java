@@ -23,19 +23,30 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.impl.AnchoredButton;
+import org.fest.swing.core.ComponentDragAndDrop;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  * Fixture for the layout editor preview window
  */
 public class NlPreviewFixture extends ToolWindowFixture {
   private final DesignSurfaceFixture myDesignSurfaceFixture;
+  private ComponentDragAndDrop myDragAndDrop;
 
   public NlPreviewFixture(@NotNull Project project, @NotNull IdeFrameFixture frame, @NotNull Robot robot) {
     super("Preview", project, robot);
     myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, GuiTests.waitUntilShowing(robot, Matchers.byType(DesignSurface.class)));
+    myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
   @NotNull
@@ -45,9 +56,36 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return new NlConfigurationToolbarFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(DesignSurface.class)), toolbar);
   }
 
-  public void waitForRenderToFinish() {
+  @NotNull
+  public NlPreviewFixture openPalette() {
+    // Check if the palette is already open
+    try {
+      myRobot.finder().findByName("Palette Tree", JTree.class, true);
+    } catch (ComponentLookupException e) {
+      myRobot.click(myRobot.finder().find(new GenericTypeMatcher<AnchoredButton>(AnchoredButton.class) {
+        @Override
+        protected boolean isMatching(@Nonnull AnchoredButton component) {
+          return component.isShowing() && "Palette".equals(component.getText());
+        }
+      }));
+    }
+
+    return this;
+  }
+
+  @NotNull
+  public NlPreviewFixture dragComponentToSurface(@NotNull String path) {
+    openPalette();
+    JTree tree = myRobot.finder().findByName("Palette Tree", JTree.class, true);
+    new JTreeFixture(myRobot, tree).drag(path);
+    myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
+    return this;
+  }
+
+  public NlPreviewFixture waitForRenderToFinish() {
     waitUntilIsVisible();
     myDesignSurfaceFixture.waitForRenderToFinish();
+    return this;
   }
 
   public boolean hasRenderErrors() {
@@ -61,5 +99,14 @@ public class NlPreviewFixture extends ToolWindowFixture {
   @NotNull
   public NlComponentFixture findView(@NotNull String tag, int occurrence) {
     return myDesignSurfaceFixture.findView(tag, occurrence);
+  }
+
+  public void requireSelection(@NotNull List<NlComponentFixture> components) {
+    myDesignSurfaceFixture.requireSelection(components);
+  }
+
+  @NotNull
+  public List<NlComponentFixture> getAllComponents() {
+    return myDesignSurfaceFixture.getAllComponents();
   }
 }
