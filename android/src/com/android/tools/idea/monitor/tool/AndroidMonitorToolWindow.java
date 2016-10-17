@@ -455,8 +455,12 @@ public class AndroidMonitorToolWindow implements Disposable {
       myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
                              new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     }
+
+    int processId = mySelectedClient.getClientData().getPid();
+    mySelectedDeviceProfilerService.setSelectedProcessId(processId);
+
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-      manager.startMonitoring(mySelectedClient.getClientData().getPid());
+      manager.startMonitoring(processId);
     }
 
     populateProfilerUi();
