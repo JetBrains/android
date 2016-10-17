@@ -16,46 +16,40 @@
 
 package com.android.tools.idea.diagnostics.error;
 
+import com.android.tools.idea.diagnostics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Consumer;
-import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static com.android.tools.idea.diagnostics.error.AnonymousFeedback.sendFeedback;
-
-public class AnonymousFeedbackTask extends Task.Backgroundable {
+public class SubmitCrashReportTask extends Task.Backgroundable {
   private final Consumer<String> myCallback;
   private final Consumer<Exception> myErrorCallback;
   private final Throwable myThrowable;
   private final Map<String, String> myParams;
-  private final String myErrorMessage;
-  private final String myErrorDescription;
-  private final String myAppVersion;
 
-  public AnonymousFeedbackTask(@Nullable Project project,
+  public SubmitCrashReportTask(@Nullable Project project,
                                @NotNull String title,
                                boolean canBeCancelled,
                                @Nullable Throwable throwable,
-                               Map<String, String> params,
-                               String errorMessage,
-                               String errorDescription,
-                               String appVersion,
-                               final Consumer<String> callback,
-                               final Consumer<Exception> errorCallback) {
+                               @NotNull Map<String, String> params,
+                               @NotNull final Consumer<String> callback,
+                               @NotNull final Consumer<Exception> errorCallback) {
     super(project, title, canBeCancelled);
 
     myThrowable = throwable;
     myParams = params;
-    myErrorMessage = errorMessage;
-    myErrorDescription = errorDescription;
-    myAppVersion = appVersion;
     myCallback = callback;
     myErrorCallback = errorCallback;
   }
@@ -63,20 +57,29 @@ public class AnonymousFeedbackTask extends Task.Backgroundable {
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
+
+    CrashReport report = CrashReport.Builder.createForException(myThrowable)
+      .addProductData(getProductData())
+      .build();
+    CompletableFuture<String> future = CrashReporter.getInstance().submit(report);
+
     try {
-      String token = sendFeedback(new ProxyHttpConnectionFactory(), myThrowable, myParams,
-                                  myErrorMessage, myErrorDescription, myAppVersion);
+      String token = future.get(20, TimeUnit.SECONDS); // arbitrary limit, we don't really want an error report task to take longer
       myCallback.consume(token);
     }
-    catch (Exception e) {
+    catch (InterruptedException | ExecutionException | TimeoutException e) {
       myErrorCallback.consume(e);
     }
   }
 
-  private static class ProxyHttpConnectionFactory extends AnonymousFeedback.HttpConnectionFactory {
-    @Override
-    protected HttpURLConnection openHttpConnection(String path) throws IOException {
-      return HttpConfigurable.getInstance().openHttpConnection(path);
-    }
+  @NotNull
+  private Map<String, String> getProductData() {
+    ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
+
+    myParams.forEach((k, v) -> {
+      builder.put(k, StringUtil.notNullize(v));
+    });
+
+    return builder.build();
   }
 }
