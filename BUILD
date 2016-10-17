@@ -80,7 +80,6 @@ iml_module(
         "android/gen",
         "designer/src",
     ],
-    javacopts = ["-extra_checks:off"],
     resources = ["designer/resources"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
