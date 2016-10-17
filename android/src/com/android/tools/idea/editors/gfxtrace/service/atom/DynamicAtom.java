@@ -26,12 +26,14 @@ public class DynamicAtom extends Atom {
   @NotNull private final AtomMetadata myMetadata;
   @Nullable private final Observations myObservations;
 
+  private static final Object[] EMPTY_OBJECT_ARRAY = {};
+
   public DynamicAtom(Dynamic value) {
     myValue = value;
     myMetadata = AtomMetadata.find(value.type());
     if (myMetadata.myExtrasIndex >= 0) {
       myObservations = getObservations(getFieldValue(myMetadata.myExtrasIndex));
-      myValue.setFieldValue(myMetadata.myExtrasIndex, null); // Dump the extras to save RAM.
+      myValue.setFieldValue(myMetadata.myExtrasIndex, EMPTY_OBJECT_ARRAY); // Dump the extras to save RAM.
     }
     else {
       myObservations = null;
