@@ -137,7 +137,6 @@ public class CreateNewClassDialogGuiTest {
     assertDeclaration(THING_FILE_PATH_0, declaration, kind);
   }
 
-  @Ignore("failing consistently with error: File already exists.")
   private void createWithTwoInterfaces(Kind kind) throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
@@ -360,6 +359,7 @@ public class CreateNewClassDialogGuiTest {
     createWithOneInterface(Kind.INTERFACE);
   }
 
+  @Ignore("failing consistently with error: File already exists.")
   @Test
   public void createInterfaceWithTwoInterfaces() throws IOException {
     createWithTwoInterfaces(Kind.INTERFACE);
