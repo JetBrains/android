@@ -42,9 +42,10 @@ public interface ToolContent<T> extends Disposable {
   JComponent getComponent();
 
   /**
-   * Request focus on this component.
+   * Request the component that should receive focus initially.
    */
-  void requestFocus();
+  @NotNull
+  JComponent getFocusedComponent();
 
   /**
    * @return the actions to be added to the top of the gear dropdown.
@@ -57,4 +58,9 @@ public interface ToolContent<T> extends Disposable {
    */
   @NotNull
   List<AnAction> getAdditionalActions();
+
+  /**
+   * The tool window system will register a callback for closing a tool window in auto hide mode.
+   */
+  void registerCloseAutoHideWindow(@NotNull Runnable runnable);
 }
