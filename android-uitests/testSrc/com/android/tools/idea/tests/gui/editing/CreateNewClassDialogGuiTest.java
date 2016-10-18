@@ -359,7 +359,6 @@ public class CreateNewClassDialogGuiTest {
     createWithOneInterface(Kind.INTERFACE);
   }
 
-  @Ignore("failing consistently with error: File already exists.")
   @Test
   public void createInterfaceWithTwoInterfaces() throws IOException {
     createWithTwoInterfaces(Kind.INTERFACE);
@@ -476,6 +475,7 @@ public class CreateNewClassDialogGuiTest {
   }
 
   // Overrides dialog tests.
+  @Ignore("Causes next test method to fail with error: File already exists.")
   @Test
   public void showOverridesDialog() throws IOException {
     CreateFileFromTemplateDialogFixture newFileDialog = invokeNewFileDialog();
