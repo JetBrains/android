@@ -333,7 +333,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * that list is empty or does not contain any element of type {@code clazz}.
    */
   @Nullable
-  public <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
+  public <E> List<GradleNotNullValue<E>> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList != null) {
       return gradleDslExpressionList.getValues(clazz);

@@ -28,6 +28,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
+import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 
 public enum AndroidPluginGeneration {
   ORIGINAL {
@@ -148,7 +149,7 @@ public enum AndroidPluginGeneration {
     // Now look at the applied plugins in the build.gradle file.
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
-      List<String> appliedPlugins = buildModel.appliedPlugins();
+      List<String> appliedPlugins = getValues(buildModel.appliedPlugins());
       for (AndroidPluginGeneration generation : values()) {
         if (appliedPlugins.contains(generation.getApplicationPluginId()) || appliedPlugins.contains(generation.getLibraryPluginId())) {
           return generation;
