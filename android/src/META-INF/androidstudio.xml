@@ -69,6 +69,7 @@
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                         overrides="true"/>
+    <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
   </extensions>
 
 </idea-plugin>
