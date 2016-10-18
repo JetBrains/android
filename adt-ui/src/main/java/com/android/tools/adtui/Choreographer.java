@@ -103,6 +103,7 @@ public class Choreographer implements ActionListener {
    * choreographer that is bound to that component's visibility. This can be safely removed once
    * all the legacy AnimatedComponents in Studio has been replaced by the new UI.
    */
+  @Deprecated
   public static void animate(final AnimatedComponent component) {
     final Choreographer choreographer = new Choreographer(30, component);
     choreographer.register(component);
