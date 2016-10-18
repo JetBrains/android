@@ -59,7 +59,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     JBList list = myRobot.finder().findByType(myDialog, JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), list);
     jListFixture.replaceCellReader(CONFIGURATION_CELL_READER);
-    jListFixture.selectItem(item);
+    jListFixture.clickItem(item);
     return this;
   }
 
