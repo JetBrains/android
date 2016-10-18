@@ -22,14 +22,12 @@ import java.util.Arrays;
 
 public final class TimingFlags extends BitField<TimingFlags> {
   public static final Bit<TimingFlags> TimingCPU = new Bit<TimingFlags>(0, "TimingCPU");
-  public static final Bit<TimingFlags> TimingGPU = new Bit<TimingFlags>(1, "TimingGPU");
   public static final Bit<TimingFlags> TimingPerCommand = new Bit<TimingFlags>(2, "TimingPerCommand");
   public static final Bit<TimingFlags> TimingPerDrawCall = new Bit<TimingFlags>(4, "TimingPerDrawCall");
   public static final Bit<TimingFlags> TimingPerFrame = new Bit<TimingFlags>(8, "TimingPerFrame");
 
   private static final ImmutableList<Bit<TimingFlags>> ALL_BITS = ImmutableList.<Bit<TimingFlags>>builder()
     .add(TimingCPU)
-    .add(TimingGPU)
     .add(TimingPerCommand)
     .add(TimingPerDrawCall)
     .add(TimingPerFrame)
