@@ -133,7 +133,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
   }
 

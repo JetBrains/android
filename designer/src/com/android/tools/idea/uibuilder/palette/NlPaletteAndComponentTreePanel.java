@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.editor.PaletteToolWindow;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.structure.ToggleBoundsVisibility;
@@ -23,8 +24,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
-import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
@@ -50,15 +49,20 @@ public class NlPaletteAndComponentTreePanel extends JPanel implements PaletteToo
   private final NlComponentTree myComponentTree;
 
   public NlPaletteAndComponentTreePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
-    myPalette = new NlPalettePanel(project, designSurface);
-    myComponentTree = new NlComponentTree(designSurface);
-    JComponent componentTree = createComponentTree(myComponentTree);
+    this(new NlPalettePanel(project, designSurface), new NlComponentTree(designSurface));
+  }
+
+  @VisibleForTesting
+  NlPaletteAndComponentTreePanel(@NotNull NlPalettePanel palettePanel, @NotNull NlComponentTree componentTree) {
+    myPalette = palettePanel;
+    myComponentTree = componentTree;
+    JComponent componentTreePanel = createComponentTree(myComponentTree);
 
     Splitter splitter = new Splitter(true, 0.6f);
     splitter.setShowDividerIcon(false);
     splitter.setResizeEnabled(true);
     splitter.setFirstComponent(myPalette);
-    splitter.setSecondComponent(componentTree);
+    splitter.setSecondComponent(componentTreePanel);
 
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
@@ -119,8 +123,7 @@ public class NlPaletteAndComponentTreePanel extends JPanel implements PaletteToo
         group.add(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myComponentTree));
       }
 
-      ActionPopupMenu popupMenu = ((ActionManagerImpl)ActionManager.getInstance()).createActionPopupMenu(
-        ToolWindowContentUi.POPUP_PLACE, group, new MenuItemPresentationFactory(true));
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, group);
       popupMenu.getComponent().show(component, x, y);
     }
   }

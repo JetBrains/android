@@ -28,6 +28,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.impl.ComponentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -53,6 +54,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -349,5 +351,21 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myProjectType = projectType;
       myIsMainModuleDependency = isMainModuleDependency;
     }
+  }
+
+  @NotNull
+  protected <T> T registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) throws Exception {
+    ComponentManagerImpl componentManager = (ComponentManagerImpl)ApplicationManager.getApplication();
+    return componentManager.registerComponentInstance(key, instance);
+  }
+
+  @NotNull
+  protected <T> T registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
+    MutablePicoContainer picoContainer = (MutablePicoContainer)getProject().getPicoContainer();
+    @SuppressWarnings("unchecked")
+    T old = (T)picoContainer.getComponentInstance(key.getName());
+    picoContainer.unregisterComponent(key.getName());
+    picoContainer.registerComponentInstance(key.getName(), instance);
+    return old;
   }
 }

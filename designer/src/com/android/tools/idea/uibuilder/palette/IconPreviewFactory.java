@@ -38,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -181,8 +182,6 @@ public class IconPreviewFactory {
     }
     try {
       return ImageIO.read(file);
-    }
-    catch (IOException ignore) {
     }
     catch (Throwable ignore) {
       // corrupt cached image, e.g. I've seen
@@ -328,11 +327,9 @@ public class IconPreviewFactory {
     String theme = configuration.getTheme();
     if (theme == null) {
       theme = DEFAULT_THEME;
-    } else if (theme.startsWith(STYLE_RESOURCE_PREFIX)) {
-      theme = theme.substring(STYLE_RESOURCE_PREFIX.length());
-    } else if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
-      theme = theme.substring(ANDROID_STYLE_RESOURCE_PREFIX.length());
     }
+    theme = StringUtil.trimStart(theme, STYLE_RESOURCE_PREFIX);
+    theme = StringUtil.trimStart(theme, ANDROID_STYLE_RESOURCE_PREFIX);
     return theme;
   }
 

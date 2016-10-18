@@ -33,13 +33,13 @@ import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class ItemTransferHandler extends TransferHandler {
+  private final DesignSurface myDesignSurface;
   private final Supplier<Palette.Item> myItemSupplier;
-  private final Supplier<DesignSurface> mySurfaceSupplier;
 
-  public ItemTransferHandler(@NotNull Supplier<Palette.Item> itemSupplier,
-                             @NotNull Supplier<DesignSurface> surfaceSupplier) {
+  public ItemTransferHandler(@NotNull DesignSurface designSurface,
+                             @NotNull Supplier<Palette.Item> itemSupplier) {
+    myDesignSurface = designSurface;
     myItemSupplier = itemSupplier;
-    mySurfaceSupplier = surfaceSupplier;
   }
 
   @Override
@@ -54,11 +54,7 @@ public class ItemTransferHandler extends TransferHandler {
     if (item == null) {
       return null;
     }
-    DesignSurface designSurface = mySurfaceSupplier.get();
-    if (designSurface == null) {
-      return null;
-    }
-    ScreenView screenView = designSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentScreenView();
     if (screenView == null) {
       return null;
     }
@@ -69,7 +65,7 @@ public class ItemTransferHandler extends TransferHandler {
     BufferedImage image = iconFactory.renderDragImage(item, screenView);
     if (image != null) {
       size = new Dimension(image.getWidth(), image.getHeight());
-      double scale = designSurface.getScale();
+      double scale = myDesignSurface.getScale();
       image = ImageUtils.scale(image, scale);
     }
     else {
@@ -82,7 +78,7 @@ public class ItemTransferHandler extends TransferHandler {
       icon.paintIcon(component, g2, 0, 0);
       g2.dispose();
 
-      double scale = designSurface.getScale();
+      double scale = myDesignSurface.getScale();
       size = new Dimension((int)(image.getWidth() / scale), (int)(image.getHeight() / scale));
     }
     setDragImage(image);
