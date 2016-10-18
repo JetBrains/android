@@ -14,11 +14,11 @@
     <orderEntry type="module-library" exported="">
       <library name="android-sdk-tools-jps">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../lib/jarutils.jar!/" />
+          <root url="jar://$MODULE_DIR$/../android/lib/jarutils.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../lib/src/jarutils.zip!/src" />
+          <root url="jar://$MODULE_DIR$/../android/lib/src/jarutils.zip!/src" />
         </SOURCES>
       </library>
     </orderEntry>
