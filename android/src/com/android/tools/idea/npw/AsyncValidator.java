@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.ui.ExpensiveTask;
 import com.intellij.openapi.application.Application;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,10 +42,7 @@ import org.jetbrains.annotations.NotNull;
  *                        Note that that data may be dropped if invalidate()
  *                        was called at some point while the UI thread task
  *                        was pending.
- *
- * @deprecated Use {@link ExpensiveTask.Runner} instead.
  */
-@Deprecated
 public abstract class AsyncValidator<V> {
   @NotNull private final Application myApplication;
   private final ResultReporter myResultReporter = new ResultReporter();
