@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
@@ -36,13 +38,18 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
+  private final Project myProject;
   private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
   private final NlPaletteTreeGrid myPalettePanel;
+  private final DependencyManager myDependencyManager;
+  private DesignSurface myDesignSurface;
 
   public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
-    myPalettePanel = new NlPaletteTreeGrid(project);
-    myPreviewPane = new NlPreviewPanel();
+    myProject = project;
+    myDependencyManager = new DependencyManager(project, this, this);
+    myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager);
+    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(myDependencyManager));
     myCopyProvider = new CopyProviderImpl();
     myPalettePanel.setSelectionListener(myPreviewPane);
 
@@ -62,8 +69,25 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    myPalettePanel.setDesignSurface(designSurface);
     myPreviewPane.setDesignSurface(designSurface);
+    DesignSurface oldDesignSurface = myDesignSurface;
+    myDesignSurface = designSurface;
+    Module module = getModule(designSurface);
+    if (designSurface != null && module != null &&
+        (oldDesignSurface == null || designSurface.getLayoutType() != oldDesignSurface.getLayoutType())) {
+      NlPaletteModel model = NlPaletteModel.get(myProject);
+      Palette palette = model.getPalette(myDesignSurface.getLayoutType());
+      myPalettePanel.populateUiModel(palette, designSurface);
+      myDependencyManager.setPalette(palette, module);
+      repaint();
+    }
+  }
+
+  @Nullable
+  private static Module getModule(@Nullable DesignSurface designSurface) {
+    Configuration configuration =
+      designSurface != null && designSurface.getLayoutType().isSupportedByDesigner() ? designSurface.getConfiguration() : null;
+    return configuration != null ? configuration.getModule() : null;
   }
 
   @NotNull
@@ -77,7 +101,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
 
   @Override
   public void dispose() {
-    Disposer.dispose(myPalettePanel);
     Disposer.dispose(myPreviewPane);
   }
 
@@ -92,7 +115,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
     @Override
     public void performCopy(@NotNull DataContext dataContext) {
       Palette.Item item = myPalettePanel.getSelectedItem();
-      if (item != null && !myPalettePanel.needsLibraryLoad(item)) {
+      if (item != null && !myDependencyManager.needsLibraryLoad(item)) {
         DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
         CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
       }
@@ -101,7 +124,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
     @Override
     public boolean isCopyEnabled(@NotNull DataContext dataContext) {
       Palette.Item item = myPalettePanel.getSelectedItem();
-      return item != null && !myPalettePanel.needsLibraryLoad(item);
+      return item != null && !myDependencyManager.needsLibraryLoad(item);
     }
 
     @Override

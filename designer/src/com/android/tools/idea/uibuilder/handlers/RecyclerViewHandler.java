@@ -40,7 +40,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return RECYCLER_VIEW_LIB_ARTIFACT;
   }
 }

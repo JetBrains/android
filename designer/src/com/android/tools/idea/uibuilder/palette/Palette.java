@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -52,11 +51,11 @@ public class Palette {
   private final List<BaseItem> myItems;
   // @formatter:on
 
-  private final Set<GradleCoordinate> myGradleCoordinates;
+  private final Set<String> myGradleCoordinateIds;
 
   private Palette() {
     myItems = new ArrayList<>();
-    myGradleCoordinates = new HashSet<>();
+    myGradleCoordinateIds = new HashSet<>();
   }
 
   /**
@@ -65,7 +64,7 @@ public class Palette {
   public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
     palette.accept(item -> item.resolve(manager));
-    palette.accept(item -> item.addGradleCoordinate(palette.myGradleCoordinates));
+    palette.accept(item -> item.addGradleCoordinateId(palette.myGradleCoordinateIds));
     palette.setParentGroups();
     return palette;
   }
@@ -88,8 +87,8 @@ public class Palette {
   }
 
   @NotNull
-  Set<GradleCoordinate> getGradleCoordinates() {
-    return myGradleCoordinates;
+  Set<String> getGradleCoordinateIds() {
+    return myGradleCoordinateIds;
   }
 
   private static Palette unMarshal(@NotNull Reader xmlReader) throws JAXBException {
@@ -227,7 +226,7 @@ public class Palette {
 
     @XmlAttribute(name = "coordinate")
     @Nullable
-    private String myGradleCoordinate;
+    private String myGradleCoordinateId;
 
     @XmlAttribute(name = "scale")
     @Nullable
@@ -300,11 +299,11 @@ public class Palette {
     }
 
     @Nullable
-    public String getGradleCoordinate() {
-      if (myGradleCoordinate != null) {
-        return myGradleCoordinate;
+    public String getGradleCoordinateId() {
+      if (myGradleCoordinateId != null) {
+        return myGradleCoordinateId;
       }
-      return myHandler.getGradleCoordinate(myTagName);
+      return myHandler.getGradleCoordinateId(myTagName);
     }
 
     @NotNull
@@ -378,15 +377,11 @@ public class Palette {
       }
     }
 
-    private void addGradleCoordinate(@NotNull Set<GradleCoordinate> coordinates) {
-      String coordinateAsString = getGradleCoordinate();
+    private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
+      String coordinateId = getGradleCoordinateId();
 
-      if (!Strings.isNullOrEmpty(coordinateAsString)) {
-        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateAsString + ":+");
-
-        if (coordinate != null) {
-          coordinates.add(coordinate);
-        }
+      if (!Strings.isNullOrEmpty(coordinateId)) {
+        coordinateIds.add(coordinateId);
       }
     }
 

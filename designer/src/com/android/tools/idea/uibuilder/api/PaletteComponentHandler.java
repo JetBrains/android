@@ -45,7 +45,7 @@ public abstract class PaletteComponentHandler {
   public static final String NO_PREVIEW = "";
 
   /**
-   * A special value returned from {@link #getGradleCoordinate} to indicate that this
+   * A special value returned from {@link #getGradleCoordinateId} to indicate that this
    * component is included in the SDK platform.
    */
   public static final String IN_PLATFORM = "";
@@ -87,16 +87,16 @@ public abstract class PaletteComponentHandler {
   }
 
   /**
-   * Returns the Gradle coordinate (ex. "com.android.support:support-v4") of the library
+   * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
    * this component belongs to. The palette will use this information to provide a download
    * link if the library is not present in the project dependencies.<br>
    *
    * The value {@link #IN_PLATFORM} means the component is included in the SDK platform.
    *
-   * @return the Gradle Coordinate of the library this component belongs to
+   * @return the Gradle Coordinate ID of the library this component belongs to
    */
   @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return getBuiltinCoordinate(tagName);
   }
 
@@ -162,13 +162,7 @@ public abstract class PaletteComponentHandler {
     g2.scale(24.0 / icon.getIconWidth(), 24.0 / icon.getIconHeight());
     icon.paintIcon(null, g2, 0, 0);
     g2.dispose();
-    if (UIUtil.isRetina()) {
-      BufferedImage retina = ImageUtils.convertToRetina(image);
-      if (retina != null) {
-        image = retina;
-      }
-    }
-    return new JBImageIcon(image);
+    return new JBImageIcon(ImageUtils.convertToRetinaIgnoringFailures(image));
   }
 
   @NotNull

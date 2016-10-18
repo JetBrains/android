@@ -137,6 +137,17 @@ public class ImageUtils {
     }
   }
 
+  @NotNull
+  public static BufferedImage convertToRetinaIgnoringFailures(@NotNull BufferedImage image) {
+    if (supportsRetina()) {
+      BufferedImage retina = convertToRetina(image);
+      if (retina != null) {
+        return retina;
+      }
+    }
+    return image;
+  }
+
   public static void drawDipImage(Graphics g, Image image,
                                   int dx1, int dy1, int dx2, int dy2,
                                   int sx1, int sy1, int sx2, int sy2,
