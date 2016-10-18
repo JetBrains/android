@@ -79,6 +79,13 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     RepaintManager.setCurrentManager(myRepaintManager);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    RepaintManager.setCurrentManager(null);
+    reset(myRepaintManager);
+  }
+
   public void testSetItemInvalidatesUI() {
     myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), TEXT_VIEW));
     verify(myRepaintManager).addDirtyRegion(myPanel, 0, 0, WIDTH, HEIGHT);
