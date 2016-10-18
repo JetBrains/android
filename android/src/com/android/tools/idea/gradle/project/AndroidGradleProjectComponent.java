@@ -200,8 +200,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
     myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
-    enforceExternalBuild(myProject);
-
     List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes = new ArrayList<>();
     runConfigurationProducerTypes.add(AllInPackageGradleConfigurationProducer.class);
     runConfigurationProducerTypes.add(TestClassGradleConfigurationProducer.class);
