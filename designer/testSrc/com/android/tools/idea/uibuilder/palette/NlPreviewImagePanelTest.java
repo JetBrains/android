@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -84,6 +85,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     super.tearDown();
     RepaintManager.setCurrentManager(null);
     reset(myRepaintManager);
+    Disposer.dispose(mySurface);
   }
 
   public void testSetItemInvalidatesUI() {
