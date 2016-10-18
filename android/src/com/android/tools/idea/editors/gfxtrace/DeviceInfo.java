@@ -38,6 +38,7 @@ import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.animator.ObjectAnimator;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,6 +62,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class DeviceInfo {
   public final Package[] myPackages;
+
+  /**
+   * Fetching device information will synchronize on this to avoid race conditions
+   * if the user closes the dialog while fetching.
+   */
+  private final static Object myFetchLock = new Object();
 
   public interface Listener {
     void onDeviceInfoReceived(DeviceInfo info);
@@ -329,24 +336,26 @@ public class DeviceInfo {
           }
         }
 
-        try {
-          installApk();
-
+        synchronized (myFetchLock) {
           try {
-            myDevice.createForward(LOCAL_PORT, REMOTE_SOCKET, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            installApk();
+
             try {
-              requestAndReadResponseAndUpdateListener();
+              myDevice.createForward(LOCAL_PORT, REMOTE_SOCKET, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+              try {
+                requestAndReadResponseAndUpdateListener();
+              }
+              finally {
+                myDevice.removeForward(LOCAL_PORT, REMOTE_SOCKET, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+              }
             }
             finally {
-              myDevice.removeForward(LOCAL_PORT, REMOTE_SOCKET, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+              uninstallApk();
             }
           }
-          finally {
-            uninstallApk();
+          catch (Exception ex) {
+            myAcceptor.onException(ex);
           }
-        }
-        catch (Exception ex) {
-          myAcceptor.onException(ex);
         }
       }
 
