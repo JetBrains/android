@@ -31,10 +31,11 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
 
@@ -154,13 +155,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
 
-  protected void verifyGradleValue(@NotNull GradleValue gradleValue,
+  protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
                                    @NotNull String propertyName,
                                    @NotNull String propertyText) {
     verifyGradleValue(gradleValue, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
   }
 
-  public static void verifyGradleValue(@NotNull GradleValue gradleValue,
+  public static void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
                                        @NotNull String propertyName,
                                        @NotNull String propertyText,
                                        @NotNull String propertyFilePath) {
@@ -172,12 +173,22 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(propertyText, gradleValue.getDslText());
   }
 
-  public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleNullableValue<T> actual) {
+  public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleValue<T> actual) {
     assertEquals(message, expected, actual.value());
   }
 
-  public static <T> void assertEquals(@Nullable T expected, @NotNull GradleNullableValue<T> actual) {
+  public static <T> void assertEquals(@Nullable T expected, @NotNull GradleValue<T> actual) {
     assertEquals(expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
+    assertNotNull(message, actual);
+    assertWithMessage(message).that(GradleValue.getValues(actual)).containsExactlyElementsIn(expected);
+  }
+
+  public static <T> void assertEquals(@NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
+    assertNotNull(actual);
+    assertThat(GradleValue.getValues(actual)).containsExactlyElementsIn(expected);
   }
 
   public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {

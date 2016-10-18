@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -143,17 +144,17 @@ public class FileTreeDependencyModel extends DependencyModel {
   }
 
   @NotNull
-  public List<String> include() {
+  public List<GradleNotNullValue<String>> includes() {
     return getStringValues(myIncludeElement);
   }
 
   @NotNull
-  public List<String> exclude() {
+  public List<GradleNotNullValue<String>> excludes() {
     return getStringValues(myExcludeElement);
   }
 
   @NotNull
-  private static List<String> getStringValues(@Nullable GradleDslElement expressionOrList) {
+  private static List<GradleNotNullValue<String>> getStringValues(@Nullable GradleDslElement expressionOrList) {
     if (expressionOrList instanceof GradleDslExpressionList) {
       return ((GradleDslExpressionList)expressionOrList).getValues(String.class);
     }
@@ -161,7 +162,7 @@ public class FileTreeDependencyModel extends DependencyModel {
     if (expressionOrList instanceof GradleDslExpression) {
       String value = ((GradleDslExpression)expressionOrList).getValue(String.class);
       if (value != null) {
-        return Collections.singletonList(value);
+        return Collections.singletonList(new GradleNotNullValue<>(expressionOrList, value));
       }
     }
 

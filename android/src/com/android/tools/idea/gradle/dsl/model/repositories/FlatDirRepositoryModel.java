@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,9 +51,13 @@ public class FlatDirRepositoryModel extends RepositoryModel {
 
   @NotNull
   public List<String> dirs() {
-    List<String> dirs = myDslElement.getListProperty(DIRS, String.class);
+    List<GradleNotNullValue<String>> dirs = myDslElement.getListProperty(DIRS, String.class);
     if (dirs != null) {
-      return dirs;
+      List<String> dirValues = new ArrayList<>(dirs.size());
+      for (GradleNotNullValue<String> dir : dirs) {
+        dirValues.add(dir.value());
+      }
+      return dirValues;
     }
 
     String dir = myDslElement.getLiteralProperty(DIRS, String.class).value();
