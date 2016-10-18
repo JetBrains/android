@@ -246,7 +246,6 @@ public class PostProjectSetupTasksExecutor {
       }
       ensureValidSdks();
     });
-    enforceExternalBuild(myProject);
 
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 

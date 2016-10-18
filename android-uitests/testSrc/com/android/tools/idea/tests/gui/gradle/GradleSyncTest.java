@@ -372,30 +372,6 @@ public class GradleSyncTest {
   }
 
   @Test
-  @Ignore("http://b.android.com/203384")
-  // See https://code.google.com/p/android/issues/detail?id=72294
-  public void withEmptyGradleSettingsFileInMultiModuleProject() throws IOException {
-    guiTest.importSimpleApplication();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    createEmptyGradleSettingsFile(ideFrame.getProjectPath());
-
-    // Sync should be successful for multi-module projects with an empty settings.gradle file.
-    ideFrame.requestProjectSync();
-    ideFrame.waitForGradleProjectSyncToFinish();
-  }
-
-  private static void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
-    File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
-    delete(settingsFilePath);
-    writeToFile(settingsFilePath, " ");
-    assertAbout(file()).that(settingsFilePath).isFile();
-
-    // Refresh file content
-    findFileByIoFile(settingsFilePath, true);
-  }
-
-  @Test
   @Ignore("http://b.android.com/218578")
   public void gradleDslMethodNotFoundInBuildFile() throws IOException {
     guiTest.importSimpleApplication();
