@@ -38,6 +38,8 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
@@ -51,6 +53,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+
+import java.util.Arrays;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -75,8 +79,25 @@ public class InstantRunConfigurable
   private HyperlinkLabel myReenableLink;
   private JPanel myHelpGooglePanel;
   private JBLabel myHavingTroubleLabel;
+  private JComboBox<IrUiExperiment> myInstantRunUiCombo;
 
   public InstantRunConfigurable() {
+    myInstantRunUiCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(
+      IrUiExperiment.DEFAULT,
+      IrUiExperiment.HOTSWAP,
+      IrUiExperiment.STOP_AND_RUN
+    )));
+    myInstantRunUiCombo.setRenderer(new ColoredListCellRenderer<IrUiExperiment>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList<? extends IrUiExperiment> list,
+                                           IrUiExperiment value,
+                                           int index,
+                                           boolean selected,
+                                           boolean hasFocus) {
+        append(value.displayText);
+      }
+    });
+
     myExtraInfoHyperlink.setHtmlText("Learn more about <a href=\"more\">what is logged</a>,");
     myExtraInfoHyperlink.addHyperlinkListener(e -> BrowserUtil.browse("https://developer.android.com/r/studio-ui/ir-flight-recorder.html"));
 
@@ -137,7 +158,8 @@ public class InstantRunConfigurable
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
            myBuildConfiguration.SHOW_TOAST != isShowToast() ||
            myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications() ||
-           myBuildConfiguration.ENABLE_RECORDER != isEnableRecorder();
+           myBuildConfiguration.ENABLE_RECORDER != isEnableRecorder() ||
+           myBuildConfiguration.IR_UI_EXPERIMENT != getIrUiExperiment();
   }
 
   @Override
@@ -147,6 +169,7 @@ public class InstantRunConfigurable
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
     myBuildConfiguration.ENABLE_RECORDER = isEnableRecorder();
+    myBuildConfiguration.IR_UI_EXPERIMENT = getIrUiExperiment();
   }
 
   @Override
@@ -156,6 +179,7 @@ public class InstantRunConfigurable
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
     myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
+    myInstantRunUiCombo.setSelectedItem(myBuildConfiguration.IR_UI_EXPERIMENT);
   }
 
   @Override
@@ -180,6 +204,10 @@ public class InstantRunConfigurable
 
   private boolean isEnableRecorder() {
     return myEnableRecorder.isSelected();
+  }
+
+  private IrUiExperiment getIrUiExperiment() {
+    return (IrUiExperiment)myInstantRunUiCombo.getSelectedItem();
   }
 
   private void createUIComponents() {
