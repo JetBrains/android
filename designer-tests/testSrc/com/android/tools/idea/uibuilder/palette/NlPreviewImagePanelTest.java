@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
-import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
@@ -53,7 +52,6 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
   private DesignSurface mySurface;
   private NlPreviewImagePanel myPanel;
   private DependencyManager myDependencyManager;
-  private IconPreviewFactory myIconPreviewFactory;
   private RepaintManager myRepaintManager;
   private VirtualFile myFile;
 
@@ -62,15 +60,16 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     super.setUp();
     myFile = myFixture.copyFileToProject(BASE_PATH + "colors.xml", "res/values/colors.xml");
     NlModel model = createModel();
-    mySurface = new DesignSurface(getProject(), mock(DesignerEditorPanelFacade.class));
+    mySurface = new DesignSurface(getProject(), false);
     mySurface.setModel(model);
     myDependencyManager = mock(DependencyManager.class);
-    myIconPreviewFactory = mock(IconPreviewFactory.class);
+    IconPreviewFactory iconPreviewFactory = mock(IconPreviewFactory.class);
+    Runnable closeToolWindowCallback = mock(Runnable.class);
     //noinspection UndesirableClassUsage
     BufferedImage image = new BufferedImage(250, 50, TYPE_INT_ARGB);
     when(myDependencyManager.getProject()).thenReturn(getProject());
-    when(myIconPreviewFactory.renderDragImage(any(Palette.Item.class), any(ScreenView.class))).thenReturn(image);
-    myPanel = new NlPreviewImagePanel(myIconPreviewFactory, myDependencyManager);
+    when(iconPreviewFactory.renderDragImage(any(Palette.Item.class), any(ScreenView.class))).thenReturn(image);
+    myPanel = new NlPreviewImagePanel(iconPreviewFactory, myDependencyManager, closeToolWindowCallback);
     myPanel.setDesignSurface(mySurface);
     myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), BUTTON));
     myPanel.setSize(WIDTH, HEIGHT);
@@ -82,10 +81,14 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    super.tearDown();
-    RepaintManager.setCurrentManager(null);
-    reset(myRepaintManager);
-    Disposer.dispose(mySurface);
+    try {
+      RepaintManager.setCurrentManager(null);
+      reset(myRepaintManager);
+      Disposer.dispose(mySurface);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testSetItemInvalidatesUI() {

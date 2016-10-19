@@ -31,9 +31,11 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.function.Supplier;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -41,14 +43,18 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public class NlPaletteTreeGrid extends JPanel {
   private final Project myProject;
   private final DependencyManager myDependencyManager;
+  private final Runnable myCloseAutoHideCallback;
   private final JList<Palette.Group> myCategoryList;
   private final TreeGrid<Palette.Item> myTree;
   private PaletteMode myMode;
   private SelectionListener myListener;
 
-  public NlPaletteTreeGrid(@NotNull Project project, @NotNull DependencyManager dependencyManager) {
+  public NlPaletteTreeGrid(@NotNull Project project,
+                           @NotNull DependencyManager dependencyManager,
+                           @NotNull Runnable closeAutoHideCallback) {
     myProject = project;
     myDependencyManager = dependencyManager;
+    myCloseAutoHideCallback = closeAutoHideCallback;
     myMode = PaletteMode.ICON_AND_NAME;
     myTree = new TreeGrid<>();
     //noinspection unchecked
@@ -112,7 +118,7 @@ public class NlPaletteTreeGrid extends JPanel {
     AbstractTreeStructure provider = myCategoryList.getModel().getSize() == 1 ? new SingleListTreeProvider(myProject, palette)
                                                                               : new TreeProvider(myProject, palette);
     myTree.setModel(provider);
-    myTree.setTransferHandler(new ItemTransferHandler(designSurface, this::getSelectedItem));
+    myTree.setTransferHandler(new MyItemTransferHandler(designSurface, this::getSelectedItem));
     myTree.addMouseListener(createMouseListenerForLoadMissingDependency());
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     setMode(myMode);
@@ -162,6 +168,20 @@ public class NlPaletteTreeGrid extends JPanel {
   @NotNull
   public TreeGrid<Palette.Item> getComponentTree() {
     return myTree;
+  }
+
+  private class MyItemTransferHandler extends ItemTransferHandler {
+
+    public MyItemTransferHandler(@NotNull DesignSurface designSurface, @NotNull Supplier<Palette.Item> itemSupplier) {
+      super(designSurface, itemSupplier);
+    }
+
+    @Override
+    protected Transferable createTransferable(@NotNull JComponent component) {
+      Transferable transferable = super.createTransferable(component);
+      myCloseAutoHideCallback.run();
+      return transferable;
+    }
   }
 
   private static class MyCellRenderer extends ColoredListCellRenderer<Palette.Item> {

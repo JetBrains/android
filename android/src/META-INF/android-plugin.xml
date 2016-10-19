@@ -250,26 +250,6 @@
       <add-to-group group-id="GoToMenu" anchor="before" relative-to-action="GotoLine"/>
       <keyboard-shortcut first-keystroke="control G" keymap="$default"/>
     </action>
-    <action id="ShowInspector" class="com.android.tools.idea.uibuilder.actions.ShowInspectorAction" text="Show Inspector"
-            description="Show the property inspector">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift U"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift F9"/>
-    </action>
-    <action id="ShowProperties" class="com.android.tools.idea.uibuilder.actions.ShowAllPropertiesAction" text="Show All Properties"
-            description="Show all properties">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift O"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift F10"/>
-    </action>
-    <action id="ShowPalette" class="com.android.tools.idea.uibuilder.actions.ShowPaletteAction" text="Show Palette"
-            description="Show palette">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift P"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift F11"/>
-    </action>
-    <action id="ShowComponentPanel" class="com.android.tools.idea.uibuilder.actions.ShowComponentTreeAction" text="Show Components"
-            description="Show the structure pane">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift M"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift F12"/>
-    </action>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>

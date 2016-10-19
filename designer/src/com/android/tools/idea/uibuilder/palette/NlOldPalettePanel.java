@@ -22,6 +22,7 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -32,12 +33,9 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.uibuilder.editor.PaletteToolWindow;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.structure.NlComponentTree;
-import com.android.tools.idea.uibuilder.structure.ToggleBoundsVisibility;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -53,26 +51,17 @@ import com.intellij.ide.dnd.DnDSource;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.idea.IdeaApplication;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
-import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -87,7 +76,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -98,7 +86,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlOldPalettePanel extends JPanel
-  implements PaletteToolWindow, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
+  implements ToolContent<DesignSurface>, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
 
   private static final Insets INSETS = JBUI.insets(0, 6);
   private static final int ICON_SPACER = 4;
@@ -108,16 +96,14 @@ public class NlOldPalettePanel extends JPanel
   private final IconPreviewFactory myIconFactory;
   private final NlPaletteModel myModel;
   private final Set<String> myMissingLibraries;
-  private final Disposable myDisposable;
   private final DnDManager myDndManager;
   private final DnDSource myDndSource;
-
-  private final NlComponentTree myStructureTree;
 
   private DesignSurface myDesignSurface;
   private Mode myMode;
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
+  private Runnable myCloseCallback;
 
   public NlOldPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;
@@ -126,7 +112,6 @@ public class NlOldPalettePanel extends JPanel
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<>();
-    myDisposable = Disposer.newDisposable();
     myMode = Mode.ICON_AND_TEXT;
 
     myDndManager = DnDManager.getInstance();
@@ -134,38 +119,43 @@ public class NlOldPalettePanel extends JPanel
     myDndManager.registerSource(myDndSource, myPaletteTree);
     initTree();
     JScrollPane palettePane = ScrollPaneFactory.createScrollPane(myPaletteTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-
-    myStructureTree = new NlComponentTree(designSurface);
-    JComponent structurePane = createStructurePane(myStructureTree);
-
-    Splitter splitter = new Splitter(true, 0.6f);
-    splitter.setFirstComponent(palettePane);
-    splitter.setSecondComponent(structurePane);
+    palettePane.setBorder(BorderFactory.createEmptyBorder());
 
     setLayout(new BorderLayout());
-    add(splitter, BorderLayout.CENTER);
-    setDesignSurface(designSurface);
+    add(palettePane, BorderLayout.CENTER);
+    setToolContext(designSurface);
   }
 
   @NotNull
-  private static JComponent createStructurePane(@NotNull NlComponentTree structureTree) {
-    JPanel panel = new JPanel(new BorderLayout());
-    JBLabel label = new JBLabel("Component Tree");
-    label.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
-    label.setBorder(BorderFactory.createEmptyBorder(0, 5, 4, 10));
-    panel.add(label, BorderLayout.NORTH);
-    panel.add(ScrollPaneFactory.createScrollPane(structureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
-    return panel;
+  @Override
+  public JComponent getComponent() {
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getFocusedComponent() {
+    return myPaletteTree;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getGearActions() {
+    List<AnAction> actions = new ArrayList<>();
+    actions.add(new ToggleModeAction(this, Mode.ICON_AND_TEXT));
+    actions.add(new ToggleModeAction(this, Mode.PREVIEW));
+    return actions;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getAdditionalActions() {
+    return Collections.emptyList();
   }
 
   @Override
-  public void requestFocusInPalette() {
-    myPaletteTree.requestFocus();
-  }
-
-  @Override
-  public void requestFocusInComponentTree() {
-    myStructureTree.requestFocus();
+  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
+    myCloseCallback = runnable;
   }
 
   public enum Mode {
@@ -206,8 +196,7 @@ public class NlOldPalettePanel extends JPanel
   }
 
   @Override
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    myStructureTree.setDesignSurface(designSurface);
+  public void setToolContext(@Nullable DesignSurface designSurface) {
     Module prevModule = null;
     if (myConfiguration != null) {
       prevModule = myConfiguration.getModule();
@@ -304,59 +293,6 @@ public class NlOldPalettePanel extends JPanel
       return new ActionHandler();
     }
     return null;
-  }
-
-  @Override
-  public JComponent getDesignerComponent() {
-    return this;
-  }
-
-  @Override
-  public JComponent getFocusedComponent() {
-    return myPaletteTree;
-  }
-
-  @NotNull
-  @Override
-  public AnAction[] getActions() {
-    return new AnAction[]{new OptionAction()};
-  }
-
-  private class OptionAction extends AnAction {
-    public OptionAction() {
-      // todo: Find a set of different icons
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.General.ProjectConfigurable);
-      presentation.setHoveredIcon(AllIcons.General.ProjectConfigurableBanner);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      int x = 0;
-      int y = 0;
-      InputEvent inputEvent = e.getInputEvent();
-      if (inputEvent instanceof MouseEvent) {
-        x = ((MouseEvent)inputEvent).getX();
-        y = ((MouseEvent)inputEvent).getY();
-      }
-
-      showOptionPopup(inputEvent.getComponent(), x, y);
-    }
-  }
-
-  private void showOptionPopup(@NotNull Component component, int x, int y) {
-    DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new ToggleModeAction(this, Mode.ICON_AND_TEXT));
-    group.add(new ToggleModeAction(this, Mode.PREVIEW));
-
-    if (Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
-      group.addSeparator();
-      group.add(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myStructureTree));
-    }
-
-    ActionPopupMenu popupMenu = ((ActionManagerImpl)ActionManager.getInstance())
-      .createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, group, new MenuItemPresentationFactory(true));
-    popupMenu.getComponent().show(component, x, y);
   }
 
   @NotNull
@@ -570,7 +506,7 @@ public class NlOldPalettePanel extends JPanel
           repaint();
         }
       }
-    }, myDisposable);
+    }, this);
   }
 
   private boolean checkForNewMissingDependencies() {
@@ -668,16 +604,14 @@ public class NlOldPalettePanel extends JPanel
     setColors();
   }
 
-  // ---- implements LightToolWindowContent ----
+  // ---- implements Disposable ----
 
   @Override
   public void dispose() {
-    setDesignSurface(null);
+    setToolContext(null);
     myDndManager.unregisterSource(myDndSource, myPaletteTree);
     ToolTipManager.sharedInstance().unregisterComponent(myPaletteTree);
     updateColorsAfterColorThemeChange(false);
-    Disposer.dispose(myDisposable);
-    myStructureTree.dispose();
   }
 
   // ---- inner classes ----
@@ -736,7 +670,9 @@ public class NlOldPalettePanel extends JPanel
           size.setSize(size.getWidth() / scale, size.getHeight() / scale);
         }
       }
-      myDesignSurface.minimizePaletteOnPreview();
+      if (myCloseCallback != null) {
+        myCloseCallback.run();
+      }
       DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
       return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(component)));
     }

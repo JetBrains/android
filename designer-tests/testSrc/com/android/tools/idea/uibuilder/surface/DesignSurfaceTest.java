@@ -20,14 +20,10 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.util.Disposer;
 
-import java.awt.*;
-
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
-import static org.mockito.Mockito.mock;
 
 public class DesignSurfaceTest extends LayoutTestCase {
   private DesignSurface mySurface;
@@ -36,7 +32,7 @@ public class DesignSurfaceTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    mySurface = new DesignSurface(getProject(), mock(DesignerEditorPanelFacade.class));
+    mySurface = new DesignSurface(getProject(), false);
   }
 
   @Override

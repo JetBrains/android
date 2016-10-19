@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -27,12 +27,9 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.intellij.designer.LightToolWindowContent;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -48,14 +45,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class NlPropertiesManager implements DesignSurfaceListener, ModelListener, LightToolWindowContent {
+public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
   private final JBLoadingPanel myLoadingPanel;
   private final NlPropertiesPanel myPropertiesPanel;
   private final NlPropertyEditors myEditors;
-  private final Disposable myDisposable;
 
   @Nullable private DesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
@@ -68,28 +64,23 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myEditors = NlPropertyEditors.getInstance(project);
-    myDisposable = Disposer.newDisposable();
-    myPropertiesPanel = new NlPropertiesPanel(this, myDisposable);
+    myPropertiesPanel = new NlPropertiesPanel(this, this);
     myLoadingPanel.add(myPropertiesPanel);
-    setDesignSurface(designSurface);
+    setToolContext(designSurface);
   }
 
+  // TODO:
   public void activatePropertySheet() {
     myPropertiesPanel.activatePropertySheet();
   }
 
+  // TODO:
   public void activateInspector() {
     myPropertiesPanel.activateInspector();
   }
 
-  @NotNull
-  public AnAction[] getActions() {
-    return new AnAction[]{
-      new ViewAllPropertiesAction(myPropertiesPanel)
-    };
-  }
-
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+  @Override
+  public void setToolContext(@Nullable DesignSurface designSurface) {
     if (designSurface == mySurface) {
       return;
     }
@@ -110,6 +101,34 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
                                     screenView.getSelectionModel().getSelection() : Collections.emptyList();
       componentSelectionChanged(mySurface, selection);
     }
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
+    return myLoadingPanel;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getFocusedComponent() {
+    return myPropertiesPanel;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getGearActions() {
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getAdditionalActions() {
+    return Collections.singletonList(new ViewAllPropertiesAction(myPropertiesPanel));
+  }
+
+  @Override
+  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
   }
 
   @Nullable
@@ -140,11 +159,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @NotNull
   public NlPropertyEditors getPropertyEditors() {
     return myEditors;
-  }
-
-  @NotNull
-  public JComponent getConfigurationPanel() {
-    return myLoadingPanel;
   }
 
   @Nullable
@@ -275,9 +289,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!NlPropertiesWindowManager.get(myProject).isActivePropertiesManager(this)) {
-      return false;
-    }
     ViewHandler handler = component.getViewHandler();
     String propertyName = handler != null ? handler.getPreferredProperty() : null;
     if (propertyName == null) {
@@ -297,7 +308,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public void dispose() {
-    setDesignSurface(null);
-    Disposer.dispose(myDisposable);
+    setToolContext(null);
   }
 }
