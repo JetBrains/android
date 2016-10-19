@@ -79,7 +79,6 @@ import java.nio.file.Paths;
 
   // Disable as it is breaking build for hours. Investigating.
   org.jetbrains.android.dom.AndroidLayoutDomTest.class,
-  com.android.tools.idea.uibuilder.property.ptable.PTableTest.class,
 })
 public class IdeaTestSuite {
 
