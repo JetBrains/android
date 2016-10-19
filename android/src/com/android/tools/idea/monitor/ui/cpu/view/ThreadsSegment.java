@@ -31,6 +31,7 @@ import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadAddedNotifier;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBList;
@@ -60,13 +61,9 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private static final String BLOCKED_LABEL = "Blocked";
 
-  private static final int THREADS_CHART_VERTICAL_PADDING = JBUI.scale(2);
-
   private static final int LIST_ITEM_SELECTION_BORDER_THICKNESS = JBUI.scale(2);
 
   private static final int THREADS_NAME_LEFT_MARGIN = JBUI.scale(10);
-
-  private static final Color THREADS_NAME_TEXT_COLOR = new JBColor(Color.BLACK, Color.BLACK);
 
   private static final LineBorder LIST_ITEM_SELECTED_BORDER = new LineBorder(JBColor.BLUE, LIST_ITEM_SELECTION_BORDER_THICKNESS);
 
@@ -75,20 +72,15 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   private final int mFontHeight = JBUI.scale(getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight());
 
   /**
-   * Chart height corresponds to font's height + two times the vertical padding (bottom + top).
-   */
-  private final int mThreadsChartHeight = mFontHeight + THREADS_CHART_VERTICAL_PADDING * 2;
-
-  /**
    * Determine cell height based on the height of the font used in its label.
    */
   private final int mCellHeight = 2 * mFontHeight;
 
   /**
-   * Chart y corresponds cell height subtracting the chart height itself.
+   * Chart y corresponds cell height subtracting the chart height itself, which in turn is determined by the font height.
    * We divide it by two to take into account that bottom spacing should take as much space as top.
    */
-  private final int mThreadsChartY = (mCellHeight - mThreadsChartHeight) / 2;
+  private final int mThreadsChartY = (mCellHeight - mFontHeight) / 2;
 
   private final Map<ThreadStatesDataModel, StateChart<CpuProfiler.ThreadActivity.State>> mThreadsStateCharts = new HashMap<>();
 
@@ -150,8 +142,8 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     }
     // TODO: change it to use the proper darcula colors. Also, support other states if needed.
     mThreadStateColor = new EnumMap<>(CpuProfiler.ThreadActivity.State.class);
-    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(0x6cc17b, 0x6cc17b));
-    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(0xaaaaaa, 0xaaaaaa));
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(new Color(134, 199, 144), new Color(134, 199, 144)));
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(Gray._122.withAlpha(127), Gray._122.withAlpha(127)));
     mThreadStateColor.put(CpuProfiler.ThreadActivity.State.DEAD, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     return mThreadStateColor;
   }
@@ -164,13 +156,14 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   private void initializeLegendComponent() {
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     // Running state
-    legendRenderDataList.add(
-      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.RUNNING), RUNNING_LABEL));
+    legendRenderDataList.add(new LegendRenderData(
+      LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.RUNNING), RUNNING_LABEL));
     // Sleeping state
-    legendRenderDataList.add(
-      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.SLEEPING), SLEEPING_LABEL));
+    legendRenderDataList.add(new LegendRenderData(
+      LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.SLEEPING), SLEEPING_LABEL));
     // Blocked state. TODO: support this state later if we actually should do so
-    legendRenderDataList.add(new LegendRenderData(LegendRenderData.IconType.BOX, JBColor.BLACK, BLOCKED_LABEL));
+    legendRenderDataList.add(new LegendRenderData(
+      LegendRenderData.IconType.BOX, new JBColor(new Color(199, 65, 101), new Color(199, 65, 101)), BLOCKED_LABEL));
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, Integer.MAX_VALUE /* No need to update */);
     mLegendComponent.setLegendData(legendRenderDataList);
@@ -277,14 +270,12 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
       // Cell label (thread name)
       JLabel threadName = new JLabel(threadStatesDataModel.getName());
       threadName.setFont(AdtUiUtils.DEFAULT_FONT);
-      // TODO: Fix color when setting proper darcula colors to state chart.
-      threadName.setForeground(THREADS_NAME_TEXT_COLOR);
       threadName.setBounds(THREADS_NAME_LEFT_MARGIN, 0, list.getWidth(), mCellHeight);
 
       // Cell content (state chart containing the thread states)
       StateChart<CpuProfiler.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStatesDataModel);
       // State chart should be aligned with CPU Usage line charts and, therefore, with center content
-      threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mThreadsChartHeight);
+      threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mFontHeight);
 
       cellPane.add(threadName);
       cellPane.add(threadStateChart);
