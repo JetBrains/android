@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
-import com.android.utils.SdkUtils;
 import com.google.common.io.Closeables;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildLauncher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
@@ -78,10 +79,10 @@ class GradleOutputForwarder {
       addNewLine = myPreviousContentType != null;
       myPreviousContentType = contentType;
     }
-    String lineSeparator = SdkUtils.getLineSeparator();
+    String lineSeparator = SystemProperties.getLineSeparator();
     boolean newLineAdded = false;
     if (addNewLine) {
-      byte[] bytes = lineSeparator.getBytes();
+      byte[] bytes = lineSeparator.getBytes(Charset.forName("UTF-8"));
       myOutput.write(bytes, 0, bytes.length);
       myConsoleView.print(lineSeparator, contentType);
       newLineAdded = true;

@@ -364,7 +364,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
 
     GradleInvoker.TestCompileType testCompileType = GradleInvoker.getTestCompileType(configuration.getType().getId());
-    if (testCompileType == GradleInvoker.TestCompileType.JAVA_TESTS) {
+    if (testCompileType == GradleInvoker.TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }

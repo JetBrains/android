@@ -41,7 +41,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.exportSignedPackage.ExportSignedPackageTest.class,
   com.android.tools.idea.gradle.dependencies.GradleDependencyManagerTest.class,
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
-  com.android.tools.idea.gradle.invoker.GradleInvokerTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
