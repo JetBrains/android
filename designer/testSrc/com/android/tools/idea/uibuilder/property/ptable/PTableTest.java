@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.ClipboardSynchronizer;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -24,6 +23,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.awt.datatransfer.DataFlavor;
@@ -35,12 +35,14 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class PTableTest extends AndroidTestCase {
   @Mock
   private DataContext myContext;
+  @Mock
+  private CopyPasteManager myCopyPasteManager;
 
   private SimpleItem mySimpleItem;
   private SimpleItem myEmptyItem;
@@ -65,21 +67,10 @@ public class PTableTest extends AndroidTestCase {
     GroupItem groupItem = new GroupItem("group", ImmutableList.of(myItem1, myItem2, myItem3));
     PTableModel model = new PTableModel();
     model.setItems(ImmutableList.of(mySimpleItem, myEmptyItem, groupItem));
-    myTable = new PTable(model);
+    myTable = new PTable(model, myCopyPasteManager);
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      ClipboardSynchronizer.getInstance().resetContent();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  // Disable for breaking build.
-  public void ignored_testCopyIsNotAvailableWhenNothingIsSelected() {
+  public void testCopyIsNotAvailableWhenNothingIsSelected() {
     assertThat(myTable.isCopyVisible(myContext)).isTrue();
     assertThat(myTable.isCopyEnabled(myContext)).isFalse();
     myTable.performCopy(myContext);
@@ -115,7 +106,7 @@ public class PTableTest extends AndroidTestCase {
   }
 
   public void testPasteIsNotAvailableWhenNothingIsSelected() {
-    copy("new value");
+    when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     assertThat(myTable.isPastePossible(myContext)).isFalse();
     assertThat(myTable.isPasteEnabled(myContext)).isTrue();
     myTable.performPaste(myContext);
@@ -131,7 +122,7 @@ public class PTableTest extends AndroidTestCase {
   }
 
   public void testPasteIntoSimpleItem() {
-    copy("new value");
+    when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     myTable.setRowSelectionInterval(0, 0);
     assertThat(myTable.isPastePossible(myContext)).isTrue();
     assertThat(myTable.isPasteEnabled(myContext)).isTrue();
@@ -141,7 +132,7 @@ public class PTableTest extends AndroidTestCase {
   }
 
   public void testPasteIsNotAvailableToGroupNode() throws Exception {
-    copy("new value");
+    when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     myTable.setRowSelectionInterval(2, 2);
     assertThat(myTable.isPastePossible(myContext)).isFalse();
     assertThat(myTable.isPasteEnabled(myContext)).isTrue();
@@ -192,8 +183,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValuesExceptFor(mySimpleItem);
   }
 
-  // Disable since it broke build from midnight.
-  public void ignored_testDeleteOfGroupItem() {
+  public void testDeleteOfGroupItem() {
     myTable.setRowSelectionInterval(2, 2);
     assertThat(myTable.canDeleteElement(myContext)).isTrue();
     myTable.deleteElement(myContext);
@@ -236,16 +226,14 @@ public class PTableTest extends AndroidTestCase {
     }
   }
 
-  private static void copy(@Nullable String text) {
-    CopyPasteManager.getInstance().setContents(new StringSelection(text));
+  private void assertHasEmptyClipboard() {
+    verifyZeroInteractions(myCopyPasteManager);
   }
 
-  private static void assertHasEmptyClipboard() {
-    assertThat(CopyPasteManager.getInstance().getContents()).isNull();
-  }
-
-  private static void assertHasClipboardValue(@Nullable String value) throws Exception {
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
+  private void assertHasClipboardValue(@Nullable String value) throws Exception {
+    ArgumentCaptor<Transferable> captor = ArgumentCaptor.forClass(Transferable.class);
+    verify(myCopyPasteManager).setContents(captor.capture());
+    Transferable transferable = captor.getValue();
     assertThat(transferable).isNotNull();
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue();
     assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo(value);
