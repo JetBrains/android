@@ -66,7 +66,7 @@ iml_module(
 
 iml_module(
     name = "sherpa-ui",
-    srcs = ["android/sherpa-ui/src"],
+    srcs = ["sherpa-ui/src"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     deps = ["//tools/sherpa:sherpa-solver[module]"],
