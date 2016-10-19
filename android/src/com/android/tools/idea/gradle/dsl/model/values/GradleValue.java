@@ -35,6 +35,11 @@ public abstract class GradleValue {
     myDslElement = dslElement;
   }
 
+  @Nullable
+  public GroovyPsiElement getPsiElement() {
+    return myDslElement.getPsiElement();
+  }
+
   @NotNull
   public VirtualFile getFile() {
     return myDslElement.getDslFile().getFile();
@@ -47,7 +52,7 @@ public abstract class GradleValue {
 
   @Nullable
   public String getDslText() {
-    GroovyPsiElement psiElement = myDslElement.getPsiElement();
+    GroovyPsiElement psiElement = getPsiElement();
     return psiElement != null ? psiElement.getText() : null;
   }
 
@@ -58,7 +63,7 @@ public abstract class GradleValue {
       String variableName = variable.getVariableName();
       Object resolvedValue = variable.getValue();
       GradleDslElement element = variable.getElement();
-      builder.put(variableName, new GradleNotNullValue<Object>(element, resolvedValue));
+      builder.put(variableName, new GradleNotNullValue<>(element, resolvedValue));
     }
     return builder.build();
   }

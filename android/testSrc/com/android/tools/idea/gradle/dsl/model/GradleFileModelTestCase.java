@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -25,6 +26,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,8 +37,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
@@ -156,6 +157,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
     applyChanges(buildModel);
     buildModel.reparse();
+  }
+
+  protected void verifyGradleValue(@NotNull GradleValue appcompatDependency,
+                                   @NotNull String propertyName,
+                                   @NotNull String propertyText) {
+    verifyGradleValue(appcompatDependency, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
+  }
+
+  public static void verifyGradleValue(@NotNull GradleValue appcompatDependency,
+                                       @NotNull String propertyName,
+                                       @NotNull String propertyText,
+                                       @NotNull String propertyFilePath) {
+    PsiElement appcompatPsiElement = appcompatDependency.getPsiElement();
+    assertNotNull(appcompatPsiElement);
+    assertEquals(propertyText, appcompatPsiElement.getText());
+    assertEquals(propertyFilePath, toSystemIndependentName(appcompatDependency.getFile().getPath()));
+    assertEquals(propertyName, appcompatDependency.getPropertyName());
+    assertEquals(propertyText, appcompatDependency.getDslText());
   }
 
   public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNullableValue<T> actual) {
