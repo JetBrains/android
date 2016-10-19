@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
@@ -60,14 +61,21 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   private final PNameRenderer myNameRenderer = new PNameRenderer();
   private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
+  private CopyPasteManager myCopyPasteManager;
   private PTableCellEditorProvider myEditorProvider;
 
   private int myMouseHoverRow;
   private int myMouseHoverCol;
 
   public PTable(@NotNull PTableModel model) {
+    this(model, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  PTable(@NotNull PTableModel model, @NotNull CopyPasteManager copyPasteManager) {
     super(model);
     myModel = model;
+    myCopyPasteManager = copyPasteManager;
 
     // since the row heights are uniform, there is no need to look at more than a few items
     setMaxItemsForSizeCalculation(5);
@@ -288,7 +296,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     if (item == null) {
       return;
     }
-    CopyPasteManager.getInstance().setContents(new StringSelection(item.getValue()));
+    myCopyPasteManager.setContents(new StringSelection(item.getValue()));
   }
 
   // ---- Implements CutProvider ----
@@ -361,7 +369,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     if (getSelectedNonGroupItem() == null) {
       return false;
     }
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    Transferable transferable = myCopyPasteManager.getContents();
     return transferable != null && transferable.isDataFlavorSupported(DataFlavor.stringFlavor);
   }
 
@@ -376,7 +384,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     if (item == null) {
       return;
     }
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    Transferable transferable = myCopyPasteManager.getContents();
     if (transferable == null || !transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
       return;
     }
