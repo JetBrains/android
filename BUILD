@@ -13,11 +13,11 @@ iml_module(
 
 iml_module(
     name = "android-common",
-    srcs = ["android/common/src"],
-    resources = ["android/common/resources"],
+    srcs = ["common/src"],
+    resources = ["common/resources"],
     tags = ["managed"],
-    test_resources = ["android/common/testResources"],
-    test_srcs = ["android/common/testSrc"],
+    test_resources = ["common/testResources"],
+    test_srcs = ["common/testSrc"],
     visibility = ["//visibility:public"],
     exports = [
         "//tools/idea/.idea/libraries:android-sdk-tools-jps",
