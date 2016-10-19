@@ -265,6 +265,7 @@ public class SingleWidgetView extends JPanel {
     else {
       mHbar1.setState(state.getState());
     }
+    updateTriangle();
     mHbar1.setToolTipText(statusString[state.getState()]);
     mHbar2.setToolTipText(statusString[state.getState()]);
     mWidgetConstraintPanel.setHorizontalConstraint(state.getState());
@@ -277,12 +278,16 @@ public class SingleWidgetView extends JPanel {
     else {
       mVbar1.setState(state.getState());
     }
-
+    updateTriangle();
     mVbar1.setToolTipText(statusString[state.getState()]);
     mVbar2.setToolTipText(statusString[state.getState()]);
     mWidgetConstraintPanel.setVerticalConstraint(state.getState());
   }
 
+  private void updateTriangle() {
+    boolean show  = mVbar1.getState() == MATCH_CONSTRAINT || mHbar1.getState() == MATCH_CONSTRAINT;
+    mWidgetRender.mAspectLock.setShowTriangle(show);
+  }
   private void topKill() {
     mWidgetConstraintPanel.killTopConstraint();
     mCacheTop = UNCONNECTED;
@@ -916,6 +921,7 @@ public class SingleWidgetView extends JPanel {
     int[] mXPoints = new int[3];
     int[] mYPoints = new int[3];
     BasicStroke mStroke = new BasicStroke(2f);
+    private boolean mShowTriangle;
 
     AspectLock(int x, int y, int w, int h, int lock, int ratioWidth, int ratioHeight) {
       mX = x;
@@ -933,10 +939,15 @@ public class SingleWidgetView extends JPanel {
       mRatioWidth = ratioWidth;
     }
 
+    public void setShowTriangle(boolean show) {
+      mShowTriangle = show;
+    }
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
-      g.setColor(colorSet.getInspectorConstraintColor());
-      g.drawPolygon(mXPoints, mYPoints, 3);
+      if (mShowTriangle) {
+        g.setColor(colorSet.getInspectorConstraintColor());
+        g.drawPolygon(mXPoints, mYPoints, 3);
+      }
       if (mLock == RATIO_UNLOCK) {
         return false;
       }
@@ -1106,7 +1117,7 @@ public class SingleWidgetView extends JPanel {
       mLeftArrow = new Line(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
       mRightArrow = new Line(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
       mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
-
+      updateTriangle();
     }
 
     @Override
