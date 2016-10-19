@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,7 +41,6 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -52,7 +52,6 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +68,6 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -211,22 +209,16 @@ public final class Projects {
    */
   private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> enabledModules, @NotNull Project project) {
     ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-    DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null :
-                                        ExternalSystemApiUtil.findParent(enabledModules.iterator().next(), PROJECT);
+    DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null : findParent(enabledModules.iterator().next(), PROJECT);
 
-    // do not ignore projectNode childs data, e.g. project libraries
+    // do not ignore projectNode child data, e.g. project libraries
     if (projectNode != null) {
-      final Collection<DataNode<ModuleData>> allModules = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE);
+      final Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
       if (enabledModules.size() != allModules.size()) {
         final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
         moduleToIgnore.removeAll(enabledModules);
         for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
-          ExternalSystemApiUtil.visit(moduleNode, new Consumer<DataNode<?>>() {
-            @Override
-            public void consume(DataNode node) {
-              node.setIgnored(true);
-            }
-          });
+          visit(moduleNode, node -> node.setIgnored(true));
         }
       }
       dataManager.importData(projectNode, project, true /* synchronous */);
@@ -353,15 +345,6 @@ public final class Projects {
   }
 
   /**
-   * Ensures that "External Build" is enabled for the given Gradle-based project. External build is the type of build that delegates project
-   * building to Gradle.
-   *
-   * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
-   */
-  public static void enforceExternalBuild(@NotNull Project project) {
-  }
-
-  /**
    * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
    * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
    *
@@ -416,20 +399,18 @@ public final class Projects {
    * Note: {@link #requiresAndroidModel(Project)} indicates whether a project requires an {@link AndroidModel}.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
    * Gradle-specific.
+   * @deprecated use {@link GradleProjectInfo#isBuildWithGradle()}
    */
+  // TODO remove this method and update clients to use GradleProjectInfo instead.
+  @Deprecated
   public static boolean isBuildWithGradle(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      if (isBuildWithGradle(module)) {
-        return true;
-      }
-    }
-    return false;
+    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   /**
    * Indicates whether Gradle is used to build the module.
    */
+  // TODO move this method out of Projects.
   public static boolean isBuildWithGradle(@NotNull Module module) {
     return AndroidGradleFacet.getInstance(module) != null;
   }
