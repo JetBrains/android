@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.fd.IrUiExperiment;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -56,7 +57,7 @@ public class ReRunAction extends AndroidStudioGradleAction implements AnAction.T
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
 
-    if (InstantRunSettings.USE_ALTERNATE_UI) {
+    if (InstantRunSettings.getUiExperimentStatus() != IrUiExperiment.DEFAULT) {
       presentation.setVisible(false);
       return;
     }

@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd.actions;
+package com.android.tools.idea.fd;
 
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.IrUiExperiment;
-import com.intellij.icons.AllIcons;
+import org.jetbrains.annotations.NotNull;
 
-public class HotswapAction extends UpdateActionBase {
-  public HotswapAction() {
-    super("Hotswap", "Live Update changes since last run", AllIcons.Actions.Lightning);
-  }
+public enum IrUiExperiment {
+  DEFAULT("Option 1"), // Default UI shipped from 2.0 to 2.2
+  HOTSWAP("Option 2"), // Run = install apk, new hotswap action
+  STOP_AND_RUN("Option 3"); // Run = Instant Run, new stop and run action
 
-  @Override
-  protected boolean isVisible() {
-    return InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.HOTSWAP;
+  @NotNull public final String displayText;
+
+  IrUiExperiment(@NotNull String displayText) {
+    this.displayText = displayText;
   }
 }
