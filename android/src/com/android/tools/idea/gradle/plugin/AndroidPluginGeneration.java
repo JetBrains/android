@@ -53,7 +53,7 @@ public enum AndroidPluginGeneration {
     @Override
     @NotNull
     public String getRecommendedVersion() {
-      return AndroidStudioInitializer.getGradlePluginRecommendedVersion();
+      return AndroidStudioInitializer.GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
 
     @Override

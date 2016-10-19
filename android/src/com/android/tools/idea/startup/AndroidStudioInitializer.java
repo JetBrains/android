@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
-import com.android.builder.model.Version;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
@@ -83,6 +82,8 @@ public class AndroidStudioInitializer implements Runnable {
   @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
   @NonNls public static final String ENABLE_ENERGY_PROFILER = "enable.energy.profiler";
 
+  @NonNls public static final String GRADLE_PLUGIN_RECOMMENDED_VERSION = getGradlePluginRecommendedVersion();
+
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
 
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
@@ -99,14 +100,14 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   @NotNull
-  public static String getGradlePluginRecommendedVersion() {
-    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
-        !ApplicationManager.getApplication().isInternal() &&
-        !ApplicationManager.getApplication().isUnitTestMode()) {
-      // In a release build, Android Studio will use the same version as the builder-model shipping with it (in plugins/android/lib).
-      return Version.ANDROID_GRADLE_PLUGIN_VERSION;
+  private static String getGradlePluginRecommendedVersion() {
+    try {
+      // In a release build, Android Studio will use the version from module builder-model.
+      Class versionClass = Class.forName("com.android.builder.model.Version");
+      return (String) versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
+    } catch (ReflectiveOperationException ex) {
+      return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
-    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
   @Override
