@@ -470,7 +470,12 @@ public class WidgetConstraintPanel extends JPanel {
 
     @Override
     public void paintThumb(Graphics g) {
-      String percentText = Integer.toString(slider.getValue());
+      String percentText;
+      if (slider.getOrientation() == SwingConstants.VERTICAL) {
+        percentText = Integer.toString(100-slider.getValue());
+      } else {
+        percentText = Integer.toString(slider.getValue());
+      }
       if (!slider.isEnabled()) {
         return;
       }

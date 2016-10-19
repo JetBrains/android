@@ -736,7 +736,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers != 0 || ConstraintModel.isAutoConnect());
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
       model.saveToXML(true);
     }
 
@@ -750,7 +750,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0) {
+        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0) {
           icon = myConstrainIcon;
         }
       }
@@ -830,7 +830,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0);
       }
       presentation.setIcon(myMarginIcon);
     }

@@ -26,6 +26,8 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.ArrayList;
 
 /**
@@ -57,6 +59,9 @@ public class MarginWidget extends JPanel {
   }
 
   public void showUI(Show show) {
+    if (combo.getEditor().getEditorComponent().hasFocus()) {
+      return;
+    }
     switch (show) {
       case IN_WIDGET:
         layout.show(this, COMBO );
@@ -86,8 +91,6 @@ public class MarginWidget extends JPanel {
     label.setOpaque(false);
     label.setHorizontalAlignment(alignment);
     combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
-
-
     label.setForeground(mColorSet.getInspectorStrokeColor());
     combo.setAlignmentX(LEFT_ALIGNMENT);
     combo.addActionListener(e -> {
@@ -109,6 +112,12 @@ public class MarginWidget extends JPanel {
         return super.getEditorComponent();
       }
     });
+    combo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        showUI(Show.OUT_PANEL);
+      }
+    });
 
     //noinspection GtkPreferredJComboBoxRenderer
     combo.setRenderer(new DefaultListCellRenderer() {
@@ -125,7 +134,12 @@ public class MarginWidget extends JPanel {
 
     @Override
     protected JButton createArrowButton() {
-      button = new BasicArrowButton(SwingConstants.SOUTH);
+      Color background = mColorSet.getInspectorBackgroundColor();
+      Color shadow = mColorSet.getInspectorStrokeColor();
+      Color darkShadow = mColorSet.getInspectorStrokeColor();
+      Color highlight = mColorSet.getSubduedFrames();
+      button = new BasicArrowButton(SwingConstants.SOUTH, background, shadow, darkShadow, highlight);
+      button.setForeground(Color.RED);
       button.setBorder(new MatteBorder(0, 1, 0, 0, mColorSet.getInspectorStrokeColor()));
       return button;
     }
