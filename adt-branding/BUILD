@@ -4,5 +4,5 @@ iml_module(
     name = "adt-branding",
     srcs = ["src"],
     visibility = ["//visibility:public"],
-    deps = ["//tools:idea.MM_RegExpSupport[module]"],
+    deps = ["//tools:idea.MM_platform-impl[module]"],
 )
