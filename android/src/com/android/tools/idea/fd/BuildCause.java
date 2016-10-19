@@ -22,6 +22,7 @@ public enum BuildCause {
   USER_REQUESTED_CLEAN_BUILD(BuildMode.CLEAN),
 
   // reasons for full build
+  USER_REQUESTED_FULL_BUILD(BuildMode.FULL),
   NO_DEVICE(BuildMode.FULL),
   APP_NOT_INSTALLED(BuildMode.FULL),
   MISMATCHING_TIMESTAMPS(BuildMode.FULL),

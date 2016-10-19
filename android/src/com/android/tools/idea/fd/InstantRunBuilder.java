@@ -140,6 +140,10 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
+    if (myRunContext.isForceFullApk()) {
+      return BuildCause.USER_REQUESTED_FULL_BUILD;
+    }
+
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
     // (Note: this could be done in a better way if we knew the user for whom the installation actually took place).
     int defaultUserId = 0;
