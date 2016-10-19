@@ -17,7 +17,6 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.CaretState;
@@ -62,11 +61,11 @@ public class TutorialStep extends JPanel {
   private final JPanel myContents;
   private final Project myProject;
 
-  TutorialStep(StepData step, int index, ActionListener listener, DeveloperServiceList services) {
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
-    myProject = services.getProject();
+    myProject = project;
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
     setOpaque(false);
 
@@ -90,7 +89,7 @@ public class TutorialStep extends JPanel {
           myContents.add(section);
           break;
         case ACTION:
-          myContents.add(new StatefulButton(element.getAction(), listener, services));
+          myContents.add(new StatefulButton(element.getAction(), listener, project));
           break;
         case CODE:
           myContents.add(new CodePane(element));
