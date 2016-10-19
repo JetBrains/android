@@ -26,7 +26,6 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
-import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
@@ -37,7 +36,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -54,7 +52,6 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -107,8 +104,8 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
   ));
 
   private final Project myProject;
-  private final DesignerEditorPanelFacade myDesigner;
   private final JBSplitter myErrorPanelSplitter;
+  private final boolean myInPreview;
   private boolean myRenderHasProblems;
   private boolean myStackVertically;
 
@@ -184,10 +181,10 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
   private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
 
-  public DesignSurface(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
+  public DesignSurface(@NotNull Project project, boolean inPreview) {
     super(new BorderLayout());
     myProject = project;
-    myDesigner = designer;
+    myInPreview = inPreview;
 
     setOpaque(true);
     setFocusable(true);
@@ -287,30 +284,15 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
   }
 
   public boolean isPreviewSurface() {
-    return myDesigner instanceof NlPreviewForm;
+    return myInPreview;
   }
 
   @NotNull
   public NlLayoutType getLayoutType() {
-    XmlFile file;
-    if (myDesigner instanceof NlEditorPanel) {
-      file = ((NlEditorPanel)myDesigner).getFile();
+    if (myScreenView == null) {
+      return NlLayoutType.UNKNOWN;
     }
-    else if (myDesigner instanceof NlPreviewForm) {
-      // TODO Will this ever happen?
-      file = ((NlPreviewForm)myDesigner).getFile();
-      assert file != null;
-    }
-    else {
-      throw new IllegalStateException(myDesigner.toString());
-    }
-    return NlLayoutType.typeOf(file);
-  }
-
-  public void minimizePaletteOnPreview() {
-    if (isPreviewSurface()) {
-      ApplicationManager.getApplication().invokeLater(((NlPreviewForm)myDesigner)::minimizePalette);
-    }
+    return NlLayoutType.typeOf(myScreenView.getModel().getFile());
   }
 
   @NotNull
