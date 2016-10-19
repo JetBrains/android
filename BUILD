@@ -2,7 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "android-rt",
-    srcs = ["android/rt/src"],
+    srcs = ["rt/src"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     deps = [
