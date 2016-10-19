@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
 
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
@@ -45,7 +45,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
-    assertEquals(GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION, pluginVersion.toString());
+    assertEquals(BuildEnvironment.getInstance().getExperimentalPluginVersion(), pluginVersion.toString());
   }
 
   public void testFindWithExperimentalPluginReadingBuildFilesOnly() throws Exception {
@@ -61,7 +61,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
-    assertEquals(GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION, pluginVersion.toString());
+    assertEquals(BuildEnvironment.getInstance().getExperimentalPluginVersion(), pluginVersion.toString());
   }
 
   public void testFindWithStablePlugin() throws Exception {
@@ -75,7 +75,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, pluginVersion.toString());
+    assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), pluginVersion.toString());
   }
 
   public void testFindWithStablePluginReadingBuildFilesOnly() throws Exception {
@@ -107,6 +107,6 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
     assertNotNull(pluginVersion);
-    assertEquals(GRADLE_PLUGIN_RECOMMENDED_VERSION, pluginVersion.toString());
+    assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), pluginVersion.toString());
   }
 }

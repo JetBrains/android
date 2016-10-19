@@ -113,7 +113,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
   private void initState() {
-    initState(getState(), GradleUtil.GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    initState(getState(), GradleUtil.getLatestKnownPluginVersion(GradleUtil.PluginType.STANDARD));
   }
 
   static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {

@@ -15,29 +15,16 @@
  */
 package org.jetbrains.android.databinding;
 
-import com.android.SdkConstants;
-import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.psi.JavaPsiFacade;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.jar.JarFile;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
 
 /**
@@ -50,8 +37,7 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
   protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
     super.prepareProjectForImport(relativePath);
     createGradlePropertiesFile(getProjectFolderPath());
-    updateGradleVersions(getProjectFolderPath(), getLocalRepositories() + getLocalRepository("out/repo"),
-                         SdkConstants.GRADLE_PLUGIN_WH_VERSION, "25.0.0");
+    updateGradleVersions(getProjectFolderPath());
   }
 
   private static void createGradlePropertiesFile(@NotNull File projectFolder) throws IOException {
