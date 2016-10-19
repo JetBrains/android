@@ -86,7 +86,7 @@ public class GoToApkLocationTask implements GradleInvoker.AfterGradleInvocationT
     }
     finally {
       // See https://code.google.com/p/android/issues/detail?id=195369
-      GradleInvoker.getInstance(myProject).removeAfterGradleInvocationTask(this);
+      GradleInvoker.getInstance(myProject).remove(this);
     }
   }
 

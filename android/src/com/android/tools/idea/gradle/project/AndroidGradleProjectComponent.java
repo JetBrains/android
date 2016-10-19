@@ -91,7 +91,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    GradleInvoker.getInstance(myProject).addAfterGradleInvocationTask(result -> {
+    GradleInvoker.getInstance(myProject).add(result -> {
       PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
 
       GradleBuildContext newContext = new GradleBuildContext(result);
