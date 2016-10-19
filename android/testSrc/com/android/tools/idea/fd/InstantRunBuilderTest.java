@@ -422,6 +422,30 @@ public class InstantRunBuilderTest {
       myTaskRunner.getBuilds());
   }
 
+  @Test
+  public void alternativeUiForHotswap() throws Exception {
+    myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
+    myDeviceBuildTimetamp = "100";
+    myAppInForeground = true;
+    myRunConfigContext.setSameExecutorAsPreviousSession(true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+    setUpDeviceForHotSwap();
+
+    // normally we'd do a hotswap
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      myTaskRunner.getBuilds());
+
+    // but a full apk is forced if this was launched from the new UI
+    myRunConfigContext.setForceFullApk(true);
+    myTaskRunner = new RecordingTaskRunner();
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      myTaskRunner.getBuilds());
+  }
+
   private void setUpDeviceForHotSwap() {
     HashCode resourcesHash = HashCode.fromInt(1);
     myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
