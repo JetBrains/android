@@ -271,6 +271,14 @@
       <keyboard-shortcut keymap="$default" first-keystroke="alt shift M"/>
       <keyboard-shortcut keymap="$default" first-keystroke="alt shift F12"/>
     </action>
+    <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
+    </action>
+    <action class="com.android.tools.idea.rendering.webp.ConvertFromWebpAction" id="ConvertFromWebp" text="Convert to PNG...">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -582,6 +590,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCommitPrefEdits" displayName="Missing commit() on SharedPreference editor" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintCommitPrefEditsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCommitTransaction" displayName="Missing commit() calls" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintCommitTransactionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintContentDescription" displayName="Image without contentDescription" groupKey="android.lint.inspections.group.name.accessibility" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintContentDescriptionInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintConvertToWebp" displayName="Convert to WebP" groupKey="android.lint.inspections.group.name.usability.icons" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintConvertToWebpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCustomViewStyleable" displayName="Mismatched Styleable/Custom View Name" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintCustomViewStyleableInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintCutPasteId" displayName="Likely cut &amp; paste mistakes" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintCutPasteIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintDefaultLocale" displayName="Implied default locale in case conversion" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintDefaultLocaleInspection"/>
@@ -807,6 +816,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewConstructor" displayName="Missing View constructors for XML inflation" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintViewConstructorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewHolder" displayName="View Holder Candidates" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintViewHolderInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewTag" displayName="Tagged object leaks" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintViewTagInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWebpUnsupported" displayName="WebP Unsupported" groupKey="android.lint.inspections.group.name.usability.icons" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWebpUnsupportedInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWebViewLayout" displayName="WebViews in wrap_content parents" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWebViewLayoutInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWearableBindListener" displayName="Usage of Android Wear BIND_LISTENER is deprecated" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWearableBindListenerInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWifiManagerLeak" displayName="WifiManager Leak" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWifiManagerLeakInspection"/>

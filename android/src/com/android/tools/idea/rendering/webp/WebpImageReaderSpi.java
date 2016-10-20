@@ -37,48 +37,24 @@ import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.Locale;
 
-import static com.android.tools.idea.rendering.webp.NativeLibHelper.loadNativeLibraryIfNeeded;
-
 /**
- * This needs the webp jni library loaded to function.
+ * Decoder for WebP. This needs the webp jni library loaded to function.
  *
  * @see IIORegistry
  */
 public class WebpImageReaderSpi extends ImageReaderSpi {
 
-  public static final String EXT_WEBP = "webp";
-
-  private static final byte[] RIFF = {'R', 'I', 'F', 'F'};
-  private static final byte[] WEBP = {'W', 'E', 'B', 'P'};
+  private static final byte[] RIFF_HEADER = {'R', 'I', 'F', 'F'};
+  private static final byte[] WEBP_HEADER = {'W', 'E', 'B', 'P'};
 
   private static final int MAX_FILE_SIZE = 0x6400000;  // 100 Megs
 
-  private static Logger ourLogger;
-
-  static {
-    IIORegistry.getDefaultInstance().registerServiceProvider(new WebpImageReaderSpi(), ImageReaderSpi.class);
-  }
-
-  /**
-   * Ensures that the static initializer of the class has been run and it's registered as a service provider.
-   */
-  public static void ensureWebpRegistered() {
-  }
-
-  @NotNull
-  static Logger getLogger() {
-    if (ourLogger == null) {
-      ourLogger = Logger.getInstance(WebpImageReaderSpi.class);
-    }
-    return ourLogger;
-  }
-
-  private WebpImageReaderSpi() {
-    super();
-    vendorName = "Google Inc.";
-    version = "1";
-    names = suffixes = new String[]{EXT_WEBP};
-    MIMETypes = new String[]{"image/webp"};
+  WebpImageReaderSpi() {
+    vendorName = WebpMetadata.WEBP_VENDOR;
+    version = WebpNativeLibHelper.getDecoderVersion();
+    suffixes = WebpMetadata.WEBP_SUFFIXES;
+    names = WebpMetadata.WEBP_FORMAT_NAMES;
+    MIMETypes = WebpMetadata.WEBP_MIME_TYPES;
     pluginClassName = WebpReader.class.getName();
     inputTypes = new Class<?>[]{ImageInputStream.class};
   }
@@ -99,15 +75,15 @@ public class WebpImageReaderSpi extends ImageReaderSpi {
       byte[] header = new byte[12];
       int bytesRead = stream.read(header, 0, 12);
       return bytesRead == 12 &&
-             arrayEquals(header, 0, RIFF.length, RIFF) &&
-             arrayEquals(header, 8, WEBP.length, WEBP) &&
-             loadNativeLibraryIfNeeded();
+             arrayEquals(header, 0, RIFF_HEADER.length, RIFF_HEADER) &&
+             arrayEquals(header, 8, WEBP_HEADER.length, WEBP_HEADER) &&
+             WebpNativeLibHelper.loadNativeLibraryIfNeeded();
     } finally {
       try {
         stream.reset();
       }
       catch (IOException e) {
-        getLogger().error(e);
+        Logger.getInstance(WebpImageReaderSpi.class).error(e);
       }
     }
   }
@@ -124,19 +100,19 @@ public class WebpImageReaderSpi extends ImageReaderSpi {
   @NotNull
   @Override
   public ImageReader createReaderInstance(Object extension) throws IOException {
-    if (!loadNativeLibraryIfNeeded()) throw new IOException("webp decoder library not loaded.");
+    WebpNativeLibHelper.requireNativeLibrary();
     return new WebpReader(this);
   }
 
   @NotNull
   @Override
   public String getDescription(Locale locale) {
-    return "Webp Image decoding service.";
+    return "Webp Image Decoder";
   }
 
   private static class WebpReader extends ImageReader {
 
-    private static final String UNABLE_TO_READ_WEBP_IMAGE = "Unable to read webp image";
+    private static final String UNABLE_TO_READ_WEBP_IMAGE = "Unable to read WebP image";
 
     @Nullable
     private byte[] myInputBytes;
