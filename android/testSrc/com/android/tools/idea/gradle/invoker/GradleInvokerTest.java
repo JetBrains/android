@@ -213,7 +213,7 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
     @Override
     @NotNull
     GradleTasksExecutor create(@NotNull RequestSettings requestSettings,
-                               @NotNull TaskCancellationMapping taskCancellationMapping) {
+                               @NotNull BuildStopper buildStopper) {
       myRequestedTasks = requestSettings.getGradleTasks();
       assertThat(myExpectedTasks).containsExactlyElementsIn(myRequestedTasks);
       return myTasksExecutor;

@@ -65,7 +65,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   public boolean cancelTask(@NotNull ExternalSystemTaskId id, @NotNull ExternalSystemTaskNotificationListener listener) {
     GradleInvoker gradleInvoker = findGradleInvoker(id);
     if (gradleInvoker != null) {
-      gradleInvoker.cancelTask(id);
+      gradleInvoker.stopBuild(id);
       return true;
     }
     return false;
