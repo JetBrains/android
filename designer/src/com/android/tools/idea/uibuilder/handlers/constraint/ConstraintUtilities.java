@@ -1440,6 +1440,8 @@ public class ConstraintUtilities {
         if (commit) {
           assert ApplicationManager.getApplication().isWriteAccessAllowed();
           transaction.commit();
+        } else {
+          transaction.apply();
         }
       }
     }
