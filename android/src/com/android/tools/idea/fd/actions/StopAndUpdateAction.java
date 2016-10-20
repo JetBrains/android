@@ -19,13 +19,13 @@ import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.IrUiExperiment;
 import com.intellij.icons.AllIcons;
 
-public class HotswapAction extends UpdateActionBase {
-  public HotswapAction() {
-    super("Hotswap", "Live Update changes since last run", AllIcons.Actions.Lightning);
+public class StopAndUpdateAction extends UpdateActionBase {
+  public StopAndUpdateAction() {
+    super("Full Run", "Perform full run (install APK)", AllIcons.Actions.Restart);
   }
 
   @Override
   protected boolean isVisible() {
-    return InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.HOTSWAP;
+    return InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.STOP_AND_RUN;
   }
 }

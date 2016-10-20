@@ -19,9 +19,6 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 
 public class InstantRunSettings {
-  /** Indicates whether the experimental UI that splits run and update as two separate actions should be used. */
-  public static final boolean USE_ALTERNATE_UI = Boolean.getBoolean("instant.run.alternate.ui");
-
   /**
    * Returns whether instant run is enabled in the given project.
    * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
@@ -67,5 +64,10 @@ public class InstantRunSettings {
   public static void setRecorderEnabled(boolean en) {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
     configuration.ENABLE_RECORDER = en;
+  }
+
+  public static IrUiExperiment getUiExperimentStatus() {
+    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
+    return configuration.IR_UI_EXPERIMENT;
   }
 }
