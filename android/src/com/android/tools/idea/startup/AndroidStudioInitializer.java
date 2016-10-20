@@ -101,13 +101,19 @@ public class AndroidStudioInitializer implements Runnable {
 
   @NotNull
   private static String getGradlePluginRecommendedVersion() {
-    try {
-      // In a release build, Android Studio will use the version from module builder-model.
-      Class versionClass = Class.forName("com.android.builder.model.Version");
-      return (String) versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
-    } catch (ReflectiveOperationException ex) {
-      return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+        !ApplicationManager.getApplication().isInternal() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
+      try {
+        // In a release build, Android Studio will use the version from module builder-model.
+        Class versionClass = Class.forName("com.android.builder.model.Version");
+        return (String)versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
+      }
+      catch (ReflectiveOperationException ex) {
+        return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+      }
     }
+    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
   @Override
