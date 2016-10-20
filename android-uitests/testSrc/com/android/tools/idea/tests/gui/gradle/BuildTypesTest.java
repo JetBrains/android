@@ -19,6 +19,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.BuildTypesTabFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,18 +56,20 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
-      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
-      .selectConfigurable("app")
-      .selectBuildTypesTab()
-      .setName("newBuildType")
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    ProjectStructureDialogFixture projectStructureDialog =
+      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
+
+    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
+    buildTypesTab.setName("newBuildType")
       .setDebuggable("true")
-      .setVersionNameSuffix("suffix")
-      .clickOk()
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .open("/app/build.gradle")
-      .getCurrentFileContents();
+      .setVersionNameSuffix("suffix");
+
+    projectStructureDialog.clickOk();
+    ideFrame.waitForGradleProjectSyncToFinish();
+
+    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
+    String gradleFileContents = editor.getCurrentFileContents();
     assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
   }
 }
