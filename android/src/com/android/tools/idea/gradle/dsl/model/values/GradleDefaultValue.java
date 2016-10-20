@@ -15,34 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.model.values;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a {@link GradleValue} where {@link #value()} may return a {@code null} value.
+ * Represents a {@link GradleValue} which may be not be present in a Gradle file.
+ *
+ * <p>It represents either a value present in the Gradle file or the default value needs to be used in it's absence.</p>
  *
  * @param <T> the type of the returned value.
  */
-public class GradleNullableValue<T> extends GradleValue<T> {
-  public GradleNullableValue(@NotNull GradleDslElement dslElement, @Nullable T value) {
+public class GradleDefaultValue<T> extends GradleValue<T> {
+  public GradleDefaultValue(@Nullable GradleDslElement dslElement, @NotNull T value) {
     super(dslElement, value);
   }
 
   @Override
   @NotNull
-  public VirtualFile getFile() {
-    VirtualFile file = super.getFile();
-    assert file != null;
-    return file;
-  }
-
-  @Override
-  @NotNull
-  public String getPropertyName() {
-    String propertyName = super.getPropertyName();
-    assert propertyName != null;
-    return propertyName;
+  public T value() {
+    T value = super.value();
+    assert value != null;
+    return value;
   }
 }
