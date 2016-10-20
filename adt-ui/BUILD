@@ -7,6 +7,7 @@ iml_module(
     test_resources = ["src/test/resources"],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/idea/.idea/libraries:Trove4j",
