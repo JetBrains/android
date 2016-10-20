@@ -352,7 +352,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * map is empty or does not contain any values of type {@code clazz}.
    */
   @Nullable
-  public <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
+  public <V> Map<String, GradleNotNullValue<V>> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
     GradleDslExpressionMap gradleDslExpressionMap = getPropertyElement(property, GradleDslExpressionMap.class);
     if (gradleDslExpressionMap != null) {
       return gradleDslExpressionMap.getValues(clazz);

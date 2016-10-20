@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -100,6 +101,24 @@ public abstract class GradleValue<T> {
         values.add(value);
       }
     }
+
+    return values;
+  }
+
+  @NotNull
+  public static <V> Map<String, V> getValues(@Nullable Map<String, ? extends GradleValue<V>> gradleValues) {
+    if (gradleValues == null) {
+      return ImmutableMap.of();
+    }
+
+    Map<String, V> values = new LinkedHashMap<>();
+    for (Map.Entry<String, ? extends GradleValue<V>> gradleValueEntry : gradleValues.entrySet()) {
+      V value = gradleValueEntry.getValue().value();
+      if (value != null) {
+        values.put(gradleValueEntry.getKey(), value);
+      }
+    }
+
     return values;
   }
 }

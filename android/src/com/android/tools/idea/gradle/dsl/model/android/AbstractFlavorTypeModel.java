@@ -80,7 +80,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public Map<String, Object> manifestPlaceholders() {
+  public Map<String, GradleNotNullValue<Object>> manifestPlaceholders() {
     return myDslElement.getMapProperty(MANIFEST_PLACEHOLDERS, Object.class);
   }
 
