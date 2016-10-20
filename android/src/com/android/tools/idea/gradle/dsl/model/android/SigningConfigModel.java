@@ -43,13 +43,13 @@ public class SigningConfigModel extends GradleDslBlockModel {
     return myDslElement.getName();
   }
 
-  @Nullable
-  public String storeFile() {
+  @NotNull
+  public GradleNullableValue<String> storeFile() {
     GradleDslExpression expression = getStoreFileExpression();
     if (expression == null) {
-      return null;
+      return new GradleNullableValue<>(myDslElement, null);
     }
-    return expression.getValue(String.class);
+    return new GradleNullableValue<>(expression, expression.getValue(String.class));
   }
 
   public SigningConfigModel setStoreFile(@NotNull String storeFile) {

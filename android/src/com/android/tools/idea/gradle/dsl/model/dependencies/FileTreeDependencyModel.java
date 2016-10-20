@@ -133,10 +133,10 @@ public class FileTreeDependencyModel extends DependencyModel {
   }
 
   @NotNull
-  public String dir() {
+  public GradleNotNullValue<String> dir() {
     String dir = myDir.getValue(String.class);
     assert dir != null;
-    return dir;
+    return new GradleNotNullValue<>(myDir, dir);
   }
 
   public void setDir(@NotNull String dir) {

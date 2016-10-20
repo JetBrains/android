@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
@@ -35,11 +35,14 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
     myUseAssignment = useAssignment;
   }
 
-  @Nullable
-  public LanguageLevel sourceCompatibility() {
+  @NotNull
+  public GradleNullableValue<LanguageLevel> sourceCompatibility() {
     JavaVersionDslElement javaVersionElement =
       myDslElement.getPropertyElement(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
-    return javaVersionElement == null ? null : javaVersionElement.getVersion();
+    if (javaVersionElement == null) {
+      return new GradleNullableValue<>(myDslElement, null);
+    }
+    return new GradleNullableValue<>(javaVersionElement, javaVersionElement.getVersion());
   }
 
   @NotNull
@@ -53,11 +56,14 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public LanguageLevel targetCompatibility() {
+  @NotNull
+  public GradleNullableValue<LanguageLevel> targetCompatibility() {
     JavaVersionDslElement javaVersionElement =
       myDslElement.getPropertyElement(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
-    return javaVersionElement == null ? null : javaVersionElement.getVersion();
+    if (javaVersionElement == null) {
+      return new GradleNullableValue<>(myDslElement, null);
+    }
+    return new GradleNullableValue<>(javaVersionElement, javaVersionElement.getVersion());
   }
 
   @NotNull
