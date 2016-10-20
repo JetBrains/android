@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -72,10 +73,10 @@ public class FileDependencyModel extends DependencyModel {
   }
 
   @NotNull
-  public String file() {
+  public GradleNotNullValue<String> file() {
     String file = myFileDslExpression.getValue(String.class);
     assert file != null;
-    return file;
+    return new GradleNotNullValue<>(myFileDslExpression, file);
   }
 
   public void setFile(@NotNull String file) {
