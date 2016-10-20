@@ -152,7 +152,6 @@ class DrawConstraintModel {
     if (myMouseInteraction != null) {
       myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
     }
-    myConstraintModel.requestRender();
   }
 
   /**
@@ -216,6 +215,7 @@ class DrawConstraintModel {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
       myConstraintModel.setNeedsAnimateConstraints(-1);
     }
+    mySceneDraw.setApplyConstraints(ConstraintModel.USE_SOLVER);
     boolean ret = mySceneDraw.paintWidgets(component, width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;

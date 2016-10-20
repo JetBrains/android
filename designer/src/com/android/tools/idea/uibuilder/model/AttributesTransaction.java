@@ -185,6 +185,22 @@ public class AttributesTransaction implements NlAttributesHolder {
   }
 
   /**
+   * Apply the current transaction, without saving to XML
+   * It will trigger a layout.
+   */
+  public void apply() {
+    ViewInfo viewInfo = myComponent.viewInfo;
+    if (hasPendingRelayout && viewInfo != null) {
+      View currentView = (View)viewInfo.getViewObject();
+      if (currentView != myCachedView.get()) {
+        // The view has changed since the last update so re-apply everything
+        applyAllPendingAttributesToView(myComponent.viewInfo);
+      }
+      triggerViewRelayout((View)myComponent.viewInfo.getViewObject());
+    }
+  }
+
+  /**
    * Commits all the pending changes to the model. After this method has been called, no more writes or reads can be made from
    * this transaction.
    *
