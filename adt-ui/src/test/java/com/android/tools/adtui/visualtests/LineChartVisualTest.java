@@ -60,15 +60,15 @@ public class LineChartVisualTest extends VisualTest {
     mData = new ArrayList<>();
 
     long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
+    Range timeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     mLineChart = new LineChart();
-    mAnimatedTimeRange = new AnimatedTimeRange(xRange, 0);
+    mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
 
     List<Animatable> componentsList = new ArrayList<>();
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
-    componentsList.add(xRange);
+    componentsList.add(timeGlobalRangeUs);
     componentsList.add(mLineChart);
 
     Range mYRange = new Range(0.0, 100.0);
@@ -79,14 +79,14 @@ public class LineChartVisualTest extends VisualTest {
       }
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =
-        new RangedContinuousSeries("Widgets", xRange, mYRange, series);
+        new RangedContinuousSeries("Widgets", timeGlobalRangeUs, mYRange, series);
       mRangedData.add(ranged);
       mData.add(series);
     }
     mLineChart.addLines(mRangedData);
 
     mEventData = new DefaultDataSeries<>();
-    mEventSeries = new RangedSeries<>(xRange, mEventData);
+    mEventSeries = new RangedSeries<>(timeGlobalRangeUs, mEventData);
     mEventConfig = new EventConfig(Color.BLACK).setText("Test").setIcon(UIManager.getIcon("Tree.leafIcon"));
     mLineChart.addEvent(mEventSeries, mEventConfig);
 

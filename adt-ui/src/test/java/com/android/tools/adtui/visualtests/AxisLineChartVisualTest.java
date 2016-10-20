@@ -47,7 +47,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private long mStartTimeUs;
 
-  private Range mXGlobalRange;
+  private Range mTimeGlobalRangeUs;
 
   private LineChart mLineChart;
 
@@ -78,14 +78,14 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLineChart = new LineChart();
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    final Range xRange = new Range(0, 0);
-    mXGlobalRange = new Range(0, 0);
-    mAnimatedTimeRange = new AnimatedTimeRange(mXGlobalRange, mStartTimeUs);
-    mScrollbar = new RangeScrollbar(mXGlobalRange, xRange);
+    final Range timeCurrentRangeUs = new Range(0, 0);
+    mTimeGlobalRangeUs = new Range(0, 0);
+    mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, mStartTimeUs);
+    mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
 
     // add horizontal time axis
-    AxisComponent.Builder builder = new AxisComponent.Builder(xRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mXGlobalRange);
+    AxisComponent.Builder builder = new AxisComponent.Builder(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(mTimeGlobalRangeUs);
     mTimeAxis = builder.build();
 
     // left memory data + axis
@@ -96,7 +96,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1 = builder.build();
 
     LongDataSeries series1 = new LongDataSeries();
-    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable, series1);
+    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, timeCurrentRangeUs, yRange1Animatable, series1);
     mRangedData.add(ranged1);
     mData.add(series1);
 
@@ -108,7 +108,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis2 = builder.build();
 
     LongDataSeries series2 = new LongDataSeries();
-    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable, series2);
+    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, timeCurrentRangeUs, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
 
@@ -127,8 +127,8 @@ public class AxisLineChartVisualTest extends VisualTest {
     mGrid.addAxis(mTimeAxis);
     mGrid.addAxis(mMemoryAxis1);
 
-    final Range xSelectionRange = new Range(0, 0);
-    mSelection = new SelectionComponent(mLineChart, mTimeAxis, xSelectionRange, mXGlobalRange, xRange);
+    final Range timeSelectionRangeUs = new Range(0, 0);
+    mSelection = new SelectionComponent(mLineChart, mTimeAxis, timeSelectionRangeUs, mTimeGlobalRangeUs, timeCurrentRangeUs);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -143,9 +143,9 @@ public class AxisLineChartVisualTest extends VisualTest {
                          yRange1Animatable, // Interpolate y1.
                          yRange2Animatable, // Interpolate y2.
                          mGrid, // No-op.
-                         xRange, // Reset flags.
-                         mXGlobalRange, // Reset flags.
-                         xSelectionRange,
+                         timeCurrentRangeUs, // Reset flags.
+                         mTimeGlobalRangeUs, // Reset flags.
+                         timeSelectionRangeUs,
                          mLegendComponent); // Reset flags.
   }
 

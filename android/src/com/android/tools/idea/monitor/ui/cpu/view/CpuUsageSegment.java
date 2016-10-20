@@ -58,9 +58,9 @@ public class CpuUsageSegment extends BaseLineChartSegment {
    * Creates a segment to display CPU usage information. If {@code numThreadsData} is not null, we also display the right axis, which
    * correspond to the number of live threads.
    */
-  public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore,
+  public CpuUsageSegment(@NotNull Range timeCurrentRangeUs, @NotNull SeriesDataStore dataStore,
                          @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS_SIMPLE, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, CPU_USAGE_AXIS_SIMPLE, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
   }
 
   @Override

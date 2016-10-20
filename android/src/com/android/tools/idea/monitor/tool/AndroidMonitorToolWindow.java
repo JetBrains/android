@@ -107,11 +107,10 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private SelectionComponent mySelection;
 
-
-  private Range myTimeViewRange;
+  private Range myTimeCurrentRangeUs;
 
   // Range currently selected in the GUI.
-  private Range myTimeSelectionRange;
+  private Range myTimeSelectionRangeUs;
 
   private AxisComponent myTimeAxis;
 
@@ -151,19 +150,19 @@ public class AndroidMonitorToolWindow implements Disposable {
   private List<Animatable> createCommonAnimatables() {
     assert myDataStore != null;
     final long deviceStartTimeUs = myDataStore.getLatestTimeUs();
-    Range monotonicTimeUsRangeUs = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
-    myTimeSelectionRange = new Range();
-    myTimeViewRange = new Range();
+    Range timeGlobalRangeUs = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
+    myTimeSelectionRangeUs = new Range();
+    myTimeCurrentRangeUs = new Range();
 
     // Align offsets on the ranges.
-    monotonicTimeUsRangeUs.setOffset(deviceStartTimeUs);
-    myTimeSelectionRange.setOffset(deviceStartTimeUs);
-    myTimeViewRange.setOffset(deviceStartTimeUs);
+    timeGlobalRangeUs.setOffset(deviceStartTimeUs);
+    myTimeSelectionRangeUs.setOffset(deviceStartTimeUs);
+    myTimeCurrentRangeUs.setOffset(deviceStartTimeUs);
 
-    myScrollbar = new RangeScrollbar(monotonicTimeUsRangeUs, myTimeViewRange);
+    myScrollbar = new RangeScrollbar(timeGlobalRangeUs, myTimeCurrentRangeUs);
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myTimeViewRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(monotonicTimeUsRangeUs);
+    AxisComponent.Builder builder = new AxisComponent.Builder(myTimeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+      .setGlobalRange(timeGlobalRangeUs);
     myTimeAxis = builder.build();
 
     myDetailedViewContainer = new JBPanel(new BorderLayout());
@@ -172,7 +171,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySegmentsContainer.setLayout(accordion);
     accordion.setLerpFraction(1f);
 
-    mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, myTimeSelectionRange, monotonicTimeUsRangeUs, myTimeViewRange);
+    mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, myTimeSelectionRangeUs, timeGlobalRangeUs, myTimeCurrentRangeUs);
 
     return Arrays.asList(accordion,
                          frameLength -> {
@@ -180,16 +179,16 @@ public class AndroidMonitorToolWindow implements Disposable {
                            long currentTimeUs = myDataStore.getLatestTimeUs();
                            // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_US, set global min to 0 so that user can
                            // not scroll back to negative time.
-                           monotonicTimeUsRangeUs.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
+                           timeGlobalRangeUs.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
-                           monotonicTimeUsRangeUs.setMaxTarget(currentTimeUs - maxTimeBufferUs);
+                           timeGlobalRangeUs.setMaxTarget(currentTimeUs - maxTimeBufferUs);
                          },
                          mySelection,
                          myScrollbar,
                          myTimeAxis,
-                         myTimeViewRange,
-                         monotonicTimeUsRangeUs,
-                         myTimeSelectionRange);
+                         myTimeCurrentRangeUs,
+                         timeGlobalRangeUs,
+                         myTimeSelectionRangeUs);
   }
 
   private void setupDevice() {
@@ -316,7 +315,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     // Timeline segment
-    TimeAxisSegment timeSegment = new TimeAxisSegment(myTimeViewRange, myTimeAxis, myEventDispatcher);
+    TimeAxisSegment timeSegment = new TimeAxisSegment(myTimeCurrentRangeUs, myTimeAxis, myEventDispatcher);
     timeSegment.setMinimumSize(new Dimension(0, TIME_AXIS_HEIGHT));
     timeSegment.setPreferredSize(new Dimension(0, TIME_AXIS_HEIGHT));
     timeSegment.setMaximumSize(new Dimension(0, TIME_AXIS_HEIGHT));
@@ -449,17 +448,17 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     // TODO: add event manager to myProfilerManagers
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
-                           new EventProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new EventProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
-                           new NetworkProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new NetworkProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
-                           new MemoryProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new MemoryProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
-                           new CpuProfilerUiManager(myTimeViewRange, myTimeSelectionRange, myChoreographer, myDataStore, myEventDispatcher,
+                           new CpuProfilerUiManager(myTimeCurrentRangeUs, myTimeSelectionRangeUs, myChoreographer, myDataStore, myEventDispatcher,
                                                     mySelectedDeviceProfilerService, myDeviceContext, myProject));
     if (System.getProperty(ENABLE_ENERGY_PROFILER) != null ) {
       myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
-                             new EnergyProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
+                             new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     }
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
       manager.startMonitoring(mySelectedClient.getClientData().getPid());

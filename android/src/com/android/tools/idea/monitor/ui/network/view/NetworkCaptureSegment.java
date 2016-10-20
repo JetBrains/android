@@ -100,11 +100,11 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
   private JTable myStateTable;
 
-  public NetworkCaptureSegment(@NotNull Range timeRange,
+  public NetworkCaptureSegment(@NotNull Range timeCurrentRangeUs,
                                @NotNull SeriesDataStore dataStore,
                                @NotNull DetailedViewListener detailedViewListener,
                                @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     myDetailedViewListener = detailedViewListener;
     myCharts = new ArrayList<>();
     myDataList = new ArrayList<>();
@@ -223,7 +223,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   @Override
   public void animate(float frameLength) {
 
-    List<SeriesData<HttpData>> dataList = myDataStore.getSeriesData(SeriesDataType.NETWORK_HTTP_DATA, mXRange);
+    List<SeriesData<HttpData>> dataList = myDataStore.getSeriesData(SeriesDataType.NETWORK_HTTP_DATA, myTimeCurrentRangeUs);
 
     // TODO: currently we recreate charts from scratch, instead consider reusing charts
     myCharts.clear();
@@ -240,7 +240,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
       }
 
       StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-      chart.addSeries(new RangedSeries<>(mXRange, series));
+      chart.addSeries(new RangedSeries<>(myTimeCurrentRangeUs, series));
       chart.animate(frameLength);
       myCharts.add(chart);
       myDataList.add(data.value);

@@ -89,9 +89,6 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private final JBList mThreadsList = new JBList(mThreadsListModel);
 
-  @NotNull
-  private final Range mTimeRange;
-
   private static EnumMap<CpuProfiler.ThreadActivity.State, Color> mThreadStateColor;
 
   /**
@@ -108,12 +105,11 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private LegendComponent mLegendComponent;
 
-  public ThreadsSegment(@NotNull Range timeRange,
+  public ThreadsSegment(@NotNull Range timeCurrentRangeUs,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher,
                         @Nullable ThreadSelectedListener threadSelectedListener) {
-    super(SEGMENT_NAME, timeRange, dispatcher);
-    mTimeRange = timeRange;
+    super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     mSeriesDataStore = dataStore;
     mThreadSelectedListener = threadSelectedListener;
     myThreadAddedNotifier = (threadStatesDataModel) -> {
@@ -221,7 +217,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
     DataStoreSeries<CpuProfiler.ThreadActivity.State> defaultData =
       new DataStoreSeries<>(mSeriesDataStore, SeriesDataType.CPU_THREAD_STATE, threadStatesDataModel);
-    RangedSeries<CpuProfiler.ThreadActivity.State> threadSeries = new RangedSeries<>(mTimeRange, defaultData);
+    RangedSeries<CpuProfiler.ThreadActivity.State> threadSeries = new RangedSeries<>(myTimeCurrentRangeUs, defaultData);
     mThreadsStateCharts.get(threadStatesDataModel).addSeries(threadSeries);
     mThreadsListModel.addElement(threadStatesDataModel);
   }
