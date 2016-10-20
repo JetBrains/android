@@ -5,6 +5,7 @@ iml_module(
     srcs = ["rt/src"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools:idea.annotations[module]",
         "//tools:idea.util-rt[module]",
@@ -19,6 +20,7 @@ iml_module(
     test_resources = ["common/testResources"],
     test_srcs = ["common/testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     exports = [
         "//tools/idea/.idea/libraries:android-sdk-tools-jps",
         "//tools/base/common:studio.common",
@@ -31,6 +33,7 @@ iml_module(
         "//tools/base/sdk-common:studio.sdk-common",
         "//tools/base/sdklib:studio.sdklib",
     ],
+    # do not sort: must match IML order
     deps = [
         "//tools:idea.util[module]",
         "//tools/idea/.idea/libraries:android-sdk-tools-jps",
@@ -55,6 +58,7 @@ iml_module(
     tags = ["managed"],
     visibility = ["//visibility:public"],
     exports = ["//tools/idea/.idea/libraries:layoutlib"],
+    # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.sdk-common[module]",
@@ -74,6 +78,7 @@ iml_module(
 
 iml_module(
     name = "android",
+    # do not sort: must match IML order
     srcs = [
         "android/resources",
         "android/src",
@@ -109,10 +114,12 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     exports = [
         "//tools/idea/.idea/libraries:asm",
         "//tools/adt/idea:android-common",
     ],
+    # do not sort: must match IML order
     deps = [
         "//tools:idea.openapi[module]",
         "//tools:idea.MM_platform-impl[module]",
@@ -371,6 +378,7 @@ iml_module(
     tags = ["managed"],
     test_srcs = ["uitest-framework/testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools/base/common:studio.common[module, test]",
         "//tools/adt/idea:android[module, test]",
