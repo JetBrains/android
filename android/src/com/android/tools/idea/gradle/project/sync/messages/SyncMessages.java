@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import com.android.tools.idea.gradle.notification.QuickFixNotificationListener;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.collect.Sets;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
@@ -35,7 +34,6 @@ import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.event.HyperlinkEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -211,8 +209,8 @@ public class SyncMessages {
   }
 
   public void updateNotification(@NotNull NotificationData notification,
-                                  @NotNull String text,
-                                  @NotNull List<NotificationHyperlink> quickFixes) {
+                                 @NotNull String text,
+                                 @NotNull List<NotificationHyperlink> quickFixes) {
     String message = text;
     int hyperlinkCount = quickFixes.size();
     if (hyperlinkCount > 0) {
@@ -230,14 +228,11 @@ public class SyncMessages {
     addNotificationListener(notification, quickFixes);
   }
 
-  private void addNotificationListener(@NotNull NotificationData notification, @NotNull List<NotificationHyperlink> quickFixes) {
+  // Call this method only if notification contains detailed text message with hyperlinks
+  // Use updateNotification otherwise
+  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<NotificationHyperlink> quickFixes) {
     for (NotificationHyperlink quickFix : quickFixes) {
-      notification.setListener(quickFix.getUrl(), new NotificationListener.Adapter() {
-        @Override
-        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
-          quickFix.executeIfClicked(myProject, e);
-        }
-      });
+      notification.setListener(quickFix.getUrl(), new QuickFixNotificationListener(myProject, quickFix));
     }
   }
 
