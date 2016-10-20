@@ -102,7 +102,8 @@ public class ConvertToWebpAction extends DumbAwareAction {
     settings.skipTransparentImages = minSdkVersion < 18;
     settings.allowLossless = minSdkVersion >= 1;
 
-    WebpConversionDialog dialog = new WebpConversionDialog(project, minSdkVersion, settings);
+    boolean singleFile = files.length == 1 && isEligibleForConversion(files[0], null);
+    WebpConversionDialog dialog = new WebpConversionDialog(project, minSdkVersion, settings, singleFile);
     if (!dialog.showAndGet()) {
       return;
     }
@@ -143,10 +144,10 @@ public class ConvertToWebpAction extends DumbAwareAction {
     e.getPresentation().setEnabledAndVisible(false);
   }
 
-  public void convert(Project project,
-                      WebpConversionSettings settings,
+  public void convert(@NotNull Project project,
+                      @NotNull WebpConversionSettings settings,
                       boolean showBalloon,
-                      Collection<VirtualFile> files) {
+                      @NotNull Collection<VirtualFile> files) {
     ProgressManager.getInstance().run(new WebpConversionTask(project, settings, showBalloon, files));
   }
 
@@ -192,7 +193,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     return false;
   }
 
-  public static boolean isNinePatchFile(VirtualFile file) {
+  public static boolean isNinePatchFile(@NotNull VirtualFile file) {
     return file != null && !file.isDirectory() && file.getName().endsWith(DOT_9PNG);
   }
 
@@ -312,12 +313,14 @@ public class ConvertToWebpAction extends DumbAwareAction {
         }
 
         if (mySettings.skipNinePatches && isNinePatchFile(file.sourceFile)) {
-          myNinePatchCount++;
+          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out
+          assert false : file;
           continue;
         }
 
         if (!file.convert(mySettings)) {
-          myTransparentCount++;
+          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out
+          assert false : file;
         } else {
           if (mySettings.skipLargerImages && file.saved < 0) {
             mySkipped++;
@@ -342,10 +345,17 @@ public class ConvertToWebpAction extends DumbAwareAction {
             images.push(f);
           }
         }
-        else if (isEligibleForConversion(file, mySettings)) {
-          WebpConvertedFile convertedFile = WebpConvertedFile.create(file, mySettings);
-          if (convertedFile != null) {
-            files.add(convertedFile);
+        else if (isEligibleForConversion(file, null)) { // null settings: don't skip transparent/nine patches etc: we want to count those
+          if (isEligibleForConversion(file, mySettings)) {
+            WebpConvertedFile convertedFile = WebpConvertedFile.create(file, mySettings);
+            if (convertedFile != null) {
+              files.add(convertedFile);
+            }
+          }
+          else if (mySettings.skipNinePatches && isNinePatchFile(file)) {
+            myNinePatchCount++;
+          } else {
+            myTransparentCount++;
           }
         }
       }
