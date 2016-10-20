@@ -58,8 +58,8 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private Sampler mSampler;
   private HNode<SampledMethodUsage> mtree;
 
-  private Range mSelectionRange;
-  private Range mDataRange;
+  private Range mTimeSelectionRangeUs;
+  private Range mTimeGlobalRangeUs;
 
   private SelectionComponent mSelector;
   private AxisComponent mAxis;
@@ -72,19 +72,19 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private JScrollBar mScrollBar;
 
   public FlameGraphVisualTest() {
-    this.mDataRange = new Range();
+    this.mTimeGlobalRangeUs = new Range();
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(mDataRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
+    AxisComponent.Builder builder = new AxisComponent.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM);
     this.mAxis = builder.build();
 
-    this.mSelectionRange = new Range();
+    this.mTimeSelectionRangeUs = new Range();
 
     this.mLineChart = new LineChart();
-    this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
+    this.mSelector = new SelectionComponent(mLineChart, mAxis, mTimeSelectionRangeUs, mTimeGlobalRangeUs, mTimeGlobalRangeUs);
 
     this.mChart = new HTreeChart<SampledMethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
     this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
-    this.mChart.setXRange(mSelectionRange);
+    this.mChart.setXRange(mTimeSelectionRangeUs);
   }
 
   @Override
@@ -99,7 +99,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     list.add(mSelector);
     list.add(mAxis);
     list.add(mLineChart);
-    list.add(mSelectionRange);
+    list.add(mTimeSelectionRangeUs);
     return list;
   }
 
@@ -202,14 +202,14 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
         double start = mtree.getFirstChild().getStart();
         double end = mtree.getLastChild().getEnd();
 
-        mDataRange.setMin(start);
-        mDataRange.setMax(end);
-        mSelectionRange.setMin(start);
-        mSelectionRange.setMax(end);
+        mTimeGlobalRangeUs.setMin(start);
+        mTimeGlobalRangeUs.setMax(end);
+        mTimeSelectionRangeUs.setMin(start);
+        mTimeSelectionRangeUs.setMax(end);
 
         // Generate dummy values to simulate CPU Load.
         LongDataSeries series = new LongDataSeries();
-        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("CPU Load", mDataRange,
+        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("CPU Load", mTimeGlobalRangeUs,
                                                                          new Range(0.0, (float)Sampler.MAX_VALUE),
                                                                          series);
         Random r = new Random(System.currentTimeMillis());

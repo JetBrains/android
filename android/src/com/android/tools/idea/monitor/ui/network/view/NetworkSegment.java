@@ -43,10 +43,10 @@ public class NetworkSegment extends BaseLineChartSegment {
 
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
-  public NetworkSegment(@NotNull Range timeRange,
+  public NetworkSegment(@NotNull Range timeCurrentRangeUs,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, NetworkTrafficFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
+    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, NetworkTrafficFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
           dispatcher);
   }
 

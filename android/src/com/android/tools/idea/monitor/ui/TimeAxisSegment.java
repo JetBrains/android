@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.monitor.ui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -30,27 +29,28 @@ import javax.swing.*;
  */
 public final class TimeAxisSegment extends BaseSegment {
 
-  @NonNull
-  private final AxisComponent mTimeAxis;
+  @NotNull private final AxisComponent mTimeAxis;
 
-  public TimeAxisSegment(@NonNull Range scopedRange, @NonNull AxisComponent timeAxis,
-                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super("", scopedRange, dispatcher); // Empty label.
+  public TimeAxisSegment(
+      @NotNull Range timeCurrentRangeUs,
+      @NotNull AxisComponent timeAxis,
+      @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super("", timeCurrentRangeUs, dispatcher); // Empty label.
     mTimeAxis = timeAxis;
   }
 
   @Override
-  protected void setCenterContent(@NonNull JPanel panel) {
+  protected void setCenterContent(@NotNull JPanel panel) {
     panel.add(mTimeAxis);
   }
 
   @Override
-  protected void setLeftContent(@NonNull JPanel panel) {
+  protected void setLeftContent(@NotNull JPanel panel) {
     panel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AdtUiUtils.DEFAULT_BORDER_COLOR));
   }
 
   @Override
-  protected void setRightContent(@NonNull JPanel panel) {
+  protected void setRightContent(@NotNull JPanel panel) {
     panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR));
   }
 }

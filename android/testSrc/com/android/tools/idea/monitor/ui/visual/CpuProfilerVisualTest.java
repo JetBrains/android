@@ -72,14 +72,14 @@ public class CpuProfilerVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long startTimeUs = mDataStore.getLatestTimeUs();
-    Range timeRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, 0);
-    timeRange.setOffset(startTimeUs);
+    Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
+    timeCurrentRangeUs.setOffset(startTimeUs);
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    mCPULevel2Segment = new CpuUsageSegment(timeRange, mDataStore, dummyDispatcher);
-    mThreadsSegment = new ThreadsSegment(timeRange, mDataStore, dummyDispatcher, (threads) -> {
+    mCPULevel2Segment = new CpuUsageSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
+    mThreadsSegment = new ThreadsSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher, (threads) -> {
       // TODO: show L3 segment with the charts corresponding to threads selected.
       // Hide any charts corresponding to unselected threads and hide L3 segment in case no threads are selected
     });

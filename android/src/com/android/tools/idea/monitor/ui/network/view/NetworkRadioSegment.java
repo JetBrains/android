@@ -66,10 +66,10 @@ public class NetworkRadioSegment extends BaseSegment {
 
   private SeriesDataStore mDataStore;
 
-  public NetworkRadioSegment(@NotNull Range sharedRange,
+  public NetworkRadioSegment(@NotNull Range timeCurrentRangeUs,
                              @NotNull SeriesDataStore dataStore,
                              @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, sharedRange, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     mDataStore = dataStore;
   }
 
@@ -106,10 +106,10 @@ public class NetworkRadioSegment extends BaseSegment {
     EnumMap<RadioState, Color> colorsMap = getRadioStateColor();
     EnumMap<RadioState, String> labelsMap = getRadioStateLabel();
     mRadioChart = new StateChart(colorsMap);
-    mRadioChart.addSeries(new RangedSeries<>(mXRange, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_RADIO)));
+    mRadioChart.addSeries(new RangedSeries<>(myTimeCurrentRangeUs, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_RADIO)));
     mNetworkTypeChart = new StateChart<>(getNetworkTypeColor());
     mNetworkTypeChart.setRenderMode(StateChart.RenderMode.TEXT);
-    mNetworkTypeChart.addSeries(new RangedSeries<>(mXRange, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_TYPE)));
+    mNetworkTypeChart.addSeries(new RangedSeries<>(myTimeCurrentRangeUs, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_TYPE)));
 
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RadioState state : RadioState.values()) {

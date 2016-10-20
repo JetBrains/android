@@ -46,9 +46,9 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
     AndroidIcons.Profiler.Rotation
   };
 
-  public EventProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
+  public EventProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
                                 @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, datastore, eventDispatcher);
+    super(timeCurrentRangeUs, choreographer, datastore, eventDispatcher);
   }
 
   @Override
@@ -63,16 +63,16 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
    */
   @Override
   public void setupOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
-    myOverviewSegment = createOverviewSegment(myTimeViewRange, myDataStore, myEventDispatcher);
+    myOverviewSegment = createOverviewSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myOverviewSegment, EVENT_MONITOR_MIN_HEIGHT, EVENT_MONITOR_MIN_HEIGHT, EVENT_MONITOR_MIN_HEIGHT);
     overviewPanel.add(myOverviewSegment);
   }
 
   @Override
   @NotNull
-  protected BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new EventSegment(xRange, dataStore, ICONS, eventDispatcher);
+    return new EventSegment(timeCurrentRangeUs, dataStore, ICONS, eventDispatcher);
   }
 }

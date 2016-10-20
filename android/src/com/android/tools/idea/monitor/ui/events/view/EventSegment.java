@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class EventSegment extends BaseSegment {
@@ -48,31 +47,26 @@ public class EventSegment extends BaseSegment {
     ROTATION
   }
 
-  @NotNull
-  private SimpleEventComponent mSystemEvents;
+  @NotNull private SimpleEventComponent mSystemEvents;
 
-  @NotNull
-  private StackedEventComponent mFragmentEvents;
+  @NotNull private StackedEventComponent mFragmentEvents;
 
-  @NotNull
-  private StackedEventComponent mActivityEvents;
+  @NotNull private StackedEventComponent mActivityEvents;
 
-  @NotNull
-  private StackedEventComponent mWakeLockEvents;
+  @NotNull private StackedEventComponent mWakeLockEvents;
 
-  @NotNull
-  private final SeriesDataStore mDataStore;
+  @NotNull private final SeriesDataStore mDataStore;
 
-  @NotNull
-  private Icon[] mIcons;
+  @NotNull private Icon[] mIcons;
 
   //TODO Add labels for series data.
 
-  public EventSegment(@NotNull Range scopedRange,
-                      @NotNull SeriesDataStore dataStore,
-                      @NotNull Icon[] icons,
-                      @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, scopedRange, dispatcher);
+  public EventSegment(
+      @NotNull Range timeCurrentRangeUs,
+      @NotNull SeriesDataStore dataStore,
+      @NotNull Icon[] icons,
+      @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     mDataStore = dataStore;
     mIcons = icons;
   }
@@ -80,18 +74,25 @@ public class EventSegment extends BaseSegment {
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
     DataStoreSeries<EventAction<SimpleEventComponent.Action, EventActionType>> systemEventData =
-      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_SIMPLE_ACTION);
+        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_SIMPLE_ACTION);
     DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData =
-      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_FRAGMENT_ACTION);
+        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_FRAGMENT_ACTION);
     DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData =
-      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_ACTIVITY_ACTION);
+        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_ACTIVITY_ACTION);
     DataStoreSeries<EventAction<StackedEventComponent.Action, String>> wakeLockEventData =
-      new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_WAKE_LOCK_ACTION);
+        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_WAKE_LOCK_ACTION);
 
-    mSystemEvents = new SimpleEventComponent(new RangedSeries<>(mXRange, systemEventData), mIcons);
-    mFragmentEvents = new StackedEventComponent(new RangedSeries<>(mXRange, fragmentEventData), FRAGMENT_GRAPH_SIZE);
-    mActivityEvents = new StackedEventComponent(new RangedSeries<>(mXRange, activityEventData), ACTIVITY_GRAPH_SIZE);
-    mWakeLockEvents = new StackedEventComponent(new RangedSeries<>(mXRange, wakeLockEventData), WAKE_LOCK_GRAPH_SIZE);
+    mSystemEvents =
+        new SimpleEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, systemEventData), mIcons);
+    mFragmentEvents =
+        new StackedEventComponent(
+            new RangedSeries<>(myTimeCurrentRangeUs, fragmentEventData), FRAGMENT_GRAPH_SIZE);
+    mActivityEvents =
+        new StackedEventComponent(
+            new RangedSeries<>(myTimeCurrentRangeUs, activityEventData), ACTIVITY_GRAPH_SIZE);
+    mWakeLockEvents =
+        new StackedEventComponent(
+            new RangedSeries<>(myTimeCurrentRangeUs, wakeLockEventData), WAKE_LOCK_GRAPH_SIZE);
 
     animatables.add(mSystemEvents);
     animatables.add(mFragmentEvents);
