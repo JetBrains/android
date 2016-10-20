@@ -21,6 +21,8 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +61,16 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     JBList list = myRobot.finder().findByType(myDialog, JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), list);
     jListFixture.replaceCellReader(CONFIGURATION_CELL_READER);
-    jListFixture.clickItem(item);
+    JListItemFixture itemFixture = jListFixture.item(item);
+    int itemIndex = itemFixture.index();
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        JList target = jListFixture.target();
+        target.getSelectionModel().setSelectionInterval(itemIndex, itemIndex);
+      }
+    });
+    jListFixture.requireSelection("app");
     return this;
   }
 
