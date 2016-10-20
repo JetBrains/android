@@ -490,6 +490,10 @@ public class ImagePanel extends JPanel {
           displayedG.dispose();
         }
       }
+
+      if (scale < 1) {
+        ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+      }
       g.drawImage(displayed, x, y, x + w, y + h, 0, flipped ? levelHeight : 0, levelWidth, flipped ? 0 : levelHeight, this);
 
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
