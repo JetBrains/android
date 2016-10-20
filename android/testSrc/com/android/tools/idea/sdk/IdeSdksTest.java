@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 /**

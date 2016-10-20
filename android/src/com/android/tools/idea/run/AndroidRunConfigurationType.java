@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;

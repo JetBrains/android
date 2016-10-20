@@ -53,6 +53,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
@@ -575,6 +576,11 @@ public final class AndroidSdkUtils {
       sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
+  }
+
+  public static boolean isAndroidSdkManagerEnabled() {
+    boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
+    return !sdkManagerDisabled;
   }
 
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {

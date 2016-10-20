@@ -20,7 +20,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 abstract class AndroidStudioSyncCheck extends SyncCheck {
   @Override

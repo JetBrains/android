@@ -44,7 +44,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
