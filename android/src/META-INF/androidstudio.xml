@@ -39,9 +39,14 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
     </action>
 
-    <action id="Android.UpdateChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
+    <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
       <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions" />
+    </action>
+
+    <action id="Android.StopAndInstallChanges" class="com.android.tools.idea.fd.actions.StopAndUpdateAction">
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
+      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunnerActions" />
     </action>
 
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">

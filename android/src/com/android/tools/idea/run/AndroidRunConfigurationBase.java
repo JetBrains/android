@@ -238,7 +238,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    if (InstantRunSettings.USE_ALTERNATE_UI) {
+    if (InstantRunSettings.getUiExperimentStatus() != IrUiExperiment.DEFAULT) {
       return null;
     }
 
@@ -403,14 +403,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
-    // We have two UIs for instant run. When using the alternate UI, regular launches should do a full apk build and hotswap launches
-    // (invoked via a separate hotswap action) can do an incremental build.
-    if (InstantRunSettings.USE_ALTERNATE_UI) {
-      runConfigContext.setForceFullApk(!InstantRunUtils.isHotswapAction(env));
+    boolean forceFullApk;
+    switch (InstantRunSettings.getUiExperimentStatus()) {
+      case HOTSWAP:
+        forceFullApk = !InstantRunUtils.isInvokedViaAction(env);
+        break;
+      case STOP_AND_RUN:
+        forceFullApk = InstantRunUtils.isInvokedViaAction(env);
+        break;
+      case DEFAULT:
+      default:
+        forceFullApk = false;
     }
-    else {
-      runConfigContext.setForceFullApk(false);
-    }
+    runConfigContext.setForceFullApk(forceFullApk);
 
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
