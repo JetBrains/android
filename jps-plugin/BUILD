@@ -18,6 +18,6 @@ iml_module(
         "//tools:idea.jps-model-impl[module]",
         "//tools:idea.maven-jps-plugin[module, test]",
         "//tools/base/build-system:studio.manifest-merger[module]",
-        "//tools:idea.MM_platform-impl[module]",
+        "//tools:idea.platform-impl_and_others[module]",
     ],
 )
