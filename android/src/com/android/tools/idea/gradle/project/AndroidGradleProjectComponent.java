@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
@@ -91,7 +91,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    GradleInvoker.getInstance(myProject).add(result -> {
+    GradleBuildInvoker.getInstance(myProject).add(result -> {
       PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
 
       GradleBuildContext newContext = new GradleBuildContext(result);

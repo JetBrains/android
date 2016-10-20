@@ -27,7 +27,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -379,7 +379,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleInvoker.saveAllFilesSafely();
+            GradleBuildInvoker.saveAllFilesSafely();
           }
         }
 
@@ -455,7 +455,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleInvoker.saveAllFilesSafely();
+            GradleBuildInvoker.saveAllFilesSafely();
           }
         }
 

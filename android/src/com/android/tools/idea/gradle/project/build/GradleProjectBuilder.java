@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -50,7 +50,7 @@ public class GradleProjectBuilder {
   public void assembleTranslate() {
     if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleInvoker.getInstance(myProject).assembleTranslate();
+        GradleBuildInvoker.getInstance(myProject).assembleTranslate();
         return;
       }
       buildProjectWithJps(ASSEMBLE_TRANSLATE);
@@ -61,7 +61,7 @@ public class GradleProjectBuilder {
     if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleInvoker.getInstance(myProject).compileJava(modules, GradleInvoker.TestCompileType.NONE);
+        GradleBuildInvoker.getInstance(myProject).compileJava(modules, GradleBuildInvoker.TestCompileType.NONE);
         return;
       }
       buildProjectWithJps(COMPILE_JAVA);
@@ -71,7 +71,7 @@ public class GradleProjectBuilder {
   public void clean() {
     if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleInvoker.getInstance(myProject).cleanProject();
+        GradleBuildInvoker.getInstance(myProject).cleanProject();
         return;
       }
       buildProjectWithJps(CLEAN);
@@ -89,7 +89,7 @@ public class GradleProjectBuilder {
     }
     if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleInvoker.getInstance(myProject).generateSources(cleanProject);
+        GradleBuildInvoker.getInstance(myProject).generateSources(cleanProject);
       }
       else {
         buildProjectWithJps(SOURCE_GEN);

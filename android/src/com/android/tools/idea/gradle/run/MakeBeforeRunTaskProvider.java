@@ -23,9 +23,9 @@ import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -363,8 +363,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
 
-    GradleInvoker.TestCompileType testCompileType = GradleInvoker.getTestCompileType(configuration.getType().getId());
-    if (testCompileType == GradleInvoker.TestCompileType.UNIT_TESTS) {
+    GradleBuildInvoker.TestCompileType testCompileType = GradleBuildInvoker.getTestCompileType(configuration.getType().getId());
+    if (testCompileType == GradleBuildInvoker.TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
