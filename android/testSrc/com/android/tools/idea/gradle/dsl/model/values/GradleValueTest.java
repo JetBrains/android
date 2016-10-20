@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.AbstractFlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 
 import java.util.List;
@@ -201,5 +203,35 @@ public class GradleValueTest extends GradleFileModelTestCase {
     GradleNotNullValue<String> foo = testInstrumentationRunnerArguments.get("foo");
     assertNotNull(foo);
     verifyGradleValue(foo, "android.defaultConfig.testInstrumentationRunnerArguments.foo", "\"bar\"");
+  }
+
+  public void testGradleValuesOfTypeNameValueElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "  }\n" +
+                  "  buildTypes {\n" +
+                  "    xyz {\n" +
+                  "      buildConfigField \"mnop\", \"qrst\", \"uvwx\"\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+    List<GradleNotNullValue<AbstractFlavorTypeModel.ResValue>> resValues = defaultConfig.resValues();
+    assertNotNull(resValues);
+    assertThat(resValues).hasSize(1);
+    verifyGradleValue(resValues.get(0), "android.defaultConfig.resValue", "\"abcd\", \"efgh\", \"ijkl\"");
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+    List<GradleNotNullValue<BuildTypeModel.BuildConfigField>> buildConfigFields = buildTypes.get(0).buildConfigFields();
+    assertNotNull(buildConfigFields);
+    assertThat(buildConfigFields).hasSize(1);
+    verifyGradleValue(buildConfigFields.get(0), "android.buildTypes.xyz.buildConfigField", "\"mnop\", \"qrst\", \"uvwx\"");
   }
 }
