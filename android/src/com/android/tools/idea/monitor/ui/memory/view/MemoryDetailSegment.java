@@ -52,9 +52,9 @@ public class MemoryDetailSegment extends BaseSegment {
 
   private DefaultTreeModel mTreeModel;
 
-  public MemoryDetailSegment(@NotNull Range timeRange, @NotNull MemoryInfoTreeNode root,
+  public MemoryDetailSegment(@NotNull Range timeCurrentRangeUs, @NotNull MemoryInfoTreeNode root,
                              @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     mRoot = root;
   }
 

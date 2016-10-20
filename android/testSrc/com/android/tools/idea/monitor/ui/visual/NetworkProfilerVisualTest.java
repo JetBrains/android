@@ -84,12 +84,12 @@ public class NetworkProfilerVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     long startTimeUs = mDataStore.getLatestTimeUs();
-    Range timeRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, 0);
-    timeRange.setOffset(startTimeUs);
+    Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
+    timeCurrentRangeUs.setOffset(startTimeUs);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
+    mSegment = new NetworkSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
     mDetailedView = new NetworkDetailedView();
 
     ArrayList<RangedSeries<NetworkCaptureSegment.NetworkState>> rangedSeries = new ArrayList();
@@ -97,17 +97,17 @@ public class NetworkProfilerVisualTest extends VisualTest {
     for (int i = 0; i < CAPTURE_SIZE; ++i) {
       DefaultDataSeries seriesData = new DefaultDataSeries<NetworkCaptureSegment.NetworkState>();
       mCaptureData.add(seriesData);
-      rangedSeries.add(new RangedSeries<>(timeRange, seriesData));
+      rangedSeries.add(new RangedSeries<>(timeCurrentRangeUs, seriesData));
     }
     mDetailedView.setVisible(false);
 
-    mCaptureSegment = new NetworkCaptureSegment(timeRange, mDataStore, connectionId -> {
+    mCaptureSegment = new NetworkCaptureSegment(timeCurrentRangeUs, mDataStore, connectionId -> {
       // TODO: Fix test
       //mDetailedView.showConnectionDetails(connectionId);
       mDetailedView.setVisible(true);
     }, dummyDispatcher);
 
-    mRadioSegment = new NetworkRadioSegment(timeRange, mDataStore, dummyDispatcher);
+    mRadioSegment = new NetworkRadioSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);

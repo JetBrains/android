@@ -48,9 +48,9 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   private final HttpDataCache myDataCache;
 
-  public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
+  public NetworkProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
                                   @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, dataStore, eventDispatcher);
+    super(timeCurrentRangeUs, choreographer, dataStore, eventDispatcher);
     myDataCache = new HttpDataCache(myDataStore.getDeviceProfilerService().getDevice());
   }
 
@@ -62,10 +62,10 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
   @Override
   @NotNull
-  protected BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new NetworkSegment(xRange, dataStore, eventDispatcher);
+    return new NetworkSegment(timeCurrentRangeUs, dataStore, eventDispatcher);
   }
 
   // TODO: Revisit for L4 design, this was intended for L3.
@@ -84,11 +84,11 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
-    myRadioSegment = new NetworkRadioSegment(myTimeViewRange, myDataStore, myEventDispatcher);
+    myRadioSegment = new NetworkRadioSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
 
-    myCaptureSegment = new NetworkCaptureSegment(myTimeViewRange, myDataStore, httpData -> {
+    myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, myDataStore, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
       File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {
