@@ -51,7 +51,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private CpuDataPoller myCpuDataPoller;
 
-  private Range myTimeSelectionRange;
+  private Range myTimeSelectionRangeUs;
 
   private HTreeChart<Method> myExecutionChart;
 
@@ -73,15 +73,15 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private Range myFlameChartRange;
 
-  public CpuProfilerUiManager(@NotNull Range timeViewRange,
-                              @NotNull Range timeSelectionRange,
+  public CpuProfilerUiManager(@NotNull Range timeCurrentRangeUs,
+                              @NotNull Range timeSelectionRangeUs,
                               @NotNull Choreographer choreographer,
                               @NotNull SeriesDataStore dataStore,
                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher,
                               @NotNull DeviceProfilerService selectedDeviceProfilerService,
                               @NotNull DeviceContext deviceContext, Project project) {
-    super(timeViewRange, choreographer, dataStore, eventDispatcher);
-    myTimeSelectionRange = timeSelectionRange;
+    super(timeCurrentRangeUs, choreographer, dataStore, eventDispatcher);
+    myTimeSelectionRangeUs = timeSelectionRangeUs;
     mySelectedDeviceProfilerService = selectedDeviceProfilerService;
     myDeviceContext = deviceContext;
     myProject = project;
@@ -90,7 +90,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private void createDetailedViewCharts() {
     myExecutionChart = new HTreeChart<>();
-    myExecutionChart.setXRange(myTimeSelectionRange);
+    myExecutionChart.setXRange(myTimeSelectionRangeUs);
 
     myFlameChart = new HTreeChart<>(HTreeChart.Orientation.BOTTOM_UP);
   }
@@ -106,7 +106,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
-    myThreadSegment = new ThreadsSegment(myTimeViewRange, myDataStore, myEventDispatcher, this);
+    myThreadSegment = new ThreadsSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher, this);
     assert myCpuDataPoller != null;
     myCpuDataPoller.setThreadAddedNotifier(myThreadSegment.getThreadAddedNotifier());
     myChoreographer.register(myThreadSegment);
@@ -182,10 +182,10 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   @Override
   @NotNull
-  protected BaseSegment createOverviewSegment(@NotNull Range xRange,
+  protected BaseSegment createOverviewSegment(@NotNull Range timeCurrentRangeUs,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new CpuUsageSegment(xRange, dataStore, eventDispatcher);
+    return new CpuUsageSegment(timeCurrentRangeUs, dataStore, eventDispatcher);
   }
 
   @Override
@@ -240,14 +240,14 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     }
 
     // Setup selection (blue highlight)
-    myTimeSelectionRange.set(executionTree.getStart(), executionTree.getEnd());
-    myTimeSelectionRange.lockValues();
+    myTimeSelectionRangeUs.set(executionTree.getStart(), executionTree.getEnd());
+    myTimeSelectionRangeUs.lockValues();
 
     // Setup view with a little bit of margin so selection can be seen.
     long duration = executionTree.getEnd() - executionTree.getStart();
     long durationMargin = duration / 10;
-    myTimeViewRange.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
-    myTimeViewRange.lockValues();
+    myTimeCurrentRangeUs.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
+    myTimeCurrentRangeUs.lockValues();
 
     myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.CPU);
   }

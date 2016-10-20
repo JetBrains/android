@@ -40,10 +40,10 @@ public class EnergySegment extends BaseLineChartSegment {
   private static final Color ENERGY_CELL_NETWORK_COLOR = new JBColor(new Color(100, 200, 150), new Color(100, 200, 150));
   private static final Color ENERGY_WIFI_NETWORK_COLOR = new JBColor(new Color(100, 150, 200), new Color(100, 150, 200));
 
-  public EnergySegment(@NotNull Range timeRange,
+  public EnergySegment(@NotNull Range timeCurrentRangeUs,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, EnergyAxisFormatter.SIMPLE, EnergyAxisFormatter.DETAILED, null, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, EnergyAxisFormatter.SIMPLE, EnergyAxisFormatter.DETAILED, null, dispatcher);
   }
 
   @Override

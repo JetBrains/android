@@ -72,10 +72,10 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final String JAVA_MEM = "Java Mem";
 
-  public MemorySegment(@NotNull Range timeRange,
+  public MemorySegment(@NotNull Range timeCurrentRangeUs,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, COUNT_AXIS_FORMATTER, dispatcher);
+    super(SEGMENT_NAME, timeCurrentRangeUs, dataStore, MEMORY_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, COUNT_AXIS_FORMATTER, dispatcher);
   }
 
   @Override
