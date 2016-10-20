@@ -97,6 +97,31 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     assertFalse(myProjectInfo.isBuildWithGradle());
   }
 
+  public void testGetAndroidModulesUsingGradleProject() {
+    // Simulate this is a module built with Gradle
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      FacetManager.getInstance(getModule()).addFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+    });
+
+    assertEquals(1, myProjectInfo.getAndroidModules().size());
+  }
+
+  public void testGetAndroidModulesUsingNonGradleProject() {
+    // Ensure this module is *not* build by Gradle.
+    removeAndroidGradleFacetFromModule();
+
+    assertEmpty(myProjectInfo.getAndroidModules());
+  }
+
+  public void testGetAndroidModulesUsingGradleProjectWithoutGradleModules() {
+    // Ensure this module is *not* build by Gradle.
+    removeAndroidGradleFacetFromModule();
+
+    registerLastSyncTimestamp(1L);
+
+    assertEmpty(myProjectInfo.getAndroidModules());
+  }
+
   private void removeAndroidGradleFacetFromModule() {
     FacetManager facetManager = FacetManager.getInstance(getModule());
     AndroidGradleFacet facet = facetManager.findFacet(AndroidGradleFacet.getFacetType().getId(), AndroidGradleFacet.NAME);
