@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
-import com.intellij.ide.ClipboardSynchronizer;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.psi.xml.XmlTag;
@@ -32,14 +31,14 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 import javax.swing.tree.TreePath;
+import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class NlComponentTreeTest extends LayoutTestCase {
@@ -47,6 +46,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   private DesignSurface mySurface;
   @Mock
   private ScreenView myScreen;
+  @Mock
+  private CopyPasteManager myCopyPasteManager;
   private NlModel myModel;
   private NlComponentTree myTree;
   private NlComponent myRelativeLayout;
@@ -64,23 +65,13 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
     when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
-    myTree = new NlComponentTree(mySurface);
+    myTree = new NlComponentTree(mySurface, myCopyPasteManager);
 
     myRelativeLayout = findFirst(RELATIVE_LAYOUT);
     myLinearLayout = findFirst(LINEAR_LAYOUT);
     myButton = findFirst(BUTTON);
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      ClipboardSynchronizer.getInstance().resetContent();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   @NotNull
@@ -204,7 +195,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCopyVisible(context)).isTrue();
     assertThat(myTree.isCopyEnabled(context)).isFalse();
     myTree.performCopy(context);
-    assertThat(CopyPasteManager.getInstance().getContents()).isNull();
+    verifyZeroInteractions(myCopyPasteManager);
   }
 
   public void testCopyWithOneComponentSelected() {
@@ -213,7 +204,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCopyVisible(context)).isTrue();
     assertThat(myTree.isCopyEnabled(context)).isTrue();
     myTree.performCopy(context);
-    assertThat(CopyPasteManager.getInstance().getContents()).isNotNull();
+    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
   }
 
   public void testPasteIsNotPossibleWhenMultipleComponentsAreSelected() {
@@ -286,7 +277,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCopyVisible(context)).isTrue();
     assertThat(myTree.isCopyEnabled(context)).isTrue();
     myTree.performCopy(context);
-    assertThat(CopyPasteManager.getInstance().getContents()).isNotNull();
+    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
   }
 
   public void testPasteMultipleIntoLayout() {
@@ -312,7 +303,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myTree.isCutVisible(context)).isTrue();
     assertThat(myTree.isCutEnabled(context)).isTrue();
     myTree.performCut(context);
-    assertThat(CopyPasteManager.getInstance().getContents()).isNotNull();
+    verify(myCopyPasteManager).setContents(notNull(Transferable.class));
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
@@ -348,16 +339,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   private void copy(@NotNull NlComponent... components) {
-    DataContext context = mock(DataContext.class);
     myModel.getSelectionModel().setSelection(Arrays.asList(components));
-    myTree.performCopy(context);
+    when(myCopyPasteManager.getContents()).thenReturn(myModel.getSelectionAsTransferable());
     myModel.getSelectionModel().clear();
   }
 
   private void cut(@NotNull NlComponent... components) {
-    DataContext context = mock(DataContext.class);
-    myModel.getSelectionModel().setSelection(Arrays.asList(components));
-    myTree.performCut(context);
+    List<NlComponent> list = Arrays.asList(components);
+    myModel.getSelectionModel().setSelection(list);
+    when(myCopyPasteManager.getContents()).thenReturn(myModel.getSelectionAsTransferable());
+    myModel.delete(list);
     myModel.getSelectionModel().clear();
   }
 

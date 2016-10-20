@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
@@ -43,10 +44,17 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
   private final CopyProvider myCopyProvider;
   private final NlPaletteTreeGrid myPalettePanel;
   private final DependencyManager myDependencyManager;
+  private final CopyPasteManager myCopyPasteManager;
   private DesignSurface myDesignSurface;
 
   public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+    this(project, designSurface, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     myProject = project;
+    myCopyPasteManager = copyPasteManager;
     myDependencyManager = new DependencyManager(project, this, this);
     myPalettePanel = new NlPaletteTreeGrid(project, myDependencyManager);
     myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(myDependencyManager));
@@ -117,7 +125,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider {
       Palette.Item item = myPalettePanel.getSelectedItem();
       if (item != null && !myDependencyManager.needsLibraryLoad(item)) {
         DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
-        CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
+        myCopyPasteManager.setContents(new ItemTransferable(new DnDTransferItem(component)));
       }
     }
 
