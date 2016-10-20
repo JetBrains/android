@@ -16,51 +16,46 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.gradle.service.notification.hyperlink.ToggleOfflineModeHyperlink;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
-  @NotNull private final Jdks myJdks;
-
-  public Jdk8RequiredErrorHandler() {
-    this(Jdks.getInstance());
-  }
-
-  public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
-    myJdks = jdks;
-  }
-
-  @Nullable
+/**
+ * Tests for {@link CachedDependencyNotFoundErrorHandler}.
+ */
+public class CachedDependencyNotFoundErrorHandler extends SyncErrorHandler {
   @Override
+  @Nullable
   protected String findErrorMessage(@NotNull Throwable error, @NotNull NotificationData notification, @NotNull Project project) {
-    //noinspection ThrowableResultOfMethodCallIgnored
     Throwable cause = getRootCause(error);
-    // Example:
-    // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
     String text = cause.getMessage();
-    if (isNotEmpty(text) && text.contains("Unsupported major.minor version 52.0")) {
-      if (!text.endsWith(".")) {
-        text += ".";
+    if (isNotEmpty(text)) {
+      String firstLine = getFirstLineMessage(text);
+      if (firstLine.startsWith("No cached version of ") && firstLine.contains("available for offline mode.")) {
+        updateUsageTracker();
+        return firstLine;
       }
-      text += " Please use JDK 8 or newer.";
-      updateUsageTracker();
-      return text;
     }
     return null;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
-    return myJdks.getWrongJdkQuickFixes(project);
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    NotificationHyperlink disableOfflineMode = ToggleOfflineModeHyperlink.disableOfflineMode(project);
+    if (disableOfflineMode != null) {
+      hyperlinks.add(disableOfflineMode);
+    }
+    return hyperlinks;
   }
 }
