@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
+    # do not sort: must match IML order
     deps = [
         "//tools:idea.jps-builders[module]",
         "//tools:idea.jps-model-api[module]",

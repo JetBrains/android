@@ -6,6 +6,7 @@ iml_module(
     tags = ["managed"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools/adt/idea:android-common[module]",
         "//tools/adt/idea:android-rt[module]",
