@@ -64,6 +64,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
   private static final boolean USE_GUIDELINES_DURING_DND = true;
+  static final boolean USE_SOLVER = true;
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
@@ -438,6 +439,46 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   /**
+   * Schedule a layout pass
+   */
+  public void requestLayout() {
+    if (!USE_SOLVER) {
+      updateMemoryXML(); // Send changes to the XML without committing them
+      requestRender();
+      int dpi = myNlModel.getConfiguration().getDensity().getDpiValue();
+      setDpiValue(dpi);
+      WidgetContainer root = myWidgetsScene.getRoot();
+      if (root != null) {
+        root = root.getRootWidgetContainer();
+        if (root != null) {
+          updateFromView(root, 0, 0);
+        }
+      }
+    }
+  }
+
+  /**
+   * Utility function to update the ConstraintWidgets from the ViewInfos
+   * @param widget
+   * @param parentX
+   * @param parentY
+   */
+  private void updateFromView(ConstraintWidget widget, int parentX, int parentY) {
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    NlComponent component = (NlComponent)companion.getWidgetModel();
+    ViewInfo info = component.viewInfo;
+    int left = pxToDp(info.getLeft());
+    int top = pxToDp(info.getTop());
+    widget.setDrawOrigin(left + parentX, top + parentY);
+    if (widget instanceof WidgetContainer) {
+      WidgetContainer container = (WidgetContainer) widget;
+      for (ConstraintWidget w : container.getChildren()) {
+        updateFromView(w, left + parentX, top + parentY);
+      }
+    }
+  }
+
+  /**
    * Timer class managing the xml save behaviour
    * We only want to save if we are not doing something else...
    */
@@ -565,12 +606,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       updateConstraintLayoutRoots(myWidgetsScene.getRoot());
     }
 
-    // Finally, layout using our model.
-    WidgetContainer root = myWidgetsScene.getRoot();
-    if (root != null) {
-      root = root.getRootWidgetContainer();
+    if (USE_SOLVER) {
+      // Finally, layout using our model.
+      WidgetContainer root = myWidgetsScene.getRoot();
       if (root != null) {
-        root.layout();
+        root = root.getRootWidgetContainer();
+        if (root != null) {
+          root.layout();
+        }
       }
     }
     if (saveXML) {
