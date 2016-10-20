@@ -70,7 +70,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
         target.getSelectionModel().setSelectionInterval(itemIndex, itemIndex);
       }
     });
-    jListFixture.requireSelection("app");
+    jListFixture.requireSelection(item);
     return this;
   }
 
