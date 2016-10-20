@@ -659,6 +659,24 @@ public class ImageUtils {
   }
 
   /**
+   * Returns true if at least one pixel in the image is semi-transparent (alpha != 255)
+   *
+   * @param image the image to check
+   * @return true if it has one or more non-opaque pixels
+   */
+  public static boolean isNonOpaque(@NotNull BufferedImage image) {
+    for (int y = 0; y < image.getHeight(); y++) {
+      for (int x = 0; x < image.getWidth(); x++) {
+        int rgb = image.getRGB(x, y);
+        if (((rgb & 0xFF000000) ^ 0xFF000000) != 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Interface implemented by cropping functions that determine whether
    * a pixel should be cropped or not.
    */
