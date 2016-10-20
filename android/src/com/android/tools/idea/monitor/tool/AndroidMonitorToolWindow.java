@@ -66,7 +66,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_ENERGY_PROFILER;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_ENERGY_PROFILER;
 
 public class AndroidMonitorToolWindow implements Disposable {
 

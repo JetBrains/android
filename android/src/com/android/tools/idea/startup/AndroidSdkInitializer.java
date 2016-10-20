@@ -42,7 +42,7 @@ import java.util.Properties;
 
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;

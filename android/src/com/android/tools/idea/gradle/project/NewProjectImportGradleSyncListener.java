@@ -38,7 +38,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;

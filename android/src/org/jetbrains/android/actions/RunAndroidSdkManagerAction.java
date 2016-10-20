@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * @author Eugene.Kudelevsky

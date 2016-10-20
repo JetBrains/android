@@ -51,7 +51,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 
 public class JdkModuleSetupStep extends AndroidModuleSetupStep {

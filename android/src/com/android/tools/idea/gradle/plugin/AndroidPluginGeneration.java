@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.module.Module;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_EXPERIMENTAL_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 
 public enum AndroidPluginGeneration {
@@ -53,7 +52,7 @@ public enum AndroidPluginGeneration {
     @Override
     @NotNull
     public String getRecommendedVersion() {
-      return AndroidStudioInitializer.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+      return GradleUtil.GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
 
     @Override

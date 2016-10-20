@@ -114,7 +114,7 @@ import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.project.NewProjects.createRunConfigurations;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
