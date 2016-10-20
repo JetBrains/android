@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.task;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -43,9 +43,9 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull List<String> scriptParameters,
                               @Nullable String debuggerSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
-    GradleInvoker gradleInvoker = findGradleInvoker(id);
-    if (gradleInvoker != null) {
-      GradleInvoker.RequestSettings requestSettings = new GradleInvoker.RequestSettings(gradleInvoker.getProject(), taskNames, id);
+    GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
+    if (gradleBuildInvoker != null) {
+      GradleBuildInvoker.RequestSettings requestSettings = new GradleBuildInvoker.RequestSettings(gradleBuildInvoker.getProject(), taskNames, id);
 
       // @formatter:off
       requestSettings.setJvmArguments(vmOptions)
@@ -54,7 +54,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                      .setWaitForCompletion(true);
       // @formatter:on
 
-      gradleInvoker.executeTasks(requestSettings);
+      gradleBuildInvoker.executeTasks(requestSettings);
       return true;
     }
     // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
@@ -63,19 +63,19 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
 
   @Override
   public boolean cancelTask(@NotNull ExternalSystemTaskId id, @NotNull ExternalSystemTaskNotificationListener listener) {
-    GradleInvoker gradleInvoker = findGradleInvoker(id);
-    if (gradleInvoker != null) {
-      gradleInvoker.stopBuild(id);
+    GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
+    if (gradleBuildInvoker != null) {
+      gradleBuildInvoker.stopBuild(id);
       return true;
     }
     return false;
   }
 
   @Nullable
-  private static GradleInvoker findGradleInvoker(ExternalSystemTaskId id) {
+  private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id) {
     Project project = id.findProject();
     if (project != null && requiresAndroidModel(project) && isDirectGradleInvocationEnabled(project)) {
-      return GradleInvoker.getInstance(project);
+      return GradleBuildInvoker.getInstance(project);
     }
     return null;
   }

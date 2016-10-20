@@ -16,8 +16,8 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
@@ -327,24 +327,24 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleInvoker> gradleInvocationTask)
+  private static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
     throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
-    GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
+    GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
-    GradleInvoker.AfterGradleInvocationTask task = result -> {
+    GradleBuildInvoker.AfterGradleInvocationTask task = result -> {
       resultRef.set(result);
       latch.countDown();
     };
 
-    gradleInvoker.add(task);
+    gradleBuildInvoker.add(task);
 
     try {
-      gradleInvocationTask.consume(gradleInvoker);
+      gradleInvocationTask.consume(gradleBuildInvoker);
     }
     finally {
-      gradleInvoker.remove(task);
+      gradleBuildInvoker.remove(task);
     }
 
     latch.await();
