@@ -280,8 +280,9 @@ public class AvdWizardUtils {
               } else {
                 // Normal copy
                 for (File src : fop.listFiles(resourcePath)) {
-                  if (fop.isFile(src) && !fop.exists(dest)) {
-                    fop.copyFile(src, new File(dest, src.getName()));
+                  File target = new File(dest, src.getName());
+                  if (fop.isFile(src) && !fop.exists(target)) {
+                    fop.copyFile(src, target);
                   }
                 }
               }
@@ -341,8 +342,9 @@ public class AvdWizardUtils {
       // (a) decode the webp file (for example if there's a problem loading the native library doing webp
       // decoding, or (b) there was an I/O error writing the PNG file. In that case we'll leave the file in
       // webp format (future emulators support it.)
-      if (fop.isFile(src) && !fop.exists(dest)) {
-        fop.copyFile(src, new File(dest, name));
+      File target = new File(dest, name);
+      if (fop.isFile(src) && !fop.exists(target)) {
+        fop.copyFile(src, target);
       }
     }
 
