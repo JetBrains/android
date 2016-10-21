@@ -69,4 +69,40 @@ public class AvdWizardUtilsTest {
     assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).contains(".png");
     assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
   }
+
+  @Test
+  public void testPngFallthrough() throws IOException {
+    // Make sure that we correctly copy png assets
+    WebpMetadata.ensureWebpRegistered();
+    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
+      System.out.println("Can't run skin conversion test without native webp library");
+      return;
+    }
+
+    DeviceArtDescriptor wearSquare = null;
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if ("wear_square".equals(spec.getId())) {
+        wearSquare = spec;
+        break;
+      }
+    }
+    assertThat(wearSquare).isNotNull();
+    File source = wearSquare.getBaseFolder();
+
+    FileOp fileOp = FileOpUtils.create();
+    assertThat(fileOp.exists(new File(source, "back.png"))).isTrue();
+    assertThat(fileOp.exists(new File(source, "back.webp"))).isFalse();
+    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).contains(".png");
+    assertThat(fileOp.toString(new File(source, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
+
+    File dest = myFolder.getRoot();
+    AvdWizardUtils.convertWebpSkinToPng(fileOp, dest, source);
+
+    assertThat(fileOp.exists(new File(dest, "back.webp"))).isFalse();
+    assertThat(fileOp.exists(new File(dest, "back.png"))).isTrue();
+    assertThat(fileOp.exists(new File(dest, "layout"))).isTrue();
+    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).contains(".png");
+    assertThat(fileOp.toString(new File(dest, "layout"), Charsets.UTF_8)).doesNotContain(".webp");
+  }
 }
