@@ -1,0 +1,59 @@
+parts {
+  device {
+    display {
+      width 1440
+      height 2560
+      x 0
+      y 0
+    }
+  }
+  portrait {
+    background {
+      image port_back.webp
+    }
+    onion {
+      image port_fore.webp
+    }
+  }
+  landscape {
+    background {
+      image land_back.webp
+    }
+    onion {
+      image land_fore.webp
+    }
+  }
+}
+layouts {
+  portrait {
+    width 1840
+    height 3297
+    event EV_SW:0:1
+    part1 {
+      name portrait
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 200
+      y 325
+    }
+  }
+  landscape {
+    width 3427
+    height 1654
+    event EV_SW:0:0
+    part1 {
+      name landscape
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 393
+      y 1532
+      rotation 3
+    }
+  }
+}
