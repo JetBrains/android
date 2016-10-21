@@ -334,7 +334,12 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
       LineConfig lineConfig = mLineChart.getLineConfig(series);
-      LegendRenderData.IconType iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
+      LegendRenderData.IconType iconType = lineConfig.getLegendIconType();
+      // Use a default icon type for the line in case there is no icon set in line config.
+      // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
+      if (iconType == null) {
+        iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
+      }
       legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series));
     }
     return legendRenderDataList;

@@ -16,8 +16,10 @@
 
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.tools.adtui.model.LegendRenderData;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -62,6 +64,12 @@ public class LineConfig {
    * Whether the series should stack with other series instead of being independent.
    */
   private boolean myIsStacked = false;
+
+  /**
+   * Type of the legend icon that represents the line.
+   */
+  @Nullable
+  private LegendRenderData.IconType myLegendIconType;
 
   @NotNull
   private Stroke myStroke;
@@ -134,5 +142,15 @@ public class LineConfig {
   @NotNull
   public Stroke getStroke() {
     return myStroke;
+  }
+
+  public LineConfig setLegendIconType(@Nullable LegendRenderData.IconType legendIconType) {
+    myLegendIconType = legendIconType;
+    return this;
+  }
+
+  @Nullable
+  public LegendRenderData.IconType getLegendIconType() {
+    return myLegendIconType;
   }
 }

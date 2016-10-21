@@ -36,13 +36,36 @@ public class LegendComponent extends AnimatedComponent {
     VERTICAL,
   }
 
-  private static final int LINE_THICKNESS = 4;
+  /**
+   * Thickness, in pixels, of the line icon.
+   */
+  private static final int LINE_THICKNESS = 3;
 
-  private static final int ICON_WIDTH = 16;
+  /**
+   * Width of the line icon in pixels.
+   */
+  private static final int LINE_ICON_WIDTH_PX = 16;
 
-  private static final int ICON_PADDING = 2;
+  /**
+   * Side of the (squared) box icon in pixels.
+   */
+  private static final int BOX_ICON_SIDE_PX = 10;
 
-  private static final int LABEL_PADDING = 8;
+  /**
+   * Distance, in pixels, between icons and their correspondent labels.
+   */
+  private static final int ICON_MARGIN_PX = 10;
+
+  /**
+   * Vertical space, in pixels, between the legend and the border of the parent component
+   * or the next/previous vertical legend.
+   */
+  private static final int LEGEND_VERTICAL_PADDING_PX = 5;
+
+  /**
+   * Distance, in pixels, between legends.
+   */
+  private int LEGEND_MARGIN_PX = 20;
 
   private int mFrequencyMillis;
 
@@ -98,11 +121,14 @@ public class LegendComponent extends AnimatedComponent {
         }
       }
 
-      //As we adjust the size of the label we need to adjust the size of ourself
-      //to tell our parent to give us enough room to draw.
+      // As we adjust the size of the label we need to adjust our own size
+      // to tell our parent to give us enough room to draw.
       Dimension newSize = getLegendPreferredSize();
       if (newSize != getPreferredSize()) {
         setPreferredSize(newSize);
+        // Set the minimum height of the component to avoid hiding all the labels
+        // in case they are longer than the component's total width
+        setMinimumSize(new Dimension(getMinimumSize().width, newSize.height));
         revalidate();
       }
     }
@@ -110,35 +136,40 @@ public class LegendComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d) {
+    // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
     for (int i = 0; i < mLegendRenderData.size(); ++i) {
       LegendRenderData data = mLegendRenderData.get(i);
       JLabel label = mLabelsToDraw.get(i);
-      Dimension preferredSize = label.getPreferredSize();
+      Dimension labelPreferredSize = label.getPreferredSize();
       int xOffset = 0;
-      //Draw the icon, and apply a translation offset for the label to be drawn.
+
+      // Draw the icon, and apply a translation offset for the label to be drawn.
+      // TODO: Add config for LegendRenderData.IconType.DOTTED_LINE once we support dashed lines.
       if (data.getIcon() == LegendRenderData.IconType.BOX) {
+        // Adjust the box initial Y coordinate to align the box and the label vertically.
+        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - BOX_ICON_SIDE_PX) / 2;
         g2d.setColor(data.getColor());
-        g2d.fillRect(xOffset, 0, ICON_WIDTH, ICON_WIDTH);
-        xOffset = ICON_WIDTH + ICON_PADDING;
+        g2d.fillRect(0, boxY, BOX_ICON_SIDE_PX, BOX_ICON_SIDE_PX);
+        xOffset = BOX_ICON_SIDE_PX + ICON_MARGIN_PX;
       }
       else if (data.getIcon() == LegendRenderData.IconType.LINE) {
         g2d.setColor(data.getColor());
         Stroke defaultStroke = g2d.getStroke();
         g2d.setStroke(new BasicStroke(LINE_THICKNESS));
-        g2d.drawLine(xOffset, preferredSize.height / 2, xOffset + ICON_WIDTH, preferredSize.height / 2);
+        int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
+        g2d.drawLine(xOffset, lineY, LINE_ICON_WIDTH_PX, lineY);
         g2d.setStroke(defaultStroke);
-        xOffset = ICON_WIDTH + ICON_PADDING;
+        xOffset = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX;
       }
-      g2d.translate(xOffset, 0);
+      g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
       label.paint(g2d);
 
-      //Translate the draw position for the next set of labels.
+      // Translate the draw position for the next set of labels.
       if (mOrientation == Orientation.HORIZONTAL) {
-        g2d.translate(preferredSize.width + LABEL_PADDING, 0);
+        g2d.translate(labelPreferredSize.width + LEGEND_MARGIN_PX, -LEGEND_VERTICAL_PADDING_PX);
       }
       else if (mOrientation == Orientation.VERTICAL) {
-        g2d.translate(-xOffset, 0);
-        g2d.translate(0, preferredSize.height + LABEL_PADDING);
+        g2d.translate(-xOffset, labelPreferredSize.height + LEGEND_VERTICAL_PADDING_PX);
       }
     }
   }
@@ -146,8 +177,9 @@ public class LegendComponent extends AnimatedComponent {
   private Dimension getLegendPreferredSize() {
     int totalWidth = 0;
     int totalHeight = 0;
-    int iconPaddedSize = ICON_WIDTH + ICON_PADDING + LABEL_PADDING;
-    //Calculate total size of all icons + labels.
+    // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
+    int iconPaddedSize = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
+    // Calculate total size of all icons + labels.
     for (JLabel label : mLabelsToDraw) {
       Dimension size = label.getPreferredSize();
       if (mOrientation == Orientation.HORIZONTAL) {
@@ -163,6 +195,11 @@ public class LegendComponent extends AnimatedComponent {
         }
       }
     }
-    return new Dimension(totalWidth, totalHeight);
+    int heightPadding = 2 * LEGEND_VERTICAL_PADDING_PX;
+    // In the case of vertical legends, we have vertical padding for all the legends
+    if (mOrientation == Orientation.VERTICAL) {
+      heightPadding *= mLabelsToDraw.size();
+    }
+    return new Dimension(totalWidth, totalHeight + heightPadding);
   }
 }
