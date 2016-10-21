@@ -154,6 +154,7 @@ public class AvdManagerConnection {
    */
   @VisibleForTesting
   protected synchronized static void setConnectionFactory(Function<AndroidSdkHandler, AvdManagerConnection> factory) {
+    ourCache.clear();
     ourConnectionFactory = factory;
   }
 
