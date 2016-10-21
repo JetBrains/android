@@ -41,12 +41,14 @@
 
     <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
       <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
-      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions" />
+      <!-- <keyboard-shortcut first-keystroke="shift ctrl U" keymap="$default" /> -->
+      <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
     </action>
 
     <action id="Android.StopAndInstallChanges" class="com.android.tools.idea.fd.actions.StopAndUpdateAction">
       <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
       <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="RunnerActions" />
+      <!-- <keyboard-shortcut first-keystroke="shift ctrl R" keymap="$default" /> -->
     </action>
 
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">

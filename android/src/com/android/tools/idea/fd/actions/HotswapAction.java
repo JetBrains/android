@@ -21,7 +21,7 @@ import com.intellij.icons.AllIcons;
 
 public class HotswapAction extends UpdateActionBase {
   public HotswapAction() {
-    super("Hotswap", "Live Update changes since last run", AllIcons.Actions.Lightning);
+    super("Apply Changes", "Apply Changes", AllIcons.Actions.Lightning);
   }
 
   @Override
