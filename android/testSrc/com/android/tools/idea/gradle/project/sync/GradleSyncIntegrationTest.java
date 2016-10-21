@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -45,6 +46,7 @@ import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.mockito.Mockito.*;
 
 /**
  * Integration tests for 'Gradle Sync'.
@@ -122,6 +124,23 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     Module library1Module = myModules.getModule("library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
     assertEquals(JDK_1_7, javaLanguageLevel);
+  }
+
+  public void testSetupEventInvoked() throws Exception {
+    // Verify GradleSyncState
+    GradleSyncListener listener = mock(GradleSyncListener.class);
+    Project project = getProject();
+    GradleSyncState.subscribe(project, listener);
+    loadSimpleApplication();
+
+    verify(listener, times(1)).setupStarted(project);
+
+    // Verify ProjectSetUpTask
+    listener = mock(GradleSyncListener.class);
+    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
+    GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
+
+    verify(listener, times(1)).setupStarted(project);
   }
 
   @Nullable

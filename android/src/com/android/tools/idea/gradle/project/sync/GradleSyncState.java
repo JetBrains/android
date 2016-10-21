@@ -359,6 +359,10 @@ public class GradleSyncState {
     return mySummary;
   }
 
+  public void setupStarted() {
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
+  }
+
   @VisibleForTesting
   static class StateChangeNotification {
     @NotNull private final Project myProject;
