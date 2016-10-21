@@ -1058,6 +1058,12 @@ public class RenderErrorContributor {
                         myLinkManager.createAddDependencyUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
         builder.add(", ");
       }
+      if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
+        builder.newline().addNbsps(3);
+        builder.addLink("Add flexbox layout library dependency to the project",
+                        myLinkManager.createAddDependencyUrl(FLEXBOX_LAYOUT_LIB_ARTIFACT));
+        builder.add(", ");
+      }
 
       builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 

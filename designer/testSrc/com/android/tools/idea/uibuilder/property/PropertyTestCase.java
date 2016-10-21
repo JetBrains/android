@@ -60,6 +60,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myAutoCompleteTextView;
   protected NlComponent myRadioGroup;
   protected NlComponent myButtonInConstraintLayout;
+  protected NlComponent myTextViewInLinearLayout;
+  protected NlComponent myButtonInLinearLayout;
   protected NlModel myModel;
   protected NlPropertiesManager myPropertiesManager;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
@@ -86,6 +88,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myMerge = myComponentMap.get("merge");
     myConstraintLayout = myComponentMap.get("constraintLayout");
     myButtonInConstraintLayout = myComponentMap.get("button2");
+    myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
+    myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
     myPropertiesManager = new NlPropertiesManager(getProject(), null);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -213,6 +217,25 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("OtherButton")
+                                       ),
+                                     component(LINEAR_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/linearlayout")
+                                       .width("700dp")
+                                       .height("1000dp")
+                                       .children(
+                                         component(TEXT_VIEW)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@id/textview_in_linearlayout")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .text("TextViewInLinearLayout"),
+                                         component(BUTTON)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@id/button_in_linearlayout")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .text("ButtonInLinearLayout")
                                        )));
     return builder.build();
   }
