@@ -41,7 +41,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -180,8 +179,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
   static class Factory {
     @NotNull
     GradleTasksExecutor create(@NotNull GradleInvoker.RequestSettings requestSettings,
-                               @NotNull TaskCancellationMapping taskCancellationMapping) {
-      return new GradleTasksExecutorImpl(requestSettings, taskCancellationMapping);
+                               @NotNull BuildStopper buildStopper) {
+      return new GradleTasksExecutorImpl(requestSettings, buildStopper);
     }
   }
 
@@ -214,7 +213,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     @NotNull private final Object myCompletionLock = new Object();
 
     @NotNull private final GradleInvoker.RequestSettings myRequestSettings;
-    @NotNull private final TaskCancellationMapping myTaskCancellationMapping;
+    @NotNull private final BuildStopper myBuildStopper;
 
     @GuardedBy("myCompletionLock")
     private int myCompletionCounter;
@@ -228,7 +227,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private volatile int myErrorCount;
     private volatile int myWarningCount;
 
-    @NotNull private volatile ProgressIndicator myIndicator = new EmptyProgressIndicator();
+    @NotNull private volatile ProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
 
     private volatile boolean myMessageViewIsPrepared;
     private volatile boolean myMessagesAutoActivated;
@@ -237,10 +236,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @VisibleForTesting
     GradleTasksExecutorImpl(@NotNull GradleInvoker.RequestSettings requestSettings,
-                            @NotNull TaskCancellationMapping taskCancellationMapping) {
+                            @NotNull BuildStopper buildStopper) {
       super(requestSettings.getProject());
       myRequestSettings = requestSettings;
-      myTaskCancellationMapping = taskCancellationMapping;
+      myBuildStopper = buildStopper;
     }
 
     @Override
@@ -262,7 +261,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         clearStoredGradleJvmArgs(getProject());
       }
 
-      myIndicator = indicator;
+      myProgressIndicator = indicator;
 
       ProjectManager projectManager = ProjectManager.getInstance();
       Project project = myRequestSettings.getProject();
@@ -275,7 +274,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         try {
           while (!acquired) {
             acquired = semaphore.tryAcquire(300, MILLISECONDS);
-            if (indicator.isCanceled()) {
+            if (myProgressIndicator.isCanceled()) {
               // Give up obtaining the semaphore, let compile work begin in order to stop gracefully on cancel event.
               break;
             }
@@ -292,7 +291,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
       finally {
         try {
-          indicator.stop();
+          myProgressIndicator.stop();
           projectManager.removeProjectManagerListener(project, myCloseListener);
         }
         finally {
@@ -304,8 +303,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void addIndicatorDelegate() {
-      if (myIndicator instanceof ProgressIndicatorEx) {
-        ProgressIndicatorEx indicator = (ProgressIndicatorEx)myIndicator;
+      if (myProgressIndicator instanceof ProgressIndicatorEx) {
+        ProgressIndicatorEx indicator = (ProgressIndicatorEx)myProgressIndicator;
         indicator.addStateDelegate(new ProgressIndicatorStateDelegate());
       }
     }
@@ -354,7 +353,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         BuildException buildError = null;
         InstantRunBuildProgressListener instantRunProgressListener = null;
         ExternalSystemTaskId id = myRequestSettings.getTaskId();
-        CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
+        CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
           List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -408,7 +407,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
 
-          myTaskCancellationMapping.add(id, cancellationTokenSource);
           launcher.forTasks(toStringArray(gradleTasks));
           launcher.withCancellationToken(cancellationTokenSource.token());
 
@@ -416,7 +414,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           ExternalSystemTaskNotificationListener taskListener = myRequestSettings.getTaskListener();
           if (taskListener != null) {
             outputListener = (contentType, data, offset, length) -> {
-              if (myTaskCancellationMapping.contains(id)) {
+              if (myBuildStopper.contains(id)) {
                 taskListener.onTaskOutput(id, new String(data, offset, length), contentType != ERROR_OUTPUT);
               }
             };
@@ -425,7 +423,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
           if (taskListener != null) {
             launcher.addProgressListener((ProgressListener)event -> {
-              if (myTaskCancellationMapping.contains(id)) {
+              if (myBuildStopper.contains(id)) {
                 taskListener.onStatusChange(GradleProgressEventConverter.convert(id, event));
               }
             });
@@ -445,7 +443,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           handleTaskExecutionError(e);
         }
         finally {
-          myTaskCancellationMapping.remove(id);
+          myBuildStopper.remove(id);
           String gradleOutput = output.toString();
           if (instantRunProgressListener != null) {
             FlightRecorder.get(myProject).saveBuildOutput(gradleOutput, instantRunProgressListener);
@@ -505,7 +503,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
         add(buildMessages);
 
-        if (!myIndicator.isCanceled()) {
+        if (!myProgressIndicator.isCanceled()) {
           closeView();
         }
 
@@ -561,7 +559,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void handleTaskExecutionError(@NotNull Throwable e) {
-      if (myIndicator.isCanceled()) {
+      if (myProgressIndicator.isCanceled()) {
         LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
         return;
       }
@@ -663,7 +661,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void prepareMessageView() {
-      if (!myIndicator.isRunning() || myMessageViewIsPrepared) {
+      if (!myProgressIndicator.isRunning() || myMessageViewIsPrepared) {
         return;
       }
       myMessageViewIsPrepared = true;
@@ -681,7 +679,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void openMessageView() {
-      if (myIndicator.isCanceled()) {
+      if (myProgressIndicator.isCanceled()) {
         return;
       }
 
@@ -691,19 +689,9 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         if (myErrorTreeView != null) {
           return;
         }
-        //noinspection ConstantConditions
         myErrorTreeView = new GradleBuildTreeViewPanel(project);
-        myErrorTreeView.setProcessController(new NewErrorTreeViewPanel.ProcessController() {
-          @Override
-          public void stopProcess() {
-            stopBuild();
-          }
-
-          @Override
-          public boolean isProcessStopped() {
-            return !myIndicator.isRunning();
-          }
-        });
+        ExternalSystemTaskId id = myRequestSettings.getTaskId();
+        myErrorTreeView.setProcessController(new BuildProcessController(id, myBuildStopper, myProgressIndicator));
         component = myErrorTreeView.getComponent();
       }
 
@@ -942,19 +930,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
     }
 
-    private void cancel() {
-      if (!myIndicator.isCanceled()) {
-        stopBuild();
-        myIndicator.cancel();
-      }
-    }
-
-    private void stopBuild() {
-      ExternalSystemTaskId taskId = myRequestSettings.getTaskId();
-      if (myIndicator.isRunning()) {
-        myIndicator.setText("Stopping Gradle build...");
-      }
-      GradleInvoker.getInstance(myRequestSettings.getProject()).cancelTask(taskId);
+    private void attemptToStopBuild() {
+      myBuildStopper.attemptToStopBuild(myRequestSettings.getTaskId(), myProgressIndicator);
     }
 
     /**
@@ -1031,10 +1008,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           if (!myUserAcceptedCancel) {
             return false; // veto closing
           }
-          cancel();
+          attemptToStopBuild();
           return true;
         }
-        return !myIndicator.isRunning();
+        return !myProgressIndicator.isRunning();
       }
 
       @Override
@@ -1065,8 +1042,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
             if (myErrorTreeView != null && !project.isDisposed()) {
               Disposer.dispose(myErrorTreeView);
               myErrorTreeView = null;
-              if (myIndicator.isRunning()) {
-                cancel();
+              if (myProgressIndicator.isRunning()) {
+                attemptToStopBuild();
               }
               AppIcon appIcon = AppIcon.getInstance();
               if (appIcon.hideProgress(project, APP_ICON_ID)) {
@@ -1085,7 +1062,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       @Override
       public void contentRemoveQuery(ContentManagerEvent event) {
-        if (event.getContent() == myContent && !myIndicator.isCanceled() && shouldPromptUser()) {
+        if (event.getContent() == myContent && !myProgressIndicator.isCanceled() && shouldPromptUser()) {
           myUserAcceptedCancel = askUserToCancelGradleExecution();
           if (!myUserAcceptedCancel) {
             event.consume(); // veto closing
@@ -1094,7 +1071,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
 
       private boolean shouldPromptUser() {
-        return !myUserAcceptedCancel && !myIsApplicationExitingOrProjectClosing && myIndicator.isRunning();
+        return !myUserAcceptedCancel && !myIsApplicationExitingOrProjectClosing && myProgressIndicator.isRunning();
       }
 
       private boolean askUserToCancelGradleExecution() {
