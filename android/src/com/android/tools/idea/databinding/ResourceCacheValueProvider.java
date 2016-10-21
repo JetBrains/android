@@ -58,9 +58,9 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
   @Override
   public final Result<T> compute() {
     if (myFacet.getModuleResources(false) == null) {
-      return Result.create(defaultValue(), myTracker);
+      return Result.create(defaultValue(), myTracker, myAdditionalTrackers);
     }
-    return Result.create(doCompute(), myTracker);
+    return Result.create(doCompute(), myTracker, myAdditionalTrackers);
   }
 
   abstract T doCompute();
