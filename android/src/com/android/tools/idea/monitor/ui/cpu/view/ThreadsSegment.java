@@ -42,12 +42,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
@@ -61,13 +60,11 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private static final String BLOCKED_LABEL = "Blocked";
 
-  private static final int LIST_ITEM_SELECTION_BORDER_THICKNESS = JBUI.scale(2);
-
   private static final int THREADS_NAME_LEFT_MARGIN = JBUI.scale(10);
 
-  private static final LineBorder LIST_ITEM_SELECTED_BORDER = new LineBorder(JBColor.BLUE, LIST_ITEM_SELECTION_BORDER_THICKNESS);
+  private static final Color LIST_ITEM_HOVER_BACKGROUND = new JBColor(new Color(22, 80, 197, 23), new Color(255, 255, 255, 13));
 
-  private static final EmptyBorder LIST_ITEM_UNSELECTED_BORDER = new EmptyBorder(0, 0, 0, 0);
+  private static final Color LIST_ITEM_SELECTED_BACKGROUND = new JBColor(new Color(70, 118, 187), new Color(70, 118, 187));
 
   private final int mFontHeight = JBUI.scale(getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight());
 
@@ -88,6 +85,11 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   private final DefaultListModel<ThreadStatesDataModel> mThreadsListModel = new DefaultListModel<>();
 
   private final JBList mThreadsList = new JBList(mThreadsListModel);
+
+  /**
+   * Keep the index of the thread item list currently hovered (or -1 if the mouse is not over any item).
+   */
+  private int mHoveredListIndex = -1;
 
   private static EnumMap<CpuProfiler.ThreadActivity.State, Color> mThreadStateColor;
 
@@ -139,7 +141,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     // TODO: change it to use the proper darcula colors. Also, support other states if needed.
     mThreadStateColor = new EnumMap<>(CpuProfiler.ThreadActivity.State.class);
     mThreadStateColor.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(new Color(134, 199, 144), new Color(134, 199, 144)));
-    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(Gray._122.withAlpha(127), Gray._122.withAlpha(127)));
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(Gray._189, Gray._189));
     mThreadStateColor.put(CpuProfiler.ThreadActivity.State.DEAD, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     return mThreadStateColor;
   }
@@ -179,6 +181,17 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
         mThreadSelectedListener.onSelected(selectedThreads);
       });
     }
+    mThreadsList.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent me) {
+        Point p = new Point(me.getX(),me.getY());
+        int index = mThreadsList.locationToIndex(p);
+        if (index != mHoveredListIndex) {
+          mHoveredListIndex = index;
+          mThreadsList.repaint();
+        }
+      }
+    });
   }
 
   @Override
@@ -253,15 +266,17 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
                                                   boolean cellHasFocus) {
 
       JLayeredPane cellPane = new JLayeredPane();
+      cellPane.setOpaque(true);
       cellPane.setBounds(0, 0, list.getWidth(), mCellHeight);
 
-      Border cellBorder;
+      Color cellBackground = AdtUiUtils.DEFAULT_BACKGROUND_COLOR;
+
       if (isSelected) {
-        cellBorder = LIST_ITEM_SELECTED_BORDER;
-      } else {
-        cellBorder = LIST_ITEM_UNSELECTED_BORDER;
+        cellBackground = LIST_ITEM_SELECTED_BACKGROUND;
+      } else if (mHoveredListIndex == index) {
+        cellBackground = LIST_ITEM_HOVER_BACKGROUND;
       }
-      cellPane.setBorder(cellBorder);
+      cellPane.setBackground(cellBackground);
 
       // Cell label (thread name)
       JLabel threadName = new JLabel(threadStatesDataModel.getName());
