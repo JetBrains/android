@@ -295,22 +295,8 @@ public class LintIdeProject extends Project {
   @Nullable
   private static LintModuleProject createModuleProject(@NonNull LintClient client, @NonNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    File dir;
-
-    if (facet != null) {
-      final VirtualFile mainContentRoot = AndroidRootUtil.getMainContentRoot(facet);
-
-      if (mainContentRoot == null) {
-        return null;
-      }
-      dir = new File(FileUtil.toSystemDependentName(mainContentRoot.getPath()));
-    } else {
-      String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
-      if (moduleDirPath == null) {
-        return null;
-      }
-      dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
-    }
+    File dir = getLintProjectDirectory(module, facet);
+    if (dir == null) return null;
     LintModuleProject project = null;
     if (facet == null) {
       project = new LintModuleProject(client, dir, dir, module);
@@ -334,6 +320,28 @@ public class LintIdeProject extends Project {
       client.registerProject(dir, project);
     }
     return project;
+  }
+
+  /** Returns the  directory lint would use for a project wrapping the given module */
+  @Nullable
+  public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
+    File dir;
+
+    if (facet != null) {
+      final VirtualFile mainContentRoot = AndroidRootUtil.getMainContentRoot(facet);
+
+      if (mainContentRoot == null) {
+        return null;
+      }
+      dir = new File(FileUtil.toSystemDependentName(mainContentRoot.getPath()));
+    } else {
+      String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+      if (moduleDirPath == null) {
+        return null;
+      }
+      dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
+    }
+    return dir;
   }
 
   public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
