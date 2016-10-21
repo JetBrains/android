@@ -70,7 +70,6 @@ public class BasicNativeDebuggerTest {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
-  @Ignore("Require lldb-2.3")
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
