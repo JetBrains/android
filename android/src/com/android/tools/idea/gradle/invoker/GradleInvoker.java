@@ -38,7 +38,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.gradle.tooling.CancellationTokenSource;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +69,7 @@ public class GradleInvoker {
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
   @NotNull private final List<String> myOneTimeGradleOptions = new ArrayList<>();
   @NotNull private final List<String> myLastBuildTasks = new ArrayList<>();
-  @NotNull private final TaskCancellationMapping myTaskCancellationMapping = new TaskCancellationMapping();
+  @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
 
   public static GradleInvoker getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleInvoker.class);
@@ -279,7 +278,7 @@ public class GradleInvoker {
     if (gradleTasks.isEmpty()) {
       return;
     }
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(requestSettings, myTaskCancellationMapping);
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(requestSettings, myBuildStopper);
     saveAllFilesSafely();
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
@@ -454,11 +453,8 @@ public class GradleInvoker {
     return TestCompileType.NONE;
   }
 
-  public void cancelTask(@NotNull ExternalSystemTaskId id) {
-    CancellationTokenSource token = myTaskCancellationMapping.remove(id);
-    if (token != null) {
-      token.cancel();
-    }
+  public void stopBuild(@NotNull ExternalSystemTaskId id) {
+    myBuildStopper.attemptToStopBuild(id, null);
   }
 
   public void add(@NotNull AfterGradleInvocationTask task) {
