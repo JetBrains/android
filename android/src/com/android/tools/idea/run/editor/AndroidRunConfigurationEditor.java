@@ -261,6 +261,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
+  public void setupStarted(@NotNull Project project) {
+  }
+
+  @Override
   public void syncSucceeded(@NotNull Project project) {
     syncFinished();
   }
