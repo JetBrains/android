@@ -326,10 +326,6 @@ public class InstantRunConfigurable
   }
 
   @Override
-  public void setupStarted(@NotNull Project project) {
-  }
-
-  @Override
   public void syncSucceeded(@NotNull Project project) {
     updateUi(false, false);
   }
