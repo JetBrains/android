@@ -35,7 +35,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-@VisibleForTesting
 public class WebpConversionDialog extends DialogWrapper implements DocumentListener, ChangeListener, ActionListener {
   private JSlider myQualitySlider;
   private JBTextField myQualityField;
@@ -51,9 +50,11 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
   private JBLabel myLosslessReqLabel;
   private JBLabel myQualityLabel;
   private JBCheckBox mySkipTransparency;
+  private JBLabel myMinSdkVersionLabel2;
   private boolean myIgnore;
 
-  public WebpConversionDialog(@NotNull Project project, int minSdkVersion, @NotNull WebpConversionSettings settings) {
+  public WebpConversionDialog(@NotNull Project project, int minSdkVersion, @NotNull WebpConversionSettings settings,
+                              boolean singleFile) {
     super(project);
     setTitle(ConvertToWebpAction.TITLE);
     fromSettings(settings);
@@ -64,7 +65,9 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
     actionPerformed(null);
 
     String minSdkVersionString = minSdkVersion == Integer.MAX_VALUE ? "unknown" : String.valueOf(minSdkVersion);
-    myMinSdkVersionLabel.setText("Current minSdkVersion is " + minSdkVersionString);
+    String minSdkText = "Current minSdkVersion is " + minSdkVersionString;
+    myMinSdkVersionLabel.setText(minSdkText);
+    myMinSdkVersionLabel2.setText(minSdkText);
 
     if (minSdkVersion < 15) {
       myWarningLabel.setText("WARNING: WebP requires API 15; current minSdkVersion is " + minSdkVersionString);
@@ -72,6 +75,10 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
       myWarningLabel.setVisible(true);
     } else if (minSdkVersion < 18) {
       mySkipTransparency.setSelected(true);
+      if (singleFile) {
+        myMinSdkVersionLabel.setForeground(JBColor.RED);
+        myMinSdkVersionLabel2.setForeground(JBColor.RED);
+      }
     } else {
       myLosslessReqLabel.setVisible(false);
       myMinSdkVersionLabel.setVisible(false);
