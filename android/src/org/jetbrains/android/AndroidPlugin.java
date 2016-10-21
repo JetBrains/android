@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.fd.actions.HotswapAction;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +42,17 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
+      return;
+    }
+
+    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
+    // in code as well (instead of xml).
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction runnerActions = actionManager.getAction("RunnerActions");
+    if (runnerActions instanceof DefaultActionGroup) {
+      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, "Run"));
+    }
   }
 
   @Override
