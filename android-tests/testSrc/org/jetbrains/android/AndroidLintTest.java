@@ -450,6 +450,18 @@ public class AndroidLintTest extends AndroidTestCase {
                   "res/xml/automotive_app_desc.xml", "xml");
   }
 
+  public void testUnsupportedChromeOsHardware() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintUnsupportedChromeOsHardwareInspection(),
+                  "Set required=\"false\"", "AndroidManifest.xml", "xml");
+  }
+
+  public void testPermissionImpliesChromeOsHardware() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection(),
+                  "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
    * density filtering. Re-enable this if we broaden the mipmap check, or if we update the AndroidLintTest
    * to also check Gradle projects.
