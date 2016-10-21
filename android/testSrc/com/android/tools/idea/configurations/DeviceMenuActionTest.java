@@ -42,7 +42,9 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    4.7, 768 \u00d7 1280, xhdpi (Nexus 4)\n" +
       "    5.0, 1080 \u00d7 1920, xxhdpi (Nexus 5)\n" +
       "    ------------------------------------------------------\n" +
+      "    5.0, 1080 \u00d7 1920, xxhdpi (Pixel)\n" +
       "    5.2, 1080 \u00d7 1920, 420dpi (Nexus 5X)\n" +
+      "    5.5, 1440 \u00d7 2560, 560dpi (Pixel XL)\n" +
       "    5.7, 1440 \u00d7 2560, 560dpi (Nexus 6P)\n" +
       "    6.0, 1440 \u00d7 2560, 560dpi (Nexus 6)\n" +
       "    ------------------------------------------------------\n" +

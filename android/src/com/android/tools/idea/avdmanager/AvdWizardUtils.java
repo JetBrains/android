@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -31,7 +35,10 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -40,11 +47,14 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.List;
+import java.util.Map;
 
+import static com.android.SdkConstants.*;
 import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
@@ -246,7 +256,36 @@ public class AvdWizardUtils {
         if (fop.exists(resourcePath)) {
           if (dest != null) {
             try {
-              FileOpUtils.recursiveCopy(resourcePath, dest, fop, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+              // Convert from webp to png here since emulator appears not to support it
+              fop.mkdirs(dest);
+
+              // Convert skin files (which are in webp format) to PNG for older versions of the emulator?
+              // As of 25.3, emulator supports webp directly.
+              boolean convertToWebp = true;
+              AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
+              ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+              LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
+              if (sdkPackage == null) {
+                sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
+              }
+              if (sdkPackage != null) {
+                Revision version = sdkPackage.getVersion();
+                if (version.getMajor() > 25 || version.getMajor() == 25 && version.getMinor() >= 3) {
+                  convertToWebp = false;
+                }
+              }
+
+              if (convertToWebp) {
+                convertWebpSkinToPng(fop, dest, resourcePath);
+              } else {
+                // Normal copy
+                for (File src : fop.listFiles(resourcePath)) {
+                  if (fop.isFile(src) && !fop.exists(dest)) {
+                    fop.copyFile(src, new File(dest, src.getName()));
+                  }
+                }
+              }
+
               return dest;
             }
             catch (IOException e) {
@@ -259,6 +298,68 @@ public class AvdWizardUtils {
       }
     }
     return path;
+  }
+
+  /**
+   * Copies a skin folder from the internal device data folder over to the SDK skin folder, rewriting
+   * the webp files to PNG, and rewriting the layout file to reference webp instead.
+   *
+   * @param fop          the file operation to use to conduct I/O
+   * @param dest         the destination folder to write the skin files to
+   * @param resourcePath the source folder to read skin files from
+   * @throws IOException if there's a problem
+   */
+  @VisibleForTesting
+  static void convertWebpSkinToPng(@NotNull FileOp fop, @NotNull File dest, @NotNull File resourcePath) throws IOException {
+    File[] files = fop.listFiles(resourcePath);
+    Map<String,String> renameMap = Maps.newHashMap();
+    File skinFile = null;
+    for (File src : files) {
+      String name = src.getName();
+      if (name.equals(FN_SKIN_LAYOUT)) {
+        skinFile = src;
+        continue;
+      }
+
+      if (name.endsWith(DOT_WEBP)) {
+        // Convert WEBP to PNG until emulator supports it
+        try (InputStream inputStream = new BufferedInputStream(fop.newFileInputStream(src))) {
+          BufferedImage icon = ImageIO.read(inputStream);
+          if (icon != null) {
+            File target = new File(dest, name.substring(0, name.length() - DOT_WEBP.length()) + DOT_PNG);
+            try (BufferedOutputStream outputStream = new BufferedOutputStream(fop.newFileOutputStream(target))) {
+              ImageIO.write(icon, "PNG", outputStream);
+              renameMap.put(name, target.getName());
+              continue;
+            }
+          }
+        }
+      }
+
+      // Normal copy: either the file is not a webp or skin file (for example, some skins such as the
+      // wear ones are not in webp format), or it's a webp file where we couldn't
+      // (a) decode the webp file (for example if there's a problem loading the native library doing webp
+      // decoding, or (b) there was an I/O error writing the PNG file. In that case we'll leave the file in
+      // webp format (future emulators support it.)
+      if (fop.isFile(src) && !fop.exists(dest)) {
+        fop.copyFile(src, new File(dest, name));
+      }
+    }
+
+    if (skinFile != null) {
+      // Replace skin paths
+      try (InputStream inputStream = new BufferedInputStream(fop.newFileInputStream(skinFile))) {
+        File target = new File(dest, skinFile.getName());
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(fop.newFileOutputStream(target))) {
+          byte[] bytes = ByteStreams.toByteArray(inputStream);
+          String layout = new String(bytes, Charsets.UTF_8);
+          for (Map.Entry<String, String> entry : renameMap.entrySet()) {
+            layout = layout.replace(entry.getKey(), entry.getValue());
+          }
+          outputStream.write(layout.getBytes(Charsets.UTF_8));
+        }
+      }
+    }
   }
 
   /**
