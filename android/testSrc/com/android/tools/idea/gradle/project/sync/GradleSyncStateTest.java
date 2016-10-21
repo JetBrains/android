@@ -111,4 +111,10 @@ public class GradleSyncStateTest extends IdeaTestCase {
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySyncListener, times(1)).syncSucceeded(myProject);
   }
+
+  public void testSetupStarted() {
+    mySyncState.setupStarted();
+
+    verify(mySyncListener, times(1)).setupStarted(myProject);
+  }
 }
