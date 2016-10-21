@@ -23,6 +23,7 @@ import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -31,6 +32,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -165,7 +167,11 @@ public class DataBindingInfo implements ModificationTracker {
       if (psiResourceItem.getTag() == null) {
         continue;
       }
-      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(item.getName()), psiResourceItem.getTag()));
+      String name = item.getName();
+      if (StringUtil.isEmpty(name)) {
+        continue;
+      }
+      result.add(new ViewWithId(DataBindingUtil.convertToJavaFieldName(name.trim()), psiResourceItem.getTag()));
     }
     return result;
   }

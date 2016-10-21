@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.config.DataBindingConfiguration;
 import com.android.tools.idea.lang.databinding.DbFile;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
@@ -36,13 +37,17 @@ import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lexer.Lexer;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
@@ -53,14 +58,12 @@ import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
+import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.FileContentUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
@@ -70,6 +73,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,12 +85,87 @@ import java.util.regex.Pattern;
  * completion etc.
  */
 public class DataBindingUtil {
+  static Logger LOG = Logger.getInstance("databinding");
   public static final String BR = "BR";
+  private static AtomicLong ourDataBindingEnabledModificationCount = new AtomicLong(0);
+  /**
+   * Tracker that changes when a facet's data binding enabled value changes
+   */
+  public static ModificationTracker DATA_BINDING_ENABLED_TRACKER = () -> ourDataBindingEnabledModificationCount.longValue();
+
+  private static AtomicBoolean ourCreateInMemoryClasses = new AtomicBoolean(false);
 
   private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
                                                                     SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
 
-  private static AtomicLong ourDataBindingEnabledModificationCount = new AtomicLong(0);
+  private static AtomicBoolean ourReadInMemoryClassGenerationSettings = new AtomicBoolean(false);
+
+  private static void invalidateJavaCodeOnOpenDataBindingProjects() {
+    ourDataBindingEnabledModificationCount.incrementAndGet();
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      DataBindingProjectComponent component = project.getComponent(DataBindingProjectComponent.class);
+      if (component == null) {
+        continue;
+      }
+      boolean invalidated = invalidateAllSources(component);
+      if (!invalidated) {
+        return;
+      }
+      PsiModificationTracker tracker = PsiManager.getInstance(project).getModificationTracker();
+      if (tracker instanceof PsiModificationTrackerImpl) {
+        ((PsiModificationTrackerImpl) tracker).incCounter();
+      }
+      FileContentUtil.reparseFiles(project, Collections.EMPTY_LIST, true);
+
+    }
+    ourDataBindingEnabledModificationCount.incrementAndGet();
+  }
+
+  public static boolean invalidateAllSources(DataBindingProjectComponent component) {
+    boolean invalidated = false;
+    for (AndroidFacet facet : component.getDataBindingEnabledFacets()) {
+      LocalResourceRepository moduleResources = facet.getModuleResources(true);
+      Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
+      if (dataBindingResourceFiles == null) {
+        continue;
+      }
+      for (DataBindingInfo info : dataBindingResourceFiles.values()) {
+        PsiClass psiClass = info.getPsiClass();
+        if (psiClass != null) {
+          PsiFile containingFile = psiClass.getContainingFile();
+          if (containingFile != null) {
+            containingFile.subtreeChanged();
+            invalidated = true;
+          }
+        }
+      }
+    }
+    return invalidated;
+  }
+
+  public static boolean inMemoryClassGenerationIsEnabled() {
+    if (!ourReadInMemoryClassGenerationSettings.getAndSet(true)) {
+      // just calculate, don't notify for the first one since we don't have anything to invalidate
+      ourCreateInMemoryClasses.set(calculateEnableInMemoryClasses());
+    }
+    return ourCreateInMemoryClasses.get();
+  }
+
+  public static void recalculateEnableInMemoryClassGeneration() {
+    boolean newValue = calculateEnableInMemoryClasses();
+    boolean oldValue = ourCreateInMemoryClasses.getAndSet(newValue);
+    if (newValue != oldValue) {
+      LOG.debug("Data binding in memory completion value change. (old, new)", oldValue, newValue);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().runWriteAction(DataBindingUtil::invalidateJavaCodeOnOpenDataBindingProjects);
+      });
+    }
+  }
+
+  private static boolean calculateEnableInMemoryClasses() {
+    DataBindingConfiguration config = DataBindingConfiguration.getInstance();
+    return config.CODE_NAVIGATION_MODE == DataBindingConfiguration.CodeNavigationMode.XML;
+  }
 
   /**
    * Package private class used by BR class finder and BR short names cache to create a BR file on demand.
@@ -368,11 +447,15 @@ public class DataBindingUtil {
     private PsiClassType[] myExtendsListTypes;
     private final AndroidFacet myFacet;
     private static Lexer ourJavaLexer;
+    private PsiFile myVirtualPsiFile;
 
     protected LightBindingClass(final AndroidFacet facet, @NotNull PsiManager psiManager, DataBindingInfo info) {
       super(psiManager);
       myInfo = info;
       myFacet = facet;
+      // TODO we should create a virtual one not use the XML.
+      myVirtualPsiFile = info.getPsiFile();
+
       CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(info.getProject());
       myAliasCache =
         cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet) {
@@ -734,7 +817,13 @@ public class DataBindingUtil {
     @Nullable
     @Override
     public PsiFile getContainingFile() {
-      return myInfo.getPsiFile();
+      return myVirtualPsiFile;
+    }
+
+    @Override
+    public boolean isValid() {
+      // it is always valid. Not having this valid creates IDE errors because it is not always resolved instantly
+      return true;
     }
   }
 
@@ -751,6 +840,12 @@ public class DataBindingUtil {
                                   @NotNull Language language) {
       super(manager, method, containingClass, language);
       myNavigationElement = navigationElement;
+    }
+
+    @Override
+    public PsiFile getContainingFile() {
+      PsiClass containingClass = super.getContainingClass();
+      return containingClass == null ? null : containingClass.getContainingFile();
     }
 
     @NotNull
@@ -777,6 +872,12 @@ public class DataBindingUtil {
                                  @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
       myViewWithId = viewWithId;
+    }
+
+    @Override
+    public PsiFile getContainingFile() {
+      PsiClass containingClass = super.getContainingClass();
+      return containingClass == null ? null : containingClass.getContainingFile();
     }
 
     @NotNull
@@ -920,6 +1021,21 @@ public class DataBindingUtil {
     }
 
     @Override
+    public boolean isValid() {
+      return true;
+    }
+
+    @Override
+    public boolean canNavigate() {
+      return false;
+    }
+
+    @Override
+    public boolean canNavigateToSource() {
+      return false;
+    }
+
+    @Override
     public PsiIdentifier getNameIdentifier() {
       return new LightIdentifier(getManager(), getName());
     }
@@ -948,16 +1064,20 @@ public class DataBindingUtil {
       // Needed by the LightBrClass field cache.
       return 0;
     }
-  }
 
-  /**
-   * Tracker that changes when a facet's data binding enabled value changes
-   */
-  public static ModificationTracker DATA_BINDING_ENABLED_TRACKER = new ModificationTracker() {
     @Override
-    public long getModificationCount() {
-      return ourDataBindingEnabledModificationCount.longValue();
+    public boolean isValid() {
+      return true;
     }
-  };
 
+    @Override
+    public boolean canNavigate() {
+      return false;
+    }
+
+    @Override
+    public boolean canNavigateToSource() {
+      return false;
+    }
+  }
 }

@@ -68,9 +68,6 @@ public class DataBindingPackageFinder extends PsiElementFinder {
             @Override
             Set<String> doCompute() {
               LocalResourceRepository moduleResources = getFacet().getModuleResources(true);
-              if (moduleResources == null) {
-                return Collections.emptySet();
-              }
               Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
               if (dataBindingResourceFiles == null) {
                 return Collections.emptySet();
@@ -106,9 +103,13 @@ public class DataBindingPackageFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return null;
     }
     return myPackageCache.getValue().get(qualifiedName);
+  }
+
+  private boolean isEnabled() {
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }
