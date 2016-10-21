@@ -16,19 +16,45 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.GradleConnector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TaskCancellationMapping {
+class BuildStopper {
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myMap = new ConcurrentHashMap<>();
 
-  @Nullable
-  CancellationTokenSource add(@NotNull ExternalSystemTaskId taskId, @NotNull CancellationTokenSource token) {
-    return myMap.put(taskId, token);
+  @NotNull
+  CancellationTokenSource createAndRegisterTokenSource(@NotNull ExternalSystemTaskId id) {
+    CancellationTokenSource tokenSource = GradleConnector.newCancellationTokenSource();
+    myMap.put(id, tokenSource);
+    return tokenSource;
+  }
+
+  @TestOnly
+  void register(@NotNull ExternalSystemTaskId id, CancellationTokenSource tokenSource) {
+    myMap.put(id, tokenSource);
+  }
+
+  void attemptToStopBuild(@NotNull ExternalSystemTaskId id, @Nullable ProgressIndicator progressIndicator) {
+    if (progressIndicator != null) {
+      if (progressIndicator.isCanceled()) {
+        return;
+      }
+      if (progressIndicator.isRunning()) {
+        progressIndicator.setText("Stopping Gradle build...");
+        progressIndicator.cancel();
+      }
+    }
+    CancellationTokenSource token = remove(id);
+    if (token != null) {
+      token.cancel();
+    }
   }
 
   @Nullable
@@ -38,5 +64,11 @@ class TaskCancellationMapping {
 
   boolean contains(@NotNull ExternalSystemTaskId taskId) {
     return myMap.containsKey(taskId);
+  }
+
+  @TestOnly
+  @Nullable
+  CancellationTokenSource get(@NotNull ExternalSystemTaskId taskId) {
+    return myMap.get(taskId);
   }
 }
