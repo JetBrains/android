@@ -509,10 +509,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   @Override
-  public void setupStarted(@NotNull Project project) {
-  }
-
-  @Override
   public void syncSucceeded(@NotNull Project project) {
     myNotificationPanel.removeAll();
     revalidateAndRepaint(myNotificationPanel);
