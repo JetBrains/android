@@ -28,6 +28,7 @@ import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -42,6 +43,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
@@ -123,6 +125,10 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
     state.put(USE_PER_MODULE_REPOS_KEY, false);
     state.put(ALSO_CREATE_IAPK_KEY, true);
+
+    // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
+    // request for the Gradle build.
+    state.put(WizardConstants.IS_LOW_MEMORY_KEY, SystemInfo.is32Bit);
 
     try {
       state.put(DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
