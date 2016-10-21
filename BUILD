@@ -93,6 +93,7 @@ iml_module(
         "android/device-art-resources/**",
         "android/testData/**/*",
         "designer/testData/**/*",
+        "android/lib/androidWidgets/**",
         "android/lib/libwebp/**",
     ]) + [
         "//prebuilts/studio/jdk",
