@@ -229,7 +229,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     @NotNull
     @Override
     public String getName() {
-      return "Suppress with @SuppressLint (Java) or tools:ignore (XML)";
+      return "Suppress with @SuppressLint (Java) or tools:ignore (XML) or lint.xml";
     }
 
     @NotNull
@@ -243,7 +243,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       PsiElement myElement = descriptor.getPsiElement();
       PsiFile file = PsiTreeUtil.getParentOfType(myElement, PsiFile.class, false);
       if (file != null) {
-        new SuppressLintIntentionAction(myIssue.getId(), myElement).invoke(project, null, file);
+        new SuppressLintIntentionAction(myIssue, myElement).invoke(project, null, file);
       }
     }
   }
