@@ -4,6 +4,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
+import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -15,16 +16,18 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +41,7 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
@@ -658,10 +662,31 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testDuplicateIcons() throws Exception {
-    myFixture.copyFileToProject(getGlobalTestDir() + "/dup1.png", "res/drawable/dup1.png");
+    VirtualFile file = myFixture.copyFileToProject(getGlobalTestDir() + "/dup1.png", "res/drawable/dup1.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup2.png", "res/drawable/dup2.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/other.png", "res/drawable/other.png");
     doGlobalInspectionTest(new AndroidLintIconDuplicatesInspection());
+
+    // Take on a suppress test: attempt to suppress a binary file and verify that that works:
+    // Regression test for https://code.google.com/p/android/issues/detail?id=225703
+    VirtualFile moduleDir = AndroidRootUtil.getMainContentRoot(myFacet);
+    assertThat(moduleDir).isNotNull();
+    PsiFile iconFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertThat(iconFile).isNotNull();
+    VirtualFile lintXml = moduleDir.findChild("lint.xml");
+    assertThat(lintXml).isNull();
+    SuppressLintIntentionAction action = new SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile);
+    action.invoke(getProject(), null, iconFile);
+    moduleDir.refresh(false, true);
+    lintXml = moduleDir.findChild("lint.xml");
+    assertThat(lintXml).isNotNull();
+    assertThat(new String(lintXml.contentsToByteArray())).isEqualTo(
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+      "<lint>\n" +
+      "    <issue id=\"IconDuplicates\">\n" +
+      "        <ignore path=\"res/drawable/dup1.png\" />\n" +
+      "    </issue>\n" +
+      "</lint>\n");
   }
 
   public void testCallSuper() throws Exception {

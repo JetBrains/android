@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.lint.client.api.Configuration;
+import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -26,16 +29,21 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,10 +64,16 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   private static final String NO_INSPECTION_PREFIX = "//" + SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " ";
   private final String myId;
   private final PsiElement myElement;
+  private Issue myIssue;
 
   public SuppressLintIntentionAction(String id, PsiElement element) {
     myId = id;
     myElement = element;
+  }
+
+  public SuppressLintIntentionAction(Issue issue, PsiElement element) {
+    this(issue.getId(), element);
+    myIssue = issue;
   }
 
   @Override
@@ -150,7 +165,38 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
         ApplicationManager.getApplication().assertWriteAccessAllowed();
         document.insertString(lineStart + nonSpace, NO_INSPECTION_PREFIX + getLintId(myId) + "\n" + linePrefix.substring(0, nonSpace));
       }
+    } else if (file instanceof PsiBinaryFile) {
+      VirtualFile virtualFile = file.getVirtualFile();
+      if (virtualFile != null) {
+        File binaryFile = VfsUtilCore.virtualToIoFile(virtualFile);
+
+        // Can't suppress lint checks inside a binary file (typically an icon): use
+        // the lint XML facility instead
+        Module module = ModuleUtilCore.findModuleForPsiElement(file);
+        if (module != null) {
+          //LintIdeRequest
+          File dir = LintIdeProject.getLintProjectDirectory(module, AndroidFacet.getInstance(module));
+          if (dir != null) {
+            LintIdeClient client = new LintIdeClient(project);
+            com.android.tools.lint.detector.api.Project lintProject = client.getProject(dir, dir);
+            Configuration configuration = client.getConfiguration(lintProject, null);
+            Issue issue = getIssue();
+            if (configuration instanceof DefaultConfiguration && issue != null) {
+              ((DefaultConfiguration)configuration).ignore(issue, binaryFile);
+            }
+          }
+        }
+      }
     }
+  }
+
+  @Nullable
+  private Issue getIssue() {
+    if (myIssue == null) {
+      myIssue = new LintIdeIssueRegistry().getIssue(myId);
+    }
+
+    return myIssue;
   }
 
   static String getLintId(String intentionId) {

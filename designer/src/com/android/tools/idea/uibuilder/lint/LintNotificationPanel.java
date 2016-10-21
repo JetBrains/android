@@ -265,7 +265,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
         }));
       }
 
-      final SuppressLintIntentionAction suppress = new SuppressLintIntentionAction(selected.issue.getId(), selected.startElement);
+      final SuppressLintIntentionAction suppress = new SuppressLintIntentionAction(selected.issue, selected.startElement);
       builder.listItem();
       builder.addLink(suppress.getText(), myLinkManager.createRunnableLink(() -> {
         myPopup.cancel();
