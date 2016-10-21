@@ -21,7 +21,7 @@ import com.intellij.icons.AllIcons;
 
 public class StopAndUpdateAction extends UpdateActionBase {
   public StopAndUpdateAction() {
-    super("Full Run", "Perform full run (install APK)", AllIcons.Actions.Restart);
+    super("Re-install APK and Rerun", "Re-install APK and Rerun", AllIcons.Actions.Restart);
   }
 
   @Override

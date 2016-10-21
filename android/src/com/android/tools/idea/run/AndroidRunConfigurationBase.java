@@ -238,7 +238,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    if (InstantRunSettings.getUiExperimentStatus() != IrUiExperiment.DEFAULT) {
+    if (InstantRunSettings.getUiExperimentStatus() == IrUiExperiment.HOTSWAP) {
       return null;
     }
 
