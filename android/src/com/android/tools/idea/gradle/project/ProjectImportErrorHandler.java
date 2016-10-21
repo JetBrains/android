@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
@@ -96,7 +98,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
                                        .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                        .setGradleSyncFailure(GradleSyncFailure.DSL_METHOD_NOT_FOUND)
+                                       .setGradleSyncFailure(GradleSyncFailure.DSL_METHOD_NOT_FOUND)
                                        .setGradleMissingSignature(method));
 
       return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
@@ -215,7 +217,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
                                        .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                      .setGradleSyncFailure(GradleSyncFailure.METHOD_NOT_FOUND)
+                                       .setGradleSyncFailure(GradleSyncFailure.METHOD_NOT_FOUND)
                                        .setGradleMissingSignature(methodName));
 
       String msg = String.format("Unable to find method '%1$s'.", methodName);
@@ -242,8 +244,36 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       return createUserFriendlyError(msg, null);
     }
 
-    // give others GradleProjectResolverExtensions a chance to handle this error
-    return null;
+    // Create ExternalSystemException or LocationAwareExternalSystemException, so that
+    // it goes to SyncErrorHandlers directly.
+    String location = rootCauseAndLocation.getSecond();
+    String errMessage;
+    if (rootCause.getMessage() == null) {
+      StringWriter writer = new StringWriter();
+      rootCause.printStackTrace(new PrintWriter(writer));
+      errMessage = writer.toString();
+    }
+    else {
+      errMessage = rootCause.getMessage();
+    }
+
+    if (!errMessage.isEmpty() && Character.isLowerCase(errMessage.charAt(0))) {
+      // Message starts with lower case letter. Sentences should start with uppercase.
+      errMessage = "Cause: " + errMessage;
+    }
+
+    ExternalSystemException exception = null;
+    if (isNotEmpty(location)) {
+      Pair<String, Integer> pair = getErrorLocation(location);
+      if (pair != null) {
+        exception = new LocationAwareExternalSystemException(errMessage, rootCause, pair.first, pair.getSecond(), -1);
+      }
+    }
+    if (exception == null) {
+      exception = new ExternalSystemException(errMessage, rootCause);
+    }
+    exception.initCause(rootCause);
+    return exception;
   }
 
   private static boolean isOldGradleVersion(@NotNull Throwable error) {
