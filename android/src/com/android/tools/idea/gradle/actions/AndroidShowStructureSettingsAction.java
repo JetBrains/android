@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Displays the "Project Structure" dialog.

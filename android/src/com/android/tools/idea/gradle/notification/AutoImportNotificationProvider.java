@@ -29,7 +29,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.ide.BrowserUtil.browse;
 
 /**

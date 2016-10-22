@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.android.tools.idea.editors.gfxtrace.gapi.Version.*;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 public final class GapisProcess extends ChildProcess {
   private static final boolean GRPC_ENABLED = System.getProperty("gapid.enable.grpc") != null;

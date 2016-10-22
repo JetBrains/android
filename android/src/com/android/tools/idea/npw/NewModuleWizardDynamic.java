@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -23,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -119,7 +117,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
         }
       }
     }
-    return AndroidStudioInitializer.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+    return GradleUtil.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 
   @NotNull

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class NlOptionsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private JBCheckBox myPreferXml;

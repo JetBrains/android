@@ -50,7 +50,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +75,7 @@ import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findE
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -102,6 +104,8 @@ public final class GradleUtil {
 
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
+
+  @NonNls public static final String GRADLE_PLUGIN_RECOMMENDED_VERSION = getGradlePluginRecommendedVersion();
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
@@ -821,5 +825,22 @@ public final class GradleUtil {
     }
 
     return null;
+  }
+
+  @NotNull
+  private static String getGradlePluginRecommendedVersion() {
+    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
+        !ApplicationManager.getApplication().isInternal() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
+      try {
+        // In a release build, Android Studio will use the version from module builder-model.
+        Class versionClass = Class.forName("com.android.builder.model.Version");
+        return (String)versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
+      }
+      catch (ReflectiveOperationException ex) {
+        return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+      }
+    }
+    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
 }

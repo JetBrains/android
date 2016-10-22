@@ -54,7 +54,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvm
 import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;

@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.*;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 

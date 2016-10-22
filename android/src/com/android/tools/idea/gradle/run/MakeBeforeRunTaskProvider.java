@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
