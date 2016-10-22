@@ -24,7 +24,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -351,16 +350,15 @@ public class CaptureService {
   private void deleteBackingFile(@NotNull CaptureHandle captureHandle, @Nullable Capture capture) {
     boolean deleted = false;
     if (capture != null) {
-      AccessToken token = WriteAction.start();
-      try {
-        capture.getFile().delete(this);
-        deleted = true;
-      }
-      catch (Exception ignored) {
-      }
-      finally {
-        token.finish();
-      }
+      deleted = WriteAction.compute(() -> {
+        try {
+          capture.getFile().delete(this);
+          return true;
+        }
+        catch (Exception ignored) {
+          return false;
+        }
+      });
     }
 
     if (!deleted) {
