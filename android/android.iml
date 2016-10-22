@@ -181,5 +181,6 @@
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
   </component>
 </module>
