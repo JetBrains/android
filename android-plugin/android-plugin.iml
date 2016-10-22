@@ -8,7 +8,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="adt-branding" />
     <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="platform-main" />
     <orderEntry type="module" module-name="resources" />
