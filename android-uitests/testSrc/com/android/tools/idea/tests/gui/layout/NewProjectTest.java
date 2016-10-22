@@ -226,7 +226,7 @@ public class NewProjectTest {
   private class NewProjectDescriptor {
     private String myActivity = "MainActivity";
     private String myPkg = "com.android.test.app";
-    private String myMinSdk = "19";
+    private String myMinSdk = "15";
     private String myName = "TestProject";
     private String myDomain = "com.android";
     private boolean myWaitForSync = true;
