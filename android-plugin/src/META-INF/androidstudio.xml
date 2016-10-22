@@ -60,10 +60,8 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
-    <action
-        id="WelcomeScreen.RunAndroidSdkManager"
-        class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-        icon="AndroidIcons.SdkManager" >
+    <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+            icon="AndroidIcons.SdkManager">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
