@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -26,7 +26,6 @@ import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,11 +47,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.util.SystemProperties;
 import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
-import org.jetbrains.android.AndroidPlugin;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
@@ -68,7 +64,6 @@ import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -79,42 +74,11 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
  */
 public class AndroidStudioInitializer implements Runnable {
 
-  @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
-  @NonNls public static final String ENABLE_ENERGY_PROFILER = "enable.energy.profiler";
-
-  @NonNls public static final String GRADLE_PLUGIN_RECOMMENDED_VERSION = getGradlePluginRecommendedVersion();
-
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
 
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
                                                                                 "org.intellij.plugins.xpathView.XPathConfigurable",
                                                                                 "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl");
-
-  public static boolean isAndroidStudio() {
-    return "AndroidStudio".equals(getPlatformPrefix());
-  }
-
-  public static boolean isAndroidSdkManagerEnabled() {
-    boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
-    return !sdkManagerDisabled;
-  }
-
-  @NotNull
-  private static String getGradlePluginRecommendedVersion() {
-    if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
-        !ApplicationManager.getApplication().isInternal() &&
-        !ApplicationManager.getApplication().isUnitTestMode()) {
-      try {
-        // In a release build, Android Studio will use the version from module builder-model.
-        Class versionClass = Class.forName("com.android.builder.model.Version");
-        return (String)versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
-      }
-      catch (ReflectiveOperationException ex) {
-        return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-      }
-    }
-    return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-  }
 
   @Override
   public void run() {
@@ -152,7 +116,7 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   private static void setUpExperimentalFeatures() {
-    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
+    if (System.getProperty(ProfilerState.ENABLE_EXPERIMENTAL_PROFILING) != null) {
       ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
         @Override
         public void projectOpened(final Project project) {

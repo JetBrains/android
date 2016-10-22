@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -25,6 +24,7 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +38,7 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    if (!AndroidStudioInitializer.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
+    if (!AndroidUtils.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
       // IntelliJ only
       return new FacetEditorTab[]{new AndroidGradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
     }

@@ -20,7 +20,7 @@ import com.intellij.openapi.util.Condition;
 
 import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 /**
  * Makes "Gradle Console" tool window available only for Gradle projects in Android Studio.

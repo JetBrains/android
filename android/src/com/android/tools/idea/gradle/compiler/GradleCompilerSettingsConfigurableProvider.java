@@ -1,9 +1,9 @@
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -22,7 +22,7 @@ public class GradleCompilerSettingsConfigurableProvider extends ConfigurableProv
     if (myProject == null) {
       return null;
     }
-    final String displayName = AndroidStudioInitializer.isAndroidStudio() ? "Compiler" : "Gradle-Android Compiler";
+    final String displayName = AndroidUtils.isAndroidStudio() ? "Compiler" : "Gradle-Android Compiler";
     return new GradleCompilerSettingsConfigurable(myProject, displayName);
   }
 }
