@@ -21,12 +21,12 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -38,7 +38,6 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.libraries.ui.impl.RootDetectionUtil;
-import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.DefaultLibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryNameAndLevelPanel;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -178,8 +177,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
     @Override
     protected void doOKAction() {
-      AccessToken token = WriteAction.start();
-      try {
+      WriteAction.run(() -> {
         final Module module = myModulesComboBox.getSelectedModule();
         if (module == null) { return; }
         String moduleGradlePath = GradleSettingsFile.getModuleGradlePath(module);
@@ -211,10 +209,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
             }.execute();
           }
         }
-      }
-      finally {
-        token.finish();
-      }
+      });
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
       super.doOKAction();
     }
