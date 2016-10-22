@@ -218,4 +218,41 @@ public class BuildSignedApkTest {
       assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();
     }
   }
+
+  @Test
+  public void mustHaveAtLeastV1OrV2Sign() throws IOException {
+    GradleVersion latestVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION);
+    assume().that(latestVersion.compareIgnoringQualifiers(GradleSignStep.MIN_SIGNATURE_SELECTION_VERSION)).isAtLeast(0);
+
+    File jksFile = new File(myTemporaryFolder.getRoot(), "jks");
+    File dstFolder = myTemporaryFolder.newFolder("dst");
+
+    guiTest.importSimpleApplication()
+      .openFromMenu(BuildSignedApkDialogKeystoreStepFixture::find, "Build", "Generate Signed APK...")
+      .createNew()
+      .keyStorePath(jksFile.getAbsolutePath())
+      .password("passwd")
+      .passwordConfirm("passwd")
+      .alias("key")
+      .keyPassword("passwd2")
+      .keyPasswordConfirm("passwd2")
+      .validity("3")
+      .firstAndLastName("Android Studio")
+      .organizationalUnit("Android")
+      .organization("Google")
+      .cityOrLocality("Mountain View")
+      .stateOrProvince("California")
+      .countryCode("US")
+      .clickOk()
+      .keyStorePassword("passwd")
+      .keyAlias("key")
+      .keyPassword("passwd2")
+      .clickNext()
+      .apkDestinationFolder(dstFolder.getAbsolutePath())
+      .setV1SignatureEnabled(false)
+      .setV2SignatureEnabled(false)
+      .clickFinishAndDismissErrorDialog()
+      .setV1SignatureEnabled(true)
+      .clickFinish();
+  }
 }
