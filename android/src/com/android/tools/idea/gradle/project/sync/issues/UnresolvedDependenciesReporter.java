@@ -54,7 +54,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ER
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
 

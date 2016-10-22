@@ -107,7 +107,10 @@ iml_module(
         "//tools/external/gradle:gradle",
         "//tools:idea/java/jdkAnnotations",
     ],
-    test_runtime_deps = ["//tools/adt/idea/adt-branding"],
+    test_runtime_deps = [
+        "//tools/adt/idea/adt-branding",
+        "//tools/adt/idea/android-plugin:android-plugin"
+    ],
     test_shard_count = 2,
     test_srcs = [
         "android/testSrc",

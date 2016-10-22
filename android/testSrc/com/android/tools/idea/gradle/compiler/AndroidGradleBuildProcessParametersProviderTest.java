@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.classextension.EasyMock.*;

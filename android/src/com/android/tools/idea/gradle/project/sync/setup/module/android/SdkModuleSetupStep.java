@@ -42,7 +42,7 @@ import java.util.List;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;

@@ -41,7 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;

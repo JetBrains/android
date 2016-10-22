@@ -16,10 +16,10 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.fd.actions.HotswapAction;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,7 +42,7 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
-    if (!AndroidStudioInitializer.isAndroidStudio()) {
+    if (!AndroidUtils.isAndroidStudio()) {
       return;
     }
 
