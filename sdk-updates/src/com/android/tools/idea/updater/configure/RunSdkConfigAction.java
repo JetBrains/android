@@ -26,7 +26,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * Action to open the Android SDK pane in Settings.

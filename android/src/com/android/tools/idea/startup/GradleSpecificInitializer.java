@@ -53,6 +53,7 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +109,7 @@ public class GradleSpecificInitializer implements Runnable {
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
 
-    if (AndroidStudioInitializer.isAndroidSdkManagerEnabled()) {
+    if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
       try {
         // Setup JDK and Android SDK if necessary
         setupSdks();

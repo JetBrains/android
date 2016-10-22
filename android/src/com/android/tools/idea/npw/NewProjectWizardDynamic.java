@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
@@ -26,7 +27,6 @@ import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -47,6 +47,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +56,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import static com.android.tools.idea.wizard.WizardConstants.*;
 
@@ -111,7 +111,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
   private void initState() {
-    initState(getState(), AndroidStudioInitializer.GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    initState(getState(), GradleUtil.GRADLE_PLUGIN_RECOMMENDED_VERSION);
   }
 
   static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {
@@ -206,7 +206,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     // This is required for Android plugin in IDEA
-    if (!AndroidStudioInitializer.isAndroidStudio()) {
+    if (!AndroidUtils.isAndroidStudio()) {
       final Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
         ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(myProject).setProjectSdk(jdk));

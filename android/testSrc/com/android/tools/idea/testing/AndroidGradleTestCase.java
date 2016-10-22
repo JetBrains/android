@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -56,6 +55,7 @@ import com.intellij.util.Consumer;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,7 +156,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(getProject(), () -> {
-      if (AndroidStudioInitializer.isAndroidStudio()) {
+      if (AndroidUtils.isAndroidStudio()) {
         ideSdks.setUseEmbeddedJdk();
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }

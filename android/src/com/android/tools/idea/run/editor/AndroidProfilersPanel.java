@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
 
 /**
  * The configuration panel for the Android profiler settings.

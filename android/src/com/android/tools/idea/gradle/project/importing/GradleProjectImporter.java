@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
