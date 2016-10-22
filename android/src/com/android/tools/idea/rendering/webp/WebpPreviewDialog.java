@@ -279,7 +279,8 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
         if (myWebpImage != null) {
           int imageWidth = myPngImage.getWidth();
           int imageHeight = myPngImage.getHeight();
-          boolean light = JBColor.WHITE.getRed() >= 128;
+          int level = JBColor.WHITE.getRed();
+          boolean light = level >= 128;
           //noinspection UndesirableClassUsage
           myDeltaImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
           for (int y = 0; y < imageHeight; y++) {
@@ -307,10 +308,10 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
 
               int deltaColor;
               if (light) {
-                deltaColor = 0xFF000000 | (255 - redDelta) << 16 | (255 - greenDelta) << 8 | (255 - blueDelta);
+                deltaColor = 0xFF000000 | (level - redDelta) << 16 | (level - greenDelta) << 8 | (level - blueDelta);
               }
               else {
-                deltaColor = 0xFF000000 | redDelta << 16 | greenDelta << 8 | blueDelta;
+                deltaColor = 0xFF000000 | (level + redDelta) << 16 | (level + greenDelta) << 8 | (level + blueDelta);
               }
               myDeltaImage.setRGB(x, y, deltaColor);
             }
