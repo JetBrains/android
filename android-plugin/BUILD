@@ -7,6 +7,7 @@ iml_module(
     test_srcs = ["testSrc"],
     deps = [
         "//tools/adt/idea:android[module]",
+        "//tools/adt/idea/sdk-updates:sdk-updates[module]",
         "//tools:idea.platform-impl_and_others[module]",
         "//tools:idea.gradle[module]",
         "//tools:idea.jetgroovy[module]",

@@ -31,6 +31,10 @@
     <component>
       <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</implementation-class>
+      <interface-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</interface-class>
+    </component>
   </application-components>
   <project-components>
     <component>
@@ -148,8 +152,8 @@
       <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
           icon="AndroidIcons.AvdManager"/>
-      <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-          icon="AndroidIcons.SdkManager"/>
+      <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+              icon="AndroidIcons.SdkManager"/>
       <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
@@ -352,6 +356,10 @@
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
+    <applicationConfigurable parentId="preferences.general"
+                             displayName="Android SDK"
+                             provider="com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider"
+                             id="android.sdk-updates"/>
     <projectConfigurable instance="com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable"
                          id ="gradle.experimental" displayName="Experimental" parentId="reference.settingsdialog.project.gradle"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
