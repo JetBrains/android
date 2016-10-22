@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
@@ -79,6 +80,16 @@ public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<J
     Wait.seconds(1).expecting("dialog to disappear").until(() -> !target().isShowing());
     GuiTests.waitForBackgroundTasks(robot());  // because "Finish" here starts a Gradle build
     return myIdeFrameFixture;
+  }
+
+  @NotNull
+  public BuildSignedApkDialogGradleStepFixture clickFinishAndDismissErrorDialog() {
+    GuiTests.findAndClickButtonWhenEnabled(this, "Finish");
+    MessagesFixture.findByTitle(robot(), target(), "Error")
+      .requireMessageContains("Please select at least one of the signature versions to use")
+      .clickOk();
+
+    return this;
   }
 
   @Nonnull
