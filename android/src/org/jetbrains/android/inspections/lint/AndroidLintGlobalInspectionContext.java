@@ -1,10 +1,14 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.builder.model.LintOptions;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
@@ -27,6 +31,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
@@ -220,6 +225,34 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
+
+    // Baseline analysis?
+    for (Module module : modules) {
+      AndroidGradleModel model = AndroidGradleModel.get(module);
+      if (model != null) {
+        GradleVersion version = model.getModelVersion();
+        if (version != null && version.isAtLeast(2, 3, 0, null, 0, true)) {
+          LintOptions options = model.getAndroidProject().getLintOptions();
+          try {
+            File baselineFile = options.getBaselineFile();
+            if (baselineFile != null) {
+              if (!baselineFile.isAbsolute()) {
+                String path = module.getProject().getBasePath();
+                if (path != null) {
+                  baselineFile = new File(FileUtil.toSystemDependentName(path), baselineFile.getPath());
+                }
+              }
+              if (baselineFile.isFile()) {
+                lint.setBaseline(new LintBaseline(client, baselineFile));
+              }
+            }
+          } catch (Throwable unsupported) {
+            // During 2.3 development some builds may have this method, others may not
+          }
+        }
+        break;
+      }
+    }
 
     lint.analyze(request);
 
