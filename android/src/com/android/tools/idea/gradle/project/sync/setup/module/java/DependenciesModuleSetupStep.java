@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer.java;
+package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
-import com.google.common.collect.Lists;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,21 +49,34 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<JavaProject> {
+public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
+  @NotNull private final DependenciesSetup myDependenciesSetup;
+
+  public DependenciesModuleSetupStep() {
+    this(new DependenciesSetup());
+  }
+
+  @VisibleForTesting
+  DependenciesModuleSetupStep(@NotNull DependenciesSetup dependenciesSetup) {
+    myDependenciesSetup = dependenciesSetup;
+  }
+
   @Override
-  protected void setUpDependencies(@NotNull Module module,
-                                   @NotNull IdeModifiableModelsProvider modelsProvider,
-                                   @NotNull JavaProject javaProject) {
-    List<String> unresolved = Lists.newArrayList();
+  public void setUpModule(@NotNull Module module,
+                          @NotNull JavaProject javaProject,
+                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                          @Nullable SyncAction.ModuleModels gradleModels,
+                          @Nullable ProgressIndicator indicator) {
+    List<String> unresolved = new ArrayList<>();
     for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
-      updateDependency(module, modelsProvider, dependency);
+      updateDependency(module, ideModelsProvider, dependency);
     }
 
     for (JarLibraryDependency dependency : javaProject.getJarLibraryDependencies()) {
       if (dependency.isResolved()) {
-        updateDependency(module, modelsProvider, dependency);
+        updateDependency(module, ideModelsProvider, dependency);
       }
       else {
         unresolved.add(dependency.getName());
@@ -67,10 +85,10 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     UnresolvedDependenciesReporter.getInstance().report(unresolved, module);
 
-    JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);
+    JavaGradleFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
 
-    AndroidGradleFacet gradleFacet = findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet gradleFacet = findFacet(module, ideModelsProvider, AndroidGradleFacet.TYPE_ID);
     if (gradleFacet != null) {
       // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
       // have this facet.
@@ -98,8 +116,10 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (found != null) {
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
-        moduleModel.addModuleOrderEntry(found);
-      } else {
+        ModuleOrderEntry entry = moduleModel.addModuleOrderEntry(found);
+        entry.setExported(true);
+      }
+      else {
         // If it depends on an android module, we should skip that.
         setupErrors.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
       }
@@ -108,9 +128,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     setupErrors.addMissingModule(moduleName, module.getName(), null);
   }
 
-  private static void updateDependency(@NotNull Module module,
-                                       @NotNull IdeModifiableModelsProvider modelsProvider,
-                                       @NotNull JarLibraryDependency dependency) {
+  private void updateDependency(@NotNull Module module,
+                                @NotNull IdeModifiableModelsProvider modelsProvider,
+                                @NotNull JarLibraryDependency dependency) {
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {
@@ -118,12 +138,14 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       setupErrors.addMissingBinaryPath(module.getName());
       return;
     }
-    String path = binaryPath.getPath();
 
     // Gradle API doesn't provide library name at the moment.
-    String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(path);
-    setUpLibraryDependency(module, modelsProvider, name, scope, singletonList(path), asPaths(dependency.getSourcePath()),
-                           asPaths(dependency.getJavadocPath()));
+    String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
+
+    List<String> binaries = singletonList(binaryPath.getPath());
+    List<String> sources = asPaths(dependency.getSourcePath());
+    List<String> javadocs = asPaths(dependency.getJavadocPath());
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, binaries, sources, javadocs);
   }
 
   @NotNull
@@ -156,5 +178,11 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
     model.addFacet(facet);
     return facet;
+  }
+
+  @Override
+  @NotNull
+  public String getDescription() {
+    return "Java dependencies setup";
   }
 }
