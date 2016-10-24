@@ -21,7 +21,6 @@ import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -120,8 +119,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * cached.
    */
   AndroidSdkHandler getSdkHandler() {
-    // Right now just get it statically. In the future we could cache and listen for updates.
-    return AndroidSdks.getInstance().tryToChooseSdkHandler();
+    return AndroidSdkHandler.getInstance(myPanel.getSelectedSdkLocation());
   }
 
   RepoManager getRepoManager() {
