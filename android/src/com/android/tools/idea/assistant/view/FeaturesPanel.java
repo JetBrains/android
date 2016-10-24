@@ -61,13 +61,22 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
 
     // NOTE: the card labels cannot be from an enum since the views will be
     // built up from xml.
-    addCard(new TutorialChooser(this, myTutorialBundle), "chooser");
+    List<? extends FeatureData> featureList = myTutorialBundle.getFeatures();
+    // Note: Hides Tutorial Chooser panel if there is only one feature and one tutorial.
+    boolean hideChooserAndNavigationalBar = false;
+    if (featureList.size() == 1 && featureList.get(0).getTutorials().size() == 1) {
+      hideChooserAndNavigationalBar = true;
+      getLog().debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
+    } else {
+      addCard(new TutorialChooser(this, myTutorialBundle), "chooser");
+    }
 
     // Add all tutorial cards.
-    for (FeatureData feature : myTutorialBundle.getFeatures()) {
+    for (FeatureData feature : featureList) {
       DeveloperServiceList services = serviceMap.get(feature.getServiceId());
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), services), tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), services, hideChooserAndNavigationalBar),
+                tutorial.getKey());
       }
     }
     add(myCards);
