@@ -62,7 +62,6 @@ import static com.intellij.util.ArrayUtil.contains;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidGradleModel implements AndroidModel, Serializable {
-  public static final String EXPLODED_BUNDLES = "exploded-bundles";
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -742,8 +741,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       if (intermediates.isDirectory()) {
         for (File folderPath : notNullize(intermediates.listFiles())) {
           String folderName = folderPath.getName();
-          // 'exploded-aar' is the new name of 'exploded-bundles' in plugin version 0.8.2+.
-          if (folderName.equals(EXPLODED_AAR) || folderName.equals(EXPLODED_BUNDLES) || folderName.equals("manifest")) {
+          if (folderName.equals(EXPLODED_AAR) || folderName.equals("manifest")) {
             continue;
           }
           excludedFolderPaths.add(folderPath);
