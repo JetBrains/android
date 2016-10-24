@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
-import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.Location;
@@ -58,23 +56,6 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertNotNull(createConfigurationFromClass("google.simpleapplication.ApplicationTest"));
   }
 
-  public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {
-    loadSimpleApplication();
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
-    AndroidTestRunConfiguration androidTestRunConfiguration = createConfigurationFromClass("google.simpleapplication.ApplicationTest");
-    assertNotNull(androidTestRunConfiguration);
-    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
-      (AndroidRunConfigurationEditor<AndroidTestRunConfiguration>)androidTestRunConfiguration.getConfigurationEditor();
-
-    TestRunParameters testRunParameters = (TestRunParameters)editor.getConfigurationSpecificEditor();
-    testRunParameters.resetFrom(androidTestRunConfiguration);
-    assertFalse("Runner component is visible in a Gradle project", testRunParameters.getRunnerComponent().isVisible());
-  }
-
   public void testRunnerArgumentsSet() throws Exception {
     loadProject(RUN_CONFIG_RUNNER_ARGUMENTS);
     Map<String, String> expectedArguments = new HashMap<>();
@@ -82,7 +63,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     expectedArguments.put("foo", "bar");
 
     Map<String, String> runnerArguments = AndroidTestRunConfiguration.getRunnerArguments(myAndroidFacet);
-    assertEquals(expectedArguments, runnerArguments);
+    assertTrue(runnerArguments.equals(expectedArguments));
   }
 
   public void testCannotCreateConfigurationFromFromUnitTestClass() throws Exception {

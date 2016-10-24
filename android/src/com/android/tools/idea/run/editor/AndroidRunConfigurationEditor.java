@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.fd.InstantRunConfigurable;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -295,10 +294,5 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     myOldVersionLabel.setVisible(true);
-  }
-
-  @VisibleForTesting
-  public ConfigurationSpecificEditor<T> getConfigurationSpecificEditor() {
-    return myConfigurationSpecificEditor;
   }
 }
