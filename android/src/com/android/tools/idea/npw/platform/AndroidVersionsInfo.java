@@ -30,7 +30,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.AndroidTargetManager;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * The list can be filtered by min sdk level and a callback mechanism allows information to be provided asynchronously.
  * It is also possible to query the list of packages that the system needs to install to satisfy the requirements of an API level.
  */
-public final class AndroidVersionsInfo {
+public class AndroidVersionsInfo {
 
   /**
    * Call back interface to notify the caller that the requested items were loaded.
@@ -96,6 +96,11 @@ public final class AndroidVersionsInfo {
       }
     }
     myHighestInstalledApiTarget = highestInstalledTarget;
+  }
+
+  @Nullable ("If we don't know (yet) the highest installed version")
+  AndroidVersion getHighestInstalledVersion() {
+    return  (myHighestInstalledApiTarget == null) ? null : myHighestInstalledApiTarget.getVersion();
   }
 
   @NotNull
@@ -186,7 +191,7 @@ public final class AndroidVersionsInfo {
     return result.toArray(new IAndroidTarget[result.size()]);
   }
 
-  private static void loadRemoteTargets(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
+  private void loadRemoteTargets(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
                                         ItemsLoaded completedCallback) {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
@@ -267,7 +272,7 @@ public final class AndroidVersionsInfo {
     return tag;
   }
 
-  private static void addPackages(@NotNull FormFactor myFormFactor, @NotNull List<VersionItem> versionItemList,
+  private void addPackages(@NotNull FormFactor myFormFactor, @NotNull List<VersionItem> versionItemList,
                                   @NotNull Collection<? extends RepoPackage> packages, int minSdkLevel) {
 
     List<RepoPackage> sorted = packages.stream()
@@ -294,7 +299,7 @@ public final class AndroidVersionsInfo {
     }
   }
 
-  private static void addOfflineLevels(@NotNull FormFactor myFormFactor, @NotNull List<VersionItem> versionItemList) {
+  private void addOfflineLevels(@NotNull FormFactor myFormFactor, @NotNull List<VersionItem> versionItemList) {
     int existingApiLevel = -1;
     int prevInsertedApiLevel = -1;
     int index = -1;
@@ -312,39 +317,39 @@ public final class AndroidVersionsInfo {
     }
   }
 
-  public static class VersionItem {
+  public class VersionItem {
     private final AndroidVersion myAndroidVersion;
     private final String myLabel;
     private final int myApiLevel;
     private final String myApiLevelStr; // Can be a number or a Code Name (eg "L", "N", etc)
 
-    public IAndroidTarget myAndroidTarget;
+    private IAndroidTarget myAndroidTarget;
     private RemotePackage myAddon;
 
-    private VersionItem(@NotNull AndroidVersion androidVersion, IdDisplay tag) {
+    VersionItem(@NotNull AndroidVersion androidVersion, @NotNull IdDisplay tag) {
       myAndroidVersion = androidVersion;
       myLabel = getLabel(androidVersion, tag);
       myApiLevel = androidVersion.getFeatureLevel();
       myApiLevelStr = androidVersion.getApiString();
     }
 
-    private VersionItem(String label, int apiLevel) {
+    VersionItem(@NotNull String label, int apiLevel) {
       myAndroidVersion = new AndroidVersion(apiLevel, null);
       myLabel = label;
       myApiLevel = apiLevel;
       myApiLevelStr = Integer.toString(apiLevel);
     }
 
-    private VersionItem(int apiLevel) {
+    VersionItem(int apiLevel) {
       this(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG);
     }
 
-    private VersionItem(@NotNull IAndroidTarget target) {
+    VersionItem(@NotNull IAndroidTarget target) {
       this(target.getVersion(), SystemImage.DEFAULT_TAG);
       this.myAndroidTarget = target;
     }
 
-    private VersionItem(@NotNull RepoPackage info) {
+    VersionItem(@NotNull RepoPackage info) {
       this(getAndroidVersion(info), getTag(info));
       if (info instanceof RemotePackage && SystemImage.GLASS_TAG.equals(getTag(info))) {
         // If this is Glass then prepare to install this add-on package.
@@ -353,11 +358,14 @@ public final class AndroidVersionsInfo {
       }
     }
 
+    @Nullable ("null except for preview releases")
     public IAndroidTarget getAndroidTarget() {
       return myAndroidTarget;
     }
 
+    @Nullable ("null except when an addon needs to be installed (eg Google Glass)")
     public RemotePackage getAddon() {
+      // TODO: We may no longer need this, as we only show Google Glass if we have it already installed
       return myAddon;
     }
 
@@ -365,13 +373,32 @@ public final class AndroidVersionsInfo {
       return myApiLevel;
     }
 
-    public String getLabel() {
-      return myLabel;
+    @NotNull
+    public String getApiLevelStr() {
+      return myApiLevelStr;
     }
 
-    public String getBuildApi() {
+    public int getBuildApiLevel() {
+      int apiLevel;
+      if (myAddon != null) {
+        apiLevel = myApiLevel;
+      }
+      else if (myAndroidTarget == null) {
+        apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+      }
+      else if (myAndroidTarget.getVersion().isPreview() || !myAndroidTarget.isPlatform()) {
+        apiLevel = myApiLevel;
+      }
+      else  {
+        apiLevel = getHighestInstalledVersion() == null ? 0 : getHighestInstalledVersion().getFeatureLevel();
+      }
+      return apiLevel;
+    }
+
+    @NotNull
+    public String getBuildApiLevelStr() {
       if (myAndroidTarget == null) {
-        return Integer.toString(myApiLevel);
+        return Integer.toString(getBuildApiLevel());
       }
       if (myAndroidTarget.isPlatform()) {
         return TemplateMetadata.getBuildApiString(myAndroidTarget.getVersion());
@@ -379,7 +406,32 @@ public final class AndroidVersionsInfo {
       return AndroidTargetHash.getTargetHashString(myAndroidTarget);
     }
 
-    private static String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag) {
+    public int getTargetApiLevel() {
+      int buildApiLevel = getBuildApiLevel();
+      if (buildApiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
+        return buildApiLevel;
+      }
+
+      return getHighestInstalledVersion() == null ? 0 : getHighestInstalledVersion().getApiLevel();
+    }
+
+    @NotNull
+    public String getTargetApiLevelStr() {
+      int buildApiLevel = getBuildApiLevel();
+      if (buildApiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
+        return myAndroidTarget == null ? Integer.toString(buildApiLevel) : myAndroidTarget.getVersion().getApiString();
+      }
+
+      return getHighestInstalledVersion() == null ? "" : getHighestInstalledVersion().getApiString();
+    }
+
+    @NotNull
+    public String getLabel() {
+      return myLabel;
+    }
+
+    @NotNull
+    private String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag) {
       int featureLevel = version.getFeatureLevel();
       if (SystemImage.GLASS_TAG.equals(tag)) {
         return String.format("Glass Development Kit Preview (API %1$d)", featureLevel);
