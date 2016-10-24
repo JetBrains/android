@@ -83,6 +83,7 @@ public class TemplateMetadata {
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
+  public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
 
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
