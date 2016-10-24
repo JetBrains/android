@@ -968,6 +968,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
+        if (!psiFile.isValid()) return;
+
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
