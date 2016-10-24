@@ -18,7 +18,16 @@ package com.android.tools.idea.npw.module;
 import com.android.tools.idea.npw.FormFactor;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
 public interface ModuleTemplateGalleryEntry extends ModuleGalleryEntry {
+
+  /**
+   * @return The file from where this template was loaded.
+   */
+  @NotNull
+  File getTemplateFile();
+
   /**
    * @return form factor associated with this template.
    */
