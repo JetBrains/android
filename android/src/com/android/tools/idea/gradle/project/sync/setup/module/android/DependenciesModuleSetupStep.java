@@ -60,7 +60,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
-  private DependenciesSetup myDependenciesSetup = new DependenciesSetup();
+  private final DependenciesSetup myDependenciesSetup = new DependenciesSetup();
 
   @Override
   protected void doSetUpModule(@NotNull Module module,

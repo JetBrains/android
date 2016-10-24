@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ModuleDependenciesSubject extends Subject<ModuleDependenciesSubject, Module> {
   @NotNull
@@ -73,6 +75,16 @@ public class ModuleDependenciesSubject extends Subject<ModuleDependenciesSubject
   @NotNull
   public ModuleDependenciesSubject contains(@NotNull String moduleName) {
     assertThat(getModuleNames()).contains(moduleName);
+    return this;
+  }
+
+  @NotNull
+  public ModuleDependenciesSubject contains(@NotNull ExpectedModuleDependency dependency) {
+    String moduleName = dependency.getModule().getName();
+    ModuleOrderEntry orderEntry = myModuleDependenciesByName.get(moduleName);
+    assertNotNull("dependency on module '" + moduleName + "'", orderEntry);
+    assertEquals("scope", orderEntry.getScope(), dependency.getScope());
+    assertEquals("exported", orderEntry.isExported(), dependency.isExported());
     return this;
   }
 

@@ -43,7 +43,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdaterIntegrationTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
-  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
   com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleTest.class,
   com.android.tools.idea.gradle.testing.AndroidJunitPatcherWithTestArtifactTest.class,
   com.android.tools.idea.gradle.testing.TestArtifactSearchScopesTest.class,
