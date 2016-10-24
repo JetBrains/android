@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.*;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ModifiableFacetModel;
@@ -51,9 +52,19 @@ import static com.android.tools.idea.gradle.util.Facets.findFacet;
 public class JavaProjectDataService extends AbstractProjectDataService<JavaProject, Void> {
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
-  private final List<ModuleCustomizer<JavaProject>> myCustomizers =
-    ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(),
-                     new CompilerOutputModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer());
+  @NotNull private final List<ModuleCustomizer<JavaProject>> myCustomizers;
+  @NotNull private final JavaModuleSetupStep[] myModuleSetupSteps;
+
+  public JavaProjectDataService() {
+    this(ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer()),
+         JavaModuleSetupStep.getExtensions());
+  }
+
+  private JavaProjectDataService(@NotNull List<ModuleCustomizer<JavaProject>> moduleCustomizers,
+                                 @NotNull JavaModuleSetupStep[] moduleSetupSteps) {
+    myCustomizers = moduleCustomizers;
+    myModuleSetupSteps = moduleSetupSteps;
+  }
 
   @Override
   @NotNull
@@ -63,9 +74,9 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
 
   @Override
   public void importData(@NotNull Collection<DataNode<JavaProject>> toImport,
-                         @Nullable final ProjectData projectData,
-                         @NotNull final Project project,
-                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
+                         @Nullable ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project, modelsProvider);
@@ -77,9 +88,9 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     }
   }
 
-  private void doImport(final Collection<DataNode<JavaProject>> toImport,
-                        final Project project,
-                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(@NotNull Collection<DataNode<JavaProject>> toImport,
+                        @NotNull Project project,
+                        @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -128,6 +139,9 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
 
     for (ModuleCustomizer<JavaProject> customizer : myCustomizers) {
       customizer.customizeModule(module.getProject(), module, modelsProvider, javaProject);
+    }
+    for (JavaModuleSetupStep moduleSetupStep : myModuleSetupSteps) {
+      moduleSetupStep.setUpModule(module, javaProject, modelsProvider, null, null);
     }
   }
 
