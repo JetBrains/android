@@ -25,6 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -33,7 +34,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -320,7 +320,7 @@ public class IdeSdks {
   @NotNull
   public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
-    RunAndroidSdkManagerAction.updateInWelcomePage(null);
+    ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager").update(null);
     return sdks;
   }
 
