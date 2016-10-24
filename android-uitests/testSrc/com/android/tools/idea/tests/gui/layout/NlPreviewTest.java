@@ -44,7 +44,6 @@ import static org.junit.Assume.assumeTrue;
 /**
  * UI test for the layout preview window
  */
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NlPreviewTest {
 
@@ -94,6 +93,7 @@ public class NlPreviewTest {
     toolbar.requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testEditCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
