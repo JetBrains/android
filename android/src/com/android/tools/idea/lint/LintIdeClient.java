@@ -358,27 +358,27 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public AndroidSdkHandler getSdk() {
-    if (mSdk == null) {
+    if (sdk == null) {
       Module module = getModule();
-      AndroidSdkHandler sdk = getLocalSdk(module);
-      if (sdk != null) {
-        mSdk = sdk;
+      AndroidSdkHandler localSdk = getLocalSdk(module);
+      if (localSdk != null) {
+        sdk = localSdk;
       } else {
         for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-          sdk = getLocalSdk(m);
-          if (sdk != null) {
-            mSdk = sdk;
+          localSdk = getLocalSdk(m);
+          if (localSdk != null) {
+            sdk = localSdk;
             break;
           }
         }
 
-        if (mSdk == null) {
-          mSdk = super.getSdk();
+        if (localSdk == null) {
+          sdk = super.getSdk();
         }
       }
     }
 
-    return mSdk;
+    return sdk;
   }
 
   @Nullable
