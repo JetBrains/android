@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.legacy.ILegacyPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
@@ -166,7 +165,7 @@ public class LayoutPullParserFactory {
     }
   }
 
-  private static ILegacyPullParser createDrawableParser(XmlFile file) {
+  private static ILayoutPullParser createDrawableParser(XmlFile file) {
     // Build up a menu layout based on what we find in the menu file
     // This is *simulating* what happens in an Android app. We should get first class
     // menu rendering support in layoutlib to properly handle this.
@@ -291,7 +290,7 @@ public class LayoutPullParserFactory {
     return element;
   }
 
-  public static ILegacyPullParser createEmptyParser() {
+  public static ILayoutPullParser createEmptyParser() {
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
     Element root = addRootElement(document, FRAME_LAYOUT);
