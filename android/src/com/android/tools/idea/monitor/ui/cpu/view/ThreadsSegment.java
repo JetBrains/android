@@ -142,7 +142,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     mThreadStateColor = new EnumMap<>(CpuProfiler.ThreadActivity.State.class);
     mThreadStateColor.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(new Color(134, 199, 144), new Color(134, 199, 144)));
     mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(Gray._189, Gray._189));
-    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.DEAD, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.DEAD, Gray.TRANSPARENT);
     return mThreadStateColor;
   }
 
