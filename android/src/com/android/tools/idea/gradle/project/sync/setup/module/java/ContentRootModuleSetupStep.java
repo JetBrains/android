@@ -25,6 +25,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public class ContentRootModuleSetupStep extends JavaModuleSetupStep {
   public void setUpModule(@NotNull Module module,
                           @NotNull JavaProject javaProject,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+                          @Nullable SyncAction.ModuleModels gradleModels,
+                          @Nullable ProgressIndicator indicator) {
     ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
     JavaContentEntriesSetup setup = new JavaContentEntriesSetup(javaProject, moduleModel);
     List<ContentEntry> contentEntries = findContentEntries(moduleModel, javaProject);
