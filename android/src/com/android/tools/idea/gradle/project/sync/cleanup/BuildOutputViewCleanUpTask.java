@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
-import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
+import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

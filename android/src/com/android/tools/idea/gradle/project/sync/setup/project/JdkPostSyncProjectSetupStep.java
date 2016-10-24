@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.project;
 
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;

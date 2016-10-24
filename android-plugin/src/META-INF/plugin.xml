@@ -304,7 +304,7 @@
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
-    <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
+    <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidGradleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NativeAndroidGradleModelDataService" />
@@ -349,10 +349,10 @@
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
-                         provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
+                         provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
     <applicationConfigurable groupId="build" id="instant.run"
                          provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
-    <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
+    <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
@@ -881,9 +881,9 @@
     <toolWindow id="Gradle Console"
                 anchor="bottom"
                 secondary="true"
-                conditionClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleCondition"
+                conditionClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleCondition"
                 icon="AndroidIcons.GradleConsoleToolWindow"
-                factoryClass="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory"/>
+                factoryClass="com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory"/>
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
@@ -896,11 +896,11 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.InternalAndroidModelView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.DefaultGradleConsoleView"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
@@ -909,13 +909,13 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.SyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
-    <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
-                    serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"
+                    serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"
                     serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
     <projectService serviceInterface="com.android.tools.idea.logcat.PersistentAndroidLogFilters"
@@ -1003,7 +1003,7 @@
     <editorNotificationProvider implementation="org.jetbrains.android.formatter.AndroidCodeStyleNotificationProvider"/>
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
-    <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetScopeProvider"/>
+    <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
