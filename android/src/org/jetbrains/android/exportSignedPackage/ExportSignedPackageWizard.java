@@ -23,7 +23,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -188,9 +188,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         assert myProject != null;
 
-        GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-        gradleInvoker.add(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
-        gradleInvoker.executeTasks(assembleTasks, projectProperties);
+        GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
+        gradleBuildInvoker.add(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
+        gradleBuildInvoker.executeTasks(assembleTasks, projectProperties);
 
         LOG.info("Export APK command: " +
                  Joiner.on(',').join(assembleTasks) +
@@ -223,7 +223,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get("");
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        return Collections.singletonList(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
+        return Collections.singletonList(GradleBuildInvoker.createBuildTask(gradleProjectPath, taskName));
       } else {
         LOG.error("Unable to find default variant");
         return Collections.emptyList();
@@ -235,7 +235,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        assembleTasks.add(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
+        assembleTasks.add(GradleBuildInvoker.createBuildTask(gradleProjectPath, taskName));
       }
     }
 
