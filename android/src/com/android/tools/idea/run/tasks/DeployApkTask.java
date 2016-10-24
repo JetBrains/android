@@ -92,7 +92,8 @@ public class DeployApkTask implements LaunchTask {
     if (myInstantRunContext == null) {
       InstantRunStatsService.get(myProject).notifyNonInstantRunDeployType(device);
     } else {
-      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why, device);
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext.getBuildSelection().why,
+                                                             myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
     }
     trackInstallation(device);
 
