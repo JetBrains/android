@@ -198,7 +198,7 @@ public class LintIdeClient extends LintClient implements Disposable {
           return true;
         }
 
-        return driver != null && driver.isCustomIssue(issue);
+        return driver != null && driver.isCustomIssue(issue) || issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED;
       }
     };
   }
