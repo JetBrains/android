@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
