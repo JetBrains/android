@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static org.jetbrains.android.newProject.AndroidModuleBuilder.ANDROID_PROJECT_TYPE;
 
 /**
  * Tests for {@link NewProjectSetup}.
@@ -75,6 +75,6 @@ public class NewProjectSetupTest extends IdeaTestCase {
   }
 
   private void verifyProjectType() {
-    assertSame(ANDROID_PROJECT_TYPE, ProjectTypeService.getProjectType(getProject()));
+    assertSame(NewProjectSetup.ANDROID_PROJECT_TYPE, ProjectTypeService.getProjectType(getProject()));
   }
 }
