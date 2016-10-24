@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;

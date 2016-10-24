@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class GoToApkLocationTask implements GradleInvoker.AfterGradleInvocationTask {
+public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
   @NotNull private final Project myProject;
   @NotNull private final String myNotificationTitle;
   @NotNull private final List<File> myPotentialApkLocations;
@@ -86,7 +86,7 @@ public class GoToApkLocationTask implements GradleInvoker.AfterGradleInvocationT
     }
     finally {
       // See https://code.google.com/p/android/issues/detail?id=195369
-      GradleInvoker.getInstance(myProject).remove(this);
+      GradleBuildInvoker.getInstance(myProject).remove(this);
     }
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,7 +31,7 @@ public class BuildProjectHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     if (Projects.requiresAndroidModel(project) && Projects.isDirectGradleInvocationEnabled(project)) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
-      GradleInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleInvoker.TestCompileType.NONE);
+      GradleBuildInvoker.getInstance(project).compileJava(moduleManager.getModules(), GradleBuildInvoker.TestCompileType.NONE);
       return;
     }
     CompilerManager.getInstance(project).make(null);

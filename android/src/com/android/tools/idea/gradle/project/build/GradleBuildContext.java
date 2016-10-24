@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import org.jetbrains.annotations.NotNull;
 

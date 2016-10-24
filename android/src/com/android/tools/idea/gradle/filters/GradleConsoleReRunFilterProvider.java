@@ -17,14 +17,10 @@ package com.android.tools.idea.gradle.filters;
 
 import com.intellij.execution.filters.ConsoleFilterProvider;
 import com.intellij.execution.filters.Filter;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.Projects;
 
 import java.util.ArrayList;
@@ -90,7 +86,7 @@ public class GradleConsoleReRunFilterProvider implements ConsoleFilterProvider {
       List<String> options = new ArrayList<>();
       options.add(option);
       return new ResultItem(start, end,
-          (project) -> GradleInvoker.getInstance(project).rebuildWithTempOptions(options));
+          (project) -> GradleBuildInvoker.getInstance(project).rebuildWithTempOptions(options));
     }
   }
 }
