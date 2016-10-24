@@ -55,15 +55,15 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         // Hidden if not installed
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
-        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
-        res.add(new AndroidModuleTemplateGalleryEntry(formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
       }
       else {
-        res.add(new AndroidModuleTemplateGalleryEntry(
-          formFactor, minSdk, false, getModuleTypeIcon(formFactor), metadata.getTitle(), metadata.getDescription()));
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(formFactor),
+                                                      metadata.getTitle(), metadata.getDescription()));
       }
     }
 
@@ -88,6 +88,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
   }
 
   private static class AndroidModuleTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
+    private final File myTemplateFile;
     private final FormFactor myFormFactor;
     private final int myMinSdkLevel;
     private final boolean myIsLibrary;
@@ -95,13 +96,21 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     private final String myName;
     private final String myDescription;
 
-    AndroidModuleTemplateGalleryEntry(FormFactor formFactor, int minSdkLevel, boolean isLibrary, Icon icon, String name, String description) {
+    AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary, Icon icon,
+                                      String name, String description) {
+      this.myTemplateFile = templateFile;
       this.myFormFactor = formFactor;
       this.myMinSdkLevel = minSdkLevel;
       this.myIsLibrary = isLibrary;
       this.myIcon = icon;
       this.myName = name;
       this.myDescription = description;
+    }
+
+    @NotNull
+    @Override
+    public File getTemplateFile() {
+      return myTemplateFile;
     }
 
     @NotNull
