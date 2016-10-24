@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
@@ -29,7 +30,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import icons.AndroidIcons;
 import org.jdom.Element;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -137,7 +137,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (targets.length == 0) {
       if (Messages.showOkCancelDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle(),
                                       "Open SDK Manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon()) == Messages.OK) {
-        RunAndroidSdkManagerAction.runSpecificSdkManager(null, sdkData.getLocation());
+        ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
       }
       return false;
     }

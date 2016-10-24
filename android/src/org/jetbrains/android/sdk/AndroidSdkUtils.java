@@ -34,6 +34,7 @@ import com.intellij.execution.process.OSProcessManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -56,7 +57,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -276,7 +276,7 @@ public final class AndroidSdkUtils {
         Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome(), dlg.getJdkHome());
         sdkRef.set(sdk);
         if (sdk != null) {
-          RunAndroidSdkManagerAction.updateInWelcomePage(dlg.getContentPanel());
+          ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager").update(null);
         }
       }
     };
