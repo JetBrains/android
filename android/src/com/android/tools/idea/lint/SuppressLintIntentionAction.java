@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.client.api.Configuration;
-import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -181,8 +180,8 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
             com.android.tools.lint.detector.api.Project lintProject = client.getProject(dir, dir);
             Configuration configuration = client.getConfiguration(lintProject, null);
             Issue issue = getIssue();
-            if (configuration instanceof DefaultConfiguration && issue != null) {
-              ((DefaultConfiguration)configuration).ignore(issue, binaryFile);
+            if (issue != null) {
+              configuration.ignore(issue, binaryFile);
             }
           }
         }

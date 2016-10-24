@@ -187,7 +187,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         sb.append(issue.isEnabledByDefault());
         sb.append("\" level=\"");
         sb.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
-                  "ERROR" : "WARNING");
+                  "ERROR" : issue.getDefaultSeverity() == Severity.WARNING ? "WARNING" : "INFO");
         sb.append("\" implementationClass=\"com.android.tools.idea.lint.AndroidLint");
         sb.append(id);
         sb.append("Inspection\"/>\n");
