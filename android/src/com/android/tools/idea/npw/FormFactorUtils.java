@@ -47,7 +47,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 @Deprecated
 public class FormFactorUtils {
   private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
-  public static final String INCLUDE_FORM_FACTOR = "included";
   /*
    * @deprecated Use {@link TemplateMetadata.ATTR_MODULE_NAME} instead.
    */
@@ -96,7 +95,7 @@ public class FormFactorUtils {
 
   @NotNull
   public static Key<Boolean> getInclusionKey(@NotNull FormFactor formFactor) {
-    return createKey(formFactor.id + INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
+    return createKey(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
   }
 
   @NotNull
