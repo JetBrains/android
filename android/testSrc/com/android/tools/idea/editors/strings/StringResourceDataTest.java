@@ -21,8 +21,8 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
-import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -33,7 +33,11 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -65,7 +69,7 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testSummarizeLocales() {
-    assertEquals("", StringResourceData.summarizeLocales(Collections.<Locale>emptySet()));
+    assertEquals("", StringResourceData.summarizeLocales(Collections.emptySet()));
 
     List<Locale> locales = Lists.newArrayList(Locale.create("fr"), Locale.create("en"));
     assertEquals("English (en) and French (fr)", StringResourceData.summarizeLocales(locales));
@@ -82,13 +86,11 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testParser() {
-    Set<String> locales = Sets.newHashSet(Iterables.transform(data.getLocales(), new Function<Locale, String>() {
-      @Override
-      public String apply(Locale input) {
-        return input.toLocaleId();
-      }
-    }));
-    assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
+    Object actual = data.getLocales().stream()
+      .map(Locale::toLocaleId)
+      .collect(Collectors.toSet());
+
+    assertEquals(ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"), actual);
 
     assertNotNull(data.getStringResource("key1").getDefaultValueAsResourceItem());
 
@@ -120,7 +122,7 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     assertEquals("Key 'key1' is missing Hindi (hi) translation", data.validateTranslation("key1", Locale.create("hi")));
     assertNull(data.validateTranslation("key2", Locale.create("hi")));
-    assertEquals("Key 'key6' is marked as non-localizable, and should not be translated to French (fr)",
+    assertEquals("Key 'key6' is marked as untranslatable and should not be translated to French (fr)",
                  data.validateTranslation("key6", Locale.create("fr")));
 
     assertNull(data.validateTranslation("key1", null));
