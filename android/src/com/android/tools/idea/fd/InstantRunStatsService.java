@@ -24,6 +24,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.InstantRun;
 import com.google.wireless.android.sdk.stats.InstantRun.InstantRunDeploymentKind;
 import com.google.wireless.android.sdk.stats.InstantRun.InstantRunIdeBuildCause;
+import com.google.wireless.android.sdk.stats.InstantRunStatus;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -67,15 +68,16 @@ public class InstantRunStatsService {
   public void notifyDeployStarted() {
   }
 
-  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause, @NotNull IDevice device) {
-    notifyDeployType(type, buildCauseToProto(buildCause), device);
+  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause, @NotNull String verifierStatus, @NotNull IDevice device) {
+    notifyDeployType(type, buildCauseToProto(buildCause), verifierStatusToProto(verifierStatus), device);
   }
 
   public void notifyNonInstantRunDeployType(@NotNull IDevice device) {
-    notifyDeployType(DeployType.LEGACY, InstantRunIdeBuildCause.NO_INSTANT_RUN, device);
+    notifyDeployType(DeployType.LEGACY, InstantRunIdeBuildCause.NO_INSTANT_RUN, InstantRunStatus.VerifierStatus.UNKNOWN_VERIFIER_STATUS, device);
   }
 
-  private void notifyDeployType(@NotNull DeployType type, @NotNull InstantRunIdeBuildCause buildCause, @NotNull IDevice device) {
+  private void notifyDeployType(@NotNull DeployType type, @NotNull InstantRunIdeBuildCause buildCause,
+                                @NotNull InstantRunStatus.VerifierStatus verifierStatus, @NotNull IDevice device) {
     long buildAndDeployTime;
     String sessionId;
 
@@ -98,7 +100,9 @@ public class InstantRunStatsService {
                        .setSessionId(sessionId)
                        .setBuildTime(buildAndDeployTime)
                        .setDeploymentKind(deployTypeToDeploymentKind(type))
-                       .setIdeBuildCause(buildCause));
+                       .setIdeBuildCause(buildCause)
+                       .setGradleBuildCause(verifierStatus));
+
     if (buildCause == InstantRunIdeBuildCause.API_TOO_LOW_FOR_INSTANT_RUN
         || buildCause == InstantRunIdeBuildCause.FREEZE_SWAP_REQUIRES_API21
         || buildCause == InstantRunIdeBuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS) {
@@ -138,6 +142,14 @@ public class InstantRunStatsService {
         return InstantRunDeploymentKind.NO_CHANGES;
       default:
         return InstantRunDeploymentKind.UNKNOWN_INSTANT_RUN_DEPLOYMENT_KIND;
+    }
+  }
+
+  private static InstantRunStatus.VerifierStatus verifierStatusToProto(@NotNull String verifierStatus) {
+    try {
+      return InstantRunStatus.VerifierStatus.valueOf(verifierStatus);
+    } catch(IllegalArgumentException e) {
+      return InstantRunStatus.VerifierStatus.UNKNOWN_VERIFIER_STATUS;
     }
   }
 
