@@ -52,6 +52,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
@@ -183,7 +184,6 @@ public final class GradleDslParser {
         parse(expression, blockElement);
       }
     });
-
   }
 
   private static boolean parse(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
@@ -583,6 +583,9 @@ public final class GradleDslParser {
           }
           else if (SOURCE_SETS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new SourceSetsDslElement(resultElement);
+          }
+          else if (AAPT_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new AaptOptionsDslElement(resultElement);
           }
           else {
             return null;
