@@ -67,48 +67,48 @@ public class LintIdeRequest extends LintRequest {
   @Nullable
   @Override
   public EnumSet<Scope> getScope() {
-    if (mScope == null) {
+    if (scope == null) {
       Collection<com.android.tools.lint.detector.api.Project> projects = getProjects();
       if (projects != null) {
-        mScope = Scope.infer(projects);
+        scope = Scope.infer(projects);
 
         //noinspection ConstantConditions
-        if (!LintIdeProject.SUPPORT_CLASS_FILES && (mScope.contains(Scope.CLASS_FILE) || mScope.contains(Scope.ALL_CLASS_FILES)
-                                                    || mScope.contains(Scope.JAVA_LIBRARIES))) {
-          mScope = EnumSet.copyOf(mScope); // make mutable
+        if (!LintIdeProject.SUPPORT_CLASS_FILES && (scope.contains(Scope.CLASS_FILE) || scope.contains(Scope.ALL_CLASS_FILES)
+                                                    || scope.contains(Scope.JAVA_LIBRARIES))) {
+          scope = EnumSet.copyOf(scope); // make mutable
           // Can't run class file based checks
-          mScope.remove(Scope.CLASS_FILE);
-          mScope.remove(Scope.ALL_CLASS_FILES);
-          mScope.remove(Scope.JAVA_LIBRARIES);
+          scope.remove(Scope.CLASS_FILE);
+          scope.remove(Scope.ALL_CLASS_FILES);
+          scope.remove(Scope.JAVA_LIBRARIES);
         }
       }
     }
 
-    return mScope;
+    return scope;
   }
 
   @Nullable
   @Override
   public Collection<com.android.tools.lint.detector.api.Project> getProjects() {
-    if (mProjects == null) {
+    if (projects == null) {
       if (myIncremental && myFileList != null && myFileList.size() == 1 && myModules.size() == 1) {
         Pair<com.android.tools.lint.detector.api.Project,com.android.tools.lint.detector.api.Project> pair =
           LintIdeProject.createForSingleFile(mLintClient, myFileList.get(0), myModules.get(0));
-        mProjects = pair.first != null ? Collections.singletonList(pair.first)
-                                       : Collections.<com.android.tools.lint.detector.api.Project>emptyList();
+        projects = pair.first != null ? Collections.singletonList(pair.first)
+                                      : Collections.<com.android.tools.lint.detector.api.Project>emptyList();
         myMainProject = pair.second;
       } else if (!myModules.isEmpty()) {
         // Make one project for each module, mark each one as a library,
         // and add projects for the gradle libraries and set error reporting to
         // false on those
-        //mProjects = computeProjects()
-        mProjects = LintIdeProject.create(mLintClient, myFileList, myModules.toArray(new Module[myModules.size()]));
+        //projects = computeProjects()
+        projects = LintIdeProject.create(mLintClient, myFileList, myModules.toArray(new Module[myModules.size()]));
       } else {
-        mProjects = super.getProjects();
+        projects = super.getProjects();
       }
     }
 
-    return mProjects;
+    return projects;
   }
 
   @NonNull
