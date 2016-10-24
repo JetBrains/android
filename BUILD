@@ -113,7 +113,7 @@ iml_module(
         "android/testSrc",
         "designer/testSrc",
     ],
-    test_timeout = "long",
+    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
