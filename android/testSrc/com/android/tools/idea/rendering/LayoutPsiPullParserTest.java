@@ -243,7 +243,6 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
       PsiElement element = null;
       if (expected == XmlPullParser.START_TAG) {
-        assertNotNull(parser.getViewKey());
         assertNotNull(parser.getViewCookie());
         assertTrue(parser.getViewCookie() instanceof TagSnapshot);
         element = ((TagSnapshot)parser.getViewCookie()).tag;

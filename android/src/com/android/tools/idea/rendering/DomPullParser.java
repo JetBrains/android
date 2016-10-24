@@ -124,16 +124,6 @@ public class DomPullParser extends LayoutPullParser {
   }
 
   /**
-   * Legacy method required by {@link com.android.layoutlib.api.IXmlPullParser}
-   */
-  @SuppressWarnings("deprecation")
-  @Nullable
-  @Override
-  public Object getViewKey() {
-    return getViewCookie();
-  }
-
-  /**
    * This implementation does nothing for now as all the embedded XML will use a normal KXML
    * parser.
    */
