@@ -25,6 +25,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 import java.io.File;
@@ -40,8 +41,8 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   public void setUpModule(@NotNull Module module,
                           @NotNull JavaProject javaProject,
                           @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @NotNull SyncAction.ModuleModels gradleModels,
-                          @NotNull ProgressIndicator indicator) {
+                          @Nullable SyncAction.ModuleModels gradleModels,
+                          @Nullable ProgressIndicator indicator) {
     File mainClassesFolder = null;
     File testClassesFolder = null;
     ExtIdeaCompilerOutput compilerOutput = javaProject.getCompilerOutput();
