@@ -52,12 +52,15 @@ public class TutorialCard extends CardViewPanel {
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
                @NotNull String tutorialsTitle,
-               @NotNull DeveloperServiceList services) {
+               @NotNull DeveloperServiceList services,
+               boolean hideChooserAndNavigationalBar) {
     super(listener);
     myTutorialsTitle = tutorialsTitle;
 
-    // TODO: Add a short label to the xml and use that here instead.
-    add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
+    if (!hideChooserAndNavigationalBar) {
+      // TODO: Add a short label to the xml and use that here instead.
+      add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
+    }
 
     TutorialDescription description = new TutorialDescription();
     String text = "<p class=\"title\">" + tutorial.getLabel() + "</p><p class=\"description\">" +
@@ -101,9 +104,11 @@ public class TutorialCard extends CardViewPanel {
     contents.add(Box.createVerticalGlue(), glueConstraints);
     c.gridy++;
 
-    // remove insets for footer.
-    c.insets = JBUI.emptyInsets();
-    contents.add(new FooterNav(), c);
+    if (!hideChooserAndNavigationalBar) {
+      // remove insets for footer.
+      c.insets = JBUI.emptyInsets();
+      contents.add(new FooterNav(), c);
+    }
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
     // this scrolls exceptionally slowly without an explicit increment. Using fixed values is not
