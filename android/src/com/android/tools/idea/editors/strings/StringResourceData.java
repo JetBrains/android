@@ -20,9 +20,8 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StringResourceData {
   private final AndroidFacet myFacet;
@@ -79,7 +79,8 @@ public class StringResourceData {
 
   public boolean setTranslation(@NotNull String key, @Nullable Locale locale, @NotNull String value) {
     StringResource stringResource = getStringResource(key);
-    ResourceItem currentItem = locale == null ? stringResource.getDefaultValueAsResourceItem() : stringResource.getTranslationAsResourceItem(locale);
+    ResourceItem currentItem =
+      locale == null ? stringResource.getDefaultValueAsResourceItem() : stringResource.getTranslationAsResourceItem(locale);
     if (currentItem != null) { // modify existing item
       CharSequence oldText = locale == null ? stringResource.getDefaultValueAsString() : stringResource.getTranslationAsString(locale);
 
@@ -93,7 +94,8 @@ public class StringResourceData {
             else {
               stringResource.removeTranslation(locale);
             }
-          } else {
+          }
+          else {
             if (locale == null) {
               stringResource.setDefaultValue(currentItem, value);
             }
@@ -173,7 +175,7 @@ public class StringResourceData {
       return String.format("Key '%1$s' is missing %2$s translation", key, getLabel(locale));
     }
     else if (doNotTranslate && !translationMissing) {
-      return String.format("Key '%1$s' is marked as non-localizable, and should not be translated to %2$s", key, getLabel(locale));
+      return "Key '" + key + "' is marked as untranslatable and should not be translated to " + getLabel(locale);
     }
     return null;
   }
@@ -208,7 +210,7 @@ public class StringResourceData {
     final int max = 3;
     List<Locale> sorted = getLowest(locales, max);
     if (size <= max) {
-      return String.format("%1$s and %2$s", getLabels(Iterables.limit(sorted, size - 1)), getLabel(sorted.get(size - 1)));
+      return getLabels(sorted.subList(0, size - 1)) + " and " + getLabel(sorted.get(size - 1));
     }
     else {
       return String.format("%1$s and %2$d more", getLabels(sorted), size - max);
@@ -216,33 +218,16 @@ public class StringResourceData {
   }
 
   private static List<Locale> getLowest(Collection<Locale> locales, int n) {
-    List<Locale> result = Lists.newArrayListWithExpectedSize(n);
-    List<Locale> input = Lists.newArrayList(locales);
-
-    Comparator<Locale> comparator = new Comparator<Locale>() {
-      @Override
-      public int compare(Locale l1, Locale l2) {
-        return getLabel(l1).compareTo(getLabel(l2));
-      }
-    };
-
-    // rather than sorting the whole list, we just extract the first n
-    for (int i = 0; i < locales.size() && i < n; i++) {
-      Locale min = Collections.min(input, comparator);
-      result.add(min);
-      input.remove(min);
-    }
-
-    return result;
+    return locales.stream()
+      .limit(n)
+      .sorted((locale1, locale2) -> getLabel(locale1).compareTo(getLabel(locale2)))
+      .collect(Collectors.toList());
   }
 
-  private static String getLabels(Iterable<Locale> locales) {
-    return Joiner.on(", ").join(Iterables.transform(locales, new Function<Locale, String>() {
-      @Override
-      public String apply(Locale locale) {
-        return getLabel(locale);
-      }
-    }));
+  private static String getLabels(Collection<Locale> locales) {
+    return locales.stream()
+      .map(StringResourceData::getLabel)
+      .collect(Collectors.joining(", "));
   }
 
   private static String getLabel(@Nullable Locale locale) {
