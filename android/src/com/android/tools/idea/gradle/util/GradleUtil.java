@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.MavenRepositories;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -52,7 +56,6 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +72,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -832,14 +836,16 @@ public final class GradleUtil {
     if (isAndroidStudio() && !AndroidPlugin.isGuiTestingMode() &&
         !ApplicationManager.getApplication().isInternal() &&
         !ApplicationManager.getApplication().isUnitTestMode()) {
-      try {
-        // In a release build, Android Studio will use the version from module builder-model.
-        Class versionClass = Class.forName("com.android.builder.model.Version");
-        return (String)versionClass.getField("ANDROID_GRADLE_PLUGIN_VERSION").get(null);
+      // In a release build, Android Studio will use the latest version available in its offline repo(s).
+      FileOp fop = FileOpUtils.create();
+      GradleCoordinate version = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
+        .map(path -> MavenRepositories.getHighestInstalledVersion("com.android.tools.build", "gradle", path, null, true, fop))
+        .max(COMPARE_PLUS_HIGHER).get();
+
+      if (version == null) {
+        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
       }
-      catch (ReflectiveOperationException ex) {
-        return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-      }
+      return version.getRevision();
     }
     return SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
   }
