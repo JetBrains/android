@@ -124,7 +124,7 @@ public final class StringTable implements BinaryObject {
       e.uint32(o.myEntries.size());
       for (java.util.Map.Entry<String, Node> entry : o.myEntries.entrySet()) {
         e.string(entry.getKey());
-        e.object(entry.getValue().unwrap());
+        e.object(entry.getValue() == null ? null : entry.getValue().unwrap());
       }
     }
 

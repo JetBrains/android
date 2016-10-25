@@ -84,7 +84,7 @@ public final class Heading extends Node implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Heading o = (Heading)obj;
-      e.object(o.myBody.unwrap());
+      e.object(o.myBody == null ? null : o.myBody.unwrap());
       e.uint32(o.myScale);
     }
 

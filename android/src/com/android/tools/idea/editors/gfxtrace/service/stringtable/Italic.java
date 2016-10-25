@@ -73,7 +73,7 @@ public final class Italic extends Node implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Italic o = (Italic)obj;
-      e.object(o.myBody.unwrap());
+      e.object(o.myBody == null ? null : o.myBody.unwrap());
     }
 
     @Override

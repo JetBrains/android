@@ -88,7 +88,7 @@ public final class FieldPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       FieldPath o = (FieldPath)obj;
-      e.object(o.myStruct.unwrap());
+      e.object(o.myStruct == null ? null : o.myStruct.unwrap());
       e.string(o.myName);
     }
 

@@ -117,7 +117,7 @@ final class PartPath extends Pathway implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       PartPath o = (PartPath)obj;
-      e.object(o.myBase.unwrap());
+      e.object(o.myBase == null ? null : o.myBase.unwrap());
       e.int32(o.myKind.getNumber());
     }
 

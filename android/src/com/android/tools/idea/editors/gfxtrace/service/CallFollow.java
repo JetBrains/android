@@ -68,7 +68,7 @@ final class CallFollow implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       CallFollow o = (CallFollow)obj;
-      e.object(o.myP.unwrap());
+      e.object(o.myP == null ? null : o.myP.unwrap());
     }
 
     @Override

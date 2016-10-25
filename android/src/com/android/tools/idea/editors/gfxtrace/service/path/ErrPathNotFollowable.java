@@ -75,7 +75,7 @@ public final class ErrPathNotFollowable extends RpcException implements BinaryOb
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ErrPathNotFollowable o = (ErrPathNotFollowable)obj;
-      e.object(o.myPath.unwrap());
+      e.object(o.myPath == null ? null : o.myPath.unwrap());
     }
 
     @Override

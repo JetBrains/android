@@ -41,7 +41,12 @@ gen_proto() {
   # Studio currently uses proto2, but the profiler team has jarjar'ed up proto3.
   # Update the generate code to use the jarjar'ed version in a hakish but efficient way.
   if [ -f $OUTPUT ]; then
-    sed -i 's/com\.google\.protobuf/com.google.protobuf3jarjar/g' $OUTPUT
+    if [ "$HOST_OS" == "osx" ]; then
+      # sed syntax for in-place replace is different on OSX [http://stackoverflow.com/q/5694228].
+      sed -i '' 's/com\.google\.protobuf/com.google.protobuf3jarjar/g' $OUTPUT
+    else
+      sed -i 's/com\.google\.protobuf/com.google.protobuf3jarjar/g' $OUTPUT
+    fi
   fi
 }
 

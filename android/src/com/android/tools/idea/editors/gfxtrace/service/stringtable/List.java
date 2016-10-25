@@ -81,7 +81,7 @@ public final class List extends Node implements BinaryObject {
       List o = (List)obj;
       e.uint32(o.myItems.length);
       for (int i = 0; i < o.myItems.length; i++) {
-        e.object(o.myItems[i].unwrap());
+        e.object(o.myItems[i] == null ? null : o.myItems[i].unwrap());
       }
     }
 

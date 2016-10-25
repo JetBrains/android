@@ -111,7 +111,7 @@ public final class ThumbnailPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ThumbnailPath o = (ThumbnailPath)obj;
-      e.object(o.myObject.unwrap());
+      e.object(o.myObject == null ? null : o.myObject.unwrap());
       e.uint32(o.myDesiredMaxWidth);
       e.uint32(o.myDesiredMaxHeight);
       e.variant(Box.wrap(o.myDesiredFormat));
