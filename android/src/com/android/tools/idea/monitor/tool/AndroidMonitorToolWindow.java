@@ -449,8 +449,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
                            new MemoryProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
-                           new CpuProfilerUiManager(myTimeCurrentRangeUs, myTimeSelectionRangeUs, myChoreographer, myDataStore, myEventDispatcher,
-                                                    mySelectedDeviceProfilerService, myDeviceContext, myProject));
+                           new CpuProfilerUiManager(myTimeCurrentRangeUs, myTimeSelectionRangeUs, myChoreographer, myDataStore,
+                                                    myEventDispatcher, mySelectedDeviceProfilerService, myDeviceContext, myProject));
     if (System.getProperty(ENABLE_ENERGY_PROFILER) != null ) {
       myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
                              new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));

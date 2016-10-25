@@ -228,7 +228,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
           // If a multi-click event has arrived and the dispatch timer below has not run to dispatch the queue events,
           // then process the multi-click.
           mMultiClicked = true;
-          mEventDispatcher.getMulticaster().profilerExpanded(getProfilerType());
+          handleMultiClickEvent();
         } else {
           mMultiClicked = false;
           mDelayedEvents.add(e);
@@ -280,6 +280,13 @@ public abstract class BaseLineChartSegment extends BaseSegment {
         dispatchOrDelayEvent(e);
       }
     });
+  }
+
+  /**
+   * Handle multiclick event on the segment. By default, trigger a profiler expanded event.
+   */
+  protected void handleMultiClickEvent() {
+    mEventDispatcher.getMulticaster().profilerExpanded(getProfilerType());
   }
 
   /**

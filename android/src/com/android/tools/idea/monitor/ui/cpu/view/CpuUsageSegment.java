@@ -55,6 +55,11 @@ public class CpuUsageSegment extends BaseLineChartSegment {
   private static final Color THREADS_LINE_COLOR = new JBColor(0x5a9240, 0x5a9240);
 
   /**
+   * Whether the segment is expanded or not.
+   */
+  private boolean myIsExpanded;
+
+  /**
    * Creates a segment to display CPU usage information. If {@code numThreadsData} is not null, we also display the right axis, which
    * correspond to the number of live threads.
    */
@@ -70,6 +75,8 @@ public class CpuUsageSegment extends BaseLineChartSegment {
 
   @Override
   protected void updateChartLines(boolean isExpanded) {
+    myIsExpanded = isExpanded;
+
     // My process CPU usage is present in both Level 1 and Level 2
     addCpuUsageLine(SeriesDataType.CPU_MY_PROCESS, MY_PROCESS_SERIES_LABEL, MY_PROCESS_LINE_COLOR);
 
@@ -85,5 +92,13 @@ public class CpuUsageSegment extends BaseLineChartSegment {
 
   private void addCpuUsageLine(SeriesDataType type, String label, Color lineColor) {
     addLeftAxisLine(type, label, new LineConfig(lineColor).setFilled(true).setStacked(true));
+  }
+
+  @Override
+  protected void handleMultiClickEvent() {
+    // If the segment is already expanded, don't try to expand it again.
+    if (!myIsExpanded) {
+      mEventDispatcher.getMulticaster().profilerExpanded(getProfilerType());
+    }
   }
 }
