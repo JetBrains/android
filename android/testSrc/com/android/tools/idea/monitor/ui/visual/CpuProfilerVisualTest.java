@@ -74,7 +74,6 @@ public class CpuProfilerVisualTest extends VisualTest {
     long startTimeUs = mDataStore.getLatestTimeUs();
     Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
     AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
-    timeCurrentRangeUs.setOffset(startTimeUs);
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);

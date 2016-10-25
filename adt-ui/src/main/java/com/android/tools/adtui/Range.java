@@ -39,8 +39,6 @@ public class Range implements Animatable {
 
   private double mCurrentMax;
 
-  private double mOffset;
-
   private float mLerpFraction;
 
   private float mLerpThreshold;
@@ -54,18 +52,6 @@ public class Range implements Animatable {
 
   public Range() {
     this(0, 0);
-  }
-
-  /**
-   * There are cases where an external component (e.g. Axis) does not care about the absolute min/max values, but instead it needs to see
-   * the relative values. This method allows this Range object to zero on any arbitrary offset when calling the "relative" APIs.
-   */
-  public void setOffset(long offset) {
-    mOffset = offset;
-  }
-
-  public double getOffset() {
-    return mOffset;
   }
 
   @Override
@@ -105,20 +91,6 @@ public class Range implements Animatable {
   }
 
   /**
-   * Similar to {@link #setMin(double)} but the input value is relative to offset.
-   */
-  public boolean setMinRelative(double from) {
-    return setMin(from + mOffset);
-  }
-
-  /**
-   * Similar to {@link #setMinTarget(double)} but the input value is relative to offset.
-   */
-  public boolean setMinTargetRelative(double fromTarget) {
-    return setMinTarget(fromTarget + mOffset);
-  }
-
-  /**
    * @param to The max value to set to.
    * @return true if the max was set successfully, false if otherwise (e.g. the value has been locked).
    */
@@ -144,19 +116,6 @@ public class Range implements Animatable {
     return true;
   }
 
-  /**
-   * Similar to {@link #setMax(double)} but the input value is relative to offset.
-   */
-  public boolean setMaxRelative(double to) {
-    return setMax(to + mOffset);
-  }
-
-  /**
-   * Similar to {@link #setMaxTarget(double)} but the input value is relative to offset.
-   */
-  public boolean setMaxTargetRelative(double toTarget) {
-    return setMaxTarget(toTarget + mOffset);
-  }
   /**
    * Sets new values for both min and max.
    * @param min New min value
@@ -225,13 +184,6 @@ public class Range implements Animatable {
   }
 
   /**
-   * Similar to {@link #getMaxTarget()} but the return value is relative to offset.
-   */
-  public double getMaxTargetRelative() {
-    return mTargetMax - mOffset;
-  }
-
-  /**
    * @return The current interpolated min.
    */
   public double getMin() {
@@ -239,24 +191,10 @@ public class Range implements Animatable {
   }
 
   /**
-   * Similar to {@link #getMin()} but the return value is relative to offset.
-   */
-  public double getMinRelative() {
-    return mCurrentMin - mOffset;
-  }
-
-  /**
    * @return The current interpolated max.
    */
   public double getMax() {
     return mCurrentMax;
-  }
-
-  /**
-   * Similar to {@link #getMax()} but the return value is relative to offset.
-   */
-  public double getMaxRelative() {
-    return mCurrentMax - mOffset;
   }
 
   public double getLength() {
