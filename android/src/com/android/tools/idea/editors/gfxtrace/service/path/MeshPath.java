@@ -94,7 +94,7 @@ public final class MeshPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       MeshPath o = (MeshPath)obj;
-      e.object(o.myObject.unwrap());
+      e.object(o.myObject == null ? null : o.myObject.unwrap());
       e.object(o.myOptions);
     }
 

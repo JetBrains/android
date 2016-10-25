@@ -87,7 +87,7 @@ public final class VertexStreamData implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       VertexStreamData o = (VertexStreamData)obj;
-      e.object(o.myFormat.unwrap());
+      e.object(o.myFormat == null ? null : o.myFormat.unwrap());
       e.variant(Box.wrap(o.myData));
     }
 

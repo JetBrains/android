@@ -93,7 +93,7 @@ public final class ArrayIndexPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ArrayIndexPath o = (ArrayIndexPath)obj;
-      e.object(o.myArray.unwrap());
+      e.object(o.myArray == null ? null : o.myArray.unwrap());
       e.uint64(o.myIndex);
     }
 

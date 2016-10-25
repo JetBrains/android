@@ -74,7 +74,7 @@ final class CallGet implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       CallGet o = (CallGet)obj;
-      e.object(o.myP.unwrap());
+      e.object(o.myP == null ? null : o.myP.unwrap());
     }
 
     @Override

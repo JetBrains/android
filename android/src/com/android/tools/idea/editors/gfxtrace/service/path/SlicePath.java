@@ -104,7 +104,7 @@ public final class SlicePath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       SlicePath o = (SlicePath)obj;
-      e.object(o.myArray.unwrap());
+      e.object(o.myArray == null ? null : o.myArray.unwrap());
       e.uint64(o.myStart);
       e.uint64(o.myEnd);
     }

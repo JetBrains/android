@@ -84,7 +84,7 @@ public final class Code extends Node implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Code o = (Code)obj;
-      e.object(o.myBody.unwrap());
+      e.object(o.myBody == null ? null : o.myBody.unwrap());
       e.string(o.myLanguage);
     }
 

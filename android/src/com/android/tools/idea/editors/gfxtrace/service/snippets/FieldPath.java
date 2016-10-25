@@ -116,7 +116,7 @@ final class FieldPath extends Pathway implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       FieldPath o = (FieldPath)obj;
-      e.object(o.myBase.unwrap());
+      e.object(o.myBase == null ? null : o.myBase.unwrap());
       e.string(o.myName);
     }
 
