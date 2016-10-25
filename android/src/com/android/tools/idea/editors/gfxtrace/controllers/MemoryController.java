@@ -18,25 +18,20 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
-import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
-import com.android.tools.rpclib.multiplex.Channel;
-import com.android.tools.rpclib.rpccore.Rpc;
-import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.swing.util.BigSpinnerNumberModel;
 import com.android.tools.swing.util.HexFormatter;
+import com.android.tools.swing.ui.InfiniteScrollPane;
 import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.UnsignedLong;
-import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.primitives.UnsignedLongs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,7 +41,6 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
@@ -56,7 +50,6 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
 import com.intellij.util.containers.EmptyIterator;
 import com.intellij.util.ui.StatusText;
@@ -66,7 +59,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.Segment;
 import java.awt.*;
@@ -78,10 +70,8 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class MemoryController extends Controller {
-  private static final int DEFAULT_MEMORY_SIZE = 0x10000;
   private static final char UNKNOWN_CHAR = '?';
 
   @NotNull private static final Logger LOG = Logger.getInstance(MemoryController.class);
@@ -93,7 +83,7 @@ public class MemoryController extends Controller {
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final LoadablePanel myLoading = new LoadablePanel(new BorderLayout());
   @NotNull private final EmptyPanel myEmptyPanel = new EmptyPanel();
-  @NotNull private final JScrollPane myScrollPane = new JBScrollPane(myEmptyPanel);
+  @NotNull private final InfiniteScrollPane myScrollPane = new InfiniteScrollPane(myEmptyPanel);
   @NotNull private DataType myDataType = DataType.Bytes;
   @NotNull private ComboBox myCombo;
   private AtomPath myAtomPath;
@@ -136,7 +126,7 @@ public class MemoryController extends Controller {
       return myDataType;
     }
     final MemoryKind kind = type.getKind();
-    if (kind.equals(MemoryKind.Integer)) {
+    if (kind.equals(MemoryKind.Integer) || kind.equals(MemoryKind.Char) || kind.equals(MemoryKind.Address)) {
       if (size == 1) {
         return DataType.Bytes;
       }
@@ -147,13 +137,6 @@ public class MemoryController extends Controller {
         return DataType.Ints;
       }
       else if (size == 8) {
-        return DataType.Longs;
-      }
-    }
-    else if (kind.equals(MemoryKind.Address)) {
-      if (size == 4) {
-        return DataType.Ints;
-      } else if (size == 8) {
         return DataType.Longs;
       }
     }
@@ -174,61 +157,22 @@ public class MemoryController extends Controller {
     if (memoryPath != null) {
 
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(AndroidStudioEvent.EventCategory.GPU_PROFILER)
-                                     .setKind(EventKind.GFX_TRACE_MEMORY_VIEWED));
+                                       .setCategory(AndroidStudioEvent.EventCategory.GPU_PROFILER)
+                                       .setKind(EventKind.GFX_TRACE_MEMORY_VIEWED));
 
       final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;
 
-      if (memoryPath.getSize() == 0) {
-        // Fetch a default amount of memory for memory pointers, as they point to a region of unknown size.
-        memoryPath.setSize(DEFAULT_MEMORY_SIZE);
-      }
       myLoading.startLoading();
-      PagedMemoryDataModel.MemoryFetcher fetcher = new PagedMemoryDataModel.MemoryFetcher() {
-        @Override
-        public ListenableFuture<MemoryInfo> get(long address, long count) {
-          return myEditor.getClient().get(
-            new MemoryRangePath().setAfter(memoryPath.getAfter()).setPool(memoryPath.getPool()).setAddress(address).setSize(count));
-        }
-      };
-      if (PagedMemoryDataModel.shouldUsePagedModel(memoryPath.getSize())) {
-        myMemoryData = new PagedMemoryDataModel(fetcher, memoryPath.getAddress(), memoryPath.getSize());
-        myDataType = dataType;
-        myCombo.setSelectedItem(dataType);
-        update();
-      }
-      else {
-        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), new UiErrorCallback<MemoryInfo, MemoryDataModel, String>(myEditor, LOG) {
-          @Override
-          protected ResultOrError<MemoryDataModel, String> onRpcThread(Rpc.Result<MemoryInfo> result)
-              throws RpcException, ExecutionException, Channel.NotConnectedException {
-            final MemoryInfo info;
-            try {
-              info = result.get();
-            } catch (ErrDataUnavailable e) {
-              return error(e.getMessage());
-            }
-            if (info == null) {
-              return error("No memory data");
-            }
-            return success(new ImmediateMemoryDataModel(memoryPath.getAddress(), info));
-          }
+      PagedMemoryDataModel.MemoryFetcher fetcher = (address, count) -> myEditor.getClient().get(
+        new MemoryRangePath().setAfter(memoryPath.getAfter()).setPool(memoryPath.getPool()).setAddress(address).setSize(count));
 
-          @Override
-          protected void onUiThreadSuccess(MemoryDataModel result) {
-            myMemoryData = result;
-            myDataType = dataType;
-            myCombo.setSelectedItem(dataType);
-            update();
-          }
+      long offset = Long.remainderUnsigned(memoryPath.getAddress(), FixedMemoryModel.BYTES_PER_ROW);
+      myMemoryData = new PagedMemoryDataModel(fetcher, offset, UnsignedLong.MAX_VALUE.longValue());
+      myDataType = dataType;
+      myCombo.setSelectedItem(dataType);
+      update();
+      goToAddress(memoryPath.getAddress());
 
-          @Override
-          protected void onUiThreadError(String message) {
-            myEmptyPanel.setText(message);
-            myScrollPane.setViewportView(myEmptyPanel);
-          }
-        });
-      }
       myAtomPath = memoryPath.getAfter();
     }
     else {
@@ -243,9 +187,20 @@ public class MemoryController extends Controller {
     }
   }
 
+  private void goToAddress(long address) {
+    MemoryPanel memPanel = (MemoryPanel)myScrollPane.getViewport().getView();
+    myScrollPane.setViewPosition(0, UnsignedLong.fromLongBits(address).bigIntegerValue().divide(BigInteger.valueOf(FixedMemoryModel.BYTES_PER_ROW)).multiply(BigInteger.valueOf(memPanel.getLineHeight())));
+  }
+
+  private long getCurrentAddress() {
+    MemoryPanel memPanel = (MemoryPanel)myScrollPane.getViewport().getView();
+    return memPanel.myYOffset.add(BigInteger.valueOf(myScrollPane.getViewport().getViewPosition().y)).divide(BigInteger.valueOf(memPanel.getLineHeight())).multiply(BigInteger.valueOf(FixedMemoryModel.BYTES_PER_ROW)).add(UnsignedLong.fromLongBits(myMemoryData.getAddress()).bigIntegerValue()).longValue();
+  }
+
   private void update() {
     myLoading.stopLoading();
     MemoryPanel memoryPanel = new MemoryPanel(myDataType.getMemoryModel(myMemoryData));
+
     myScrollPane.setViewportView(memoryPanel);
 
     setNavigableComponentAction(memoryPanel, new AbstractAction("Jump to address") {
@@ -253,7 +208,7 @@ public class MemoryController extends Controller {
       public void actionPerformed(ActionEvent e) {
         // we can't use Long as then comparison with other Longs will fail, and we NEED to compare to numbers, not just Comparable
         JSpinner spinner = new JSpinner(
-          new BigSpinnerNumberModel(UnsignedLong.fromLongBits(myMemoryData.getAddress()).bigIntegerValue(), BigInteger.ZERO,
+          new BigSpinnerNumberModel(UnsignedLong.fromLongBits(getCurrentAddress()).bigIntegerValue(), BigInteger.ZERO,
                                     UnsignedLong.MAX_VALUE.bigIntegerValue(), 1));
         ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setFormatterFactory(new DefaultFormatterFactory(){
           @Override
@@ -342,7 +297,7 @@ public class MemoryController extends Controller {
     }
   }
 
-  private static class MemoryPanel extends JComponent implements Scrollable, DataProvider, CopyProvider {
+  private static class MemoryPanel extends JComponent implements Scrollable, DataProvider, CopyProvider, InfiniteScrollPane.InfinitePanel {
     /**
      * @see com.intellij.execution.testframework.LvcsHelper#RED
      */
@@ -353,10 +308,11 @@ public class MemoryController extends Controller {
     private static final Color GREEN = new JBColor(new Color(220, 250, 220), new Color(44, 66, 60));
 
     private MemoryModel myModel;
-    private final EditorColorsScheme myTheme;
-    private Range<Integer> mySelectionRange = null;
-    private final Point mySelectionStart = new Point();
-    private final Point mySelectionEnd = new Point();
+    private EditorColorsScheme myTheme;
+
+    @NotNull private BigInteger myYOffset = BigInteger.ZERO;
+    @Nullable private Selection mySelection;
+
     private final Runnable myRepainter = new Runnable() {
       @Override
       public void run() {
@@ -367,20 +323,20 @@ public class MemoryController extends Controller {
 
     public MemoryPanel(MemoryModel model) {
       myModel = model;
-      myTheme = EditorColorsManager.getInstance().getGlobalScheme();
-
+      updateUI();
       setCursor(new Cursor(Cursor.TEXT_CURSOR));
       setFocusable(true);
 
       MouseAdapter mouseHandler = new MouseAdapter() {
-        private final Point mySelectionInitiation = new Point();
+        private int mySelectionInitiationCol;
+        private long mySelectionInitiationRow;
         private boolean mySelecting;
 
         @Override
         public void mousePressed(MouseEvent e) {
           requestFocus();
           if (isSelectionButton(e)) {
-            if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 && mySelectionRange != null) {
+            if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 && mySelection != null) {
               mySelecting = true;
               updateSelection(e);
             }
@@ -395,8 +351,8 @@ public class MemoryController extends Controller {
         public void mouseReleased(MouseEvent e) {
           if (!isSelectionButton(e)) {
             mySelecting = false;
-            if (mySelectionRange != null && mySelectionStart.equals(mySelectionEnd)) {
-              mySelectionRange = null;
+            if (mySelection != null && mySelection.isEmpty()) {
+              mySelection = null;
               repaint();
             }
           }
@@ -405,7 +361,7 @@ public class MemoryController extends Controller {
         @Override
         public void mouseDragged(MouseEvent e) {
           if (isSelectionButton(e)) {
-            if (mySelectionRange == null) {
+            if (mySelection == null) {
               startSelecting(e);
             }
             else {
@@ -417,7 +373,7 @@ public class MemoryController extends Controller {
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
           if (mySelecting) {
-            if (mySelectionRange == null) {
+            if (mySelection == null) {
               startSelecting(e);
             }
             else {
@@ -426,7 +382,7 @@ public class MemoryController extends Controller {
           }
 
           // Bubble the event.
-          JScrollPane ancestor = (JBScrollPane)SwingUtilities.getAncestorOfClass(JBScrollPane.class, MemoryPanel.this);
+          JScrollPane ancestor = (JScrollPane)SwingUtilities.getAncestorOfClass(JScrollPane.class, MemoryPanel.this);
           if (ancestor != null) {
             MouseWheelEvent converted = (MouseWheelEvent)SwingUtilities.convertMouseEvent(MemoryPanel.this, e, ancestor);
             for (MouseWheelListener listener : ancestor.getMouseWheelListeners()) {
@@ -437,40 +393,45 @@ public class MemoryController extends Controller {
 
         private void startSelecting(MouseEvent e) {
           mySelecting = true;
-          int y = e.getY() / getLineHeight();
-          if (y < 0 || y >= myModel.getLineCount()) {
-            mySelectionRange = null;
+          long row = getRow(e);
+          if (row < 0 || row >= myModel.getLineCount()) {
+            mySelection = null;
             return;
           }
-          mySelectionInitiation.setLocation(getX(e), e.getY() / getLineHeight());
-          mySelectionStart.setLocation(mySelectionInitiation);
-          mySelectionEnd.setLocation(mySelectionStart);
-          mySelectionRange = myModel.getSelectableRegion(mySelectionStart.x);
+          mySelectionInitiationCol = getCol(e);
+          mySelectionInitiationRow = row;
+
+          Range<Integer> selectableRegion = myModel.getSelectableRegion(mySelectionInitiationCol);
+          if (selectableRegion != null) {
+            mySelection = new Selection(selectableRegion, mySelectionInitiationCol, mySelectionInitiationRow, mySelectionInitiationCol, mySelectionInitiationRow);
+          }
         }
 
         private void updateSelection(MouseEvent e) {
-          int x = Math.max(mySelectionRange.getFrom(), Math.min(mySelectionRange.getTo(), getX(e)));
-          int y = Math.max(0, e.getY() / getLineHeight());
-          if (y >= myModel.getLineCount()) {
-            y = myModel.getLineCount() - 1;
-            x = mySelectionRange.getTo();
+          int col = Math.max(mySelection.myRange.getFrom(), Math.min(mySelection.myRange.getTo(), getCol(e)));
+          long row = Math.max(0, getRow(e));
+          if (row >= myModel.getLineCount()) {
+            row = myModel.getLineCount() - 1;
+            col = mySelection.myRange.getTo();
           }
 
-          if (y < mySelectionInitiation.y || (y == mySelectionInitiation.y && x < mySelectionInitiation.x)) {
-            mySelectionStart.setLocation(x, y);
-            mySelectionEnd.setLocation(mySelectionInitiation);
+          if (row < mySelectionInitiationRow || (row == mySelectionInitiationRow && col < mySelectionInitiationCol)) {
+            mySelection = new Selection(mySelection.myRange, col, row, mySelectionInitiationCol, mySelectionInitiationRow);
           }
           else {
-            mySelectionStart.setLocation(mySelectionInitiation);
-            mySelectionEnd.setLocation(x, y);
+            mySelection = new Selection(mySelection.myRange, mySelectionInitiationCol, mySelectionInitiationRow, col, row);
           }
 
           repaint();
         }
 
-        private int getX(MouseEvent e) {
+        private int getCol(MouseEvent e) {
           int charWidth = getCharWidth();
           return (e.getX() + charWidth / 2) / charWidth;
+        }
+
+        private long getRow(MouseEvent e) {
+          return myYOffset.add(BigInteger.valueOf(e.getY())).divide(BigInteger.valueOf(getLineHeight())).longValueExact();
         }
 
         private boolean isSelectionButton(MouseEvent e) {
@@ -482,9 +443,17 @@ public class MemoryController extends Controller {
       addMouseWheelListener(mouseHandler);
     }
 
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      myTheme = EditorColorsManager.getInstance().getGlobalScheme();
+      // we must set the font in the constructor as it will be used to measure the panel before we paint it
+      setFont(myTheme.getFont(EditorFontType.PLAIN));
+    }
+
     public void setModel(MemoryModel model) {
       myModel = model;
-      mySelectionRange = null;
+      mySelection = null;
       revalidate();
       repaint();
     }
@@ -500,7 +469,7 @@ public class MemoryController extends Controller {
 
     @Override
     public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-      return mySelectionRange != null && !mySelectionStart.equals(mySelectionEnd);
+      return mySelection != null && !mySelection.isEmpty();
     }
 
     @Override
@@ -512,7 +481,7 @@ public class MemoryController extends Controller {
     public void performCopy(@NotNull DataContext dataContext) {
       if (isCopyEnabled(dataContext)) {
         Futures.addCallback(
-          myModel.getTransferable(mySelectionRange, mySelectionStart, mySelectionEnd), new FutureCallback<Transferable>() {
+          myModel.getTransferable(mySelection), new FutureCallback<Transferable>() {
             @Override
             public void onFailure(Throwable t) {
               LOG.error("Failed to load memory", t);
@@ -527,37 +496,51 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    public Dimension getPreferredSize() {
-      Dimension result = new Dimension(myModel.getLineLength() * getCharWidth(), myModel.getLineCount() * getLineHeight());
-      if (getParent() instanceof JViewport) {
-        Dimension parent = ((JViewport)getParent()).getExtentSize();
-        result.width = Math.max(parent.width, result.width);
-        result.height = Math.max(parent.height, result.height);
-      }
-      return result;
+    public void setYOffset(BigInteger start) {
+      myYOffset = start;
     }
 
-    private void highlight(@NotNull Graphics g, @NotNull Range<Integer> col, @NotNull Point start, @NotNull Point end) {
+    @Override
+    public BigInteger getYOffset() {
+      return myYOffset;
+    }
+
+    @Override
+    public int getFullWidth() {
+      return myModel.getLineLength() * getCharWidth();
+    }
+
+    @Override
+    public BigInteger getFullHeight() {
+      return BigInteger.valueOf(myModel.getLineCount()).multiply(BigInteger.valueOf(getLineHeight()));
+    }
+
+    private void highlight(@NotNull Graphics g, @NotNull Selection selection) {
       int lineHeight = getLineHeight();
       int charWidth = getCharWidth();
-      if (start.y == end.y) {
-        g.fillRect(start.x * charWidth, start.y * lineHeight, (end.x - start.x) * charWidth, lineHeight);
+
+      if (selection.myStartRow == selection.myEndRow) {
+        g.fillRect(selection.myStartCol * charWidth, getY(selection.myStartRow),
+                                      (selection.myEndCol - selection.myStartCol) * charWidth, lineHeight);
       }
       else {
-        g.fillRect(start.x * charWidth, start.y * lineHeight,
-                   (col.getTo() - start.x) * charWidth, lineHeight);
-        g.fillRect(col.getFrom() * charWidth, end.y * lineHeight,
-                   (end.x - col.getFrom()) * charWidth, lineHeight);
-        g.fillRect(col.getFrom() * charWidth, (start.y + 1) * lineHeight,
-                   (col.getTo() - col.getFrom()) * charWidth,
-                   (end.y - start.y - 1) * lineHeight);
+        g.fillRect(selection.myStartCol * charWidth, getY(selection.myStartRow),
+                                      (selection.myRange.getTo() - selection.myStartCol) * charWidth, lineHeight);
+        g.fillRect(selection.myRange.getFrom() * charWidth, getY(selection.myEndRow),
+                                        (selection.myEndCol - selection.myRange.getFrom()) * charWidth, lineHeight);
+        g.fillRect(selection.myRange.getFrom() * charWidth, getY(selection.myStartRow + 1),
+                                        (selection.myRange.getTo() - selection.myRange.getFrom()) * charWidth,
+                                        (int)(selection.myEndRow - selection.myStartRow - 1) * lineHeight);
       }
+    }
+
+    private int getY(long line) {
+      return BigInteger.valueOf(line).multiply(BigInteger.valueOf(getLineHeight())).subtract(myYOffset).intValueExact();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      setFont(myTheme.getFont(EditorFontType.PLAIN));
       g.setFont(myTheme.getFont(EditorFontType.PLAIN));
       initMeasurements();
       setBackground(myTheme.getDefaultBackground());
@@ -570,31 +553,36 @@ public class MemoryController extends Controller {
 
       int lineHeight = getLineHeight();
       int charWidth = getCharWidth();
-      int startRow = Math.max(0, Math.min(myModel.getLineCount() - 1, clip.y / lineHeight));
-      int endRow = Math.max(0, Math.min(myModel.getLineCount(), (clip.y + clip.height + lineHeight - 1) / lineHeight));
-      boolean selectionVisible = false;
+
+      BigInteger startY = myYOffset.add(BigInteger.valueOf(clip.y));
+
+      long startRow = startY.divide(BigInteger.valueOf(lineHeight))
+        .max(BigInteger.ZERO).min(BigInteger.valueOf(myModel.getLineCount() - 1)).longValueExact();
+      long endRow = startY.add(BigInteger.valueOf(clip.height + lineHeight - 1)).divide(BigInteger.valueOf(lineHeight))
+        .max(BigInteger.ZERO).min(BigInteger.valueOf(myModel.getLineCount())).longValueExact();
 
       g.setColor(GREEN);
       Selection[] reads = myModel.getReads(startRow, endRow, myRepainter);
       for (Selection read : reads) {
-        highlight(g, read.myRange, read.getStartAsPoint(), read.getEndAsPoint());
+        highlight(g, read);
       }
 
       g.setColor(RED);
       Selection[] writes = myModel.getWrites(startRow, endRow, myRepainter);
       for (Selection write : writes) {
-        highlight(g, write.myRange, write.getStartAsPoint(), write.getEndAsPoint());
+        highlight(g, write);
       }
 
-      if (mySelectionRange != null && startRow <= mySelectionEnd.y && mySelectionStart.y <= endRow) {
-        selectionVisible = true;
+      boolean selectionVisible = mySelection != null && mySelection.isSelectionVisible(startRow, endRow);
+      if (selectionVisible) {
         g.setColor(myTheme.getColor(EditorColors.SELECTION_BACKGROUND_COLOR));
-        highlight(g, mySelectionRange, mySelectionStart, mySelectionEnd);
+        highlight(g, mySelection);
       }
-      g.setColor(getForeground());
 
+      g.setColor(getForeground());
+      // TODO maybe remove this as it may not be needed any more
       // Drawing fonts in swing appears to use floating point math. Thus, y-cordinates greater than 16,777,217 cause issues.
-      g.translate(0, startRow * lineHeight);
+      g.translate(0, BigInteger.valueOf(startRow).multiply(BigInteger.valueOf(lineHeight)).subtract(myYOffset).intValueExact());
 
       int y = getAscent();
       Iterator<Segment> it = myModel.getLines(startRow, endRow, myRepainter);
@@ -605,52 +593,52 @@ public class MemoryController extends Controller {
         }
       }
       else {
-        int row = startRow;
-        int rangeWidth = mySelectionRange.getTo() - mySelectionRange.getFrom();
-        int fromWidth = mySelectionRange.getFrom() * charWidth, toWidth = mySelectionRange.getTo() * charWidth;
+        long row = startRow;
+        int rangeWidth = mySelection.myRange.getTo() - mySelection.myRange.getFrom();
+        int fromWidth = mySelection.myRange.getFrom() * charWidth, toWidth = mySelection.myRange.getTo() * charWidth;
 
         // Lines before selection.
-        for (; it.hasNext() && row < mySelectionStart.y; row++, y += lineHeight) {
+        for (; it.hasNext() && row < mySelection.myStartRow; row++, y += lineHeight) {
           Segment segment = it.next();
           g.drawChars(segment.array, segment.offset, segment.count, 0, y);
         }
         // First selected line, possibly partially selected.
-        for (; it.hasNext() && row == mySelectionStart.y; row++, y += lineHeight) {
+        for (; it.hasNext() && row == mySelection.myStartRow; row++, y += lineHeight) {
           Segment segment = it.next();
-          g.drawChars(segment.array, segment.offset, mySelectionStart.x, 0, y);
+          g.drawChars(segment.array, segment.offset, mySelection.myStartCol, 0, y);
           g.setColor(myTheme.getColor(EditorColors.SELECTION_FOREGROUND_COLOR));
-          if (mySelectionStart.y == mySelectionEnd.y) {
-            g.drawChars(segment.array, segment.offset + mySelectionStart.x, mySelectionEnd.x - mySelectionStart.x,
-                        mySelectionStart.x * charWidth, y);
+          if (mySelection.myStartRow == mySelection.myEndRow) {
+            g.drawChars(segment.array, segment.offset + mySelection.myStartCol, mySelection.myEndCol - mySelection.myStartCol,
+                        mySelection.myStartCol * charWidth, y);
             g.setColor(getForeground());
             g.drawChars(
-              segment.array, segment.offset + mySelectionEnd.x, segment.count - mySelectionEnd.x, mySelectionEnd.x * charWidth, y);
+              segment.array, segment.offset + mySelection.myEndCol, segment.count - mySelection.myEndCol, mySelection.myEndCol * charWidth, y);
           }
           else {
-            g.drawChars(segment.array, segment.offset + mySelectionStart.x, mySelectionRange.getTo() - mySelectionStart.x,
-                        mySelectionStart.x * charWidth, y);
+            g.drawChars(segment.array, segment.offset + mySelection.myStartCol, mySelection.myRange.getTo() - mySelection.myStartCol,
+                        mySelection.myStartCol * charWidth, y);
             g.setColor(getForeground());
-            g.drawChars(segment.array, segment.offset + mySelectionRange.getTo(), segment.count - mySelectionRange.getTo(), toWidth, y);
+            g.drawChars(segment.array, segment.offset + mySelection.myRange.getTo(), segment.count - mySelection.myRange.getTo(), toWidth, y);
           }
         }
         // Fully selected lines.
-        for (; it.hasNext() && row < mySelectionEnd.y; row++, y += lineHeight) {
+        for (; it.hasNext() && row < mySelection.myEndRow; row++, y += lineHeight) {
           Segment segment = it.next();
-          g.drawChars(segment.array, segment.offset, mySelectionRange.getFrom(), 0, y);
+          g.drawChars(segment.array, segment.offset, mySelection.myRange.getFrom(), 0, y);
           g.setColor(myTheme.getColor(EditorColors.SELECTION_FOREGROUND_COLOR));
-          g.drawChars(segment.array, segment.offset + mySelectionRange.getFrom(), rangeWidth, fromWidth, y);
+          g.drawChars(segment.array, segment.offset + mySelection.myRange.getFrom(), rangeWidth, fromWidth, y);
           g.setColor(getForeground());
-          g.drawChars(segment.array, segment.offset + mySelectionRange.getTo(), segment.count - mySelectionRange.getTo(), toWidth, y);
+          g.drawChars(segment.array, segment.offset + mySelection.myRange.getTo(), segment.count - mySelection.myRange.getTo(), toWidth, y);
         }
         // Last selected line, possibly partially selected.
-        for (; it.hasNext() && row == mySelectionEnd.y; row++, y += lineHeight) { // Note: mySelectionStart.y != mySelectionEnd.y here.
+        for (; it.hasNext() && row == mySelection.myEndRow; row++, y += lineHeight) { // Note: mySelectionStart.y != mySelectionEnd.y here.
           Segment segment = it.next();
-          g.drawChars(segment.array, segment.offset, mySelectionRange.getFrom(), 0, y);
+          g.drawChars(segment.array, segment.offset, mySelection.myRange.getFrom(), 0, y);
           g.setColor(myTheme.getColor(EditorColors.SELECTION_FOREGROUND_COLOR));
-          g.drawChars(segment.array, segment.offset + mySelectionRange.getFrom(), mySelectionEnd.x - mySelectionRange.getFrom(), fromWidth,
+          g.drawChars(segment.array, segment.offset + mySelection.myRange.getFrom(), mySelection.myEndCol - mySelection.myRange.getFrom(), fromWidth,
                       y);
           g.setColor(getForeground());
-          g.drawChars(segment.array, segment.offset + mySelectionEnd.x, segment.count - mySelectionEnd.x, mySelectionEnd.x * charWidth, y);
+          g.drawChars(segment.array, segment.offset + mySelection.myEndCol, segment.count - mySelection.myEndCol, mySelection.myEndCol * charWidth, y);
         }
         // Lines after selection.
         for (; it.hasNext(); row++, y += lineHeight) {
@@ -723,9 +711,12 @@ public class MemoryController extends Controller {
   private interface MemoryDataModel {
     long getAddress();
 
-    int getByteCount();
+    /**
+     * we use first and last address instead of size, as there is no unsigned long big enough to express the full size of the entire address range.
+     */
+    long getEndAddress();
 
-    ListenableFuture<MemorySegment> get(int offset, int length);
+    ListenableFuture<MemorySegment> get(long offset, int length);
 
     MemoryDataModel align(int byteAlign);
   }
@@ -738,59 +729,20 @@ public class MemoryController extends Controller {
     return known;
   }
 
-  private static class ImmediateMemoryDataModel implements MemoryDataModel {
-    private final long address;
-    private final MemorySegment memory;
-
-    public ImmediateMemoryDataModel(long address, MemoryInfo info) {
-      this.address = address;
-      this.memory = new MemorySegment(info);
-    }
-
-    private ImmediateMemoryDataModel(long address, MemorySegment data) {
-      this.address = address;
-      this.memory = data;
-    }
-
-    @Override
-    public long getAddress() {
-      return address;
-    }
-
-    @Override
-    public int getByteCount() {
-      return memory.myLength;
-    }
-
-    @Override
-    public ListenableFuture<MemorySegment> get(int offset, int length) {
-      return Futures.immediateFuture(memory.subSegment(offset, length));
-    }
-
-    @Override
-    public MemoryDataModel align(int align) {
-      int remainder = getByteCount() % align;
-      return (remainder == 0) ? this : new ImmediateMemoryDataModel(address, memory.subSegment(0, getByteCount() + align - remainder));
-    }
-  }
-
   private static class PagedMemoryDataModel implements MemoryDataModel {
     private static final int PAGE_SIZE = 0x10000;
-    private static final int PAGE_SHIFT = 16;
 
     private final MemoryFetcher fetcher;
     private final long address;
-    private final int size;
-    private final Map<Integer, SoftReference<MemoryInfo>> pageCache = Maps.newHashMap();
+    private final long lastAddress;
 
-    public PagedMemoryDataModel(MemoryFetcher fetcher, long address, long size) {
+    // TODO maybe remove this as it may not be needed any more
+    private final Map<Long, SoftReference<MemoryInfo>> pageCache = Maps.newHashMap();
+
+    public PagedMemoryDataModel(MemoryFetcher fetcher, long address, long lastAddress) {
       this.fetcher = fetcher;
       this.address = address;
-      this.size = (int)size; // TODO: handle larger memory areas?
-    }
-
-    public static boolean shouldUsePagedModel(long size) {
-      return size >= 2 * PAGE_SIZE;
+      this.lastAddress = lastAddress;
     }
 
     @Override
@@ -799,24 +751,24 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    public int getByteCount() {
-      return size;
+    public long getEndAddress() {
+      return lastAddress;
     }
 
     @Override
-    public ListenableFuture<MemorySegment> get(int offset, int length) {
-      offset = Math.min(size - 1, offset);
-      length = Math.min(size - offset, length);
+    public ListenableFuture<MemorySegment> get(long offset, int length) {
+      offset = UnsignedLongs.min(lastAddress - address, offset);
+      length = (int)UnsignedLongs.min(lastAddress - address - offset, length - 1) + 1;
 
-      int firstPage = getPageForOffset(offset);
-      int lastPage = getPageForOffset(offset + length);
+      long firstPage = getPageForOffset(offset);
+      long lastPage = getPageForOffset(offset + length - 1);
       if (firstPage == lastPage) {
         return getPage(firstPage, getOffsetInPage(offset), length);
       }
       List<ListenableFuture<MemorySegment>> futures = Lists.newArrayList();
       futures.add(getPage(firstPage, getOffsetInPage(offset), PAGE_SIZE - getOffsetInPage(offset)));
-      for (int page = firstPage + 1, left = length - PAGE_SIZE + getOffsetInPage(offset); page <= lastPage; page++, left -= PAGE_SIZE) {
-        futures.add(getPage(page, 0, Math.min(left, PAGE_SIZE)));
+      for (long page = firstPage + 1, left = length - PAGE_SIZE + getOffsetInPage(offset); page <= lastPage; page++, left -= PAGE_SIZE) {
+        futures.add(getPage(page, 0, (int)Math.min(left, PAGE_SIZE)));
       }
 
       final int totalLength = length;
@@ -828,19 +780,19 @@ public class MemoryController extends Controller {
       });
     }
 
-    private static int getPageForOffset(int offset) {
-      return offset >>> PAGE_SHIFT;
+    private static long getPageForOffset(long offset) {
+      return Long.divideUnsigned(offset, PAGE_SIZE);
     }
 
-    private static int getOffsetForPage(int page) {
-      return page << PAGE_SHIFT;
+    private static long getOffsetForPage(long page) {
+      return page * PAGE_SIZE;
     }
 
-    private static int getOffsetInPage(int offset) {
-      return offset & (PAGE_SIZE - 1);
+    private static int getOffsetInPage(long offset) {
+      return (int)Long.remainderUnsigned(offset, PAGE_SIZE);
     }
 
-    private ListenableFuture<MemorySegment> getPage(final int page, final int offset, final int length) {
+    private ListenableFuture<MemorySegment> getPage(final long page, final int offset, final int length) {
       MemoryInfo mem = getFromCache(page);
       if (mem != null) {
         return Futures.immediateFuture(new MemorySegment(mem).subSegment(offset, length));
@@ -848,7 +800,7 @@ public class MemoryController extends Controller {
 
       long base = address + getOffsetForPage(page);
       return Futures
-        .transform(fetcher.get(base, (int)Math.min(address + size - base, PAGE_SIZE)), new Function<MemoryInfo, MemorySegment>() {
+        .transform(fetcher.get(base, (int)UnsignedLongs.min(lastAddress - base, PAGE_SIZE - 1) + 1), new Function<MemoryInfo, MemorySegment>() {
           @Override
           public MemorySegment apply(MemoryInfo mem) {
             addToCache(page, mem);
@@ -857,7 +809,7 @@ public class MemoryController extends Controller {
         });
     }
 
-    private MemoryInfo getFromCache(int page) {
+    private MemoryInfo getFromCache(long page) {
       MemoryInfo result = null;
       synchronized (pageCache) {
         SoftReference<MemoryInfo> reference = pageCache.get(page);
@@ -871,9 +823,9 @@ public class MemoryController extends Controller {
       return result;
     }
 
-    private void addToCache(int page, MemoryInfo data) {
+    private void addToCache(long page, MemoryInfo data) {
       synchronized (pageCache) {
-        pageCache.put(page, new SoftReference<MemoryInfo>(data));
+        pageCache.put(page, new SoftReference<>(data));
       }
     }
 
@@ -978,7 +930,7 @@ public class MemoryController extends Controller {
     public int getByte(int off) {
       return myData[myOffset + off] & 0xFF;
     }
-    
+
     public boolean getIntKnown(int off) {
       return getByteKnown(off, 4);
     }
@@ -1000,31 +952,39 @@ public class MemoryController extends Controller {
   }
 
   private interface MemoryModel {
-    int getLineCount();
+    /**
+     * this will always be a signed Long
+     */
+    long getLineCount();
 
     int getLineLength();
 
-    Iterator<Segment> getLines(int start, int end, Runnable onChange);
+    Iterator<Segment> getLines(long start, long end, Runnable onChange);
 
     Range<Integer> getSelectableRegion(int column);
 
-    ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, Point start, Point end);
+    ListenableFuture<Transferable> getTransferable(Selection selection);
 
-    Selection[] getReads(int startRow, int endRow, Runnable repainter);
+    @NotNull
+    Selection[] getReads(long startRow, long endRow, Runnable repainter);
 
-    Selection[] getWrites(int startRow, int endRow, Runnable repainter);
+    @NotNull
+    Selection[] getWrites(long startRow, long endRow, Runnable repainter);
+
+    @NotNull
+    Selection[] getSelectionForMemoryRange(@NotNull MemoryRange selectedRange);
   }
 
   private static class Selection {
     @NotNull public final Range<Integer> myRange;
 
     public final int myStartCol;
-    public final int myStartRow;
+    public final long myStartRow;
 
     public final int myEndCol;
-    public final int myEndRow;
+    public final long myEndRow;
 
-    public Selection(@NotNull Range<Integer> range, int startCol, int startRow, int endCol, int endRow) {
+    public Selection(@NotNull Range<Integer> range, int startCol, long startRow, int endCol, long endRow) {
       myRange = range;
       myStartCol = startCol;
       myStartRow = startRow;
@@ -1032,12 +992,17 @@ public class MemoryController extends Controller {
       myEndRow = endRow;
     }
 
-    public Point getStartAsPoint() {
-      return new Point(myStartCol, myStartRow);
+    public boolean isEmpty() {
+      return myStartCol == myEndCol && myStartRow == myEndRow;
     }
 
-    public Point getEndAsPoint() {
-      return new Point(myEndCol, myEndRow);
+    public boolean isSelectionVisible(long startRow, long endRow) {
+      return startRow <= myEndRow && myStartRow <= endRow;
+    }
+
+    @Override
+    public String toString() {
+      return myRange + " (" + myStartCol + "," + myStartRow + ") -> (" + myEndCol + "," + myEndRow + ")";
     }
   }
 
@@ -1046,24 +1011,24 @@ public class MemoryController extends Controller {
     private final static Selection[] NO_SELECTIONS = new Selection[0];
 
     protected final MemoryDataModel myData;
-    protected final int myRows;
+    protected final long myRows;
 
     public FixedMemoryModel(MemoryDataModel data) {
       myData = data;
-      myRows = (data.getByteCount() + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
+      myRows = UnsignedLong.fromLongBits(data.getEndAddress() - data.getAddress()).bigIntegerValue().add(BigInteger.valueOf(BYTES_PER_ROW)).divide(BigInteger.valueOf(BYTES_PER_ROW)).longValueExact();
     }
 
     @Override
-    public int getLineCount() {
+    public long getLineCount() {
       return myRows;
     }
 
     @Nullable
-    private MemorySegment getMemorySegment(int start, int end, Runnable onChange) {
-      if (start < 0 || end < start || end > getLineCount()) {
-        throw new IndexOutOfBoundsException("[" + start + ", " + end + ") outside of [0, " + getLineCount() + ")");
+    private MemorySegment getMemorySegment(long startRow, long endRow, Runnable onChange) {
+      if (startRow < 0 || endRow < startRow || endRow > getLineCount()) {
+        throw new IndexOutOfBoundsException("[" + startRow + ", " + endRow + ") outside of [0, " + getLineCount() + ")");
       }
-      ListenableFuture<MemorySegment> future = myData.get(start * BYTES_PER_ROW, (end - start) * BYTES_PER_ROW);
+      ListenableFuture<MemorySegment> future = myData.get(startRow * BYTES_PER_ROW, (int)(endRow - startRow) * BYTES_PER_ROW);
       if (future.isDone()) {
         return Futures.getUnchecked(future);
       }
@@ -1074,25 +1039,25 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    public Iterator<Segment> getLines(int start, int end, Runnable onChange) {
-      MemorySegment segment = getMemorySegment(start, end, onChange);
+    public Iterator<Segment> getLines(long startRow, long endRow, Runnable onChange) {
+      MemorySegment segment = getMemorySegment(startRow, endRow, onChange);
       if (segment != null) {
-        return getLines(start, end, segment);
+        return getLines(startRow, endRow, segment);
       }
       else {
         return EmptyIterator.getInstance();
       }
     }
 
-    protected Iterator<Segment> getLines(final int start, final int end, final MemorySegment memory) {
+    protected Iterator<Segment> getLines(final long startRow, final long endRow, final MemorySegment memory) {
       return new Iterator<Segment>() {
-        private int pos = start;
+        private long pos = startRow;
         private int offset = 0;
         private final Segment segment = new Segment(null, 0, 0);
 
         @Override
         public boolean hasNext() {
-          return pos < end;
+          return pos < endRow;
         }
 
         @Override
@@ -1113,44 +1078,53 @@ public class MemoryController extends Controller {
       };
     }
 
-    protected abstract void getLine(Segment segment, MemorySegment memory, int line);
+    protected abstract void getLine(Segment segment, MemorySegment memory, long line);
 
     protected abstract Range<Integer>[] getDataRanges();
 
     @Override
-    public Selection[] getReads(int startRow, int endRow, Runnable repainter) {
+    @NotNull
+    public Selection[] getReads(long startRow, long endRow, Runnable repainter) {
       MemorySegment memory = getMemorySegment(startRow, endRow, repainter);
       return memory == null || memory.myReads == null || memory.myReads.length == 0 ? NO_SELECTIONS
-                                                                                    : getSelections(memory.myReads, (startRow * BYTES_PER_ROW) - memory.myOffset);
+                                                                                    : getSelections(memory.myReads, ((long)startRow * BYTES_PER_ROW) - memory.myOffset);
     }
 
     @Override
-    public Selection[] getWrites(int startRow, int endRow, Runnable repainter) {
+    @NotNull
+    public Selection[] getWrites(long startRow, long endRow, Runnable repainter) {
       MemorySegment memory = getMemorySegment(startRow, endRow, repainter);
       return memory == null || memory.myWrites == null || memory.myWrites.length == 0 ? NO_SELECTIONS
-                                                                                      : getSelections(memory.myWrites, (startRow * BYTES_PER_ROW) - memory.myOffset);
+                                                                                      : getSelections(memory.myWrites, ((long)startRow * BYTES_PER_ROW) - memory.myOffset);
+    }
+
+    @Override
+    @NotNull
+    public Selection[] getSelectionForMemoryRange(@NotNull MemoryRange selectedRange) {
+      return getSelections(new MemoryRange[] { selectedRange }, - myData.getAddress());
     }
 
     @NotNull
-    private Selection[] getSelections(@NotNull MemoryRange[] operation, int offset) {
+    private Selection[] getSelections(@NotNull MemoryRange[] operation, long offset) {
       assert operation.length > 0;
       Range<Integer>[] ranges = getDataRanges();
       Selection[] shapes = new Selection[operation.length * ranges.length];
       for (int ri = 0; ri < ranges.length; ri++) {
         for (int oi = 0; oi < operation.length; oi++) {
           MemoryRange memoryRange = operation[oi];
-          Point start = getCharForOffset(ranges[ri], offset + memoryRange.getBase(), true);
-          Point end = getCharForOffset(ranges[ri], offset + memoryRange.getBase() + memoryRange.getSize(), false);
-          shapes[ri * operation.length + oi] = new Selection(ranges[ri], start.x, start.y, end.x, end.y);
+          long startOffset = offset + memoryRange.getBase();
+          int startCol = getColForOffset(ranges[ri], startOffset, true);
+          long endOffset = offset + memoryRange.getBase() + memoryRange.getSize();
+          int endCol = getColForOffset(ranges[ri], endOffset, false);
+          shapes[ri * operation.length + oi] = new Selection(ranges[ri], startCol, Long.divideUnsigned(startOffset, BYTES_PER_ROW), endCol, Long.divideUnsigned(endOffset, BYTES_PER_ROW));
         }
       }
       return shapes;
     }
 
-    @NotNull
-    private Point getCharForOffset(@NotNull Range<Integer> range, long offset, boolean start) {
-      double positionOffset = (range.getTo() - range.getFrom()) * (offset % (float)BYTES_PER_ROW) / BYTES_PER_ROW;
-      return new Point(range.getFrom() + (int)(start ? Math.ceil(positionOffset) : positionOffset), (int)offset / BYTES_PER_ROW);
+    private int getColForOffset(@NotNull Range<Integer> range, long offset, boolean start) {
+      double positionOffset = (range.getTo() - range.getFrom()) * ((double)Long.remainderUnsigned(offset, BYTES_PER_ROW)) / BYTES_PER_ROW;
+      return range.getFrom() + (int)(start ? Math.ceil(positionOffset) : positionOffset);
     }
   }
 
@@ -1158,7 +1132,7 @@ public class MemoryController extends Controller {
     protected static final int CHARS_PER_ADDRESS = 16; // 8 byte addresses
     protected static final int ADDRESS_SEPARATOR = 1;
     protected static final int ADDRESS_CHARS = CHARS_PER_ADDRESS + ADDRESS_SEPARATOR;
-    protected static final Range<Integer> ADDRESS_RANGE = new Range<Integer>(0, CHARS_PER_ADDRESS);
+    protected static final Range<Integer> ADDRESS_RANGE = new Range<>(0, CHARS_PER_ADDRESS);
     protected static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     protected final int myCharsPerRow;
@@ -1182,14 +1156,14 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    protected void getLine(Segment segment, MemorySegment memory, int line) {
+    protected void getLine(Segment segment, MemorySegment memory, long line) {
       segment.array = new char[myCharsPerRow];
       segment.offset = 0;
       segment.count = myCharsPerRow;
       formatLine(segment.array, memory, line);
     }
 
-    private void formatLine(char[] array, MemorySegment memory, int line) {
+    private void formatLine(char[] array, MemorySegment memory, long line) {
       Arrays.fill(array, ' ');
       long address = myData.getAddress() + line * BYTES_PER_ROW;
       for (int i = CHARS_PER_ADDRESS - 1; i >= 0; i--, address >>>= 4) {
@@ -1213,32 +1187,32 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    public ListenableFuture<Transferable> getTransferable(final Range<Integer> selectionRange, final Point start, final Point end) {
+    public ListenableFuture<Transferable> getTransferable(final Selection selection) {
       return Futures.transform(
-        myData.get(start.y * BYTES_PER_ROW, (end.y - start.y + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
+        myData.get(selection.myStartRow * BYTES_PER_ROW, (int)(selection.myEndRow - selection.myStartRow + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
           @Override
           public Transferable apply(MemorySegment memory) {
             StringBuilder buffer = new StringBuilder();
-            Iterator<Segment> lines = getLines(start.y, end.y + 1, memory);
+            Iterator<Segment> lines = getLines(selection.myStartRow, selection.myEndRow + 1, memory);
             if (lines.hasNext()) {
               Segment segment = lines.next();
-              if (start.y == end.y) {
-                buffer.append(segment.array, segment.offset + start.x, end.x - start.x);
+              if (selection.myStartRow == selection.myEndRow) {
+                buffer.append(segment.array, segment.offset + selection.myStartCol, selection.myEndCol - selection.myStartCol);
               }
               else {
-                buffer.append(segment.array, segment.offset + start.x, selectionRange.getTo() - start.x)
+                buffer.append(segment.array, segment.offset + selection.myStartCol, selection.myRange.getTo() - selection.myStartCol)
                   .append('\n');
               }
             }
-            int rangeWidth = selectionRange.getTo() - selectionRange.getFrom();
-            for (int line = start.y + 1; lines.hasNext() && line < end.y; line++) {
+            int rangeWidth = selection.myRange.getTo() - selection.myRange.getFrom();
+            for (long line = selection.myStartRow + 1; lines.hasNext() && line < selection.myEndRow; line++) {
               Segment segment = lines.next();
-              buffer.append(segment.array, segment.offset + selectionRange.getFrom(), rangeWidth).append('\n');
+              buffer.append(segment.array, segment.offset + selection.myRange.getFrom(), rangeWidth).append('\n');
             }
             if (lines.hasNext()) {
               Segment segment = lines.next();
               buffer
-                .append(segment.array, segment.offset + selectionRange.getFrom(), end.x - selectionRange.getFrom())
+                .append(segment.array, segment.offset + selection.myRange.getFrom(), selection.myEndCol - selection.myRange.getFrom())
                 .append('\n');
             }
             return new StringSelection(buffer.toString());
@@ -1281,20 +1255,20 @@ public class MemoryController extends Controller {
     }
 
     @Override
-    public ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, final Point start, final Point end) {
-      if (selectionRange == ASCII_RANGE) {
+    public ListenableFuture<Transferable> getTransferable(Selection selection) {
+      if (selection.myRange == ASCII_RANGE) {
         // Copy the actual myData, rather than the display.
         return Futures.transform(
-          myData.get(start.y * BYTES_PER_ROW, (end.y - start.y + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
+          myData.get(selection.myStartRow * BYTES_PER_ROW, (int)(selection.myEndRow - selection.myStartRow + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
             @Override
             public Transferable apply(MemorySegment s) {
               return new StringSelection(
-                s.asString(start.x - ASCII_RANGE.getFrom(), s.myLength - start.x + ASCII_RANGE.getFrom() - ASCII_RANGE.getTo() + end.x));
+                s.asString(selection.myStartCol - ASCII_RANGE.getFrom(), s.myLength - selection.myStartCol + ASCII_RANGE.getFrom() - ASCII_RANGE.getTo() + selection.myEndCol));
             }
           });
       }
       else {
-        return super.getTransferable(selectionRange, start, end);
+        return super.getTransferable(selection);
       }
     }
 
