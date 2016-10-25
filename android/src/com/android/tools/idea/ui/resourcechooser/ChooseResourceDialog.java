@@ -2221,8 +2221,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       // Post menu
       JBPopupFactory factory = JBPopupFactory.getInstance();
-      ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, null,
-                                                       10);
+      ListPopup popup = factory.createActionGroupPopup(null, group, context, true, null, 10);
       popup.showUnderneathOf(source);
     }
 
