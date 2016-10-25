@@ -51,12 +51,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
   }
 
-  @NotNull
-  private File getAndroidBinary() {
-    assert mySdkHandler != null;
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.FD_TOOLS, SdkConstants.androidCmdName()));
-  }
-
   public void stopRunningAvd() {
     String command = getAdbBinary().getPath() + " emu kill";
     try {
@@ -72,16 +66,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
       String command = getAdbBinary().getPath() + " shell input tap " + x + " " + y;
       Runtime.getRuntime().exec(command).waitFor();
     } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public void deleteAvd(@NotNull String name) {
-    String command = getAndroidBinary().getPath() + " delete avd -n " + name.replace(' ', '_');
-    try {
-      Process p = Runtime.getRuntime().exec(command);
-      p.waitFor();
-    } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
