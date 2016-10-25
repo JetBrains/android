@@ -37,7 +37,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
 
 /**
  * The resource folder manager is responsible for returning the current set
@@ -291,7 +290,7 @@ public class ResourceFolderManager implements ModificationTracker {
         VirtualFile exploded = aar.getParent();
         if (exploded != null) {
           String name = exploded.getName();
-          if (name.equals(EXPLODED_BUNDLES) || name.equals(EXPLODED_AAR)) {
+          if (name.equals(EXPLODED_AAR)) {
             return true;
           }
         }

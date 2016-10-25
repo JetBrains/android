@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
 
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
@@ -66,11 +65,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
         return null;
       }
 
-      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_BUNDLES);
-      if (explodedBundled == null) {
-        // 0.8.2+
-        explodedBundled = buildFolder.findChild(EXPLODED_AAR);
-      }
+      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_AAR);
       boolean inAar = explodedBundled != null && VfsUtilCore.isAncestor(explodedBundled, file, true);
       String text;
       if (inAar) {
