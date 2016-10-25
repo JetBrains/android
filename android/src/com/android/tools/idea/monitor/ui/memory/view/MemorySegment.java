@@ -21,9 +21,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.idea.monitor.datastore.DataStoreSeries;
+import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -58,19 +56,19 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final Color MEMORY_HEAP_DUMP_COLOR = JBColor.DARK_GRAY;
 
-  private static final String JAVA_OBJECTS_COUNT = "Java Objects Count";
+  private static final String JAVA_OBJECTS_COUNT = "Objects";
 
-  private static final String TOTAL_MEM_USAGE = "Total Mem Usage";
+  private static final String TOTAL_MEM_USAGE = "Total";
 
-  private static final String UNCLASSIFIED_MEM = "Unclassified Mem";
+  private static final String UNCLASSIFIED_MEM = "Other";
 
-  private static final String CODE_MEM = "Code Mem";
+  private static final String CODE_MEM = "Code";
 
-  private static final String GRAPHICS_MEM = "Graphics Mem";
+  private static final String GRAPHICS_MEM = "Graphics";
 
-  private static final String NATIVE_MEM = "Native Mem";
+  private static final String NATIVE_MEM = "Native";
 
-  private static final String JAVA_MEM = "Java Mem";
+  private static final String JAVA_MEM = "Java";
 
   public MemorySegment(@NotNull Range timeCurrentRangeUs,
                        @NotNull SeriesDataStore dataStore,
@@ -87,16 +85,16 @@ public class MemorySegment extends BaseLineChartSegment {
   protected void updateChartLines(boolean isExpanded) {
     if (isExpanded) {
       // Left axis series
+      // TODO Computing the max value for the stacked memory levels as we need to add up all the categories at each sample point to find
+      // the overall max. MEMORY_TOTAL already encapsulates that information and is readily available, so simply include that in the
+      // Level 2/3 views as well.
+      addLeftAxisLine(
+        SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, new LineConfig(MEMORY_TOTAL_COLOR).setLegendIconType(LegendRenderData.IconType.NONE));
       addMemoryLevelLine(SeriesDataType.MEMORY_JAVA, JAVA_MEM, MEMORY_TOTAL_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_NATIVE, NATIVE_MEM, MEMORY_NATIVE_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_GRAPHICS, GRAPHICS_MEM, MEMORY_GRAPHICS_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_CODE, CODE_MEM, MEMORY_CODE_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_OTHERS, UNCLASSIFIED_MEM, MEMORY_OTHER_COLOR);
-
-      // TODO Computing the max value for the stacked memory levels as we need to add up all the categories at each sample point to find
-      // the overall max. MEMORY_TOTAL already encapsulates that information and is readily available, so simply include that in the
-      // Level 2/3 views as well.
-      addLeftAxisLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, new LineConfig(MEMORY_TOTAL_COLOR));
 
       // Right axis series
       addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
