@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringsCellEditor;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
@@ -31,7 +32,7 @@ import java.util.Collections;
 public final class StringResourceViewPanelTest extends AndroidTestCase {
   private Disposable myParentDisposable;
   private StringResourceViewPanel myPanel;
-  private JTable myTable;
+  private StringResourceTable myTable;
 
   @Override
   protected void setUp() throws Exception {
@@ -68,7 +69,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key8", myTable.getValueAt(8, 0));
     assertEquals("key9", myTable.getValueAt(9, 0));
 
-    myPanel.setShowingOnlyKeysNeedingTranslations(true);
+    myTable.setShowingOnlyKeysNeedingTranslations(true);
 
     assertEquals(7, myTable.getRowCount());
     assertEquals("key1", myTable.getValueAt(0, 0));
@@ -81,7 +82,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testOnTextFieldUpdate() {
-    myPanel.setShowingOnlyKeysNeedingTranslations(true);
+    myTable.setShowingOnlyKeysNeedingTranslations(true);
 
     TableUtils.selectCellAt(myTable, 2, 3);
     myPanel.myTranslation.setText("Key 4 en");
@@ -91,7 +92,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingUntranslatableCell() {
-    myPanel.setShowingOnlyKeysNeedingTranslations(true);
+    myTable.setShowingOnlyKeysNeedingTranslations(true);
     editCellAt(true, 0, 2);
 
     assertEquals(6, myTable.getRowCount());
@@ -104,7 +105,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
-    myPanel.setShowingOnlyKeysNeedingTranslations(true);
+    myTable.setShowingOnlyKeysNeedingTranslations(true);
     editCellAt("Key 3 en-rGB", 2, 4);
 
     assertEquals(6, myTable.getRowCount());
@@ -117,7 +118,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSelectingCell() {
-    myPanel.setShowingOnlyKeysNeedingTranslations(true);
+    myTable.setShowingOnlyKeysNeedingTranslations(true);
     TableUtils.selectCellAt(myTable, 2, 1);
 
     assertEquals("Key 3 default", myPanel.myDefaultValue.getText());
