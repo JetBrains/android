@@ -60,7 +60,8 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
         }
       }
       myModificationCount.incrementAndGet();
-      return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[facets.size()]), ModuleManager.getInstance(project));
+      return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[facets.size()]),
+                                               DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
     }, false);
   }
 
