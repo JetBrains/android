@@ -23,6 +23,8 @@ import java.util.EventListener;
 public interface GradleSyncListener extends EventListener {
   void syncStarted(@NotNull Project project);
 
+  void setupStarted(@NotNull Project project);
+
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
    *
@@ -42,6 +44,10 @@ public interface GradleSyncListener extends EventListener {
   abstract class Adapter implements GradleSyncListener {
     @Override
     public void syncStarted(@NotNull Project project) {
+    }
+
+    @Override
+    public void setupStarted(@NotNull Project project) {
     }
 
     @Override
