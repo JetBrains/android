@@ -82,7 +82,8 @@ public class SplitApkDeployTask implements LaunchTask {
     try {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
       printer.stdout("Split APKs installed");
-      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why, device);
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why,
+                                                             myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
       return true;
     }
     catch (InstallException e) {
