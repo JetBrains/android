@@ -32,10 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class ThreadCallsVisualTest extends VisualTest implements ActionListener {
 
@@ -99,6 +97,11 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     list.add(mLineChart);
     list.add(mTimeSelectionRangeUs);
     return list;
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Arrays.asList(mChart, mSelector, mAxis, mLineChart);
   }
 
   @Override

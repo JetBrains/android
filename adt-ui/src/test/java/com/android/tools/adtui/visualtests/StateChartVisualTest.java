@@ -109,6 +109,11 @@ public class StateChartVisualTest extends VisualTest {
   }
 
   @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Arrays.asList(mNetworkStatusChart, mRadioStateChart);
+  }
+
+  @Override
   public String getName() {
     return "StateChart";
   }

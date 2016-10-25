@@ -16,10 +16,7 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.EventData;
-import com.android.tools.adtui.TimelineComponent;
-import com.android.tools.adtui.TimelineData;
+import com.android.tools.adtui.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -46,6 +43,11 @@ public class TimelineVisualTest extends VisualTest {
     mEvents = new EventData();
     mData = new TimelineData(2, 2000);
     mTimeline = new TimelineComponent(mData, mEvents, 1.0f, 10.0f, 1000.0f, 10.0f);
+    return Collections.singletonList(mTimeline);
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
     return Collections.singletonList(mTimeline);
   }
 

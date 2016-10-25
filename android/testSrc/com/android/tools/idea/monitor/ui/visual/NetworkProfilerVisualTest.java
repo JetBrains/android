@@ -23,12 +23,12 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.idea.monitor.ui.network.view.NetworkDetailedView;
-import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
+import com.android.tools.idea.monitor.ui.network.view.NetworkDetailedView;
+import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.util.EventDispatcher;
 

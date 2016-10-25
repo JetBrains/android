@@ -75,17 +75,6 @@ public class Choreographer implements ActionListener {
     mComponents.remove(animatable);
   }
 
-  /**
-   * Turns on/off debug rendering on all AnimatedComponents registered with this {@link Choreographer} instance.
-   */
-  public void toggleDebug(boolean isDebug) {
-    for (Animatable component : mComponents) {
-      if (component instanceof AnimatedComponent) {
-        ((AnimatedComponent)component).setDrawDebugInfo(isDebug);
-      }
-    }
-  }
-
   @Override
   public void actionPerformed(ActionEvent actionEvent) {
     long now = System.nanoTime();

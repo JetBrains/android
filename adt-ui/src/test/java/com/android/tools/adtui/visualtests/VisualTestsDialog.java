@@ -154,8 +154,8 @@ public class VisualTestsDialog extends JDialog {
   }
 
   private void setDebugMode(boolean isDebug) {
-    for (Choreographer choreographer : mChoreographers) {
-      choreographer.toggleDebug(isDebug);
+    for (VisualTest test : mTests) {
+      test.setDebug(isDebug);
     }
   }
 
