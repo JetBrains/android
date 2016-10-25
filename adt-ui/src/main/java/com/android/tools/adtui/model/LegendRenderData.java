@@ -28,6 +28,7 @@ public class LegendRenderData {
   public enum IconType {
     NONE,
     LINE,
+    DOTTED_LINE,
     BOX
   }
 
