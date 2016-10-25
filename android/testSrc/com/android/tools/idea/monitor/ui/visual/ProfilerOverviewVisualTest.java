@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ProfilerOverviewVisualTest extends VisualTest {
@@ -135,6 +136,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     componentsList.add(mTimeGlobalRange);         // Reset flags.
     componentsList.add(mTimeSelectionRange);      // Reset flags.
     return componentsList;
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Arrays.asList(mSelection, mTimeAxis);
   }
 
   @Override

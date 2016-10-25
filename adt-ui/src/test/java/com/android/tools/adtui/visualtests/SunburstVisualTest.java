@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,11 @@ public class SunburstVisualTest extends VisualTest {
     final DataNode data = new DataNode();
     data.addDataNode(new DataNode(1, 10));
     mSunburst = new SunburstChart(data);
+    return Collections.singletonList(mSunburst);
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
     return Collections.singletonList(mSunburst);
   }
 
