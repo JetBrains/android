@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
@@ -42,7 +43,7 @@ import java.util.*;
 /**
  * Virtual class for DataBinding that represents the generated BindingComponent class.
  */
-public class LightGeneratedComponentClass extends AndroidLightClassBase {
+public class LightGeneratedComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private CachedValue<PsiMethod[]> myMethodCache;
   private PsiFile myContainingFile;
@@ -112,7 +113,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase {
           }
           return CachedValueProvider.Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
         }
-      );
+      , false);
   }
 
   @Override
@@ -219,5 +220,10 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase {
   public PsiElement getNavigationElement() {
     PsiFile containingFile = getContainingFile();
     return containingFile == null ? super.getNavigationElement() : containingFile;
+  }
+
+  @Override
+  public long getModificationCount() {
+    return 0;
   }
 }
