@@ -432,6 +432,10 @@ public class AndroidResourceUtil {
     return false;
   }
 
+  public static boolean isStringResource(@NotNull XmlTag tag) {
+    return tag.getName().equals(TAG_STRING) && tag.getAttribute(ATTR_NAME) != null;
+  }
+
   @NotNull
   public static PsiField[] findIdFields(@NotNull XmlAttributeValue value) {
     if (value.getParent() instanceof XmlAttribute) {
