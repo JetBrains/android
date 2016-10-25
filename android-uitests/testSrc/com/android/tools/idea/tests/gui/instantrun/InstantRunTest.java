@@ -150,7 +150,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @Ignore("hangs entire suite in continuous build a few times per day")
   @RunIn(TestGroup.QA)
   @Test
   public void coldSwap() throws Exception {
