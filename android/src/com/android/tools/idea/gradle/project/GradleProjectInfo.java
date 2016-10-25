@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -25,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -63,5 +65,20 @@ public class GradleProjectInfo {
     // See https://code.google.com/p/android/issues/detail?id=203384
     // This could be a project without modules. Check that at least it synced with Gradle.
     return GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L;
+  }
+
+  /**
+   * Returns the set of modules in the project that contain an {@code AndroidFacet}.
+   */
+  @NotNull
+  public List<Module> getAndroidModules() {
+    ImmutableList.Builder<Module> modules = ImmutableList.builder();
+
+    for (Module module :  ModuleManager.getInstance(myProject).getModules()) {
+      if (Projects.isBuildWithGradle(module)) {
+        modules.add(module);
+      }
+    }
+    return modules.build();
   }
 }
