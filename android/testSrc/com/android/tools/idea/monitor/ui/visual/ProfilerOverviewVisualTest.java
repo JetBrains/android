@@ -105,16 +105,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     mTimeGlobalRange = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
     mTimeSelectionRange = new Range();
 
-    mTimeCurrentRange.setOffset(startTimeUs);
-    mTimeGlobalRange.setOffset(startTimeUs);
-    mTimeSelectionRange.setOffset(startTimeUs);
-
     mScrollbar = new RangeScrollbar(mTimeGlobalRange, mTimeCurrentRange);
-
 
     // add horizontal time axis
     AxisComponent.Builder builder = new AxisComponent.Builder(mTimeCurrentRange, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mTimeGlobalRange);
+      .setGlobalRange(mTimeGlobalRange).setOffset(startTimeUs);
     mTimeAxis = builder.build();
 
     mSegmentsContainer = new JBPanel();

@@ -113,6 +113,13 @@ public final class AxisComponent extends AnimatedComponent {
    */
   private final TFloatArrayList myMinorMarkerPositions;
 
+  /**
+   * There are cases when we display axis values relative to the Data.
+   * For example, when we use axis to display time information by setting {@code myOffset}
+   * it will display the time passed since {@code myOffset} instead of current time.
+   */
+  private final double myOffset;
+
   private AxisComponent(@NotNull Builder builder) {
     myRange = builder.myRange;
     myGlobalRange = builder.myGlobalRange;
@@ -124,6 +131,7 @@ public final class AxisComponent extends AnimatedComponent {
     myMinorMarkerPositions = new TFloatArrayList();
     myClampToMajorTicks = builder.myClampToMajorTicks;
     myParentAxis = builder.myParentAxis;
+    myOffset = builder.myOffset;
 
     myMajorMarkerLength = builder.myMajorMarkerLength;
     myMinorMarkerLength = builder.myMinorMarkerLength;
@@ -218,7 +226,7 @@ public final class AxisComponent extends AnimatedComponent {
    * Returns the position where a value would appear on this axis.
    */
   public float getPositionAtValue(double value) {
-    float offset = (float)(myMinorScale * ((value - myRange.getOffset()) - myCurrentMinValueRelative) / myMinorInterval);
+    float offset = (float)(myMinorScale * ((value - myOffset) - myCurrentMinValueRelative) / myMinorInterval);
     float ret = 0;
     switch (myOrientation) {
       case LEFT:
@@ -253,7 +261,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     float normalizedOffset = offset / myAxisLength;
-    return myRange.getOffset() + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
+    return myOffset + myCurrentMinValueRelative + myMinorInterval * normalizedOffset / myMinorScale;
   }
 
   /**
@@ -270,7 +278,7 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    double maxTarget = myRange.getMaxTargetRelative();
+    double maxTarget = myRange.getMaxTarget() - myOffset;
     double rangeTarget = myRange.getTargetLength();
     double clampedMaxTarget;
 
@@ -291,15 +299,15 @@ public final class AxisComponent extends AnimatedComponent {
       clampedMaxTarget = myParentAxis.myMajorNumTicksTarget * majorInterval;
     }
 
-    myRange.setMaxTargetRelative(clampedMaxTarget);
+    myRange.setMaxTarget(clampedMaxTarget + myOffset);
   }
 
   @Override
   public void postAnimate() {
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
-    myCurrentMinValueRelative = myRange.getMinRelative();
-    myCurrentMaxValueRelative = myRange.getMaxRelative();
+    myCurrentMinValueRelative = myRange.getMin() - myOffset;
+    myCurrentMaxValueRelative = myRange.getMax() - myOffset;
     double range = myRange.getLength();
 
     // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that
@@ -527,6 +535,7 @@ public final class AxisComponent extends AnimatedComponent {
     private boolean myShowMinMax = false;
     private boolean myShowAxisLine = true;
     private boolean myClampToMajorTicks = false;
+    private double myOffset = 0;
     @NotNull private String myLabel = "";
     @Nullable private AxisComponent myParentAxis;
 
@@ -574,6 +583,15 @@ public final class AxisComponent extends AnimatedComponent {
     public Builder setMarkerLengths(int majorMarker, int minorMarker) {
       myMajorMarkerLength = majorMarker;
       myMinorMarkerLength = minorMarker;
+      return this;
+    }
+
+    /**
+     * Sets the offset to be used, by default offset is zero.
+     * {@link AxisComponent#myOffset}
+     */
+    public Builder setOffset(double offset) {
+      myOffset = offset;
       return this;
     }
 
