@@ -120,11 +120,11 @@ public class SelectSdkDialog extends DialogWrapper {
 
     FileChooserDescriptor descriptor = JavaSdk.getInstance().getHomeChooserDescriptor();
     BrowseFolderListener listener = new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton, descriptor, jdkPath);
-    myJdkTextFieldWithButton.addBrowseFolderListener(null, listener);
+    myJdkTextFieldWithButton.addActionListener(listener);
 
     descriptor = AndroidSdkType.getInstance().getHomeChooserDescriptor();
     listener = new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, descriptor, sdkPath);
-    mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
+    mySdkTextFieldWithButton.addActionListener(listener);
   }
 
   @Nullable
