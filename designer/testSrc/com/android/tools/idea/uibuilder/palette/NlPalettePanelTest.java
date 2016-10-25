@@ -22,21 +22,20 @@ import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.ide.CopyProvider;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.android.AndroidTestCase;
+import org.mockito.ArgumentCaptor;
 
 import java.awt.datatransfer.Transferable;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class NlPalettePanelTest extends AndroidTestCase {
+  private CopyPasteManager myCopyPasteManager;
   private NlPalettePanel myPanel;
 
   @Override
@@ -47,7 +46,8 @@ public class NlPalettePanelTest extends AndroidTestCase {
     DesignSurface surface = mock(DesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
     when(surface.getConfiguration()).thenReturn(configuration);
-    myPanel = new NlPalettePanel(getProject(), surface);
+    myCopyPasteManager = mock(CopyPasteManager.class);
+    myPanel = new NlPalettePanel(getProject(), surface, myCopyPasteManager);
   }
 
   @Override
@@ -77,7 +77,9 @@ public class NlPalettePanelTest extends AndroidTestCase {
     assertThat(provider.isCopyEnabled(context)).isTrue();
     provider.performCopy(context);
 
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    ArgumentCaptor<Transferable> captor = ArgumentCaptor.forClass(Transferable.class);
+    verify(myCopyPasteManager).setContents(captor.capture());
+    Transferable transferable = captor.getValue();
     assertThat(transferable).isNotNull();
     assertThat(transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue();
     Object item = transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);

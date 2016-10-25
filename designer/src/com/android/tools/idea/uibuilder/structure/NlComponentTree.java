@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
@@ -74,6 +75,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
+  private final CopyPasteManager myCopyPasteManager;
 
   private ScreenView myScreenView;
   private NlModel myModel;
@@ -82,7 +84,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean mySkipWait;
 
   public NlComponentTree(@Nullable DesignSurface designSurface) {
+    this(designSurface, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  NlComponentTree(@Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
+    myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
     setModel(new NlComponentTreeModel());
@@ -488,7 +496,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (myModel.getSelectionModel().isEmpty()) {
       return;
     }
-    CopyPasteManager.getInstance().setContents(myModel.getSelectionAsTransferable());
+    myCopyPasteManager.setContents(myModel.getSelectionAsTransferable());
   }
 
   // ---- Implements CutProvider ----
@@ -542,7 +550,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (spec == null) {
       return;
     }
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
+    Transferable transferable = myCopyPasteManager.getContents();
     if (transferable == null) {
       return;
     }
