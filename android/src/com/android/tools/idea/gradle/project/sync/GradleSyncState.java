@@ -158,6 +158,7 @@ public class GradleSyncState {
     LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Data model(s) loaded from cache.", myProject.getName()));
 
     stopSyncInProgress();
+    addInfoToEventLog("Gradle sync completed");
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
