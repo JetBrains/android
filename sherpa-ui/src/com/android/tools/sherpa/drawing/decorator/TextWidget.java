@@ -19,6 +19,10 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 
+import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
@@ -35,15 +39,17 @@ public class TextWidget extends WidgetDecorator {
     protected int mVerticalMargin = 0;
     protected int mHorizontalMargin = 0;
     protected boolean mToUpperCase = false;
-    protected static final int TEXT_ALIGNMENT_VIEW_START = 5;
-    protected static final int TEXT_ALIGNMENT_VIEW_END = 6;
-    protected static final int TEXT_ALIGNMENT_CENTER = 4;
+    public static final int TEXT_ALIGNMENT_VIEW_START = 5;
+    public static final int TEXT_ALIGNMENT_VIEW_END = 6;
+    public static final int TEXT_ALIGNMENT_CENTER = 4;
     protected int mAlignmentX = TEXT_ALIGNMENT_VIEW_START;
     protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
     private String mText;
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 14;
     private boolean mDisplayText = true;
+    private boolean mSingleLine = false;
+    JTextPane mTextPane = new JTextPane();
 
     /**
      * Set the behavior to do a text wrap content or not
@@ -64,8 +70,22 @@ public class TextWidget extends WidgetDecorator {
     public TextWidget(ConstraintWidget widget, String text) {
         super(widget);
         setText(text);
+        mTextPane.setBackground(new Color(0,0,0,0));
     }
 
+    /**
+     * sets the text alignment.
+     *
+     * @param textAlignment on of "TEXT_ALIGNMENT_VIEW_START", "TEXT_ALIGNMENT_VIEW_END", "TEXT_ALIGNMENT_CENTER"
+     */
+    public void setTextAlignment(int textAlignment) {
+        mAlignmentX = textAlignment;
+    }
+
+
+    public void setSingleLine(boolean singleLine) {
+        mSingleLine = mSingleLine;
+    }
     /**
      * Accessor for the font Size
      *
@@ -181,25 +201,24 @@ public class TextWidget extends WidgetDecorator {
         }
     }
 
+
     protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
         int tx = transform.getSwingX(x);
         int ty = transform.getSwingY(y);
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
 
-        int horizontalPadding = transform.getSwingDimension(mHorizontalPadding+mHorizontalMargin);
-        int verticalPadding = transform.getSwingDimension(mVerticalPadding+mVerticalMargin);
+        int horizontalPadding = transform.getSwingDimension(mHorizontalPadding + mHorizontalMargin);
+        int verticalPadding = transform.getSwingDimension(mVerticalPadding + mVerticalMargin);
         int originalSize = mFont.getSize();
         int scaleSize = transform.getSwingDimension(originalSize);
-        g.setFont(mFont.deriveFont((float) scaleSize));
+        g.setFont(mFont.deriveFont((float)scaleSize));
         FontMetrics fontMetrics = g.getFontMetrics();
-
+        Color color = mTextColor.getColor();
         if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
-            Color c = mTextColor.getColor();
-            g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100));
-        } else {
-            g.setColor(mTextColor.getColor());
+            color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 100);
         }
+        g.setColor(color);
         String string = getText();
         if (mToUpperCase) {
             string = string.toUpperCase();
@@ -207,40 +226,86 @@ public class TextWidget extends WidgetDecorator {
         int ftx = 0;
         int fty = 0;
         int stringWidth = fontMetrics.stringWidth(string);
-
-        switch (mAlignmentX) {
-            case TEXT_ALIGNMENT_VIEW_START: {
-                ftx = tx + horizontalPadding;
-            } break;
-            case TEXT_ALIGNMENT_CENTER: {
-                int paddx = (w - stringWidth) / 2;
-                ftx = tx + paddx;
-            } break;
-            case TEXT_ALIGNMENT_VIEW_END: {
-                int padd = w - stringWidth + horizontalPadding;
-                ftx = tx + padd;
-            } break;
+        if (stringWidth > w && !mSingleLine) { // if it is multi lined text use a swing text pane to do the wrap
+            mTextPane.setText(string);
+            mTextPane.setForeground(color);
+            mTextPane.setSize(w, h);
+            mTextPane.setFont(mFont.deriveFont((float)scaleSize * 0.88f));
+            StyledDocument doc = mTextPane.getStyledDocument();
+            SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+            switch (mAlignmentX) {
+                case TEXT_ALIGNMENT_VIEW_START:
+                    StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_LEFT);
+                    break;
+                case TEXT_ALIGNMENT_CENTER:
+                    StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_CENTER);
+                    break;
+                case TEXT_ALIGNMENT_VIEW_END:
+                    StyleConstants.setAlignment(attributeSet, StyleConstants.ALIGN_RIGHT);
+                    break;
+            }
+            switch (mAlignmentY) {
+                case TEXT_ALIGNMENT_VIEW_START:
+                    mTextPane.setAlignmentY(JTextArea.TOP_ALIGNMENT);
+                    break;
+                case TEXT_ALIGNMENT_CENTER:
+                    mTextPane.setAlignmentY(JTextArea.CENTER_ALIGNMENT);
+                    break;
+                case TEXT_ALIGNMENT_VIEW_END:
+                    mTextPane.setAlignmentY(JTextArea.BOTTOM_ALIGNMENT);
+                    break;
+            }
+            doc.setParagraphAttributes(0, doc.getLength(), attributeSet, false);
+            g.translate(tx, ty);
+            Shape clip = g.getClip();
+            g.clipRect(0, 0, w, h);
+            mTextPane.paint(g);
+            g.setClip(clip);
+            g.translate(-tx, -ty);
         }
-        switch (mAlignmentY) {
-            case TEXT_ALIGNMENT_VIEW_START: {
-                fty = ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
-                        verticalPadding;
-            } break;
-            case TEXT_ALIGNMENT_CENTER: {
-                fty = ty + fontMetrics.getAscent() + (h - fontMetrics.getAscent()) / 2;
-            } break;
-            case TEXT_ALIGNMENT_VIEW_END: {
-                fty = ty + h - fontMetrics.getMaxDescent() - verticalPadding;
-            } break;
-        }
+        else {
+            switch (mAlignmentX) {
+                case TEXT_ALIGNMENT_VIEW_START: {
+                    ftx = tx + horizontalPadding;
+                }
+                break;
+                case TEXT_ALIGNMENT_CENTER: {
+                    int paddx = (w - stringWidth) / 2;
+                    ftx = tx + paddx;
+                }
+                break;
+                case TEXT_ALIGNMENT_VIEW_END: {
+                    int padd = w - stringWidth + horizontalPadding;
+                    ftx = tx + padd;
+                }
+                break;
+            }
+            switch (mAlignmentY) {
+                case TEXT_ALIGNMENT_VIEW_START: {
+                    fty = ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
+                          verticalPadding;
+                }
+                break;
+                case TEXT_ALIGNMENT_CENTER: {
+                    fty = ty + fontMetrics.getAscent() + (h - fontMetrics.getAscent()) / 2;
+                }
+                break;
+                case TEXT_ALIGNMENT_VIEW_END: {
+                    fty = ty + h - fontMetrics.getMaxDescent() - verticalPadding;
+                }
+                break;
+            }
 
-        Shape clip = g.getClip();
-        g.clipRect(tx, ty, w, h);
-        g.drawString(string, ftx, fty);
-        g.setClip(clip);
+            Shape clip = g.getClip();
+            g.clipRect(tx, ty, w, h);
+            g.drawString(string, ftx, fty);
+            g.setClip(clip);
+        }
     }
 
     public void setDisplayText(boolean displayText) {
         mDisplayText = displayText;
     }
+
+
 }
