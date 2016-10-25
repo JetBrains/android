@@ -79,7 +79,6 @@ public class MemoryProfilerVisualTest extends VisualTest {
     long startTimeUs = mDataStore.getLatestTimeUs();
     Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
     AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
-    timeCurrentRangeUs.setOffset(startTimeUs);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new MemorySegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
@@ -174,7 +173,7 @@ public class MemoryProfilerVisualTest extends VisualTest {
         nameSpace.startsWith("com.apple.")) {
       return constructAndIncrementNodes(parent, traces, --depth);
     }
-    
+
     // Attempt to find an existing matching child node - create one if it does not exist.
     MemoryInfoTreeNode matchedChild = null;
     boolean isNewNode = false;
