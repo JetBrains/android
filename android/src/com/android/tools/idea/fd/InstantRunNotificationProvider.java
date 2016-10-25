@@ -108,7 +108,20 @@ public class InstantRunNotificationProvider {
         return sb.toString();
       }
       case FULLAPK:
-        return "Instant Run re-installed and restarted the app";
+        StringBuilder sb = new StringBuilder("Instant Run re-installed and restarted the app.");
+        if (buildCause.getBuildMode() == BuildMode.HOT || buildCause.getBuildMode() == BuildMode.COLD) {
+          // we requested a hot or cold swap build, but we got full apk artifacts
+          if (!myVerifierStatus.isEmpty()) {
+            sb.append(' ');
+            // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
+            sb.append(StringUtil.capitalizeWords(myVerifierStatus.toLowerCase(Locale.US).replace('_', ' '), true));
+            sb.append('.');
+          }
+        } else if (buildCause.getBuildMode() == BuildMode.FULL) {
+          // we requested a full build, so mention why we requested such a build
+          sb.append(' ').append(buildCause).append('.');
+        }
+        return sb.toString();
       default:
         return null;
     }

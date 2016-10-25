@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.google.wireless.android.sdk.stats.InstantRunStatus;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
 
@@ -71,10 +72,24 @@ public class InstantRunNotificationProviderTest {
 
     // if we generated an apk, then we shouldn't talk about multi process
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
-    assertEquals("Instant Run re-installed and restarted the app", provider.getNotificationText());
+    assertEquals("Instant Run re-installed and restarted the app.", provider.getNotificationText());
 
     // but if we generated cold swap patches, then we should specify that we did so because of multi process
     provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap.multiprocess"), provider.getNotificationText());
+  }
+
+  @Test
+  public void detailsOnFullApk() {
+    // tests that build cause and verifier status are reported when full apk builds are required.
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK,
+            InstantRunStatus.VerifierStatus.JAVA_RESOURCES_CHANGED.toString());
+    assertEquals("Instant Run re-installed and restarted the app. Java Resources Changed.", provider.getNotificationText());
+
+    buildSelection = new BuildSelection(BuildCause.NO_DEVICE, false);
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
+    assertEquals("Instant Run re-installed and restarted the app. BuildCause: NO_DEVICE, BuildMode: FULL.", provider.getNotificationText());
+
   }
 }
