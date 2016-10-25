@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -42,21 +43,24 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
 
   @NotNull private final Project myProject;
+  @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
+  @Nullable private final GradleSyncListener mySyncListener;
   private final boolean myProjectIsNew;
   private final boolean mySelectModulesToImport;
   private final boolean mySyncSkipped;
-  @Nullable private final GradleSyncListener mySyncListener;
 
   ProjectSetUpTask(@NotNull Project project,
+                   @NotNull PostSyncProjectSetup.Request setupRequest,
+                   @Nullable GradleSyncListener syncListener,
                    boolean projectIsNew,
                    boolean selectModulesToImport,
-                   boolean syncSkipped,
-                   @Nullable GradleSyncListener syncListener) {
+                   boolean syncSkipped) {
     myProject = project;
+    mySetupRequest = setupRequest;
+    mySyncListener = syncListener;
     myProjectIsNew = projectIsNew;
     mySelectModulesToImport = selectModulesToImport;
     mySyncSkipped = syncSkipped;
-    mySyncListener = syncListener;
   }
 
   @Override
@@ -107,10 +111,11 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
     if (!myProjectIsNew && ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(myProject, projectInfo, mySelectModulesToImport, true);
+      populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport, true);
       return;
     }
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySelectModulesToImport, true));
+    StartupManager.getInstance(myProject)
+      .runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport, true));
   }
 
   @Override

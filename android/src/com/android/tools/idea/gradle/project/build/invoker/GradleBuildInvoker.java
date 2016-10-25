@@ -260,31 +260,31 @@ public class GradleBuildInvoker {
       }
     }
 
-    RequestSettings requestSettings = new RequestSettings(myProject, gradleTasks);
+    Request request = new Request(myProject, gradleTasks);
     // @formatter:off
-    requestSettings.setJvmArguments(jvmArguments)
-                   .setCommandLineArguments(commandLineArguments);
+    request.setJvmArguments(jvmArguments)
+           .setCommandLineArguments(commandLineArguments);
     // @formatter:on
-    executeTasks(requestSettings);
+    executeTasks(request);
   }
 
-  public void executeTasks(@NotNull RequestSettings requestSettings) {
+  public void executeTasks(@NotNull Request request) {
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.clear();
-    List<String> gradleTasks = requestSettings.getGradleTasks();
+    List<String> gradleTasks = request.getGradleTasks();
     myLastBuildTasks.addAll(gradleTasks);
 
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
     }
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(requestSettings, myBuildStopper);
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
     saveAllFilesSafely();
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
       executor.queue();
     }
-    else if (requestSettings.isWaitForCompletion()) {
+    else if (request.isWaitForCompletion()) {
       executor.queueAndWaitForCompletion();
     }
     else {
@@ -485,7 +485,7 @@ public class GradleBuildInvoker {
     void execute(@NotNull GradleInvocationResult result);
   }
 
-  public static class RequestSettings {
+  public static class Request {
     @NotNull private final Project myProject;
     @NotNull private final List<String> myGradleTasks;
     @NotNull private final List<String> myJvmArguments;
@@ -497,15 +497,15 @@ public class GradleBuildInvoker {
     private boolean myWaitForCompletion;
     private boolean myUseEmbeddedGradle;
 
-    public RequestSettings(@NotNull Project project, @NotNull String...gradleTasks) {
+    public Request(@NotNull Project project, @NotNull String...gradleTasks) {
       this(project, Arrays.asList(gradleTasks));
     }
 
-    public RequestSettings(@NotNull Project project, @NotNull List<String> gradleTasks) {
+    public Request(@NotNull Project project, @NotNull List<String> gradleTasks) {
       this(project, gradleTasks, ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, project));
     }
 
-    public RequestSettings(@NotNull Project project, @NotNull List<String> gradleTasks, @NotNull ExternalSystemTaskId taskId) {
+    public Request(@NotNull Project project, @NotNull List<String> gradleTasks, @NotNull ExternalSystemTaskId taskId) {
       myProject = project;
       myGradleTasks = new ArrayList<>(gradleTasks);
       myJvmArguments = new ArrayList<>();
@@ -529,7 +529,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setJvmArguments(@NotNull List<String> jvmArguments) {
+    public Request setJvmArguments(@NotNull List<String> jvmArguments) {
       myJvmArguments.clear();
       myJvmArguments.addAll(jvmArguments);
       return this;
@@ -541,7 +541,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setCommandLineArguments(@NotNull List<String> commandLineArguments) {
+    public Request setCommandLineArguments(@NotNull List<String> commandLineArguments) {
       myCommandLineArguments.clear();
       myCommandLineArguments.addAll(commandLineArguments);
       return this;
@@ -553,7 +553,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setTaskListener(@Nullable ExternalSystemTaskNotificationListener taskListener) {
+    public Request setTaskListener(@Nullable ExternalSystemTaskNotificationListener taskListener) {
       myTaskListener = taskListener;
       return this;
     }
@@ -569,7 +569,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setBuildFilePath(@Nullable File buildFilePath) {
+    public Request setBuildFilePath(@Nullable File buildFilePath) {
       myBuildFilePath = buildFilePath;
       return this;
     }
@@ -579,7 +579,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setWaitForCompletion(boolean waitForCompletion) {
+    public Request setWaitForCompletion(boolean waitForCompletion) {
       myWaitForCompletion = waitForCompletion;
       return this;
     }
@@ -589,7 +589,7 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public RequestSettings setUseEmbeddedGradle(boolean useEmbeddedGradle) {
+    public Request setUseEmbeddedGradle(boolean useEmbeddedGradle) {
       myUseEmbeddedGradle = useEmbeddedGradle;
       return this;
     }
@@ -602,7 +602,7 @@ public class GradleBuildInvoker {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      RequestSettings that = (RequestSettings)o;
+      Request that = (Request)o;
       // We only care about this fields because 'equals' is used for testing only. Production code does not care.
       return Objects.equals(myGradleTasks, that.myGradleTasks) &&
              Objects.equals(myJvmArguments, that.myJvmArguments) &&

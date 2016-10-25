@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.RequestSettings;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -212,9 +212,9 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
 
     @Override
     @NotNull
-    GradleTasksExecutor create(@NotNull RequestSettings requestSettings,
+    GradleTasksExecutor create(@NotNull Request request,
                                @NotNull BuildStopper buildStopper) {
-      myRequestedTasks = requestSettings.getGradleTasks();
+      myRequestedTasks = request.getGradleTasks();
       assertThat(myExpectedTasks).containsExactlyElementsIn(myRequestedTasks);
       return myTasksExecutor;
     }

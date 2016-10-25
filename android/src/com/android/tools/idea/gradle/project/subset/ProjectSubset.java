@@ -42,6 +42,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -101,7 +102,7 @@ public class ProjectSubset {
     if (selectedModules != null) {
       setSelection(selectedModules);
       if (!Arrays.equals(getSelection(), selection)) {
-        populate(myProject, projectInfo, selectedModules, true);
+        populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST, true);
       }
     }
   }
@@ -254,7 +255,7 @@ public class ProjectSubset {
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    populate(myProject, projectInfo, selectedModules, true);
+    populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST, true);
   }
 
   /**
@@ -306,7 +307,7 @@ public class ProjectSubset {
 
           finalSelection.addAll(selectedModules);
           setSelection(finalSelection);
-          populate(myProject, projectInfo, finalSelection, true);
+          populate(myProject, projectInfo, finalSelection, DEFAULT_REQUEST, true);
         }
       }
     });
@@ -351,7 +352,7 @@ public class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, projectInfo, selectedModules, true);
+            populate(project, projectInfo, selectedModules, DEFAULT_REQUEST, true);
           }
         }
       }.queue();

@@ -465,9 +465,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       try {
         // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
         // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-        GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
-        requestSettings.setProject(project).setGenerateSourcesOnSuccess(false);
-        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, requestSettings, listener);
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        request.setProject(project).setGenerateSourcesOnSuccess(false);
+        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, request, listener);
       }
       catch (Throwable e) {
         throwableRef.set(e);
@@ -538,8 +538,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private SyncListener requestSync() throws Exception {
     SyncListener syncListener = new SyncListener();
 
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), settings, syncListener);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, syncListener);
 
     syncListener.await();
     return syncListener;
