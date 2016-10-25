@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
@@ -45,7 +46,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
 
-    mySyncState = new GradleSyncState(project, messageBus);
+    mySyncState = new GradleSyncState(project, GradleProjectInfo.getInstance(project), messageBus);
   }
 
   public void testInvalidateLastSync() throws Exception {

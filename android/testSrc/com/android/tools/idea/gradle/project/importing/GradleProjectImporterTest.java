@@ -87,11 +87,11 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     verifyGradleVmOptionsCleanup(times(1));
 
     // Verify sync.
-    verifyGradleSyncInvocation(new GradleProjectImporter.RequestSettings(), syncListener);
+    verifyGradleSyncInvocation(new GradleProjectImporter.Request(), syncListener);
   }
 
   public void testImportProjectWithNullProject() throws Exception {
-    GradleProjectImporter.RequestSettings importSettings = new GradleProjectImporter.RequestSettings();
+    GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
     importSettings.setProject(null).setLanguageLevel(JDK_1_8);
 
     Project newProject = getProject();
@@ -111,7 +111,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
   }
 
   public void testImportProjectWithNonNullProject() throws Exception {
-    GradleProjectImporter.RequestSettings importSettings = new GradleProjectImporter.RequestSettings();
+    GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
     importSettings.setProject(getProject()).setLanguageLevel(JDK_1_8);
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
@@ -144,9 +144,9 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     verify(myGradleSettings, verificationMode).setGradleVmOptions("");
   }
 
-  private void verifyGradleSyncInvocation(@NotNull GradleProjectImporter.RequestSettings importSettings,
+  private void verifyGradleSyncInvocation(@NotNull GradleProjectImporter.Request importSettings,
                                           @Nullable GradleSyncListener syncListener) {
-    GradleSyncInvoker.RequestSettings syncRequest = new GradleSyncInvoker.RequestSettings();
+    GradleSyncInvoker.Request syncRequest = new GradleSyncInvoker.Request();
 
     // @formatter:off
     syncRequest.setGenerateSourcesOnSuccess(importSettings.isGenerateSourcesOnSuccess())

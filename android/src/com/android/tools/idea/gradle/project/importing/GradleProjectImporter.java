@@ -124,18 +124,18 @@ public class GradleProjectImporter {
 
   public void importProject(@NotNull String projectName, @NotNull File projectFolderPath, @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException {
-    importProject(projectName, projectFolderPath, RequestSettings.DEFAULT_INSTANCE, listener);
+    importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, listener);
   }
 
   public void importProject(@NotNull String projectName,
                             @NotNull File projectFolderPath,
-                            @NotNull RequestSettings settings,
+                            @NotNull Request request,
                             @Nullable GradleSyncListener listener) throws IOException, ConfigurationException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
-    Project project = settings.getProject();
+    Project project = request.getProject();
     Project newProject = project == null ? myNewProjectSetup.createProject(projectName, projectFolderPath.getPath()) : project;
 
     if (project == null) {
@@ -143,30 +143,30 @@ public class GradleProjectImporter {
       gradleSettings.setGradleVmOptions("");
     }
 
-    myNewProjectSetup.prepareProjectForImport(newProject, settings.getLanguageLevel());
+    myNewProjectSetup.prepareProjectForImport(newProject, request.getLanguageLevel());
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
 
-    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(settings), listener);
+    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
   }
 
   @VisibleForTesting
   @NotNull
-  static GradleSyncInvoker.RequestSettings createSyncRequestSettings(@NotNull RequestSettings importProjectSettings) {
-    GradleSyncInvoker.RequestSettings requestSettings = new GradleSyncInvoker.RequestSettings();
+  static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectSettings) {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
     // @formatter:off
-    requestSettings.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
-                   .setRunInBackground(false)
-                   .setUseCachedGradleModels(false)
-                   .setNewProject(true);
+    request.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
+           .setRunInBackground(false)
+           .setUseCachedGradleModels(false)
+           .setNewProject(true);
     // @formatter:on
-    return requestSettings;
+    return request;
   }
 
-  public static class RequestSettings {
-    private static final RequestSettings DEFAULT_INSTANCE = new RequestSettings();
+  public static class Request {
+    @NotNull private static final Request EMPTY_REQUEST = new Request();
 
     @Nullable private Project myProject;
     @Nullable private LanguageLevel myLanguageLevel;
@@ -179,7 +179,7 @@ public class GradleProjectImporter {
     }
 
     @NotNull
-    public RequestSettings setProject(@Nullable Project project) {
+    public Request setProject(@Nullable Project project) {
       myProject = project;
       return this;
     }
@@ -190,7 +190,7 @@ public class GradleProjectImporter {
     }
 
     @NotNull
-    public RequestSettings setLanguageLevel(@Nullable LanguageLevel languageLevel) {
+    public Request setLanguageLevel(@Nullable LanguageLevel languageLevel) {
       myLanguageLevel = languageLevel;
       return this;
     }
@@ -200,7 +200,7 @@ public class GradleProjectImporter {
     }
 
     @NotNull
-    public RequestSettings setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
+    public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
       myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
       return this;
     }

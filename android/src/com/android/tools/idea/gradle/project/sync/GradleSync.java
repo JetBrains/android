@@ -21,5 +21,5 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleSync {
-  void sync(@NotNull Project project, @NotNull GradleSyncInvoker.RequestSettings settings, @Nullable GradleSyncListener listener);
+  void sync(@NotNull Project project, @NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener);
 }

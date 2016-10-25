@@ -225,9 +225,9 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         TemplateUtils.openEditors(myProject, filesToOpen, true);
       });
 
-      GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
-      requestSettings.setLanguageLevel(initialLanguageLevel).setProject(myProject);
-      projectImporter.importProject(projectName, rootLocation, requestSettings, listener);
+      GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+      request.setLanguageLevel(initialLanguageLevel).setProject(myProject);
+      projectImporter.importProject(projectName, rootLocation, request, listener);
     }
     catch (IOException | ConfigurationException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
