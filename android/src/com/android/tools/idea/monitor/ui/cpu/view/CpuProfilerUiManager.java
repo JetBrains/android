@@ -195,6 +195,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
       return;
     }
 
+    myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.CPU);
+
     resetDetailedComponents();
 
     ThreadStatesDataModel selectedThread = selectedThreads.get(0);
@@ -239,7 +241,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
       myFlameChart.setHRenderer(new JavaMethodUsageHRenderer());
     }
 
-    // Setup selection (blue highlight)
+    // TODO: Selection doesn't seem right. Fix it and also set the proper color (red highlight).
     myTimeSelectionRangeUs.set(executionTree.getStart(), executionTree.getEnd());
     myTimeSelectionRangeUs.lockValues();
 
@@ -248,7 +250,5 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     long durationMargin = duration / 10;
     myTimeCurrentRangeUs.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
     myTimeCurrentRangeUs.lockValues();
-
-    myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.CPU);
   }
 }
