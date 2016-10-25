@@ -27,6 +27,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -103,7 +104,8 @@ public class GradleProjectInfoTest extends IdeaTestCase {
       FacetManager.getInstance(getModule()).addFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
     });
 
-    assertEquals(1, myProjectInfo.getAndroidModules().size());
+    assertThat(myProjectInfo.getAndroidModules()).hasSize(1);
+    assertEquals(myProjectInfo.getAndroidModules().get(0), getModule());
   }
 
   public void testGetAndroidModulesUsingNonGradleProject() {
