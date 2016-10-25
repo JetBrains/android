@@ -234,6 +234,10 @@ public class StringResourceData {
     return locale == null ? "" : LocaleMenuAction.getLocaleLabel(locale, false);
   }
 
+  boolean containsKey(@NotNull String key) {
+    return myKeyToResourceMap.containsKey(key);
+  }
+
   @NotNull
   public StringResource getStringResource(@NotNull String key) {
     StringResource stringResource = myKeyToResourceMap.get(key);

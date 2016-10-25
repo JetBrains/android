@@ -57,9 +57,11 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
   }
 
   public static void openEditor(@NotNull final Project project, @NotNull VirtualFile file) {
-    final VirtualFile vf = StringsVirtualFile.getInstance(project, file);
+    VirtualFile stringsFile = StringsVirtualFile.getInstance(project, file);
+    assert stringsFile != null;
+
     ApplicationManager.getApplication().invokeLater(() -> {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vf);
+      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, stringsFile);
       FileEditorManager.getInstance(project).openEditor(descriptor, true);
     });
   }
@@ -72,7 +74,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new StringResourceEditor(project, file);
+    return new StringResourceEditor((StringsVirtualFile)file);
   }
 
   @NotNull
