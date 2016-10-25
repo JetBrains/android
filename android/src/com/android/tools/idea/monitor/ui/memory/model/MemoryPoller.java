@@ -54,17 +54,11 @@ public class MemoryPoller extends Poller {
 
   @NotNull private final IDevice myDevice;
 
-  @Nullable private volatile CountDownLatch myLogcatHeapDumpFinishedLatch = null;
-
-  @NotNull private final AndroidLogcatService.LogcatListener myLogcatListener;
-
   private long myStartTimestampNs;
 
   private final int myAppId;
 
   private boolean myHasPendingHeapDumpSample;
-
-  private volatile boolean myIsListeningForLogcat = false;
 
   public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
     super(dataStore, POLLING_DELAY_NS);
@@ -72,33 +66,6 @@ public class MemoryPoller extends Poller {
     myAppId = appId;
     myHasPendingHeapDumpSample = false;
     myDevice = myService.getDevice();
-
-    myLogcatListener = new AndroidLogcatService.LogcatListener() {
-      @Override
-      public void onLogLineReceived(@NotNull LogCatMessage line) {
-        CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
-        if (myIsListeningForLogcat && line.getMessage().contains("hprof: heap dump completed") && line.getPid() == appId) {
-          assert capturedLatch != null;
-          myIsListeningForLogcat = false;
-          capturedLatch.countDown();
-        }
-      }
-    };
-
-    AndroidLogcatService.getInstance().addListener(myDevice, myLogcatListener);
-  }
-
-  @Override
-  public void stop() {
-    myIsListeningForLogcat = false;
-    CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
-    if (capturedLatch != null) {
-      capturedLatch.countDown();
-    }
-
-    super.stop();
-
-    AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatListener);
   }
 
   public Map<SeriesDataType, DataAdapter> createAdapters() {
@@ -212,20 +179,11 @@ public class MemoryPoller extends Poller {
 
     if (!pendingPulls.isEmpty()) {
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        try {
-          assert myLogcatHeapDumpFinishedLatch != null;
-          //noinspection ConstantConditions
-          myLogcatHeapDumpFinishedLatch.await(1, TimeUnit.MINUTES); // TODO Change this to heartbeat-based.
-          for (MemoryData.HeapDumpSample sample : pendingPulls) {
-            File heapDumpFile = pullHeapDumpFile(sample);
-            if (heapDumpFile != null) {
-              myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
-            }
+        for (MemoryData.HeapDumpSample sample : pendingPulls) {
+          File heapDumpFile = pullHeapDumpFile(sample);
+          if (heapDumpFile != null) {
+            myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
           }
-        }
-        catch (InterruptedException ignored) {}
-        finally {
-          myLogcatHeapDumpFinishedLatch = null;
         }
       });
     }
@@ -239,13 +197,6 @@ public class MemoryPoller extends Poller {
    * Triggers a heap dump grpc request
    */
   public boolean requestHeapDump() {
-    if (myLogcatHeapDumpFinishedLatch != null) {
-      return false;
-    }
-
-    myLogcatHeapDumpFinishedLatch = new CountDownLatch(1);
-    myIsListeningForLogcat = true;
-
     HeapDumpRequest.Builder builder = HeapDumpRequest.newBuilder();
     builder.setAppId(myAppId);
     builder.setRequestTime(myStartTimestampNs);   // Currently not used on perfd.
