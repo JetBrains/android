@@ -35,7 +35,7 @@ public class LoadableIcon extends JComponent implements Icon {
     setBounds(0, 0, width, height);
   }
 
-  public LoadableIcon withImage(@Nullable("image still loading or loading failed") BufferedImage image, boolean loadingFailed) {
+  public LoadableIcon withImage(@Nullable/*image still loading or loading failed*/ BufferedImage image, boolean loadingFailed) {
     myState = loadingFailed ? State.FAILED : (image == null) ? State.LOADING : State.LOADED;
     myImage = image;
     repaint();

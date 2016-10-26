@@ -160,13 +160,13 @@ public final class GapiPaths {
     return ImmutableList.of(REQUIRED_GAPI_VERSION.getSdkPackagePath());
   }
 
-  @Nullable("gapi is not installed")
+  @Nullable/*gapi is not installed*/
   private static LocalPackage getLocalPackage() {
     AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     return handler.getLocalPackage(REQUIRED_GAPI_VERSION.getSdkPackagePath(), new StudioLoggerProgressIndicator(GapiPaths.class));
   }
 
-  @Nullable("gapi is not installed")
+  @Nullable/*gapi is not installed*/
   private static File getSdkPath() {
     LocalPackage info = getLocalPackage();
     return info == null ? null : info.getLocation();

@@ -271,7 +271,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   public static class Node extends Renderable {
     public final int index;
     @NotNull private final ReportItem myReportItem;
-    @Nullable("not made server request yet") private Path followPath;
+    @Nullable/*not made server request yet*/ private Path followPath;
 
     public Node(@NotNull Report report, @NotNull ReportItem item, int childIndex, int index) {
       super(report, childIndex);
@@ -302,7 +302,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
       return myReportItem.getAtom();
     }
 
-    @Nullable("if we have not made a server request yet")
+    @Nullable/*if we have not made a server request yet*/
     public Path getFollowPath() {
       return followPath;
     }
