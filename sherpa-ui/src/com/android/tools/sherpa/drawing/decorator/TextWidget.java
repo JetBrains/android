@@ -84,7 +84,7 @@ public class TextWidget extends WidgetDecorator {
 
 
     public void setSingleLine(boolean singleLine) {
-        mSingleLine = mSingleLine;
+        mSingleLine = singleLine;
     }
     /**
      * Accessor for the font Size
