@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -119,9 +119,11 @@ public final class Projects {
 
   public static void populate(@NotNull Project project,
                               @NotNull DataNode<ProjectData> projectInfo,
+                              @NotNull PostSyncProjectSetup.Request setupRequest,
                               boolean selectModulesToImport,
                               boolean runPostProjectSetupTasks) {
-    populate(project, projectInfo, getModulesToImport(project, projectInfo, selectModulesToImport), runPostProjectSetupTasks);
+    Collection<DataNode<ModuleData>> modulesToImport = getModulesToImport(project, projectInfo, selectModulesToImport);
+    populate(project, projectInfo, modulesToImport, setupRequest, runPostProjectSetupTasks);
   }
 
   @NotNull
@@ -130,7 +132,9 @@ public final class Projects {
                                                                      boolean selectModulesToImport) {
     Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
     ProjectSubset subview = ProjectSubset.getInstance(project);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.getInstance(project).isFeatureEnabled() && modules.size() > 1) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&
+        ProjectSubset.getInstance(project).isFeatureEnabled() &&
+        modules.size() > 1) {
       if (selectModulesToImport) {
         // Importing a project. Allow user to select which modules to include in the project.
         Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
@@ -166,6 +170,7 @@ public final class Projects {
   public static void populate(@NotNull Project project,
                               @NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> modulesToImport,
+                              @NotNull PostSyncProjectSetup.Request setupRequest,
                               boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       SyncMessages messages = SyncMessages.getInstance(project);
@@ -183,7 +188,7 @@ public final class Projects {
       // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
       // sources for it. This happens on new projects.
       if (runPostProjectSetupTasks) {
-        PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
+        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest);
       }
     });
   }
@@ -222,10 +227,12 @@ public final class Projects {
         }
       }
       dataManager.importData(projectNode, project, true /* synchronous */);
-    } else {
+    }
+    else {
       dataManager.importData(enabledModules, project, true /* synchronous */);
     }
   }
+
   public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
       if (!project.isDisposed()) {
@@ -399,6 +406,7 @@ public final class Projects {
    * Note: {@link #requiresAndroidModel(Project)} indicates whether a project requires an {@link AndroidModel}.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
    * Gradle-specific.
+   *
    * @deprecated use {@link GradleProjectInfo#isBuildWithGradle()}
    */
   // TODO remove this method and update clients to use GradleProjectInfo instead.

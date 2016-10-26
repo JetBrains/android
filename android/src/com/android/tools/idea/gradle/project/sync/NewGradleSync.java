@@ -67,10 +67,10 @@ public class NewGradleSync implements GradleSync {
   }
 
   @Override
-  public void sync(@NotNull Project project, @NotNull GradleSyncInvoker.RequestSettings settings, @Nullable GradleSyncListener listener) {
+  public void sync(@NotNull Project project, @NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     String title = String.format("Syncing project '%1$s' with Gradle", project.getName());
     Task task;
-    ProgressExecutionMode executionMode = settings.getProgressExecutionMode();
+    ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     switch (executionMode) {
       case MODAL_SYNC:
         task = new Task.Modal(project, title, true) {

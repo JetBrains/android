@@ -88,10 +88,10 @@ public class GradleSyncInvoker {
   }
 
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project, @Nullable GradleSyncListener listener) {
-    requestProjectSync(project, RequestSettings.DEFAULT_INSTANCE, listener);
+    requestProjectSync(project, Request.DEFAULT_REQUEST, listener);
   }
 
-  public void requestProjectSync(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener) {
+  public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
@@ -103,8 +103,8 @@ public class GradleSyncInvoker {
     invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID));
     Runnable syncTask = () -> {
       try {
-        if (prepareProject(project, settings, listener)) {
-          sync(project, settings, listener);
+        if (prepareProject(project, request, listener)) {
+          sync(project, request, listener);
         }
       }
       catch (ConfigurationException e) {
@@ -112,7 +112,7 @@ public class GradleSyncInvoker {
       }
     };
 
-    if (settings.isRunInBackground()) {
+    if (request.isRunInBackground()) {
       invokeLaterIfProjectAlive(project, syncTask);
     }
     else {
@@ -138,10 +138,10 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private boolean prepareProject(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener)
+  private boolean prepareProject(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener)
     throws ConfigurationException {
     if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
-      if (!settings.isNewProject()) {
+      if (!request.isNewProject()) {
         myFileDocumentManager.saveAllDocuments();
       }
       return true; // continue with sync.
@@ -166,7 +166,7 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private void sync(@NotNull Project project, @NotNull RequestSettings settings, @Nullable GradleSyncListener listener) {
+  private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     if (isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
       // TODO move this method out of GradleUtil.
@@ -183,7 +183,7 @@ public class GradleSyncInvoker {
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean started = GradleSyncState.getInstance(project).syncStarted(!settings.isNewProject());
+    boolean started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject());
     if (!started) {
       return;
     }
@@ -201,7 +201,7 @@ public class GradleSyncInvoker {
     else {
       gradleSync = new IdeaGradleSync();
     }
-    gradleSync.sync(project, settings, listener);
+    gradleSync.sync(project, request, listener);
   }
 
   private static void handlePreSyncCheckFailure(@NotNull Project project,
@@ -234,8 +234,8 @@ public class GradleSyncInvoker {
     });
   }
 
-  public static class RequestSettings {
-    private static final RequestSettings DEFAULT_INSTANCE = new RequestSettings();
+  public static class Request {
+    private static final Request DEFAULT_REQUEST = new Request();
 
     private boolean myRunInBackground = true;
     private boolean myGenerateSourcesOnSuccess = true;
@@ -248,7 +248,7 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public RequestSettings setRunInBackground(boolean runInBackground) {
+    public Request setRunInBackground(boolean runInBackground) {
       myRunInBackground = runInBackground;
       return this;
     }
@@ -258,7 +258,7 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public RequestSettings setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
+    public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
       myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
       return this;
     }
@@ -268,7 +268,7 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public RequestSettings setCleanProject(boolean cleanProject) {
+    public Request setCleanProject(boolean cleanProject) {
       myCleanProject = cleanProject;
       return this;
     }
@@ -278,7 +278,7 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public RequestSettings setUseCachedGradleModels(boolean useCachedGradleModels) {
+    public Request setUseCachedGradleModels(boolean useCachedGradleModels) {
       myUseCachedGradleModels = useCachedGradleModels;
       return this;
     }
@@ -288,7 +288,7 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public RequestSettings setNewProject(boolean newProject) {
+    public Request setNewProject(boolean newProject) {
       myNewProject = newProject;
       return this;
     }
@@ -306,12 +306,12 @@ public class GradleSyncInvoker {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      RequestSettings settings = (RequestSettings)o;
-      return myRunInBackground == settings.myRunInBackground &&
-             myCleanProject == settings.myCleanProject &&
-             myGenerateSourcesOnSuccess == settings.myGenerateSourcesOnSuccess &&
-             myUseCachedGradleModels == settings.myUseCachedGradleModels &&
-             myNewProject == settings.myNewProject;
+      Request request = (Request)o;
+      return myRunInBackground == request.myRunInBackground &&
+             myCleanProject == request.myCleanProject &&
+             myGenerateSourcesOnSuccess == request.myGenerateSourcesOnSuccess &&
+             myUseCachedGradleModels == request.myUseCachedGradleModels &&
+             myNewProject == request.myNewProject;
     }
 
     @Override

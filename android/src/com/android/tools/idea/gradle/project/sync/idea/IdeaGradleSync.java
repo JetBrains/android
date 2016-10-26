@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,34 +64,45 @@ public class IdeaGradleSync implements GradleSync {
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
   @Override
-  public void sync(@NotNull Project project, @NotNull GradleSyncInvoker.RequestSettings settings, @Nullable GradleSyncListener listener) {
+  public void sync(@NotNull Project project,
+                   @NotNull GradleSyncInvoker.Request request,
+                   @Nullable GradleSyncListener listener) {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
-    PostProjectSetupTasksExecutor tasksExecutor = PostProjectSetupTasksExecutor.getInstance(project);
-    if (forceSyncWithCachedModel() || settings.isUseCachedGradleModels()) {
+    if (forceSyncWithCachedModel() || request.isUseCachedGradleModels()) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((project));
       if (syncData != null && syncData.canUseCachedProjectData()) {
         DataNode<ProjectData> cache = getCachedProjectData(project);
         if (cache != null && !isCacheMissingModels(cache, project)) {
-          tasksExecutor.setGenerateSourcesAfterSync(false, false);
-          tasksExecutor.setUsingCachedProjectData(true);
-          tasksExecutor.setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
+          PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
 
-          boolean newProject = settings.isNewProject();
-          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, !newProject, true, listener);
+          // @formatter:off
+          setupRequest.setUsingCachedGradleModels(true)
+                      .setGenerateSourcesAfterSync(false)
+                      .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
+          // @formatter:on
+
+          boolean newProject = request.isNewProject();
+          ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, setupRequest, listener, newProject, !newProject, true);
           setUpTask.onSuccess(cache);
           return;
         }
       }
     }
 
-    tasksExecutor.setGenerateSourcesAfterSync(settings.isGenerateSourcesOnSuccess(), settings.isCleanProject());
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+
+    // @formatter:off
+    setupRequest.setGenerateSourcesAfterSync(request.isGenerateSourcesOnSuccess())
+                .setCleanProjectAfterSync(request.isCleanProject());
+    // @formatter:on
 
     String externalProjectPath = getBaseDirPath(project).getPath();
 
-    ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, settings.isNewProject(), false, false, listener);
-    ProgressExecutionMode executionMode = settings.getProgressExecutionMode();
+    ProjectSetUpTask setUpTask =
+      new ProjectSetUpTask(project, setupRequest, listener, request.isNewProject(), false, false);
+    ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
   }

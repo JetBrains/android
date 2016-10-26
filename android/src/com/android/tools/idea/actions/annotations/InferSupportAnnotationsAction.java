@@ -19,9 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
@@ -109,7 +109,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     }
     super.update(event);
     Project project = event.getProject();
-    if (project == null || !Projects.isBuildWithGradle(project)) {
+    if (project == null || !GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       Presentation presentation = event.getPresentation();
       presentation.setEnabled(false);
     }
@@ -117,7 +117,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
   @Override
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
-    if (!Projects.isBuildWithGradle(project)) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return;
     }
     int[] fileCount = new int[]{0};
@@ -282,8 +282,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-            GradleSyncInvoker.getInstance().requestProjectSync(project, settings, new GradleSyncListener.Adapter() {
+            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
                 restartAnalysis(project, scope);
@@ -408,7 +408,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
   /* Android nullable annotations do not support annotations on local variables. */
   @Override
   protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-    if (!Projects.isBuildWithGradle(project)) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return super.getAdditionalActionSettings(project, dialog);
     }
     return null;

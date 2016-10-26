@@ -192,8 +192,8 @@ public class PostProjectBuildTasksExecutor {
       syncJavaLangLevel();
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, settings, null);
+        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, null);
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
