@@ -283,37 +283,43 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
           boolean light = level >= 128;
           //noinspection UndesirableClassUsage
           myDeltaImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
-          for (int y = 0; y < imageHeight; y++) {
-            for (int x = 0; x < imageWidth; x++) {
-              int webpPixel = myWebpImage.getRGB(x, y);
-              int pngPixel = myPngImage.getRGB(x, y);
+          if (!mySettings.lossless) {
+            for (int y = 0; y < imageHeight; y++) {
+              for (int x = 0; x < imageWidth; x++) {
+                int webpPixel = myWebpImage.getRGB(x, y);
+                int pngPixel = myPngImage.getRGB(x, y);
 
-              int webpBlue = webpPixel & 0xFF;
-              int pngBlue = pngPixel & 0xFF;
-              int blueDelta = Math.abs(webpBlue - pngBlue);
+                int webpBlue = webpPixel & 0xFF;
+                int pngBlue = pngPixel & 0xFF;
+                int blueDelta = Math.abs(webpBlue - pngBlue);
 
-              webpPixel >>>= 8;
-              pngPixel >>>= 8;
+                webpPixel >>>= 8;
+                pngPixel >>>= 8;
 
-              int webpGreen = webpPixel & 0xFF;
-              int pngGreen = pngPixel & 0xFF;
-              int greenDelta = Math.abs(webpGreen - pngGreen);
+                int webpGreen = webpPixel & 0xFF;
+                int pngGreen = pngPixel & 0xFF;
+                int greenDelta = Math.abs(webpGreen - pngGreen);
 
-              webpPixel >>>= 8;
-              pngPixel >>>= 8;
+                webpPixel >>>= 8;
+                pngPixel >>>= 8;
 
-              int webpRed = webpPixel & 0xFF;
-              int pngRed = pngPixel & 0xFF;
-              int redDelta = Math.abs(webpRed - pngRed);
+                int webpRed = webpPixel & 0xFF;
+                int pngRed = pngPixel & 0xFF;
+                int redDelta = Math.abs(webpRed - pngRed);
 
-              int deltaColor;
-              if (light) {
-                deltaColor = 0xFF000000 | (level - redDelta) << 16 | (level - greenDelta) << 8 | (level - blueDelta);
+                pngPixel >>>= 8;
+                int pngAlpha = pngPixel & 0xFF;
+                int alpha = pngAlpha << 24;
+
+                int deltaColor;
+                if (light) {
+                  deltaColor = alpha | (level - redDelta) << 16 | (level - greenDelta) << 8 | (level - blueDelta);
+                }
+                else {
+                  deltaColor = alpha | (level + redDelta) << 16 | (level + greenDelta) << 8 | (level + blueDelta);
+                }
+                myDeltaImage.setRGB(x, y, deltaColor);
               }
-              else {
-                deltaColor = 0xFF000000 | (level + redDelta) << 16 | (level + greenDelta) << 8 | (level + blueDelta);
-              }
-              myDeltaImage.setRGB(x, y, deltaColor);
             }
           }
         } else {
