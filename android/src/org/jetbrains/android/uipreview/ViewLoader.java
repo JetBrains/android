@@ -518,6 +518,7 @@ public class ViewLoader {
 
   private void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
     if (aClass == null) {
       final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
       final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
@@ -530,6 +531,9 @@ public class ViewLoader {
         ModuleClassLoader.clearCache(myModule);
         myModuleClassLoader = null;
         aClass = getModuleClassLoader().loadClass(className);
+        if (appResources != null) {
+          appResources.resetDynamicIds(true);
+        }
       }
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
@@ -544,7 +548,6 @@ public class ViewLoader {
       final Map<IntArrayWrapper, String> styleableId2res = new HashMap<IntArrayWrapper, String>();
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
         if (appResources != null) {
           appResources.setCompiledResources(id2res, styleableId2res, res2id);
         }
