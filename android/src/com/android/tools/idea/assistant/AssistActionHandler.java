@@ -27,6 +27,10 @@ public interface AssistActionHandler {
   ExtensionPointName<AssistActionHandler> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.assistant.actionHandler");
 
+  /**
+   * Returns a unique id for the action. Used in mapping from an {@see ActionData}
+   * instance to the handler.
+   */
   @NotNull
   String getId();
 
