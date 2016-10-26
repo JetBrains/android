@@ -17,12 +17,12 @@ package com.android.tools.idea.assistant.view;
 
 
 import com.android.tools.idea.assistant.AssistActionHandler;
+import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,13 +44,8 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
   private JPanel myCards;
   private CardLayout myCardLayout;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  @NotNull
-  private TutorialBundleData myTutorialBundle;
-
-  public FeaturesPanel(@NotNull TutorialBundleData bundle, DeveloperServiceMap serviceMap) {
+  public FeaturesPanel(@NotNull TutorialBundleData bundle, @NotNull Project project) {
     super(new BorderLayout());
-    myTutorialBundle = bundle;
 
     setBackground(UIUtils.getBackgroundColor());
 
@@ -61,22 +56,20 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
 
     // NOTE: the card labels cannot be from an enum since the views will be
     // built up from xml.
-    List<? extends FeatureData> featureList = myTutorialBundle.getFeatures();
+    List<? extends FeatureData> featureList = bundle.getFeatures();
     // Note: Hides Tutorial Chooser panel if there is only one feature and one tutorial.
     boolean hideChooserAndNavigationalBar = false;
     if (featureList.size() == 1 && featureList.get(0).getTutorials().size() == 1) {
       hideChooserAndNavigationalBar = true;
       getLog().debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
     } else {
-      addCard(new TutorialChooser(this, myTutorialBundle), "chooser");
+      addCard(new TutorialChooser(this, bundle), "chooser");
     }
 
     // Add all tutorial cards.
-    for (FeatureData feature : featureList) {
-      DeveloperServiceList services = serviceMap.get(feature.getServiceId());
+    for (FeatureData feature : bundle.getFeatures()) {
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), services, hideChooserAndNavigationalBar),
-                tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), project, hideChooserAndNavigationalBar), tutorial.getKey());
       }
     }
     add(myCards);
@@ -129,12 +122,12 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
         throw new IllegalArgumentException("Unhandled action, no handler found for key \"" + actionId + "\".");
       }
 
-      DeveloperServiceList services = a.getDeveloperServices();
-      if (services == null) {
-        throw new RuntimeException("Unable to find a service to to complete the requested action.");
+      ActionData actionData = a.getActionData();
+      if (actionData == null) {
+        throw new RuntimeException("Unable to find an action definition to to complete the requested action.");
       }
 
-      handler.handleAction(a.getActionArgument(), services);
+      handler.handleAction(actionData, a.getProject());
       a.updateState();
     }
     else {

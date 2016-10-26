@@ -1103,10 +1103,12 @@
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionHandler"
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionHandler"
                     interface="com.android.tools.idea.assistant.AssistActionHandler"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionStateManager"
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionStateManager"
                     interface="com.android.tools.idea.assistant.AssistActionStateManager"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.assistantBundleCreator"
+                    interface="com.android.tools.idea.assistant.AssistantBundleCreator"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.tools.idea.stats.tracker"
