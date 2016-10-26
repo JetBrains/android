@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
+import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
@@ -53,4 +54,13 @@ public interface AssistantBundleCreator {
    */
   @Nullable
   URL getConfig() throws FileNotFoundException;
+
+  /**
+   * Retrieves an analytics wrapper to be used with Assistant panel events with your bundle's elements.
+   * Defaults to a no-op to avoid excessive null checks.
+   */
+  @NotNull
+  default AnalyticsProvider getAnalyticsProvider() {
+    return AnalyticsProvider.getNoOp();
+  }
 }
