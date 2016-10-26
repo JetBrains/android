@@ -78,9 +78,8 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
                          SdkConstants.GRADLE_PLUGIN_WH_VERSION, "25.0.0");
   }
 
-  // TODO: This test needs to be investigated as to why dataBinding = enabled is not adding
-  // databinding library dependencies to the Android Gradle model.
-  public void testGeneratedCodeMatch() throws Exception {
+  // re-enable this test after we can run tests against top of tree gradle build
+  public void ignored_testGeneratedCodeMatch() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
