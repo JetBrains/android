@@ -90,7 +90,11 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
       return null;
     }
 
-    SeriesData data = mSeries.getDataAtXValue(time);
+    int index = getIndexFromTime(series,time);
+    if (index == -1) {
+      return null;
+    }
+    SeriesData data = series.get(index);
     SeriesData maxData = getMaxYValue(series);
     long nearestX = data.x;
     long nearestY = (long)data.value;
@@ -117,5 +121,20 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
       dataList.add(report);
     }
     return dataList;
+  }
+  public int getIndexFromTime(ImmutableList<SeriesData<Long>> list, long time) {
+    int low = 0;
+    int high = list.size() - 1;
+    while(low <= high) {
+      int mid = low + (high - low) / 2;
+      if (time < list.get(mid).x) {
+        high = mid - 1;
+      } else if (time > list.get(mid).x) {
+        low = mid + 1;
+      } else {
+        return mid;
+      }
+    }
+    return -1;
   }
 }

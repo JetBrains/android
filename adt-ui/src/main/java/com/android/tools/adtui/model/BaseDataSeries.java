@@ -59,12 +59,6 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
     return getDataSubList(0, size());
   }
 
-  @Override
-  public SeriesData<E> getDataAtXValue(long x) {
-    int index = getNearestXIndex(x);
-    return new SeriesData<>(getX(index), getY(index));
-  }
-
   /**
    * Implementations need to store both the x, and y values. For a given index the X value should correspond to the Y value.
    */

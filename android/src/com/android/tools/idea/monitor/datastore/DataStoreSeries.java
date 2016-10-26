@@ -52,10 +52,4 @@ public class DataStoreSeries<E> implements DataSeries<E> {
     return mStore.getSeriesData(mType, xRange, mTarget);
   }
 
-  @Override
-  public SeriesData<E> getDataAtXValue(long x) {
-    // TODO should this return the closest left or right?
-    int index = mStore.getClosestTimeIndex(mType, x, true, mTarget);
-    return mStore.getDataAt(mType, index, mTarget);
-  }
 }
