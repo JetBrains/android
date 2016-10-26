@@ -234,6 +234,7 @@ public class RenderErrorModelFactoryTest extends AndroidTestCase {
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
+    task.disableSecurityManager();
     RenderResult render = RenderTestBase.renderOnSeparateThread(task);
     assertNotNull(render);
 

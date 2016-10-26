@@ -41,8 +41,10 @@ import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
@@ -77,6 +79,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderTask implements IImageFactory {
+  private static final Logger LOG = Logger.getInstance(RenderTask.class);
+
   @NotNull
   private final RenderService myRenderService;
 
@@ -137,6 +141,8 @@ public class RenderTask implements IImageFactory {
   private IImageFactory myImageFactoryDelegate;
   /** Cached {@link BufferedImage} that will be returned when direct rendering is not used. See {@link #render(Graphics2D)} */
   private SoftReference<BufferedImage> myCachedImageReference;
+
+  private boolean isSecurityManagerEnabled = true;
 
   /**
    * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
@@ -537,8 +543,11 @@ public class RenderTask implements IImageFactory {
         @Override
         public RenderResult compute() {
           Module module = myRenderService.getModule();
-          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(module, getPlatform());
-          securityManager.setActive(true, myCredential);
+          RenderSecurityManager securityManager =
+            isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
+          if (securityManager != null) {
+            securityManager.setActive(true, myCredential);
+          }
 
           try {
             int retries = 0;
@@ -573,7 +582,9 @@ public class RenderTask implements IImageFactory {
             return result;
           }
           finally {
-            securityManager.dispose(myCredential);
+            if (securityManager != null) {
+              securityManager.dispose(myCredential);
+            }
           }
         }
       });
@@ -1106,6 +1117,15 @@ public class RenderTask implements IImageFactory {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  /**
+   * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
+   */
+  @VisibleForTesting
+  void disableSecurityManager() {
+    LOG.warn("Security manager was disabled");
+    isSecurityManagerEnabled = false;
   }
 
   /**
