@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
@@ -139,6 +140,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
         assertNotSame(item, newItem);
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   public void testGetDeclaredArrayValues() throws IOException {
