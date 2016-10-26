@@ -36,8 +36,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
@@ -105,7 +105,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      invokeLaterIfNeeded(runnable);
+      invokeLater(myProject, runnable);
     }
   }
 
