@@ -53,8 +53,10 @@ public interface AssistActionStateManager {
   /**
    * Gets the display for a given action button when the action may not be completed. For example, if the action adds a dependency, this
    * would confirm that the dependency has already been added. It may also be used for things like permanent failures.
+   *
+   * When null and isCompletable returns false, defaults to disabling the button.
    */
-  @Nullable("When null and isCompletable returns false, defaults to disabling the button.")
+  @Nullable
   StatefulButtonMessage getStateDisplay(@NotNull Project project,
                                         @NotNull ActionData actionData,
                                         @Nullable("ignored if null") String message);
