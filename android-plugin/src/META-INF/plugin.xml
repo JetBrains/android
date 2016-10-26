@@ -1172,6 +1172,7 @@
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.project.JdkPostSyncProjectSetupStep"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Jdk8RequiredErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
@@ -1194,7 +1195,6 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingCMakeErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.InternetConnectionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingDependencyErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CachedDependencyNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnexpectedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnknownHostErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CorruptGradleDependencyErrorHandler"/>
