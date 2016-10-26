@@ -69,7 +69,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), popupMenu);
     contextMenuFixture.menuItemWithPath("Delete").click();
 
-    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
+    MessagesFixture.findByTitle(robot(), "Confirm Deletion").clickYes();
 
     Wait.seconds(10).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
 

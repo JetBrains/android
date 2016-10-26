@@ -118,7 +118,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), contextMenu);
     contextMenuFixture.menuItemWithPath("Delete").click();
 
-    MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
+    MessagesFixture.findByTitle(robot(), "Confirm Deletion").clickYes();
     return this;
   }
 
