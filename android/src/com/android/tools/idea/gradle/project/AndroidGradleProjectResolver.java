@@ -403,16 +403,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
-
-    if (userFriendlyError == null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE));
-      return nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
-    }
-
-    return userFriendlyError;
+    return myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
   }
 
   @NotNull
