@@ -40,13 +40,17 @@ public interface AssistantBundleCreator {
 
   /**
    * Gets a custom instance of the bundle data. Only to be used when the default bundle is insufficient. {@see #getConfig}
+   *
+   * Should only be null when {@see #getConfig} is non-null.
    */
-  @Nullable("when a config is returned instead")
+  @Nullable
   TutorialBundleData getBundle(@NotNull Project project);
 
   /**
    * Gets the config resource for use with a default bundle. If a custom bundle is necessary, use {@code #getBundle} instead.
+   *
+   * Should only be null when {@see #getBundle} is non-null.
    */
-  @Nullable("when the bundle will be returned instead")
+  @Nullable
   URL getConfig() throws FileNotFoundException;
 }

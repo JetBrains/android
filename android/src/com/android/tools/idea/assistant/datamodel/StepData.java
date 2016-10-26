@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
@@ -22,7 +24,17 @@ import java.util.List;
  * which may contain one or more of a variety of presentation objects.
  */
 public interface StepData {
+
+  /**
+   * Gets the individual elements (such as text blocks, buttons, code samples) for
+   * the given step.
+   */
+  @NotNull
   List<? extends StepElementData> getStepElements();
 
+  /**
+   * Gets a textual label for the step. Should represent a summary of the items from {@code #getStepElements()}
+   */
+  @NotNull
   String getLabel();
 }
