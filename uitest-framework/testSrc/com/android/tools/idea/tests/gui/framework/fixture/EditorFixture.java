@@ -582,13 +582,14 @@ public class EditorFixture {
 
   @NotNull
   public GfxTraceFixture getGfxTraceEditor() {
-    return GuiQuery.getNonNull(() -> {
+    GfxTraceFixture gfxTraceFixture = GuiQuery.getNonNull(() -> {
       FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
       checkState(editors.length > 0, "no selected editors");
       FileEditor editor = editors[0];
       checkState(editor instanceof GfxTraceEditor, "not a %s: %s", GfxTraceEditor.class.getSimpleName(), editor);
       return new GfxTraceFixture(robot, (GfxTraceEditor)editor);
     });
+    return gfxTraceFixture.waitForLoadingToFinish();
   }
 
   /**
