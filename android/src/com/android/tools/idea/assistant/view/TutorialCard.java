@@ -18,8 +18,8 @@ package com.android.tools.idea.assistant.view;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
@@ -52,7 +51,7 @@ public class TutorialCard extends CardViewPanel {
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
                @NotNull String tutorialsTitle,
-               @NotNull DeveloperServiceList services,
+               @NotNull Project project,
                boolean hideChooserAndNavigationalBar) {
     super(listener);
     myTutorialsTitle = tutorialsTitle;
@@ -94,7 +93,7 @@ public class TutorialCard extends CardViewPanel {
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
     for (StepData step : tutorial.getSteps()) {
-      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, services);
+      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, project);
       contents.add(stepDisplay, c);
       c.gridy++;
       numericLabel++;
