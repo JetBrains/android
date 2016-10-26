@@ -56,6 +56,13 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DI
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
   /**
+   * Cut-off size for resizing, it should be bigger than any Android device. Resizing size needs to be capped
+   * because layoutlib will create an image of the size of the device, which will cause an OOM error when the
+   * device is too large.
+   */
+  // TODO: Make it possible to resize to arbitrary large sizes without running out of memory
+  private static final int MAX_ANDROID_SIZE = 3000;
+  /**
    * Specific subset of the phones/tablets to show when resizing; for tv and wear, this list
    * is not used; instead, all devices matching the tag (android-wear, android-tv) are used.
    */
@@ -153,7 +160,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     int androidX = Coordinates.getAndroidX(screenView, x);
     int androidY = Coordinates.getAndroidY(screenView, y);
-    if (androidX > 0 && androidY > 0) {
+    if (androidX > 0 && androidY > 0 && androidX < MAX_ANDROID_SIZE && androidY < MAX_ANDROID_SIZE) {
       screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
       if (isPreviewSurface) {
         updateUnavailableLayer(screenView, false);
@@ -325,7 +332,9 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentY = y;
 
     JComponent layeredPane = myDesignSurface.getLayeredPane();
-    if (x > layeredPane.getWidth() || y > layeredPane.getHeight()) {
+    int maxX = Coordinates.getSwingX(screenView, MAX_ANDROID_SIZE) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
+    int maxY = Coordinates.getSwingY(screenView, MAX_ANDROID_SIZE) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+    if ((x > layeredPane.getWidth() && x < maxX) || (y > layeredPane.getHeight() && y < maxY)) {
       Dimension d = layeredPane.getPreferredSize();
       layeredPane.setPreferredSize(new Dimension(Math.max(d.width, x), Math.max(d.height, y)));
       layeredPane.revalidate();
