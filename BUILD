@@ -148,7 +148,6 @@ iml_module(
         "//tools/base/asset-studio:studio.assetstudio[module]",
         "//tools:idea.platform-api[module]",
         "//tools:idea.eclipse[module]",
-        "//tools/adt/idea:android/lib/GoogleFeedback",
         "//tools:idea.external-system-api[module]",
         "//tools/idea/.idea/libraries:gson",
         "//tools:idea.jetgroovy[module]",
@@ -240,13 +239,6 @@ java_import(
 java_import(
     name = "android/lib/jarutils",
     jars = ["android/lib/jarutils.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
-    name = "android/lib/GoogleFeedback",
-    jars = ["android/lib/GoogleFeedback.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
