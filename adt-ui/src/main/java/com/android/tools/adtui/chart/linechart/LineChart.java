@@ -417,8 +417,10 @@ public class LineChart extends AnimatedComponent {
     // 3rd pass - draw the event start/end lines and their labels
     //            TODO handle overlapping events
     Line2D eventLine = new Line2D.Float();
-    for (RangedSeries<DurationData> eventSeries : myEventsPathCache.keySet()) {
-      List<Rectangle2D.Float> rectList = myEventsPathCache.get(eventSeries);
+    for (Map.Entry<RangedSeries<DurationData>, List<Rectangle2D.Float>> entry : myEventsPathCache.entrySet()) {
+      RangedSeries<DurationData> eventSeries = entry.getKey();
+      List<Rectangle2D.Float> rectList = entry.getValue();
+
       EventConfig config = myEventsConfig.get(eventSeries);
 
       for (Rectangle2D.Float rect : rectList) {
@@ -463,8 +465,9 @@ public class LineChart extends AnimatedComponent {
 
   private void drawLines(Graphics2D g2d, List<Shape> transformedShapes, boolean grayScale) {
     int i = 0;
-    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
-      LineConfig config = myLinesConfig.get(ranged);
+    for (Map.Entry<RangedContinuousSeries, LineConfig> entry : myLinesConfig.entrySet()) {
+      LineConfig config = entry.getValue();
+
       Color lineColor = config.getColor();
       if (grayScale) {
         int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
