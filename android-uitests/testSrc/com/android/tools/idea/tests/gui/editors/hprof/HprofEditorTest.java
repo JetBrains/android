@@ -59,8 +59,7 @@ public class HprofEditorTest {
   public void testInitialState() throws IOException {
     myDefaultEditor.assertCurrentHeapName("App heap");
     myDefaultEditor.assertCurrentClassesViewMode("Class List View");
-    JTreeFixture classesTree = myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection();
-    assertNotNull(classesTree.node(0));
+    assertNotNull(myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection().node(0));
 
     JTreeFixture instancesTree = myDefaultEditor.getInstancesTree().requireNotEditable().requireNoSelection();
     try {

@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -81,10 +80,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
       }
     });
 
-    VirtualFile toSelect = findFileByIoFile(gradleHomePath, true);
-    assertNotNull(toSelect);
-
-    fileChooserDialog.select(toSelect);
+    fileChooserDialog.select(findFileByIoFile(gradleHomePath, true));
     fileChooserDialog.clickOk();
 
     return this;

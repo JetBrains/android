@@ -32,7 +32,6 @@ import javax.swing.*;
 import java.lang.ref.WeakReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.field;
 
 public abstract class IdeaDialogFixture<T extends DialogWrapper> extends ComponentFixture<IdeaDialogFixture, JDialog>
@@ -42,11 +41,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
   @Nullable
   protected static <T extends DialogWrapper> T getDialogWrapperFrom(@NotNull JDialog dialog, Class<T> dialogWrapperType) {
     try {
-      WeakReference<DialogWrapper> dialogWrapperRef = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {})
-                                                                              .in(dialog)
-                                                                              .get();
-      assertNotNull(dialogWrapperRef);
-      DialogWrapper wrapper = dialogWrapperRef.get();
+      DialogWrapper wrapper = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {}).in(dialog).get().get();
       if (dialogWrapperType.isInstance(wrapper)) {
         return dialogWrapperType.cast(wrapper);
       }

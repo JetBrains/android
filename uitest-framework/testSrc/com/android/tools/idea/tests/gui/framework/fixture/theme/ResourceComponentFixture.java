@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static org.junit.Assert.assertNotNull;
-
 public class ResourceComponentFixture extends JPanelFixture {
 
   public ResourceComponentFixture(@NotNull Robot robot, @NotNull ResourceComponent target) {
@@ -57,9 +55,7 @@ public class ResourceComponentFixture extends JPanelFixture {
 
   @NotNull
   public String getLabelText() {
-    String labelValue = getLabel().text();
-    assertNotNull(labelValue);
-    return labelValue;
+    return getLabel().text();
   }
 
   @Nullable

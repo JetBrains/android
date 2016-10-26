@@ -36,7 +36,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static org.fest.reflect.core.Reflection.field;
-import static org.junit.Assert.assertNotNull;
 
 public class MessagesFixture {
   @NotNull private final ContainerFixture<? extends Container> myDelegate;
@@ -155,16 +154,12 @@ public class MessagesFixture {
   @NotNull
   private static JEditorPane getMessageTextPane(@NotNull JPanel sheetPanel) {
     SheetController sheetController = findSheetController(sheetPanel);
-    JEditorPane messageTextPane = field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
-    assertNotNull(messageTextPane);
-    return messageTextPane;
+    return field("messageTextPane").ofType(JEditorPane.class).in(sheetController).get();
   }
 
   @NotNull
   private static SheetController findSheetController(@NotNull JPanel sheetPanel) {
-    SheetController sheetController = field("this$0").ofType(SheetController.class).in(sheetPanel).get();
-    assertNotNull(sheetController);
-    return sheetController;
+    return field("this$0").ofType(SheetController.class).in(sheetPanel).get();
   }
 
   @Nullable
