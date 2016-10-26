@@ -204,13 +204,15 @@ public class LineChart extends AnimatedComponent {
     // Clear the previous markers.
     myMarkerPositions.clear();
 
-    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
-      // Stores the y coordinates of the current series in case it's used as a stacked series
-      final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
+    for (Map.Entry<RangedContinuousSeries, LineConfig> lineConfig : myLinesConfig.entrySet()) {
+      final RangedContinuousSeries ranged = lineConfig.getKey();
+      final LineConfig config = lineConfig.getValue();
       // Store the current path points in case they are used later to close a stacked line
       // polygon area
       final List<Point2D.Float> currentPath = new ArrayList<>();
-      final LineConfig config = myLinesConfig.get(ranged);
+      // Stores the y coordinates of the current series in case it's used as a stacked series
+      final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
+
       Path2D.Float path;
       if (p == myLinePaths.size()) {
         path = new Path2D.Float();
