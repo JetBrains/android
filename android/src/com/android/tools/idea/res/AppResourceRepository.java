@@ -569,13 +569,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   public void setCompiledResources(@SuppressWarnings("deprecation") TIntObjectHashMap<Pair<ResourceType, String>> id2res,
                                    Map<IntArrayWrapper, String> styleableId2name,
                                    Map<ResourceType, TObjectIntHashMap<String>> res2id) {
-    resetDynamicIds(true);
     myResourceValueMap = res2id;
     myResIdValueToNameMap = id2res;
     myStyleableValueToNameMap = styleableId2name;
   }
 
-  void resetDynamicIds(boolean clearAarResourceRegistry) {
+  public void resetDynamicIds(boolean clearAarResourceRegistry) {
     // The dynamic ids are referenced by the generated R classes. Ensure that the R classes cache is also cleared
     // if the dynamic ids are reset.
     if (clearAarResourceRegistry) {
