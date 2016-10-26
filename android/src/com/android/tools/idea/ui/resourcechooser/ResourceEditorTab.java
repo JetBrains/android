@@ -113,7 +113,7 @@ public abstract class ResourceEditorTab {
     return myResourceNameVisibility;
   }
 
-  @Nullable("if there is no error")
+  @Nullable/*if there is no error*/
   public ValidationInfo doValidate() {
     return getLocationSettings().doValidate();
   }

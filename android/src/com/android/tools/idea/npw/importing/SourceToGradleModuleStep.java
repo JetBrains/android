@@ -318,8 +318,8 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       INTERNAL_ERROR(AndroidBundle.message("android.wizard.module.import.source.browse.error"), ERROR),
       VALIDATING(AndroidBundle.message("android.wizard.module.import.source.browse.validating"), null);
 
-      @Nullable("Not an error") public final MessageType severity;
-      @Nullable("No message") private final String message;
+      @Nullable/*Not an error*/ public final MessageType severity;
+      @Nullable/*No message*/ private final String message;
 
       ResultType(@Nullable String message, @Nullable MessageType severity) {
         this.message = message;

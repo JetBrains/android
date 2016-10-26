@@ -46,7 +46,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
    * Finds the parent name from the passed style {@link XmlTag}. The parent name might be in the parent attribute or it can be part of the
    * style name.
    */
-  @Nullable("if the tag is null or doesn't define a parent")
+  @Nullable/*if the tag is null or doesn't define a parent*/
   private static String getParentNameFromTag(@Nullable XmlTag styleTag) {
     if (styleTag == null) {
       return null;

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TreeUtil {
-  @Nullable("if this path can not be found in this tree")
+  @Nullable/*if this path can not be found in this tree*/
   public static TreePath getTreePathInTree(TreePath treePath, JTree tree) {
     Object root = tree.getModel().getRoot();
     Object[] path = treePath.getPath();

@@ -51,7 +51,7 @@ public class ThemeAttributeResolver {
   /**
    * @return RestrictedConfiguration that matches to compatible and doesn't match to other FolderConfigurations where the style is defined
    */
-  @Nullable("if there is no configuration that matches to restrictions")
+  @Nullable/*if there is no configuration that matches to restrictions*/
   private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ThemeEditorStyle theme,
                                                                     @NotNull FolderConfiguration compatible) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();

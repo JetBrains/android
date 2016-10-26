@@ -39,7 +39,7 @@ public class PermissionUsageQuickFix extends LocalQuickFixAndIntentionActionOnPs
   @Override
   public void invoke(@NotNull Project project,
                      @NotNull PsiFile file,
-                     @Nullable("is null when called from inspection") Editor editor,
+                     @Nullable/*is null when called from inspection*/ Editor editor,
                      @NotNull PsiElement startElement,
                      @NotNull PsiElement endElement) {
 
