@@ -178,8 +178,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       };
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
-        GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings().setProject(project);
-        importer.importProject(project.getName(), destDir, requestSettings, syncListener);
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request().setProject(project);
+        importer.importProject(project.getName(), destDir, request, syncListener);
       } else {
         GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, syncListener);
       }

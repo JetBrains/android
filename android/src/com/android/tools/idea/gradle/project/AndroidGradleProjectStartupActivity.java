@@ -20,17 +20,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
  */
 public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
-    if (isBuildWithGradle(project)) {
-      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setUseCachedGradleModels(true);
-      GradleSyncInvoker.getInstance().requestProjectSync(project, settings, null);
+    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setUseCachedGradleModels(true);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
     }
   }
 }

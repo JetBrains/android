@@ -69,7 +69,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
   }
 
-  public void testWithUserDefinedLibrarySources() throws Exception {
+  // Disabled until the prebuilt Maven repo has all dependencies.
+  public void /*test*/WithUserDefinedLibrarySources() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -137,8 +138,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     // Verify ProjectSetUpTask
     listener = mock(GradleSyncListener.class);
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
-    GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
   }

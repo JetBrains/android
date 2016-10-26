@@ -105,8 +105,8 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
-      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setCleanProject(true);
-      mySyncInvoker.requestProjectSync(myProject, settings, null);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
+      mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }
 
