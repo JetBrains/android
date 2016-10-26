@@ -45,14 +45,14 @@ public interface TutorialBundleData {
    *
    * @see #getLogo()
    */
-  @Nullable("Optionally rendered")
+  @Nullable
   Icon getIcon();
 
   /**
    * Returns icon that accompanies the name.
    * Supersedes {@link #getIcon()} if non-null.
    */
-  @Nullable("Optionally rendered")
+  @Nullable
   Icon getLogo();
 
   /**
