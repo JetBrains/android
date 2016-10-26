@@ -45,7 +45,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -82,10 +81,7 @@ public class BuildVariantsTest {
       MODULE_NAME + "/src/flavor1Release/rs");
 
     Module appModule = guiTest.ideFrame().getModule(MODULE_NAME);
-    AndroidFacet androidFacet = AndroidFacet.getInstance(appModule);
-    assertNotNull(androidFacet);
-
-    JpsAndroidModuleProperties androidFacetProperties = androidFacet.getProperties();
+    JpsAndroidModuleProperties androidFacetProperties = AndroidFacet.getInstance(appModule).getProperties();
     assertEquals("assembleFlavor1Release", androidFacetProperties.ASSEMBLE_TASK_NAME);
     // 'release' variant does not have the _android_test_ artifact.
     assertThat(androidFacetProperties.ASSEMBLE_TEST_TASK_NAME).isEmpty();

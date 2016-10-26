@@ -231,10 +231,7 @@ public class ChooseResourceDialogTest {
     layout.requireSelection(Collections.singletonList(textView));
 
     // Get property sheet, find text property, open customizer
-    NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
-    NlPropertyFixture property = fixture.findProperty("text");
-    assertThat(property).isNotNull();
-    property.clickCustomizer();
+    layout.getPropertyInspector().findProperty("text").clickCustomizer();
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
     JTableFixture nameTable = dialog.getResourceNameTable();

@@ -32,7 +32,6 @@ import javax.swing.*;
 
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.junit.Assert.assertNotNull;
 
 public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture> {
 
@@ -64,9 +63,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
 
     deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);
 
-    JPopupMenu popupMenu = robot().findActivePopupMenu();
-    assertNotNull(popupMenu);
-    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), popupMenu);
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
     contextMenuFixture.menuItemWithPath("Delete").click();
 
     MessagesFixture.findByTitle(robot(), "Confirm Deletion").clickYes();

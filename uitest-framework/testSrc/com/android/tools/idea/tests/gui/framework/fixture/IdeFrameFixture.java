@@ -275,10 +275,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     waitForBuildToFinish(COMPILE_JAVA);
 
-    GradleInvocationResult result = resultRef.get();
-    assertNotNull(result);
-
-    return result;
+    return resultRef.get();
   }
 
   @NotNull
@@ -314,10 +311,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       Wait.seconds(10).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
         .until(() -> contextRef.get() != null);
 
-      CompileContext context = contextRef.get();
-      assertNotNull(context);
-
-      return context;
+      return contextRef.get();
     }
     finally {
       Disposer.dispose(disposable);
@@ -626,9 +620,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleProjectSettings getGradleSettings() {
-    GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
-    assertNotNull(settings);
-    return settings;
+    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(getProject());
   }
 
   @NotNull
@@ -647,9 +639,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Project getProject() {
-    Project project = target().getProject();
-    assertNotNull(project);
-    return project;
+    return target().getProject();
   }
 
   public WelcomeFrameFixture closeProject() {
@@ -685,9 +675,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) throws IOException {
-    GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
-    assertNotNull(gradleWrapper);
-    gradleWrapper.updateDistributionUrlAndDisplayFailure(version);
+    GradleWrapper.find(getProject()).updateDistributionUrlAndDisplayFailure(version);
     return this;
   }
 
@@ -715,9 +703,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
       }
     }.execute();
-    GradleBuildModel buildModel = buildModelRef.get();
-    assertNotNull(buildModel);
-    return new GradleBuildModelFixture(buildModel);
+    return new GradleBuildModelFixture(buildModelRef.get());
   }
 
   private static class NoOpDisposable implements Disposable {

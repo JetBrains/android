@@ -71,7 +71,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -892,9 +891,7 @@ public class GradleSyncTest {
     cachedChildren.remove(toRemove);
 
     // Force the IDE to use cache for sync.
-    GuiTestSuiteState state = getGuiTestSuiteState();
-    assertNotNull(state);
-    state.setUseCachedGradleModelOnly(true);
+    getGuiTestSuiteState().setUseCachedGradleModelOnly(true);
 
     // Sync again, and a full sync should occur, since the cache is missing modules.
     // 'waitForGradleProjectSyncToFinish' will never finish and test will time out and fail if the IDE never gets notified that the sync
@@ -943,8 +940,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    Module appModule = ideFrame.getModule("app");
-    assertNotNull(AndroidFacet.getInstance(appModule));
+    assertNotNull(AndroidFacet.getInstance(ideFrame.getModule("app")));
 
     File appBuildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertAbout(file()).that(appBuildFile).isFile();
@@ -959,8 +955,7 @@ public class GradleSyncTest {
     syncMessages.findMessage(ERROR, firstLineStartingWith("The module 'app' is an Android project without build variants"));
 
     // Verify AndroidFacet was removed.
-    appModule = ideFrame.getModule("app");
-    assertNull(AndroidFacet.getInstance(appModule));
+    assertNull(AndroidFacet.getInstance(ideFrame.getModule("app")));
   }
 
   @Test

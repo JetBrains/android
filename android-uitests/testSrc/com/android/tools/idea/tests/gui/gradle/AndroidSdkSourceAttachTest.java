@@ -50,7 +50,6 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -116,9 +115,7 @@ public class AndroidSdkSourceAttachTest {
 
     Wait.seconds(1).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
 
-    VirtualFile sourceFile = editor.getCurrentFile();
-    assertNotNull(sourceFile);
-    assertIsActivityJavaFile(sourceFile);
+    assertIsActivityJavaFile(editor.getCurrentFile());
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/417 and from IDEA")
@@ -145,9 +142,7 @@ public class AndroidSdkSourceAttachTest {
 
     Wait.seconds(1).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
 
-    VirtualFile sourceFile = editor.getCurrentFile();
-    assertNotNull(sourceFile);
-    assertIsActivityJavaFile(sourceFile);
+    assertIsActivityJavaFile(editor.getCurrentFile());
   }
 
   private static void assertIsActivityJavaFile(@NotNull VirtualFile sourceFile) {
@@ -170,9 +165,6 @@ public class AndroidSdkSourceAttachTest {
         jarRoot = file;
       }
     }
-    assertNotNull(jarRoot);
-    VirtualFile classFile = jarRoot.findFileByRelativePath("android/app/Activity.class");
-    assertNotNull(classFile);
-    return classFile;
+    return jarRoot.findFileByRelativePath("android/app/Activity.class");
   }
 }
