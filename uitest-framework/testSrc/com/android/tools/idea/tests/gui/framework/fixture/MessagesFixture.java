@@ -43,7 +43,7 @@ public class MessagesFixture {
   @NotNull private final JDialog myDialog; // Mac changes the panel window before closing animation. We keep a reference here.
 
   @NotNull
-  public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
+  public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull String title) {
     if (Messages.canShowMacSheetPanel()) {
       JPanelFixture panelFixture = findMacSheetByTitle(robot, title);
       JDialog dialog = (JDialog)SwingUtilities.getWindowAncestor(panelFixture.target());

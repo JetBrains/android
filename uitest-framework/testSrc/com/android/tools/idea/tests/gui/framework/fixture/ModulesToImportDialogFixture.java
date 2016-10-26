@@ -97,7 +97,7 @@ public class ModulesToImportDialogFixture extends IdeaDialogFixture<ModulesToImp
       .clickOk();
 
     // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
-    MessagesFixture.findByTitle(robot(), target(), "Confirm Save as").click("Yes");
+    MessagesFixture.findByTitle(robot(), "Confirm Save as").click("Yes");
     return this;
   }
 
