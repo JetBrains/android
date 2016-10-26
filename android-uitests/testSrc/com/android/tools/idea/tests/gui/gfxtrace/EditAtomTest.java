@@ -58,7 +58,6 @@ public class EditAtomTest {
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
 
     GfxTraceFixture gfxTraceFixture = guiTest.ideFrame().getEditor().getGfxTraceEditor();
-    gfxTraceFixture.waitForLoadingToFinish();
 
     JComboBoxFixture contextComboBox = gfxTraceFixture.getContextComboBox();
     contextComboBox.selectItem(2);
