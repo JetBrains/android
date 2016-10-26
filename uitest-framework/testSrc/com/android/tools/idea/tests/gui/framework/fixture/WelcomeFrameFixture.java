@@ -62,6 +62,6 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
 
   @NotNull
   public MessagesFixture findMessageDialog(@NotNull String title) {
-    return MessagesFixture.findByTitle(robot(), target(), title);
+    return MessagesFixture.findByTitle(robot(), title);
   }
 }
