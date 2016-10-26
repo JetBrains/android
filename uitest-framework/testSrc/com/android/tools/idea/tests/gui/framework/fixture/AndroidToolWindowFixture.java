@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
@@ -141,7 +140,6 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     @NotNull
     public ProcessListFixture selectItem(@Nullable final String packageName) {
       clearSelection();
-      assertNotNull(packageName);
       Integer index = GuiQuery.getNonNull(
         () -> {
           for (int i = 0; i < target().getModel().getSize(); ++i) {

@@ -116,7 +116,6 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
           return false;
         }
         JPanel errorTextPanel = getFirstItem(errorTextPanels);
-        assertNotNull(errorTextPanel);
         Collection<JLabel> labels = finder.findAll(errorTextPanel, JLabelMatcher.withText(Pattern.compile(".*" + errorText + ".*")));
         return labels.size() == 1;
       });

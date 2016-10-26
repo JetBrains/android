@@ -68,7 +68,6 @@ public class ThemeEditorTableTest {
     // 3. AppCompat
     // 4. -- Separator
     // 5. Show all themes
-    assertNotNull(parentsList);
     assertThat(parentsList).hasSize(6);
     assertThat(parentsList.get(0)).isEqualTo("android:Theme.Holo.Light.DarkActionBar");
     assertThat(parentsList.get(2)).isEqualTo("Theme.AppCompat.Light.NoActionBar");

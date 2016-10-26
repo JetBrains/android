@@ -29,7 +29,6 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static org.junit.Assert.assertNotNull;
 
 public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -57,7 +56,6 @@ public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 
   public void enterTextAndClickOk(@NotNull String text) {
     JTextComponent input = robot().finder().find(target(), JTextComponentMatcher.any());
-    assertNotNull(input);
     JTextComponentFixture inputFixture = new JTextComponentFixture(robot(), input);
     inputFixture.enterText(text);
     findAndClickOkButton(this);

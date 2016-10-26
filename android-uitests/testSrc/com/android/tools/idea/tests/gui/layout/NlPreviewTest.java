@@ -37,7 +37,6 @@ import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
 
@@ -56,7 +55,6 @@ public class NlPreviewTest {
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(true);
-    assertNotNull(preview);
     NlConfigurationToolbarFixture toolbar = preview.getConfigToolbar();
     toolbar.chooseDevice("Nexus 5");
     preview.waitForRenderToFinish();
@@ -108,7 +106,6 @@ public class NlPreviewTest {
       .getEditor()
       .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(false);
-    assertNotNull(preview);
     preview.waitForRenderToFinish();
 
     assertTrue(preview.hasRenderErrors());
@@ -169,16 +166,13 @@ public class NlPreviewTest {
 
     AndroidGradleModel androidModel = guiTest.ideFrame().getAndroidModel("app");
     String modelVersion = androidModel.getAndroidProject().getModelVersion();
-    assertNotNull(modelVersion);
     Revision version = Revision.parseRevision(modelVersion);
-    assertNotNull("Could not parse version " + modelVersion, version);
     assumeTrue("This test tests behavior that starts working in 0.14.+", version.getMajor() != 0 || version.getMinor() >= 14);
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
     editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(true);
-    assertNotNull(preview);
     preview.waitForRenderToFinish();
 
     assertFalse(preview.hasRenderErrors());
@@ -233,7 +227,6 @@ public class NlPreviewTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
 
     NlPreviewFixture layout = editor.getLayoutPreview(true);
-    assertNotNull(layout);
     layout
       .dragComponentToSurface("Widgets/Button")
       .dragComponentToSurface("Widgets/CheckBox")

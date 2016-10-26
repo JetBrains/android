@@ -51,7 +51,6 @@ import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.ui.UIUtil.initDefaultLAF;
 import static org.fest.reflect.core.Reflection.method;
-import static org.junit.Assert.assertNotNull;
 
 public class IdeTestApplication implements Disposable {
   private static final Logger LOG = Logger.getInstance(IdeTestApplication.class);
@@ -184,7 +183,6 @@ public class IdeTestApplication implements Disposable {
   private static void addIdeaLibraries(@NotNull Collection<URL> classpath) throws MalformedURLException {
     Class<BootstrapClassLoaderUtil> aClass = BootstrapClassLoaderUtil.class;
     String selfRoot = PathManager.getResourceRoot(aClass, "/" + aClass.getName().replace('.', '/') + ".class");
-    assertNotNull(selfRoot);
 
     URL selfRootUrl = new File(selfRoot).getAbsoluteFile().toURI().toURL();
     classpath.add(selfRootUrl);
