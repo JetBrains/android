@@ -45,8 +45,8 @@ public class EditAtomTest {
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
   private static final String SAMPLE_SNAPSHOT_NAME = "domination-launch.gfxtrace";
 
-  Method[] TYPES = new Method[] {Method.Bool, Method.Int8, Method.Uint8, Method.Int16, Method.Uint16, Method.Int32, Method.Uint32,
-    Method.Int64, Method.Uint64, Method.Float32, Method.Float64, Method.String, GfxTraceFixture.ENUM, GfxTraceFixture.FLAG, null};
+  Method[] TYPES = new Method[] {Method.Bool, /*Method.Int8,*/ Method.Uint8, /*Method.Int16, Method.Uint16,*/ Method.Int32, Method.Uint32,
+    Method.Int64, /*Method.Uint64,*/ Method.Float32, /*Method.Float64,*/ Method.String, GfxTraceFixture.ENUM, GfxTraceFixture.FLAG, null};
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -65,37 +65,29 @@ public class EditAtomTest {
 
     JTreeFixture tree = gfxTraceFixture.getAtomTree();
 
-    int found = 0;
     for (Method type : TYPES) {
       try {
         int row = gfxTraceFixture.findAndSelectAtomWithField(tree, type);
-        if (row > 0) {
-          found++;
-          if (type == null) {
-            // test we do not open a edit popup if there is nothing to edit
-            tree.rightClickRow(row);
-            assertThat(guiTest.robot().finder().findAll(new TypeMatcher(JPopupMenu.class, true))).isEmpty();
-          }
-          else {
-            JPopupMenuFixture popup = tree.showPopupMenuAt(row);
-            popup.menuItemWithPath("Edit").click();
-            JOptionPaneFixture dialog = new JOptionPaneFixture(guiTest.robot());
-            if (dialog.target().getLocationOnScreen().equals(new Point())) {
-              // dirty hack to get around a bug in X/AWT where in rare cases a timing issue causes a event from X to misinform AWT about the location of the dialog
-              SwingUtilities.getAncestorOfClass(JDialog.class, dialog.target()).setLocation(10, 10);
-            }
-            dialog.cancelButton().click();
-            Wait.minutes(1).expecting("dialog to disappear").until(() -> !dialog.target().isShowing());
-          }
+        if (type == null) {
+          // test we do not open a edit popup if there is nothing to edit
+          tree.rightClickRow(row);
+          assertThat(guiTest.robot().finder().findAll(new TypeMatcher(JPopupMenu.class, true))).isEmpty();
         }
         else {
-          System.out.println("no atom found to test " + type);
+          JPopupMenuFixture popup = tree.showPopupMenuAt(row);
+          popup.menuItemWithPath("Edit").click();
+          JOptionPaneFixture dialog = new JOptionPaneFixture(guiTest.robot());
+          if (dialog.target().getLocationOnScreen().equals(new Point())) {
+            // dirty hack to get around a bug in X/AWT where in rare cases a timing issue causes a event from X to misinform AWT about the location of the dialog
+            SwingUtilities.getAncestorOfClass(JDialog.class, dialog.target()).setLocation(10, 10);
+          }
+          dialog.cancelButton().click();
+          Wait.minutes(1).expecting("dialog to disappear").until(() -> !dialog.target().isShowing());
         }
       }
       catch (Throwable ex) {
         throw new RuntimeException("error with " + type, ex);
       }
     }
-    assertThat(found).isAtLeast(1);
   }
 }
