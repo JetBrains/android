@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.messages.MessageBus;
@@ -43,7 +44,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
-    mySyncState = new GradleSyncState(myProject, messageBus, myChangeNotification, mySummary);
+    mySyncState = new GradleSyncState(myProject, GradleProjectInfo.getInstance(getProject()), messageBus, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
   }

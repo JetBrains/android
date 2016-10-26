@@ -293,8 +293,8 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       gradleSettingsFile.addModule(name, targetFile);
     }
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }
 
   /**

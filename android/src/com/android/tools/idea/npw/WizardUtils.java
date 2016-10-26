@@ -206,9 +206,9 @@ public class WizardUtils {
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        GradleProjectImporter.RequestSettings requestSettings = new GradleProjectImporter.RequestSettings();
-        requestSettings.setProject(project).setLanguageLevel(initialLanguageLevel);
-        projectImporter.importProject(projectName, projectRoot, requestSettings, new NewProjectImportGradleSyncListener() {
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        request.setProject(project).setLanguageLevel(initialLanguageLevel);
+        projectImporter.importProject(projectName, projectRoot, request, new NewProjectImportGradleSyncListener() {
           @Override
           public void syncSucceeded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example

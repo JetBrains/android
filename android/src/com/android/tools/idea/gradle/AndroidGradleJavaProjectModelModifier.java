@@ -229,8 +229,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, settings, new GradleSyncListener.Adapter() {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         promise.setResult(null);

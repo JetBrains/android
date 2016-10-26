@@ -180,8 +180,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setGenerateSourcesOnSuccess(false);
-            GradleSyncInvoker.getInstance().requestProjectSync(project, settings, new GradleSyncListener.Adapter() {
+            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
                 restartAnalysis(project, scope);

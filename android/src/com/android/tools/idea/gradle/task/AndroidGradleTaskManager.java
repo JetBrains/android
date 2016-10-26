@@ -45,16 +45,16 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id);
     if (gradleBuildInvoker != null) {
-      GradleBuildInvoker.RequestSettings requestSettings = new GradleBuildInvoker.RequestSettings(gradleBuildInvoker.getProject(), taskNames, id);
+      GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), taskNames, id);
 
       // @formatter:off
-      requestSettings.setJvmArguments(vmOptions)
-                     .setCommandLineArguments(scriptParameters)
-                     .setTaskListener(listener)
-                     .setWaitForCompletion(true);
+      request.setJvmArguments(vmOptions)
+             .setCommandLineArguments(scriptParameters)
+             .setTaskListener(listener)
+             .setWaitForCompletion(true);
       // @formatter:on
 
-      gradleBuildInvoker.executeTasks(requestSettings);
+      gradleBuildInvoker.executeTasks(request);
       return true;
     }
     // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
