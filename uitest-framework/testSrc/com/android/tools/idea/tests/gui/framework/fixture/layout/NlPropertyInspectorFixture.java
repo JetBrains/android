@@ -37,7 +37,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspectorFixture, Component> {
   private final NlPropertiesPanel myPanel;
 
-  public NlPropertyInspectorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull NlPropertiesPanel panel) {
+  public NlPropertyInspectorFixture(@NotNull Robot robot, @NotNull NlPropertiesPanel panel) {
     super(NlPropertyInspectorFixture.class, robot, panel);
     myPanel = panel;
   }
