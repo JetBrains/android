@@ -708,7 +708,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public GradleBuildModelFixture parseBuildFileForModule(@NotNull String moduleName) {
     Module module = getModule(moduleName);
     VirtualFile buildFile = getGradleBuildFile(module);
-    assertNotNull(buildFile);
     Ref<GradleBuildModel> buildModelRef = new Ref<>();
     new ReadAction() {
       @Override

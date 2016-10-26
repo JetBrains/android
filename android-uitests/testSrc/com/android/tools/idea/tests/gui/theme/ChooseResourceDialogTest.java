@@ -291,7 +291,6 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    assertThat(property).isNotNull();
     property.clickCustomizer();
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
@@ -320,7 +319,6 @@ public class ChooseResourceDialogTest {
     // Ensure that the pixel in the middle of the preview area is red
     JLabelFixture previewLabel = dialog.getDrawablePreviewLabel();
     Icon icon = previewLabel.target().getIcon();
-    assertThat(icon).isNotNull();
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     Graphics graphics = img.getGraphics();

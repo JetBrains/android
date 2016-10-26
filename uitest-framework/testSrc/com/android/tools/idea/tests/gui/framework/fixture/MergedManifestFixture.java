@@ -108,7 +108,6 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
         for (int row = 0; row < tree.getRowCount(); row++) {
           TreePath path = tree.getPathForRow(row);
           Color color = tree.getFileColorForPath(path);
-          assertNotNull(color);
           assertNotEquals(0, color.getAlpha());
         }
       }

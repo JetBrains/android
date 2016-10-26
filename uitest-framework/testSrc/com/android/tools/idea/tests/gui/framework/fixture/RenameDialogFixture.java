@@ -36,7 +36,6 @@ import javax.swing.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
@@ -109,7 +108,6 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
     return GuiQuery.getNonNull(
       () -> {
         JComponent errorTextPane = field("myErrorText").ofType(JComponent.class).in(getDialogWrapper()).get();
-        assertNotNull(errorTextPane);
         if (!errorTextPane.isVisible()) {
           return false;
         }

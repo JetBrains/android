@@ -42,7 +42,6 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.GOTO_DECLARATION;
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -98,7 +97,6 @@ public class GradleTestArtifactSyncTest {
   }
 
   private static void requirePath(@Nullable VirtualFile file, @NotNull String path) {
-    assertNotNull(file);
     assertThat(file.getPath()).endsWith(path);
   }
 

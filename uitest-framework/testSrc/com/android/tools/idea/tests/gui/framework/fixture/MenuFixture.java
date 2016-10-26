@@ -34,7 +34,6 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static org.junit.Assert.assertNotNull;
 
 class MenuFixture {
   @NotNull private final Robot myRobot;
@@ -68,7 +67,6 @@ class MenuFixture {
     Container root = myContainer;
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
-      assertNotNull(root);
       JMenuItem found = myRobot.finder().find(root, Matchers.byText(JMenuItem.class, segment));
       if (root instanceof JPopupMenu) {
         previouslyFoundPopups.add((JPopupMenu)root);

@@ -152,7 +152,6 @@ public class ThemeSelectorTest {
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
-    assertNotNull(selectedTheme);
 
     themesComboBox.selectItem("Create New Theme");
     NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());

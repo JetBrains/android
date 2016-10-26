@@ -42,7 +42,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.regex.Pattern.DOTALL;
 import static org.fest.swing.util.Strings.match;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -108,7 +107,6 @@ public class GradleTasksTest {
 
     // Add a long-running task and refresh the project.
     VirtualFile buildFile = getGradleBuildFile(module);
-    assertNotNull(buildFile);
     Document document = GuiQuery.getNonNull(() -> FileDocumentManager.getInstance().getDocument(buildFile));
     runWriteCommandAction(
       guiTest.ideFrame().getProject(), () -> {
