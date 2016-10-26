@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -60,6 +62,12 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
+    final DataContext dataContext = e.getDataContext();
+    // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
+    // this event to monitor invoked actions.
+    manager.fireBeforeActionPerformed(this, dataContext, e);
+
     tryUpdateConfiguration();
     updatePresentation();
   }
