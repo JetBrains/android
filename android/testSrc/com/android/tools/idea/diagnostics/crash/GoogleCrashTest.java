@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.crash;
+package com.android.tools.idea.diagnostics.crash;
 
+import com.google.common.base.Joiner;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.testFramework.PlatformTestUtil;
 import groovy.json.internal.Charsets;
@@ -26,6 +27,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.*;
@@ -152,9 +154,9 @@ public class GoogleCrashTest {
     assertEquals(descriptions.size(), Integer.parseInt(attributes.get("numCrashes")));
     assertEquals("2.3.0.0\n1.8.0_73-b02\n\n2.3.0.1\n1.8.0_73-b02", attributes.get("crashDesc"));
 
-    Path testData = Paths.get(PlatformTestUtil.getPlatformTestDataPath());
-    List<String> threadDump = Files.readAllLines(testData.resolve(Paths.get("threadDumps", "1.txt")));
-    report = CrashReport.Builder.createForPerfReport("td.txt", threadDump).build();
+    Path testData = Paths.get(AndroidTestBase.getTestDataPath());
+    List<String> threadDump = Files.readAllLines(testData.resolve(Paths.get("threadDumps", "1.txt")), Charsets.UTF_8);
+    report = CrashReport.Builder.createForPerfReport("td.txt", Joiner.on('\n').join(threadDump)).build();
 
     attributes.clear();
 
@@ -185,7 +187,7 @@ public class GoogleCrashTest {
 
   // Performs a real upload to staging
   public static void main(String[] args) {
-    GoogleCrash crash = GoogleCrash.getInstance();
+    GoogleCrash crash = new GoogleCrash();
 
     CompletableFuture<String> response = crash.submit(CrashReport.Builder.createForException(ourIndexNotReadyException).build());
     try {

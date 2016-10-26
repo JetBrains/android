@@ -50,15 +50,6 @@
     <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="eclipse" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/GoogleFeedback.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="external-system-api" />
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
