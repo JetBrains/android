@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -65,13 +66,13 @@ public class ResourceResolverCache {
    * Note that they key here is only the full configuration, whereas the map for the
    * resolvers also includes the theme.
    */
-  private final Map<String, Map<ResourceType, Map<String, ResourceValue>>> myAppResourceMap;
+  private final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
 
   /**
    * Map of configured framework resources. These are cached separately from the final resource
    * resolver since they can be shared between different layouts that only vary by theme
    */
-  private final Map<String, Map<ResourceType, Map<String, ResourceValue>>> myFrameworkResourceMap;
+  private final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
@@ -121,8 +122,8 @@ public class ResourceResolverCache {
     String resolverKey = themeStyle + configurationKey;
     ResourceResolver resolver = myResolverMap.get(resolverKey);
     if (resolver == null) {
-      Map<ResourceType, Map<String, ResourceValue>> configuredAppRes;
-      Map<ResourceType, Map<String, ResourceValue>> frameworkResources;
+      Map<ResourceType, ResourceValueMap> configuredAppRes;
+      Map<ResourceType, ResourceValueMap> frameworkResources;
 
       // Framework resources
       if (target == null) {
@@ -160,9 +161,9 @@ public class ResourceResolverCache {
       if (configuredAppRes == null) {
         // get the project resource values based on the current config
         Application application = ApplicationManager.getApplication();
-        configuredAppRes = application.runReadAction(new Computable<Map<ResourceType, Map<String, ResourceValue>>>() {
+        configuredAppRes = application.runReadAction(new Computable<Map<ResourceType, ResourceValueMap>>() {
           @Override
-          public Map<ResourceType, Map<String, ResourceValue>> compute() {
+          public Map<ResourceType, ResourceValueMap> compute() {
             return resources.getConfiguredResources(fullConfiguration);
           }
         });
@@ -228,12 +229,12 @@ public class ResourceResolverCache {
    * since a lot of the look comes from the nine patch assets. For example, when used to simulate Froyo, the checkboxes
    * will look better than if we use the current classic theme assets, which look like gingerbread.
    */
-  private static void replaceDrawableBitmaps(@NotNull Map<ResourceType, Map<String, ResourceValue>> frameworkResources,
+  private static void replaceDrawableBitmaps(@NotNull Map<ResourceType, ResourceValueMap> frameworkResources,
                                              @NotNull IAndroidTarget from,
                                              @NotNull IAndroidTarget realTarget) {
     // This is a bit hacky; we should be operating at the resource repository level rather than
     // for configured resources. However, we may not need this for very long.
-    Map<String, ResourceValue> map = frameworkResources.get(ResourceType.DRAWABLE);
+    ResourceValueMap map = frameworkResources.get(ResourceType.DRAWABLE);
     String oldPrefix = from.getPath(IAndroidTarget.RESOURCES);
     String newPrefix = realTarget.getPath(IAndroidTarget.RESOURCES);
 
