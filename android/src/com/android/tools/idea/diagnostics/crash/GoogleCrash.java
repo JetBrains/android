@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.crash;
+package com.android.tools.idea.diagnostics.crash;
 
 import com.android.tools.analytics.Anonymizer;
 import com.android.utils.NullLogger;
@@ -25,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.HashMap;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -32,7 +33,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -44,6 +44,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.lang.management.RuntimeMXBean;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
@@ -51,7 +52,7 @@ import java.util.concurrent.ForkJoinPool;
  * {@link GoogleCrash} provides APIs to upload crash reports to Google crash reporting service.
  * @see <a href="http://go/studio-g3doc/implementation/crash">Crash Backend</a> for more information.
  */
-public class GoogleCrash {
+public class GoogleCrash implements CrashReporter {
   private static final boolean UNIT_TEST_MODE = ApplicationManager.getApplication() == null;
   private static final boolean DEBUG_BUILD = !UNIT_TEST_MODE && ApplicationManager.getApplication().isInternal();
 
@@ -68,7 +69,6 @@ public class GoogleCrash {
   static final String KEY_VERSION = "version";
   static final String KEY_EXCEPTION_INFO = "exception_info";
 
-  private static GoogleCrash ourInstance;
   private final String myCrashUrl;
 
   @Nullable
@@ -85,7 +85,7 @@ public class GoogleCrash {
     }
   }
 
-  private GoogleCrash() {
+  GoogleCrash() {
     this(CRASH_URL);
   }
 
@@ -94,19 +94,53 @@ public class GoogleCrash {
     myCrashUrl = crashUrl;
   }
 
+  @Override
+  @NotNull
   public CompletableFuture<String> submit(@NotNull CrashReport report) {
+    Map<String, String> parameters = getDefaultParameters();
+    if (report.version != null) {
+      parameters.put(KEY_VERSION, report.version);
+    }
+    parameters.put(KEY_PRODUCT_ID, report.productId);
+
+    MultipartEntityBuilder builder = newMultipartEntityBuilderWithKv(parameters);
+    report.serialize(builder);
+    return submit(builder.build());
+  }
+
+  @NotNull
+  @Override
+  public CompletableFuture<String> submit(@NotNull Map<String, String> kv) {
+    Map<String, String> parameters = getDefaultParameters();
+    kv.forEach(parameters::put);
+    return submit(newMultipartEntityBuilderWithKv(parameters).build());
+  }
+
+  @NotNull
+  @Override
+  public CompletableFuture<String> submit(@NotNull final HttpEntity requestEntity) {
     CompletableFuture<String> future = new CompletableFuture<>();
     ForkJoinPool.commonPool().submit(() -> {
       try {
         HttpClient client = HttpClients.createDefault();
-        HttpResponse response = client.execute(createPost(report));
+
+        HttpEntity entity = requestEntity;
+        if (!UNIT_TEST_MODE) {
+          // The test server used in testing doesn't handle gzip compression (netty requires jcraft jzlib for gzip decompression)
+          entity = new GzipCompressingEntity(requestEntity);
+        }
+
+        HttpPost post = new HttpPost(myCrashUrl);
+        post.setEntity(entity);
+
+        HttpResponse response = client.execute(post);
         StatusLine statusLine = response.getStatusLine();
         if (statusLine.getStatusCode() >= 300) {
           future.completeExceptionally(new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase()));
           return;
         }
 
-        HttpEntity entity = response.getEntity();
+        entity = response.getEntity();
         if (entity == null) {
           future.completeExceptionally(new NullPointerException("Empty response entity"));
           return;
@@ -127,82 +161,48 @@ public class GoogleCrash {
   }
 
   @NotNull
-  private HttpUriRequest createPost(@NotNull CrashReport report) {
-    HttpPost post = new HttpPost(myCrashUrl);
+  private static MultipartEntityBuilder newMultipartEntityBuilderWithKv(@NotNull Map<String, String> kv) {
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    kv.forEach(builder::addTextBody);
+    return builder;
+  }
 
+  @NotNull
+  private static Map<String, String> getDefaultParameters() {
+    Map<String, String> map = new HashMap<>();
     ApplicationInfo applicationInfo = getApplicationInfo();
 
-    String strictVersion = report.version;
-    if (strictVersion == null) {
-      strictVersion = applicationInfo == null ? "0.0.0.0" : applicationInfo.getStrictVersion();
-    }
-
-    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-
-    // key names recognized by crash
-    builder.addTextBody(KEY_PRODUCT_ID, report.productId);
-    builder.addTextBody(KEY_VERSION, strictVersion);
-
     if (ANONYMIZED_UID != null) {
-      builder.addTextBody("guid", ANONYMIZED_UID);
+      map.put("guid", ANONYMIZED_UID);
     }
     RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-    builder.addTextBody("ptime", Long.toString(runtimeMXBean.getUptime()));
-
-    // add report specific data
-    report.serialize(builder);
+    map.put("ptime", Long.toString(runtimeMXBean.getUptime()));
 
     // product specific key value pairs
-    builder.addTextBody("fullVersion", applicationInfo == null ? "0.0.0.0" : applicationInfo.getFullVersion());
+    map.put(KEY_VERSION, applicationInfo == null ? "0.0.0.0" : applicationInfo.getStrictVersion());
+    map.put(KEY_PRODUCT_ID, CrashReport.PRODUCT_ANDROID_STUDIO); // must match registration with Crash
+    map.put("fullVersion", applicationInfo == null ? "0.0.0.0" : applicationInfo.getFullVersion());
 
-    builder.addTextBody("osName", StringUtil.notNullize(SystemInfo.OS_NAME));
-    builder.addTextBody("osVersion", StringUtil.notNullize(SystemInfo.OS_VERSION));
-    builder.addTextBody("osArch", StringUtil.notNullize(SystemInfo.OS_ARCH));
-    builder.addTextBody("locale", StringUtil.notNullize(LOCALE));
+    map.put("osName", StringUtil.notNullize(SystemInfo.OS_NAME));
+    map.put("osVersion", StringUtil.notNullize(SystemInfo.OS_VERSION));
+    map.put("osArch", StringUtil.notNullize(SystemInfo.OS_ARCH));
+    map.put("locale", StringUtil.notNullize(LOCALE));
 
-    builder.addTextBody("vmName", StringUtil.notNullize(runtimeMXBean.getVmName()));
-    builder.addTextBody("vmVendor", StringUtil.notNullize(runtimeMXBean.getVmVendor()));
-    builder.addTextBody("vmVersion", StringUtil.notNullize(runtimeMXBean.getVmVersion()));
+    map.put("vmName", StringUtil.notNullize(runtimeMXBean.getVmName()));
+    map.put("vmVendor", StringUtil.notNullize(runtimeMXBean.getVmVendor()));
+    map.put("vmVersion", StringUtil.notNullize(runtimeMXBean.getVmVersion()));
 
     MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-    builder.addTextBody("heapUsed", Long.toString(usage.getUsed()));
-    builder.addTextBody("heapCommitted", Long.toString(usage.getCommitted()));
-    builder.addTextBody("heapMax", Long.toString(usage.getMax()));
+    map.put("heapUsed", Long.toString(usage.getUsed()));
+    map.put("heapCommitted", Long.toString(usage.getCommitted()));
+    map.put("heapMax", Long.toString(usage.getMax()));
 
-    HttpEntity entity = builder.build();
-    if (!UNIT_TEST_MODE) {
-      // The test server used in testing doesn't handle gzip compression (netty requires jcraft jzlib for gzip decompression)
-      entity = new GzipCompressingEntity(entity);
-    }
-    post.setEntity(entity);
-    return post;
+    return map;
   }
 
   @Nullable
   private static ApplicationInfo getApplicationInfo() {
     // We obtain the ApplicationInfo only if running with an application instance. Otherwise, a call to a ServiceManager never returns..
     return ApplicationManager.getApplication() == null ? null : ApplicationInfo.getInstance();
-  }
-
-  public static boolean isReportableCrash(@NotNull Throwable t) {
-    if (t instanceof ClassNotFoundException) {
-      String cls = t.getMessage();
-      if (cls != null && cls.startsWith("com.sun.jdi.")) {
-        // Android Studio:
-        // Running on a JRE. We're already warning about that in the System Health Monitor.
-        // https://code.google.com/p/android/issues/detail?id=225130
-        return false;
-      }
-    }
-
-    return !(t instanceof Logger.EmptyThrowable);
-  }
-
-  public static synchronized GoogleCrash getInstance() {
-    if (ourInstance == null) {
-      ourInstance = new GoogleCrash();
-    }
-
-    return ourInstance;
   }
 }

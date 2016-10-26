@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.crash;
+package com.android.tools.idea.diagnostics.crash;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.util.ExceptionUtil;
+import com.intellij.util.containers.HashMap;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
-import static com.android.tools.idea.crash.GoogleCrash.KEY_EXCEPTION_INFO;
+import static com.android.tools.idea.diagnostics.crash.GoogleCrash.KEY_EXCEPTION_INFO;
 
 public abstract class CrashReport {
-  private static final String PRODUCT_ANDROID_STUDIO = "AndroidStudio"; // must stay in sync with backend registration
+  public static final String PRODUCT_ANDROID_STUDIO = "AndroidStudio"; // must stay in sync with backend registration
 
   /** {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII. */
   private static final ImmutableSet<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES = ImmutableSet.of(
@@ -47,16 +49,23 @@ public abstract class CrashReport {
 
   @NotNull public final String productId;
   @Nullable public final String version;
+  @Nullable public final Map<String, String> productData;
   @NotNull private final Type myType;
 
-  private CrashReport(@NotNull String productId, @Nullable String version, @NotNull Type type) {
+  private CrashReport(@NotNull String productId, @Nullable String version, @Nullable Map<String, String> productData, @NotNull Type type) {
     this.productId = productId;
     this.version = version;
+    this.productData = productData;
     myType = type;
   }
 
   public void serialize(@NotNull MultipartEntityBuilder builder) {
     builder.addTextBody("type", myType.toString());
+
+    if (productData != null) {
+      productData.forEach(builder::addTextBody);
+    }
+
     serializeTo(builder);
   }
 
@@ -65,8 +74,11 @@ public abstract class CrashReport {
   private static class ExceptionReport extends CrashReport {
     @NotNull private final String myExceptionInfo;
 
-    private ExceptionReport(@NotNull String productId, @Nullable String version, @NotNull String exceptionInfo) {
-      super(productId, version, Type.Exception);
+    private ExceptionReport(@NotNull String productId,
+                            @Nullable String version,
+                            @NotNull String exceptionInfo,
+                            @Nullable Map<String, String> productData) {
+      super(productId, version, productData, Type.Exception);
       myExceptionInfo = exceptionInfo;
     }
 
@@ -79,8 +91,11 @@ public abstract class CrashReport {
   private static class StudioCrashReport extends CrashReport {
     private final List<String> myDescriptions;
 
-    private StudioCrashReport(@NotNull String productId, @Nullable String version, @NotNull List<String> descriptions) {
-      super(productId, version, Type.Crash);
+    private StudioCrashReport(@NotNull String productId,
+                              @Nullable String version,
+                              @NotNull List<String> descriptions,
+                              @Nullable Map<String, String> productData) {
+      super(productId, version, productData, Type.Crash);
       myDescriptions = descriptions;
     }
 
@@ -93,13 +108,14 @@ public abstract class CrashReport {
 
   private static class StudioPerformanceWatcherReport extends CrashReport {
     private final String myFileName;
-    private final List<String> myThreadDump;
+    private final String myThreadDump;
 
     private StudioPerformanceWatcherReport(@NotNull String productId,
                                            @Nullable String version,
                                            @NotNull String fileName,
-                                           @NotNull List<String> threadDump) {
-      super(productId, version, Type.Performance);
+                                           @NotNull String threadDump,
+                                           @Nullable Map<String, String> productData) {
+      super(productId, version, productData, Type.Performance);
       myFileName = fileName;
       myThreadDump = threadDump;
     }
@@ -112,7 +128,7 @@ public abstract class CrashReport {
       }
 
       builder.addTextBody(myFileName,
-                          Joiner.on('\n').join(myThreadDump),
+                          myThreadDump,
                           ContentType.create("text/plain", Charsets.UTF_8));
     }
   }
@@ -123,8 +139,9 @@ public abstract class CrashReport {
     private Type myType = Type.Exception;
     private String myExceptionInfo = "<unknown>";
     private List<String> myCrashDescriptions;
-    private List<String> myThreadDump;
+    private String myThreadDump;
     private String myFileName;
+    private Map<String,String> myProductData;
 
     private Builder() {
     }
@@ -138,6 +155,16 @@ public abstract class CrashReport {
     @NotNull
     public Builder setVersion(@NotNull String version) {
       myVersion = version;
+      return this;
+    }
+
+    @NotNull
+    public Builder addProductData(@NotNull Map<String,String> kv) {
+      if (myProductData == null) {
+        myProductData = new HashMap<>();
+      }
+
+      myProductData.putAll(kv);
       return this;
     }
 
@@ -161,7 +188,7 @@ public abstract class CrashReport {
     }
 
     @NotNull
-    private Builder setThreadDump(@NotNull String fileName, @NotNull List<String> threadDump) {
+    private Builder setThreadDump(@NotNull String fileName, @NotNull String threadDump) {
       myFileName = fileName;
       myThreadDump = threadDump;
       return this;
@@ -171,12 +198,12 @@ public abstract class CrashReport {
     public CrashReport build() {
       switch (myType) {
         case Crash:
-          return new StudioCrashReport(myProductId, myVersion, myCrashDescriptions);
+          return new StudioCrashReport(myProductId, myVersion, myCrashDescriptions, myProductData);
         case Performance:
-          return new StudioPerformanceWatcherReport(myProductId, myVersion, myFileName, myThreadDump);
+          return new StudioPerformanceWatcherReport(myProductId, myVersion, myFileName, myThreadDump, myProductData);
         default:
         case Exception:
-          return new ExceptionReport(myProductId, myVersion, myExceptionInfo);
+          return new ExceptionReport(myProductId, myVersion, myExceptionInfo, myProductData);
       }
     }
 
@@ -195,7 +222,7 @@ public abstract class CrashReport {
     }
 
     @NotNull
-    public static Builder createForPerfReport(@NotNull String fileName, @NotNull List<String> threadDump) {
+    public static Builder createForPerfReport(@NotNull String fileName, @NotNull String threadDump) {
       return new Builder()
         .setType(Type.Performance)
         .setThreadDump(fileName, threadDump);
