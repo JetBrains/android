@@ -63,9 +63,9 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     SyncListener listener = new SyncListener();
 
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
-    settings.setGenerateSourcesOnSuccess(false);
-    myGradleSync.sync(getProject(), settings, listener);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setGenerateSourcesOnSuccess(false);
+    myGradleSync.sync(getProject(), request, listener);
     listener.await();
 
     assertFalse(listener.success);
@@ -89,9 +89,9 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
 
     SyncListener listener = new SyncListener();
 
-    GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings();
-    settings.setGenerateSourcesOnSuccess(false);
-    myGradleSync.sync(getProject(), settings, listener);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setGenerateSourcesOnSuccess(false);
+    myGradleSync.sync(getProject(), request, listener);
 
     listener.await();
 

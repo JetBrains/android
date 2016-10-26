@@ -178,9 +178,9 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
   static class Factory {
     @NotNull
-    GradleTasksExecutor create(@NotNull GradleBuildInvoker.RequestSettings requestSettings,
+    GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
                                @NotNull BuildStopper buildStopper) {
-      return new GradleTasksExecutorImpl(requestSettings, buildStopper);
+      return new GradleTasksExecutorImpl(request, buildStopper);
     }
   }
 
@@ -212,7 +212,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     @NotNull private final Object myMessageViewLock = new Object();
     @NotNull private final Object myCompletionLock = new Object();
 
-    @NotNull private final GradleBuildInvoker.RequestSettings myRequestSettings;
+    @NotNull private final GradleBuildInvoker.Request myRequest;
     @NotNull private final BuildStopper myBuildStopper;
 
     @GuardedBy("myCompletionLock")
@@ -235,10 +235,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private CloseListener myCloseListener;
 
     @VisibleForTesting
-    GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.RequestSettings requestSettings,
+    GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request,
                             @NotNull BuildStopper buildStopper) {
-      super(requestSettings.getProject());
-      myRequestSettings = requestSettings;
+      super(request.getProject());
+      myRequest = request;
       myBuildStopper = buildStopper;
     }
 
@@ -264,7 +264,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       myProgressIndicator = indicator;
 
       ProjectManager projectManager = ProjectManager.getInstance();
-      Project project = myRequestSettings.getProject();
+      Project project = myRequest.getProject();
       myCloseListener = new CloseListener();
       projectManager.addProjectManagerListener(project, myCloseListener);
 
@@ -314,7 +314,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         @Override
         public void run() {
           synchronized (myMessageViewLock) {
-            if (myErrorTreeView != null && !myRequestSettings.getProject().isDisposed()) {
+            if (myErrorTreeView != null && !myRequest.getProject().isDisposed()) {
               addStatisticsMessage(CompilerBundle.message("statistics.error.count", myErrorCount));
               addStatisticsMessage(CompilerBundle.message("statistics.warnings.count", myWarningCount));
 
@@ -332,8 +332,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void invokeGradleTasks() {
-      Project project = myRequestSettings.getProject();
-      GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project, myRequestSettings.isUseEmbeddedGradle());
+      Project project = myRequest.getProject();
+      GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project, myRequest.isUseEmbeddedGradle());
 
       Function<ProjectConnection, Void> executeTasksFunction = connection -> {
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -341,7 +341,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
         consoleView.clear();
 
-        List<String> gradleTasks = myRequestSettings.getGradleTasks();
+        List<String> gradleTasks = myRequest.getGradleTasks();
         addMessage(new Message(Message.Kind.INFO, "Gradle tasks " + gradleTasks, SourceFilePosition.UNKNOWN), null);
 
         String executingTasksText = "Executing tasks: " + gradleTasks;
@@ -352,7 +352,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
         BuildException buildError = null;
         InstantRunBuildProgressListener instantRunProgressListener = null;
-        ExternalSystemTaskId id = myRequestSettings.getTaskId();
+        ExternalSystemTaskId id = myRequest.getTaskId();
         CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -368,7 +368,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
 
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
-          commandLineArguments.addAll(myRequestSettings.getCommandLineArguments());
+          commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
           GradleInitScripts initScripts = GradleInitScripts.getInstance();
           initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArguments);
@@ -398,7 +398,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
           LOG.info(logMessage);
 
-          List<String> jvmArguments = new ArrayList<>(myRequestSettings.getJvmArguments());
+          List<String> jvmArguments = new ArrayList<>(myRequest.getJvmArguments());
           BuildLauncher launcher = connection.newBuild();
           prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArguments, commandLineArguments, connection);
 
@@ -411,7 +411,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           launcher.withCancellationToken(cancellationTokenSource.token());
 
           GradleOutputForwarder.Listener outputListener = null;
-          ExternalSystemTaskNotificationListener taskListener = myRequestSettings.getTaskListener();
+          ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
           if (taskListener != null) {
             outputListener = (contentType, data, offset, length) -> {
               if (myBuildStopper.contains(id)) {
@@ -471,7 +471,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         }
       }
 
-      File buildFilePath = myRequestSettings.getBuildFilePath();
+      File buildFilePath = myRequest.getBuildFilePath();
       File projectDirPath = buildFilePath != null ? buildFilePath : getBaseDirPath(project);
 
       myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
@@ -516,7 +516,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         }
 
         boolean buildSuccessful = buildError == null;
-        GradleInvocationResult result = new GradleInvocationResult(myRequestSettings.getGradleTasks(), buildMessages, buildSuccessful);
+        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildSuccessful);
         for (AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
           task.execute(result);
         }
@@ -596,7 +596,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
       };
-      invokeLaterIfProjectAlive(myRequestSettings.getProject(), showErrorTask);
+      invokeLaterIfProjectAlive(myRequest.getProject(), showErrorTask);
     }
 
     /**
@@ -666,12 +666,12 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
       myMessageViewIsPrepared = true;
       ApplicationManager.getApplication().invokeLater(() -> {
-        if (!myRequestSettings.getProject().isDisposed()) {
+        if (!myRequest.getProject().isDisposed()) {
           synchronized (myMessageViewLock) {
             // Clear messages from the previous compilation
             if (myErrorTreeView == null) {
               // If message view != null, the contents has already been cleared.
-              removeUnpinnedBuildMessages(myRequestSettings.getProject(), null);
+              removeUnpinnedBuildMessages(myRequest.getProject(), null);
             }
           }
         }
@@ -683,14 +683,14 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         return;
       }
 
-      Project project = myRequestSettings.getProject();
+      Project project = myRequest.getProject();
       JComponent component;
       synchronized (myMessageViewLock) {
         if (myErrorTreeView != null) {
           return;
         }
         myErrorTreeView = new GradleBuildTreeViewPanel(project);
-        ExternalSystemTaskId id = myRequestSettings.getTaskId();
+        ExternalSystemTaskId id = myRequest.getTaskId();
         myErrorTreeView.setProcessController(new BuildProcessController(id, myBuildStopper, myProgressIndicator));
         component = myErrorTreeView.getComponent();
       }
@@ -704,7 +704,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       myCloseListener.setContent(contentManager, content);
 
-      removeUnpinnedBuildMessages(myRequestSettings.getProject(), content);
+      removeUnpinnedBuildMessages(myRequest.getProject(), content);
       contentManager.setSelectedContent(content);
     }
 
@@ -717,7 +717,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     private void add(@NotNull Message message, @Nullable Navigatable navigatable) {
       synchronized (myMessageViewLock) {
-        if (myErrorTreeView != null && !myRequestSettings.getProject().isDisposed()) {
+        if (myErrorTreeView != null && !myRequest.getProject().isDisposed()) {
           Message.Kind messageKind = message.getKind();
           int type = translateMessageKind(messageKind);
           LinkAwareMessageData messageData = prepareMessage(message);
@@ -782,7 +782,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
           linesBuffer.set(0, line);
           boolean handled = handler.handleError(linesBuffer, new ExternalSystemException(message.getText()), dummyData,
-                                                myRequestSettings.getProject());
+                                                myRequest.getProject());
           if (handled) {
             // Extract text added by the handler and store it at the 'enhancedTextLines' collection.
             String currentMessage = dummyData.getMessage();
@@ -828,7 +828,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
       if (source.getDescription() != null) {
         String gradlePath = source.getDescription();
-        Module module = findModuleByGradlePath(myRequestSettings.getProject(), gradlePath);
+        Module module = findModuleByGradlePath(myRequest.getProject(), gradlePath);
         if (module != null) {
           AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
           // if we got here facet is not null;
@@ -859,7 +859,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void notifyGradleInvocationCompleted(long durationMillis) {
-      Project project = myRequestSettings.getProject();
+      Project project = myRequest.getProject();
       if (!project.isDisposed()) {
         String statusMsg = createStatusMessage(durationMillis);
         MessageType messageType = myErrorCount > 0 ? ERROR : myWarningCount > 0 ? WARNING : INFO;
@@ -896,12 +896,12 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @NotNull
     private ToolWindowManager getToolWindowManager() {
-      return ToolWindowManager.getInstance(myRequestSettings.getProject());
+      return ToolWindowManager.getInstance(myRequest.getProject());
     }
 
     private void showMessages() {
       synchronized (myMessageViewLock) {
-        if (myErrorTreeView != null && !myRequestSettings.getProject().isDisposed()) {
+        if (myErrorTreeView != null && !myRequest.getProject().isDisposed()) {
           MessageView messageView = getMessageView();
           Content[] contents = messageView.getContentManager().getContents();
           for (Content content : contents) {
@@ -916,7 +916,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @NotNull
     private MessageView getMessageView() {
-      return MessageView.SERVICE.getInstance(myRequestSettings.getProject());
+      return MessageView.SERVICE.getInstance(myRequest.getProject());
     }
 
     private void activateMessageView() {
@@ -931,7 +931,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     private void attemptToStopBuild() {
-      myBuildStopper.attemptToStopBuild(myRequestSettings.getTaskId(), myProgressIndicator);
+      myBuildStopper.attemptToStopBuild(myRequest.getTaskId(), myProgressIndicator);
     }
 
     /**
@@ -1038,7 +1038,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       public void contentRemoved(ContentManagerEvent event) {
         if (event.getContent() == myContent) {
           synchronized (myMessageViewLock) {
-            Project project = myRequestSettings.getProject();
+            Project project = myRequest.getProject();
             if (myErrorTreeView != null && !project.isDisposed()) {
               Disposer.dispose(myErrorTreeView);
               myErrorTreeView = null;
@@ -1098,7 +1098,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       private void stopAppIconProgress() {
         invokeLaterIfNeeded(() -> {
           AppIcon appIcon = AppIcon.getInstance();
-          Project project = myRequestSettings.getProject();
+          Project project = myRequest.getProject();
           if (appIcon.hideProgress(project, APP_ICON_ID)) {
             if (myErrorCount > 0) {
               appIcon.setErrorBadge(project, String.valueOf(myErrorCount));

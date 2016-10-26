@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -70,6 +71,7 @@ public class GradleSyncState {
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
   @NotNull private final Project myProject;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
@@ -101,16 +103,18 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
-    this(project, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project));
+  public GradleSyncState(@NotNull Project project, @NotNull GradleProjectInfo gradleProjectInfo, @NotNull MessageBus messageBus) {
+    this(project, gradleProjectInfo, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
   GradleSyncState(@NotNull Project project,
+                  @NotNull GradleProjectInfo gradleProjectInfo,
                   @NotNull MessageBus messageBus,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
+    myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
@@ -271,7 +275,9 @@ public class GradleSyncState {
    * currently running.
    */
   public boolean lastSyncFailed() {
-    return !isSyncInProgress() && isBuildWithGradle(myProject) && (requiredAndroidModelMissing(myProject) || mySummary.hasSyncErrors());
+    return !isSyncInProgress() &&
+           myGradleProjectInfo.isBuildWithGradle() &&
+           (requiredAndroidModelMissing(myProject) || mySummary.hasSyncErrors());
   }
 
   public boolean isSyncInProgress() {

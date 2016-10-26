@@ -305,8 +305,8 @@ public class InstantRunConfigurable
       }
 
       // Request a sync
-      GradleSyncInvoker.RequestSettings settings = new GradleSyncInvoker.RequestSettings().setRunInBackground(false);
-      GradleSyncInvoker.getInstance().requestProjectSync(project, settings, listener);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
       return true;
     }
     else {
