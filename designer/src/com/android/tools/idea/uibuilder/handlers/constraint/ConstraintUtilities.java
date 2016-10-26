@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
@@ -50,6 +51,15 @@ public class ConstraintUtilities {
 
   final static int MINIMUM_SIZE = 48; // in dp
   final static int MINIMUM_SIZE_EXPAND = 6; // in dp
+  private static HashMap<String, Integer> alignmentMap = new HashMap<>();
+
+  static {
+    alignmentMap.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
+    alignmentMap.put(SdkConstants.TextAlignment.TEXT_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
+    alignmentMap.put(SdkConstants.TextAlignment.TEXT_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
+    alignmentMap.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
+    alignmentMap.put(SdkConstants.TextAlignment.VIEW_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
+  }
 
   /**
    * Return the corresponding margin attribute for the given anchor
@@ -1269,7 +1279,10 @@ public class ConstraintUtilities {
         //noinspection ConstantConditions
         size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, "15sp", configuration);
       }
-
+      String alignment = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
+      textWidget.setTextAlignment((alignment == null) ? TextWidget.TEXT_ALIGNMENT_VIEW_START : alignmentMap.get(alignment));
+      String single = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
+      textWidget.setSingleLine(Boolean.parseBoolean(single));
       // Cannot be null, see previous condition
       //noinspection ConstantConditions
       textWidget.setTextSize(constraintModel.pxToDp(size));
