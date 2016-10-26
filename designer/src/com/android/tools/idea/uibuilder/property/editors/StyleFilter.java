@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -36,8 +37,8 @@ import java.util.stream.Stream;
 public class StyleFilter {
   private final Project myProject;
   private final ResourceResolver myResolver;
-  private final Map<String, ResourceValue> myFrameworkStyles;
-  private final Map<String, ResourceValue> myProjectStyles;
+  private final ResourceValueMap myFrameworkStyles;
+  private final ResourceValueMap myProjectStyles;
   private final Set<String> myDerivedStyles;
   private final Set<String> myOtherStyles;
   private final Set<String> myCurrentInheritanceChain;
@@ -181,8 +182,8 @@ public class StyleFilter {
       return Collections.emptyList();
     }
     List<String> possibleNames = handler.getBaseStyles(tagName);
-    Map<String, ResourceValue> frameworkStyles = resolver.getFrameworkResources().get(ResourceType.STYLE);
-    Map<String, ResourceValue> projectStyles = resolver.getProjectResources().get(ResourceType.STYLE);
+    ResourceValueMap frameworkStyles = resolver.getFrameworkResources().get(ResourceType.STYLE);
+    ResourceValueMap projectStyles = resolver.getProjectResources().get(ResourceType.STYLE);
     List<String> names = new ArrayList<>(4); // This is usually a small list
     for (String styleName : possibleNames) {
       if (frameworkStyles.containsKey(styleName)) {
