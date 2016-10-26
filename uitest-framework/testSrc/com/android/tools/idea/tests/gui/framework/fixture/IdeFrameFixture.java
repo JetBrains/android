@@ -671,7 +671,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public MessagesFixture findMessageDialog(@NotNull String title) {
-    return MessagesFixture.findByTitle(robot(), target(), title);
+    return MessagesFixture.findByTitle(robot(), title);
   }
 
   @NotNull

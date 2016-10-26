@@ -85,7 +85,7 @@ public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<J
   @NotNull
   public BuildSignedApkDialogGradleStepFixture clickFinishAndDismissErrorDialog() {
     GuiTests.findAndClickButtonWhenEnabled(this, "Finish");
-    MessagesFixture.findByTitle(robot(), target(), "Error")
+    MessagesFixture.findByTitle(robot(), "Error")
       .requireMessageContains("Please select at least one of the signature versions to use")
       .clickOk();
 

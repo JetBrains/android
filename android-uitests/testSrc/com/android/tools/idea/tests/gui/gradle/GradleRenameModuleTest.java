@@ -107,7 +107,7 @@ public class GradleRenameModuleTest {
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("SimpleApplication2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), guiTest.ideFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Rename Module");
     errorMessage.requireMessageContains("Can't rename root module");
 
     errorMessage.clickOk();
@@ -128,7 +128,7 @@ public class GradleRenameModuleTest {
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("library2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), guiTest.ideFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Rename Module");
     errorMessage.requireMessageContains("Module named 'library2' already exist");
 
     errorMessage.clickOk();

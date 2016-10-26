@@ -89,7 +89,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
       new JCheckBoxFixture(robot(), robot().finder().findByName(myDialog, "enableService", JCheckBox.class));
     checkBoxFixture.setSelected(checked);
     if (!checked) {
-      MessagesFixture.findByTitle(robot(), myIdeFrameFixture.target(), "Confirm Uninstall Service").clickYes();
+      MessagesFixture.findByTitle(robot(), "Confirm Uninstall Service").clickYes();
     }
     return this;
   }
