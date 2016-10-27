@@ -34,6 +34,7 @@ import java.util.Set;
 public class DeviceProfilerService {
   private static final String DEVICE_UNIX_DOMAIN_NAME = "StudioProfiler";
   private static final int DEVICE_PORT = 12389;
+  public static final int UNSELECTED_PROCESS_ID = Integer.MIN_VALUE;
 
   private static final Logger LOG = Logger.getInstance(DeviceProfilerService.class.getCanonicalName());
 
@@ -47,6 +48,7 @@ public class DeviceProfilerService {
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventService;
   @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyService;
   private final int myPort;
+  private int mySelectedProcessId = UNSELECTED_PROCESS_ID;
 
   private DeviceProfilerService(@NotNull IDevice device, int port) {
     myDevice = device;
@@ -105,6 +107,14 @@ public class DeviceProfilerService {
       return true;
     }
     return false;
+  }
+
+  public void setSelectedProcessId(int id) {
+    mySelectedProcessId = id;
+  }
+
+  public int getSelectedProcessId() {
+    return mySelectedProcessId;
   }
 
   @NotNull
