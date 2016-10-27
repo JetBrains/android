@@ -18,15 +18,12 @@ package com.android.tools.datastore;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.profiler.proto.ProfilerService;
-import com.intellij.util.EventDispatcher;
-import gnu.trove.TLongArrayList;
+import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +34,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
    * Key to be used when no target is provided.
    */
   private static final Object NO_TARGET = new Object();
+
+  private static Logger getLogger() { return Logger.getInstance(SeriesDataStoreImpl.class); }
 
   /**
    * Maps a {@link SeriesDataType} with a map of Object -> {@link DataAdapter}.
@@ -54,25 +53,14 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   @NotNull
   private final DeviceProfilerService myDeviceProfilerService;
 
-  @NotNull
-  private final EventDispatcher<ProfilerEventListener> myDispatcher;
-
-  public SeriesDataStoreImpl(@NotNull DeviceProfilerService deviceProfilerService,
-                             @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+  public SeriesDataStoreImpl(@NotNull DeviceProfilerService deviceProfilerService) {
     myDeviceProfilerService = deviceProfilerService;
-    myDispatcher = dispatcher;
     synchronizeStartTime();
   }
 
   @Override
   public DeviceProfilerService getDeviceProfilerService() {
     return myDeviceProfilerService;
-  }
-
-  @Override
-  @NotNull
-  public EventDispatcher<ProfilerEventListener> getEventDispatcher() {
-    return myDispatcher;
   }
 
   @Override
@@ -145,7 +133,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       myStudioOffsetTimeNs = System.nanoTime();
     }
     catch (StatusRuntimeException e) {
-      myDispatcher.getMulticaster().profilerServerDisconnected();
+      getLogger().info("Error during gRPC communication.");
     }
   }
 }

@@ -22,10 +22,8 @@ import com.android.tools.datastore.SeriesDataList;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.idea.monitor.ui.visual.data.*;
-import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,11 +44,6 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public DeviceProfilerService getDeviceProfilerService() {
-    return null;
-  }
-
-  @Override
-  public EventDispatcher<ProfilerEventListener> getEventDispatcher() {
     return null;
   }
 

@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;

@@ -23,7 +23,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.RangeScrollbar;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.datastore.SeriesDataStore;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryDetailSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
