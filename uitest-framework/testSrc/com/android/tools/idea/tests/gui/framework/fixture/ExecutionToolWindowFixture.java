@@ -60,7 +60,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       myContent = content;
     }
 
-    public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull long secondsToWait) {
+    public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
       Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
     }
 
