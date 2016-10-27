@@ -113,6 +113,8 @@ iml_module(
         "//tools:idea.smRunner[module]",
         "//tools:idea.junit[module]",
         "//tools:idea.maven_and_others[module]",
+        "//tools/adt/idea/profilers:profilers[module]",
+        "//tools/adt/idea/profilers-ui:profilers-ui[module]",
         "//tools:idea.java-impl[module]",
         "//tools:idea.properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
