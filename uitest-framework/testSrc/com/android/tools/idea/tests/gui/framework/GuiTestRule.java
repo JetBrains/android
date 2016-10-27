@@ -56,10 +56,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
@@ -220,13 +218,9 @@ public class GuiTestRule implements TestRule {
 
     // Work-around for https://youtrack.jetbrains.com/issue/IDEA-153492
     Class<?> keyboardManagerType = type("javax.swing.KeyboardManager").load();
-    Object manager = checkNotNull(method("getCurrentManager").withReturnType(Object.class).in(keyboardManagerType).invoke());
-
-    Map componentKeyStrokeMap = checkNotNull(field("componentKeyStrokeMap").ofType(Hashtable.class).in(manager).get());
-    componentKeyStrokeMap.clear();
-
-    Map containerMap = checkNotNull(field("containerMap").ofType(Hashtable.class).in(manager).get());
-    containerMap.clear();
+    Object manager = method("getCurrentManager").withReturnType(Object.class).in(keyboardManagerType).invoke();
+    field("componentKeyStrokeMap").ofType(Hashtable.class).in(manager).get().clear();
+    field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
   public IdeFrameFixture importSimpleApplication() throws IOException {
@@ -252,7 +246,7 @@ public class GuiTestRule implements TestRule {
 
   private IdeFrameFixture importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
-    final VirtualFile toSelect = checkNotNull(VfsUtil.findFileByIoFile(myProjectPath, true));
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(myProjectPath, true);
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -319,7 +313,7 @@ public class GuiTestRule implements TestRule {
 
   protected void updateLocalProperties(File projectPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectPath);
-    localProperties.setAndroidSdkPath(checkNotNull(IdeSdks.getInstance().getAndroidSdkPath()));
+    localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
     localProperties.save();
   }
 

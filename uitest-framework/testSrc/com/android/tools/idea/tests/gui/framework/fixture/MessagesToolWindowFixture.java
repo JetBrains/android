@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
@@ -57,7 +56,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
   @NotNull
   public ContentFixture getGradleSyncContent() {
-    return new SyncContentFixture(checkNotNull(getContent("Gradle Sync")));
+    return new SyncContentFixture(getContent("Gradle Sync"));
   }
 
   public abstract static class ContentFixture {

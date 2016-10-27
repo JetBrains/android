@@ -82,7 +82,7 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
 
   @RunsInEDT
   private @NotNull Rectangle scrollToRow(final @NotNull JTree tree, final int row) {
-    Rectangle result = GuiActionRunner.execute(new GuiQuery<Rectangle>() {
+    return GuiActionRunner.execute(new GuiQuery<Rectangle>() {
       @Override
       protected Rectangle executeInEDT() {
         ComponentPreconditions.checkEnabledAndShowing(tree);
@@ -100,7 +100,6 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
         return returnValue;
       }
     });
-    return Preconditions.checkNotNull(result);
   }
 
   private static int getMiddleOfRow(Rectangle bounds) {
