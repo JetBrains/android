@@ -59,7 +59,7 @@ public interface AssistActionStateManager {
   @Nullable
   StatefulButtonMessage getStateDisplay(@NotNull Project project,
                                         @NotNull ActionData actionData,
-                                        @Nullable("ignored if null") String message);
+                                        @Nullable/*ignored if null*/ String message);
 
   enum ActionState {
     INCOMPLETE, // Action is not complete.

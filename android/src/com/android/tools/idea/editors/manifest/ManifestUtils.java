@@ -82,7 +82,7 @@ public class ManifestUtils {
     return Collections.emptyList();
   }
 
-  @Nullable("can not find report node for xml tag")
+  @Nullable/*can not find report node for xml tag*/
   static XmlNode.NodeKey getNodeKey(@NotNull MergedManifest manifest, @NotNull Element element) {
     XmlNode.NodeKey key = manifest.getNodeKey(element.getNodeName());
     if (key == null) {
@@ -148,7 +148,7 @@ public class ManifestUtils {
     return sourceFilePosition;
   }
 
-  @Nullable("this file is not from the main module")
+  @Nullable/*this file is not from the main module*/
   public static IdeaSourceProvider findManifestSourceProvider(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
       if (manifestFile.equals(provider.getManifestFile())) {

@@ -171,7 +171,7 @@ public class ChooseActivityTypeStep extends ModelWizardStep<RenderTemplateModel>
     myActivityGallery.setSelectedIndex(0); // Also fires the Selection Listener
   }
 
-  @Nullable("If template doesn't have a thumbnail, or Image can't be loaded")
+  @Nullable/*If template doesn't have a thumbnail, or Image can't be loaded*/
   private static Image getImage(TemplateHandle template) {
     String thumb = template.getMetadata().getThumbnailPath();
     if (thumb != null && !thumb.isEmpty()) {

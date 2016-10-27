@@ -195,7 +195,7 @@ public class StateController extends TreeController implements GpuState.Listener
     });
   }
 
-  @Nullable("nothing to follow at this location")
+  @Nullable/*nothing to follow at this location*/
   private TreePath getFollowAt(int mouseX, int mouseY) {
     TreePath treePath = myTree.getPathForLocation(mouseX, mouseY);
     if (treePath == null) return null;
@@ -431,7 +431,7 @@ public class StateController extends TreeController implements GpuState.Listener
     public TypedValue value;
     private final List<Node> childrenByIndex = Lists.newArrayList();
     private final HashMap<TypedValue, Node> childrenByKey = Maps.newHashMap();
-    private @Nullable("not made server request yet") Path followPath;
+    private @Nullable/*not made server request yet*/ Path followPath;
 
     public Node(TypedValue key, TypedValue value, boolean isMapKey) {
       this.key = key;
@@ -533,7 +533,7 @@ public class StateController extends TreeController implements GpuState.Listener
       return CanFollow.fromSnippets(value.value.getSnippets()) != null;
     }
 
-    @Nullable("if we have not made a request to the server for this path yet")
+    @Nullable/*if we have not made a request to the server for this path yet*/
     public Path getFollowPath() {
       return followPath;
     }

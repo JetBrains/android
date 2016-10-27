@@ -86,7 +86,7 @@ public final class InstantAppUrlFinder {
 
   @VisibleForTesting
   static final class InstantAppIntentFilterWrapper {
-    @Nullable("No valid element") private final Element myElement;
+    @Nullable/*No valid element*/ private final Element myElement;
     private final int myOrder;
 
     private InstantAppIntentFilterWrapper(@Nullable Element element, int order) {
