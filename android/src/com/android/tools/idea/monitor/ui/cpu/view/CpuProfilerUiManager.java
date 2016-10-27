@@ -27,7 +27,7 @@ import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.tool.TraceRequestHandler;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore.profilerclient;
+package com.android.tools.idea.monitor.tool;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +36,5 @@ public interface ProfilerEventListener<T> extends EventListener {
    * Notifies that profilers has been reset back to L1.
    */
   default void profilersReset() {
-  }
-
-  /**
-   * Notifies that connection to the device server has failed.
-   */
-  default void profilerServerDisconnected() {
-
   }
 }
