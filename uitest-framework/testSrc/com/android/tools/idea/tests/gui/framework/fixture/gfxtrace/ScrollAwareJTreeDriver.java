@@ -25,8 +25,8 @@ import org.fest.swing.driver.JTreeLocation;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.util.Preconditions;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 
@@ -34,13 +34,13 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
 
   private final JTreeLocation location = new JTreeLocation();
 
-  public ScrollAwareJTreeDriver(@Nonnull Robot robot) {
+  public ScrollAwareJTreeDriver(@NotNull Robot robot) {
     super(robot);
   }
 
   @RunsInEDT
   @Override
-  public void selectRow(@Nonnull JTree tree, int row) {
+  public void selectRow(@NotNull JTree tree, int row) {
     Rectangle info = scrollToRow(tree, row);
     if (!(tree.getSelectionCount() == 1 && tree.isRowSelected(row))) {
       Point p = new Point(info.x + 5, getMiddleOfRow(info));
@@ -52,7 +52,7 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
 
   @RunsInEDT
   @Override
-  public void expandRow(@Nonnull JTree tree, int row) {
+  public void expandRow(@NotNull JTree tree, int row) {
     Rectangle info = scrollToRow(tree, row);
     robot.waitForIdle();
     if (!tree.isExpanded(row)) {
@@ -66,7 +66,7 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
 
   @RunsInEDT
   @Override
-  public void rightClickRow(@Nonnull JTree tree, int row) {
+  public void rightClickRow(@NotNull JTree tree, int row) {
     Rectangle info = scrollToRow(tree, row);
     Point p = new Point(info.x + 5, getMiddleOfRow(info));
     robot.click(tree, p, MouseButton.RIGHT_BUTTON, 1);
@@ -74,14 +74,14 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
 
   @RunsInEDT
   @Override
-  public @Nonnull JPopupMenu showPopupMenu(@Nonnull JTree tree, int row) {
+  public @NotNull JPopupMenu showPopupMenu(@NotNull JTree tree, int row) {
     Rectangle info = scrollToRow(tree, row);
     Point p = new Point(info.x + 5, getMiddleOfRow(info));
     return robot.showPopupMenu(tree, p);
   }
 
   @RunsInEDT
-  private @Nonnull Rectangle scrollToRow(final @Nonnull JTree tree, final int row) {
+  private @NotNull Rectangle scrollToRow(final @NotNull JTree tree, final int row) {
     Rectangle result = GuiActionRunner.execute(new GuiQuery<Rectangle>() {
       @Override
       protected Rectangle executeInEDT() {
