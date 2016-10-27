@@ -56,8 +56,9 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
   }
 
   public GfxTraceFixture waitForLoadingToFinish() {
-    Wait.seconds(10).expecting("open to finish").until(() -> target().getContentLayer().getComponentCount() > 0 || target().isShowingError());
-    Wait.seconds(10).expecting("data").until(myEditor.getAtomStream()::isLoaded);
+    // TODO put these wait times back to 10 when mock gapid server is ready.
+    Wait.seconds(20).expecting("open to finish").until(() -> target().getContentLayer().getComponentCount() > 0 || target().isShowingError());
+    Wait.seconds(20).expecting("data").until(myEditor.getAtomStream()::isLoaded);
     return this;
   }
 
