@@ -61,8 +61,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.RenderErrorModelFactoryTest.class,
   com.android.tools.idea.run.AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  com.android.tools.idea.uibuilder.structure.NlComponentTreeTest.class,
-  com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
@@ -96,7 +94,6 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
-    symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("tools/adt/idea/android/lib");
     symbolicLinkInTmpDir("prebuilts/studio/jdk");
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");

@@ -52,6 +52,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 
+import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
+
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
 
@@ -269,7 +271,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return defaultValue;
     }
     Configuration configuration = myProperty.getModel().getConfiguration();
-    Integer value = ResourceHelper.resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
+    Integer value = resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
     if (value == null) {
       return defaultValue;
     }

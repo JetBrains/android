@@ -39,7 +39,7 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -122,7 +122,7 @@ public class RenderTask implements IImageFactory {
   private Set<XmlTag> myExpandNodes;
 
   @Nullable
-  private DesignSurface mySurface;
+  private EditorDesignSurface mySurface;
 
   @NotNull
   private final Locale myLocale;
@@ -346,7 +346,7 @@ public class RenderTask implements IImageFactory {
    * preview data
    */
   @Nullable
-  public DesignSurface getDesignSurface() {
+  public EditorDesignSurface getDesignSurface() {
     return mySurface;
   }
 
@@ -359,7 +359,7 @@ public class RenderTask implements IImageFactory {
    * @return this, for constructor chaining
    */
   @Nullable
-  public RenderTask setDesignSurface(@Nullable DesignSurface surface) {
+  public RenderTask setDesignSurface(@Nullable EditorDesignSurface surface) {
     mySurface = surface;
     return this;
   }

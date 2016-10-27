@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;

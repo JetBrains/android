@@ -23,7 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -81,11 +81,11 @@ public class ActionBarHandler extends ActionBarCallback {
   /** Flag which controls whether we should be showing the menu */
   private static boolean ourShowMenu = false;
 
-  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable DesignSurface surface) {
+  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable EditorDesignSurface surface) {
     return ourShowMenu;
   }
 
-  public static boolean showMenu(boolean showMenu, @Nullable DesignSurface surface, boolean repaint) {
+  public static boolean showMenu(boolean showMenu, @Nullable EditorDesignSurface surface, boolean repaint) {
     if (showMenu != ourShowMenu) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourShowMenu = showMenu;

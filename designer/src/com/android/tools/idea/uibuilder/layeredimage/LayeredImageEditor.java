@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.editors.layeredimage;
+package com.android.tools.idea.uibuilder.layeredimage;
 
 import com.android.tools.pixelprobe.Image;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
