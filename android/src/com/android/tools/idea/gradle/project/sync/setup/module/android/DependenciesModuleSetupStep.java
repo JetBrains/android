@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesR
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -54,13 +55,34 @@ import static com.android.tools.idea.gradle.customizer.dependency.LibraryDepende
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
-  private final DependenciesSetup myDependenciesSetup = new DependenciesSetup();
+  @NotNull private final DependenciesSetup myDependenciesSetup;
+
+  @NotNull
+  public static DependenciesModuleSetupStep getInstance() {
+    for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
+      if (step instanceof DependenciesModuleSetupStep) {
+        return (DependenciesModuleSetupStep)step;
+      }
+    }
+    throw new AssertionError("Unable to find an instance of " + DependenciesModuleSetupStep.class.getSimpleName());
+  }
+
+  @SuppressWarnings("unused") // Instantiated by IDEA
+  public DependenciesModuleSetupStep() {
+    this(new DependenciesSetup());
+  }
+
+  @VisibleForTesting
+  DependenciesModuleSetupStep(@NotNull DependenciesSetup dependenciesSetup) {
+    myDependenciesSetup = dependenciesSetup;
+  }
 
   @Override
   protected void doSetUpModule(@NotNull Module module,
@@ -119,27 +141,28 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
     }
   }
 
-  private void updateLibraryDependency(@NotNull Module module,
-                                       @NotNull IdeModifiableModelsProvider modelsProvider,
-                                       @NotNull LibraryDependency dependency,
-                                       @NotNull AndroidProject androidProject) {
-    Collection<String> binaryPaths = dependency.getPaths(BINARY);
-    Collection<String> sourcePaths = dependency.getPaths(SOURCE);
-    Collection<String> docPaths = dependency.getPaths(DOC);
-    myDependenciesSetup
-      .setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
+  public void updateLibraryDependency(@NotNull Module module,
+                                      @NotNull IdeModifiableModelsProvider modelsProvider,
+                                      @NotNull LibraryDependency dependency,
+                                      @NotNull AndroidProject androidProject) {
+    String name = dependency.getName();
+    DependencyScope scope = dependency.getScope();
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getPaths(BINARY),
+                                               dependency.getPaths(SOURCE), dependency.getPaths(DOCUMENTATION));
 
     File buildFolder = androidProject.getBuildFolder();
 
     // Exclude jar files that are in "jars" folder in "build" folder.
     // see https://code.google.com/p/android/issues/detail?id=123788
     ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
-    for (String binaryPath : binaryPaths) {
-      File parent = new File(binaryPath).getParentFile();
-      if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
-        ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
-        if (parentContentEntry != null) {
-          parentContentEntry.addExcludeFolder(pathToIdeaUrl(parent));
+    if (contentEntries.length > 0) {
+      for (String binaryPath : dependency.getPaths(BINARY)) {
+        File parent = new File(binaryPath).getParentFile();
+        if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
+          ContentEntry parentContentEntry = findParentContentEntry(parent, contentEntries);
+          if (parentContentEntry != null) {
+            parentContentEntry.addExcludeFolder(pathToIdeaUrl(parent));
+          }
         }
       }
     }
@@ -190,7 +213,7 @@ public class DependenciesModuleSetupStep extends AndroidModuleSetupStep {
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, DependencyScope.COMPILE, Collections.singletonList(library));
+        myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, COMPILE, Collections.singletonList(library));
       }
     }
   }

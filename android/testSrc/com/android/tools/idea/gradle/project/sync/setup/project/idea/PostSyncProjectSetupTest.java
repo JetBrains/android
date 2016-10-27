@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.project.Project;
@@ -41,6 +42,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
   @Mock private SyncMessages mySyncMessages;
+  @Mock private DependenciesModuleSetupStep myModuleSetupStep;
   @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
@@ -57,8 +59,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, mySyncMessages, myVersionCompatibilityChecker,
-                                       myProjectBuilder, myModuleValidatorFactory);
+    mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, mySyncMessages, myModuleSetupStep,
+                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
