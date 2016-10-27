@@ -25,7 +25,6 @@ import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 public class BuildSignedApkDialogCreateKeystoreSubDialogFixture implements ContainerFixture<JDialog> {
@@ -145,13 +144,13 @@ public class BuildSignedApkDialogCreateKeystoreSubDialogFixture implements Conta
     return myStepFixture;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public JDialog target() {
     return myDialog;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Robot robot() {
     return myRobot;

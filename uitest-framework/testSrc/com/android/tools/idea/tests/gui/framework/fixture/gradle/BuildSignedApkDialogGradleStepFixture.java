@@ -26,7 +26,6 @@ import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<JDialog> {
@@ -92,13 +91,13 @@ public class BuildSignedApkDialogGradleStepFixture implements ContainerFixture<J
     return this;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public JDialog target() {
     return myDialog;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Robot robot() {
     return myRobot;
