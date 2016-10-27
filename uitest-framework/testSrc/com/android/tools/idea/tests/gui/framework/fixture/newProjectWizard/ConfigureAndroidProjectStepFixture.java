@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.CountListener;
 import com.intellij.ui.EditorComboBox;
 import org.junit.Test;
