@@ -198,7 +198,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   @NotNull
-  public JPanel getContentPanel() {
+  public JComponent getComponent() {
     return myWorkBench;
   }
 

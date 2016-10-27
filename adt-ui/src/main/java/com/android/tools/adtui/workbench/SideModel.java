@@ -71,6 +71,11 @@ class SideModel<T> {
   }
 
   @NotNull
+  public List<AttachedToolWindow<T>> getAllTools() {
+    return myAllTools;
+  }
+
+  @NotNull
   public List<AttachedToolWindow> getVisibleTools(@NotNull Side side) {
     return getVisibleTools(side.isLeft()).asList();
   }
@@ -115,7 +120,12 @@ class SideModel<T> {
       .collect(Collectors.toList());
   }
 
-  public void add(@NotNull AttachedToolWindow<T> tool) {
+  public void setTools(@NotNull List<AttachedToolWindow<T>> tools) {
+    tools.forEach(this::add);
+    updateLocally();
+  }
+
+  private void add(@NotNull AttachedToolWindow<T> tool) {
     myAllTools.add(tool);
     if (!tool.isMinimized() && !tool.isFloating()) {
       VisiblePair<T> visible = getVisibleTools(tool.isLeft());
@@ -123,6 +133,22 @@ class SideModel<T> {
         tool.setMinimized(true);
       }
     }
+  }
+
+  public void changeToolSettingsAfterDragAndDrop(@NotNull AttachedToolWindow<T> tool,
+                                                 @NotNull Side side,
+                                                 @NotNull Split split,
+                                                 int wantedSideToolIndex) {
+    tool.setLeft(side.isLeft());
+    tool.setSplit(split.isBottom());
+    List<AttachedToolWindow> list = split.isBottom() ? getBottomTools(side) : getTopTools(side);
+    int index = list.indexOf(tool);
+    if (index != wantedSideToolIndex && wantedSideToolIndex >= 0 && wantedSideToolIndex < list.size()) {
+      int insertAfter = index < wantedSideToolIndex ? 1 : 0;
+      myAllTools.remove(tool);
+      myAllTools.add(myAllTools.indexOf(list.get(wantedSideToolIndex)) + insertAfter, tool);
+    }
+    update(Collections.singletonList(tool), EventType.UPDATE_TOOL_ORDER);
   }
 
   public void update(@NotNull AttachedToolWindow<T> tool, @NotNull PropertyType typeOfChange) {
@@ -241,7 +267,7 @@ class SideModel<T> {
   }
 
   public enum EventType {
-    UPDATE, UPDATE_FLOATING_WINDOW, LOCAL_UPDATE, SWAP
+    UPDATE, UPDATE_FLOATING_WINDOW, LOCAL_UPDATE, SWAP, UPDATE_TOOL_ORDER
   }
 
   public interface Listener<T> {

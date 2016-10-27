@@ -16,6 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.List;
 import java.util.Properties;
 
 import static com.android.tools.adtui.workbench.SideModel.EventType.*;
@@ -42,6 +44,7 @@ public class SideModelTest {
   private static final String CONTEXT = "CONTEXT";
 
   private Properties myProperties;
+  private List<AttachedToolWindow<String>> myToolWindows;
   @Mock
   private AttachedToolWindow<String> myToolWindow1;
   @Mock
@@ -67,7 +70,9 @@ public class SideModelTest {
   public void setUp() {
     initMocks(this);
     myProperties = new Properties();
-    initProperties(myToolWindow1, myToolWindow2, myToolWindow3, myToolWindow4, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2);
+    myToolWindows = ImmutableList.of(
+      myToolWindow1, myToolWindow2, myToolWindow3, myToolWindow4, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2);
+    initProperties(myToolWindows);
     myToolWindow1.setLeft(true);
     myToolWindow2.setLeft(true);
     myToolWindow2.setSplit(true);
@@ -79,14 +84,8 @@ public class SideModelTest {
     myFloatingToolWindow2.setFloating(true);
 
     mySideModel.setContext(CONTEXT);
+    mySideModel.setTools(myToolWindows);
     mySideModel.addListener(myListener);
-    mySideModel.add(myToolWindow1);
-    mySideModel.add(myToolWindow2);
-    mySideModel.add(myToolWindow3);
-    mySideModel.add(myToolWindow4);
-    mySideModel.add(myToolWindow5);
-    mySideModel.add(myFloatingToolWindow1);
-    mySideModel.add(myFloatingToolWindow2);
   }
 
   @Test
@@ -101,6 +100,7 @@ public class SideModelTest {
 
   @Test
   public void testDefaultLayout() {
+    assertThat(mySideModel.getAllTools()).containsExactlyElementsIn(myToolWindows).inOrder();
     assertThat(mySideModel.getVisibleTools(Side.LEFT)).containsExactly(myToolWindow1, myToolWindow2).inOrder();
     assertThat(mySideModel.getVisibleTools(Side.RIGHT)).containsExactly(myToolWindow4);
     assertThat(mySideModel.getHiddenTools(Side.LEFT)).containsExactly(myToolWindow3);
@@ -277,7 +277,58 @@ public class SideModelTest {
     verify(myListener).modelChanged(eq(mySideModel), eq(SWAP));
   }
 
-  private void initProperties(@NotNull AttachedToolWindow... toolWindows) {
+  @Test
+  public void testDragTool2BelowTool3() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.BOTTOM, 1);
+    assertThat(mySideModel.getAllTools()).containsExactly(
+      myToolWindow1, myToolWindow3, myToolWindow2, myToolWindow4, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow3, myToolWindow2).inOrder();
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  @Test
+  public void testDragTool3AboveTool2() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow3, Side.LEFT, Split.BOTTOM, 0);
+    assertThat(mySideModel.getAllTools()).containsExactly(
+      myToolWindow1, myToolWindow3, myToolWindow2, myToolWindow4, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow3, myToolWindow2).inOrder();
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  @Test
+  public void testDragTool3AboveTool1() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow3, Side.LEFT, Split.TOP, 0);
+    assertThat(mySideModel.getAllTools()).containsExactly(
+      myToolWindow3, myToolWindow1, myToolWindow2, myToolWindow4, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow2);
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  @Test
+  public void testDragTool3BelowTool4() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow3, Side.RIGHT, Split.TOP, 1);
+    assertThat(mySideModel.getAllTools()).containsExactly(
+      myToolWindow1, myToolWindow2, myToolWindow4, myToolWindow3, myToolWindow5, myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getTopTools(Side.RIGHT)).containsExactly(myToolWindow4, myToolWindow3, myToolWindow5).inOrder();
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow2);
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  @Test
+  public void testDragTool2ToANonExistingIndex() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow3, Side.LEFT, Split.BOTTOM, 1001);
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow2, myToolWindow3).inOrder();
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  @Test
+  public void testDragTool2ToAnotherNonExistingIndex() {
+    mySideModel.changeToolSettingsAfterDragAndDrop(myToolWindow3, Side.LEFT, Split.BOTTOM, -3333);
+    assertThat(mySideModel.getBottomTools(Side.LEFT)).containsExactly(myToolWindow2, myToolWindow3).inOrder();
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_TOOL_ORDER));
+  }
+
+  private void initProperties(@NotNull List<AttachedToolWindow<String>> toolWindows) {
     int number = 0;
     for (AttachedToolWindow toolWindow : toolWindows) {
       String id = PROPERTY_PREFIX + ++number;
