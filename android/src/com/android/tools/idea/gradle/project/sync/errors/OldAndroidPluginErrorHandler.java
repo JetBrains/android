@@ -15,41 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
-  @NotNull private final Jdks myJdks;
-
-  public Jdk8RequiredErrorHandler() {
-    this(Jdks.getInstance());
-  }
-
-  public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
-    myJdks = jdks;
-  }
-
+public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
   @Nullable
   @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
-    // Example:
-    // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
     String text = rootCause.getMessage();
-    if (isNotEmpty(text) && text.contains("Unsupported major.minor version 52.0")) {
-      if (!text.endsWith(".")) {
-        text += ".";
-      }
-      text += " Please use JDK 8 or newer.";
+    if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Plugin is too old, please update to a more recent version")) {
       updateUsageTracker();
-      return text;
+      // This way we remove extra lines and spaces from original message.
+      return Joiner.on('\n').join(Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text));
     }
     return null;
   }
@@ -59,6 +48,13 @@ public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
-    return myJdks.getWrongJdkQuickFixes(project);
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
+    String filePath = notification.getFilePath();
+    if (isNotEmpty(filePath)) {
+      Integer line = notification.getLine();
+      hyperlinks.add(new OpenFileHyperlink(filePath, "Open File", line - 1, notification.getColumn()));
+    }
+    return hyperlinks;
   }
 }
