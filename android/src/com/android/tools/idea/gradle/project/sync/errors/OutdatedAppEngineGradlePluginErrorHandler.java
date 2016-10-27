@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
@@ -27,34 +29,49 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.UpgradeAppenginePluginVersionHyperlink.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-/**
- * https://code.google.com/p/android/issues/detail?id=80441
- */
-public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncErrorHandler {
+public class OutdatedAppEngineGradlePluginErrorHandler extends SyncErrorHandler {
   public static final String MARKER_TEXT = "Cause: java.io.File cannot be cast to org.gradle.api.artifacts.Configuration";
 
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    if (!message.contains(MARKER_TEXT)) {
-      return false;
+  public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = findErrorMessage(getRootCause(error), notification, project);
+    if (text != null) {
+      List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
+      if (!hyperlinks.isEmpty()) {
+        updateUsageTracker();
+        SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+        return true;
+      }
     }
+    return false;
+  }
 
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) {
-      return false;
+  @Nullable
+  @Override
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.getMessage();
+    if (isNotEmpty(text) && text.contains(MARKER_TEXT) && project.getBaseDir() != null) {
+      updateUsageTracker();
+      return text;
     }
+    return null;
+  }
 
+  @NotNull
+  @Override
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     Ref<Boolean> handled = new Ref<>(false);
     BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
@@ -69,19 +86,17 @@ public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncError
                 ServiceManager.getService(ExternalRepository.class).refreshFor(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
 
                 NotificationHyperlink quickFix = new UpgradeAppenginePluginVersionHyperlink(dependency, buildModel);
-                updateNotification(notification, project, notification.getMessage(), quickFix);
-
+                hyperlinks.add(quickFix);
                 handled.set(true);
                 // Stop processing, problem config is found.
                 return false;
               }
-
             }
           }
         }
       }
       return true;
     });
-    return handled.get();
+    return hyperlinks;
   }
 }
