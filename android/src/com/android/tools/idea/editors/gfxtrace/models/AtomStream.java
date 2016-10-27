@@ -245,7 +245,7 @@ public class AtomStream implements PathListener {
     return (path == null || myAtomList == null) ? null : myAtomList.get(path.getLast());
   }
 
-  @Nullable("if not loaded or the selection doesn't contain a draw call")
+  @Nullable/*if not loaded or the selection doesn't contain a draw call*/
   public AtomPath getLastSelectedDrawCall() {
     AtomRangePath selection = myAtomPath.getPath();
     if (selection == null || myAtomList == null) {

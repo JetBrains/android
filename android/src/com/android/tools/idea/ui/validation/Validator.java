@@ -90,7 +90,7 @@ public interface Validator<T> {
      * to return proper {@link Result}.
      */
     @NotNull
-    public static Result fromNullableMessage(@Nullable("if no error") String errorMessage) {
+    public static Result fromNullableMessage(@Nullable/*if no error*/ String errorMessage) {
       return (errorMessage == null) ? OK : new Result(Severity.ERROR, errorMessage);
     }
   }

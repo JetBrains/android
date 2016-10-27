@@ -598,7 +598,7 @@ public final class Render {
     return resultMap.values();
   }
 
-  @Nullable("can not disambiguate")
+  @Nullable/*can not disambiguate*/
   private static Constant disambiguate(@NotNull Collection<Constant> constants, @Nullable Labels labels) {
     Collection<Constant> preferred;
     if (labels != null) {

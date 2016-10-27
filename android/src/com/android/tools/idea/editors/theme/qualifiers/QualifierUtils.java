@@ -54,7 +54,7 @@ public class QualifierUtils {
    * @return class of the return value of the "getValue" method of resourceQualifierClass
    * For Example: return class of {@link LayoutDirectionQualifier#getValue()} is LayoutDirection
    */
-  @Nullable("if there is no getValue method")
+  @Nullable/*if there is no getValue method*/
   public static Class getValueReturnType(@NotNull Class<? extends ResourceQualifier> resourceQualifierClass) {
     try {
       return resourceQualifierClass.getMethod("getValue").getReturnType();

@@ -402,7 +402,7 @@ public class CanvasResizeInteraction extends Interaction {
    * Returns the device to snap to when at (x, y) in Android coordinates.
    * If there is no such device, returns null.
    */
-  @Nullable("null if no device is close enough to snap to")
+  @Nullable/*null if no device is close enough to snap to*/
   private Device snapToDevice(@AndroidCoordinate int x, @AndroidCoordinate int y, int threshold) {
     for (Point p : myAndroidCoordinatesToDeviceMap.keySet()) {
       if ((Math.abs(x - p.x) < threshold && Math.abs(y - p.y) < threshold)
