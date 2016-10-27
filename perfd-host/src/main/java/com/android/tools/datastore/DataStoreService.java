@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore;
 import com.android.tools.datastore.poller.CpuDataPoller;
-import com.android.tools.datastore.poller.DeviceService;
+import com.android.tools.datastore.poller.ProfilerService;
 import com.android.tools.datastore.poller.EventDataPoller;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,11 +31,9 @@ import java.util.concurrent.RunnableFuture;
  */
 public class DataStoreService {
 
-  public static final int UNSELECTED_PROCESS_ID = Integer.MIN_VALUE;
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
   private ManagedChannel myChannel;
   private ServerBuilder myServerBuilder;
-  private int mySelectedProcessId = UNSELECTED_PROCESS_ID;
   private List<ServicePassThrough> myServices = new ArrayList();
 
   public DataStoreService(int port) {
@@ -52,7 +50,7 @@ public class DataStoreService {
    * Entry point for the datastore pollers and passthrough services are created, and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    registerService(new DeviceService());
+    registerService(new ProfilerService(this));
     registerService(new EventDataPoller(this));
     registerService(new CpuDataPoller(this));
   }
@@ -105,16 +103,8 @@ public class DataStoreService {
     myChannel = null;
   }
 
-  /**
-   * Set the active process to monitor for the currently selected device.
-   * @param id the id of the active process to poll.
-   */
-  public void setSelectedProcessId(int id) {
-    mySelectedProcessId = id;
-  }
-
+  //TODO: Remove
   public int getSelectedProcessId() {
-    return mySelectedProcessId;
+    return -1;
   }
-
 }
