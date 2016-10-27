@@ -111,10 +111,10 @@ public class AndroidSdkSourceAttachTest {
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Wait.seconds(30).expecting("Android source to be installed").until(finish::isEnabled);
+    Wait.seconds(1).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
 
-    Wait.minutes(2).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
+    Wait.seconds(1).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
@@ -143,7 +143,7 @@ public class AndroidSdkSourceAttachTest {
     editor.awaitNotification("Sources for '" + mySdk.getName() + "' not found.")
       .performAction("Refresh (if already downloaded)");
 
-    Wait.minutes(2).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
+    Wait.seconds(1).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);

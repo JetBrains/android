@@ -77,7 +77,7 @@ public class GradleTasksTest {
           runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 2);
           assertTrue(runContent.isExecutionInProgress());
         }
-        Wait.minutes(2).expecting("task execution to finish").until(() -> !runContent.isExecutionInProgress());
+        Wait.seconds(10).expecting("task execution to finish").until(() -> !runContent.isExecutionInProgress());
       });
   }
 
@@ -97,7 +97,7 @@ public class GradleTasksTest {
       "build", runContent -> {
         boolean askedToStop = runContent.stop();
         assertTrue(askedToStop);
-        Wait.seconds(30).expecting("'build' task to stop").until(
+        Wait.seconds(1).expecting("'build' task to stop").until(
           () -> !runContent.isExecutionInProgress() && runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern)));
       });
   }

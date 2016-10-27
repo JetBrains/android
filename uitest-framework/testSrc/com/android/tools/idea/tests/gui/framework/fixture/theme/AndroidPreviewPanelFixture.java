@@ -34,7 +34,7 @@ public class AndroidPreviewPanelFixture extends ComponentFixture<AndroidPreviewP
 
   @NotNull
   public AndroidPreviewPanelFixture waitForRender() {
-    Wait.minutes(2).expecting("preview to finish loading").until(() -> target().findViewAtPoint(new Point(10, 10)) != null);
+    Wait.seconds(1).expecting("preview to finish loading").until(() -> target().findViewAtPoint(new Point(10, 10)) != null);
 
     return this;
   }

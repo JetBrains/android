@@ -45,7 +45,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
 
     final JPanel contentPanel = getContentPanel();
-    Wait.minutes(2).expecting("window to finish initializing")
+    Wait.seconds(1).expecting("window to finish initializing")
       .until(() -> {
         try {
           myRobot.finder().find(contentPanel, JLabelMatcher.withText("Initializing..."));
@@ -122,7 +122,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      Wait.minutes(2).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(1).expecting("the process list to show the package name").until(() -> GuiQuery.getNonNull(() -> {
         ComboBoxModel model = target().getModel();
         int size = model.getSize();
         for (int i = 0; i < size; ++i) {

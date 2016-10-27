@@ -311,7 +311,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     try {
       selectProjectMakeAction();
 
-      Wait.minutes(2).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
+      Wait.seconds(10).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
         .until(() -> contextRef.get() != null);
 
       CompileContext context = contextRef.get();
@@ -405,7 +405,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       return this;
     }
 
-    Wait.minutes(2).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+    Wait.seconds(10).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
@@ -503,7 +503,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Project project = getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (!syncState.isSyncInProgress()) {
-      Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
+      Wait.seconds(10).expecting("Syncing project " + quote(project.getName()) + " to finish")
         .until(myGradleProjectEventListener::isSyncStarted);
     }
     return this;
@@ -522,7 +522,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
+    Wait.seconds(10).expecting("Syncing project " + quote(project.getName()) + " to finish")
       .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);
         boolean syncFinished =
@@ -681,7 +681,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     GradleSettings settings = GradleSettings.getInstance(project);
     settings.setGradleVmOptions(jvmArgs);
 
-    Wait.minutes(2).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
+    Wait.seconds(1).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
 
     return this;
   }
@@ -736,7 +736,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    Wait.seconds(30).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
+    Wait.seconds(1).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
   }
 
   /**
@@ -744,7 +744,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Wait.seconds(10).expecting("a component to have the focus").until(() -> {
+    Wait.seconds(1).expecting("a component to have the focus").until(() -> {
       // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
       // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
       if (keyboardFocusManager.getFocusOwner() == null) {
