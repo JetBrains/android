@@ -16,22 +16,19 @@
 package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
+
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
 /**
  * An IDEA module's dependency on a library (e.g. a jar file.)
  */
 public class LibraryDependency extends Dependency {
-  @NotNull private final Map<PathType, Collection<String>> myPathsByType = Maps.newEnumMap(PathType.class);
+  @NotNull private final Map<PathType, Collection<String>> myPathsByType = new EnumMap<>(PathType.class);
 
   private String myName;
 
@@ -44,7 +41,7 @@ public class LibraryDependency extends Dependency {
    */
   @VisibleForTesting
   public LibraryDependency(@NotNull File binaryPath, @NotNull DependencyScope scope) {
-    this(FileUtil.getNameWithoutExtension(binaryPath), scope);
+    this(getNameWithoutExtension(binaryPath), scope);
     addPath(PathType.BINARY, binaryPath);
   }
 
@@ -60,10 +57,11 @@ public class LibraryDependency extends Dependency {
     setName(name);
   }
 
-  void addPath(@NotNull PathType type, @NotNull File path) {
+  @VisibleForTesting
+  public void addPath(@NotNull PathType type, @NotNull File path) {
     Collection<String> paths = myPathsByType.get(type);
     if (paths == null) {
-      paths = Sets.newHashSet();
+      paths = new HashSet<>();
       myPathsByType.put(type, paths);
     }
     paths.add(path.getPath());
@@ -94,6 +92,6 @@ public class LibraryDependency extends Dependency {
   }
 
   public enum PathType {
-    BINARY, SOURCE, DOC
+    BINARY, SOURCE, DOCUMENTATION
   }
 }
