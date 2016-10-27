@@ -53,7 +53,7 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
       return DEFAULT_REPO_NAME;
     }
 
-    String name = myDslElement.getProperty(NAME, String.class);
+    String name = myDslElement.getLiteralProperty(NAME, String.class).value();
     return name != null ? name : DEFAULT_REPO_NAME;
   }
 
@@ -74,7 +74,7 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
       return artifactUrls;
     }
 
-    String artifactUrl = myDslElement.getProperty(ARTIFACT_URLS, String.class);
+    String artifactUrl = myDslElement.getLiteralProperty(ARTIFACT_URLS, String.class).value();
     if (artifactUrl != null) {
       return ImmutableList.of(artifactUrl);
     }

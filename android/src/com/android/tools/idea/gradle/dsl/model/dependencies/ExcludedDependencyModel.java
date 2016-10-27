@@ -32,11 +32,11 @@ public class ExcludedDependencyModel {
 
   @NotNull
   public GradleNullableValue<String> group() {
-    return myExcludeMap.getPropertyValue(GROUP, String.class);
+    return myExcludeMap.getLiteralProperty(GROUP, String.class);
   }
 
   @NotNull
   public GradleNullableValue<String> module() {
-    return myExcludeMap.getPropertyValue(MODULE, String.class);
+    return myExcludeMap.getLiteralProperty(MODULE, String.class);
   }
 }

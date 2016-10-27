@@ -48,7 +48,7 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
 
   @NotNull
   private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
-    GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
+    GradleDslElementList elementList = getPropertyElement(configurationName, GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(this, configurationName);
       super.addParsedElement(configurationName, elementList);

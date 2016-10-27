@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -58,7 +59,8 @@ public class SigningConfigModel extends GradleDslBlockModel {
       literal.setValue(storeFile);
       methodCall.addNewArgument(literal);
       myDslElement.setNewElement(STORE_FILE, methodCall);
-    } else {
+    }
+    else {
       GradleDslExpression expression = getStoreFileExpression();
       if (expression != null) {
         expression.setValue(storeFile);
@@ -74,7 +76,7 @@ public class SigningConfigModel extends GradleDslBlockModel {
 
   @Nullable
   private GradleDslExpression getStoreFileExpression() {
-    GradleDslMethodCall methodCall = myDslElement.getProperty(STORE_FILE, GradleDslMethodCall.class);
+    GradleDslMethodCall methodCall = myDslElement.getPropertyElement(STORE_FILE, GradleDslMethodCall.class);
     if (methodCall == null || methodCall.getArguments().size() == 0) {
       return null;
     }
@@ -85,9 +87,9 @@ public class SigningConfigModel extends GradleDslBlockModel {
     return null;
   }
 
-  @Nullable
-  public String storePassword() {
-    return myDslElement.getProperty(STORE_PASSWORD, String.class);
+  @NotNull
+  public GradleNullableValue<String> storePassword() {
+    return myDslElement.getLiteralProperty(STORE_PASSWORD, String.class);
   }
 
   public SigningConfigModel setStorePassword(@NotNull String storePassword) {
@@ -100,9 +102,9 @@ public class SigningConfigModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public String storeType() {
-    return myDslElement.getProperty(STORE_TYPE, String.class);
+  @NotNull
+  public GradleNullableValue<String> storeType() {
+    return myDslElement.getLiteralProperty(STORE_TYPE, String.class);
   }
 
   public SigningConfigModel setStoreType(@NotNull String storeType) {
@@ -115,9 +117,9 @@ public class SigningConfigModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public String keyAlias() {
-    return myDslElement.getProperty(KEY_ALIAS, String.class);
+  @NotNull
+  public GradleNullableValue<String> keyAlias() {
+    return myDslElement.getLiteralProperty(KEY_ALIAS, String.class);
   }
 
   public SigningConfigModel setKeyAlias(@NotNull String keyAlias) {
@@ -130,9 +132,9 @@ public class SigningConfigModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public String keyPassword() {
-    return myDslElement.getProperty(KEY_PASSWORD, String.class);
+  @NotNull
+  public GradleNullableValue<String> keyPassword() {
+    return myDslElement.getLiteralProperty(KEY_PASSWORD, String.class);
   }
 
   public SigningConfigModel setKeyPassword(@NotNull String keyPassword) {
