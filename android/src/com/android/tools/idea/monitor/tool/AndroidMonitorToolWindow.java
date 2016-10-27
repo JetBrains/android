@@ -166,8 +166,9 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     myScrollbar = new RangeScrollbar(timeGlobalRangeUs, myTimeCurrentRangeUs);
 
-    AxisComponent.Builder builder = new AxisComponent.Builder(myTimeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(timeGlobalRangeUs).setOffset(deviceStartTimeUs);
+    AxisComponent.Builder builder =
+      new AxisComponent.Builder(myTimeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
+        .setGlobalRange(timeGlobalRangeUs).setOffset(deviceStartTimeUs);
     myTimeAxis = builder.build();
 
     myDetailedViewContainer = new JBPanel(new BorderLayout());
@@ -486,11 +487,12 @@ public class AndroidMonitorToolWindow implements Disposable {
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
                            new NetworkProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
-                           new MemoryProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
+                           new MemoryProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher, myProject,
+                                                       mySelectedClient));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
                            new CpuProfilerUiManager(myTimeCurrentRangeUs, myTimeSelectionRangeUs, myChoreographer, myDataStore,
                                                     myEventDispatcher, mySelectedDeviceProfilerService, myDeviceContext, myProject));
-    if (System.getProperty(ENABLE_ENERGY_PROFILER) != null ) {
+    if (System.getProperty(ENABLE_ENERGY_PROFILER) != null) {
       myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
                              new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     }

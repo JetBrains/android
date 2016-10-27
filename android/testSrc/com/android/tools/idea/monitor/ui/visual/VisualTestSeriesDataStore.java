@@ -63,6 +63,11 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
+  public long mapAbsoluteDeviceToRelativeTime(long absoluteTime) {
+    return absoluteTime;
+  }
+
+  @Override
   public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, Object target) {
     return new SeriesDataList<>(range, this, type, target);
   }
