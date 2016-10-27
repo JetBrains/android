@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.*;

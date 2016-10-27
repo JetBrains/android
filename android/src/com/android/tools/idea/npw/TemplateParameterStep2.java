@@ -23,7 +23,7 @@ import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;

@@ -174,5 +174,6 @@
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
     <orderEntry type="library" scope="TEST" name="Netty" level="project" />
+    <orderEntry type="module" module-name="observable" />
   </component>
 </module>
