@@ -73,7 +73,6 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -386,9 +385,7 @@ public final class Projects {
    */
   public static void enforceExternalBuild(@NotNull Project project) {
     if (requiresAndroidModel(project)) {
-      // Android Studio should use GradleInvoker instead of JPS (besides better performance and integration with the 'Gradle' console,
-      // Instant Run only works with GradleInvoker.
-      AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = isAndroidStudio();
+      // do nothing
     }
   }
 
