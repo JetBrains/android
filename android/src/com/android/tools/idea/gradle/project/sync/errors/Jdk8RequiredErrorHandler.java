@@ -39,12 +39,10 @@ public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
 
   @Nullable
   @Override
-  protected String findErrorMessage(@NotNull Throwable error, @NotNull NotificationData notification, @NotNull Project project) {
-    //noinspection ThrowableResultOfMethodCallIgnored
-    Throwable cause = getRootCause(error);
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
     // Example:
     // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
-    String text = cause.getMessage();
+    String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains("Unsupported major.minor version 52.0")) {
       if (!text.endsWith(".")) {
         text += ".";
