@@ -38,7 +38,6 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class EditAtomTest {
 
