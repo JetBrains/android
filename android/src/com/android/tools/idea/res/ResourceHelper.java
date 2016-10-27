@@ -866,14 +866,14 @@ public class ResourceHelper {
   /**
    * Returns a {@link StateList} description of the state list value, or null if value is not a state list.
    */
-  @Nullable("if there is no statelist with this name")
+  @Nullable/*if there is no statelist with this name*/
   public static StateList resolveStateList(@NotNull RenderResources renderResources,
                                             @NotNull ResourceValue value,
                                             @NotNull Project project) {
     return resolveStateList(renderResources, value, project, 0);
   }
 
-  @Nullable("if there is no statelist with this name")
+  @Nullable/*if there is no statelist with this name*/
   private static StateList resolveStateList(@NotNull RenderResources renderResources,
                                            @NotNull ResourceValue resourceValue,
                                            @NotNull Project project, int depth) {

@@ -43,7 +43,7 @@ public class ReportStream implements PathListener {
   @NotNull private final PathStore<ReportPath> myReportPath = new PathStore<>();
   @NotNull private final PathStore<DevicePath> myDevicePath = new PathStore<>();
   @NotNull private final PathStore<ReportItemPath> myReportItemPath = new PathStore<>();
-  @Nullable("no report has been fetched yet") private Report myReport;
+  @Nullable/*no report has been fetched yet*/ private Report myReport;
 
   @NotNull private final Listeners myListeners = new Listeners();
 
@@ -145,7 +145,7 @@ public class ReportStream implements PathListener {
     return myReport;
   }
 
-  @Nullable("path has not been updated yet")
+  @Nullable/*path has not been updated yet*/
   public ReportPath getPath() {
     return myReportPath.getPath();
   }

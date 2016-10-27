@@ -181,7 +181,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    *                      Pass null if you don't care about resulting ThemeEditorStyle source module (which would be null in that case)
    * @return the style parent
    */
-  @Nullable("if this is a root style")
+  @Nullable/*if this is a root style*/
   public ConfiguredThemeEditorStyle getParent(@Nullable ThemeResolver themeResolver) {
     ResourceResolver resolver = myConfiguration.getResourceResolver();
     assert resolver != null;

@@ -112,7 +112,7 @@ public abstract class AbstractRegisterComponentAction extends AbstractIntentionA
     return isAvailable(psiClass, manifest);
   }
 
-  @Nullable("if the cursor in the editor is not inside a class definition")
+  @Nullable/*if the cursor in the editor is not inside a class definition*/
   public static PsiClass extractClass(@Nullable Editor editor, @Nullable PsiFile file) {
     if (editor == null || file == null) {
       return null;

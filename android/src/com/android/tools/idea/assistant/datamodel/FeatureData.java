@@ -39,7 +39,7 @@ public interface FeatureData {
    * your features either all have an icon or none do. When only a subset are
    * provided, the layout becomes difficult to read.
    */
-  @Nullable("Feature icons are optional")
+  @Nullable/*Feature icons are optional*/
   Icon getIcon();
 
   /**

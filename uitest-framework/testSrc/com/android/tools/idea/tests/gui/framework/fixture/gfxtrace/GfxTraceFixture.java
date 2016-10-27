@@ -65,7 +65,7 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
     return new JComboBoxFixture(robot(), "ContextCombo");
   }
 
-  public int findAndSelectAtomWithField(@NotNull JTreeFixture tree, @Nullable("no Primitive fields") Method method) {
+  public int findAndSelectAtomWithField(@NotNull JTreeFixture tree, @Nullable/*no Primitive fields*/ Method method) {
     AtomStream atoms = myEditor.getAtomStream();
     long atomIndex = findAtomWithField(atoms.getAtoms().getAtoms(), atoms.getSelectedContext(), method);
     if (atomIndex < 0) {
@@ -77,7 +77,7 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
     return row;
   }
 
-  private static long findAtomWithField(Atom[] atoms, Context context, @Nullable("no Primitive fields") Method lookingFor) {
+  private static long findAtomWithField(Atom[] atoms, Context context, @Nullable/*no Primitive fields*/ Method lookingFor) {
     nextAtom: for (int atomIndex = 0; atomIndex < atoms.length; atomIndex++) {
       if (context.contains(atomIndex)) {
         Atom atom = atoms[atomIndex];

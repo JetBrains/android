@@ -57,7 +57,7 @@ public class RestrictedLocale implements  RestrictedQualifier {
   }
 
   @Override
-  @Nullable("if there is no boundary for a value")
+  @Nullable/*if there is no boundary for a value*/
   public Object getAny() {
     assert myNeedsToMatch != null;
     if (LocaleQualifier.FAKE_VALUE.equals(myNeedsToMatch) && myNeedsToNotMatch.isEmpty()) {

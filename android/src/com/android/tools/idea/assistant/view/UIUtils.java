@@ -188,7 +188,7 @@ public class UIUtils {
     return getHtml(content, null, null);
   }
 
-  public static String getHtml(@NotNull String content, @Nullable("not required") String css) {
+  public static String getHtml(@NotNull String content, @Nullable/*not required*/ String css) {
     return getHtml(content, css, null);
   }
 
@@ -201,8 +201,8 @@ public class UIUtils {
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
   public static String getHtml(@NotNull String content,
-                               @Nullable("not required") String css,
-                               @Nullable("not required") String headContent) {
+                               @Nullable/*not required*/ String css,
+                               @Nullable/*not required*/ String headContent) {
     // Use the label font as the default for markup so that it appears more consistent with non-html elements.
     // TODO: Determine if the label font is the ideal font choice.
     Font defaultFont = new JBLabel().getFont();

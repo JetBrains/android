@@ -809,7 +809,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     tag.setAttribute("package", null);
   }
 
-  @Nullable("item not found")
+  @Nullable/*item not found*/
   static NamedObject find(@NotNull List<NamedObject> items, @NotNull String name) {
     for (NamedObject item : items) {
       if (name.equals(item.getName())) {

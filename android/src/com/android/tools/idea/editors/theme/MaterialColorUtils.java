@@ -376,7 +376,7 @@ public class MaterialColorUtils {
   /**
    * @return the material name for a given color
    */
-  @Nullable("if the color is not material")
+  @Nullable/*if the color is not material*/
   public static String getMaterialName(@NotNull Color color) {
     return MATERIAL_NAMES_MAP.get(color);
   }

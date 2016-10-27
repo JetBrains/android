@@ -73,7 +73,7 @@ public class MergedManifest {
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
-  private @Nullable("is lazy initialised") Map<String, XmlNode.NodeKey> myNodeKeys;
+  private @Nullable/*is lazy initialised*/ Map<String, XmlNode.NodeKey> myNodeKeys;
   private Document myDocument;
   private List<VirtualFile> myManifestFiles;
   private ModulePermissions myPermissionHolder;
@@ -554,7 +554,7 @@ public class MergedManifest {
     return myManifestFile == null ? null : myManifestFile.getActions();
   }
 
-  @Nullable("can not find a node key with that name")
+  @Nullable/*can not find a node key with that name*/
   public XmlNode.NodeKey getNodeKey(String name) {
     sync();
     if (myNodeKeys == null) {
