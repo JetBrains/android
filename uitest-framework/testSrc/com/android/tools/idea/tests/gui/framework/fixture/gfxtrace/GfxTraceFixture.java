@@ -37,7 +37,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collection;
@@ -165,9 +164,9 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
   @NotNull
   private JTreeFixture getAtomTree() {
     return new JTreeFixture(robot(), "AtomTree") {
-      @Nonnull
+      @NotNull
       @Override
-      protected JTreeDriver createDriver(@Nonnull Robot robot) {
+      protected JTreeDriver createDriver(@NotNull Robot robot) {
         return new ScrollAwareJTreeDriver(robot);
       }
     };
