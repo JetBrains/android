@@ -16,10 +16,7 @@
 
 package com.android.tools.adtui.visualtests.flamegraph;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.Range;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -36,10 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
@@ -101,6 +96,11 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     list.add(mLineChart);
     list.add(mTimeSelectionRangeUs);
     return list;
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Arrays.asList(mChart, mSelector, mAxis, mLineChart);
   }
 
   @Override

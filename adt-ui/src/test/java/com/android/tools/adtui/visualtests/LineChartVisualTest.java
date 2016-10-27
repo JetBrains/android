@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.EventConfig;
@@ -32,6 +33,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,6 +94,11 @@ public class LineChartVisualTest extends VisualTest {
     mLineChart.addEvent(mEventSeries, mEventConfig);
 
     return componentsList;
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Collections.singletonList(mLineChart);
   }
 
   @Override

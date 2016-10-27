@@ -28,6 +28,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +100,11 @@ public class EventVisualTest extends VisualTest {
     componentsList.add(mySimpleEventComponent);
     componentsList.add(myStackedEventComponent);
     return componentsList;
+  }
+
+  @Override
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Arrays.asList(mySimpleEventComponent, myStackedEventComponent);
   }
 
   @Override
