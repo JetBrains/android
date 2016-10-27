@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
 import com.intellij.ide.highlighter.ModuleFileType;
@@ -23,12 +22,12 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,9 +84,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     // Create a sub module
     final VirtualFile baseDir = myProject.getBaseDir();
     assertNotNull(baseDir);
-    final File moduleFile = new File(FileUtil.toSystemDependentName(baseDir.getPath()),
+    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
                                      SUB_MODULE_NAME + File.separatorChar + SUB_MODULE_NAME + ModuleFileType.DOT_DEFAULT_EXTENSION);
-    FileUtil.createIfDoesntExist(moduleFile);
+    createIfDoesntExist(moduleFile);
     myFilesToDelete.add(moduleFile);
     mySubModule = new WriteAction<Module>() {
       @Override
@@ -145,12 +144,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void applyChanges(@NotNull final GradleBuildModel buildModel) {
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(myProject, buildModel::applyChanges);
     assertFalse(buildModel.isModified());
   }
 
@@ -159,37 +153,38 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-  protected void verifyGradleValue(@NotNull GradleValue appcompatDependency,
+
+  protected void verifyGradleValue(@NotNull GradleValue gradleValue,
                                    @NotNull String propertyName,
                                    @NotNull String propertyText) {
-    verifyGradleValue(appcompatDependency, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
+    verifyGradleValue(gradleValue, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
   }
 
-  public static void verifyGradleValue(@NotNull GradleValue appcompatDependency,
+  public static void verifyGradleValue(@NotNull GradleValue gradleValue,
                                        @NotNull String propertyName,
                                        @NotNull String propertyText,
                                        @NotNull String propertyFilePath) {
-    PsiElement appcompatPsiElement = appcompatDependency.getPsiElement();
-    assertNotNull(appcompatPsiElement);
-    assertEquals(propertyText, appcompatPsiElement.getText());
-    assertEquals(propertyFilePath, toSystemIndependentName(appcompatDependency.getFile().getPath()));
-    assertEquals(propertyName, appcompatDependency.getPropertyName());
-    assertEquals(propertyText, appcompatDependency.getDslText());
+    GroovyPsiElement psiElement = gradleValue.getPsiElement();
+    assertNotNull(psiElement);
+    assertEquals(propertyText, psiElement.getText());
+    assertEquals(propertyFilePath, toSystemIndependentName(gradleValue.getFile().getPath()));
+    assertEquals(propertyName, gradleValue.getPropertyName());
+    assertEquals(propertyText, gradleValue.getDslText());
   }
 
-  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+  public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleNullableValue<T> actual) {
     assertEquals(message, expected, actual.value());
   }
 
-  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+  public static <T> void assertEquals(@Nullable T expected, @NotNull GradleNullableValue<T> actual) {
     assertEquals(expected, actual.value());
   }
 
-  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
-    assertEquals(message, expected, actual.value());
+  public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {
+    assertNull(message, nullableValue.value());
   }
 
-  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
-    assertEquals(expected, actual.value());
+  public static <T> void assertNull(@NotNull GradleNullableValue<T> nullableValue) {
+    assertNull(nullableValue.value());
   }
 }

@@ -50,7 +50,7 @@ public class RepositoriesDslElement extends GradlePropertiesDslElement {
 
   @NotNull
   private GradleDslElementList getOrCreateRepositoriesElement() {
-    GradleDslElementList elementList = getProperty(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
+    GradleDslElementList elementList = getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(this, REPOSITORIES_BLOCK_NAME);
       super.addParsedElement(REPOSITORIES_BLOCK_NAME, elementList);

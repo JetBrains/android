@@ -31,7 +31,7 @@ public class ExternalNativeBuildModel extends GradleDslBlockModel {
 
   @NotNull
   public CMakeModel cmake() {
-    CMakeDslElement cMakeDslElement = myDslElement.getProperty(CMAKE_BLOCK_NAME, CMakeDslElement.class);
+    CMakeDslElement cMakeDslElement = myDslElement.getPropertyElement(CMAKE_BLOCK_NAME, CMakeDslElement.class);
     if (cMakeDslElement == null) {
       cMakeDslElement = new CMakeDslElement(myDslElement);
       myDslElement.setNewElement(CMAKE_BLOCK_NAME, cMakeDslElement);
@@ -47,7 +47,7 @@ public class ExternalNativeBuildModel extends GradleDslBlockModel {
 
   @NotNull
   public NdkBuildModel ndkBuild() {
-    NdkBuildDslElement ndkBuildDslElement = myDslElement.getProperty(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
+    NdkBuildDslElement ndkBuildDslElement = myDslElement.getPropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
     if (ndkBuildDslElement == null) {
       ndkBuildDslElement = new NdkBuildDslElement(myDslElement);
       myDslElement.setNewElement(NDK_BUILD_BLOCK_NAME, ndkBuildDslElement);
@@ -60,5 +60,4 @@ public class ExternalNativeBuildModel extends GradleDslBlockModel {
     myDslElement.removeProperty(NDK_BUILD_BLOCK_NAME);
     return this;
   }
-
 }

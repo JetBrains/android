@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -32,5 +35,16 @@ public abstract class GradleDslBlockModel {
   public boolean hasValidPsiElement() {
     GroovyPsiElement psiElement = myDslElement.getPsiElement();
     return psiElement != null && psiElement.isValid();
+  }
+
+  @NotNull
+  protected GradleNullableValue<String> getIntOrStringValue(@NotNull String propertyName) {
+    Integer intValue = myDslElement.getLiteralProperty(propertyName, Integer.class).value();
+    if (intValue != null) {
+      GradleDslElement propertyElement = myDslElement.getPropertyElement(propertyName);
+      assert propertyElement != null;
+      return new GradleNotNullValue<>(propertyElement, intValue.toString());
+    }
+    return myDslElement.getLiteralProperty(propertyName, String.class);
   }
 }

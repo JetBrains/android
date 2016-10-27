@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public abstract class GradleValue {
 
   @Nullable
   public GroovyPsiElement getPsiElement() {
-    return myDslElement.getPsiElement();
+    return myDslElement instanceof GradleDslExpression ? ((GradleDslExpression)myDslElement).getExpression() : myDslElement.getPsiElement();
   }
 
   @NotNull

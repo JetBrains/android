@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents the extra user-defined properties defined in the Gradle file.
@@ -33,8 +35,13 @@ public final class ExtModel extends GradleDslBlockModel {
     super(dslElement);
   }
 
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
+    return myDslElement.getPropertyElement(property, clazz);
+  }
+
   @NotNull
-  public <T> GradleNullableValue<T> getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    return myDslElement.getPropertyValue(property, clazz);
+  public <T> GradleNullableValue<T> getLiteralProperty(@NotNull String property, @NotNull Class<T> clazz) {
+    return myDslElement.getLiteralProperty(property, clazz);
   }
 }

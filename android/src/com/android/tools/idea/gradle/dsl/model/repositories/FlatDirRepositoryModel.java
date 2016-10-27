@@ -43,7 +43,7 @@ public class FlatDirRepositoryModel extends RepositoryModel {
   @NotNull
   @Override
   public String name() {
-    String name = myDslElement.getProperty(NAME, String.class);
+    String name = myDslElement.getLiteralProperty(NAME, String.class).value();
     return name != null ? name : DEFAULT_REPO_NAME;
   }
 
@@ -54,7 +54,7 @@ public class FlatDirRepositoryModel extends RepositoryModel {
       return dirs;
     }
 
-    String dir = myDslElement.getProperty(DIRS, String.class);
+    String dir = myDslElement.getLiteralProperty(DIRS, String.class).value();
     if (dir != null) {
       return ImmutableList.of(dir);
     }

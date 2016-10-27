@@ -37,7 +37,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
         return;
       }
 
-      GradleDslElementList elementList = getProperty("buildConfigField", GradleDslElementList.class);
+      GradleDslElementList elementList = getPropertyElement("buildConfigField", GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, "buildConfigField");
         setParsedElement("buildConfigField", elementList);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -42,9 +43,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     super(dslElement);
   }
 
-  @Nullable
-  public String applicationIdSuffix() {
-    return myDslElement.getProperty(APPLICATION_ID_SUFFIX, String.class);
+  @NotNull
+  public GradleNullableValue<String> applicationIdSuffix() {
+    return myDslElement.getLiteralProperty(APPLICATION_ID_SUFFIX, String.class);
   }
 
   @NotNull
@@ -96,9 +97,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return (BuildTypeModel)replaceTypeNameValueElement(oldBuildConfigField, newBuildConfigField);
   }
 
-  @Nullable
-  public Boolean debuggable() {
-    return myDslElement.getProperty(DEBUGGABLE, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> debuggable() {
+    return myDslElement.getLiteralProperty(DEBUGGABLE, Boolean.class);
   }
 
   @NotNull
@@ -113,9 +114,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean embedMicroApp() {
-    return myDslElement.getProperty(EMBED_MICRO_APP, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> embedMicroApp() {
+    return myDslElement.getLiteralProperty(EMBED_MICRO_APP, Boolean.class);
   }
 
   @NotNull
@@ -130,9 +131,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean jniDebuggable() {
-    return myDslElement.getProperty(JNI_DEBUGGABLE, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> jniDebuggable() {
+    return myDslElement.getLiteralProperty(JNI_DEBUGGABLE, Boolean.class);
   }
 
   @NotNull
@@ -147,9 +148,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean minifyEnabled() {
-    return myDslElement.getProperty(MINIFY_ENABLED, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> minifyEnabled() {
+    return myDslElement.getLiteralProperty(MINIFY_ENABLED, Boolean.class);
   }
 
   @NotNull
@@ -164,9 +165,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean pseudoLocalesEnabled() {
-    return myDslElement.getProperty(PSEUDO_LOCALES_ENABLED, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> pseudoLocalesEnabled() {
+    return myDslElement.getLiteralProperty(PSEUDO_LOCALES_ENABLED, Boolean.class);
   }
 
   @NotNull
@@ -181,9 +182,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean renderscriptDebuggable() {
-    return myDslElement.getProperty(RENDERSCRIPT_DEBUGGABLE, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> renderscriptDebuggable() {
+    return myDslElement.getLiteralProperty(RENDERSCRIPT_DEBUGGABLE, Boolean.class);
   }
 
   @NotNull
@@ -198,9 +199,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Integer renderscriptOptimLevel() {
-    return myDslElement.getProperty(RENDERSCRIPT_OPTIM_LEVEL, Integer.class);
+  @NotNull
+  public GradleNullableValue<Integer> renderscriptOptimLevel() {
+    return myDslElement.getLiteralProperty(RENDERSCRIPT_OPTIM_LEVEL, Integer.class);
   }
 
   @NotNull
@@ -215,9 +216,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean shrinkResources() {
-    return myDslElement.getProperty(SHRINK_RESOURCES, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> shrinkResources() {
+    return myDslElement.getLiteralProperty(SHRINK_RESOURCES, Boolean.class);
   }
 
   @NotNull
@@ -232,9 +233,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean testCoverageEnabled() {
-    return myDslElement.getProperty(TEST_COVERAGE_ENABLED, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> testCoverageEnabled() {
+    return myDslElement.getLiteralProperty(TEST_COVERAGE_ENABLED, Boolean.class);
   }
 
   @NotNull
@@ -249,9 +250,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String versionNameSuffix() {
-    return myDslElement.getProperty(VERSION_NAME_SUFFIX, String.class);
+  @NotNull
+  public GradleNullableValue<String> versionNameSuffix() {
+    return myDslElement.getLiteralProperty(VERSION_NAME_SUFFIX, String.class);
   }
 
   @NotNull
@@ -266,9 +267,9 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean zipAlignEnabled() {
-    return myDslElement.getProperty(ZIP_ALIGN_ENABLED, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> zipAlignEnabled() {
+    return myDslElement.getLiteralProperty(ZIP_ALIGN_ENABLED, Boolean.class);
   }
 
   @NotNull
