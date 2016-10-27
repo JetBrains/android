@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -65,6 +67,13 @@ public abstract class VisualTest {
    */
   protected abstract List<Animatable> createComponentsList();
 
+  /**
+   * @return the components that needs to render debug information.
+   */
+  protected List<AnimatedComponent> getDebugInfoComponents() {
+    return Collections.emptyList();
+  }
+
   protected final void addToChoreographer(@NotNull Animatable animatable) {
     mChoreographer.register(animatable);
   }
@@ -94,6 +103,15 @@ public abstract class VisualTest {
   }
 
   public abstract String getName();
+
+  /**
+   * @param isDebug, whether to show debug info for interested {@link AnimatedComponent}'s
+   */
+  public void setDebug(boolean isDebug) {
+    for (AnimatedComponent component : getDebugInfoComponents()) {
+      component.setDrawDebugInfo(isDebug);
+    }
+  }
 
   protected static JPanel createVariableSlider(String name, final int a, final int b, final VisualTests.Value value) {
     JPanel panel = new JPanel(new BorderLayout());

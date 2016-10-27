@@ -366,7 +366,7 @@ public class LineChart extends AnimatedComponent {
       rectangleCache.subList(i, rectangleCache.size()).clear();
     }
 
-    addDebugInfo("postAnimate time: %.2fms", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - duration));
+    addDebugInfo("postAnimate time: %d ms", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - duration));
   }
 
   @Override
