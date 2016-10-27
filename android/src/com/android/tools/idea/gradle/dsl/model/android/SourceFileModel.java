@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceFileDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SourceFileModel extends GradleDslBlockModel {
   @NonNls private static final String SRC_FILE = "srcFile";
+
   public SourceFileModel(@NotNull SourceFileDslElement dslElement) {
     super(dslElement);
   }
@@ -32,9 +33,9 @@ public class SourceFileModel extends GradleDslBlockModel {
     return myDslElement.getName();
   }
 
-  @Nullable
-  public String srcFile() {
-    return myDslElement.getProperty(SRC_FILE, String.class);
+  @NotNull
+  public GradleNullableValue<String> srcFile() {
+    return myDslElement.getLiteralProperty(SRC_FILE, String.class);
   }
 
   @NotNull

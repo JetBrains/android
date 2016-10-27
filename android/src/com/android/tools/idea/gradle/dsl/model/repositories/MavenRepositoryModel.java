@@ -53,26 +53,26 @@ public class MavenRepositoryModel extends UrlBasedRepositoryModel {
   @NotNull
   @Override
   public String name() {
-    String name = myDslElement.getProperty(NAME, String.class);
+    String name = myDslElement.getLiteralProperty(NAME, String.class).value();
     return name != null ? name : myDefaultRepoName;
   }
 
   @NotNull
   @Override
   public String url() {
-    String url = myDslElement.getProperty(URL, String.class);
+    String url = myDslElement.getLiteralProperty(URL, String.class).value();
     return url != null ? url : myDefaultRepoUrl;
   }
 
   @NotNull
   public List<String> artifactUrls() {
     List<String> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
-    return artifactUrls != null ? artifactUrls : ImmutableList.<String>of();
+    return artifactUrls != null ? artifactUrls : ImmutableList.of();
   }
 
   @Nullable
   public MavenCredentialsModel credentials() {
-    MavenCredentialsDslElement credentials = myDslElement.getProperty(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
+    MavenCredentialsDslElement credentials = myDslElement.getPropertyElement(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
     return credentials != null ? new MavenCredentialsModel(credentials) : null;
   }
 }

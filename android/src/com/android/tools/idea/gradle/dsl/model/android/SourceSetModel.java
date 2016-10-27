@@ -51,7 +51,7 @@ public class SourceSetModel extends GradleDslBlockModel {
 
   @Nullable
   public String root() {
-    GradleDslExpression rootElement = myDslElement.getProperty(ROOT, GradleDslExpression.class);
+    GradleDslExpression rootElement = myDslElement.getPropertyElement(ROOT, GradleDslExpression.class);
     if (rootElement == null) {
       return null;
     }
@@ -74,7 +74,7 @@ public class SourceSetModel extends GradleDslBlockModel {
 
   @NotNull
   public SourceSetModel setRoot(@NotNull String root) {
-    GradleDslExpression rootElement = myDslElement.getProperty(ROOT, GradleDslExpression.class);
+    GradleDslExpression rootElement = myDslElement.getPropertyElement(ROOT, GradleDslExpression.class);
     if (rootElement == null) {
       myDslElement.setNewLiteral(ROOT, root);
       return this;
@@ -103,7 +103,7 @@ public class SourceSetModel extends GradleDslBlockModel {
 
   @NotNull
   public SourceDirectoryModel aidl() {
-    SourceDirectoryDslElement aidl = myDslElement.getProperty(AIDL, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement aidl = myDslElement.getPropertyElement(AIDL, SourceDirectoryDslElement.class);
     if (aidl == null) {
       aidl = new SourceDirectoryDslElement(myDslElement, AIDL);
       myDslElement.setNewElement(AIDL, aidl);
@@ -111,14 +111,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(aidl);
   }
 
-  @NotNull SourceSetModel removeAidl() {
+  @NotNull
+  public SourceSetModel removeAidl() {
     myDslElement.removeProperty(AIDL);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel assets() {
-    SourceDirectoryDslElement assets = myDslElement.getProperty(ASSETS, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement assets = myDslElement.getPropertyElement(ASSETS, SourceDirectoryDslElement.class);
     if (assets == null) {
       assets = new SourceDirectoryDslElement(myDslElement, ASSETS);
       myDslElement.setNewElement(ASSETS, assets);
@@ -126,14 +127,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(assets);
   }
 
-  @NotNull SourceSetModel removeAssets() {
+  @NotNull
+  public SourceSetModel removeAssets() {
     myDslElement.removeProperty(ASSETS);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel java() {
-    SourceDirectoryDslElement java = myDslElement.getProperty(JAVA, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement java = myDslElement.getPropertyElement(JAVA, SourceDirectoryDslElement.class);
     if (java == null) {
       java = new SourceDirectoryDslElement(myDslElement, JAVA);
       myDslElement.setNewElement(JAVA, java);
@@ -141,14 +143,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(java);
   }
 
-  @NotNull SourceSetModel removeJava() {
+  @NotNull
+  public SourceSetModel removeJava() {
     myDslElement.removeProperty(JAVA);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel jni() {
-    SourceDirectoryDslElement jni = myDslElement.getProperty(JNI, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement jni = myDslElement.getPropertyElement(JNI, SourceDirectoryDslElement.class);
     if (jni == null) {
       jni = new SourceDirectoryDslElement(myDslElement, JNI);
       myDslElement.setNewElement(JNI, jni);
@@ -156,14 +159,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(jni);
   }
 
-  @NotNull SourceSetModel removeJni() {
+  @NotNull
+  public SourceSetModel removeJni() {
     myDslElement.removeProperty(JNI);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel jniLibs() {
-    SourceDirectoryDslElement jniLibs = myDslElement.getProperty(JNI_LIBS, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement jniLibs = myDslElement.getPropertyElement(JNI_LIBS, SourceDirectoryDslElement.class);
     if (jniLibs == null) {
       jniLibs = new SourceDirectoryDslElement(myDslElement, JNI_LIBS);
       myDslElement.setNewElement(JNI_LIBS, jniLibs);
@@ -171,14 +175,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(jniLibs);
   }
 
-  @NotNull SourceSetModel removeJniLibs() {
+  @NotNull
+  public SourceSetModel removeJniLibs() {
     myDslElement.removeProperty(JNI_LIBS);
     return this;
   }
 
   @NotNull
   public SourceFileModel manifest() {
-    SourceFileDslElement manifest = myDslElement.getProperty(MANIFEST, SourceFileDslElement.class);
+    SourceFileDslElement manifest = myDslElement.getPropertyElement(MANIFEST, SourceFileDslElement.class);
     if (manifest == null) {
       manifest = new SourceFileDslElement(myDslElement, MANIFEST);
       myDslElement.setNewElement(MANIFEST, manifest);
@@ -186,14 +191,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceFileModel(manifest);
   }
 
-  @NotNull SourceSetModel removeManifest() {
+  @NotNull
+  public SourceSetModel removeManifest() {
     myDslElement.removeProperty(MANIFEST);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel renderscript() {
-    SourceDirectoryDslElement renderscript = myDslElement.getProperty(RENDERSCRIPT, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement renderscript = myDslElement.getPropertyElement(RENDERSCRIPT, SourceDirectoryDslElement.class);
     if (renderscript == null) {
       renderscript = new SourceDirectoryDslElement(myDslElement, RENDERSCRIPT);
       myDslElement.setNewElement(RENDERSCRIPT, renderscript);
@@ -201,14 +207,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(renderscript);
   }
 
-  @NotNull SourceSetModel removeRenderscript() {
+  @NotNull
+  public SourceSetModel removeRenderscript() {
     myDslElement.removeProperty(RENDERSCRIPT);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel res() {
-    SourceDirectoryDslElement res = myDslElement.getProperty(RES, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement res = myDslElement.getPropertyElement(RES, SourceDirectoryDslElement.class);
     if (res == null) {
       res = new SourceDirectoryDslElement(myDslElement, RES);
       myDslElement.setNewElement(RES, res);
@@ -216,14 +223,15 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(res);
   }
 
-  @NotNull SourceSetModel removeRes() {
+  @NotNull
+  public SourceSetModel removeRes() {
     myDslElement.removeProperty(RES);
     return this;
   }
 
   @NotNull
   public SourceDirectoryModel resources() {
-    SourceDirectoryDslElement resources = myDslElement.getProperty(RESOURCES, SourceDirectoryDslElement.class);
+    SourceDirectoryDslElement resources = myDslElement.getPropertyElement(RESOURCES, SourceDirectoryDslElement.class);
     if (resources == null) {
       resources = new SourceDirectoryDslElement(myDslElement, RESOURCES);
       myDslElement.setNewElement(RESOURCES, resources);
@@ -231,7 +239,8 @@ public class SourceSetModel extends GradleDslBlockModel {
     return new SourceDirectoryModel(resources);
   }
 
-  @NotNull SourceSetModel removeResources() {
+  @NotNull
+  SourceSetModel removeResources() {
     myDslElement.removeProperty(RESOURCES);
     return this;
   }

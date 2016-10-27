@@ -124,7 +124,8 @@ public class GradleBuildModel extends GradleFileModel {
     GradleDslFile parentModuleDslFile = parentModuleModel.myGradleDslFile;
     buildDslFile.setParentModuleDslFile(parentModuleDslFile);
 
-    SubProjectsDslElement subProjectsDslElement = parentModuleDslFile.getProperty(SUBPROJECTS_BLOCK_NAME, SubProjectsDslElement.class);
+    SubProjectsDslElement subProjectsDslElement =
+      parentModuleDslFile.getPropertyElement(SUBPROJECTS_BLOCK_NAME, SubProjectsDslElement.class);
     if (subProjectsDslElement == null) {
       return;
     }
@@ -158,7 +159,7 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public List<String> appliedPlugins() {
-    ApplyDslElement applyDslElement = myGradleDslFile.getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     if (applyDslElement == null) {
       return ImmutableList.of();
     }
@@ -182,7 +183,7 @@ public class GradleBuildModel extends GradleFileModel {
   @NotNull
   public GradleBuildModel removePlugin(String plugin) {
     plugin = plugin.trim();
-    ApplyDslElement applyDslElement = myGradleDslFile.getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     if (applyDslElement != null) {
       while (appliedPlugins().contains(plugin)) {
         myToBeAppliedPlugins.remove(plugin);
@@ -205,7 +206,7 @@ public class GradleBuildModel extends GradleFileModel {
       return null; // Reading or updating Android block contents is not supported when experimental plugin is used.
     }
 
-    AndroidDslElement androidDslElement = myGradleDslFile.getProperty(ANDROID_BLOCK_NAME, AndroidDslElement.class);
+    AndroidDslElement androidDslElement = myGradleDslFile.getPropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
       androidDslElement = new AndroidDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(ANDROID_BLOCK_NAME, androidDslElement);
@@ -215,7 +216,7 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public BuildScriptModel buildscript() {
-    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getProperty(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
     if (buildScriptDslElement == null) {
       buildScriptDslElement = new BuildScriptDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(BUILDSCRIPT_BLOCK_NAME, buildScriptDslElement);
@@ -224,7 +225,8 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
+    DependenciesDslElement dependenciesDslElement =
+      myGradleDslFile.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
       dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
@@ -234,7 +236,7 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public ExtModel ext() {
-    ExtDslElement extDslElement = myGradleDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
+    ExtDslElement extDslElement = myGradleDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
     if (extDslElement == null) {
       extDslElement = new ExtDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(EXT_BLOCK_NAME, extDslElement);
@@ -244,7 +246,7 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.getProperty(JAVA_BLOCK_NAME, JavaDslElement.class);
+    JavaDslElement javaDslElement = myGradleDslFile.getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
     if (javaDslElement == null) {
       javaDslElement = new JavaDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(JAVA_BLOCK_NAME, javaDslElement);
@@ -254,7 +256,8 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.getProperty(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
+    RepositoriesDslElement repositoriesDslElement =
+      myGradleDslFile.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     if (repositoriesDslElement == null) {
       repositoriesDslElement = new RepositoriesDslElement(myGradleDslFile);
       myGradleDslFile.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);
@@ -319,7 +322,7 @@ public class GradleBuildModel extends GradleFileModel {
     @Override
     public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
       if (APPLY_BLOCK_NAME.equals(property) && element instanceof GradleDslExpressionMap) {
-        ApplyDslElement applyDslElement = getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+        ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
         if (applyDslElement == null) {
           applyDslElement = new ApplyDslElement(this);
           super.addParsedElement(APPLY_BLOCK_NAME, applyDslElement);
@@ -336,7 +339,7 @@ public class GradleBuildModel extends GradleFileModel {
     public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
       if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(property) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(property)) &&
           (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
-        JavaDslElement javaDslElement = getProperty(JAVA_BLOCK_NAME, JavaDslElement.class);
+        JavaDslElement javaDslElement = getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
         if (javaDslElement == null) {
           javaDslElement = new JavaDslElement(this);
           super.setParsedElement(JAVA_BLOCK_NAME, javaDslElement);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +43,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     super(dslElement);
   }
 
-  @Nullable
-  public String applicationId() {
-    return myDslElement.getProperty(APPLICATION_ID, String.class);
+  @NotNull
+  public GradleNullableValue<String> applicationId() {
+    return myDslElement.getLiteralProperty(APPLICATION_ID, String.class);
   }
 
   @NotNull
@@ -59,9 +60,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String dimension() {
-    return myDslElement.getProperty(DIMENSION, String.class);
+  @NotNull
+  public GradleNullableValue<String> dimension() {
+    return myDslElement.getLiteralProperty(DIMENSION, String.class);
   }
 
   @NotNull
@@ -76,9 +77,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Integer maxSdkVersion() {
-    return myDslElement.getProperty(MAX_SDK_VERSION, Integer.class);
+  @NotNull
+  public GradleNullableValue<Integer> maxSdkVersion() {
+    return myDslElement.getLiteralProperty(MAX_SDK_VERSION, Integer.class);
   }
 
   @NotNull
@@ -93,10 +94,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String minSdkVersion() {
-    Integer intValue = myDslElement.getProperty(MIN_SDK_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myDslElement.getProperty(MIN_SDK_VERSION, String.class);
+  @NotNull
+  public GradleNullableValue<String> minSdkVersion() {
+    return getIntOrStringValue(MIN_SDK_VERSION);
   }
 
   @NotNull
@@ -146,10 +146,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String targetSdkVersion() {
-    Integer intValue = myDslElement.getProperty(TARGET_SDK_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myDslElement.getProperty(TARGET_SDK_VERSION, String.class);
+  @NotNull
+  public GradleNullableValue<String> targetSdkVersion() {
+    return getIntOrStringValue(TARGET_SDK_VERSION);
   }
 
   @NotNull
@@ -170,9 +169,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String testApplicationId() {
-    return myDslElement.getProperty(TEST_APPLICATION_ID, String.class);
+  @NotNull
+  public GradleNullableValue<String> testApplicationId() {
+    return myDslElement.getLiteralProperty(TEST_APPLICATION_ID, String.class);
   }
 
   @NotNull
@@ -187,9 +186,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean testFunctionalTest() {
-    return myDslElement.getProperty(TEST_FUNCTIONAL_TEST, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> testFunctionalTest() {
+    return myDslElement.getLiteralProperty(TEST_FUNCTIONAL_TEST, Boolean.class);
   }
 
   @NotNull
@@ -204,9 +203,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public Boolean testHandleProfiling() {
-    return myDslElement.getProperty(TEST_HANDLE_PROFILING, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> testHandleProfiling() {
+    return myDslElement.getLiteralProperty(TEST_HANDLE_PROFILING, Boolean.class);
   }
 
   @NotNull
@@ -221,9 +220,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String testInstrumentationRunner() {
-    return myDslElement.getProperty(TEST_INSTRUMENTATION_RUNNER, String.class);
+  @NotNull
+  public GradleNullableValue<String> testInstrumentationRunner() {
+    return myDslElement.getLiteralProperty(TEST_INSTRUMENTATION_RUNNER, String.class);
   }
 
   @NotNull
@@ -261,10 +260,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String versionCode() {
-    Integer intValue = myDslElement.getProperty(VERSION_CODE, Integer.class);
-    return intValue != null ? intValue.toString() : myDslElement.getProperty(VERSION_CODE, String.class);
+  @NotNull
+  public GradleNullableValue<String> versionCode() {
+    return getIntOrStringValue(VERSION_CODE);
   }
 
   @NotNull
@@ -285,9 +283,9 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
     return this;
   }
 
-  @Nullable
-  public String versionName() {
-    return myDslElement.getProperty(VERSION_NAME, String.class);
+  @NotNull
+  public GradleNullableValue<String> versionName() {
+    return myDslElement.getLiteralProperty(VERSION_NAME, String.class);
   }
 
   @NotNull

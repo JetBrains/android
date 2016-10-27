@@ -40,7 +40,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
 
   @NotNull
   public List<RepositoryModel> repositories() {
-    GradleDslElementList repositoriesElementList = myDslElement.getProperty(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
+    GradleDslElementList repositoriesElementList = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
     if (repositoriesElementList == null) {
       return ImmutableList.of();
     }

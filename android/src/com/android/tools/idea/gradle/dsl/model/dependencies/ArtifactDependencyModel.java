@@ -152,7 +152,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
 
     @Nullable
     static MapNotation create(GradleDslExpressionMap dslElement, DependencyConfigurationDslElement configurationElement) {
-      if (dslElement.getPropertyValue("name", String.class).value() == null) {
+      if (dslElement.getLiteralProperty("name", String.class).value() == null) {
         return null; // not a artifact dependency element.
       }
 
@@ -178,19 +178,19 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @Override
     @NotNull
     public GradleNotNullValue<String> name() {
-      return GradleNotNullValue.create(myDslElement.getPropertyValue("name", String.class));
+      return GradleNotNullValue.create(myDslElement.getLiteralProperty("name", String.class));
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> group() {
-      return myDslElement.getPropertyValue("group", String.class);
+      return myDslElement.getLiteralProperty("group", String.class);
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> version() {
-      return myDslElement.getPropertyValue("version", String.class);
+      return myDslElement.getLiteralProperty("version", String.class);
     }
 
     @Override
@@ -201,13 +201,13 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @Override
     @NotNull
     public GradleNullableValue<String> classifier() {
-      return myDslElement.getPropertyValue("classifier", String.class);
+      return myDslElement.getLiteralProperty("classifier", String.class);
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> extension() {
-      return myDslElement.getPropertyValue("ext", String.class);
+      return myDslElement.getLiteralProperty("ext", String.class);
     }
 
     @Override
