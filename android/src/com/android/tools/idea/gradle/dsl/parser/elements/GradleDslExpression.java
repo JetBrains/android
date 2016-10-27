@@ -221,7 +221,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
           return propertyElement;
         }
         if (element instanceof GradleDslFile) {
-          ExtDslElement extDslElement = ((GradleDslFile)element).getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
+          ExtDslElement extDslElement = ((GradleDslFile)element).getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
           if (extDslElement != null) {
             GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
             if (extPropertyElement != null) {
@@ -249,7 +249,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
     // Try to resolve in the root project gradle.properties file.
     GradleDslFile rootProjectDslFile = dslFile;
-    while(true) {
+    while (true) {
       GradleDslFile parentModuleDslFile = rootProjectDslFile.getParentModuleDslFile();
       if (parentModuleDslFile == null) {
         break;
@@ -263,7 +263,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
   private static GradleDslElement resolveReferenceInParentModules(@NotNull GradleDslFile dslFile, @NotNull String referenceText) {
     GradleDslFile parentDslFile = dslFile.getParentModuleDslFile();
     while (parentDslFile != null) {
-      ExtDslElement extDslElement = parentDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
+      ExtDslElement extDslElement = parentDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
       if (extDslElement != null) {
         GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
         if (extPropertyElement != null) {

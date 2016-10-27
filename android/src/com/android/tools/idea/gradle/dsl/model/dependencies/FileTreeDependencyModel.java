@@ -51,7 +51,7 @@ public class FileTreeDependencyModel extends DependencyModel {
         }
         else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression dirElement = dslMap.getProperty(DIR, GradleDslExpression.class);
+          GradleDslExpression dirElement = dslMap.getPropertyElement(DIR, GradleDslExpression.class);
           if (dirElement == null) {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());

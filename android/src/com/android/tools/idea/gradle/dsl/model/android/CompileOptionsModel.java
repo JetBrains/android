@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CompileOptionsModel extends BaseCompileOptionsModel {
   @NonNls public static String ENCODING_ATTRIBUTE_NAME = "encoding";
@@ -28,9 +28,9 @@ public class CompileOptionsModel extends BaseCompileOptionsModel {
     super(dslElement, useAssignment);
   }
 
-  @Nullable
-  public String encoding() {
-    return myDslElement.getProperty(ENCODING_ATTRIBUTE_NAME, String.class);
+  @NotNull
+  public GradleNullableValue<String> encoding() {
+    return myDslElement.getLiteralProperty(ENCODING_ATTRIBUTE_NAME, String.class);
   }
 
   @NotNull

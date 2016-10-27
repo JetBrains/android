@@ -119,7 +119,7 @@ public class GradleSettingsModel extends GradleFileModel {
     }
 
     String projectKey = "project('" + modulePath + "')";
-    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
       File projectDir = projectProperties.projectDir();
       if (projectDir != null) {
@@ -205,9 +205,9 @@ public class GradleSettingsModel extends GradleFileModel {
 
     String buildFileName = null;
     String projectKey = "project('" + modulePath + "')";
-    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
-      buildFileName = projectProperties.buildFileName();
+      buildFileName = projectProperties.buildFileName().value();
     }
 
     if (buildFileName == null) {
