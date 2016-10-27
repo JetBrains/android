@@ -23,5 +23,4 @@ import com.intellij.util.containers.ImmutableList;
  */
 public interface DataSeries<E> {
   ImmutableList<SeriesData<E>> getDataForXRange(Range xRange);
-  SeriesData<E> getDataAtXValue(long x);
 }
