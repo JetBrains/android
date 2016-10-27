@@ -62,8 +62,9 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
     return this;
   }
 
-  public JComboBoxFixture getContextComboBox() {
-    return new JComboBoxFixture(robot(), "ContextCombo");
+  public GfxTraceFixture selectContext(String text) {
+    new JComboBoxFixture(robot(), "ContextCombo").selectItem(text);
+    return this;
   }
 
   public int findAndSelectAtomWithField(@NotNull JTreeFixture tree, @Nullable/*no Primitive fields*/ Method method) {

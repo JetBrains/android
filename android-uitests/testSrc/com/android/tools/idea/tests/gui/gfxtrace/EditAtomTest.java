@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.gfxtrace.GfxTraceFixture;
 import com.android.tools.rpclib.schema.Method;
 import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JOptionPaneFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -58,8 +57,7 @@ public class EditAtomTest {
 
     GfxTraceFixture gfxTraceFixture = guiTest.ideFrame().getEditor().getGfxTraceEditor();
 
-    JComboBoxFixture contextComboBox = gfxTraceFixture.getContextComboBox();
-    contextComboBox.selectItem(2);
+    gfxTraceFixture.selectContext("OpenGL ES context 1");
 
     JTreeFixture tree = gfxTraceFixture.getAtomTree();
 
