@@ -1303,7 +1303,7 @@
   <!-- Layered images viewers -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.layeredimage.LayeredImageEditorProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -1312,7 +1312,7 @@
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
+      <implementation-class>com.android.tools.idea.uibuilder.layeredimage.LayersManager</implementation-class>
     </component>
   </project-components>
 

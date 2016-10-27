@@ -17,22 +17,13 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Crates e TextView with a background extracted from the mockup

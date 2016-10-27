@@ -19,7 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.res.ResourceClassRegistry;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,9 +30,9 @@ import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class RefreshRenderAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final EditorDesignSurface mySurface;
 
-  public RefreshRenderAction(DesignSurface surface) {
+  public RefreshRenderAction(EditorDesignSurface surface) {
     super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, AllIcons.Actions.Refresh);
     mySurface = surface;
   }
@@ -42,7 +42,7 @@ public class RefreshRenderAction extends AnAction {
     clearCache(mySurface);
   }
 
-  public static void clearCache(DesignSurface surface) {
+  public static void clearCache(EditorDesignSurface surface) {
     ModuleClassLoader.clearCache();
     Configuration configuration = surface.getConfiguration();
 

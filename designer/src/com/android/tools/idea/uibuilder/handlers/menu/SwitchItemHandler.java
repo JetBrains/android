@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;

@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Coordinates {
 

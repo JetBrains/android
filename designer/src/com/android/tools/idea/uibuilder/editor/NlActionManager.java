@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.FlatComboAction;
-import com.android.tools.idea.configurations.MockupDeleteAction;
-import com.android.tools.idea.configurations.MockupEditAction;
-import com.android.tools.idea.rendering.SaveScreenshotAction;
+import com.android.tools.idea.actions.MockupDeleteAction;
+import com.android.tools.idea.actions.MockupEditAction;
+import com.android.tools.idea.actions.SaveScreenshotAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;

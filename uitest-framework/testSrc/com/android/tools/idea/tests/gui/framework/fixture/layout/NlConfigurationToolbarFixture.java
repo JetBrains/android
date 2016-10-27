@@ -20,7 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -41,9 +41,9 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 public class NlConfigurationToolbarFixture {
   private final Robot myRobot;
   private final ActionToolbar myToolBar;
-  private final DesignSurface mySurface;
+  private final EditorDesignSurface mySurface;
 
-  public NlConfigurationToolbarFixture(@NotNull Robot robot, @NotNull DesignSurface surface, @NotNull ActionToolbar toolbar) {
+  public NlConfigurationToolbarFixture(@NotNull Robot robot, @NotNull EditorDesignSurface surface, @NotNull ActionToolbar toolbar) {
     myRobot = robot;
     myToolBar = toolbar;
     mySurface = surface;

@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.resources.ScreenRound;
-import com.android.sdklib.devices.Screen;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -43,7 +43,7 @@ public class ScreenView {
   private final DesignSurface mySurface;
   private ScreenViewType myType;
   private final NlModel myModel;
-  
+
   public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
