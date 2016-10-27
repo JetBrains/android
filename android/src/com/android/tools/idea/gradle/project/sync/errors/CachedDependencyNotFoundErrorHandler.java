@@ -33,9 +33,8 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class CachedDependencyNotFoundErrorHandler extends SyncErrorHandler {
   @Override
   @Nullable
-  protected String findErrorMessage(@NotNull Throwable error, @NotNull NotificationData notification, @NotNull Project project) {
-    Throwable cause = getRootCause(error);
-    String text = cause.getMessage();
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.getMessage();
     if (isNotEmpty(text)) {
       String firstLine = getFirstLineMessage(text);
       if (firstLine.startsWith("No cached version of ") && firstLine.contains("available for offline mode.")) {
