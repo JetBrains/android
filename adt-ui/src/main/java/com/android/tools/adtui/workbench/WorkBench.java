@@ -17,6 +17,9 @@ package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
+import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
+import com.google.common.base.Splitter;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -25,6 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -33,10 +38,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 
@@ -59,7 +62,7 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
  *
  * @param <T> Specifies the type of data controlled by this {@link WorkBench}.
  */
-public class WorkBench<T> extends JPanel implements Disposable {
+public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final String myName;
   private final PropertiesComponent myPropertiesComponent;
   private final WorkBenchManager myWorkBenchManager;
@@ -68,6 +71,10 @@ public class WorkBench<T> extends JPanel implements Disposable {
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
   private final ThreeComponentsSplitter mySplitter;
+  private final JPanel myMainPanel;
+  private final MinimizedPanel<T> myLeftMinimizePanel;
+  private final MinimizedPanel<T> myRightMinimizePanel;
+  private final ButtonDragListener<T> myButtonDragListener;
   private FileEditor myFileEditor;
 
   /**
@@ -136,7 +143,6 @@ public class WorkBench<T> extends JPanel implements Disposable {
             @NotNull String name,
             @Nullable FileEditor fileEditor,
             @NotNull InitParams<T> params) {
-    super(new BorderLayout());
     myName = name;
     myFileEditor = fileEditor;
     myPropertiesComponent = PropertiesComponent.getInstance();
@@ -146,11 +152,16 @@ public class WorkBench<T> extends JPanel implements Disposable {
     myToolDefinitions = new ArrayList<>(4);
     myModel = params.myModel;
     myModel.addListener(this::modelChanged);
+    myButtonDragListener = new MyButtonDragListener();
     mySplitter = initSplitter(params.mySplitter);
+    myLeftMinimizePanel = params.myLeftMinimizePanel;
+    myRightMinimizePanel = params.myRightMinimizePanel;
     LayeredPanel<T> layeredPanel = new LayeredPanel<>(myName, mySplitter, myModel);
-    add(params.myLeftMinimizePanel, BorderLayout.WEST);
-    add(layeredPanel, BorderLayout.CENTER);
-    add(params.myRightMinimizePanel, BorderLayout.EAST);
+    myMainPanel = new JPanel(new BorderLayout());
+    myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
+    myMainPanel.add(layeredPanel, BorderLayout.CENTER);
+    myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
+    add(myMainPanel, JLayeredPane.DEFAULT_LAYER);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
   }
@@ -252,6 +263,42 @@ public class WorkBench<T> extends JPanel implements Disposable {
     }
   }
 
+  @NotNull
+  private String getToolOrderPropertyName() {
+    return TOOL_WINDOW_PROPERTY_PREFIX + myName + ".TOOL_ORDER";
+  }
+
+  private void restoreToolOrder(@NotNull List<AttachedToolWindow<T>> tools) {
+    String orderAsString = myPropertiesComponent.getValue(getToolOrderPropertyName());
+    if (orderAsString == null) {
+      return;
+    }
+    Map<String, Integer> order = new HashMap<>(8);
+    int number = 1;
+    for (String toolName : Splitter.on(",").omitEmptyStrings().trimResults().split(orderAsString)) {
+      order.put(toolName, number++);
+    }
+    for (AttachedToolWindow<T> tool : tools) {
+      Integer placement = order.get(tool.getToolName());
+      if (placement == null) {
+        placement = number++;
+      }
+      tool.setToolOrder(placement);
+    }
+    tools.sort((t1, t2) -> Integer.compare(t1.getToolOrder(), t2.getToolOrder()));
+  }
+
+  private void storeToolOrder(@NotNull List<AttachedToolWindow<T>> tools) {
+    StringBuilder builder = new StringBuilder();
+    for (AttachedToolWindow tool : tools) {
+      if (builder.length() > 0) {
+        builder.append(",");
+      }
+      builder.append(tool.getToolName());
+    }
+    myPropertiesComponent.setValue(getToolOrderPropertyName(), builder.toString());
+  }
+
   private void modelChanged(@NotNull SideModel model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
@@ -269,6 +316,11 @@ public class WorkBench<T> extends JPanel implements Disposable {
       case LOCAL_UPDATE:
         break;
 
+      case UPDATE_TOOL_ORDER:
+        storeToolOrder(myModel.getAllTools());
+        myWorkBenchManager.updateOtherWorkBenches(this);
+        break;
+
       default:
         myWorkBenchManager.updateOtherWorkBenches(this);
         break;
@@ -276,12 +328,14 @@ public class WorkBench<T> extends JPanel implements Disposable {
   }
 
   private void addToolsToModel() {
+    List<AttachedToolWindow<T>> tools = new ArrayList<>(myToolDefinitions.size());
     for (ToolWindowDefinition<T> definition : myToolDefinitions) {
-      AttachedToolWindow<T> toolWindow = new AttachedToolWindow<>(definition, myName, myModel);
+      AttachedToolWindow<T> toolWindow = new AttachedToolWindow<>(definition, myButtonDragListener, myName, myModel);
       Disposer.register(this, toolWindow);
-      myModel.add(toolWindow);
+      tools.add(toolWindow);
     }
-    myModel.updateLocally();
+    restoreToolOrder(tools);
+    myModel.setTools(tools);
   }
 
   public List<AttachedToolWindow<T>> getFloatingToolWindows() {
@@ -289,7 +343,100 @@ public class WorkBench<T> extends JPanel implements Disposable {
   }
 
   public void updateModel() {
+    restoreToolOrder(myModel.getAllTools());
     myModel.updateLocally();
+  }
+
+  @Override
+  public void doLayout() {
+    myMainPanel.setBounds(0, 0, getWidth(), getHeight());
+  }
+
+  private class MyButtonDragListener implements ButtonDragListener<T> {
+    private final int BUTTON_PANEL_WIDTH = JBUI.scale(21);
+
+    private boolean myIsDragging;
+    private MinimizedPanel<T> myPreviousButtonPanel;
+
+    @Override
+    public void buttonDragged(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event) {
+      if (!myIsDragging) {
+        startDragging(event);
+      }
+      moveDragImage(toolWindow, event);
+      notifyButtonPanel(toolWindow, event, false);
+    }
+
+    @Override
+    public void buttonDropped(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event) {
+      if (myIsDragging) {
+        notifyButtonPanel(toolWindow, event, true);
+        stopDragging(toolWindow, event);
+      }
+    }
+
+    private void startDragging(@NotNull DragEvent event) {
+      add(event.getDragImage(), JLayeredPane.DRAG_LAYER);
+      myIsDragging = true;
+    }
+
+    private void stopDragging(@NotNull AttachedToolWindow<T> tool, @NotNull DragEvent event) {
+      AbstractButton button = tool.getMinimizedButton();
+      button.setVisible(true);
+      remove(event.getDragImage());
+      revalidate();
+      repaint();
+      myPreviousButtonPanel = null;
+      myIsDragging = false;
+    }
+
+    private void moveDragImage(@NotNull AttachedToolWindow<T> tool, @NotNull DragEvent event) {
+      AbstractButton button = tool.getMinimizedButton();
+      Point position = SwingUtilities.convertPoint(button, event.getMousePoint(), WorkBench.this);
+      Dimension buttonSize = button.getPreferredSize();
+      Point dragPosition = event.getDragPoint();
+      position.x = translate(position.x, dragPosition.x, 0, getWidth() - buttonSize.width);
+      position.y = translate(position.y, dragPosition.y, 0, getHeight() - buttonSize.height);
+
+      Component dragImage = event.getDragImage();
+      Dimension size = dragImage.getPreferredSize();
+      dragImage.setBounds(position.x, position.y, size.width, size.height);
+      dragImage.revalidate();
+      dragImage.repaint();
+    }
+
+    private void notifyButtonPanel(@NotNull AttachedToolWindow<T> tool, @NotNull DragEvent event, boolean doDrop) {
+      AbstractButton button = tool.getMinimizedButton();
+      Point position = SwingUtilities.convertPoint(button, event.getMousePoint(), WorkBench.this);
+      int yMidOfButton = position.y - event.getDragPoint().y + button.getHeight() / 2;
+      if (position.x < BUTTON_PANEL_WIDTH) {
+        notifyButtonPanel(tool, yMidOfButton, myLeftMinimizePanel, doDrop);
+      }
+      else if (position.x > getWidth() - BUTTON_PANEL_WIDTH) {
+        notifyButtonPanel(tool, yMidOfButton, myRightMinimizePanel, doDrop);
+      }
+      else if (myPreviousButtonPanel != null) {
+        myPreviousButtonPanel.dragExit(tool);
+        myPreviousButtonPanel = null;
+      }
+    }
+
+    private void notifyButtonPanel(@NotNull AttachedToolWindow<T> tool, int y, @NotNull MinimizedPanel<T> buttonPanel, boolean doDrop) {
+      if (myPreviousButtonPanel != null && myPreviousButtonPanel != buttonPanel) {
+        myPreviousButtonPanel.dragExit(tool);
+      }
+      myPreviousButtonPanel = buttonPanel;
+      if (doDrop) {
+        buttonPanel.dragDrop(tool, y);
+      }
+      else {
+        buttonPanel.drag(tool, y);
+      }
+    }
+
+    private int translate(int pos, int offset, int min, int max) {
+      return Math.min(Math.max(pos - offset, min), max);
+    }
   }
 
   @VisibleForTesting
