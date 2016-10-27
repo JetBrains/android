@@ -51,7 +51,7 @@ public interface DataAdapter<T> {
   /**
    * See {@link #getClosestTimeIndex(long, boolean)} for details.
    */
-  static int getClosestIndex(TLongArrayList list, long value, boolean leftClosest) {
+  public static int getClosestIndex(TLongArrayList list, long value, boolean leftClosest) {
     int index = list.binarySearch(value);
     return convertBinarySearchIndex(index, list.size(), leftClosest);
   }
