@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
+import com.google.common.base.Objects;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +36,8 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
   public void init(@NotNull FormFactor formFactor, @NotNull List<AndroidVersionsInfo.VersionItem> items) {
 
     myFormFactor = formFactor;
+
+    removeAllItems();
     for (AndroidVersionsInfo.VersionItem item : items) {
       addItem(item);
     }
@@ -51,16 +53,25 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
     // Check for a saved value for the min api level
     String savedApiLevel = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(myFormFactor),
                                                                       Integer.toString(myFormFactor.defaultApi));
-    ScopedDataBinder.setSelectedItem(this, savedApiLevel);
+
     // If the savedApiLevel is not available, just pick the first target in the list
-    // which is guaranteed to be a valid target because of the filtering done by populateComboBox()
-    if (getSelectedIndex() < 0 && getItemCount() > 0) {
-      setSelectedIndex(0);
+    int index = getItemCount() > 0 ? 0 : -1;
+    for (int i = 0; i < getItemCount(); i++) {
+      AndroidVersionsInfo.VersionItem item = getItemAt(i);
+      if (Objects.equal(item.getApiLevelStr(), savedApiLevel)) {
+        index = i;
+        break;
+      }
     }
+
+    setSelectedIndex(index);
   }
 
   private void saveSelectedApi(ItemEvent e) {
-    PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), e.getItem().toString());
+    if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() != null) {
+      AndroidVersionsInfo.VersionItem item = (AndroidVersionsInfo.VersionItem)e.getItem();
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), item.getApiLevelStr());
+    }
   }
 
   private static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
