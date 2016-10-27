@@ -24,7 +24,6 @@ import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 public class BuildSignedApkDialogKeystoreStepFixture implements ContainerFixture<JDialog> {
@@ -78,13 +77,13 @@ public class BuildSignedApkDialogKeystoreStepFixture implements ContainerFixture
     return new BuildSignedApkDialogGradleStepFixture(myIdeFrameFixture, myDialog);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public JDialog target() {
     return myDialog;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Robot robot() {
     return myRobot;
