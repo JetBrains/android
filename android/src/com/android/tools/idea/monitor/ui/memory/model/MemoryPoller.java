@@ -19,10 +19,8 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
@@ -40,11 +38,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNFINISHED_HEAP_DUMP_TIMESTAMP;
+import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNFINISHED_TIMESTAMP;
 import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryPoller extends Poller {
@@ -116,6 +113,7 @@ public class MemoryPoller extends Poller {
     });
 
     adapters.put(SeriesDataType.MEMORY_HEAPDUMP_EVENT, new HeapDumpSampleAdapter());
+    adapters.put(SeriesDataType.MEMORY_ALLOCATION_TRACKING_EVENT, new AllocationTrackingSampleAdapter());
 
     return adapters;
   }
@@ -156,7 +154,7 @@ public class MemoryPoller extends Poller {
       MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
       if (myHasPendingHeapDumpSample) {
         // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
-        assert i == 0 && sample.getEndTime() != UNFINISHED_HEAP_DUMP_TIMESTAMP;
+        assert i == 0 && sample.getEndTime() != UNFINISHED_TIMESTAMP;
 
         MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
         assert previousLastSample.getFilePath().equals(sample.getFilePath());
@@ -166,7 +164,7 @@ public class MemoryPoller extends Poller {
       else {
         myDataCache.appendHeapDumpSample(sample);
 
-        if (sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP) {
+        if (sample.getEndTime() == UNFINISHED_TIMESTAMP) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
           assert i == result.getHeapDumpSamplesCount() - 1;
           myHasPendingHeapDumpSample = true;
@@ -292,9 +290,35 @@ public class MemoryPoller extends Poller {
     public SeriesData<DurationData> get(int index) {
       MemoryData.HeapDumpSample sample = myDataCache.getHeapDumpSample(index);
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
-      long durationUs = sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP ? UNSPECIFIED_DURATION :
+      long durationUs = sample.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
                         TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
       return new SeriesData<>(startTimeUs, new DurationData(durationUs));
+    }
+  }
+
+  private class AllocationTrackingSampleAdapter implements DataAdapter<DurationData> {
+    @Override
+    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+      return myDataCache.getLatestPriorAllocationTrackingSampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
+    }
+
+    @Override
+    public SeriesData<DurationData> get(int index) {
+      AllocationTrackingSample sample = myDataCache.getAllocationTrackingSample(index);
+      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
+      long durationUs = sample.getEndTime() == UNFINISHED_TIMESTAMP ? UNSPECIFIED_DURATION :
+                        TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
+      return new SeriesData<>(startTimeUs, new DurationData(durationUs));
+    }
+
+    @Override
+    public void reset() {
+      myDataCache.reset();
+    }
+
+    @Override
+    public void stop() {
+      MemoryPoller.this.stop();
     }
   }
 }
