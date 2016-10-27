@@ -17,7 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;

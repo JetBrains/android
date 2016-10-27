@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.project.Project;
 
