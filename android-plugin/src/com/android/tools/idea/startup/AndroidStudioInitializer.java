@@ -124,7 +124,7 @@ public class AndroidStudioInitializer implements Runnable {
             () -> {
               ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
               ToolWindow toolWindow =
-                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
+                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
               toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
               new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
               toolWindow.show(null);
