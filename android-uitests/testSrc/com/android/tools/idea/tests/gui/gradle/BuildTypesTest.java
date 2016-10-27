@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.BuildTypesTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectStructureDialogFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,7 @@ public class BuildTypesTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
+  @Ignore("https://code.google.com/p/android/issues/detail?id=226482")
   @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
