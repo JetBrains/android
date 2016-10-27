@@ -332,7 +332,7 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    Wait.seconds(1).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }
@@ -537,7 +537,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    Wait.minutes(2).expecting("Preview window to be visible")
+    Wait.seconds(1).expecting("Preview window to be visible")
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
     return new NlPreviewFixture(myFrame.getProject(), myFrame, myFrame.robot());
@@ -616,7 +616,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
-    Wait.minutes(2).expecting("Theme Preview window to be visible").until(() -> GuiQuery.getNonNull(() -> {
+    Wait.seconds(1).expecting("Theme Preview window to be visible").until(() -> GuiQuery.getNonNull(() -> {
       ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
       return window != null && window.isVisible();
     }));

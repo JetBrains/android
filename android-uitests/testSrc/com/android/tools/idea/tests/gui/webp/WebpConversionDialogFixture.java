@@ -62,7 +62,7 @@ public class WebpConversionDialogFixture extends IdeaDialogFixture<WebpConversio
   private void clickRadioButton(String text) {
     Robot robot = robot();
     JRadioButton checkbox = robot.finder().find(target(), Matchers.byText(JRadioButton.class, text));
-    Wait.minutes(2).expecting("button " + text + " to be enabled")
+    Wait.seconds(1).expecting("button " + text + " to be enabled")
       .until(() -> checkbox.isEnabled() && checkbox.isVisible() && checkbox.isShowing());
     if (!checkbox.isSelected()) {
       robot.click(checkbox);

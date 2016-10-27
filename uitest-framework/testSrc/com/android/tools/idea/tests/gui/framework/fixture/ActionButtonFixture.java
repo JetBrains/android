@@ -37,7 +37,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
     final Ref<ActionButton> actionButtonRef = new Ref<>();
-    Wait.minutes(2).expecting("ActionButton with ID '" + actionId + "' to be visible")
+    Wait.seconds(1).expecting("ActionButton with ID '" + actionId + "' to be visible")
       .until(() -> {
         Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
           @Override
@@ -68,7 +68,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
-    Wait.minutes(2).expecting("action to be enabled and showing").until(() -> GuiQuery.getNonNull(
+    Wait.seconds(1).expecting("action to be enabled and showing").until(() -> GuiQuery.getNonNull(
       () -> target().getAction().getTemplatePresentation().isEnabledAndVisible()
             && target().isShowing() && target().isVisible() && target().isEnabled()));
     return this;

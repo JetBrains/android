@@ -90,7 +90,7 @@ public class MessagesFixture {
   }
 
   private void waitUntilNotShowing() {
-    Wait.seconds(15).expecting("not showing").until(() -> !myDialog.isShowing());
+    Wait.seconds(1).expecting("not showing").until(() -> !myDialog.isShowing());
   }
 
   @NotNull

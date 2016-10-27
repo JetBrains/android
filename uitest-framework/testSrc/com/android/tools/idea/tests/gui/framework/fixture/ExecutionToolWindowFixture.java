@@ -187,7 +187,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void waitForExecutionToFinish() {
-      Wait.minutes(2).expecting("execution to finish").until(() -> !isExecutionInProgress());
+      Wait.seconds(10).expecting("execution to finish").until(() -> !isExecutionInProgress());
     }
 
     @TestOnly

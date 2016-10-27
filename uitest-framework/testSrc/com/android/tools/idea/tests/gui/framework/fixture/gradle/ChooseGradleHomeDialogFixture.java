@@ -102,7 +102,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    Wait.minutes(2).expecting(String.format("error message '%1$s' to appear", errorText))
+    Wait.seconds(1).expecting(String.format("error message '%1$s' to appear", errorText))
       .until(() -> {
         ComponentFinder finder = robot().finder();
         Collection<JPanel> errorTextPanels = finder.findAll(target(), new GenericTypeMatcher<JPanel>(JPanel.class) {

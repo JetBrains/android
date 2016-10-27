@@ -251,7 +251,7 @@ public class GradleSyncTest {
     JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Wait.minutes(2).expecting("Android Support Repository to be installed").until(finish::isEnabled);
+    Wait.seconds(1).expecting("Android Support Repository to be installed").until(finish::isEnabled);
 
     // Installation finished. Click finish to resync project.
     finish.click();
@@ -285,7 +285,7 @@ public class GradleSyncTest {
 
     // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
     // 'javax'.
-    Wait.minutes(2).expecting("'Project View' to be customized").until(() -> changedNodes.size() == 2);
+    Wait.seconds(1).expecting("'Project View' to be customized").until(() -> changedNodes.size() == 2);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
@@ -300,7 +300,7 @@ public class GradleSyncTest {
     assertNotNull(jdkNode);
 
     ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    Wait.seconds(30).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
+    Wait.seconds(1).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
 
     // Now we verify that the JDK node has only these children:
     // - jdk
@@ -1258,7 +1258,7 @@ public class GradleSyncTest {
       }
     });
 
-    Wait.minutes(2).expecting("sync to be skipped").until(syncSkipped::get);
+    Wait.seconds(1).expecting("sync to be skipped").until(syncSkipped::get);
   }
 
   /**
