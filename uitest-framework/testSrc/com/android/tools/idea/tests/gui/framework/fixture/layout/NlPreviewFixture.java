@@ -31,7 +31,6 @@ import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -64,7 +63,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
     } catch (ComponentLookupException e) {
       myRobot.click(myRobot.finder().find(new GenericTypeMatcher<AnchoredButton>(AnchoredButton.class) {
         @Override
-        protected boolean isMatching(@Nonnull AnchoredButton component) {
+        protected boolean isMatching(@NotNull AnchoredButton component) {
           return component.isShowing() && "Palette".equals(component.getText());
         }
       }));
