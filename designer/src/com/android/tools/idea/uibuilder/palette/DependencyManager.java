@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.icons.AllIcons;

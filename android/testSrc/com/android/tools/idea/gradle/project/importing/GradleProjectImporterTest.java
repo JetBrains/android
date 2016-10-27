@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.testing.IdeComponents;

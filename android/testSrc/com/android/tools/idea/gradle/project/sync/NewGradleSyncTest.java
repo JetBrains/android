@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;

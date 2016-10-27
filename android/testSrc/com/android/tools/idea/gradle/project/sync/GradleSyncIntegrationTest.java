@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
