@@ -32,6 +32,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslEle
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
@@ -196,6 +197,16 @@ public final class AndroidModel extends GradleDslBlockModel {
   public AndroidModel removeDefaultPublishConfig() {
     myDslElement.removeProperty(DEFAULT_PUBLISH_CONFIG);
     return this;
+  }
+
+  @NotNull
+  public DexOptionsModel dexOptions() {
+    DexOptionsDslElement dexOptionsElement = myDslElement.getPropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
+    if (dexOptionsElement == null) {
+      dexOptionsElement = new DexOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(DEX_OPTIONS_BLOCK_NAME, dexOptionsElement);
+    }
+    return new DexOptionsModel(dexOptionsElement);
   }
 
   @NotNull
