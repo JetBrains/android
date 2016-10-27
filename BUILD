@@ -191,6 +191,7 @@ iml_module(
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
         "//tools/base/common:studio.common[module]",
+        "//tools/adt/idea/observable:observable[module]",
     ],
 )
 
