@@ -36,11 +36,10 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 
 public abstract class SyncErrorHandler {
-  public static final ExtensionPointName<SyncErrorHandler> EP_NAME =
-    ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+  public static final ExtensionPointName<SyncErrorHandler> EP_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
 
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(error, notification, project);
+    String text = findErrorMessage(getRootCause(error), notification, project);
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, project, text);
       SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
@@ -50,7 +49,7 @@ public abstract class SyncErrorHandler {
   }
 
   @Nullable
-  protected abstract String findErrorMessage(@NotNull Throwable error, @NotNull NotificationData notification, @NotNull Project project);
+  protected abstract String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project);
 
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
