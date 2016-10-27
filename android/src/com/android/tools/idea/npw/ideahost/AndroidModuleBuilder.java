@@ -61,7 +61,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
   /**
    * This adapter class hosts the Android Studio {@link ModelWizard} instance
    */
-  @Nullable("No adapter has been instantiated") private IdeaWizardAdapter myWizardAdapter;
+  @Nullable/*No adapter has been instantiated*/ private IdeaWizardAdapter myWizardAdapter;
 
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {

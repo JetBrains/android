@@ -241,7 +241,7 @@ public class ResolutionUtils {
     }
   }
 
-  @Nullable("if this style doesn't have parent")
+  @Nullable/*if this style doesn't have parent*/
   public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
     String parentName = ResourceResolver.getParentName(style);
     if (parentName == null) {
@@ -279,7 +279,7 @@ public class ResolutionUtils {
     return allItems.values();
   }
 
-  @Nullable("if we can't work out the type, e.g a 'reference' with a '@null' value or enum")
+  @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
   public static ResourceType getAttrType(@NotNull ItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;

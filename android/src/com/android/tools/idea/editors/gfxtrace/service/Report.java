@@ -38,7 +38,7 @@ public final class Report implements BinaryObject {
   // Cache of constructed messages.
   @Nullable private Map<MsgRef, String> myConstructedMessages;
 
-  @Nullable("there's no report item associated to a given atom id")
+  @Nullable/*there's no report item associated to a given atom id*/
   public Range<Integer> getForAtom(long atomId) {
     final ReportItem key = new ReportItem();
     key.setAtom(atomId);
@@ -57,7 +57,7 @@ public final class Report implements BinaryObject {
     return Range.closed(start + 1, end - 1);
   }
 
-  @Nullable("there's no report items associated to a given atom range")
+  @Nullable/*there's no report items associated to a given atom range*/
   public Range<Integer> getForAtoms(long firstAtomId, long lastAtomId) {
     final ReportItem key = new ReportItem();
     key.setAtom(firstAtomId);
