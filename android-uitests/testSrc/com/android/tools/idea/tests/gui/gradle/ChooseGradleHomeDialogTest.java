@@ -32,7 +32,6 @@ import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.google.common.truth.TruthJUnit.assume;
 
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
@@ -46,7 +45,6 @@ public class ChooseGradleHomeDialogTest {
   @Test
   public void testValidationWithInvalidMinimumGradleVersion() {
     File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
-    assume().that(unsupportedGradleHome).isNotNull();
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
     dialog.chooseGradleHome(unsupportedGradleHome)
@@ -58,7 +56,6 @@ public class ChooseGradleHomeDialogTest {
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
     File gradleHomePath = getGradleHomePathOrSkipTest();
-    assume().that(gradleHomePath).isNotNull();
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
     dialog.chooseGradleHome(gradleHomePath)
