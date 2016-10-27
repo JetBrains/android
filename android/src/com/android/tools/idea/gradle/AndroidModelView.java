@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel;

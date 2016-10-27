@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.sdk.AndroidSdks;
