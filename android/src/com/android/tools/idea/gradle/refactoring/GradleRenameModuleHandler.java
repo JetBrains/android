@@ -154,7 +154,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
           if (dependenciesModel != null) {
             for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
               // TODO consider the case that dependency.path() is not started with :
-              if (oldModuleGradlePath.equals(dependency.path())) {
+              if (oldModuleGradlePath.equals(dependency.path().value())) {
                 dependency.setPath(getNewPath(dependency.path().value(), inputString));
               }
             }
