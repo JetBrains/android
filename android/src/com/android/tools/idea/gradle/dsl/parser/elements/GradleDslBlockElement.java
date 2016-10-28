@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.build;
+package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SubProjectsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String SUBPROJECTS_BLOCK_NAME = "subprojects";
+/**
+ * Base class for all the {@link GradleDslElement}s that represent blocks like android, productFlavors, buildTypes etc.
+ */
+public abstract class GradleDslBlockElement extends GradlePropertiesDslElement {
+  protected GradleDslBlockElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name);
+  }
 
-  public SubProjectsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, SUBPROJECTS_BLOCK_NAME);
+  @Override
+  protected boolean isBlockElement() {
+    return true;
   }
 }

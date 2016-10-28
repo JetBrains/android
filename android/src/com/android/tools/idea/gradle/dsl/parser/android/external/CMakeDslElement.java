@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.external;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class CMakeDslElement extends GradleDslElementMap {
+public final class CMakeDslElement extends GradleDslBlockElement {
   @NonNls public static final String CMAKE_BLOCK_NAME = "cmake";
 
   public CMakeDslElement(@NotNull GradleDslElement parent) {
     super(parent, CMAKE_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
   }
 }
