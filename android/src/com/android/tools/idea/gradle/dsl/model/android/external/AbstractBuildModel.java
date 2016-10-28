@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.android.external;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -36,19 +36,25 @@ public abstract class AbstractBuildModel extends GradleDslBlockModel {
     super(dslElement);
   }
 
-  @Nullable
-  public File path() {
+  @NotNull
+  public GradleNullableValue<File> path() {
     GradleDslElement pathElement = myDslElement.getPropertyElement(PATH);
+    if (pathElement == null) {
+      return new GradleNullableValue<>(myDslElement, null);
+    }
+
+    File value = null;
     if (pathElement instanceof GradleDslMethodCall || pathElement instanceof GradleDslNewExpression) {
-      return ((GradleDslExpression)pathElement).getValue(File.class);
+      value = ((GradleDslExpression)pathElement).getValue(File.class);
     }
     else if (pathElement instanceof GradleDslExpression) {
       String path = ((GradleDslExpression)pathElement).getValue(String.class);
       if (path != null) {
-        return new File(path);
+        value = new File(path);
       }
     }
-    return null;
+
+    return new GradleNullableValue<>(pathElement, value);
   }
 
   @NotNull
