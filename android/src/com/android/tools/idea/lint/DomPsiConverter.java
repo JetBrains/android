@@ -869,6 +869,21 @@ class DomPsiConverter {
 
     @NotNull
     @Override
+    public String getNamespaceURI() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction(new Computable<String>() {
+          @Override
+          public String compute() {
+            return myTag.getNamespace();
+          }
+        });
+      }
+      return myTag.getNamespace();
+    }
+
+    @NotNull
+    @Override
     public NamedNodeMap getAttributes() {
       Application application = ApplicationManager.getApplication();
       if (!application.isReadAccessAllowed()) {
