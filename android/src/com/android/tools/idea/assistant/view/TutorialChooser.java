@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBInsets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,20 +30,27 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * Introductory view for Firebase. Displays a welcome message as well as
+ * Introductory view for the assistant. Displays a welcome message as well as
  * summary view for each service (and their child tutorials).
- *
- * TODO: Migrate display properties to a form.
  */
 public class TutorialChooser extends CardViewPanel {
+
+  private final AnalyticsProvider myAnalyticsProvider;
+  private final Project myProject;
 
   /**
    * Card navigation key, should be used with {@code NavigationButton} to navigate to this view.
    */
-  public static final String NAVIGATION_KEY = "chooser";
+  public static final String NAVIGATION_KEY = "studio_tutorial_chooser";
 
-  public TutorialChooser(ActionListener listener, @NotNull TutorialBundleData bundle) {
+  public TutorialChooser(@NotNull ActionListener listener,
+                         @NotNull TutorialBundleData bundle,
+                         @NotNull AnalyticsProvider analyticsProvider,
+                         @NotNull Project project) {
     super(listener);
+
+    myAnalyticsProvider = analyticsProvider;
+    myProject = project;
 
     JPanel header = new TutorialChooserHeader(bundle);
 
@@ -84,7 +94,7 @@ public class TutorialChooser extends CardViewPanel {
     glueConstraints.weighty = 1;
     glueConstraints.anchor = GridBagConstraints.NORTH;
     glueConstraints.fill = GridBagConstraints.BOTH;
-    glueConstraints.insets = new Insets(0, 0, 0, 0);
+    glueConstraints.insets = new JBInsets(0, 0, 0, 0);
     glueConstraints.ipadx = 0;
     glueConstraints.ipady = 0;
     services.add(Box.createVerticalGlue(), glueConstraints);
@@ -103,8 +113,8 @@ public class TutorialChooser extends CardViewPanel {
    *
    * @return The component to render.
    */
-  private FeatureEntryPoint createFeatureEntryPoint(FeatureData feature) {
-    return new FeatureEntryPoint(feature, myListener);
+  private FeatureEntryPoint createFeatureEntryPoint(@NotNull FeatureData feature) {
+    return new FeatureEntryPoint(feature, myListener, myAnalyticsProvider, myProject);
   }
 
   /**
@@ -167,7 +177,5 @@ public class TutorialChooser extends CardViewPanel {
       title.setIcon(bundle.getIcon());
       add(title);
     }
-
   }
-
 }
