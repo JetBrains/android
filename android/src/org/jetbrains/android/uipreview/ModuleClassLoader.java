@@ -8,7 +8,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AarResourceClassRegistry;
+import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
@@ -98,7 +98,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
           AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
           if (appResources != null) {
-            byte[] data = AarResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
+            byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
             if (data != null) {
               data = convertClass(data);
               if (DEBUG_CLASS_LOADING) {
@@ -385,7 +385,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               }
               AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
               if (appResources != null) {
-                AarResourceClassRegistry.get(module.getProject()).addLibrary(appResources, aarDir);
+                ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
               }
             }
           }

@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-public class AarResourceClassGeneratorTest extends AndroidTestCase {
+public class ResourceClassGeneratorTest extends AndroidTestCase {
   public void test() throws Exception {
     final ResourceRepository repository = TestResourceRepository.createRes2(false, new Object[]{
       "layout/layout1.xml", "<!--contents doesn't matter-->",
@@ -96,7 +96,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
                                                                    Collections.<FileResourceRepository>emptyList());
 
-    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
+    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -191,7 +191,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     //assertNotNull(clz.getField("center_vertical"));
   }
 
-  private static void styleTest(AarResourceClassGenerator generator)
+  private static void styleTest(ResourceClassGenerator generator)
     throws ClassNotFoundException, InstantiationException, IllegalAccessException {
     String name;
     Class<?> clz;
@@ -205,7 +205,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     assertFalse(Modifier.isInterface(clz.getModifiers()));
   }
 
-  private static void styleableTest(AarResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue)
+  private static void styleableTest(ResourceClassGenerator generator, Object gravityValue, Object layoutColumnSpanValue)
     throws Exception {
     String name = "my.test.pkg.R$styleable";
     Class<?> clz = generateClass(generator, name);
@@ -262,7 +262,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
 
   public void testWithAars() throws Exception {
     AppResourceRepository appResources = AppResourceRepositoryTest.createTestAppResourceRepository(myFacet);
-    AarResourceClassGenerator generator = AarResourceClassGenerator.create(appResources);
+    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
     assertNotNull(generator);
     Class<?> clz = generateClass(generator, "pkg.R$id");
     assertNotNull(clz);
@@ -278,7 +278,7 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
     styleableTestWithAars(generator);
   }
 
-  private static void styleableTestWithAars(AarResourceClassGenerator generator) throws Exception {
+  private static void styleableTestWithAars(ResourceClassGenerator generator) throws Exception {
     Class<?> clz = generateClass(generator, "pkg.R$styleable");
     assertNotNull(clz);
     assertNotNull(clz.newInstance());
@@ -293,8 +293,8 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   @Nullable
-  protected static Class<?> generateClass(final AarResourceClassGenerator generator, String name) throws ClassNotFoundException {
-    ClassLoader classLoader = new ClassLoader(AarResourceClassGeneratorTest.class.getClassLoader()) {
+  protected static Class<?> generateClass(final ResourceClassGenerator generator, String name) throws ClassNotFoundException {
+    ClassLoader classLoader = new ClassLoader(ResourceClassGeneratorTest.class.getClassLoader()) {
       @Override
       public Class<?> loadClass(String s) throws ClassNotFoundException {
         if (!s.startsWith("java")) { // Don't try to load super class

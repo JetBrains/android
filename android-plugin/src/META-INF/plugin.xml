@@ -1223,7 +1223,7 @@
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.res.AarResourceClassRegistry</implementation-class>
+      <implementation-class>com.android.tools.idea.res.ResourceClassRegistry</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
