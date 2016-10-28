@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -279,9 +280,9 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   private static void verifySourceDirectory(@NotNull SourceDirectoryModel sourceDirectory, @NotNull String name, int... entrySuffixes) {
     assertEquals("name", name, sourceDirectory.name());
-    List<String> srcDirs = sourceDirectory.srcDirs();
-    List<String> includes = sourceDirectory.includes();
-    List<String> excludes = sourceDirectory.excludes();
+    List<GradleNotNullValue<String>> srcDirs = sourceDirectory.srcDirs();
+    List<GradleNotNullValue<String>> includes = sourceDirectory.includes();
+    List<GradleNotNullValue<String>> excludes = sourceDirectory.excludes();
 
     if (entrySuffixes.length == 0) {
       assertNull(srcDirs);

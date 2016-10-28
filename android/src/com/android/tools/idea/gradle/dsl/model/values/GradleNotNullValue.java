@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> the type of the returned value.
  */
 public class GradleNotNullValue<T> extends GradleNullableValue<T> {
-
   public GradleNotNullValue(@NotNull GradleDslElement dslElement, @NotNull T value) {
     super(dslElement, value);
   }
@@ -35,12 +34,5 @@ public class GradleNotNullValue<T> extends GradleNullableValue<T> {
     T value = super.value();
     assert value != null;
     return value;
-  }
-
-  public static <E> GradleNotNullValue<E> create(@NotNull GradleNullableValue<E> gradleValue) {
-    E value = gradleValue.value();
-    assert value != null;
-
-    return new GradleNotNullValue<E>(gradleValue.myDslElement, value);
   }
 }
