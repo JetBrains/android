@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.ui.memory.model;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.monitor.datastore.DataAdapter;
+import com.android.tools.datastore.DataAdapter;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.EventDispatcher;
