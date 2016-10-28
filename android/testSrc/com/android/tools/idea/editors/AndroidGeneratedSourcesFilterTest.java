@@ -36,7 +36,8 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
-  public void test() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226539)
+  public void /*test*/Foo() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
