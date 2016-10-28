@@ -33,6 +33,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
@@ -264,6 +265,16 @@ public final class AndroidModel extends GradleDslBlockModel {
   public AndroidModel removeGeneratePureSplits() {
     myDslElement.removeProperty(GENERATE_PURE_SPLITS);
     return this;
+  }
+
+  @NotNull
+  public LintOptionsModel lintOptions() {
+    LintOptionsDslElement lintOptionsDslElement = myDslElement.getPropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
+    if (lintOptionsDslElement == null) {
+      lintOptionsDslElement = new LintOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(LINT_OPTIONS_BLOCK_NAME, lintOptionsDslElement);
+    }
+    return new LintOptionsModel(lintOptionsDslElement);
   }
 
   @NotNull
