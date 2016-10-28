@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceDirectoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
@@ -25,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class SourceSetModel extends GradleDslBlockModel {
@@ -49,27 +49,28 @@ public class SourceSetModel extends GradleDslBlockModel {
     return myDslElement.getName();
   }
 
-  @Nullable
-  public String root() {
+  @NotNull
+  public GradleNullableValue<String> root() {
     GradleDslExpression rootElement = myDslElement.getPropertyElement(ROOT, GradleDslExpression.class);
     if (rootElement == null) {
-      return null;
+      return new GradleNullableValue<>(myDslElement, null);
     }
 
+    String value = null;
     if (rootElement instanceof GradleDslMethodCall) {
       List<GradleDslElement> arguments = ((GradleDslMethodCall)rootElement).getArguments();
-      if (arguments.isEmpty()) {
-        return null;
+      if (!arguments.isEmpty()) {
+        GradleDslElement pathArgument = arguments.get(0);
+        if (pathArgument instanceof GradleDslExpression) {
+          value = ((GradleDslExpression)pathArgument).getValue(String.class);
+        }
       }
-      GradleDslElement pathArgument = arguments.get(0);
-      if (pathArgument instanceof GradleDslExpression) {
-        return ((GradleDslExpression)pathArgument).getValue(String.class);
-      }
-      return null;
     }
     else {
-      return rootElement.getValue(String.class);
+      value = rootElement.getValue(String.class);
     }
+
+    return new GradleNullableValue<>(rootElement, value);
   }
 
   @NotNull

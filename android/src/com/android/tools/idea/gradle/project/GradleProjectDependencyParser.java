@@ -58,7 +58,7 @@ public class GradleProjectDependencyParser {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
-          String modulePath = dependency.path();
+          String modulePath = dependency.path().value();
           result.add(modulePath);
         }
       }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -32,8 +33,10 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -183,12 +186,24 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static <T> void assertEquals(@NotNull String message, @NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
     assertNotNull(message, actual);
-    assertWithMessage(message).that(GradleValue.getValues(actual)).containsExactlyElementsIn(expected);
+    assertWithMessage(message).that(getValues(actual)).containsExactlyElementsIn(expected);
   }
 
   public static <T> void assertEquals(@NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
     assertNotNull(actual);
-    assertThat(GradleValue.getValues(actual)).containsExactlyElementsIn(expected);
+    assertThat(getValues(actual)).containsExactlyElementsIn(expected);
+  }
+
+  public static <T> void assertEquals(@NotNull String message,
+                                      @NotNull Map<String, T> expected,
+                                      @Nullable Map<String, ? extends GradleValue<T>> actual) {
+    assertNotNull(message, actual);
+    assertWithMessage(message).that(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
+  }
+
+  public static <T> void assertEquals(@NotNull Map<String, T> expected, @Nullable Map<String, ? extends GradleValue<T>> actual) {
+    assertNotNull(actual);
+    assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
   }
 
   public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {
