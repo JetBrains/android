@@ -163,6 +163,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/rpclib:studio.rpclib[module]",
         "//tools/adt/idea/adt-ui:adt-ui[module]",
+        "//tools/adt/idea/perfd-host:perfd-host[module]",
         "//tools/adt/idea:android/lib/spantable",
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/.idea/libraries:Mocks[test]",

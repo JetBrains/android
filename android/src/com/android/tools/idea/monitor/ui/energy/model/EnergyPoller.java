@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.energy.model;
 
-import com.android.tools.idea.monitor.datastore.*;
+import com.android.tools.datastore.*;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.ui.visual.data;
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.datastore.SeriesDataType;
 import gnu.trove.TLongArrayList;
 
 import java.util.concurrent.TimeUnit;

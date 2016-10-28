@@ -17,12 +17,12 @@ package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.DataAdapter;
-import com.android.tools.idea.monitor.datastore.SeriesDataList;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.DataAdapter;
+import com.android.tools.datastore.SeriesDataList;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataType;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.idea.monitor.ui.visual.data.*;
 import com.intellij.util.EventDispatcher;

@@ -17,11 +17,11 @@ package com.android.tools.idea.monitor.ui.events.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.datastore.Poller;
+import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.events.model.EventDataPoller;
 import com.android.tools.idea.monitor.ui.events.model.WakeLockDataPoller;
 import com.google.common.collect.Sets;

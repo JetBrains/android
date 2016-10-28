@@ -17,8 +17,8 @@ package com.android.tools.idea.monitor.tool;
 
 import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.monitor.datastore.TraceDataStore;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.cpu.model.TraceDataStore;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.ui.cpu.model.TraceArt;
 import com.android.tools.idea.monitor.ui.cpu.model.TraceSimplePerf;

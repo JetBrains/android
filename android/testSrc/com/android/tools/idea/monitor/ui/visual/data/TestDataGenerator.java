@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
-import com.android.tools.idea.monitor.datastore.DataAdapter;
+import com.android.tools.datastore.DataAdapter;
 import gnu.trove.TLongArrayList;
 
 import javax.swing.*;
