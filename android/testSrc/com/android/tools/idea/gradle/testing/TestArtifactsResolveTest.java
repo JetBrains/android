@@ -20,7 +20,9 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 public class TestArtifactsResolveTest extends TestArtifactsTestCase {
-  public void testDependencyResolvableOnlyInUnitTest() throws Exception {
+
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/DependencyResolvableOnlyInUnitTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -36,7 +38,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNull(resolveReferenceAtCaret());
   }
 
-  public void testDependencyResolvableOnlyInAndroidTest() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/DependencyResolvableOnlyInAndroidTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -52,7 +55,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNotNull(resolveReferenceAtCaret());
   }
 
-  public void testSourceResolvableInBothTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/SourceResolvableInBothTests() throws Exception {
     // Create class located in main source
     setCommonFileContent("MyClass.java", "class MyClass {}");
 
@@ -64,7 +68,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNotNull(resolveReferenceAtCaret());
   }
 
-  public void testSourceResolvableOnlyInUnitTest() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/SourceResolvableOnlyInUnitTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -81,7 +86,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNull(resolveReferenceAtCaret());
   }
 
-  public void testSourceResolvableOnlyInAndroidTest() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/SourceResolvableOnlyInAndroidTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -98,7 +104,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNotNull(resolveReferenceAtCaret());
   }
 
-  public void testMultiModuleSourceResolvableInBothTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/MultiModuleSourceResolvableInBothTests() throws Exception {
     setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";
@@ -109,7 +116,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     assertNotNull(resolveReferenceAtCaret());
   }
 
-  public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/MultiModuleAndroidSourceNotResolvableInTests() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -126,7 +134,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
     //assertNull(resolveReferenceAtCaret());
   }
 
-  public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/MultiModuleUnitSourceNotResolvableInTests() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
