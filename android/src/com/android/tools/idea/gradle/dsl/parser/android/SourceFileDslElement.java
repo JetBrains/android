@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SourceFileDslElement extends GradlePropertiesDslElement {
+public class SourceFileDslElement extends GradleDslBlockElement {
   public SourceFileDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, name);
   }
 }

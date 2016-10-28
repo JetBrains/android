@@ -15,22 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class AaptOptionsDslElement extends GradlePropertiesDslElement {
+public class AaptOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String AAPT_OPTIONS_BLOCK_NAME = "aaptOptions";
 
   public AaptOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, null, AAPT_OPTIONS_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, AAPT_OPTIONS_BLOCK_NAME);
   }
 
   @Override
