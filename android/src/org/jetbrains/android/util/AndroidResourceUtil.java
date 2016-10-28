@@ -1460,6 +1460,9 @@ public class AndroidResourceUtil {
     else if (ANDROID_URI.equals(namespaceUri)) {
       prefix = ANDROID_NS_NAME;
     }
+    else if (AAPT_URI.equals(namespaceUri)) {
+      prefix = AAPT_PREFIX;
+    }
     else {
       prefix = APP_PREFIX;
     }
