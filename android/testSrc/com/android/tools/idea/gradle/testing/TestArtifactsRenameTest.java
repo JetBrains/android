@@ -29,12 +29,14 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
     setAndroidTestFileContent("AndroidTest.java", "class AndroidTest extends MyClass {}");
   }
 
-  public void testRenameInBothTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/RenameInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", MY_CLASS_TEXT);
     renameAndCheckResults(2);
   }
 
-  public void testRenameInOnlyUnitTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/RenameInOnlyUnitTests() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -45,7 +47,8 @@ public class TestArtifactsRenameTest extends TestArtifactsTestCase {
     renameAndCheckResults(1);
   }
 
-  public void testRenameInOnlyAndroidTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/RenameInOnlyAndroidTests() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;

@@ -58,7 +58,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     return super.shouldRunTest();
   }
 
-  public void testSrcFolderIncluding() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/SrcFolderIncluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile unitTestSource = createFile("module1/src/test/java/Test.java");
@@ -71,7 +72,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.isAndroidTestSource(unitTestSource));
   }
 
-  public void testModulesExcluding() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/ModulesExcluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile module3JavaRoot = createFile("module3/src/main/java/Main.java");
@@ -108,7 +110,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertScopeContainsLibrary(androidTestExcludeScope, hamcrest, false);
   }
 
-  public void testNotExcludeLibrariesInMainArtifact() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/NotExcludeLibrariesInMainArtifact() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -152,7 +155,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertScopeContainsLibrary(scopes.getAndroidTestExcludeScope(), gson, false);
   }
 
-  public void testProjectWithSharedTestFolder() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/ProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
