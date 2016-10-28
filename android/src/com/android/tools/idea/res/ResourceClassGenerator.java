@@ -38,7 +38,7 @@ import java.util.Map;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**
- * The {@linkplain AarResourceClassGenerator} can generate R classes on the fly for a given resource repository.
+ * The {@linkplain ResourceClassGenerator} can generate R classes on the fly for a given resource repository.
  * <p>
  * This is used to supply R classes on demand for layoutlib in order to render custom views in AAR libraries,
  * since AAR libraries ship with the view classes but with the R classes stripped out (this is done deliberately
@@ -61,26 +61,26 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * repositories for each aar. So, we use the app's resource repository and generate the R file from it. This
  * will break custom libraries that use reflection on the R class, but meh.
  */
-public class AarResourceClassGenerator {
+public class ResourceClassGenerator {
 
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
   private Map<String, List<Integer>> myStyleableCache;
   @NotNull private final AppResourceRepository myAppResources;
 
-  private AarResourceClassGenerator(@NotNull AppResourceRepository appResources) {
+  private ResourceClassGenerator(@NotNull AppResourceRepository appResources) {
     myAppResources = appResources;
   }
 
   /**
-   * Creates a new {@linkplain AarResourceClassGenerator}.
+   * Creates a new {@linkplain ResourceClassGenerator}.
    *
    * @param appResources the application resources used during rendering; this is used to look up dynamic id's
    *                     for resources
    */
   @NotNull
-  public static AarResourceClassGenerator create(@NotNull AppResourceRepository appResources) {
-    return new AarResourceClassGenerator(appResources);
+  public static ResourceClassGenerator create(@NotNull AppResourceRepository appResources) {
+    return new ResourceClassGenerator(appResources);
   }
 
   /**
