@@ -17,7 +17,7 @@ package com.android.tools.idea.monitor.ui.energy.model;
 
 
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.DataAdapter;
+import com.android.tools.datastore.DataAdapter;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 

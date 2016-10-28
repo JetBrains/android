@@ -20,7 +20,7 @@ import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;

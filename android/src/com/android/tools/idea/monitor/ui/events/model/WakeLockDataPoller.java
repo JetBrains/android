@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.monitor.ui.events.model;
 
-import com.android.ddmlib.Log;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.idea.monitor.datastore.DataAdapterImpl;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.datastore.DataAdapterImpl;
+import com.android.tools.datastore.Poller;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import gnu.trove.TLongArrayList;

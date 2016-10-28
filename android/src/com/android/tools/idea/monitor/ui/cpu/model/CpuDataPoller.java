@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.idea.monitor.datastore.*;
+import com.android.tools.datastore.*;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import gnu.trove.TLongArrayList;

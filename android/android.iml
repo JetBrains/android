@@ -67,6 +67,7 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="perfd-host" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -157,17 +158,7 @@
     </orderEntry>
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="module-library">
-      <library name="profiler-grpc-java">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="analytics-shared" />
