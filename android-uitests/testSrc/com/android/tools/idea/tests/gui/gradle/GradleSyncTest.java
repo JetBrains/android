@@ -1230,6 +1230,7 @@ public class GradleSyncTest {
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 
+  @Ignore("http://ag/1574084")
   @Test
   public void gradleModelCache() throws IOException {
     guiTest.importSimpleApplication();
