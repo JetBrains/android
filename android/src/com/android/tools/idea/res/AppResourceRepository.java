@@ -574,11 +574,11 @@ public class AppResourceRepository extends MultiResourceRepository {
     myStyleableValueToNameMap = styleableId2name;
   }
 
-  public void resetDynamicIds(boolean clearAarResourceRegistry) {
+  public void resetDynamicIds(boolean clearResourceRegistry) {
     // The dynamic ids are referenced by the generated R classes. Ensure that the R classes cache is also cleared
     // if the dynamic ids are reset.
-    if (clearAarResourceRegistry) {
-      AarResourceClassRegistry.get(myFacet.getModule().getProject()).clearCache(this);
+    if (clearResourceRegistry) {
+      ResourceClassRegistry.get(myFacet.getModule().getProject()).clearCache(this);
     }
     synchronized (myName2DynamicIdMap) {
       myDynamicSeed = DYNAMIC_ID_SEED_START;
