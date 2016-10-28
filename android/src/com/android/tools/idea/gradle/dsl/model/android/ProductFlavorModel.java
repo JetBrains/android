@@ -239,7 +239,7 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
   }
 
   @Nullable
-  public Map<String, String> testInstrumentationRunnerArguments() {
+  public Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments() {
     return myDslElement.getMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, String.class);
   }
 
