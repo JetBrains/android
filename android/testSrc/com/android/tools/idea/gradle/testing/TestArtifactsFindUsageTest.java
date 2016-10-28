@@ -39,13 +39,15 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
     myAndroidTestFile = setAndroidTestFileContent("AndroidTest.java", USAGE_TEXT);
   }
 
-  public void testFindUsagesInBothTests() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/FindUsagesInBothTests() throws Exception {
     setCommonFileContent("MyClass.java", CLASS_TEXT);
     Collection<UsageInfo> usages = myFixture.findUsages(myFixture.getElementAtCaret());
     assertSize(2, usages);
   }
 
-  public void testFindUsagesOnlyInUnitTest() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/FindUsagesOnlyInUnitTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
@@ -60,7 +62,8 @@ public class TestArtifactsFindUsageTest extends TestArtifactsTestCase {
     assertEquals(myUnitTestFile, usage.getFile());
   }
 
-  public void testFindUsagesInOnlyAndroidTest() throws Exception {
+  // Flaky test, reactivate when investigated (http://b.android.com/226541)
+  public void /*test*/FindUsagesInOnlyAndroidTest() throws Exception {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
