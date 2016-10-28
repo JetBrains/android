@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -37,10 +39,10 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,12 +56,13 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel.parsePropertiesFile;
+import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
@@ -77,7 +80,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class GradleBuildModel extends GradleFileModel {
   @NonNls private static final String PLUGIN = "plugin";
 
-  @NotNull private List<String> myToBeAppliedPlugins = new ArrayList<>();
+  @NotNull private List<GradleDslExpressionMap> myToBeAppliedPlugins = new ArrayList<>();
 
   @Nullable
   public static GradleBuildModel get(@NotNull Project project) {
@@ -158,38 +161,63 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
-  public List<String> appliedPlugins() {
+  public List<GradleNotNullValue<String>> appliedPlugins() {
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     if (applyDslElement == null) {
       return ImmutableList.of();
     }
 
-    List<String> listProperty = applyDslElement.getListProperty(PLUGIN, String.class);
+    List<GradleNotNullValue<String>> listProperty = applyDslElement.getListProperty(PLUGIN, String.class);
     if (listProperty == null) {
       return ImmutableList.of();
     }
 
-    LinkedHashSet<String> plugins = Sets.newLinkedHashSet(listProperty); // Remove duplicates and preserve the order.
-    plugins.addAll(myToBeAppliedPlugins);
-    return ImmutableList.copyOf(plugins);
+    List<GradleNotNullValue<String>> plugins = new ArrayList<>();
+    Set<String> pluginValues = new HashSet<>();
+    for (GradleNotNullValue<String> plugin : listProperty) {
+      if (pluginValues.add(plugin.value())) { // Avoid duplicate plugin entries.
+        plugins.add(plugin);
+      }
+    }
+    for (GradleDslExpressionMap toBeAppliedPlugin : myToBeAppliedPlugins) {
+      GradleNullableValue<String> plugin = toBeAppliedPlugin.getLiteralProperty(PLUGIN, String.class);
+      assert plugin instanceof GradleNotNullValue;
+      if (pluginValues.add(plugin.value())) { // Avoid duplicate plugin entries.
+        plugins.add((GradleNotNullValue<String>)plugin);
+      }
+    }
+
+    return plugins;
   }
 
   @NotNull
-  public GradleBuildModel applyPlugin(String plugin) {
-    myToBeAppliedPlugins.add(plugin.trim());
+  public GradleBuildModel applyPlugin(@NotNull String plugin) {
+    GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, APPLY_BLOCK_NAME);
+    applyMap.addNewLiteral(PLUGIN, plugin.trim());
+    myToBeAppliedPlugins.add(applyMap);
     return this;
   }
 
   @NotNull
-  public GradleBuildModel removePlugin(String plugin) {
+  public GradleBuildModel removePlugin(@NotNull String plugin) {
     plugin = plugin.trim();
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
-    if (applyDslElement != null) {
-      while (appliedPlugins().contains(plugin)) {
-        myToBeAppliedPlugins.remove(plugin);
-        applyDslElement.removeFromExpressionList(PLUGIN, plugin);
+    if (applyDslElement == null) {
+      return this;
+    }
+
+    List<GradleDslExpressionMap> toBeRemovedPlugins = new ArrayList<>();
+    for (GradleDslExpressionMap applyMap : myToBeAppliedPlugins) {
+      if (plugin.equals(applyMap.getLiteralProperty(PLUGIN, String.class).value())) {
+        toBeRemovedPlugins.add(applyMap);
       }
     }
+    myToBeAppliedPlugins.removeAll(toBeRemovedPlugins);
+
+    while (getValues(applyDslElement.getListProperty(PLUGIN, String.class)).contains(plugin)) {
+      applyDslElement.removeFromExpressionList(PLUGIN, plugin);
+    }
+
     return this;
   }
 
@@ -275,13 +303,12 @@ public class GradleBuildModel extends GradleFileModel {
   public void applyChanges() {
     // The apply plugin statements requires special handling, because we want to add a new map with same name (apply) for every plugin
     // needs to be added.
-    for (String plugin : myToBeAppliedPlugins) {
-      GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, APPLY_BLOCK_NAME);
-      applyMap.addNewLiteral(PLUGIN, plugin);
+    for (GradleDslExpressionMap applyMap : myToBeAppliedPlugins) {
       applyMap.create();
       applyMap.applyChanges();
       myGradleDslFile.addParsedElement(APPLY_BLOCK_NAME, applyMap);
     }
+    myToBeAppliedPlugins.clear();
     super.applyChanges();
   }
 

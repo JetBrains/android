@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -118,7 +119,7 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
   }
 
   @Nullable
-  public List<String> resConfigs() {
+  public List<GradleNotNullValue<String>> resConfigs() {
     return myDslElement.getListProperty(RES_CONFIGS, String.class);
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,16 +25,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> the type of the returned value.
  */
-public class GradleNullableValue<T> extends GradleValue {
-  @Nullable private final T myValue;
-
+public class GradleNullableValue<T> extends GradleValue<T> {
   public GradleNullableValue(@NotNull GradleDslElement dslElement, @Nullable T value) {
-    super(dslElement);
-    myValue = value;
-  }
-
-  @Nullable
-  public T value() {
-    return myValue;
+    super(dslElement, value);
   }
 }
