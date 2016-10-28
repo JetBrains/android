@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
+import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.view.FeaturesPanel;
@@ -44,7 +45,7 @@ public final class AssistSidePanel extends JPanel {
 
     for (AssistantBundleCreator creator : AssistantBundleCreator.EP_NAME.getExtensions()) {
       if (creator.getBundleId().equals(actionId)) {
-        TutorialBundleData bundle = null;
+        TutorialBundleData bundle;
 
         // Instantiate the bundle from a configuration file using the default bundle mapping.
         // If null, creator must provide the bundle instance themselves.
@@ -65,6 +66,7 @@ public final class AssistSidePanel extends JPanel {
 
         if (bundle == null) {
           getLog().error("Unable to get Assistant configuration for action: " + actionId);
+          return;
         }
 
         // Provide the creator's class for classloading purposes.
@@ -73,7 +75,10 @@ public final class AssistSidePanel extends JPanel {
           feature.setResourceClass(creator.getClass());
         }
 
-        assistContents = new FeaturesPanel(bundle, project);
+        AnalyticsProvider analyticsProvider = creator.getAnalyticsProvider();
+        analyticsProvider.trackPanelOpened(project);
+
+        assistContents = new FeaturesPanel(bundle, project, analyticsProvider);
         break;
       }
     }
