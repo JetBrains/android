@@ -31,6 +31,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -125,7 +126,7 @@ public class AndroidPluginInfo {
     BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
       boolean keepSearchingForAppModule = searchForAppModule && result.appVirtualFile == null;
       if (keepSearchingForAppModule) {
-        List<String> pluginIds = buildModel.appliedPlugins();
+        List<String> pluginIds = getValues(buildModel.appliedPlugins());
         for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
           if (generation.isApplicationPluginIdIn(pluginIds)) {
             result.appVirtualFile = buildModel.getVirtualFile();

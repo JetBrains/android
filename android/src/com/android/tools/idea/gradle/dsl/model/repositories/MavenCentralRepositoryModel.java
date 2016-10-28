@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,9 +71,13 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
       return ImmutableList.of();
     }
 
-    List<String> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
+    List<GradleNotNullValue<String>> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
     if (artifactUrls != null) {
-      return artifactUrls;
+      List<String> artifactUrlValues = new ArrayList<>(artifactUrls.size());
+      for (GradleNotNullValue<String> artifactUrl : artifactUrls) {
+        artifactUrlValues.add(artifactUrl.value());
+      }
+      return artifactUrlValues;
     }
 
     String artifactUrl = myDslElement.getLiteralProperty(ARTIFACT_URLS, String.class).value();

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
@@ -105,8 +106,8 @@ public final class GradleDslExpressionList extends GradleDslElement {
    * <p>Returns an empty list when there are no elements of type {@code clazz}.
    */
   @NotNull
-  public <E> List<E> getValues(Class<E> clazz) {
-    List<E> result = Lists.newArrayList();
+  public <E> List<GradleNotNullValue<E>> getValues(Class<E> clazz) {
+    List<GradleNotNullValue<E>> result = Lists.newArrayList();
     for (GradleDslExpression expression : getExpressions()) {
       if (expression instanceof GradleDslReference) {
         // See if the reference itself is pointing to a list.
@@ -118,7 +119,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
       }
       E value = expression.getValue(clazz);
       if (value != null) {
-        result.add(value);
+        result.add(new GradleNotNullValue<>(expression, value));
       }
     }
     return result;
