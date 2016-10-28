@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.AbstractFlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -132,5 +135,103 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertThat(proguardFiles).hasSize(2);
     verifyGradleValue(proguardFiles.get(0), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-android.txt'");
     verifyGradleValue(proguardFiles.get(1), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-rules.pro'");
+  }
+
+  public void testMapOfGradleValuesInApplicationStatements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+
+    Map<String, GradleNotNullValue<Object>> manifestPlaceholders = defaultConfig.manifestPlaceholders();
+    assertNotNull(manifestPlaceholders);
+    GradleNotNullValue<Object> activityLabel1 = manifestPlaceholders.get("activityLabel1");
+    assertNotNull(activityLabel1);
+    verifyGradleValue(activityLabel1, "android.defaultConfig.manifestPlaceholders.activityLabel1", "\"defaultName1\"");
+    GradleNotNullValue<Object> activityLabel2 = manifestPlaceholders.get("activityLabel2");
+    assertNotNull(activityLabel2);
+    verifyGradleValue(activityLabel2, "android.defaultConfig.manifestPlaceholders.activityLabel2", "\"defaultName2\"");
+
+    Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments = defaultConfig.testInstrumentationRunnerArguments();
+    assertNotNull(testInstrumentationRunnerArguments);
+    GradleNotNullValue<String> size = testInstrumentationRunnerArguments.get("size");
+    assertNotNull(size);
+    verifyGradleValue(size, "android.defaultConfig.testInstrumentationRunnerArguments.size", "\"medium\"");
+    GradleNotNullValue<String> foo = testInstrumentationRunnerArguments.get("foo");
+    assertNotNull(foo);
+    verifyGradleValue(foo, "android.defaultConfig.testInstrumentationRunnerArguments.foo", "\"bar\"");
+  }
+
+  public void testMapOfGradleValuesInAssignmentStatements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
+                  "    testInstrumentationRunnerArguments = [size:\"medium\", foo:\"bar\"]\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+
+    Map<String, GradleNotNullValue<Object>> manifestPlaceholders = defaultConfig.manifestPlaceholders();
+    assertNotNull(manifestPlaceholders);
+    GradleNotNullValue<Object> activityLabel1 = manifestPlaceholders.get("activityLabel1");
+    assertNotNull(activityLabel1);
+    verifyGradleValue(activityLabel1, "android.defaultConfig.manifestPlaceholders.activityLabel1", "\"defaultName1\"");
+    GradleNotNullValue<Object> activityLabel2 = manifestPlaceholders.get("activityLabel2");
+    assertNotNull(activityLabel2);
+    verifyGradleValue(activityLabel2, "android.defaultConfig.manifestPlaceholders.activityLabel2", "\"defaultName2\"");
+
+    Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments = defaultConfig.testInstrumentationRunnerArguments();
+    assertNotNull(testInstrumentationRunnerArguments);
+    GradleNotNullValue<String> size = testInstrumentationRunnerArguments.get("size");
+    assertNotNull(size);
+    verifyGradleValue(size, "android.defaultConfig.testInstrumentationRunnerArguments.size", "\"medium\"");
+    GradleNotNullValue<String> foo = testInstrumentationRunnerArguments.get("foo");
+    assertNotNull(foo);
+    verifyGradleValue(foo, "android.defaultConfig.testInstrumentationRunnerArguments.foo", "\"bar\"");
+  }
+
+  public void testGradleValuesOfTypeNameValueElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "  }\n" +
+                  "  buildTypes {\n" +
+                  "    xyz {\n" +
+                  "      buildConfigField \"mnop\", \"qrst\", \"uvwx\"\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+    List<GradleNotNullValue<AbstractFlavorTypeModel.ResValue>> resValues = defaultConfig.resValues();
+    assertNotNull(resValues);
+    assertThat(resValues).hasSize(1);
+    verifyGradleValue(resValues.get(0), "android.defaultConfig.resValue", "\"abcd\", \"efgh\", \"ijkl\"");
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+    List<GradleNotNullValue<BuildTypeModel.BuildConfigField>> buildConfigFields = buildTypes.get(0).buildConfigFields();
+    assertNotNull(buildConfigFields);
+    assertThat(buildConfigFields).hasSize(1);
+    verifyGradleValue(buildConfigFields.get(0), "android.buildTypes.xyz.buildConfigField", "\"mnop\", \"qrst\", \"uvwx\"");
   }
 }

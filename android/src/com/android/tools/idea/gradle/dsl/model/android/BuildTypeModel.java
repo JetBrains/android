@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -61,15 +64,19 @@ public class BuildTypeModel extends AbstractFlavorTypeModel {
   }
 
   @Nullable
-  public List<BuildConfigField> buildConfigFields() {
-    List<TypeNameValueElement> typeNameValueElements = getTypeNameValueElements(BUILD_CONFIG_FIELD);
+  public List<GradleNotNullValue<BuildConfigField>> buildConfigFields() {
+    List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(BUILD_CONFIG_FIELD);
     if (typeNameValueElements == null) {
       return null;
     }
 
-    List<BuildConfigField> buildConfigFields = Lists.newArrayListWithCapacity(typeNameValueElements.size());
-    for (TypeNameValueElement typeNameValueElement : typeNameValueElements) {
-      buildConfigFields.add(new BuildConfigField(typeNameValueElement.type(), typeNameValueElement.name(), typeNameValueElement.value()));
+    List<GradleNotNullValue<BuildConfigField>> buildConfigFields = Lists.newArrayListWithCapacity(typeNameValueElements.size());
+    for (Pair<GradleDslExpressionList, TypeNameValueElement> pair : typeNameValueElements) {
+      GradleDslExpressionList listElement = pair.getFirst();
+      TypeNameValueElement typeNameValueElement = pair.getSecond();
+      buildConfigFields.add(new GradleNotNullValue<>(listElement,
+                                                     new BuildConfigField(typeNameValueElement.type(), typeNameValueElement.name(),
+                                                                          typeNameValueElement.value())));
     }
 
     return buildConfigFields;
