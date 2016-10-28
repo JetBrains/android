@@ -18,22 +18,40 @@ package com.android.tools.idea.gradle.dsl.model.values;
 import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Represents a value returned by Gradle Dsl Model.
+ *
+ * @param <T> the type of the returned value.
  */
-public abstract class GradleValue {
-  @NotNull protected final GradleDslElement myDslElement;
+public abstract class GradleValue<T> {
+  @NotNull private final GradleDslElement myDslElement;
 
-  protected GradleValue(@NotNull GradleDslElement dslElement) {
+  @Nullable private final T myValue;
+
+  protected GradleValue(@NotNull GradleDslElement dslElement, @Nullable T value) {
     myDslElement = dslElement;
+    myValue = value;
+  }
+
+  @NotNull
+  protected GradleDslElement getDslElement() {
+    return myDslElement;
+  }
+
+  @Nullable
+  public T value() {
+    return myValue;
   }
 
   @Nullable
@@ -67,5 +85,21 @@ public abstract class GradleValue {
       builder.put(variableName, new GradleNotNullValue<>(element, resolvedValue));
     }
     return builder.build();
+  }
+
+  @NotNull
+  public static <E> List<E> getValues(@Nullable List<? extends GradleValue<E>> gradleValues) {
+    if (gradleValues == null) {
+      return ImmutableList.of();
+    }
+
+    List<E> values = new ArrayList<>(gradleValues.size());
+    for (GradleValue<E> gradleValue : gradleValues) {
+      E value = gradleValue.value();
+      if (value != null) {
+        values.add(value);
+      }
+    }
+    return values;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.google.common.collect.ImmutableList;
@@ -65,8 +66,8 @@ public class MavenRepositoryModel extends UrlBasedRepositoryModel {
   }
 
   @NotNull
-  public List<String> artifactUrls() {
-    List<String> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
+  public List<GradleNotNullValue<String>> artifactUrls() {
+    List<GradleNotNullValue<String>> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
     return artifactUrls != null ? artifactUrls : ImmutableList.of();
   }
 

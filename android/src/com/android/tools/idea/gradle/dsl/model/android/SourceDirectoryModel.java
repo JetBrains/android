@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceDirectoryDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class SourceDirectoryModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> excludes() {
+  public List<GradleNotNullValue<String>> excludes() {
     return myDslElement.getListProperty(EXCLUDE, String.class);
   }
 
@@ -67,7 +68,7 @@ public class SourceDirectoryModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> includes() {
+  public List<GradleNotNullValue<String>> includes() {
     return myDslElement.getListProperty(INCLUDE, String.class);
   }
 
@@ -96,7 +97,7 @@ public class SourceDirectoryModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> srcDirs() {
+  public List<GradleNotNullValue<String>> srcDirs() {
     return myDslElement.getListProperty(SRC_DIRS, String.class);
   }
 

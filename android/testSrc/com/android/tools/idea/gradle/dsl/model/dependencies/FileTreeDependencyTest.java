@@ -41,7 +41,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsExactly("*.jar");
+    assertEquals(ImmutableList.of("*.jar"), dependency.includes());
   }
 
   public void testParseFileTreeWithDirAndIncludeAttributePattern() throws IOException {
@@ -57,7 +57,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsExactly("*.jar");
+    assertEquals(ImmutableList.of("*.jar"), dependency.includes());
   }
 
   public void testParseFileTreeWithDirAndExcludeAttributeList() throws IOException {
@@ -73,8 +73,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsExactly("*.jar");
-    assertThat(dependency.exclude()).containsExactly("*.aar");
+    assertEquals(ImmutableList.of("*.jar"), dependency.includes());
+    assertEquals(ImmutableList.of("*.aar"), dependency.excludes());
   }
 
   public void testParseFileTreeWithDirOnly() throws IOException {
@@ -183,7 +183,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     assertEquals("libs", fileTree.dir());
-    assertThat(fileTree.include()).containsExactly("*.jar");
+    assertEquals(ImmutableList.of("*.jar"), fileTree.includes());
   }
 
   public void testAddFileTreeWithDirAndIncludeAttributeList() throws IOException {
@@ -204,7 +204,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     assertEquals("libs", fileTree.dir());
-    assertThat(fileTree.include()).containsExactly("*.jar", "*.aar");
+    assertEquals(ImmutableList.of("*.jar", "*.aar"), fileTree.includes());
   }
 
   public void testAddFileTreeWithDirAndExcludeAttributeList() throws IOException {
@@ -225,8 +225,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertThat(fileTrees).hasSize(1);
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     assertEquals("libs", fileTree.dir());
-    assertThat(fileTree.include()).containsExactly("*.jar");
-    assertThat(fileTree.exclude()).containsExactly("*.aar");
+    assertEquals(ImmutableList.of("*.jar"), fileTree.includes());
+    assertEquals(ImmutableList.of("*.aar"), fileTree.excludes());
   }
 
   public void testRemoveFileTreeDependency() throws IOException {
@@ -242,8 +242,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel fileTree = fileTrees.get(0);
     assertEquals("libs", fileTree.dir());
-    assertThat(fileTree.include()).containsExactly("*.jar");
-    assertThat(fileTree.exclude()).containsExactly("*.aar");
+    assertEquals(ImmutableList.of("*.jar"), fileTree.includes());
+    assertEquals(ImmutableList.of("*.aar"), fileTree.excludes());
 
     dependencies.remove(fileTree);
     assertTrue(buildModel.isModified());

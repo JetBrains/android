@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
@@ -176,7 +177,7 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> flavorDimensions() {
+  public List<GradleNotNullValue<String>> flavorDimensions() {
     return myDslElement.getListProperty(FLAVOR_DIMENSIONS, String.class);
   }
 

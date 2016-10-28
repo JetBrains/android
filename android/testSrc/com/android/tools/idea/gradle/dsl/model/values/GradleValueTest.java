@@ -17,6 +17,11 @@ package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleValue}.
@@ -62,5 +67,70 @@ public class GradleValueTest extends GradleFileModelTestCase {
     verifyGradleValue(android.compileSdkVersion(), "android.compileSdkVersion", "\"android-23\"");
     verifyGradleValue(android.defaultPublishConfig(), "android.defaultPublishConfig", "\"debug\"");
     verifyGradleValue(android.generatePureSplits(), "android.generatePureSplits", "true");
+  }
+
+  public void testListOfGradleValuesInApplicationStatements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles 'con-proguard-android.txt', 'con-proguard-rules.pro'\n" +
+                  "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    resConfigs 'abcd', 'efgh'" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+
+    List<GradleNotNullValue<String>> consumerProguardFiles = defaultConfig.consumerProguardFiles();
+    assertNotNull(consumerProguardFiles);
+    assertThat(consumerProguardFiles).hasSize(2);
+    verifyGradleValue(consumerProguardFiles.get(0), "android.defaultConfig.consumerProguardFiles.consumerProguardFiles",
+                      "'con-proguard-android.txt'");
+    verifyGradleValue(consumerProguardFiles.get(1), "android.defaultConfig.consumerProguardFiles.consumerProguardFiles",
+                      "'con-proguard-rules.pro'");
+
+    List<GradleNotNullValue<String>> proguardFiles = defaultConfig.proguardFiles();
+    assertNotNull(proguardFiles);
+    assertThat(proguardFiles).hasSize(2);
+    verifyGradleValue(proguardFiles.get(0), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-android.txt'");
+    verifyGradleValue(proguardFiles.get(1), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-rules.pro'");
+
+    List<GradleNotNullValue<String>> resConfigs = defaultConfig.resConfigs();
+    assertNotNull(resConfigs);
+    assertThat(resConfigs).hasSize(2);
+    verifyGradleValue(resConfigs.get(0), "android.defaultConfig.resConfigs.resConfigs", "'abcd'");
+    verifyGradleValue(resConfigs.get(1), "android.defaultConfig.resConfigs.resConfigs", "'efgh'");
+  }
+
+  public void testListOfGradleValuesInAssignmentStatements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles = ['con-proguard-android.txt', 'con-proguard-rules.pro']\n" +
+                  "    proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+
+    List<GradleNotNullValue<String>> consumerProguardFiles = defaultConfig.consumerProguardFiles();
+    assertNotNull(consumerProguardFiles);
+    assertThat(consumerProguardFiles).hasSize(2);
+    verifyGradleValue(consumerProguardFiles.get(0), "android.defaultConfig.consumerProguardFiles.consumerProguardFiles",
+                      "'con-proguard-android.txt'");
+    verifyGradleValue(consumerProguardFiles.get(1), "android.defaultConfig.consumerProguardFiles.consumerProguardFiles",
+                      "'con-proguard-rules.pro'");
+
+    List<GradleNotNullValue<String>> proguardFiles = defaultConfig.proguardFiles();
+    assertNotNull(proguardFiles);
+    assertThat(proguardFiles).hasSize(2);
+    verifyGradleValue(proguardFiles.get(0), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-android.txt'");
+    verifyGradleValue(proguardFiles.get(1), "android.defaultConfig.proguardFiles.proguardFiles", "'proguard-rules.pro'");
   }
 }

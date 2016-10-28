@@ -178,7 +178,9 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @Override
     @NotNull
     public GradleNotNullValue<String> name() {
-      return GradleNotNullValue.create(myDslElement.getLiteralProperty("name", String.class));
+      GradleNullableValue<String> name = myDslElement.getLiteralProperty("name", String.class);
+      assert name instanceof GradleNotNullValue;
+      return (GradleNotNullValue<String>)name;
     }
 
     @Override
