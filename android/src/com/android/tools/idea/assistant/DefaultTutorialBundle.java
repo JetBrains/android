@@ -45,7 +45,7 @@ import java.util.Locale;
  * assistant.
  */
 @XmlRootElement(name = "tutorialBundle")
-public abstract class DefaultTutorialBundle implements TutorialBundleData {
+public class DefaultTutorialBundle implements TutorialBundleData {
 
   @XmlAttribute(name = "name")
   private String myName;
