@@ -20,10 +20,10 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.visualtests.VisualTest;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
@@ -230,7 +230,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     // Resize the SelectionComponent based on whether we are in L1 or L2 view.
     // TODO construct/destroyed Level3 segment/elements as we expand/collapse segments
-    mEventDispatcher.addListener(new ProfilerEventListener() {
+    mEventDispatcher.addListener(new ProfilerEventListener<BaseProfilerUiManager.ProfilerType>() {
       @Override
       public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
         switch (profilerType) {

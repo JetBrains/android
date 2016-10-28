@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.datastore;
+package com.android.tools.datastore;
 
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;

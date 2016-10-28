@@ -18,14 +18,13 @@ package com.android.tools.idea.monitor.ui.network.view;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
