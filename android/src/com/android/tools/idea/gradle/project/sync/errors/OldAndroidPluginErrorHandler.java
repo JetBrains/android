@@ -31,8 +31,8 @@ import java.util.List;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
-  @Nullable
   @Override
+  @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Plugin is too old, please update to a more recent version")) {
@@ -43,8 +43,8 @@ public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {

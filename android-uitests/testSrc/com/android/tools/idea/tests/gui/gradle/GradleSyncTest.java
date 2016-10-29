@@ -347,7 +347,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.requestProjectSyncAndSimulateFailure("Unable to load class 'com.android.utils.ILogger'");
+    ideFrame.requestProjectSyncAndSimulateError("Unable to load class 'com.android.utils.ILogger'");
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
@@ -362,7 +362,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.requestProjectSyncAndSimulateFailure("unexpected end of block data");
+    ideFrame.requestProjectSyncAndSimulateError("unexpected end of block data");
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("An unexpected I/O error occurred."));
@@ -419,7 +419,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.requestProjectSyncAndSimulateFailure("error in opening zip file");
+    ideFrame.requestProjectSyncAndSimulateError("error in opening zip file");
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to open zip file."));
@@ -434,7 +434,7 @@ public class GradleSyncTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     String failure = "Connection to the Internet denied.";
-    ideFrame.requestProjectSyncAndSimulateFailure(failure);
+    ideFrame.requestProjectSyncAndSimulateError(failure);
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(failure));
@@ -454,7 +454,7 @@ public class GradleSyncTest {
                      "Java home is different.\n" +
                      "javaHome=c:\\Program Files\\Java\\jdk,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=7868,idleTimeout=null]\n" +
                      "javaHome=C:\\Program Files\\Java\\jdk\\jre,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=4792,idleTimeout=10800000]";
-    ideFrame.requestProjectSyncAndSimulateFailure(failure);
+    ideFrame.requestProjectSyncAndSimulateError(failure);
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
 
@@ -503,7 +503,7 @@ public class GradleSyncTest {
 
     // Simulate this Gradle error.
     String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
-    ideFrame.requestProjectSyncAndSimulateFailure(failure);
+    ideFrame.requestProjectSyncAndSimulateError(failure);
 
     String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
