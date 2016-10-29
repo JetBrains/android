@@ -34,7 +34,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 
-public class ContentRootModuleSetupStep extends JavaModuleSetupStep {
+public class ContentRootsModuleSetupStep extends JavaModuleSetupStep {
   @Override
   public void setUpModule(@NotNull Module module,
                           @NotNull JavaProject javaProject,
