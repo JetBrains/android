@@ -1158,12 +1158,12 @@
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.JdkModuleSetupStep"/>
+    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
     <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootModuleSetupStep"/>
 
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootModuleSetupStep"/>
+    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootsModuleSetupStep"/>
     <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.DependenciesModuleSetupStep"/>
 
     <cppModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.cpp.ContentRootModuleSetupStep"/>

@@ -21,14 +21,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link ContentRootModuleSetupStep}.
+ * Tests for {@link ContentRootsModuleSetupStep}.
  */
-public class ContentRootModuleSetupStepUnitTest {
-  private ContentRootModuleSetupStep mySetupStep;
+public class ContentRootsModuleSetupStepUnitTest {
+  private ContentRootsModuleSetupStep mySetupStep;
 
   @Before
   public void setUp() {
-    mySetupStep = new ContentRootModuleSetupStep();
+    mySetupStep = new ContentRootsModuleSetupStep();
   }
 
   @Test
