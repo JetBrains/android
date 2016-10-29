@@ -23,6 +23,7 @@ import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.driver.CellRendererReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,22 +31,44 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class TranslationsEditorFixture extends JTableFixture {
-  public TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor target) {
-    super(robot, target.getTranslationsTable());
-    replaceCellReader(new BasicJTableCellReader(new StringsCellRendererReader()));
+public final class TranslationsEditorFixture {
+  private final JTableFixture myTable;
+  private final JTextComponentFixture myKeyTextField;
+  private final JTextComponentFixture myTranslationTextField;
+
+  TranslationsEditorFixture(@NotNull Robot robot, @NotNull StringResourceEditor target) {
+    myTable = new JTableFixture(robot, target.getTranslationsTable());
+    myTable.replaceCellReader(new BasicJTableCellReader(new StringsCellRendererReader()));
+
+    myKeyTextField = new JTextComponentFixture(robot, target.getKeyTextField());
+    myTranslationTextField = new JTextComponentFixture(robot, target.getTranslationTextField().getTextField());
+  }
+
+  @NotNull
+  public JTableFixture getTable() {
+    return myTable;
+  }
+
+  @NotNull
+  public JTextComponentFixture getKeyTextField() {
+    return myKeyTextField;
+  }
+
+  @NotNull
+  public JTextComponentFixture getTranslationTextField() {
+    return myTranslationTextField;
   }
 
   @NotNull
   public List<String> locales() {
-    List<String> columns = getColumnHeaderValues(target());
-    assert columns.size() > 3 : "Expected atleast 3 columns (key, default value, isTranslatable?) in the editor, found: " + columns.size();
+    List<String> columns = getColumnHeaderValues(myTable.target());
+    assert columns.size() > 3 : columns.size();
     return columns.subList(3, columns.size());
   }
 
   @NotNull
   public List<String> keys() {
-    String[][] contents = contents();
+    String[][] contents = myTable.contents();
     List<String> keys = Lists.newArrayListWithExpectedSize(contents.length);
     for (String[] content : contents) {
       keys.add(content[0]);
