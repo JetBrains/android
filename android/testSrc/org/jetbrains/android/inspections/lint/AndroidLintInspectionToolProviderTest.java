@@ -330,9 +330,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
 
     // Undo the effects of LintIdeIssueRegistry
-    if (detectorClass == LintIdeApiDetector.class) {
-      detectorClass = ApiDetector.class;
-    } else if (detectorClass == LintIdeGradleDetector.class) {
+    if (detectorClass == LintIdeGradleDetector.class) {
       detectorClass = GradleDetector.class;
     } else if (detectorClass == LintIdeViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
