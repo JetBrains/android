@@ -80,7 +80,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
     List<String> lines = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(msg);
 
-    for (SyncErrorHandler errorHandler : SyncErrorHandler.EP_NAME.getExtensions()) {
+    for (SyncErrorHandler errorHandler : SyncErrorHandler.getExtensions()) {
       if (errorHandler.handleError(error, notification, project)) {
         return;
       }
