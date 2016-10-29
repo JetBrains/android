@@ -69,7 +69,9 @@ public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
         EnumSet<Scope> scope = implementation.getScope();
         Class<? extends Detector> detectorClass = implementation.getDetectorClass();
         if (detectorClass == ApiDetector.class) {
-          issue.setImplementation(LintIdeApiDetector.IMPLEMENTATION);
+          // We're okay to include the class file check here
+          result.add(issue);
+          continue;
         } else if (detectorClass == GradleDetector.class) {
           issue.setImplementation(LintIdeGradleDetector.IMPLEMENTATION);
         } else if (detectorClass == ViewTypeDetector.class) {
