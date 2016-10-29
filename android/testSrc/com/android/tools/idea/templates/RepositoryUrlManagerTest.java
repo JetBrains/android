@@ -24,7 +24,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.testutils.TestUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -130,7 +130,7 @@ public class RepositoryUrlManagerTest extends TestCase {
                                                               library.getArtifactId(),
                                                               null,
                                                               false,
-                                                              AndroidTestCaseHelper.getAndroidSdkPath(),
+                                                              TestUtils.getSdk(),
                                                               FileOpUtils.create()));
     }
   }
