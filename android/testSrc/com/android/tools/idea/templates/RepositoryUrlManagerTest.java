@@ -26,6 +26,7 @@ import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import junit.framework.TestCase;
@@ -122,9 +123,12 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals("20.0.0-rc1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
-  /** Checks the {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
-  public void testGetLibraryRevision_allKnownLibraries_realSdk() throws Exception {
-    for (SupportLibrary library : SupportLibrary.values()) {
+  /** Checks {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
+  public void testGetLibraryRevision_realSdk() throws Exception {
+    // the first library from each group, representing a distinct SDK component, of SupportLibrary values
+    SupportLibrary libraryFromAndroidRepo = SupportLibrary.SUPPORT_ANNOTATIONS;
+    SupportLibrary libraryFromGoogleRepo = SupportLibrary.PLAY_SERVICES;
+    for (SupportLibrary library : ImmutableList.of(libraryFromAndroidRepo, libraryFromGoogleRepo)) {
       assertNotNull("Can't find latest version of " + library,
                     myRepositoryUrlManager.getLibraryRevision(library.getGroupId(),
                                                               library.getArtifactId(),
