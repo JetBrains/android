@@ -46,9 +46,9 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link ContentRootModuleSetupStep}.
+ * Tests for {@link ContentRootsModuleSetupStep}.
  */
-public class ContentRootModuleSetupStepTest extends IdeaTestCase {
+public class ContentRootsModuleSetupStepTest extends IdeaTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
   @Mock private AndroidGradleModel myAndroidModel;
@@ -56,7 +56,7 @@ public class ContentRootModuleSetupStepTest extends IdeaTestCase {
 
   private IdeModifiableModelsProvider myModelsProvider;
   private VirtualFile myModuleFolder;
-  private ContentRootModuleSetupStep mySetupStep;
+  private ContentRootsModuleSetupStep mySetupStep;
 
   @Override
   protected void setUp() throws Exception {
@@ -76,7 +76,7 @@ public class ContentRootModuleSetupStepTest extends IdeaTestCase {
 
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    mySetupStep = new ContentRootModuleSetupStep(myFactory);
+    mySetupStep = new ContentRootsModuleSetupStep(myFactory);
   }
 
   @NotNull

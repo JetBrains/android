@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.pom.java.LanguageLevel;
@@ -33,16 +36,22 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.*;
@@ -77,9 +86,9 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     loadSimpleApplication();
 
-    String libraryName = "guava-18.0";
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
-    Library library = libraryTable.getLibraryByName(libraryName);
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    String libraryNameRegex = "guava-.*";
+    Library library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 
     String url = "jar://$USER_HOME$/fake-dir/fake-sources.jar!/";
@@ -91,8 +100,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     requestSyncAndWait();
 
-    libraryTable = ProjectLibraryTable.getInstance(getProject());
-    library = libraryTable.getLibraryByName(libraryName);
+    library = libraries.findMatchingLibrary(libraryNameRegex);
     assertNotNull(library);
 
     String[] urls = library.getUrls(SOURCES);
@@ -141,6 +149,42 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
+  }
+
+  public void testJarsFolderInExplodedAarIsExcluded() throws Exception {
+    loadSimpleApplication();
+
+    Module appModule = myModules.getAppModule();
+    AndroidGradleModel androidModel = AndroidGradleModel.get(appModule);
+    assertNotNull(androidModel);
+    Collection<SyncIssue> issues = androidModel.getSyncIssues();
+    if (issues != null && !issues.isEmpty()) {
+      // This is currently happening in Bazel because the prebuilt SDK manager is not exposing app-compat and constraint layout.
+      System.out.println("Ignoring test: dependencies are not resolved");
+      return;
+    }
+
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    Library appCompat = libraries.findMatchingLibrary("appcompat-v7.*");
+    assertNotNull(appCompat);
+
+    File jarsFolderPath = null;
+    for (String url : appCompat.getUrls(CLASSES)) {
+      if (url.startsWith(JAR_PROTOCOL_PREFIX)) {
+        File jarPath = getJarFromJarUrl(url);
+        assertNotNull(jarPath);
+        jarsFolderPath = jarPath.getParentFile();
+        break;
+      }
+    }
+    assertNotNull(jarsFolderPath);
+
+    ContentEntry[] contentEntries = ModuleRootManager.getInstance(appModule).getContentEntries();
+    assertThat(contentEntries).hasLength(1);
+
+    ContentEntry contentEntry = contentEntries[0];
+    List<String> excludeFolderUrls = contentEntry.getExcludeFolderUrls();
+    assertThat(excludeFolderUrls).contains(pathToIdeaUrl(jarsFolderPath));
   }
 
   @Nullable
