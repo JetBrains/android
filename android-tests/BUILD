@@ -97,5 +97,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/sherpa:sherpa-solver[module, test]",
+        "//tools/adt/idea/profilers:profilers[module, test]",
     ],
 )
