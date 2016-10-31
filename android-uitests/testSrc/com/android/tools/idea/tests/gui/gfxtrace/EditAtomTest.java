@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.gfxtrace.GfxTraceFixture;
 import com.android.tools.rpclib.schema.Method;
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,17 @@ import java.io.IOException;
 public class EditAtomTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @AfterClass
+  public static void killGapis() {
+    try {
+      Runtime rt = Runtime.getRuntime();
+      rt.exec("killall gapis");
+      rt.exec("killall gapir");
+    }
+    catch (Exception ex) {
+    }
+  }
 
   @Test
   public void testEditAtom() throws IOException {
