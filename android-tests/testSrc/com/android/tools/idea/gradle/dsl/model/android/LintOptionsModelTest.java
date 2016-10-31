@@ -21,6 +21,9 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 
+/**
+ * Tests for {@link LintOptionsModel}.
+ */
 public class LintOptionsModelTest extends GradleFileModelTestCase {
   private static final String LINT_OPTIONS_TEXT = "android {\n" +
                                                   "  lintOptions {\n" +
