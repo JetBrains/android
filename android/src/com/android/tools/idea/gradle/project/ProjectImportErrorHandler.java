@@ -270,7 +270,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
     if (exception == null) {
-      exception = new ExternalSystemException(errMessage, rootCause);
+      if (errMessage.equals(rootCause.getMessage())) {
+        exception = new ExternalSystemException(errMessage);
+      }
+      else {
+        exception = new ExternalSystemException(errMessage, rootCause);
+      }
     }
     exception.initCause(rootCause);
     return exception;
