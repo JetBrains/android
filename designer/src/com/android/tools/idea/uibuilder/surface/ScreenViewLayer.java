@@ -98,9 +98,9 @@ public class ScreenViewLayer extends Layer {
     }
 
     RenderResult renderResult = myScreenView.getModel().getRenderResult();
-    if (renderResult != null && renderResult.getImage() != null && renderResult != myLastRenderResult) {
+    if (renderResult != null && renderResult.getRenderedImage() != null && renderResult != myLastRenderResult) {
       myLastRenderResult = renderResult;
-      myImage = renderResult.getImage().getOriginalImage();
+      myImage = renderResult.getRenderedImage();
       myScaledImage = null;
     }
 

@@ -20,9 +20,12 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.gfxtrace.viewer.gl.Buffer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -99,16 +102,19 @@ public abstract class RenderTestBase extends AndroidTestCase {
     Result renderResult = result.getRenderResult();
     assertEquals(String.format("Render failed with message: %s\n%s", renderResult.getErrorMessage(), renderResult.getException()),
                  Result.Status.SUCCESS, result.getRenderResult().getStatus());
-    RenderedImage image = result.getImage();
+    BufferedImage image = result.getRenderedImage();
     assertNotNull(image);
-    image.setMaxSize(200, 200);
-    image.setDeviceFrameEnabled(false);
-    @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
-    BufferedImage thumbnail = new BufferedImage(image.getRequiredWidth(), image.getRequiredHeight(), TYPE_INT_ARGB);
-    Graphics graphics = thumbnail.getGraphics();
-    image.paint(graphics, 0, 0);
-    graphics.dispose();
-    checkRenderedImage(thumbnail, "render" + separator + "thumbnails" + separator + thumbnailPath.replace('/', separatorChar));
+    double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
+    if (UIUtil.isAppleRetina()) {
+      scale *= 2;
+      image = ImageUtils.convertToRetina(ImageUtils.scale(image, scale, scale));
+    }
+    else {
+      image = ImageUtils.scale(image, scale, scale);
+    }
+
+    image = ShadowPainter.createRectangularDropShadow(image);
+    checkRenderedImage(image, "render" + separator + "thumbnails" + separator + thumbnailPath.replace('/', separatorChar));
   }
 
   @Nullable
