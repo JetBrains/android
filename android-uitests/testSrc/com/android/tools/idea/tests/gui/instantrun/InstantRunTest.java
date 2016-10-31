@@ -236,7 +236,7 @@ public class InstantRunTest {
       .findContent(APP_NAME)
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
-    Wait.seconds(30).expecting("The notification is showing").until(() -> {
+    Wait.seconds(1).expecting("The notification is showing").until(() -> {
       try {
         Notification notification = Iterables.getLast(EventLog.getLogModel(ideFrameFixture.getProject()).getNotifications());
         assertThat(notification.getContent()).matches(INSTANT_RUN_NOTIFICATION_REGEX);

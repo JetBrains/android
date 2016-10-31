@@ -291,7 +291,7 @@ public final class GuiTests {
       }
 
       if (listener.myActive) {
-        Wait.minutes(2).expecting("project to be opened")
+        Wait.seconds(1).expecting("project to be opened")
           .until(() -> {
             boolean notified = listener.myNotified;
             if (notified) {
@@ -467,7 +467,7 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
-    Wait.minutes(2).expecting("button " + text + " to be enabled")
+    Wait.seconds(1).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
   }
@@ -577,11 +577,11 @@ public final class GuiTests {
                                                          @NotNull Container root,
                                                          @NotNull GenericTypeMatcher<T> matcher) {
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.minutes(2).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
+    Wait.seconds(1).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
   }
 
   public static void waitForBackgroundTasks(Robot robot) {
-    Wait.minutes(2).expecting("background tasks to finish")
+    Wait.seconds(30).expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
 

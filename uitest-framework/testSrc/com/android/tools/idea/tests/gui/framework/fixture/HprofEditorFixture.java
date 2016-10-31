@@ -118,7 +118,7 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   private void waitForHprofEditor() {
-    Wait.minutes(2).expecting("editor to be ready")
+    Wait.seconds(10).expecting("editor to be ready")
       .until(() -> {
         try {
           robot.finder().findByName(myHprofEditor.getComponent(), "HprofClassesTree", true);

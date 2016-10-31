@@ -57,7 +57,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
 
     if (pathName != null) {
       final String finalPathName = pathName;
-      Wait.minutes(2).expecting("the file to be recognized")
+      Wait.seconds(1).expecting("the file to be recognized")
         .until(() -> {
           try {
             String fileToSelect = finalPathName + "/" + fileName;

@@ -49,7 +49,8 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitUntilErrorAnalysisFinishes() {
-    Wait.minutes(2).expecting("error analysis to finish").until(() -> GuiQuery.getNonNull(() -> {
+    // TODO: Should this really take as long as 20 seconds?
+    Wait.seconds(20).expecting("error analysis to finish").until(() -> GuiQuery.getNonNull(() -> {
       // isRunningOrPending() should be enough, but tests fail. During code analysis, DaemonCodeAnalyzerImpl, keeps calling
       // cancelUpdateProgress(), and then restarting again, but the restart is queued on the UI Thread, so for some moments,
       // isRunningOrPending() returns false, while technically there is in an event, on the UI queue, waiting.

@@ -52,7 +52,7 @@ public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamp
   public BrowseSamplesWizardFixture clickFinish() {
     findAndClickButton(this, "Finish");
     // Parent implementation only waits a few seconds, but here we need to wait for the Sample to download
-    Wait.minutes(3).expecting("dialog to disappear").until(() -> !target().isShowing());
+    Wait.seconds(1).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myself();
   }
 

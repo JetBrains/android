@@ -61,7 +61,7 @@ public class RenameTest {
             renameDialog.setNewName(renameDialog.getNewName() + 1);
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
-            Wait.seconds(30).expecting("error text to appear")
+            Wait.seconds(1).expecting("error text to appear")
               .until(() -> renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
             renameDialog.clickCancel();
             return;

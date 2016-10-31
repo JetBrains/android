@@ -159,7 +159,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<>();
-      Wait.minutes(2).expecting("AbstractTreeStructure to be built").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(1).expecting("AbstractTreeStructure to be built").until(() -> GuiQuery.getNonNull(() -> {
         try {
           treeStructureRef.set(myPane.getTreeBuilder().getTreeStructure());
           return true;
@@ -224,7 +224,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           return (PsiDirectoryNode)root;
         });
 
-      Wait.minutes(2).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(1).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
         DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
         return (selectedNode != null) && node.equals(selectedNode.getUserObject());
       }));

@@ -143,7 +143,7 @@ public class BasicNativeDebuggerTest {
         resumeProgram();
       }
       final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
-      Wait.seconds(30).expecting("the debugger tree to appear")
+      Wait.seconds(1).expecting("the debugger tree to appear")
         .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
     }
 
@@ -224,7 +224,7 @@ public class BasicNativeDebuggerTest {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
     contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(15).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
+    Wait.seconds(1).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
     XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
