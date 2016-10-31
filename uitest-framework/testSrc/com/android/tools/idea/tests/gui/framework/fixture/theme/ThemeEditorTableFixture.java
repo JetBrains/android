@@ -92,6 +92,6 @@ public class ThemeEditorTableFixture extends JTableFixture {
   }
 
   public void requireValueAt(@NotNull final TableCell cell, @Nullable final String value) {
-    Wait.minutes(2).expecting("theme editor update").until(() -> Objects.equal(valueAt(cell), value));
+    Wait.seconds(1).expecting("theme editor update").until(() -> Objects.equal(valueAt(cell), value));
   }
 }

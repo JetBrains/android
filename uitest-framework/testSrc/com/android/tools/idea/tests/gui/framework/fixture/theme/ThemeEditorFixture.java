@@ -81,7 +81,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   public void waitForThemeSelection(@NotNull final String themeName) {
-    Wait.minutes(2).expecting(themeName + " to be selected").until(() -> themeName.equals(myThemesComboBox.selectedItem()));
+    Wait.seconds(1).expecting(themeName + " to be selected").until(() -> themeName.equals(myThemesComboBox.selectedItem()));
   }
 
   @NotNull
@@ -103,7 +103,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
     com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
 
-    Wait.minutes(2).expecting("UI update").until(() -> expectedLabel.equals(button.getText()));
+    Wait.seconds(1).expecting("UI update").until(() -> expectedLabel.equals(button.getText()));
   }
 }
 

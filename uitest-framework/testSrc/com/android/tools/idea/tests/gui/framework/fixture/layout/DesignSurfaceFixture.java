@@ -52,8 +52,8 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   }
 
   public void waitForRenderToFinish() {
-    Wait.minutes(2).expecting("render to finish").until(() -> !myProgressPanel.isVisible());
-    Wait.minutes(2).expecting("render to finish").until(() -> {
+    Wait.seconds(5).expecting("render to finish").until(() -> !myProgressPanel.isVisible());
+    Wait.seconds(1).expecting("render to finish").until(() -> {
       ScreenView screenView = target().getCurrentScreenView();
       if (screenView == null) {
         return false;

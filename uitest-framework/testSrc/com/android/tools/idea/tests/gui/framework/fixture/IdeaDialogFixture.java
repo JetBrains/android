@@ -115,6 +115,6 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
   }
 
   public void waitUntilNotShowing() {
-    Wait.seconds(15).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
+    Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
   }
 }

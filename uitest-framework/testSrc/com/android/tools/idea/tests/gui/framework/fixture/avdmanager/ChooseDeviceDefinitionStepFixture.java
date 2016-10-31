@@ -71,7 +71,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
 
     MessagesFixture.findByTitle(robot(), "Confirm Deletion").clickYes();
 
-    Wait.seconds(10).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
+    Wait.seconds(1).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
 
     return this;
   }

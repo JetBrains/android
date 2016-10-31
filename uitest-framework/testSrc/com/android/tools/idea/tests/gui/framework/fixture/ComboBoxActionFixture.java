@@ -83,14 +83,14 @@ public class ComboBoxActionFixture {
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    Wait.minutes(2).expecting("comboBoxButton to be enabled")
+    Wait.seconds(1).expecting("comboBoxButton to be enabled")
       .until(() -> GuiQuery.getNonNull(() -> comboBoxButtonFixture.target().isEnabled()));
     comboBoxButtonFixture.click();
   }
 
   private void selectItemByText(@NotNull final String text) {
     JList list = GuiTests.waitUntilFound(myRobot, Matchers.byType(JBListWithHintProvider.class));
-    Wait.minutes(2).expecting("the list to be populated")
+    Wait.seconds(1).expecting("the list to be populated")
       .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {

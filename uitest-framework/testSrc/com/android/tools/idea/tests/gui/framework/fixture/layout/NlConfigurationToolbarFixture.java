@@ -54,7 +54,7 @@ public class NlConfigurationToolbarFixture {
    */
   @NotNull
   public NlConfigurationToolbarFixture requireOrientation(@NotNull String name)  {
-    Wait.seconds(30).expecting("configuration to be updated").until(() -> {
+    Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
         State deviceState = configuration.getDeviceState();
@@ -86,7 +86,7 @@ public class NlConfigurationToolbarFixture {
    */
   @NotNull
   public NlConfigurationToolbarFixture requireApi(int apiLevel) {
-    Wait.seconds(30).expecting("configuration to be updated").until(() -> {
+    Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
         IAndroidTarget target = configuration.getTarget();
@@ -112,7 +112,7 @@ public class NlConfigurationToolbarFixture {
    */
   @NotNull
   public NlConfigurationToolbarFixture requireDevice(@NotNull String id)  {
-    Wait.seconds(30).expecting("configuration to be updated").until(() -> {
+    Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
         Device device = configuration.getDevice();
