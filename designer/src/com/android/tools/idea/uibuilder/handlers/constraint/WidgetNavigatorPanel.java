@@ -19,7 +19,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -614,8 +613,8 @@ public class WidgetNavigatorPanel extends JPanel
 
       if (!myDesignSurface.getScreenMode().equals(DesignSurface.ScreenMode.BLUEPRINT_ONLY)) {
         RenderResult renderResult = currentScreenView.getModel().getRenderResult();
-        if (renderResult != null && renderResult.getImage() != null) {
-          BufferedImage image = renderResult.getImage().getOriginalImage();
+        if (renderResult != null && renderResult.getRenderedImage() != null) {
+          BufferedImage image = renderResult.getRenderedImage();
           gc.drawImage(image,
                        myCenterOffset.x, myCenterOffset.y,
                        (int)Math.round(myDeviceSize.getWidth() * myDeviceScale),
