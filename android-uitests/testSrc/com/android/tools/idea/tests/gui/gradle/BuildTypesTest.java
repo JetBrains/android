@@ -54,7 +54,6 @@ public class BuildTypesTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=226482")
   @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
