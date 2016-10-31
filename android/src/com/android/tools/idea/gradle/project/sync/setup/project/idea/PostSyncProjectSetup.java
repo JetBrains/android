@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
@@ -101,7 +102,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
-import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
@@ -141,6 +141,7 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final SyncMessages mySyncMessages;
+  @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
@@ -150,6 +151,7 @@ public class PostSyncProjectSetup {
     return ServiceManager.getService(project, PostSyncProjectSetup.class);
   }
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
                               @NotNull AndroidSdks androidSdks,
                               @NotNull GradleSyncInvoker syncInvoker,
@@ -157,8 +159,8 @@ public class PostSyncProjectSetup {
                               @NotNull SyncMessages syncMessages,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, androidSdks, syncInvoker, syncState, syncMessages, versionCompatibilityChecker, projectBuilder,
-         new CommonModuleValidator.Factory());
+    this(project, androidSdks, syncInvoker, syncState, syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
+         projectBuilder, new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
@@ -167,6 +169,7 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
                        @NotNull SyncMessages syncMessages,
+                       @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
@@ -175,6 +178,7 @@ public class PostSyncProjectSetup {
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
     mySyncMessages = syncMessages;
+    myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
@@ -442,7 +446,7 @@ public class PostSyncProjectSetup {
     removeAllModuleCompiledArtifacts(myProject);
   }
 
-  private static void adjustInterModuleDependencies(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+  private void adjustInterModuleDependencies(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     // Verifies that inter-module dependencies between Android modules are correctly set. If module A depends on module B, and module B
     // does not contain sources but exposes an AAR as an artifact, the IDE should set the dependency in the 'exploded AAR' instead of trying
     // to find the library in module B. The 'exploded AAR' is in the 'build' folder of module A.
@@ -456,9 +460,9 @@ public class PostSyncProjectSetup {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=163888
-  private static void updateAarDependencies(@NotNull Module module,
-                                            @NotNull IdeModifiableModelsProvider modelsProvider,
-                                            @NotNull AndroidProject androidProject) {
+  private void updateAarDependencies(@NotNull Module module,
+                                     @NotNull IdeModifiableModelsProvider modelsProvider,
+                                     @NotNull AndroidProject androidProject) {
     ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
     for (Module dependency : modifiableModel.getModuleDependencies()) {
       updateTransitiveDependencies(module, modelsProvider, androidProject, dependency);
@@ -466,10 +470,10 @@ public class PostSyncProjectSetup {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
-  private static void updateTransitiveDependencies(@NotNull Module module,
-                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
-                                                   @NotNull AndroidProject androidProject,
-                                                   @Nullable Module dependency) {
+  private void updateTransitiveDependencies(@NotNull Module module,
+                                            @NotNull IdeModifiableModelsProvider modelsProvider,
+                                            @NotNull AndroidProject androidProject,
+                                            @Nullable Module dependency) {
     if (dependency == null) {
       return;
     }
@@ -488,7 +492,7 @@ public class PostSyncProjectSetup {
         DependencySet dependencies = Dependency.extractFrom(androidModel);
 
         for (LibraryDependency libraryDependency : dependencies.onLibraries()) {
-          updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
+          myDependenciesModuleSetupStep.updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
         }
 
         Project project = module.getProject();
@@ -501,7 +505,7 @@ public class PostSyncProjectSetup {
     else {
       LibraryDependency backup = getModuleCompiledArtifact(dependency);
       if (backup != null) {
-        updateLibraryDependency(module, modelsProvider, backup, androidProject);
+        myDependenciesModuleSetupStep.updateLibraryDependency(module, modelsProvider, backup, androidProject);
       }
     }
   }
