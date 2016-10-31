@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
-import junit.framework.TestCase;
+import org.gradle.tooling.BuildException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link ProjectImportErrorHandler}.
  */
-@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-public class ProjectImportErrorHandlerTest extends TestCase {
+public class ProjectImportErrorHandlerTest {
   private ProjectImportErrorHandler myErrorHandler;
   private String myProjectPath;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() {
     myErrorHandler = new ProjectImportErrorHandler();
     myProjectPath = "basic";
   }
@@ -46,7 +49,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertTrue(realCause.getMessage().contains("old, unsupported version of Gradle"));
   }
 
-  public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository() {
+  @Test
+  public void getUserFriendlyErrorWithMissingAndroidSupportRepository() {
     RuntimeException rootCause = new RuntimeException("Could not find any version that matches com.android.support:support-v4:13.0.+");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -54,7 +58,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 
-  public void testGetUserFriendlyErrorWithMissingAndroidSupportRepository2() {
+  @Test
+  public void getUserFriendlyErrorWithMissingAndroidSupportRepository2() {
     RuntimeException rootCause = new RuntimeException("Could not find com.android.support:support-v4:13.0.0");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -62,7 +67,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
 
-  public void testGetUserFriendlyErrorWithOutOfMemoryError() {
+  @Test
+  public void getUserFriendlyErrorWithOutOfMemoryError() {
     OutOfMemoryError rootCause = new OutOfMemoryError("Java heap space");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -70,7 +76,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertEquals("Out of memory: Java heap space", realCause.getMessage());
   }
 
-  public void testGetUserFriendlyErrorWithNoSuchMethodError() {
+  @Test
+  public void getUserFriendlyErrorWithNoSuchMethodError() {
     NoSuchMethodError rootCause = new NoSuchMethodError("org.slf4j.spi.LocationAwareLogger.log");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -78,7 +85,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertEquals("Unable to find method 'org.slf4j.spi.LocationAwareLogger.log'.", realCause.getMessage());
   }
 
-  public void testGetUserFriendlyErrorWithClassNotFoundException() {
+  @Test
+  public void getUserFriendlyErrorWithClassNotFoundException() {
     ClassNotFoundException rootCause = new ClassNotFoundException("com.android.utils.ILogger");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -86,7 +94,8 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertEquals("Unable to load class 'com.android.utils.ILogger'.", realCause.getMessage());
   }
 
-  public void testGetUserFriendlyErrorWithClassNotFoundExceptionWithLongerMessage() {
+  @Test
+  public void getUserFriendlyErrorWithClassNotFoundExceptionWithLongerMessage() {
     ClassNotFoundException rootCause = new ClassNotFoundException("com.novoda.gradle.robolectric.RobolectricPlugin not found.");
     Throwable error = new Throwable(rootCause);
     RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
@@ -94,31 +103,48 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertEquals("Unable to load class 'com.novoda.gradle.robolectric.RobolectricPlugin'.", realCause.getMessage());
   }
 
-  public void testGetErrorLocationWithBuildFileWithLocation() {
+  @Test
+  public void getErrorLocationWithBuildFileWithLocation() {
     Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Build file '/xyz/build.gradle' line: 3");
     assertNotNull(location);
     assertEquals("/xyz/build.gradle", location.getFirst());
     assertEquals(3, location.getSecond().intValue());
   }
 
-  public void testGetErrorLocationWithBuildFileWithoutLocation() {
+  @Test
+  public void getErrorLocationWithBuildFileWithoutLocation() {
     Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Build file '/xyz/build.gradle'");
     assertNotNull(location);
     assertEquals("/xyz/build.gradle", location.getFirst());
     assertEquals(-1, location.getSecond().intValue());
   }
 
-  public void testGetErrorLocationWithSettingsFileWithLocation() {
+  @Test
+  public void getErrorLocationWithSettingsFileWithLocation() {
     Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Settings file '/xyz/settings.gradle' line: 3");
     assertNotNull(location);
     assertEquals("/xyz/settings.gradle", location.getFirst());
     assertEquals(3, location.getSecond().intValue());
   }
 
-  public void testGetErrorLocationWithSettingsFileWithoutLocation() {
+  @Test
+  public void getErrorLocationWithSettingsFileWithoutLocation() {
     Pair<String, Integer> location = ProjectImportErrorHandler.getErrorLocation("Settings file '/xyz/settings.gradle'");
     assertNotNull(location);
     assertEquals("/xyz/settings.gradle", location.getFirst());
     assertEquals(-1, location.getSecond().intValue());
+  }
+
+  // https://code.google.com/p/android/issues/detail?id=226506
+  @Test
+  public void getUserFriendlyError() {
+    ProjectImportErrorHandler errorHandler = new ProjectImportErrorHandler();
+
+    IllegalStateException cause = new IllegalStateException("Failed to find Build Tools revision 24.0.3");
+    BuildException error = new BuildException("Could not run build action.", cause);
+
+    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(error, "fakeProjectPath", null);
+    assertNotNull(userFriendlyError);
+    assertEquals("Failed to find Build Tools revision 24.0.3", userFriendlyError.getMessage());
   }
 }
