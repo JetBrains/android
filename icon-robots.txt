@@ -4,4 +4,4 @@ skip: tools-base/**/*
 # (https://youtrack.jetbrains.com/issue/IDEA-103558)
 skip: android/**/*
 skip: adt-branding/**/*
-skip: android-designer/**/*
+skip: designer/**/*
