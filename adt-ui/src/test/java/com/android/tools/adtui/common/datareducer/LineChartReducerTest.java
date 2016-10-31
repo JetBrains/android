@@ -27,100 +27,109 @@ import java.util.ArrayList;
 import static com.google.common.truth.Truth.assertThat;
 
 public class LineChartReducerTest {
-  private static final double EPS = 1e-6;
+  private static final float EPS = 1e-6f;
   // LineChartReducer reduces Path2D, so it means that points are in screen coordinates.
   // FAKE_HEIGHT is needed to convert from screen coordinates to cartesian coordinates.
   private static int FAKE_HEIGHT = 100;
   private final LineChartReducer myReducer = new LineChartReducer();
   private LineConfig config = new LineConfig(Color.RED);
 
-
   @Test
   public void testReduce() {
-    double[][] given = {{0, 0}, {0.1, 1}, {0.2, 6}, {0.3, 4}, {1, 2}, {1.1, 5}};
-    double[][] expected = {{0, 0}, {0.1, 1}, {0.2, 6}, {1, 2}, {1.1, 5}};
+    float[][] given = {{0, 0}, {0.1f, 1}, {0.2f, 6}, {0.3f, 4}, {1, 2}, {1.1f, 5}};
+    float[][] expected = {{0, 0}, {0.2f, 6}, {0.3f, 4}, {1, 2}, {1.1f, 5}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testReduceOnePointPerPixel() {
-    double[][] given = {{1.2, 2}, {2, 0}, {3, 5}};
-    double[][] expected = {{1.2, 2}, {2, 0}, {3, 5}};
+    float[][] given = {{1.2f, 2}, {2, 0}, {3, 5}};
+    float[][] expected = {{1.2f, 2}, {2, 0}, {3, 5}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testReduceNoPointInPixel() {
-    double[][] given = {{6, 0}, {7, 5}};
-    double[][] expected = {{6, 0}, {7, 5}};
+    float[][] given = {{6, 0}, {7, 5}};
+    float[][] expected = {{6, 0}, {7, 5}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testReduceWithSameY() {
-    double[][] given = {{1, 4}, {1.2, 4}, {1.3, 4}, {1.5, 4}, {1.6, 4}, {1.7, 4}};
-    double[][] expected = {{1, 4}, {1.2, 4}, {1.7, 4}};
+    float[][] given = {{1, 4}, {1.2f, 4}, {1.3f, 4}, {1.5f, 4}, {1.6f, 4}, {1.7f, 4}};
+    float[][] expected = {{1, 4}, {1.7f, 4}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testReduceFirstAndLastPointsRemains() {
-    double[][] given = {{1, 4}, {1.2, 6}, {1.3, 0}, {1.4, 2}, {1.5, 0}, {1.7, 4}};
-    double[][] expected = {{1, 4}, {1.2, 6}, {1.5, 0}, {1.7, 4}};
+    float[][] given = {{1, 4}, {1.2f, 6}, {1.3f, 0}, {1.4f, 2}, {1.5f, 0}, {1.7f, 4}};
+    float[][] expected = {{1, 4}, {1.2f, 6}, {1.5f, 0}, {1.7f, 4}};
 
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testReduceClosedPolyLine() {
-    double[][] given = {{0, 1}, {0.5, 1}, {1, 3}, {1.5, 4}, {2, 3}, {2, 0}, {0, 0}};
-    double[][] expected = {{0, 1}, {0.5, 1}, {1, 3}, {1.5, 4.0}, {2, 3}, {2, 0}, {0, 0}};
+    float[][] given = {{0, 1}, {0.5f, 1}, {1, 3}, {1.5f, 4}, {2, 3}, {2, 0}, {0, 0}};
+    float[][] expected = {{0, 1}, {0.5f, 1}, {1, 3}, {1.5f, 4.0f}, {2, 3}, {2, 0}, {0, 0}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
   @Test
   public void testClosedPolylineLastPointsRemains() {
-
-    double[][] given = {{0, 4}, {0.5, 5}, {1.1, 0}, {1.2, 0}, {1.3, 5}, {1.4, 5}, {1.9, 5}, {1.9, 0}, {0, 0}};
-    double[][] expected = {{0, 4}, {0.5, 5}, {1.3, 5}, /*should peek up right most minimum*/ {1.9, 0}, {0, 0}};
+    float[][] given = {{0, 4}, {0.5f, 5}, {1.1f, 0}, {1.2f, 0}, {1.3f, 5}, {1.4f, 5}, {1.9f, 5}, {1.9f, 0}, {0, 0}};
+    float[][] expected = {{0, 4}, {0.5f, 5}, {1.1f, 0}, {1.3f, 5}, /*should peek up right most minimum*/ {1.9f, 0}, {0, 0}};
     convertToScreenCoordinates(given);
     convertToScreenCoordinates(expected);
 
-    double[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
     assertPointsEquals(expected, result);
   }
 
-  private static void convertToScreenCoordinates(double points[][]) {
+  @Test
+  public void testReduceSteppedLine() {
+    float[][] given = {{0, 5}, {0.1f, 5}, {0.1f, 4}, {0.2f, 4}, {0.2f, 6}, {0.3f, 6}, {0.3f, 4.1f}, {0.5f, 4.1f}, {0.5f, 4.9f}, {3, 4.9f}, {3, 4.8f}};
+    float[][] expected = {{0, 5}, {0.2f, 5},  {0.2f, 4}, {0.2f, 6}, {0.5f, 6}, {0.5f, 4.9f}, {3, 4.9f}, {3, 4.8f}};
+    convertToScreenCoordinates(given);
+    convertToScreenCoordinates(expected);
+    config.setStepped(true);
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    assertPointsEquals(expected, result);
+  }
+
+  private static void convertToScreenCoordinates(float points[][]) {
     for (int i = 0; i < points.length; ++i) {
       points[i][1] = FAKE_HEIGHT - points[i][1];
     }
   }
 
-  private static void assertPointsEquals(double[][] expected, double[][] actual) {
+  private static void assertPointsEquals(float[][] expected, float[][] actual) {
     assertThat(actual.length).isEqualTo(expected.length);
 
     for (int i = 0; i < expected.length; ++i) {
@@ -132,8 +141,8 @@ public class LineChartReducerTest {
     }
   }
 
-  private static Path2D convertToPath(double[][] points) {
-    Path2D.Double resultPath = new Path2D.Double();
+  private static Path2D convertToPath(float[][] points) {
+    Path2D.Float resultPath = new Path2D.Float();
     resultPath.moveTo(points[0][0], points[0][1]);
     for (int i = 1; i < points.length; ++i) {
       assert points[i].length == 2;
@@ -142,18 +151,18 @@ public class LineChartReducerTest {
     return resultPath;
   }
 
-  private static double[][] convertToArray(Path2D path) {
+  private static float[][] convertToArray(Path2D path) {
     PathIterator pathIterator = path.getPathIterator(null);
-    double[] coords = new double[6];
+    float[] coords = new float[6];
 
-    ArrayList<Point2D.Double> points = new ArrayList<>();
+    ArrayList<Point2D.Float> points = new ArrayList<>();
     while (!pathIterator.isDone()) {
       int type = pathIterator.currentSegment(coords);
       assert type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO;
-      points.add(new Point2D.Double(coords[0], coords[1]));
+      points.add(new Point2D.Float(coords[0], coords[1]));
       pathIterator.next();
     }
-    double[][] result = new double[points.size()][2];
+    float[][] result = new float[points.size()][2];
     for (int i = 0; i < points.size(); ++i) {
       result[i][0] = points.get(i).x;
       result[i][1] = points.get(i).y;

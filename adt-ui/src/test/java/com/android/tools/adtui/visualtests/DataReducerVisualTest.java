@@ -30,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class DataReducerVisualTest extends VisualTest {
   private AxisComponent myXAxis;
 
   private DefaultDataSeries<Long> myData;
-
+  private RangedContinuousSeries mySeries;
   private int myVariance = 10;
   private int mySampleSize = 10;
   private SelectionComponent mySelection;
@@ -68,11 +69,11 @@ public class DataReducerVisualTest extends VisualTest {
     mySelection = new SelectionComponent(myOptimizedLineChart, myXAxis, mySelectionXRange, myGlobalXRange, myViewXRange);
 
     myData = new DefaultDataSeries<>();
-    RangedContinuousSeries series =
+    mySeries =
       new RangedContinuousSeries("Straight", myViewXRange, myYRange, myData);
 
-    myLineChart.addLine(series, new LineConfig(JBColor.BLUE));
-    myOptimizedLineChart.addLine(series, new LineConfig(JBColor.RED));
+    myLineChart.addLine(mySeries, new LineConfig(JBColor.BLUE));
+    myOptimizedLineChart.addLine(mySeries, new LineConfig(JBColor.RED));
 
     return Arrays
       .asList(myGlobalXRange, myViewXRange, mySelectionXRange, myYRange, myLineChart, myOptimizedLineChart, myXAxis, mySelection);
@@ -147,7 +148,7 @@ public class DataReducerVisualTest extends VisualTest {
       }
     }));
 
-    controls.add(VisualTest.createVariableSlider("Sample Size", 100, 10000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Sample Size", 10, 10000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mySampleSize = v;
@@ -158,6 +159,19 @@ public class DataReducerVisualTest extends VisualTest {
         return mySampleSize;
       }
     }));
+
+    controls.add(VisualTest.createCheckbox("Filled line", itemEvent -> {
+      boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
+      myLineChart.getLineConfig(mySeries).setFilled(isFilled);
+      myOptimizedLineChart.getLineConfig(mySeries).setFilled(isFilled);
+    }));
+
+    controls.add(VisualTest.createCheckbox("Stepped line", itemEvent -> {
+      boolean isStepped = itemEvent.getStateChange() == ItemEvent.SELECTED;
+      myLineChart.getLineConfig(mySeries).setStepped(isStepped);
+      myOptimizedLineChart.getLineConfig(mySeries).setStepped(isStepped);
+    }));
+
 
     controls.add(VisualTest.createButton("Add samples", e -> addData(myVariance, mySampleSize)));
     controls.add(
