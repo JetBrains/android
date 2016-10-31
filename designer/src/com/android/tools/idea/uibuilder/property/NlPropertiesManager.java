@@ -28,9 +28,11 @@ import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.designer.LightToolWindowContent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -53,10 +55,10 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   private final JBLoadingPanel myLoadingPanel;
   private final NlPropertiesPanel myPropertiesPanel;
   private final NlPropertyEditors myEditors;
+  private final Disposable myDisposable;
 
   @Nullable private DesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
-  @Nullable private List<DesignSurfaceChangedListener> mySurfaceChangedListeners;
 
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
@@ -66,7 +68,8 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myEditors = NlPropertyEditors.getInstance(project);
-    myPropertiesPanel = new NlPropertiesPanel(project);
+    myDisposable = Disposer.newDisposable();
+    myPropertiesPanel = new NlPropertiesPanel(this, myDisposable);
     myLoadingPanel.add(myPropertiesPanel);
     setDesignSurface(designSurface);
   }
@@ -107,27 +110,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
                                     screenView.getSelectionModel().getSelection() : Collections.emptyList();
       componentSelectionChanged(mySurface, selection);
     }
-    notifyDesignSurfaceChanged(mySurface);
-  }
-
-  private void notifyDesignSurfaceChanged(@Nullable DesignSurface surface) {
-    if (mySurfaceChangedListeners == null || mySurfaceChangedListeners.isEmpty()) return;
-    for (DesignSurfaceChangedListener mySurfaceChangedListener : mySurfaceChangedListeners) {
-      mySurfaceChangedListener.surfaceChanged(surface);
-    }
-  }
-
-  /**
-   * Add or replace a {@link DesignSurfaceChangedListener}
-   *
-   * @param listener
-   */
-  public void addSurfaceChangedListener(@NotNull DesignSurfaceChangedListener listener) {
-    if (mySurfaceChangedListeners == null) {
-      mySurfaceChangedListeners = new ArrayList<>(2);
-    }
-    mySurfaceChangedListeners.remove(listener);
-    mySurfaceChangedListeners.add(listener);
   }
 
   @Nullable
@@ -244,6 +226,14 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     // TODO: refresh all custom inspectors
   }
 
+  public void updateSelection() {
+    if (mySurface == null || myScreenView == null) {
+      return;
+    }
+    List<NlComponent> selection = myScreenView.getModel().getSelectionModel().getSelection();
+    componentSelectionChanged(mySurface, selection);
+  }
+
   // ---- Implements DesignSurfaceListener ----
 
   @Override
@@ -308,15 +298,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @Override
   public void dispose() {
     setDesignSurface(null);
-  }
-
-  public interface DesignSurfaceChangedListener {
-
-    /**
-     * Notify when the current instance of the DesignSurface used in the editor is changed.
-     *
-     * @param surface The new instance of the DesignSurface
-     */
-    void surfaceChanged(@Nullable DesignSurface surface);
+    Disposer.dispose(myDisposable);
   }
 }

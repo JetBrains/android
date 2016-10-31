@@ -15,43 +15,35 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class NlInspectorProviders implements ProjectComponent, LafManagerListener {
-  private final Project myProject;
+public class NlInspectorProviders implements LafManagerListener, Disposable {
+  private final NlPropertiesManager myPropertiesManager;
   private final IdInspectorProvider myIdInspectorProvider;
   private final List<InspectorProvider> myProviders;
 
-  @NotNull
-  public static NlInspectorProviders getInstance(@NotNull Project project) {
-    return project.getComponent(NlInspectorProviders.class);
-  }
-
-  private NlInspectorProviders(@NotNull Project project) {
-    myProject = project;
+  public NlInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
+    myPropertiesManager = propertiesManager;
     myIdInspectorProvider = new IdInspectorProvider();
     myProviders = ImmutableList.of(myIdInspectorProvider,
-                                   new ViewInspectorProvider(project),
+                                   new ViewInspectorProvider(myPropertiesManager.getProject()),
                                    new ProgressBarInspectorProvider(),
                                    new TextInspectorProvider(),
                                    new MockupInspectorProvider());
+    Disposer.register(parentDisposable, this);
+    LafManager.getInstance().addLafManagerListener(this);
   }
 
   @NotNull
@@ -75,52 +67,17 @@ public class NlInspectorProviders implements ProjectComponent, LafManagerListene
     return inspectors;
   }
 
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return NlInspectorProviders.class.getSimpleName();
-  }
-
   @Override
   public void lookAndFeelChanged(LafManager source) {
     // Clear all caches with UI elements:
     myProviders.forEach(InspectorProvider::resetCache);
 
-    // Make sure the property sheet editors have been notified before the selection notification below:
-    NlPropertyEditors.getInstance(myProject).lookAndFeelChanged(source);
-
     // Force a recreate of all UI elements by causing a new selection notification:
-    updateSelectionOnAllEditors();
-  }
-
-  private void updateSelectionOnAllEditors() {
-    FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
-    for (FileEditor fileEditor : fileEditorManager.getAllEditors()) {
-      if (fileEditor instanceof NlEditor) {
-        NlEditor editor = (NlEditor)fileEditor;
-        ScreenView screenView = editor.getComponent().getSurface().getCurrentScreenView();
-        if (screenView != null) {
-          screenView.getModel().getSelectionModel().updateListeners();
-        }
-      }
-    }
+    myPropertiesManager.updateSelection();
   }
 
   @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
+  public void dispose() {
     LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
   }
 }
