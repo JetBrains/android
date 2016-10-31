@@ -19,13 +19,11 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
-import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.datastore.DataStoreSeries;
 import com.android.tools.datastore.SeriesDataStore;
-import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.events.model.ActivityEventDataSeries;
 import com.android.tools.idea.monitor.ui.events.model.SimpleEventDataSeries;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +36,6 @@ public class EventSegment extends BaseSegment {
 
   private static final String SEGMENT_NAME = "Events";
   private static final int ACTIVITY_GRAPH_SIZE = 25; // TODO what size is this?
-  private static final int FRAGMENT_GRAPH_SIZE = 25;
-  private static final int WAKE_LOCK_GRAPH_SIZE = 25;
 
   public enum EventActionType {
     TOUCH,
@@ -50,11 +46,7 @@ public class EventSegment extends BaseSegment {
 
   @NotNull private SimpleEventComponent mSystemEvents;
 
-  @NotNull private StackedEventComponent mFragmentEvents;
-
   @NotNull private StackedEventComponent mActivityEvents;
-
-  @NotNull private StackedEventComponent mWakeLockEvents;
 
   @NotNull private final SeriesDataStore mDataStore;
 
@@ -75,29 +67,13 @@ public class EventSegment extends BaseSegment {
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
     SimpleEventDataSeries systemEventData = new SimpleEventDataSeries(mDataStore.getDeviceProfilerService());
-    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData =
-        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_FRAGMENT_ACTION);
-    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData =
-        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_ACTIVITY_ACTION);
-    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> wakeLockEventData =
-        new DataStoreSeries<>(mDataStore, SeriesDataType.EVENT_WAKE_LOCK_ACTION);
+    ActivityEventDataSeries activityEventData = new ActivityEventDataSeries(mDataStore.getDeviceProfilerService());
 
-    mSystemEvents =
-        new SimpleEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, systemEventData), mIcons);
-    mFragmentEvents =
-        new StackedEventComponent(
-            new RangedSeries<>(myTimeCurrentRangeUs, fragmentEventData), FRAGMENT_GRAPH_SIZE);
-    mActivityEvents =
-        new StackedEventComponent(
-            new RangedSeries<>(myTimeCurrentRangeUs, activityEventData), ACTIVITY_GRAPH_SIZE);
-    mWakeLockEvents =
-        new StackedEventComponent(
-            new RangedSeries<>(myTimeCurrentRangeUs, wakeLockEventData), WAKE_LOCK_GRAPH_SIZE);
+    mSystemEvents = new SimpleEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, systemEventData), mIcons);
+    mActivityEvents = new StackedEventComponent(new RangedSeries<>(myTimeCurrentRangeUs, activityEventData), ACTIVITY_GRAPH_SIZE);
 
     animatables.add(mSystemEvents);
-    animatables.add(mFragmentEvents);
     animatables.add(mActivityEvents);
-    animatables.add(mWakeLockEvents);
   }
 
   @Override
@@ -111,15 +87,10 @@ public class EventSegment extends BaseSegment {
     gbc.weightx = 1;
     gbc.weighty = 1;
     gbc.gridx = 0;
-
     gbc.gridy = 0;
     layeredPane.add(mSystemEvents, gbc);
     gbc.gridy = 1;
-    layeredPane.add(mFragmentEvents, gbc);
-    gbc.gridy = 2;
     layeredPane.add(mActivityEvents, gbc);
-    gbc.gridy = 3;
-    layeredPane.add(mWakeLockEvents, gbc);
     panel.add(layeredPane, BorderLayout.CENTER);
   }
 }
