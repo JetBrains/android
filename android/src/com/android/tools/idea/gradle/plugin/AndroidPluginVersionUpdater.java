@@ -105,6 +105,8 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
+      mySyncState.syncEnded();
+
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
