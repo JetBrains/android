@@ -16,12 +16,12 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -219,6 +219,23 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         super.tearDown();
       }
     }
+  }
+
+  protected void loadProjectAndExpectSyncError(@NotNull String relativePath)
+    throws IOException, ConfigurationException, InterruptedException {
+    prepareProjectForImport(relativePath);
+    Project project = myFixture.getProject();
+
+    SyncListener syncListener = new SyncListener();
+    GradleSyncState.subscribe(project, syncListener);
+
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
+
+    syncListener.await();
+
+    assertNotNull("Expected sync failure", syncListener.failureMessage);
   }
 
   protected void loadSimpleApplication() throws InterruptedException, ConfigurationException, IOException {

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
@@ -35,6 +34,7 @@ public class SyncMessagesStub extends SyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
 
   @Nullable private NotificationData myNotification;
+  @Nullable private NotificationUpdate myNotificationUpdate;
 
   @NotNull
   public static SyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
@@ -73,7 +73,39 @@ public class SyncMessagesStub extends SyncMessages {
     return myNotification;
   }
 
+  @Override
+  public void updateNotification(@NotNull NotificationData notification,
+                                 @NotNull String text,
+                                 @NotNull List<NotificationHyperlink> quickFixes) {
+    myNotificationUpdate = new NotificationUpdate(text, quickFixes);
+  }
+
+  @Nullable
+  public NotificationUpdate getNotificationUpdate() {
+    return myNotificationUpdate;
+  }
+
   public void clearReportedMessages() {
     myMessages.clear();
+  }
+
+  public static class NotificationUpdate {
+    @NotNull private final String myText;
+    @NotNull private final List<NotificationHyperlink> myFixes;
+
+    NotificationUpdate(@NotNull String text, @NotNull List<NotificationHyperlink> quickFixes) {
+      myText = text;
+      myFixes = quickFixes;
+    }
+
+    @NotNull
+    public String getText() {
+      return myText;
+    }
+
+    @NotNull
+    public List<NotificationHyperlink> getFixes() {
+      return myFixes;
+    }
   }
 }
