@@ -38,15 +38,15 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.common.Con
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-public class ContentRootModuleSetupStep extends AndroidModuleSetupStep {
+public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   @NotNull private final AndroidContentEntriesSetup.Factory myContentEntriesSetupFactory;
 
-  public ContentRootModuleSetupStep() {
+  public ContentRootsModuleSetupStep() {
     this(new AndroidContentEntriesSetup.Factory());
   }
 
   @VisibleForTesting
-  ContentRootModuleSetupStep(@NotNull AndroidContentEntriesSetup.Factory contentEntriesSetupFactory) {
+  ContentRootsModuleSetupStep(@NotNull AndroidContentEntriesSetup.Factory contentEntriesSetupFactory) {
     myContentEntriesSetupFactory = contentEntriesSetupFactory;
   }
 
