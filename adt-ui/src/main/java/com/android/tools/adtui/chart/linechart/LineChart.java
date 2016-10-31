@@ -19,6 +19,8 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.datareducer.DataReducer;
+import com.android.tools.adtui.common.datareducer.LineChartReducer;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
@@ -28,6 +30,7 @@ import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import gnu.trove.TLongHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -92,10 +95,20 @@ public class LineChart extends AnimatedComponent {
   @NotNull
   private final TLongHashSet mMarkedData;
 
+  @NotNull
+  private DataReducer myReducer;
+
   public LineChart() {
     myLinePaths = new ArrayList<>();
     myMarkerPositions = new ArrayList<>();
     mMarkedData = new TLongHashSet();
+    myReducer = new LineChartReducer();
+  }
+
+  @TestOnly
+  public LineChart(@NotNull DataReducer reducer) {
+    this();
+    myReducer = reducer;
   }
 
   /**
@@ -197,9 +210,6 @@ public class LineChart extends AnimatedComponent {
     // Store the Y coordinates of the last stacked series to use them to increment the Y values
     // of the current stacked series.
     TDoubleArrayList lastStackedSeriesY = null;
-    // Store the last stacked path points to close the polygon of the current stacked line,
-    // in case it is also filled
-    List<Point2D.Float> lastStackedPath = null;
 
     // Clear the previous markers.
     myMarkerPositions.clear();
@@ -207,9 +217,6 @@ public class LineChart extends AnimatedComponent {
     for (Map.Entry<RangedContinuousSeries, LineConfig> lineConfig : myLinesConfig.entrySet()) {
       final RangedContinuousSeries ranged = lineConfig.getKey();
       final LineConfig config = lineConfig.getValue();
-      // Store the current path points in case they are used later to close a stacked line
-      // polygon area
-      final List<Point2D.Float> currentPath = new ArrayList<>();
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
 
@@ -233,10 +240,10 @@ public class LineChart extends AnimatedComponent {
 
       // Amount in percentage the dash pattern has been drawn.
       float currentDashPercentage = 1f;
-
-      // X coordinate of the first destination point
+      // X coordinate of the first point
       double firstXd = 0f;
-      ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
+
+      List<SeriesData<Long>> seriesList = ranged.getSeries();
       for (int i = 0; i < seriesList.size(); i++) {
         // TODO: refactor to allow different types (e.g. double)
         SeriesData<Long> seriesData = seriesList.get(i);
@@ -260,7 +267,6 @@ public class LineChart extends AnimatedComponent {
 
         if (i == 0) {
           path.moveTo(xd, adjustedYd);
-          currentPath.add(new Point2D.Float((float) xd, adjustedYd));
           firstXd = xd;
         } else {
           // Dashing only applies if we are not in fill mode.
@@ -280,10 +286,8 @@ public class LineChart extends AnimatedComponent {
             if (config.isStepped()) {
               float y = (float)path.getCurrentPoint().getY();
               path.lineTo(xd, y);
-              currentPath.add(new Point2D.Float((float)xd, y));
             }
             path.lineTo(xd, adjustedYd);
-            currentPath.add(new Point2D.Float((float)xd, adjustedYd));
           }
         }
 
@@ -297,26 +301,15 @@ public class LineChart extends AnimatedComponent {
         prevY = currY;
       }
 
-      // Fill the line area in case it is filled
-      if (config.isFilled()) {
-        // If the line is stacked above another line, draw a line to the last point of this
-        // other line and then start drawing lines to the points of its path backwards. This
-        // should be enough to close the polygon.
-        if (config.isStacked() && lastStackedPath != null) {
-          int j = lastStackedPath.size();
-          while (j-- > 0) {
-            path.lineTo(lastStackedPath.get(j).getX(), lastStackedPath.get(j).getY());
-          }
-        } else if (path.getCurrentPoint() != null) {
-          // If the chart is filled, but not stacked, draw a line from the last point to X
-          // axis and another one from this new point to the first destination point.
-          path.lineTo(path.getCurrentPoint().getX(), 1f);
-          path.lineTo(firstXd, 1f);
-        }
+      if (config.isFilled() && path.getCurrentPoint() != null) {
+        // If the chart is filled, but not stacked, draw a line from the last point to X
+        // axis and another one from this new point to the first destination point.
+        path.lineTo(path.getCurrentPoint().getX(), 1f);
+        path.lineTo(firstXd, 1f);
       }
+
       if (config.isStacked()) {
         lastStackedSeriesY = currentSeriesY;
-        lastStackedPath = currentPath;
       }
 
       addDebugInfo("Range[%d] Max: %.2f", p, xMax);
@@ -382,11 +375,31 @@ public class LineChart extends AnimatedComponent {
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
 
     // Cache the transformed line paths for reuse below.
-    List<Shape> transformedShapes = new ArrayList<>();
-    myLinePaths.forEach(path -> transformedShapes.add(scale.createTransformedShape(path)));
+    List<Path2D> transformedPaths = new ArrayList<>(myLinesConfig.size());
+    int pathIndex = 0;
+    for (Map.Entry<RangedContinuousSeries, LineConfig> entry: myLinesConfig.entrySet()) {
+      final RangedContinuousSeries series = entry.getKey();
+      final LineConfig config = entry.getValue();
+
+      Path2D scaledPath = new Path2D.Float(myLinePaths.get(pathIndex), scale);
+      scaledPath = myReducer.reduce(scaledPath, config);
+
+      transformedPaths.add(scaledPath);
+      pathIndex++;
+
+      if (isDrawDebugInfo()) {
+        int count = 0;
+        PathIterator it = scaledPath.getPathIterator(null);
+        while (!it.isDone()) {
+          ++count;
+          it.next();
+        }
+        addDebugInfo("# of points for %s: %d", series.getLabel(), count);
+      }
+    }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedShapes, false);
+    drawLines(g2d, transformedPaths, false);
 
     // 2nd pass - if there are any blocking events, clear the regions where those events take place
     //            and render the lines in those regions in grayscale.
@@ -408,7 +421,7 @@ public class LineChart extends AnimatedComponent {
           g2d.setClip(clipRect);
           g2d.setColor(ColorUtil.withAlpha(config.getColor(), ALPHA_VALUE));
           g2d.setStroke(config.getStroke());
-          drawLines(g2d, transformedShapes, true);
+          drawLines(g2d, transformedPaths, true);
           g2d.setClip(null);
         }
       }
@@ -463,29 +476,40 @@ public class LineChart extends AnimatedComponent {
     }
   }
 
-  private void drawLines(Graphics2D g2d, List<Shape> transformedShapes, boolean grayScale) {
-    int i = 0;
-    for (Map.Entry<RangedContinuousSeries, LineConfig> entry : myLinesConfig.entrySet()) {
-      LineConfig config = entry.getValue();
-
-      Color lineColor = config.getColor();
-      if (grayScale) {
-        int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
-        g2d.setColor(new Color(gray, gray, gray));
-      } else {
-        g2d.setColor(lineColor);
-      }
-      g2d.setStroke(config.getStroke());
-
+  private void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, boolean grayScale) {
+    List<LineConfig> configs = new ArrayList<>(myLinesConfig.values());
+    // The first phase is to draw filled lines, otherwise other lines won't be visible.
+    // Iterating in reverse order intentionally, because it might contain stacked lines.
+    for (int i = configs.size() - 1; i >= 0; --i) {
+      LineConfig config = configs.get(i);
       if (config.isFilled()) {
-        // If the chart is filled, we want to set some transparency in its color
-        // so the other charts can also be visible
-        g2d.setColor(ColorUtil.withAlpha(g2d.getColor(), ALPHA_VALUE));
-        g2d.fill(transformedShapes.get(i));
-      } else {
-        g2d.draw(transformedShapes.get(i));
+        drawLine(g2d, transformedPaths.get(i), config, grayScale);
       }
-      i++;
+    }
+
+    // The second phase is to draw other lines.
+    for (int i = 0; i < configs.size(); ++i) {
+      LineConfig config = configs.get(i);
+      if (!config.isFilled()) {
+        drawLine(g2d, transformedPaths.get(i), config, grayScale);
+      }
+    }
+  }
+
+  private static void drawLine(Graphics2D g2d, Path2D path, LineConfig config, boolean grayScale) {
+    Color lineColor = config.getColor();
+    if (grayScale) {
+      int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
+      g2d.setColor(new Color(gray, gray, gray));
+    } else {
+      g2d.setColor(lineColor);
+    }
+    g2d.setStroke(config.getStroke());
+
+    if (config.isFilled()) {
+      g2d.fill(path);
+    } else {
+      g2d.draw(path);
     }
   }
 
