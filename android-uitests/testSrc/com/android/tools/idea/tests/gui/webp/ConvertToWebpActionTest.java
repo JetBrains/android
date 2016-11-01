@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.webp;
 
 import com.android.tools.idea.rendering.webp.ConvertToWebpAction;
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
-import com.android.tools.idea.rendering.webp.WebpPreviewDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;

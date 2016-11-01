@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.designer.propertyTable.editors.TextEditor;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
