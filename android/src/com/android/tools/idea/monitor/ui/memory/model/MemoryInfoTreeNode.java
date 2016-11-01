@@ -78,7 +78,7 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
 
   @Override
   public int getIndex(TreeNode treeNode) {
-    assert treeNode instanceof AbstractTreeNode;
+    assert treeNode instanceof MemoryInfoTreeNode;
     return myChildren.indexOf(treeNode);
   }
 

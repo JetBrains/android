@@ -80,6 +80,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
+  public long mapAbsoluteDeviceToRelativeTime(long absoluteTime) {
+    return absoluteTime - myDeviceStartTimeNs;
+  }
+
+  @Override
   public int getClosestTimeIndex(SeriesDataType type, long timeValue, boolean leftClosest, @Nullable Object target) {
     return getAdapter(type, target).getClosestTimeIndex(timeValue, leftClosest);
   }
