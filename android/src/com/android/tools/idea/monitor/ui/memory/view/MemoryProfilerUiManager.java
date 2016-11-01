@@ -25,7 +25,7 @@ import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;

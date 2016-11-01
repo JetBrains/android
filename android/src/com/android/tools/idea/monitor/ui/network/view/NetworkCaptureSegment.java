@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpData;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;

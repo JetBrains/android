@@ -18,8 +18,6 @@ package com.android.tools.datastore;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
-import com.intellij.util.EventDispatcher;
 
 /**
  * This interface is the minimal interface required for defining an object that
@@ -28,8 +26,6 @@ import com.intellij.util.EventDispatcher;
 public interface SeriesDataStore {
 
   DeviceProfilerService getDeviceProfilerService();
-
-  EventDispatcher<ProfilerEventListener> getEventDispatcher();
 
   /**
    * Stops any further data requests.
