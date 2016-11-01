@@ -45,7 +45,6 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.method;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
@@ -109,7 +108,6 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
         ThreeComponentsSplitter threeComponentsSplitter =
           myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
         JComponent innerComponent = threeComponentsSplitter.getInnerComponent();
-        assertNotNull(innerComponent);
         return myRobot.finder().findByType(innerComponent, XDebuggerTree.class, false).getRoot();
       } catch (ComponentLookupException e) {
         return null;

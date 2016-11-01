@@ -201,7 +201,6 @@ public class GradleSyncTest {
         runWriteCommandAction(
           ideFrame.getProject(), () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-            assertNotNull(buildModel);
             buildModel.dependencies().addModule(ANDROID_TEST_COMPILE, ":library3");
             buildModel.applyChanges();
           });
@@ -274,7 +273,6 @@ public class GradleSyncTest {
       }
     }
 
-    assertNotNull(treeStructureProvider);
     List<AbstractTreeNode> changedNodes = Lists.newArrayList();
     treeStructureProvider.addChangeListener((parent, newChildren) -> changedNodes.add(parent));
 
@@ -297,7 +295,6 @@ public class GradleSyncTest {
         break;
       }
     }
-    assertNotNull(jdkNode);
 
     ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
     Wait.seconds(1).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
@@ -544,7 +541,6 @@ public class GradleSyncTest {
         try {
           ContentEntry[] contentEntries = rootModel.getContentEntries();
           ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
-          assertNotNull(parent);
 
           List<File> paths = Lists.newArrayList();
 
@@ -588,7 +584,6 @@ public class GradleSyncTest {
     guiTest.cleanUpProjectForImport(projectPath);
 
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
-    assertNotNull(toSelect);
 
     // Import project
     WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(guiTest.robot());
@@ -683,7 +678,6 @@ public class GradleSyncTest {
       }
     }
 
-    assertNotNull(moduleDependency);
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
   }
 
@@ -720,7 +714,6 @@ public class GradleSyncTest {
 
     // Verify if the error message's link goes to the build file.
     VirtualFile buildFile = getGradleBuildFile(library3);
-    assertNotNull(buildFile);
     message.requireLocation(new File(buildFile.getPath()), 0);
   }
 
@@ -770,7 +763,6 @@ public class GradleSyncTest {
     gradleProperties.save();
 
     VirtualFile gradlePropertiesFile = findFileByIoFile(gradleProperties.getPath(), true);
-    assertNotNull(gradlePropertiesFile);
     ideFrame.getEditor().open(gradlePropertiesFile, Tab.DEFAULT);
 
     String jvmArgs = "-Xmx2048m";
@@ -841,7 +833,6 @@ public class GradleSyncTest {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();
-    assertNotNull(originalSdkPath);
 
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -887,10 +878,8 @@ public class GradleSyncTest {
     // Remove a module from the cache.
     Project project = ideFrame.getProject();
     DataNode<ProjectData> cache = getCachedProjectData(project);
-    assertNotNull(cache);
 
     List<DataNode<?>> cachedChildren = field("myChildren").ofType(new TypeRef<List<DataNode<?>>>() {}).in(cache).get();
-    assertNotNull(cachedChildren);
     assertThat(cachedChildren.size()).isGreaterThan(1);
 
     DataNode<?> toRemove = null;
@@ -900,7 +889,6 @@ public class GradleSyncTest {
         break;
       }
     }
-    assertNotNull(toRemove);
     cachedChildren.remove(toRemove);
 
     // Force the IDE to use cache for sync.
@@ -1076,7 +1064,6 @@ public class GradleSyncTest {
     if (androidPluginInfo != null) {
       newVersion = androidPluginInfo.getPluginVersion();
     }
-    assertNotNull(newVersion);
     assertThat(newVersion.toString()).isEqualTo(GRADLE_PLUGIN_RECOMMENDED_VERSION);
 
     messages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
@@ -1122,7 +1109,6 @@ public class GradleSyncTest {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     String libraryName = "org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
-    assertNotNull(library);
 
     // Verify that the library has the right j
     VirtualFile[] jarFiles = library.getFiles(CLASSES);
@@ -1170,7 +1156,6 @@ public class GradleSyncTest {
         runWriteCommandAction(
           project, () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-            assertNotNull(buildModel);
 
             String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
             buildModel.dependencies().addArtifact(COMPILE, newDependency);
@@ -1185,7 +1170,6 @@ public class GradleSyncTest {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     String libraryName = "mapbox-android-sdk-0.7.4";
     Library library = libraryTable.getLibraryByName(libraryName);
-    assertNotNull(library);
     VirtualFile[] files = library.getFiles(SOURCES);
     assertThat(files).asList().hasSize(1);
   }
@@ -1200,7 +1184,6 @@ public class GradleSyncTest {
 
     Module appModule = ideFrame.getModule("app");
     GradleBuildFile buildFile = GradleBuildFile.get(appModule);
-    assertNotNull(buildFile);
 
     execute(new GuiTask() {
       @Override
@@ -1213,18 +1196,14 @@ public class GradleSyncTest {
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
-    assertNotNull(sdk);
 
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
-    assertNotNull(sdkData);
 
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);
 
     AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
-    assertNotNull(androidSdkData);
     IAndroidTarget buildTarget = androidSdkData.getBuildTarget(sdkData);
-    assertNotNull(buildTarget);
 
     // By checking that there are no additional libraries in the SDK, we are verifying that an additional SDK was not created for add-ons.
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
@@ -1247,7 +1226,6 @@ public class GradleSyncTest {
       protected void executeInEDT() throws Throwable {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
         Project project = projectManager.convertAndLoadProject(projectPath.getPath());
-        assertNotNull(project);
         GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
           @Override
           public void syncSkipped(@NotNull Project project) {

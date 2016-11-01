@@ -56,12 +56,10 @@ public class ConvertToWebpActionTest {
 
     Project project = projectFrame.getProject();
     VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
-    assertThat(res).isNotNull();
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.webp");
     assertThat(webpIcon).isNull();
 
     VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
-    assertThat(pngIcon).isNotNull();
     assertThat(pngIcon.exists()).isTrue();
     invokeConvertToWebpAction(project, res);
 
@@ -90,10 +88,8 @@ public class ConvertToWebpActionTest {
 
     Project project = projectFrame.getProject();
     VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
-    assertThat(res).isNotNull();
 
     VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_launcher.png");
-    assertThat(pngIcon).isNotNull();
     assertThat(pngIcon.exists()).isTrue();
     invokeConvertToWebpAction(project, res);
 

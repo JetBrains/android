@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertNotNull;
-
 @RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class BasicNativeDebuggerTest {
@@ -132,7 +130,6 @@ public class BasicNativeDebuggerTest {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     {
       final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      assertNotNull(contentFixture);
       contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 50);
     }
 
@@ -150,7 +147,6 @@ public class BasicNativeDebuggerTest {
     {
       // We cannot reuse the context fixture we got above, as its windows could have been repurposed for other things.
       final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      assertNotNull(contentFixture);
       contentFixture.stop();
       contentFixture.waitForExecutionToFinish();
     }

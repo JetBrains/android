@@ -25,7 +25,6 @@ import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
   @NotNull
@@ -48,7 +47,6 @@ public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
         JComponent c = getDialogWrapper().getPreferredFocusedComponent();
         assertThat(c).isInstanceOf(ComboBox.class);
         ComboBox input = (ComboBox)c;
-        assertNotNull(input);
         input.setSelectedItem(text);
       }
     });

@@ -38,7 +38,6 @@ import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
@@ -48,9 +47,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
   public void runTask(@NotNull final String taskName) {
     Content content = getContent("projects");
-    assertNotNull(content);
     final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
-    assertNotNull(tasksTree);
 
     Wait.seconds(1).expecting("tree to be populated").until(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get());
 
@@ -71,7 +68,6 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
         tasksTree.expandPath(treePath.getParentPath());
         tasksTree.scrollPathToVisible(treePath);
         Rectangle bounds = tasksTree.getPathBounds(treePath);
-        assertNotNull(bounds);
         bounds.translate(0, bounds.height / 2); // Make sure we are not under the horizontal scroll bar
         tasksTree.scrollRectToVisible(bounds);
         Rectangle visibleRect = tasksTree.getVisibleRect();

@@ -32,7 +32,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOk
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static org.junit.Assert.assertNotNull;
 
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
   @NotNull
@@ -65,7 +64,6 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
                                                                        .in(getDialogWrapper())
                                                                        .get();
-    assertNotNull(fileSystemTree);
     fileSystemTree.showHiddens(true); // Windows: Default temporary folder (../AppData/..) is hidden.
 
     final AtomicBoolean fileSelected = new AtomicBoolean();
