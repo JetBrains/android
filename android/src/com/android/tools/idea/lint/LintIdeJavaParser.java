@@ -40,10 +40,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.InheritanceUtil;
-import com.intellij.psi.util.PsiTypesUtil;
-import com.intellij.psi.util.PsiUtil;
-import com.intellij.psi.util.TypeConversionUtil;
+import com.intellij.psi.util.*;
 import com.intellij.util.ArrayUtil;
 import lombok.ast.Catch;
 import lombok.ast.Node;
@@ -70,7 +67,8 @@ public class LintIdeJavaParser extends JavaParser {
   }
 
   @Override
-  public void prepareJavaParse(@NonNull List<JavaContext> contexts) {
+  public boolean prepareJavaParse(@NonNull List<JavaContext> contexts) {
+    return true;
   }
 
   @Nullable
@@ -584,6 +582,11 @@ public class LintIdeJavaParser extends JavaParser {
       return AnnotationUtil.findAnnotation(listOwner, false, annotationNames);
     }
 
+    @Override
+    public boolean areSignaturesEqual(@NotNull PsiMethod method1, @NotNull PsiMethod method2) {
+      return MethodSignatureUtil.areSignaturesEqual(method1, method2);
+    }
+
     @Nullable
     @Override
     public File getFile(@NonNull PsiFile file) {
@@ -628,6 +631,28 @@ public class LintIdeJavaParser extends JavaParser {
         }
       }
       return null;
+    }
+
+    @Nullable
+    @Override
+    public String getInternalName(@NonNull PsiClass psiClass) {
+      String internalName = LintIdeUtils.getInternalName(psiClass);
+      if (internalName != null) {
+        return internalName;
+      }
+      return super.getInternalName(psiClass);
+    }
+
+    @Nullable
+    @Override
+    public String getInternalName(@NonNull PsiClassType psiClassType) {
+      return super.getInternalName(psiClassType);
+    }
+
+    @Nullable
+    @Override
+    public String getInternalDescription(@NonNull PsiMethod method, boolean includeName, boolean includeReturn) {
+      return LintIdeUtils.getInternalDescription(method, includeName, includeReturn);
     }
   }
 
