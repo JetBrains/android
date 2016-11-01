@@ -62,7 +62,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
     try {
       myRobot.finder().findByName("Palette Tree", JTree.class, true);
     } catch (ComponentLookupException e) {
-      new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Component Palette"))).click();
+      new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette "))).click();
     }
 
     return this;
