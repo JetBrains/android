@@ -84,8 +84,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     JProgressBar progressBar = myRobot.finder().findByType(infoPanel, JProgressBar.class);
     Wait.seconds(120).expecting("Progress bar to hide").until(() -> !progressBar.isShowing());
     ViewNodeActiveDisplay viewNodeActiveDisplay = myRobot.finder().findByType(ViewNodeActiveDisplay.class);
-    LayoutInspectorFixture layoutInspectorFixture = new LayoutInspectorFixture(myRobot, viewNodeActiveDisplay.getParent());
-    return layoutInspectorFixture;
+    return new LayoutInspectorFixture(myRobot, viewNodeActiveDisplay.getParent());
   }
 
   private void selectTab(@NotNull final String tabName) {

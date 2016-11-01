@@ -18,13 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
-import static org.junit.Assert.assertNotNull;
 
 public class ThemePreviewFixture extends ToolWindowFixture {
   public ThemePreviewFixture(@NotNull Robot robot, @NotNull Project project) {
@@ -36,12 +33,7 @@ public class ThemePreviewFixture extends ToolWindowFixture {
    */
   @NotNull
   private JComponent getRootComponent() {
-    Content content = myToolWindow.getContentManager().getSelectedContent();
-    assertNotNull(content);
-    JComponent component = content.getComponent();
-    assertNotNull(component);
-
-    return component;
+    return myToolWindow.getContentManager().getSelectedContent().getComponent();
   }
 
   @NotNull

@@ -45,7 +45,6 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.method;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
@@ -225,15 +224,11 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
   @NotNull
   public ContentFixture findContent(@NotNull String tabName) {
-    Content content = getContent(tabName);
-    assertNotNull(content);
-    return new ContentFixture(this, myRobot, content);
+    return new ContentFixture(this, myRobot, getContent(tabName));
   }
 
   @NotNull
   public ContentFixture findContent(@NotNull TextMatcher tabNameMatcher) {
-    Content content = getContent(tabNameMatcher);
-    assertNotNull(content);
-    return new ContentFixture(this, myRobot, content);
+    return new ContentFixture(this, myRobot, getContent(tabNameMatcher));
   }
 }

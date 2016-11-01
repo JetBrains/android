@@ -36,7 +36,6 @@ import javax.swing.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
@@ -112,9 +111,7 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
         if (!errorTextPane.isVisible()) {
           return false;
         }
-        JLabel errorLabel = field("myLabel").ofType(JLabel.class).in(errorTextPane).get();
-        assertNotNull(errorLabel);
-        String text = errorLabel.getText();
+        String text = field("myLabel").ofType(JLabel.class).in(errorTextPane).get().getText();
         if (isNullOrEmpty(text)) {
           return false;
         }

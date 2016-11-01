@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
@@ -26,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class ThemePreviewComponentFixture extends JPanelFixture {
   public ThemePreviewComponentFixture(@NotNull Robot robot,
@@ -47,21 +44,13 @@ public class ThemePreviewComponentFixture extends JPanelFixture {
 
   @NotNull
   public ThemePreviewComponentFixture requireDevice(@NotNull String id) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    Device device = configuration.getDevice();
-    assertNotNull(device);
-    assertEquals(id, device.getId());
+    assertEquals(id, getConfiguration().getDevice().getId());
     return this;
   }
 
   @NotNull
   public ThemePreviewComponentFixture requireApi(int apiLevel) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    IAndroidTarget androidTarget = configuration.getTarget();
-    assertNotNull(androidTarget);
-    assertEquals(apiLevel, androidTarget.getVersion().getApiLevel());
+    assertEquals(apiLevel, getConfiguration().getTarget().getVersion().getApiLevel());
     return this;
   }
 }
