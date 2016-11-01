@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.monitor.ui.memory.view;
 
-import com.android.tools.adtui.Animatable;
+import com.android.annotations.NonNull;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.datastore.DataAdapter;
@@ -26,63 +28,59 @@ import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.memory.model.AllocationTrackingSample;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
-import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
-import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
-import com.android.tools.perflib.heap.ClassObj;
-import com.android.tools.perflib.heap.Heap;
-import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBPanel;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
+import java.util.EventListener;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
-  public interface MemoryEventListener extends EventListener {
-    void newHeapDumpSamplesRetrieved(MemoryProfiler.MemoryData.HeapDumpSample newSample);
-  }
+  @NotNull
+  private final Project myProject;
 
-  private static final Logger LOG = Logger.getInstance(MemoryProfilerUiManager.class);
-
-  // Provides an empty HeapDumpSample object so users can diff a heap dump against epoch.
-  private static final MemoryProfiler.MemoryData.HeapDumpSample EMPTY_HEAP_DUMP_SAMPLE =
-    MemoryProfiler.MemoryData.HeapDumpSample.newBuilder().build();
+  @NotNull
+  private final Client myClient;
 
   @NotNull
   private final EventDispatcher<MemoryEventListener> myMemoryEventDispatcher;
-  private JButton myTriggerHeapDumpButton;
+
+  @Nullable
   private MemoryDataCache myDataCache;
-  private JPanel myDetailedViewToolbar;
-  private MemoryInfoTreeNode myRoot;
-  private MemoryDetailSegment myMemoryDetailSegment;
 
-  private JComboBox<MemoryProfiler.MemoryData.HeapDumpSample> myPrevHeapDumpSelector;
-  private JComboBox<MemoryProfiler.MemoryData.HeapDumpSample> myNextHeapDumpSelector;
-  private File myPrevHeapDumpFile;
-  private Snapshot myPrevHeapDump;
-  private File myNextHeapDumpFile;
-  private Snapshot myNextHeapDump;
+  private JButton myTriggerHeapDumpButton;
 
-  public MemoryProfilerUiManager(@NotNull Range timeCurrentRangeUs, @NotNull Choreographer choreographer,
-                                 @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
+  private JToggleButton myAllocationTrackerButton;
+
+  @Nullable
+  private MemoryDetailView myMemoryDetailView;
+
+  private volatile boolean myAllowAllocationTracking = false;
+
+  public MemoryProfilerUiManager(@NotNull Range timeCurrentRangeUs,
+                                 @NotNull Choreographer choreographer,
+                                 @NotNull SeriesDataStore datastore,
+                                 @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher,
+                                 @NotNull Project project,
+                                 @NotNull Client client) {
     super(timeCurrentRangeUs, choreographer, datastore, eventDispatcher);
+    myProject = project;
+    myClient = client;
     myMemoryEventDispatcher = EventDispatcher.create(MemoryEventListener.class);
   }
 
@@ -99,17 +97,9 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
       myDataStore.registerAdapter(entry.getKey(), entry.getValue());
     }
 
-    myMemoryEventDispatcher.addListener(newSample -> {
-      // Update the UI from the EDT thread.
-      ApplicationManager.getApplication().invokeLater(() -> {
-        myPrevHeapDumpSelector.addItem(newSample);
-        myNextHeapDumpSelector.addItem(newSample);
-        if (myNextHeapDumpSelector.getSelectedItem() != null && myNextHeapDumpSelector.getSelectedItem() != EMPTY_HEAP_DUMP_SAMPLE) {
-          myPrevHeapDumpSelector.setSelectedItem(myNextHeapDumpSelector.getSelectedItem());
-        }
-        myNextHeapDumpSelector.setSelectedItem(newSample);
-      });
-    });
+    if (myMemoryDetailView != null) {
+      myMemoryDetailView.notifyDataIsReady(myDataCache);
+    }
 
     return Sets.newHashSet(poller);
   }
@@ -125,6 +115,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
+    assert myPollerSet != null;
 
     myTriggerHeapDumpButton = new JButton(AndroidIcons.Ddms.DumpHprof);
     MemoryPoller poller = (MemoryPoller)Iterables.getOnlyElement(myPollerSet);
@@ -134,152 +125,90 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
       }
     });
     toolbar.add(myTriggerHeapDumpButton, HorizontalLayout.LEFT);
+
+    myAllowAllocationTracking = true;
+    myAllocationTrackerButton = new JToggleButton(AndroidIcons.Ddms.AllocationTracker, false);
+    myClient.enableAllocationTracker(false);
+
+    myAllocationTrackerButton.addActionListener(e -> {
+      boolean selected = myAllocationTrackerButton.isSelected();
+      if (selected) {
+        if (!myAllowAllocationTracking) {
+          myAllocationTrackerButton.setSelected(false);
+          return;
+        }
+
+        myAllowAllocationTracking = false;
+        myClient.enableAllocationTracker(true);
+        final long startTime = TimeUnit.NANOSECONDS
+          .toMicros(myDataStore.mapAbsoluteDeviceToRelativeTime(TimeUnit.MICROSECONDS.toNanos(myDataStore.getLatestTimeUs())));
+
+        AndroidDebugBridge.addClientChangeListener(new AndroidDebugBridge.IClientChangeListener() {
+          @Override
+          public void clientChanged(@NonNull Client client, int changeMask) {
+            if (client == myClient && (changeMask & Client.CHANGE_HEAP_ALLOCATIONS) != 0) {
+              final byte[] data = client.getClientData().getAllocationsData();
+              final long endTime = TimeUnit.NANOSECONDS
+                .toMicros(myDataStore.mapAbsoluteDeviceToRelativeTime(TimeUnit.MICROSECONDS.toNanos(myDataStore.getLatestTimeUs())));
+
+              UIUtil.invokeLaterIfNeeded(() -> {
+                myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.MEMORY);
+                if (myProject.isDisposed()) {
+                  return;
+                }
+
+                if (myDataCache != null) {
+                  myDataCache.addAllocationTrackingData(new AllocationTrackingSample(startTime, endTime, data));
+                }
+              });
+
+              myAllowAllocationTracking = true;
+              // Remove self from listeners.
+              AndroidDebugBridge.removeClientChangeListener(this);
+            }
+          }
+        });
+      }
+      else {
+        myClient.requestAllocationDetails();
+        myClient.enableAllocationTracker(false);
+      }
+      myAllocationTrackerButton.updateUI();
+    });
+    toolbar.add(myAllocationTrackerButton, HorizontalLayout.LEFT);
   }
 
   @Override
   public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
-    myDetailedViewToolbar = createDetailToolbar();
-    detailPanel.add(myDetailedViewToolbar, BorderLayout.NORTH);
-
-    if (myRoot == null) {
-      myRoot = new MemoryInfoTreeNode("Root");
-    }
-
-    if (myMemoryDetailSegment == null) {
-      myMemoryDetailSegment = new MemoryDetailSegment(myTimeCurrentRangeUs, myRoot, myEventDispatcher);
-      List<Animatable> animatables = new ArrayList<>();
-      myMemoryDetailSegment.createComponentsList(animatables);
-      myChoreographer.register(animatables);
-      myMemoryDetailSegment.initializeComponents();
-    }
-
-    detailPanel.add(myMemoryDetailSegment, BorderLayout.CENTER);
+    myMemoryDetailView =
+      new MemoryDetailView(detailPanel, myDataStore, myDataCache, myTimeCurrentRangeUs, myChoreographer, myEventDispatcher,
+                           myMemoryEventDispatcher);
+    Disposer.register(myProject, myMemoryDetailView);
   }
 
   @Override
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
-    detailPanel.removeAll();
-    myDetailedViewToolbar = null;
-
-    myPrevHeapDumpSelector = null;
-    myNextHeapDumpSelector = null;
-    myPrevHeapDumpFile = null;
-    myNextHeapDumpFile = null;
-    if (myPrevHeapDump != null) {
-      myPrevHeapDump.dispose();
-      myPrevHeapDump = null;
-    }
-    if (myNextHeapDump != null) {
-      myNextHeapDump.dispose();
-      myNextHeapDump = null;
+    if (myMemoryDetailView != null) {
+      Disposer.dispose(myMemoryDetailView);
+      myMemoryDetailView = null;
     }
 
     if (myTriggerHeapDumpButton != null) {
       toolbar.remove(myTriggerHeapDumpButton);
       myTriggerHeapDumpButton = null;
     }
+
+    if (myAllocationTrackerButton != null) {
+      toolbar.remove(myAllocationTrackerButton);
+      myAllocationTrackerButton = null;
+    }
   }
 
-  private JPanel createDetailToolbar() {
-    JPanel toolbar = new JBPanel(new HorizontalLayout(JBUI.scale(5)));
-    myPrevHeapDumpSelector = new JComboBox<>();
-    myPrevHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
-    myPrevHeapDumpSelector.addActionListener(e -> {
-      File file = myDataCache.getHeapDumpFile((MemoryProfiler.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
-      if (myPrevHeapDumpFile == file) {
-        return;
-      }
+  public interface MemoryEventListener extends EventListener {
+    void newHeapDumpSamplesRetrieved(MemoryProfiler.MemoryData.HeapDumpSample newSample);
 
-      if (myPrevHeapDump != null) {
-        myPrevHeapDump.dispose();
-        myPrevHeapDump = null;
-      }
-
-      try {
-        myPrevHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
-      }
-      catch (IOException exception) {
-        LOG.info("Error generating Snapshot from heap dump file.", exception);
-      }
-
-      generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);
-    });
-
-    myNextHeapDumpSelector = new JComboBox<>();
-    myNextHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
-    myNextHeapDumpSelector.addActionListener(e -> {
-      File file = myDataCache.getHeapDumpFile((MemoryProfiler.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
-      if (myNextHeapDumpFile == file) {
-        return;
-      }
-
-      if (myNextHeapDump != null) {
-        myNextHeapDump.dispose();
-        myNextHeapDump = null;
-      }
-
-      try {
-        myNextHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
-      }
-      catch (IOException exception) {
-        LOG.info("Error generating Snapshot from heap dump file.", exception);
-      }
-
-      generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);
-    });
-
-    toolbar.add(HorizontalLayout.LEFT, myPrevHeapDumpSelector);
-    toolbar.add(HorizontalLayout.RIGHT, myNextHeapDumpSelector);
-    return toolbar;
-  }
-
-  /**
-   * Updates a {@link MemoryDetailSegment} that shows a delta in class instances between prevHeapDump and nextHeapDump
-   */
-  private static void generateClassHistogram(@NotNull MemoryDetailSegment detailSegment,
-                                             @NotNull MemoryInfoTreeNode root,
-                                             @Nullable Snapshot prevHeapDump,
-                                             @Nullable Snapshot nextHeapDump) {
-    root.setCount(0);
-    root.removeAllChildren();
-    Map<String, Integer> instanceMap = new HashMap<>();
-
-    // Compute the positive delta from the next heap
-    if (nextHeapDump != null) {
-      for (Heap heap : nextHeapDump.getHeaps()) {
-        for (ClassObj classObj : heap.getClasses()) {
-          String className = classObj.getClassName();
-          int instanceCount = classObj.getInstanceCount() + (instanceMap.containsKey(className) ? instanceMap.get(className) : 0);
-          instanceMap.put(className, instanceCount);
-        }
-      }
-    }
-
-    // Subtract the negative delta from the previous heap
-    if (prevHeapDump != null) {
-      for (Heap heap : prevHeapDump.getHeaps()) {
-        for (ClassObj classObj : heap.getClasses()) {
-          String className = classObj.getClassName();
-          int instanceCount = (instanceMap.containsKey(className) ? instanceMap.get(className) : 0) - classObj.getInstanceCount();
-          instanceMap.put(className, instanceCount);
-        }
-      }
-    }
-
-    int maxInstanceCount = Integer.MIN_VALUE;
-    for (Map.Entry<String, Integer> entry : instanceMap.entrySet()) {
-      int instanceCount = entry.getValue();
-      if (instanceCount != 0) {
-        MemoryInfoTreeNode child = new MemoryInfoTreeNode(entry.getKey());
-        child.setCount(instanceCount);
-        detailSegment.insertNode(root, child);
-        maxInstanceCount = Math.max(maxInstanceCount, Math.abs(instanceCount));
-      }
-    }
-
-    root.setCount(maxInstanceCount);
-    detailSegment.refreshNode(root);
+    void newAllocationTrackingSampleRetrieved(AllocationTrackingSample newSample);
   }
 }
