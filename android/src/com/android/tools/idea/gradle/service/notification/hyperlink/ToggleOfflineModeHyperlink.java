@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
@@ -52,10 +51,5 @@ public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(myEnableOfflineMode);
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
-  }
-
-  @TestOnly
-  public boolean isEnableOfflineMode() {
-    return myEnableOfflineMode;
   }
 }

@@ -36,13 +36,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 
 public abstract class SyncErrorHandler {
-  private static final ExtensionPointName<SyncErrorHandler>
-    EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
-
-  @NotNull
-  public static SyncErrorHandler[] getExtensions() {
-    return EXTENSION_POINT_NAME.getExtensions();
-  }
+  public static final ExtensionPointName<SyncErrorHandler> EP_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
 
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
     String text = findErrorMessage(getRootCause(error), notification, project);

@@ -15,45 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.notification.QuickFixNotificationListener;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link OldAndroidPluginErrorHandler}.
  */
-public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessagesStub mySyncMessagesStub;
-
+public class OldAndroidPluginErrorHandlerTest extends SyncErrorHandlerTestCase {
+  @NotNull
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+  protected SyncErrorHandler createErrorHandler() {
+    return new OldAndroidPluginErrorHandler();
   }
 
-  public void testHandleError() throws Exception {
+  public void testHandleErrorWithNotificationData() {
     String expectedNotificationMessage = "Plugin is too old, please update to a more recent version";
-    registerSyncErrorToSimulate(expectedNotificationMessage);
+    ExternalSystemException cause = new ExternalSystemException(expectedNotificationMessage);
 
-    loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+    // Verify that the error handler was capable of handling the exception.
+    boolean result = myErrorHandler.handleError(createExternalSystemException(cause), myNotification, myProject);
+    assertTrue(result);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
-    assertNotNull(notificationUpdate);
-
-    assertThat(notificationUpdate.getText()).contains(expectedNotificationMessage);
-
-    List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
-    assertThat(quickFixes).hasSize(1);
+    // Verity that SyncMessages was invoked to update NotificationData.
+    String message = myNotification.getMessage();
+    assertThat(message).contains(expectedNotificationMessage);
 
     // Verify hyperlinks are correct.
-    NotificationHyperlink quickFix = quickFixes.get(0);
-    assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+    Map<String, QuickFixNotificationListener> listenersById = myNotification.getListenersById();
+    String url = "fixGradleElements";
+    assertThat(listenersById).containsKey(url);
+    QuickFixNotificationListener listener = listenersById.get(url);
+    assertThat(listener.getQuickFix()).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
   }
 }

@@ -28,8 +28,8 @@ import java.util.List;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class GradleBrokenPipeErrorHandler extends SyncErrorHandler {
-  @Override
   @Nullable
+  @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).startsWith("Broken pipe")) {
@@ -40,8 +40,8 @@ public class GradleBrokenPipeErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  @Override
   @NotNull
+  @Override
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {

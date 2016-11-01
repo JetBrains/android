@@ -29,12 +29,16 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
   @NotNull private final Jdks myJdks;
 
+  public Jdk8RequiredErrorHandler() {
+    this(Jdks.getInstance());
+  }
+
   public Jdk8RequiredErrorHandler(@NotNull Jdks jdks) {
     myJdks = jdks;
   }
 
-  @Override
   @Nullable
+  @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
     // Example:
     // com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0
@@ -50,8 +54,8 @@ public class Jdk8RequiredErrorHandler extends SyncErrorHandler {
     return null;
   }
 
-  @Override
   @NotNull
+  @Override
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
                                                               @NotNull Project project,
                                                               @NotNull String text) {
