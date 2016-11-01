@@ -73,7 +73,7 @@ public class MergedManifest {
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
-  private @Nullable/*is lazy initialised*/ Map<String, XmlNode.NodeKey> myNodeKeys;
+  private @Nullable Map<String, XmlNode.NodeKey> myNodeKeys;
   private Document myDocument;
   private List<VirtualFile> myManifestFiles;
   private ModulePermissions myPermissionHolder;
@@ -94,6 +94,13 @@ public class MergedManifest {
    */
   @NotNull
   public static MergedManifest get(@NotNull Module module) {
+    if (module.isDisposed()) {
+      return new MergedManifest(module) {
+        @Override
+        protected void syncWithReadPermission() {
+        }
+      };
+    }
     MergedManifest manifest = module.getComponent(MergedManifest.class);
     assert manifest != null;
     return manifest;
@@ -358,7 +365,7 @@ public class MergedManifest {
     return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
   }
 
-  private void syncWithReadPermission() {
+  protected void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null : "Attempt to obtain manifest info from a non Android module: " + myModule.getName();
 
@@ -528,6 +535,9 @@ public class MergedManifest {
   @Nullable
   public Element findUsedFeature(@NotNull String name) {
     sync();
+    if (myDocument == null) {
+      return null;
+    }
     Node node = myDocument.getDocumentElement().getFirstChild();
     while (node != null) {
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_USES_FEATURE.equals(node.getNodeName())) {
@@ -554,7 +564,7 @@ public class MergedManifest {
     return myManifestFile == null ? null : myManifestFile.getActions();
   }
 
-  @Nullable/*can not find a node key with that name*/
+  @Nullable
   public XmlNode.NodeKey getNodeKey(String name) {
     sync();
     if (myNodeKeys == null) {
