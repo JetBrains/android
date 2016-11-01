@@ -21,7 +21,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;

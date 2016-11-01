@@ -19,7 +19,7 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;

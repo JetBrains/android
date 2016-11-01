@@ -22,7 +22,7 @@ import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
