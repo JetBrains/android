@@ -22,7 +22,6 @@ import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
@@ -30,7 +29,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickBu
 
 public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamplesWizardFixture> implements ContainerFixture<JDialog> {
 
-  BrowseSamplesWizardFixture(@Nonnull JDialog dialog, @NotNull Robot robot) {
+  BrowseSamplesWizardFixture(@NotNull JDialog dialog, @NotNull Robot robot) {
     super(BrowseSamplesWizardFixture.class, robot, dialog);
   }
 
