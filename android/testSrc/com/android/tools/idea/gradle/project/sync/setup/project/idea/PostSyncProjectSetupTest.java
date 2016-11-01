@@ -24,12 +24,22 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
+import java.util.LinkedList;
+import java.util.List;
+
 import static com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -49,6 +59,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
+  @Mock private RunManagerImpl myRunManager;
 
   private PostSyncProjectSetup mySetup;
 
@@ -58,11 +69,36 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
+    myRunManager = RunManagerImpl.getInstanceImpl(project);
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
     mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, mySyncMessages,
-                                       myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
+                                       myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory,
+                                       myRunManager);
+  }
+
+  public void testJUnitRunConfigurationSetup() {
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    mySetup.setUpProject(request);
+    ConfigurationFactory configurationFactory = JUnitConfigurationType.getInstance().getConfigurationFactories()[0];
+    JUnitConfiguration jUnitConfiguration = new JUnitConfiguration("", getProject(), configurationFactory);
+    myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
+
+    RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(JUnitConfigurationType.getInstance());
+    for (RunConfiguration runConfiguration : junitRunConfigurations) {
+      assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
+    }
+
+    RunConfiguration runConfiguration = junitRunConfigurations[0];
+    List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
+    BeforeRunTask newTask = new MakeBeforeRunTaskProvider(getProject()).createTask(runConfiguration);
+    newTask.setEnabled(true);
+    tasks.add(newTask);
+    myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
+
+    mySetup.setUpProject(request);
+    assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
