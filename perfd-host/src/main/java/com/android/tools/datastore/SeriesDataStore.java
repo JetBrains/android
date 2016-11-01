@@ -38,9 +38,15 @@ public interface SeriesDataStore {
   void reset();
 
   /**
-   * @return the timestamp of the most current set of data.
+   * @return the estimated current time on the device.
    */
   long getLatestTimeUs();
+
+  /**
+   * @param absoluteTime  The absolute device time.
+   * @return the relative time to t=0 of this {@link SeriesDataStore}
+   */
+  long mapAbsoluteDeviceToRelativeTime(long absoluteTime);
 
   /**
    * Function to return a typed {@link SeriesDataList} that is scoped to allow access to data within a specific range.

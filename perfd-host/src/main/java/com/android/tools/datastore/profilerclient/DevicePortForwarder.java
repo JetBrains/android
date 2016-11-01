@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
 public class DevicePortForwarder {
   private static final Logger LOG = Logger.getInstance(DevicePortForwarder.class.getCanonicalName());
@@ -66,11 +67,15 @@ public class DevicePortForwarder {
       catch (AdbCommandRejectedException e) {
         LOG.error("ADB command error while attempting to create port forward", e);
       }
+      catch (ConnectException e) {
+        LOG.error("Device refused connection", e);
+        return -1;
+      }
       catch (IOException e) {
         LOG.error("IO error while attempting to create port forward", e);
       }
       finally {
-        isDeviceOnline &= device.isOnline();
+        isDeviceOnline = device.isOnline();
       }
     }
 
