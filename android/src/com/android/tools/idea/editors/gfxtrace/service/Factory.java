@@ -66,6 +66,7 @@ public final class Factory {
     CallGetTimingInfo.register();
     CallImportCapture.register();
     CallLoadCapture.register();
+    CallRegisterAndroidDevice.register();
     CallSet.register();
     ResultFollow.register();
     ResultGet.register();
@@ -81,6 +82,7 @@ public final class Factory {
     ResultGetTimingInfo.register();
     ResultImportCapture.register();
     ResultLoadCapture.register();
+    ResultRegisterAndroidDevice.register();
     ResultSet.register();
     //<<<End:Java.FactoryBody:2>>>
   }
