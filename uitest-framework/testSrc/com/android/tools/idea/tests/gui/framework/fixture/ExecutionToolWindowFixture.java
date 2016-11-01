@@ -45,6 +45,7 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
+import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.method;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
