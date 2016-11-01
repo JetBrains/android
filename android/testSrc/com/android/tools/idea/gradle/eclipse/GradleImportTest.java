@@ -1031,9 +1031,9 @@ public class GradleImportTest extends AndroidTestCase {
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:22.2.1\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:22.2.1\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:22.2.1\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:22.+\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:22.+\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:22.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
@@ -1099,9 +1099,9 @@ public class GradleImportTest extends AndroidTestCase {
                  + "}\n"
                  + "\n"
                  + "dependencies {\n"
-                 + "    compile 'com.android.support:support-v4:22.2.1'\n"
-                 + "    compile 'com.android.support:appcompat-v7:22.2.1'\n"
-                 + "    compile 'com.android.support:gridlayout-v7:22.2.1'\n"
+                 + "    compile 'com.android.support:support-v4:22.+'\n"
+                 + "    compile 'com.android.support:appcompat-v7:22.+'\n"
+                 + "    compile 'com.android.support:gridlayout-v7:22.+'\n"
                  + "}\n",
                  Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8).replace(NL, "\n"));
 
@@ -1655,7 +1655,7 @@ public class GradleImportTest extends AndroidTestCase {
                                       MSG_REPLACED_LIBS +
                                       "Lib2 =>\n" +
                                       "    com.actionbarsherlock:actionbarsherlock:4.4.0@aar\n" +
-                                      "    com.android.support:support-v4:18.0.0\n" +
+                                      "    com.android.support:support-v4:18.+\n" +
                                       MSG_FOLDER_STRUCTURE
                                       // TODO: The summary should describe the library!!
                                       +
@@ -1752,7 +1752,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "    compile project(':lib1')\n"
                  + "    compile project(':javaLib')\n"
                  + "    compile 'com.actionbarsherlock:actionbarsherlock:4.4.0@aar'\n"
-                 + "    compile 'com.android.support:support-v4:18.0.0'\n"
+                 + "    compile 'com.android.support:support-v4:18.+'\n"
                  + "}\n",
                  Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
@@ -3318,9 +3318,9 @@ public class GradleImportTest extends AndroidTestCase {
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:19.1.0\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:19.1.0\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:19.1.0\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:19.+\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:19.+\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:19.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
@@ -3350,9 +3350,9 @@ public class GradleImportTest extends AndroidTestCase {
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:21.0.3\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:21.0.3\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:21.0.3\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:21.+\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:21.+\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:21.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
@@ -3384,9 +3384,9 @@ public class GradleImportTest extends AndroidTestCase {
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_LIBS
-                                 + "appcompat-v7 => [com.android.support:appcompat-v7:19.1.0]\n"
-                                 + "gridlayout-v7 => [com.android.support:gridlayout-v7:19.1.0]\n"
-                                 + "support-v4 => [com.android.support:support-v4:19.1.0]\n"
+                                 + "appcompat-v7 => [com.android.support:appcompat-v7:19.+]\n"
+                                 + "gridlayout-v7 => [com.android.support:gridlayout-v7:19.+]\n"
+                                 + "support-v4 => [com.android.support:support-v4:19.+]\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
