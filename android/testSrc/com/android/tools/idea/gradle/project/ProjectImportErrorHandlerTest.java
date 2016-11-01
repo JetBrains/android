@@ -147,4 +147,15 @@ public class ProjectImportErrorHandlerTest {
     assertNotNull(userFriendlyError);
     assertEquals("Failed to find Build Tools revision 24.0.3", userFriendlyError.getMessage());
   }
+
+  // https://code.google.com/p/android/issues/detail?id=226870
+  @Test
+  public void getUserFriendlyErrorWithLowerCase() {
+    ProjectImportErrorHandler errorHandler = new ProjectImportErrorHandler();
+    Throwable error = new Throwable("some random sync error");
+
+    ExternalSystemException userFriendlyError = errorHandler.getUserFriendlyError(error, "fakeProjectPath", null);
+    assertNotNull(userFriendlyError);
+    assertEquals("Cause: some random sync error", userFriendlyError.getMessage());
+  }
 }
