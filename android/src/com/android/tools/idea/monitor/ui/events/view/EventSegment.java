@@ -25,7 +25,7 @@ import com.android.tools.datastore.DataStoreSeries;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.events.model.SimpleEventDataSeries;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;

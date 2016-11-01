@@ -27,7 +27,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.datastore.DataStoreSeries;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;

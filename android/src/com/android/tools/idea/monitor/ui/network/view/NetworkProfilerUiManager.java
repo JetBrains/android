@@ -22,7 +22,7 @@ import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;

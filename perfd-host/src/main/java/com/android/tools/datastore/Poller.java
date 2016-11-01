@@ -20,7 +20,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
@@ -103,8 +102,6 @@ public abstract class Poller implements RunnableFuture<Void> {
         getLog().info("Error sending shutdown signal to on-device poller.");
       }
       finally {
-        // Delegate back to the EDT thread to deinitialize the UI and disconnect the profiler service.
-        SwingUtilities.invokeLater(() -> myDataStore.getEventDispatcher().getMulticaster().profilerServerDisconnected());
         myIsDone.countDown();
       }
     }
