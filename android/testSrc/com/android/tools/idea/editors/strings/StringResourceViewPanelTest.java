@@ -81,16 +81,6 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key9", myTable.getValueAt(6, 0));
   }
 
-  public void testOnTextFieldUpdate() {
-    myTable.setShowingOnlyKeysNeedingTranslations(true);
-
-    TableUtils.selectCellAt(myTable, 2, 3);
-    myPanel.myTranslation.setText("Key 4 en");
-    myPanel.onTextFieldUpdate(myPanel.myTranslation);
-
-    assertEquals("Key 4 en", myTable.getModel().getValueAt(3, 3));
-  }
-
   public void testRefilteringAfterEditingUntranslatableCell() {
     myTable.setShowingOnlyKeysNeedingTranslations(true);
     editCellAt(true, 0, 2);
@@ -121,7 +111,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable.setShowingOnlyKeysNeedingTranslations(true);
     TableUtils.selectCellAt(myTable, 2, 1);
 
-    assertEquals("Key 3 default", myPanel.myDefaultValue.getText());
+    assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
   }
 
   private void editCellAt(Object value, int row, int column) {
