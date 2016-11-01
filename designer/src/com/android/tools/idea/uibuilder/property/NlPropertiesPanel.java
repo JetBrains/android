@@ -28,10 +28,10 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
@@ -70,14 +70,14 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private List<NlPropertyItem> myProperties;
   private boolean myAllPropertiesPanelVisible;
 
-  public NlPropertiesPanel(@NotNull Project project) {
+  public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     setOpaque(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
     myModel = new PTableModel();
     myTable = new PTable(myModel);
-    myTable.setEditorProvider(NlPropertyEditors.getInstance(project));
+    myTable.setEditorProvider(NlPropertyEditors.getInstance(propertiesManager.getProject()));
     myTable.getEmptyText().setText("No selected component");
     JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
     fewerPropertiesLink.setBorder(BorderFactory.createEmptyBorder(8, 4, 2, 0));
@@ -87,7 +87,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myTablePanel.add(myTable, BorderLayout.NORTH);
     myTablePanel.add(fewerPropertiesLink, BorderLayout.SOUTH);
 
-    myInspectorPanel = new InspectorPanel(project, createViewAllPropertiesLinkPanel(true));
+    myInspectorPanel = new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
 
     myCardPanel = new JPanel(new JBCardLayout());
 
