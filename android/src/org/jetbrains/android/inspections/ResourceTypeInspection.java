@@ -26,7 +26,6 @@ import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.checks.*;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
@@ -74,7 +73,7 @@ import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.inspections.lint.*;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -613,10 +612,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return;
     }
 
-    if (ApiDetector.isWithinVersionCheckConditional(methodCall, api)) {
+    if (VersionChecks.isWithinVersionCheckConditional(methodCall, api)) {
       return;
     }
-    if (ApiDetector.isPrecededByVersionCheckExit(methodCall, api)) {
+    if (VersionChecks.isPrecededByVersionCheckExit(methodCall, api)) {
       return;
     }
 
