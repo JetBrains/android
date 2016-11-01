@@ -581,7 +581,8 @@ public final class GuiTests {
   }
 
   public static void waitForBackgroundTasks(Robot robot) {
-    Wait.seconds(30).expecting("background tasks to finish")
+    // A 60-second limit is high, but the first test in the suite may need it.
+    Wait.seconds(60).expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
 
