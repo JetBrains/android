@@ -103,7 +103,7 @@ public class ScrollAwareJTreeDriver extends JTreeDriver {
     return Preconditions.checkNotNull(result);
   }
 
-  private int getMiddleOfRow(Rectangle bounds) {
+  private static int getMiddleOfRow(Rectangle bounds) {
     int scrollBarSize = (Integer)UIManager.get("ScrollBar.width");
     return bounds.y + Math.min(bounds.height / 2, bounds.height - scrollBarSize);
   }
