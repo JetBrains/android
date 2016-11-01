@@ -32,7 +32,6 @@ import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -70,17 +69,17 @@ import java.util.Set;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -93,6 +92,7 @@ import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 /**
@@ -276,15 +276,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void preImportCheck() {
-    if (isGuiTestingMode()) {
-      // We use this task in GUI tests to simulate errors coming from Gradle project sync.
-      Application application = ApplicationManager.getApplication();
-      Runnable task = application.getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY);
-      if (task != null) {
-        application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, null);
-        task.run();
-      }
-    }
+    simulateRegisteredSyncError();
   }
 
   @Override

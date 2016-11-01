@@ -15,42 +15,44 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.notification.QuickFixNotificationListener;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
-import java.util.Map;
+import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link GradleBrokenPipeErrorHandlerTest}.
+ * Tests for {@link GradleBrokenPipeErrorHandler}.
  */
-public class GradleBrokenPipeErrorHandlerTest extends SyncErrorHandlerTestCase {
-  @NotNull
+public class GradleBrokenPipeErrorHandlerTest extends AndroidGradleTestCase {
+  private SyncMessagesStub mySyncMessagesStub;
+
   @Override
-  protected SyncErrorHandler createErrorHandler() {
-    return new GradleBrokenPipeErrorHandler();
+  public void setUp() throws Exception {
+    super.setUp();
+    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testHandleErrorWithNotificationData() {
+  public void testHandleError() throws Exception {
+    registerSyncErrorToSimulate("Broken pipe");
+    loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+
+    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    assertNotNull(notificationUpdate);
+
     String expectedNotificationMessage = "Broken pipe.\nThe Gradle daemon may be trying to use ipv4 instead of ipv6.";
-    ExternalSystemException cause = new ExternalSystemException("Broken pipe");
+    assertThat(notificationUpdate.getText()).contains(expectedNotificationMessage);
 
-    // Verify that the error handler was capable of handling the exception.
-    boolean result = myErrorHandler.handleError(createExternalSystemException(cause), myNotification, myProject);
-    assertTrue(result);
-
-    // Verity that SyncMessages was invoked to update NotificationData.
-    String message = myNotification.getMessage();
-    assertThat(message).contains(expectedNotificationMessage);
+    List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
+    assertThat(quickFixes).hasSize(1);
 
     // Verify hyperlinks are correct.
-    Map<String, QuickFixNotificationListener> listenersById = myNotification.getListenersById();
-    String url = "https://sites.google.com/a/android.com/tools/knownissues?pli=1#TOC-Gradle-Sync-Failed:-Broken-Pipe";
-    assertThat(listenersById).containsKey(url);
-    QuickFixNotificationListener listener = listenersById.get(url);
-    assertThat(listener.getQuickFix()).isInstanceOf(OpenUrlHyperlink.class);
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(OpenUrlHyperlink.class);
   }
 }
