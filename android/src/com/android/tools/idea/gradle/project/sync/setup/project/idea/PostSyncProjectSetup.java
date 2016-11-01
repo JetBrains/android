@@ -47,7 +47,6 @@ import com.android.tools.idea.gradle.project.sync.validation.common.CommonModule
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
@@ -91,6 +90,7 @@ import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -121,10 +121,10 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class PostSyncProjectSetup {
-  private static final GradleVersion GRADLE_VERSION_WITH_SECURITY_FIX = GradleVersion.parse("2.14.1");
   /**
    * Whether a message indicating that "a new SDK Tools version is available" is already shown.
    */
@@ -230,8 +230,7 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
-    if (pluginInfo != null && shouldRecommendUpgrade(pluginInfo, gradleVersion)) {
+    if (pluginInfo != null && shouldRecommendUpgrade(pluginInfo)) {
       GradleVersion current = pluginInfo.getPluginVersion();
       assert current != null;
       AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
@@ -372,12 +371,8 @@ public class PostSyncProjectSetup {
     return false;
   }
 
-  static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo, @Nullable GradleVersion gradleVersion) {
-    return shouldRecommendUpgradeBasedOnPluginVersion(androidPluginInfo) || shouldRecommendUpgradeBasedOnGradleVersion(gradleVersion);
-  }
-
-  private static boolean shouldRecommendUpgradeBasedOnGradleVersion(@Nullable GradleVersion gradleVersion) {
-    return gradleVersion != null && gradleVersion.compareTo(GRADLE_VERSION_WITH_SECURITY_FIX) < 0;
+  static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo) {
+    return shouldRecommendUpgradeBasedOnPluginVersion(androidPluginInfo);
   }
 
   private static boolean shouldRecommendUpgradeBasedOnPluginVersion(@NotNull AndroidPluginInfo androidPluginInfo) {
