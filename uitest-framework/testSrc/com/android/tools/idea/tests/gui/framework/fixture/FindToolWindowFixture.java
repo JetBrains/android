@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static org.fest.reflect.core.Reflection.field;
+import static org.junit.Assert.assertNotNull;
 
 public class FindToolWindowFixture {
 
