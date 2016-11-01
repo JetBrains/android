@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.monitor.tool;
 
+import com.android.tools.idea.monitor.ui.BaseProfilerUiManager.ProfilerType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EventListener;
 
 /**
- * TODO: Move this interface out of the datastore module, this interface is pirmarily used for UI callbacks and should be independent
- * of the current datastore. Keeping for now until we decide on how to refactor.
- * Interface to support communications across segments via the {@link com.intellij.util.EventDispatcher¡} mechanism.
- * @param <T>   The profiler type that was expanded. This should be an enum of type BaseProfilerUiManager.ProfilerType.
+ * Interface to support communications across segments via the {@link com.intellij.util.EventDispatcher} mechanism.
  */
-public interface ProfilerEventListener<T> extends EventListener {
+public interface ProfilerEventListener extends EventListener {
   /**
    * Notifies that a profiler has been requested to expand (either from L1 -> L2, or L2 -> L3).
    */
-  default void profilerExpanded(@NotNull T profilerType) {
+  default void profilerExpanded(@NotNull ProfilerType profilerType) {
   }
 
   /**
