@@ -126,7 +126,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     runWriteCommandAction(resolvedProject, buildModel::applyChanges);
 
     //noinspection ConstantConditions
-    importProject(resolvedProject, resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
+    importProject(resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
 
     PsProject project = new PsProject(resolvedProject);
 

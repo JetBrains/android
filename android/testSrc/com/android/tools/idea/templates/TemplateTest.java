@@ -20,10 +20,13 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
-import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -38,7 +41,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
@@ -129,7 +131,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    * The following templates are known to be broken! We need to work through these and fix them such that tests
    * on them can be re-enabled.
    */
-  private static final Set<String> KNOWN_BROKEN = Sets.newHashSet();
+  private static final Set<String> KNOWN_BROKEN = new HashSet<>();
 
   static {
 
@@ -205,7 +207,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    * Set of templates already tested with separate unit test; remainder is
    * checked in {@link #testCreateRemainingTemplates()}
    */
-  private static final Set<String> ourTemplatesChecked = Sets.newHashSet();
+  private static final Set<String> ourTemplatesChecked = new HashSet<>();
 
 
   /**
@@ -445,7 +447,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       IAndroidTarget[] targets = sdkData.getTargets();
       IAndroidTarget target = targets[targets.length - 1];
-      Map<String, Object> overrides = Maps.newHashMap();
+      Map<String, Object> overrides = new HashMap<>();
       overrides.put(ATTR_JAVA_VERSION, "1.7");
       NewProjectWizardState state = createNewProjectState(true, sdkData);
 
@@ -471,7 +473,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     IAndroidTarget[] targets = sdkData.getTargets();
     IAndroidTarget target = targets[targets.length - 1];
-    Map<String, Object> overrides = Maps.newHashMap();
+    Map<String, Object> overrides = new HashMap<>();
     overrides.put(ATTR_JAVA_VERSION, "1.5");
     NewProjectWizardState state = createNewProjectState(true, sdkData);
 
@@ -601,7 +603,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private static NewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData) {
-    final NewProjectWizardState values = new NewProjectWizardState();
+    NewProjectWizardState values = new NewProjectWizardState();
     assertNotNull(values);
     Template.convertApisToInt(values.getParameters());
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
@@ -613,7 +615,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // TODO: Test the icon generator too
     values.put(ATTR_CREATE_ICONS, false);
 
-    final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     if (buildTool != null) {
       values.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
@@ -628,7 +630,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    final NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);
+    NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);
 
     String projectNameBase = "TestProject" + templateFile.getName();
 
@@ -888,8 +890,8 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   private void checkProject(@NonNull String projectName,
                             @NonNull NewProjectWizardState projectValues,
-                            @Nullable final TemplateWizardState templateValues) throws Exception {
-    final String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
+                            @Nullable TemplateWizardState templateValues) throws Exception {
+    String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
@@ -905,8 +907,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       fixture.setUp();
 
-      final Project project = fixture.getProject();
-      projectDir = new File(project.getBasePath());
+      Project project = fixture.getProject();
+      projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
       // We only need to sync the model if lint needs to look at the synced project afterwards
@@ -917,33 +919,30 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
         templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-            Template template = templateValues.getTemplate();
-            assert template != null;
-            File moduleRoot = new File(projectRoot, modifiedProjectName);
-            templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
-            templateValues.populateDirectoryParameters();
-            RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
-              .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
-            template.render(context);
-            // Add in icons if necessary
-            if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
-              File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
-                                             FileUtil.join("drawable"));
-              drawableFolder.mkdirs();
-              String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
-                                                           templateValues.getParameters());
-              File iconFile = new File(drawableFolder, fileName + DOT_XML);
-              File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
-              try {
-                FileUtil.copy(sourceFile, iconFile);
-              }
-              catch (IOException e) {
-                fail(e.getMessage());
-              }
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+          Template template = templateValues.getTemplate();
+          assert template != null;
+          File moduleRoot = new File(projectRoot, modifiedProjectName);
+          templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
+          templateValues.populateDirectoryParameters();
+          RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
+            .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
+          template.render(context);
+          // Add in icons if necessary
+          if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
+            File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
+                                           FileUtil.join("drawable"));
+            drawableFolder.mkdirs();
+            String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
+                                                         templateValues.getParameters());
+            File iconFile = new File(drawableFolder, fileName + DOT_XML);
+            File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
+            try {
+              FileUtil.copy(sourceFile, iconFile);
+            }
+            catch (IOException e) {
+              fail(e.getMessage());
             }
           }
         });
@@ -976,9 +975,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private static void createProject(@NotNull IdeaProjectTestFixture myFixture,
-                                    @NotNull NewProjectWizardState projectWizardState,
-                                    boolean syncModel) throws Exception {
+  private void createProject(@NotNull IdeaProjectTestFixture myFixture,
+                             @NotNull NewProjectWizardState projectWizardState,
+                             boolean syncModel) throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
       WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
@@ -987,10 +986,10 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     // Sync model
     if (syncModel) {
-      String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
-      File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+      String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
+      File projectRoot = new File(projectWizardState.getString(ATTR_PROJECT_LOCATION));
       assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(myFixture.getProject(), projectName, projectRoot, null);
+      importProject(projectName, projectRoot, null);
     }
   }
 
@@ -1020,9 +1019,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     return null;
   }
 
-  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored) throws Exception {
+  private static void assertLintsCleanly(@NotNull Project project, @NotNull Severity maxSeverity, @NotNull Set<Issue> ignored)
+    throws Exception {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
-    Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
+    Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
     LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
     LintDriver driver = new LintDriver(registry, client);
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
