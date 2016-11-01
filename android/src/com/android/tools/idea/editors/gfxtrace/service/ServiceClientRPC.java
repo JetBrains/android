@@ -101,6 +101,10 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new LoadCaptureCallable(path));
   }
   @Override
+  public ListenableFuture<DevicePath> registerAndroidDevice(String serial) {
+    return myExecutorService.submit(new RegisterAndroidDeviceCallable(serial));
+  }
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myExecutorService.submit(new SetCallable(p, v));
   }
@@ -368,6 +372,25 @@ public final class ServiceClientRPC extends ServiceClient {
     public CapturePath call() throws Exception {
       try {
         ResultLoadCapture result = (ResultLoadCapture)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class RegisterAndroidDeviceCallable implements Callable<DevicePath> {
+    private final CallRegisterAndroidDevice myCall;
+    private final Exception myStack = new StackException();
+
+    private RegisterAndroidDeviceCallable(String serial) {
+      myCall = new CallRegisterAndroidDevice();
+      myCall.setSerial(serial);
+    }
+    @Override
+    public DevicePath call() throws Exception {
+      try {
+        ResultRegisterAndroidDevice result = (ResultRegisterAndroidDevice)myBroadcaster.Send(myCall);
         return result.getValue();
       } catch (Exception e) {
         e.initCause(myStack);

@@ -1052,7 +1052,7 @@ public final class ServiceProtos {
       "\n\007Request\022\r\n\005token\030\001 \001(\t\022\017\n\007request\030\002 \001(" +
       "\014\"\034\n\010Response\022\020\n\010response\030\001 \001(\014*/\n\rWiref" +
       "rameMode\022\010\n\004None\020\000\022\013\n\007Overlay\020\001\022\007\n\003All\020\002" +
-      "2\312\006\n\005Gapid\022,\n\003Get\022\020.service.Request\032\021.se" +
+      "2\212\007\n\005Gapid\022,\n\003Get\022\020.service.Request\032\021.se" +
       "rvice.Response\"\000\022,\n\003Set\022\020.service.Reques" +
       "t\032\021.service.Response\"\000\022/\n\006Follow\022\020.servi" +
       "ce.Request\032\021.service.Response\"\000\0222\n\tGetSc" +
@@ -1073,8 +1073,10 @@ public final class ServiceProtos {
       "\"\000\022A\n\030GetFramebufferAttachment\022\020.service" +
       ".Request\032\021.service.Response\"\000\0226\n\rGetTimi" +
       "ngInfo\022\020.service.Request\032\021.service.Respo" +
-      "nse\"\000B@\n/com.android.tools.idea.editors." +
-      "gfxtrace.serviceB\rServiceProtosb\006proto3"
+      "nse\"\000\022>\n\025RegisterAndroidDevice\022\020.service" +
+      ".Request\032\021.service.Response\"\000B@\n/com.and" +
+      "roid.tools.idea.editors.gfxtrace.service" +
+      "B\rServiceProtosb\006proto3"
     };
     com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
