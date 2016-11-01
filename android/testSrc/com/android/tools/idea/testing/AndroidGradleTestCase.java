@@ -252,7 +252,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     Project project = getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
 
-    importProject(project, project.getName(), projectRoot, listener);
+    importProject(project.getName(), projectRoot, listener);
 
     assertTrue(requiresAndroidModel(project));
     assertFalse(isLegacyIdeaAndroidProject(project));
@@ -448,23 +448,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     wrapper.updateDistributionUrl(path);
   }
 
-  // TODO move to CreateGradleWrapperTest (the only usage of this method.)
-  protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
-    for (String path : paths) {
-      path = toSystemDependentName(path);
-      File testFile = baseDir != null ? new File(baseDir, path) : new File(path);
-      assertTrue("File doesn't exist: " + testFile.getPath(), testFile.exists());
-    }
-  }
-
-  // TODO remove parameter 'project'
-  protected static void importProject(@NotNull Project project,
-                                      @NotNull String projectName,
-                                      @NotNull File projectRoot,
-                                      @Nullable GradleSyncListener listener) throws Exception {
+  protected void importProject(@NotNull String projectName,
+                               @NotNull File projectRoot,
+                               @Nullable GradleSyncListener listener) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
 
+    Project project = getProject();
     GradleSyncState.subscribe(project, syncListener);
 
     runWriteCommandAction(project, () -> {
