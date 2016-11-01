@@ -55,7 +55,6 @@ final class FormFactorSdkControls {
   private static final ScopedStateStore.Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
   private JBLabel myHelpMeChooseLabel2;
   private HyperlinkLabel myHelpMeChooseLink;
-  private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private final ScopedDataBinder myBinder;
   private JCheckBox myInclusionCheckBox;
   private JPanel myRootPanel;
@@ -81,7 +80,6 @@ final class FormFactorSdkControls {
                                ScopedDataBinder binder) {
     myFormFactor = formFactor;
     myMinApi = minApi;
-    Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     myBinder = binder;
     myInclusionCheckBox.setText(formFactor.toString());
     myDisposable = disposable;
@@ -122,10 +120,10 @@ final class FormFactorSdkControls {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         Integer minApiLevel = state.get(getMinApiLevelKey(MOBILE));
-        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel == null ? 0 : minApiLevel);
-        Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
-        if (myChooseApiLevelDialog.showAndGet()) {
-          int selectedApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
+        ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel == null ? 0 : minApiLevel);
+        Disposer.register(myDisposable, chooseApiLevelDialog.getDisposable());
+        if (chooseApiLevelDialog.showAndGet()) {
+          int selectedApiLevel = chooseApiLevelDialog.getSelectedApiLevel();
           ScopedDataBinder.setSelectedItem(myMinSdkCombobox, Integer.toString(selectedApiLevel));
         }
       }
