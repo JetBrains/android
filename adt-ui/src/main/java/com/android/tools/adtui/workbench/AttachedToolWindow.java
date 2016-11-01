@@ -80,20 +80,10 @@ class AttachedToolWindow<T> implements Disposable {
                             @NotNull ButtonDragListener<T> dragListener,
                             @NotNull String workBenchName,
                             @NotNull SideModel<T> model) {
-    this(definition, dragListener, workBenchName, model, PropertiesComponent.getInstance(), DumbService.getInstance(model.getProject()));
-  }
-
-  @VisibleForTesting
-  public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
-                            @NotNull ButtonDragListener<T> dragListener,
-                            @NotNull String workBenchName,
-                            @NotNull SideModel<T> model,
-                            @NotNull PropertiesComponent propertiesComponent,
-                            @NotNull DumbService dumbService) {
     myWorkBenchName = workBenchName;
     myDefinition = definition;
     myDragListener = dragListener;
-    myPropertiesComponent = propertiesComponent;
+    myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
     myActionButtons = new ArrayList<>(4);
@@ -102,7 +92,7 @@ class AttachedToolWindow<T> implements Disposable {
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     updateContent();
-    dumbService.smartInvokeLater(this::updateActions);
+    DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
   }
 
   @Override
@@ -228,6 +218,12 @@ class AttachedToolWindow<T> implements Disposable {
     if (myContent != null) {
       myContent.setToolContext(context);
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  ToolContent<T> getContent() {
+    return myContent;
   }
 
   private void updateContent() {
@@ -356,11 +352,13 @@ class AttachedToolWindow<T> implements Disposable {
     void buttonDropped(@NotNull AttachedToolWindow<T> toolWindow, @NotNull DragEvent event);
   }
 
-  private void fireButtonDragged(@NotNull DragEvent event) {
+  @VisibleForTesting
+  void fireButtonDragged(@NotNull DragEvent event) {
     myDragListener.buttonDragged(this, event);
   }
 
-  private void fireButtonDropped(@NotNull DragEvent event) {
+  @VisibleForTesting
+  void fireButtonDropped(@NotNull DragEvent event) {
     myDragListener.buttonDropped(this, event);
   }
 
@@ -473,6 +471,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private static class UpdatableActionButton extends ActionButton {
+
     private UpdatableActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
       super(action, action.getTemplatePresentation().clone(), TOOL_WINDOW_TOOLBAR_PLACE, buttonSize);
     }

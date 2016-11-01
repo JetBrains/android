@@ -1,0 +1,282 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.adtui.workbench;
+
+import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
+import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
+import com.google.common.collect.ImmutableList;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Mock;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.List;
+
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+@RunWith(JUnit4.class)
+public class WorkBenchTest {
+  @Rule
+  public FrameworkRule myFrameworkRule = new FrameworkRule();
+  @Mock
+  private FileEditor myFileEditor;
+  @Mock
+  private FileEditor myFileEditor2;
+
+  private WorkBenchManager myWorkBenchManager;
+  private FloatingToolWindowManager myFloatingToolWindowManager;
+  private JComponent myContent;
+  private ThreeComponentsSplitter mySplitter;
+  private PropertiesComponent myPropertiesComponent;
+  private WorkBench<String> myWorkBench;
+  private SideModel<String> myModel;
+  private MinimizedPanel<String> myLeftMinimizePanel;
+  private MinimizedPanel<String> myRightMinimizePanel;
+  private AttachedToolWindow<String> myToolWindow1;
+  private AttachedToolWindow<String> myToolWindow2;
+
+  @Before
+  public void before() {
+    initMocks(this);
+    myContent = new JPanel();
+    myContent.setPreferredSize(new Dimension(500, 400));
+    mySplitter = new ThreeComponentsSplitter();
+    Project project = ProjectManager.getInstance().getDefaultProject();
+    myPropertiesComponent = PropertiesComponent.getInstance();
+    myWorkBenchManager = WorkBenchManager.getInstance();
+    myFloatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+    myModel = new SideModel<>(project);
+    myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
+    myLeftMinimizePanel.setLayout(new BoxLayout(myLeftMinimizePanel, BoxLayout.Y_AXIS));
+    myRightMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
+    myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
+    WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
+    myWorkBench = new WorkBench<>(project, "BENCH", myFileEditor, initParams);
+    JRootPane rootPane = new JRootPane();
+    rootPane.add(myWorkBench);
+    List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
+                                                                      PalettePanelToolContent.getOtherDefinition());
+    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", 333, -1);
+    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", 222, -1);
+    myWorkBench.init(myContent, "CONTEXT", definitions);
+    myToolWindow1 = myModel.getAllTools().get(0);
+    myToolWindow2 = myModel.getAllTools().get(1);
+    when(fileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
+    verify(myWorkBenchManager).register(eq(myWorkBench));
+    verify(myFloatingToolWindowManager).register(eq(myFileEditor), eq(myWorkBench));
+    reset(myWorkBenchManager, myFloatingToolWindowManager);
+  }
+
+  @After
+  public void after() {
+    Disposer.dispose(myWorkBench);
+  }
+
+  @Test
+  public void testUpdateEditor() {
+    myWorkBench.setFileEditor(myFileEditor2);
+    verify(myFloatingToolWindowManager).unregister(eq(myFileEditor));
+    verify(myFloatingToolWindowManager).register(eq(myFileEditor2), eq(myWorkBench));
+    verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(myWorkBench);
+  }
+
+  @Test
+  public void testSetContext() {
+    assertThat(myModel.getContext()).isEqualTo("CONTEXT");
+    myWorkBench.setToolContext("Google");
+    assertThat(myModel.getContext()).isEqualTo("Google");
+  }
+
+  @Test
+  public void testAutoHide() {
+    myToolWindow1.setAutoHide(true);
+    myToolWindow1.setMinimized(false);
+    myModel.update(myToolWindow1, PropertyType.AUTO_HIDE);
+
+    myWorkBench.addNotify();
+    try {
+      fireFocusOwnerChange(myContent);
+      assertThat(myToolWindow1.isMinimized()).isTrue();
+    }
+    finally {
+      myWorkBench.removeNotify();
+    }
+  }
+
+  private static void fireFocusOwnerChange(@NotNull JComponent component) {
+    for (PropertyChangeListener changeListener : KeyboardFocusManager.getCurrentKeyboardFocusManager().getPropertyChangeListeners()) {
+      changeListener.propertyChange(new PropertyChangeEvent(component, "focusOwner", null, component));
+    }
+  }
+
+  @Test
+  public void testComponentResize() {
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(333);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(222);
+    mySplitter.setFirstSize(400);
+    fireComponentResize(myContent);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(400);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(222);
+  }
+
+  private static void fireComponentResize(@NotNull JComponent component) {
+    ComponentEvent event = mock(ComponentEvent.class);
+    for (ComponentListener listener : component.getComponentListeners()) {
+      listener.componentResized(event);
+    }
+  }
+
+  @Test
+  public void testModelSwap() {
+    assertThat(myToolWindow1.isLeft()).isTrue();
+    assertThat(myToolWindow2.isLeft()).isFalse();
+
+    myModel.swap();
+    assertThat(myToolWindow1.isLeft()).isFalse();
+    assertThat(myToolWindow2.isLeft()).isTrue();
+    assertThat(mySplitter.getFirstSize()).isEqualTo(222);
+    assertThat(mySplitter.getLastSize()).isEqualTo(333);
+    verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
+  }
+
+  @Test
+  public void testModelUpdateFloatingStatus() {
+    myToolWindow1.setFloating(true);
+    myModel.update(myToolWindow1, PropertyType.FLOATING);
+
+    verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
+    verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(eq(myWorkBench));
+  }
+
+  @Test
+  public void testModelLocalUpdate() {
+    myModel.updateLocally();
+
+    verifyZeroInteractions(myWorkBenchManager);
+    verifyZeroInteractions(myFloatingToolWindowManager);
+  }
+
+  @Test
+  public void testModelToolOrderChange() {
+    myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
+
+    assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER")).isEqualTo("OTHER,PALETTE");
+    verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
+  }
+
+  @Test
+  public void testModelNormalChange() {
+    myToolWindow1.setSplit(true);
+    myModel.update(myToolWindow1, PropertyType.SPLIT);
+
+    verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
+  }
+
+  @Test
+  public void testUpdateModel() {
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2).inOrder();
+    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER", "OTHER,PALETTE");
+
+    myWorkBench.updateModel();
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1).inOrder();
+  }
+
+  @Test
+  public void testButtonDraggedFromLeftSideToRightSideAndBack() {
+    myWorkBench.setSize(1055, 400);
+    JComponent dragImage = new JLabel();
+
+    fireButtonDragged(dragImage, 10, 20, 11, 90);
+    assertThat(dragImage.getParent()).isNotNull();
+    assertThat(dragImage.getX()).isEqualTo(1);
+    assertThat(dragImage.getY()).isEqualTo(70);
+    verify(myLeftMinimizePanel).drag(eq(myToolWindow1), eq(70));
+
+    fireButtonDragged(dragImage, 10, 20, 100, 100);
+    assertThat(dragImage.getParent()).isNotNull();
+    assertThat(dragImage.getX()).isEqualTo(90);
+    assertThat(dragImage.getY()).isEqualTo(80);
+    verify(myLeftMinimizePanel).dragExit(eq(myToolWindow1));
+
+    fireButtonDragged(dragImage, 10, 20, 1052, 40);
+    assertThat(dragImage.getParent()).isNotNull();
+    assertThat(dragImage.getX()).isEqualTo(1034);
+    assertThat(dragImage.getY()).isEqualTo(20);
+    verify(myRightMinimizePanel).drag(eq(myToolWindow1), eq(20));
+
+    fireButtonDragged(dragImage, 10, 20, 11, 95);
+    assertThat(dragImage.getParent()).isNotNull();
+    assertThat(dragImage.getX()).isEqualTo(1);
+    assertThat(dragImage.getY()).isEqualTo(75);
+    verify(myRightMinimizePanel).dragExit(eq(myToolWindow1));
+    verify(myLeftMinimizePanel).drag(eq(myToolWindow1), eq(75));
+  }
+
+  private void fireButtonDragged(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
+    AbstractButton button = myToolWindow1.getMinimizedButton();
+    MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);
+    DragEvent event = new DragEvent(mouseEvent, dragImage, new Point(xStart, yStart));
+    myToolWindow1.fireButtonDragged(event);
+  }
+
+  @Test
+  public void testButtonDraggedFromLeftSideAndDroppedOnRightSide() {
+    myWorkBench.setSize(1055, 400);
+    JComponent dragImage = new JLabel();
+
+    fireButtonDragged(dragImage, 10, 20, 11, 90);
+    assertThat(dragImage.getParent()).isNotNull();
+    assertThat(dragImage.getX()).isEqualTo(1);
+    assertThat(dragImage.getY()).isEqualTo(70);
+    verify(myLeftMinimizePanel).drag(eq(myToolWindow1), eq(70));
+
+    fireButtonDropped(dragImage, 10, 20, 1052, 40);
+    assertThat(dragImage.getParent()).isNull();
+    verify(myLeftMinimizePanel).dragExit(eq(myToolWindow1));
+    verify(myRightMinimizePanel).dragDrop(eq(myToolWindow1), eq(20));
+  }
+
+  private void fireButtonDropped(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
+    AbstractButton button = myToolWindow1.getMinimizedButton();
+    MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);
+    DragEvent event = new DragEvent(mouseEvent, dragImage, new Point(xStart, yStart));
+    myToolWindow1.fireButtonDropped(event);
+  }
+}
