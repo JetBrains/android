@@ -16,12 +16,12 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -221,30 +221,35 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  protected void loadSimpleApplication() throws InterruptedException, ConfigurationException, IOException {
+  @NotNull
+  protected String loadProjectAndExpectSyncError(@NotNull String relativePath) throws Exception {
+    prepareProjectForImport(relativePath);
+    return requestSyncAndGetExpectedFailure();
+  }
+
+  protected void loadSimpleApplication() throws Exception {
     loadProject(SIMPLE_APPLICATION);
   }
 
-  protected void loadProject(@NotNull String relativePath) throws IOException, ConfigurationException, InterruptedException {
+  protected void loadProject(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null, null);
   }
 
-  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName)
-    throws IOException, ConfigurationException, InterruptedException {
+  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName) throws Exception {
 
     loadProject(relativePath, null, chosenModuleName);
   }
 
   protected void loadProject(@NotNull String relativePath, @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException, InterruptedException {
+    throws Exception {
     loadProject(relativePath, listener, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
                              @Nullable GradleSyncListener listener,
-                             @Nullable String chosenModuleName) throws IOException, ConfigurationException, InterruptedException {
+                             @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
-    Project project = myFixture.getProject();
+    Project project = getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
 
     importProject(project, project.getName(), projectRoot, listener);
@@ -443,6 +448,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     wrapper.updateDistributionUrl(path);
   }
 
+  // TODO move to CreateGradleWrapperTest (the only usage of this method.)
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
     for (String path : paths) {
       path = toSystemDependentName(path);
@@ -451,12 +457,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
+  // TODO remove parameter 'project'
   protected static void importProject(@NotNull Project project,
                                       @NotNull String projectName,
                                       @NotNull File projectRoot,
-                                      @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException, InterruptedException {
-
+                                      @Nullable GradleSyncListener listener) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
 
