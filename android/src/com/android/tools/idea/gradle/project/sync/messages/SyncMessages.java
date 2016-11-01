@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES_BETWEEN_MODULES;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -164,6 +164,11 @@ public class SyncMessages {
       }
       text.append(String.format("'%1$s'", dependent));
     }
+  }
+
+  public void removeCommonGroups() {
+    removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
+                   VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES, SyncMessage.DEFAULT_GROUP);
   }
 
   public void removeMessages(@NotNull String... groupNames) {
