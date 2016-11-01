@@ -62,12 +62,16 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntSupplier;
 import java.util.stream.Stream;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
@@ -76,11 +80,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private StringResourceTable myTable;
-  private JTextField myKey;
-  private TextFieldWithBrowseButton myDefaultValueWithBrowseBtn;
-  @VisibleForTesting final JTextComponent myDefaultValue;
-  private TextFieldWithBrowseButton myTranslationWithBrowseBtn;
-  @VisibleForTesting final JTextComponent myTranslation;
+  JTextComponent myKeyTextField;
+  @VisibleForTesting TextFieldWithBrowseButton myDefaultValueTextField;
+  TextFieldWithBrowseButton myTranslationTextField;
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
@@ -104,18 +106,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     }
 
-    myDefaultValueWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
-    myTranslationWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
-
-    ActionListener showMultilineActionListener = new ShowMultilineActionListener();
-    myDefaultValueWithBrowseBtn.addActionListener(showMultilineActionListener);
-    myTranslationWithBrowseBtn.addActionListener(showMultilineActionListener);
-
-    myDefaultValue = myDefaultValueWithBrowseBtn.getTextField();
-    myTranslation = myTranslationWithBrowseBtn.getTextField();
-
-    initEditPanel();
     initTable();
+    myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.KEY::ordinal));
+    initDefaultValueTextField();
+    initTranslationTextField();
+
     addResourceChangeListener();
 
     Disposer.register(parentDisposable, this);
@@ -125,6 +120,42 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ParseTask("Loading string resource data").queue();
+    }
+  }
+
+  private void initDefaultValueTextField() {
+    myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
+    myDefaultValueTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.DEFAULT_VALUE::ordinal));
+  }
+
+  private void initTranslationTextField() {
+    myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myTranslationTextField.addActionListener(new ShowMultilineActionListener());
+    myTranslationTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
+  }
+
+  private final class SetTableValueAtFocusListener extends FocusAdapter {
+    private final IntSupplier myColumn;
+
+    private SetTableValueAtFocusListener(@NotNull IntSupplier column) {
+      myColumn = column;
+    }
+
+    @Override
+    public void focusLost(@NotNull FocusEvent event) {
+      if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
+        return;
+      }
+
+      JTextComponent component = (JTextComponent)event.getComponent();
+
+      if (!component.isEditable()) {
+        return;
+      }
+
+      myTable.getModel().setValueAt(component.getText(), myTable.getSelectedRowModelIndex(), myColumn.getAsInt());
+      myTable.refilter();
     }
   }
 
@@ -298,47 +329,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     return myResourceRepository != null && myModificationCount >= myResourceRepository.getModificationCount();
   }
 
-  private void initEditPanel() {
-    KeyListener keyListener = new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        JTextComponent component = (JTextComponent)e.getComponent();
-
-        if (component.isEditable()) {
-          onTextFieldUpdate(component);
-        }
-      }
-    };
-    myKey.addKeyListener(keyListener);
-    myDefaultValue.addKeyListener(keyListener);
-    myTranslation.addKeyListener(keyListener);
-  }
-
-  @VisibleForTesting
-  void onTextFieldUpdate(JTextComponent component) {
-    if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
-      return;
-    }
-
-    int row = myTable.getSelectedRowModelIndex();
-    int column;
-
-    if (component == myKey) {
-      column = ConstantColumn.KEY.ordinal();
-    }
-    else if (component == myDefaultValue) {
-      column = ConstantColumn.DEFAULT_VALUE.ordinal();
-    }
-    else {
-      assert component == myTranslation;
-      column = myTable.getSelectedColumnModelIndex();
-    }
-
-    String value = component.getText();
-    myTable.getModel().setValueAt(value, row, column);
-    // TODO If you refilter here change the key listener to update the model on Enter
-  }
-
   private void initTable() {
     ListSelectionListener listener = new CellSelectionListener();
 
@@ -469,11 +459,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       }
 
       if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
-        setTextAndEditable(myKey, "", false);
-        setTextAndEditable(myDefaultValue, "", false);
-        setTextAndEditable(myTranslation, "", false);
-        myDefaultValueWithBrowseBtn.getButton().setEnabled(false);
-        myTranslationWithBrowseBtn.getButton().setEnabled(false);
+        setTextAndEditable(myKeyTextField, "", false);
+        setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
+        setTextAndEditable(myTranslationTextField.getTextField(), "", false);
+        myDefaultValueTextField.getButton().setEnabled(false);
+        myTranslationTextField.getButton().setEnabled(false);
         return;
       }
 
@@ -484,12 +474,12 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       Locale locale = model.localeOfColumn(column);
 
       String key = model.keyOfRow(row);
-      setTextAndEditable(myKey, key, false); // TODO: keys are not editable, we want them to be refactor operations
+      setTextAndEditable(myKeyTextField, key, false); // TODO: keys are not editable, we want them to be refactor operations
 
       String defaultValue = (String)model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal());
       boolean defaultValueEditable = !StringUtil.containsChar(defaultValue, '\n'); // don't allow editing multiline chars in a text field
-      setTextAndEditable(myDefaultValue, defaultValue, defaultValueEditable);
-      myDefaultValueWithBrowseBtn.getButton().setEnabled(true);
+      setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
+      myDefaultValueTextField.getButton().setEnabled(true);
 
       boolean translationEditable = false;
       String translation = "";
@@ -497,8 +487,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         translation = (String)model.getValueAt(row, column);
         translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
       }
-      setTextAndEditable(myTranslation, translation, translationEditable);
-      myTranslationWithBrowseBtn.getButton().setEnabled(locale != null);
+      setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
+      myTranslationTextField.getButton().setEnabled(locale != null);
     }
 
     private void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
