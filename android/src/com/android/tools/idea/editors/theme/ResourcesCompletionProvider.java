@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
@@ -89,10 +90,10 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
       return;
     }
 
-    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getFrameworkResources().values()) {
+    for (ResourceValueMap resourceTypeResource : resourceResolver.getFrameworkResources().values()) {
       myAllResources.addAll(resourceTypeResource.values());
     }
-    for (Map<String, ResourceValue> resourceTypeResource : resourceResolver.getProjectResources().values()) {
+    for (ResourceValueMap resourceTypeResource : resourceResolver.getProjectResources().values()) {
       myAllResources.addAll(resourceTypeResource.values());
     }
   }
