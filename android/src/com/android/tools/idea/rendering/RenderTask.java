@@ -1123,7 +1123,10 @@ public class RenderTask implements IImageFactory {
    * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
    */
   @VisibleForTesting
-  void disableSecurityManager() {
+  public void disableSecurityManager() {
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      throw new IllegalStateException("This method can only be called in unit test mode");
+    }
     LOG.warn("Security manager was disabled");
     isSecurityManagerEnabled = false;
   }
