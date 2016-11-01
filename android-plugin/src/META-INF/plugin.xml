@@ -1298,10 +1298,6 @@
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
       <skipForDefaultProject/>
     </component>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders</implementation-class>
-      <skipForDefaultProject/>
-    </component>
   </project-components>
 
   <!-- Layered images viewers -->
