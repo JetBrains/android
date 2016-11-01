@@ -24,17 +24,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryDataCache {
-  private static final Logger LOG = Logger.getInstance(MemoryDataCache.class);
-  static final int UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
+  static final int UNFINISHED_TIMESTAMP = -1;
 
   private List<MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
   private List<MemoryData.VmStatsSample> myVmStatsSamples = Collections.synchronizedList(new ArrayList<>());
   private List<MemoryData.HeapDumpSample> myHeapDumpSamples = Collections.synchronizedList(new ArrayList<>());
-  private Map<String, File> myHeapDumpFiles = new HashMap<>();
+  private Map<MemoryData.HeapDumpSample, File> myHeapDumpFiles = new HashMap<>();
+  private List<AllocationTrackingSample> myAllocationTrackingSamples = Collections.synchronizedList(new ArrayList<>());
 
   @NotNull
   private final IDevice myDevice;
@@ -59,8 +61,21 @@ public class MemoryDataCache {
   }
 
   public void addPulledHeapDumpFile(@NotNull MemoryData.HeapDumpSample heapDumpSample, @NotNull File heapDumpFile) {
-    myHeapDumpFiles.put(heapDumpSample.getFilePath(), heapDumpFile);
+    myHeapDumpFiles.put(heapDumpSample, heapDumpFile);
     myMemoryEventDispatcher.getMulticaster().newHeapDumpSamplesRetrieved(heapDumpSample);
+  }
+
+  public void executeOnHeapDumpFiles(@NotNull BiConsumer<MemoryData.HeapDumpSample, File> biConsumer) {
+    myHeapDumpFiles.forEach(biConsumer);
+  }
+
+  public void addAllocationTrackingData(@NotNull AllocationTrackingSample allocationTrackingSample) {
+    myAllocationTrackingSamples.add(allocationTrackingSample);
+    myMemoryEventDispatcher.getMulticaster().newAllocationTrackingSampleRetrieved(allocationTrackingSample);
+  }
+
+  public void executeOnAllocationTrackingSamples(@NotNull Consumer<AllocationTrackingSample> consumer) {
+    myAllocationTrackingSamples.forEach(consumer);
   }
 
   @NotNull
@@ -79,9 +94,14 @@ public class MemoryDataCache {
   }
 
   @NotNull
+  public AllocationTrackingSample getAllocationTrackingSample(int index) {
+    return myAllocationTrackingSamples.get(index);
+  }
+
+  @NotNull
   public File getHeapDumpFile(@NotNull MemoryData.HeapDumpSample sample) {
-    assert myHeapDumpFiles.containsKey(sample.getFilePath());
-    return myHeapDumpFiles.get(sample.getFilePath());
+    assert myHeapDumpFiles.containsKey(sample);
+    return myHeapDumpFiles.get(sample);
   }
 
   public MemoryData.HeapDumpSample swapLastHeapDumpSample(@NotNull MemoryData.HeapDumpSample sample) {
@@ -125,6 +145,14 @@ public class MemoryDataCache {
     return DataAdapter.convertBinarySearchIndex(index, myHeapDumpSamples.size(), leftClosest);
   }
 
+  public int getLatestPriorAllocationTrackingSampleIndex(long time, boolean leftClosest) {
+    int index = Collections.binarySearch(myAllocationTrackingSamples, new AllocationTrackingSample(time, time, new byte[]{}), (left, right) -> {
+      long diff = left.getStartTime() - right.getStartTime();
+      return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
+    });
+    return DataAdapter.convertBinarySearchIndex(index, myAllocationTrackingSamples.size(), leftClosest);
+  }
+
   public void reset() {
     myMemorySamples.clear();
     myVmStatsSamples.clear();
@@ -134,5 +162,6 @@ public class MemoryDataCache {
       file.delete();
     }
     myHeapDumpFiles.clear();
+    myAllocationTrackingSamples.clear();
   }
 }

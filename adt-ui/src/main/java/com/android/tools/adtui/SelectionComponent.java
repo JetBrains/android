@@ -215,8 +215,9 @@ public final class SelectionComponent extends AnimatedComponent {
    * The work around is to use absolute coordinates for mouse and component and subtract them.
    */
   private Point getMouseLocation() {
-    if (MouseInfo.getPointerInfo() != null) {
-      mLastMouseLocation = MouseInfo.getPointerInfo().getLocation();
+    PointerInfo pointerInfo = MouseInfo.getPointerInfo();
+    if (pointerInfo != null) {
+      mLastMouseLocation = pointerInfo.getLocation();
     }
     Point cLoc = getLocationOnScreen();
     int x = (int)(mLastMouseLocation.getX() - cLoc.getX());
