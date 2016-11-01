@@ -98,7 +98,6 @@ public class ModulesToImportDialogTest {
 
     File tempFile = createTempFile(randomUUID().toString(), ".xml", true);
     VirtualFile targetFile = findFileByIoFile(tempFile, true);
-    assertThat(targetFile).isNotNull();
     dialog.saveSelectionToFile(targetFile);
 
     dialog.loadSelectionFromFile(targetFile);

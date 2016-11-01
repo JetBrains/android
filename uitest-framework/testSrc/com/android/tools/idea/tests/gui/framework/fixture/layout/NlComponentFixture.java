@@ -60,7 +60,6 @@ public class NlComponentFixture {
   @NotNull
   private Point getMidPoint() {
     ScreenView screenView = mySurface.getCurrentScreenView();
-    assertNotNull(screenView);
     int midX = Coordinates.getSwingX(screenView, myComponent.x + myComponent.w / 2);
     int midY = Coordinates.getSwingY(screenView, myComponent.y + myComponent.h / 2);
     return new Point(midX, midY);
@@ -73,17 +72,13 @@ public class NlComponentFixture {
 
   public void requireViewClass(@NotNull String fqn) {
     ViewInfo viewInfo = myComponent.viewInfo;
-    assertNotNull("No layoutlib ViewInfo", viewInfo);
     Object viewObject = viewInfo.getViewObject();
-    assertNotNull("No layoutlib view object in the ViewInfo", viewObject);
     assertEquals(fqn, viewObject.getClass().getName());
   }
 
   public void requireActualText(@NotNull String expectedText) {
     ViewInfo viewInfo = myComponent.viewInfo;
-    assertNotNull("No layoutlib ViewInfo", viewInfo);
     Object viewObject = viewInfo.getViewObject();
-    assertNotNull("No layoutlib view object in the ViewInfo", viewObject);
     try {
       Method getText = viewObject.getClass().getMethod("getText");
       String actualText = (String)getText.invoke(viewObject);

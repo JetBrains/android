@@ -79,7 +79,6 @@ public class BuildSignedApkTest {
       .clickFinish();
 
     File[] apks = dstFolder.listFiles();
-    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -123,7 +122,6 @@ public class BuildSignedApkTest {
 
     // We should verify that a V2 signature is not present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
-    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -167,7 +165,6 @@ public class BuildSignedApkTest {
 
     // We should verify that a V2 signature is present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
-    assertThat(apks).isNotNull();
     assertThat(apks).hasLength(1);
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
@@ -212,7 +209,6 @@ public class BuildSignedApkTest {
     // We should verify that a V2 signature is present, but that is hard to do here.
     File[] apks = dstFolder.listFiles();
     assertThat(apks).hasLength(1);
-    assertThat(apks).isNotNull();
     File apk = apks[0];
     try (ZipFile zf = new ZipFile(apk)) {
       assertThat(zf.getEntry("META-INF/CERT.SF")).isNotNull();

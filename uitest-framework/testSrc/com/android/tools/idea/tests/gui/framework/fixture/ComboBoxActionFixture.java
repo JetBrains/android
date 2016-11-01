@@ -95,7 +95,6 @@ public class ComboBoxActionFixture {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
-          assertNotNull(actionItem);
           if (text.equals(actionItem.getText())) {
             return true;
           }
@@ -108,7 +107,6 @@ public class ComboBoxActionFixture {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
-          assertNotNull(actionItem);
           if (text.equals(actionItem.getText())) {
             return i;
           }

@@ -36,8 +36,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static org.junit.Assert.assertNotNull;
-
 public class HprofEditorFixture extends EditorFixture {
   @NotNull private HprofEditor myHprofEditor;
   @NotNull private ActionToolbarFixture myToolbarFixture;
@@ -77,7 +75,6 @@ public class HprofEditorFixture extends EditorFixture {
             }
           }
         }
-        assertNotNull(targetEditor);
         return targetEditor;
       });
     return new HprofEditorFixture(robot, frame, hprofEditor);

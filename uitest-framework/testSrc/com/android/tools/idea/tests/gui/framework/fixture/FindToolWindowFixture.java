@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static org.fest.reflect.core.Reflection.field;
-import static org.junit.Assert.assertNotNull;
 
 public class FindToolWindowFixture {
 
@@ -38,7 +37,6 @@ public class FindToolWindowFixture {
     ContentFixture(@NotNull IdeFrameFixture parent) {
       UsageViewManager usageViewManager = UsageViewManager.getInstance(parent.getProject());
       myContent = usageViewManager.getSelectedContent();
-      assertNotNull(myContent);
     }
 
     @NotNull

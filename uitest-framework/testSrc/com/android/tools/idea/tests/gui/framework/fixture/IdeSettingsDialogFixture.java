@@ -40,7 +40,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
-import static org.junit.Assert.assertNotNull;
 
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
   @NotNull
@@ -57,17 +56,14 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   public List<String> getProjectSettingsNames() {
     List<String> names = Lists.newArrayList();
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
-    assertNotNull(optionsEditor);
 
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
     assertThat(trees).hasSize(1);
     JComponent tree = trees.get(0);
 
     CachingSimpleNode root = field("myRoot").ofType(CachingSimpleNode.class).in(tree).get();
-    assertNotNull(root);
 
     ConfigurableGroup[] groups = field("myGroups").ofType(ConfigurableGroup[].class).in(root).get();
-    assertNotNull(groups);
     for (ConfigurableGroup current : groups) {
       Configurable[] configurables = current.getConfigurables();
       for (Configurable configurable : configurables) {

@@ -63,7 +63,6 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
   @NotNull
   public File getLocationInFileSystem() {
     String location = findTextFieldWithLabel("Project location:").getText();
-    assertThat(location).isNotNull();
     assertThat(location).isNotEmpty();
     return new File(location);
   }
