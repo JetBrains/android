@@ -96,6 +96,7 @@ public class WizardConstants {
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  public static final Key<Boolean> IS_LOW_MEMORY_KEY = createKey(ATTR_IS_LOW_MEMORY, WIZARD, Boolean.class);
 
   // Instant module step keys
   public static final Key<String> WH_SDK_KEY = createKey(ATTR_WH_SDK, WIZARD, String.class);
