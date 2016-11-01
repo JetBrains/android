@@ -67,7 +67,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -173,9 +172,7 @@ public final class Projects {
                               @NotNull PostSyncProjectSetup.Request setupRequest,
                               boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
-      SyncMessages messages = SyncMessages.getInstance(project);
-      messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
-                              VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
+      SyncMessages.getInstance(project).removeCommonGroups();
 
       ApplicationManager.getApplication().runWriteAction(() -> {
         if (!project.isDisposed()) {
