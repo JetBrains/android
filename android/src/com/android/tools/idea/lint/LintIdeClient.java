@@ -286,6 +286,12 @@ public class LintIdeClient extends LintClient implements Disposable {
     return Collections.emptyList();
   }
 
+  @NonNull
+  @Override
+  public List<File> getTestLibraries(@NonNull com.android.tools.lint.detector.api.Project project) {
+    return Collections.emptyList();
+  }
+
   @Override
   @NonNull
   public String readFile(@NonNull final File file) {
