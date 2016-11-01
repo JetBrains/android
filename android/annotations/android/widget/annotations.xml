@@ -713,6 +713,24 @@
   <item name="android.widget.Switch void setTrackTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.TabHost android.view.View getCurrentTabView()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TabHost android.widget.TabHost.TabSpec newTabSpec(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TabHost android.widget.TabHost.TabSpec newTabSpec(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TabHost int getCurrentTab()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TabHost java.lang.String getCurrentTabTag()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TabHost.TabSpec java.lang.String getTag()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.widget.TabWidget android.graphics.drawable.Drawable getLeftStripDrawable()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -958,8 +976,20 @@
   <item name="android.widget.TimePicker void setCurrentMinute(java.lang.Integer) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.TimePicker void setHour(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="23" />
+    </annotation>
+  </item>
   <item name="android.widget.TimePicker void setIs24HourView(java.lang.Boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.TimePicker void setMinute(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="59" />
+    </annotation>
   </item>
   <item name="android.widget.Toast android.widget.Toast makeText(android.content.Context, int, int) 1">
     <annotation name="android.support.annotation.StringRes" />
