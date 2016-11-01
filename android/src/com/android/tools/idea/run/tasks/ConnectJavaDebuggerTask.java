@@ -22,7 +22,6 @@ import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
@@ -47,8 +46,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
   public ConnectJavaDebuggerTask(@NotNull Set<String> applicationIds,
                                  @NotNull AndroidDebugger debugger,
-                                 @NotNull Project project) {
-    super(applicationIds, debugger, project);
+                                 @NotNull Project project,
+                                 boolean monitorRemoteProcess) {
+    super(applicationIds, debugger, project, monitorRemoteProcess);
   }
 
   @Override
@@ -74,7 +74,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    final RemoteDebugProcessHandler debugProcessHandler = new RemoteDebugProcessHandler(myProject);
+    final AndroidRemoteDebugProcessHandler debugProcessHandler = new AndroidRemoteDebugProcessHandler(myProject, myMonitorRemoteProcess);
 
     // switch the launch status and console printers to point to the new process handler
     // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should
