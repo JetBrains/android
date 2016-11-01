@@ -23,8 +23,8 @@ import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -62,11 +62,13 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private boolean myActivateEditorAfterLoad;
   private String myPropertyNameForActivation;
 
-  public InspectorPanel(@NotNull Project project, @NotNull JComponent allPropertiesLink) {
+  public InspectorPanel(@NotNull NlPropertiesManager propertiesManager,
+                        @NotNull Disposable parentDisposable,
+                        @NotNull JComponent allPropertiesLink) {
     super(new BorderLayout());
     myAllPropertiesLink = allPropertiesLink;
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myProviders = NlInspectorProviders.getInstance(project);
+    myProviders = new NlInspectorProviders(propertiesManager, parentDisposable);
     myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
