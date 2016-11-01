@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdMana
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.fest.swing.util.StringTextMatcher;
 import org.junit.*;
 import org.junit.runner.RunWith;
 

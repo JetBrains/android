@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.annotations.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.OccurenceNavigatorSupport;
 import com.intellij.ui.content.Content;
