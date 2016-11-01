@@ -92,6 +92,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       Disposer.dispose(myModel);
+      myPropertiesManager.dispose();
     }
     finally {
       super.tearDown();
