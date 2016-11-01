@@ -36,6 +36,7 @@ import javax.swing.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.junit.Assert.assertNotNull;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
