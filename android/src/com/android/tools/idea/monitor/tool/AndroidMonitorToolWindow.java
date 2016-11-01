@@ -21,19 +21,18 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataStoreImpl;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.datastore.profilerclient.ProfilerService;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
 import com.android.tools.idea.monitor.ui.energy.view.EnergyProfilerUiManager;
@@ -45,6 +44,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
@@ -53,6 +53,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
+import io.grpc.StatusRuntimeException;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,12 +66,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_ENERGY_PROFILER;
 
 public class AndroidMonitorToolWindow implements Disposable {
 
-  private static final Logger LOG = Logger.getInstance(AndroidMonitorToolWindow.class);
+  private static Logger getLogger() {
+    return Logger.getInstance(AndroidMonitorToolWindow.class);
+  }
 
   private static final int CHOREOGRAPHER_FPS = 60;
 
@@ -92,6 +96,11 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   @Nullable
   private DeviceProfilerService mySelectedDeviceProfilerService;
+
+  @Nullable
+  private Poller myHeartBeatPoller;
+
+  @NotNull private final AtomicBoolean myIsProfilerServiceRunning;
 
   @NotNull
   private final JPanel myComponent;
@@ -138,6 +147,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySplitter = new Splitter(true, 1f);
     myDeviceContext = new DeviceContext();
     myProfilerManagers = new TreeMap<>();
+    myIsProfilerServiceRunning = new AtomicBoolean(false);
 
     createToolbarComponent();
     setupDevice();
@@ -170,11 +180,16 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     return Arrays.asList(accordion,
                          frameLength -> {
+                           if (!myIsProfilerServiceRunning.get()) {
+                             return;
+                           }
+
                            long maxTimeBufferUs = TimeUnit.NANOSECONDS.toMicros(Poller.POLLING_DELAY_NS);
                            long currentTimeUs = myDataStore.getLatestTimeUs();
                            // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_US, set global min to 0 so that user can
                            // not scroll back to negative time.
-                           timeGlobalRangeUs.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
+                           timeGlobalRangeUs
+                             .setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
                            timeGlobalRangeUs.setMaxTarget(currentTimeUs - maxTimeBufferUs);
                          },
@@ -215,6 +230,17 @@ public class AndroidMonitorToolWindow implements Disposable {
             disconnectFromDevice();
           }
         }
+
+        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) > 0) {
+          /**
+           * Even if a client has been killed, it would stay in the client list and we won't get
+           * a new clientSelected event (see {@link DevicePanel#updateClientCombo()}), here we
+           * check for that case and stops the timeline/pollers accordingly.
+           */
+          if (mySelectedClient != null && !mySelectedClient.isValid()) {
+            pausePollers();
+          }
+        }
       }
 
       /**
@@ -250,12 +276,12 @@ public class AndroidMonitorToolWindow implements Disposable {
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-        LOG.info("Successfully obtained debug bridge");
+        getLogger().info("Successfully obtained debug bridge");
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        LOG.info("Unable to obtain debug bridge", t);
+        getLogger().info("Unable to obtain debug bridge", t);
       }
     }, EdtExecutor.INSTANCE);
   }
@@ -396,15 +422,6 @@ public class AndroidMonitorToolWindow implements Disposable {
         myCollapseSegmentsButton.setVisible(false);
         myExpandedProfiler = null;
       }
-
-      @Override
-      public void profilerServerDisconnected() {
-        LOG.info("Attempt to communicate with Device Profiler Service failed. Disconnecting...");
-        // TODO Right now this callback can be called from many pollers which in-turn would
-        // call disconnectFromDevice() all at once, which is potentially not thread safe.
-        // We should add some logic to guard against this case.
-        disconnectFromDevice();
-      }
     });
   }
 
@@ -413,12 +430,14 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private void disconnectFromDevice() {
-    if (mySelectedDeviceProfilerService != null) {
-      deinitializeProfilers();
-      ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
-      mySelectedDeviceProfilerService = null;
-      LOG.info("Successfully disconnected from Device Profiler Service.");
+    if (mySelectedDeviceProfilerService == null) {
+      return;
     }
+
+    pausePollers();
+    ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
+    mySelectedDeviceProfilerService = null;
+    getLogger().info("Successfully disconnected from Device Profiler Service.");
   }
 
   private void connectToDevice() {
@@ -427,8 +446,23 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
-    LOG.info(mySelectedDeviceProfilerService == null ?
+    getLogger().info(mySelectedDeviceProfilerService == null ?
              "Attempt to connect to Device Profiler Service failed." : "Successfully connected to Device Profiler Service.");
+  }
+
+  private void pausePollers() {
+    // Since the heart beat runs on the pooled thread, it might not have a chance to start
+    // when this is called. Here we check that the AtomicBoolean has been set in AsyncStart
+    // before stop is called to avoid a deadlock.
+    if (!myIsProfilerServiceRunning.get()) {
+      return;
+    }
+
+    if (myHeartBeatPoller != null) {
+      myHeartBeatPoller.stop();
+    }
+
+    // TODO indicates that the profiler has been paused.
   }
 
   private void initializeProfilers() {
@@ -436,8 +470,13 @@ public class AndroidMonitorToolWindow implements Disposable {
       return;
     }
 
+    if (!mySelectedClient.isValid()) {
+      // TODO indicates that the client is dead.
+      return;
+    }
+
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService, myEventDispatcher);
+    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createCommonAnimatables());
 
@@ -459,42 +498,71 @@ public class AndroidMonitorToolWindow implements Disposable {
     int processId = mySelectedClient.getClientData().getPid();
     mySelectedDeviceProfilerService.setSelectedProcessId(processId);
 
-    for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-      manager.startMonitoring(processId);
-    }
+    // The heart beat is used to check whether perfd is still alive. Failures in perfd are the only cases
+    // that are not handled via the DeviceContext.DeviceSelectionListener().
+    // Everything else (e.g. app start/shutdown) can be handled in the listener instead.
+    myHeartBeatPoller =
+      new Poller(myDataStore, Poller.POLLING_DELAY_NS) {
+        @Override
+        protected void asyncInit() throws StatusRuntimeException {
+          myIsProfilerServiceRunning.set(true);
+          for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+            manager.startMonitoring(mySelectedClient.getClientData().getPid());
+          }
+        }
+
+        @Override
+        protected void asyncShutdown() throws StatusRuntimeException {
+          myIsProfilerServiceRunning.set(false);
+          for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+            manager.stopMonitoring();
+          }
+        }
+
+        @Override
+        protected void poll() throws StatusRuntimeException {
+          // TODO currently reply on a random getVersion rpc for heart beat.
+          // Investigate whether we can use a open async stream to detect failure instead.
+          myService.getDeviceService().getVersion(com.android.tools.profiler.proto.ProfilerService.VersionRequest.getDefaultInstance());
+        }
+      };
+    ApplicationManager.getApplication().executeOnPooledThread(myHeartBeatPoller);
 
     populateProfilerUi();
     myProfilersInitialized = true;
   }
 
   private void deinitializeProfilers() {
-    if (mySelectedClient != null) {
-      synchronized (myComponent.getTreeLock()) {
-        // Empties the entire UI except the toolbar.
-        for (int i = myComponent.getComponentCount() - 1; i > 0; i--) {
-          myComponent.remove(i);
-        }
-      }
-
-      for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-        manager.stopMonitoring();
-        manager.resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
-      }
-      myProfilerManagers.clear();
-
-      if (myDataStore != null) {
-        myDataStore.stop();
-        myDataStore = null;
-      }
-      myChoreographer = null;
-      myEventDispatcher = null;
-      mySelectedClient = null;
-      myProfilersInitialized = false;
-      myExpandedProfiler = null;
+    if (mySelectedClient == null) {
+      return;
     }
+
+    pausePollers();
+
+    synchronized (myComponent.getTreeLock()) {
+      // Empties the entire UI except the toolbar.
+      for (int i = myComponent.getComponentCount() - 1; i > 0; i--) {
+        myComponent.remove(i);
+      }
+    }
+
+    for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+      manager.resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
+    }
+    myProfilerManagers.clear();
+
+    if (myDataStore != null) {
+      myDataStore.stop();
+      myDataStore = null;
+    }
+    myChoreographer = null;
+    myEventDispatcher = null;
+    mySelectedClient = null;
+    myProfilersInitialized = false;
+    myExpandedProfiler = null;
+    myHeartBeatPoller = null;
+
     // Hides the reset button
-    if (myCollapseSegmentsButton != null) {
-      myCollapseSegmentsButton.setVisible(false);
-    }
+    myCollapseSegmentsButton.setVisible(false);
   }
 }

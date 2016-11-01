@@ -23,7 +23,7 @@ import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;

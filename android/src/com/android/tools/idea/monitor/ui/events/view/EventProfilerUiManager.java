@@ -21,7 +21,7 @@ import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.events.model.EventDataPoller;
 import com.android.tools.idea.monitor.ui.events.model.WakeLockDataPoller;
 import com.google.common.collect.Sets;

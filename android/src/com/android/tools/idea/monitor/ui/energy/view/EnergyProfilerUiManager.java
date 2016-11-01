@@ -22,7 +22,7 @@ import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.datastore.profilerclient.ProfilerEventListener;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.energy.model.EnergyPoller;
 import com.google.common.collect.Sets;
 import com.intellij.ui.components.panels.HorizontalLayout;
