@@ -24,7 +24,6 @@ import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
-import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -56,7 +55,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
@@ -258,9 +256,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     public boolean isJdk() {
       if (myNode instanceof NamedLibraryElementNode) {
-        NamedLibraryElement value = ((NamedLibraryElementNode)myNode).getValue();
-        assertNotNull(value);
-        LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
+        LibraryOrSdkOrderEntry orderEntry = ((NamedLibraryElementNode)myNode).getValue().getOrderEntry();
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();
           return sdk.getSdkType() instanceof JavaSdk;
@@ -272,9 +268,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     public NodeFixture requireDirectory(@NotNull String name) {
       assertThat(myNode).isInstanceOf(PsiDirectoryNode.class);
-      VirtualFile file = myNode.getVirtualFile();
-      assertNotNull(file);
-      assertThat(file.getName()).isEqualTo(name);
+      assertThat(myNode.getVirtualFile().getName()).isEqualTo(name);
       return this;
     }
 

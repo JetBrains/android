@@ -20,8 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.junit.Rule;
@@ -68,31 +66,23 @@ public class ThemePreviewTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    NlPreviewFixture layoutPreview = editor.getLayoutPreview(true);
-    assertNotNull(layoutPreview);
-    int savedApiLevel = layoutPreview.getConfigToolbar().getApiLevel();
+    int savedApiLevel = editor.getLayoutPreview(true).getConfigToolbar().getApiLevel();
 
     editor.open("app/src/main/res/values-v19/styles.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("PreviewTheme", "");
     guiTest.robot().waitForIdle();
     assertTrue(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
 
-    ThemePreviewFixture preview = editor.getThemePreview(true);
-    assertNotNull(preview);
     // There is also a v20 styles.xml so in order to preview v19, it has to be selected in the toolbar
-    preview.getPreviewComponent().requireApi(19);
+    editor.getThemePreview(true).getPreviewComponent().requireApi(19);
 
     editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("PreviewTheme", "");
     guiTest.robot().waitForIdle();
-    preview = editor.getThemePreview(true);
-    assertNotNull(preview);
-    preview.getPreviewComponent().requireApi(18);
+    editor.getThemePreview(true).getPreviewComponent().requireApi(18);
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    layoutPreview = editor.getLayoutPreview(true);
-    assertNotNull(layoutPreview);
     // The API level shouldn't be modified by the theme preview. Regression test for http://b.android.com/201313
-    layoutPreview.getConfigToolbar().requireApi(savedApiLevel);
+    editor.getLayoutPreview(true).getConfigToolbar().requireApi(savedApiLevel);
   }
 }

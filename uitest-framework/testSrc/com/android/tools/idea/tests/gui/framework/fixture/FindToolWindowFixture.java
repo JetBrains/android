@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static org.fest.reflect.core.Reflection.field;
-import static org.junit.Assert.assertNotNull;
 
 public class FindToolWindowFixture {
 
@@ -57,10 +56,7 @@ public class FindToolWindowFixture {
     private Tree getContentsTree() {
       JComponent component = myContent.getComponent();
       OccurenceNavigatorSupport navigatorSupport = field("mySupport").ofType(OccurenceNavigatorSupport.class).in(component).get();
-      assertNotNull(navigatorSupport);
-      JTree tree = field("myTree").ofType(JTree.class).in(navigatorSupport).get();
-      assertNotNull(tree);
-      return (Tree)tree;
+      return (Tree)field("myTree").ofType(JTree.class).in(navigatorSupport).get();
     }
   }
 }

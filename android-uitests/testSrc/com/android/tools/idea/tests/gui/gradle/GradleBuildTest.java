@@ -32,7 +32,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -59,9 +58,7 @@ public class GradleBuildTest {
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 
-    File actualJdkPath = IdeSdks.getInstance().getJdkPath();
-    assertNotNull(actualJdkPath);
-    assertEquals(jdkPath.getPath(), actualJdkPath.getPath());
+    assertEquals(jdkPath.getPath(), IdeSdks.getInstance().getJdkPath().getPath());
   }
 
   /**

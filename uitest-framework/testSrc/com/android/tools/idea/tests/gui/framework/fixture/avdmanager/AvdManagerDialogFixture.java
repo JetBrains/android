@@ -36,7 +36,6 @@ import javax.swing.*;
 
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Controls the Avd Manager Dialog for GUI test cases
@@ -113,9 +112,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     JTableCellFixture cell = tableFixture.cell(name);
     cell.click(RIGHT_BUTTON);
 
-    JPopupMenu contextMenu = robot().findActivePopupMenu();
-    assertNotNull(contextMenu);
-    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), contextMenu);
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
     contextMenuFixture.menuItemWithPath("Delete").click();
 
     MessagesFixture.findByTitle(robot(), "Confirm Deletion").clickYes();
