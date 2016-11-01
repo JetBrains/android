@@ -23,58 +23,71 @@ import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixt
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Arrays;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
-public class TranslationsEditorTest {
+public final class TranslationsEditorTest {
+  @Rule
+  public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  private TranslationsEditorFixture myTranslationsEditor;
 
-  @Test
-  public void testBasics() throws IOException {
-    guiTest.importSimpleApplication();
+  @Before
+  public void setUp() throws IOException {
+    myGuiTest.importSimpleApplication();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
 
-    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml", EDITOR)
       .awaitNotification("Edit translations for all locales in the translations editor.")
       .performAction("Open editor");
 
-    // Wait for the translations editor table to show up, and the table to be initialized
-    GuiTests.waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
+    GuiTests.waitUntilShowing(myGuiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
-        return table.getModel() != null && table.getModel().getColumnCount() > 0;
+        return table.getModel().getRowCount() != 0;
       }
     });
 
-    // Now obtain the fixture for the displayed translations editor
-    TranslationsEditorFixture txEditor = editor.getTranslationsEditor();
+    myTranslationsEditor = editor.getTranslationsEditor();
+  }
 
-    assertThat(txEditor.locales()).containsExactly(
-      "English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)").inOrder();
+  @Test
+  public void basics() {
+    Object expected = Arrays.asList("English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)");
+    assertEquals(expected, myTranslationsEditor.locales());
 
-    assertThat(txEditor.keys()).containsExactly("action_settings", "app_name", "cancel", "hello_world").inOrder();
+    assertEquals(Arrays.asList("action_settings", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
 
-    JTableCellFixture cancel = txEditor.cell(TableCell.row(2).column(6)); // cancel in zh-rCN
+    JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(2).column(6)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
+    assertTrue(GuiQuery.getNonNull(() -> cancel.font().target().canDisplay('消')));
+  }
 
-    // validate that the font used can actually display these characters
-    // Note: this test will always pass on Mac, but will fail on Windows & Linux if the appropriate fonts were not set by the renderer
-    // See FontUtil.getFontAbleToDisplay()
-    final FontFixture font = cancel.font();
-    assertThat(GuiQuery.getNonNull(() -> font.target().canDisplay('消')))
-      .named("Font " + font.target().getName() + " can display Chinese characters").isTrue();
+  @Test
+  public void enteringTextInTranslationTextFieldUpdatesTableCell() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    TableCell cell = TableCell.row(2).column(3);
+
+    table.selectCell(cell);
+    myTranslationsEditor.getTranslationTextField().enterText("cancel_en");
+
+    // Make the Translation text field lose focus
+    myTranslationsEditor.getKeyTextField().focus();
+
+    assertEquals("cancel_en", table.valueAt(cell));
   }
 }
