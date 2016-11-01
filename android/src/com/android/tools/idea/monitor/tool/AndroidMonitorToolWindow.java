@@ -368,7 +368,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySplitter.setFirstComponent(gridBagPanel);
     myComponent.add(mySplitter);
 
-    myEventDispatcher.addListener(new ProfilerEventListener<BaseProfilerUiManager.ProfilerType>() {
+    myEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
       public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
         // No other profiler should request expansion if a profiler is already expanded

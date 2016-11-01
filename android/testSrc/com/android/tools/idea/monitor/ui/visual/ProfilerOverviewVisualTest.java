@@ -230,7 +230,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     // Resize the SelectionComponent based on whether we are in L1 or L2 view.
     // TODO construct/destroyed Level3 segment/elements as we expand/collapse segments
-    mEventDispatcher.addListener(new ProfilerEventListener<BaseProfilerUiManager.ProfilerType>() {
+    mEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
       public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
         switch (profilerType) {
