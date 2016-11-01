@@ -399,7 +399,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       return this;
     }
 
-    Wait.seconds(10).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+    Wait.seconds(20).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
