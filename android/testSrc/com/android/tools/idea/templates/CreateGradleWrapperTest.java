@@ -16,21 +16,26 @@
 package com.android.tools.idea.templates;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class CreateGradleWrapperTest extends AndroidGradleTestCase {
-
   public void testCreateGradleWrapper() throws Exception {
-    File baseDir = getBaseDirPath(getProject());
-    createGradleWrapper(baseDir);
+    File projectFolderPath = getBaseDirPath(getProject());
+    createGradleWrapper(projectFolderPath);
 
-    assertFilesExist(baseDir, FN_GRADLE_WRAPPER_UNIX, FN_GRADLE_WRAPPER_WIN, FD_GRADLE, FD_GRADLE_WRAPPER,
-                     join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR), join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
+    assertAbout(file()).that(new File(projectFolderPath, "gradlew")).isFile();
+    assertAbout(file()).that(new File(projectFolderPath, "gradlew.bat")).isFile();
+    assertAbout(file()).that(new File(projectFolderPath, "gradle")).isDirectory();
+    assertAbout(file()).that(new File(projectFolderPath, join("gradle", "wrapper", "gradle-wrapper.jar"))).isFile();
+    assertAbout(file()).that(new File(projectFolderPath, join("gradle", "wrapper", "gradle-wrapper.properties"))).isFile();
   }
-
 }
