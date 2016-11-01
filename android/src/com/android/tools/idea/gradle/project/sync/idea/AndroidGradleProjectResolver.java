@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -22,13 +22,12 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.*;
+import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -47,6 +46,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -61,17 +61,14 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
-import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
@@ -80,6 +77,9 @@ import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncP
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -88,7 +88,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
-import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
@@ -120,11 +119,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION)
-                                       .setGradleVersion(androidProject.getModelVersion()));
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+      // @formatter:off
+      event.setCategory(GRADLE_SYNC)
+           .setKind(GRADLE_SYNC_FAILURE)
+           .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
+           .setGradleVersion(androidProject.getModelVersion());
+      // @formatter:on
+
+      UsageTracker.getInstance().log(event);
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
@@ -271,7 +274,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    return Sets.newHashSet(AndroidProject.class, NativeAndroidProject.class);
+    Set<Class> modelClasses = new HashSet<>();
+    modelClasses.add(AndroidProject.class);
+    modelClasses.add(NativeAndroidProject.class);
+    return modelClasses;
   }
 
   @Override
@@ -283,7 +289,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   public List<KeyValue<String, String>> getExtraJvmArgs() {
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
-      List<KeyValue<String, String>> args = Lists.newArrayList();
+      List<KeyValue<String, String>> args = new ArrayList<>();
 
       if (!isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();
@@ -303,7 +309,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public List<String> getExtraCommandLineArgs() {
-    List<String> args = Lists.newArrayList();
+    List<String> args = new ArrayList<>();
 
     Project project = findProject();
     if (project != null) {
@@ -371,7 +377,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored") // Studio complains that the exceptions created by this method are never thrown.
   @NotNull
   @Override
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
@@ -379,6 +384,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
     if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+      //noinspection ThrowableResultOfMethodCallIgnored
       Throwable rootCause = getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();
@@ -387,15 +393,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
             "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
 
           UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                           .setCategory(GRADLE_SYNC)
+                                           .setKind(GRADLE_SYNC_FAILURE)
                                            .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION));
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
       }
     }
-    return myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
+    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
+    assert userFriendlyError != null;
+    return userFriendlyError;
   }
 
   @NotNull
@@ -434,22 +442,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         return variant;
       }
     }
-    List<Variant> sortedVariants = Lists.newArrayList(variants);
+    List<Variant> sortedVariants = new ArrayList<>(variants);
     sort(sortedVariants, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     return sortedVariants.isEmpty() ? null : sortedVariants.get(0);
   }
 
   @Override
   public void enhanceRemoteProcessing(@NotNull SimpleJavaParameters parameters) {
-    List<String> classPath = Lists.newArrayList();
-    // Android module jars
-    addIfNotNull(getJarPathForClass(getClass()), classPath);
-    // Android sdklib jar
-    addIfNotNull(getJarPathForClass(Revision.class), classPath);
-    // Android common jar
-    addIfNotNull(getJarPathForClass(AndroidGradleSettings.class), classPath);
-    // Android gradle model jar
-    addIfNotNull(getJarPathForClass(AndroidProject.class), classPath);
-    parameters.getClassPath().addAll(classPath);
+    PathsList classPath = parameters.getClassPath();
+    classPath.add(getJarPathForClass(getClass()));
+    classPath.add(getJarPathForClass(Revision.class));
+    classPath.add(getJarPathForClass(AndroidGradleSettings.class));
+    classPath.add(getJarPathForClass(AndroidProject.class));
   }
 }
