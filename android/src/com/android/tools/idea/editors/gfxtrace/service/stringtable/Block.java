@@ -80,7 +80,7 @@ public final class Block extends Node implements BinaryObject {
       Block o = (Block)obj;
       e.uint32(o.myChildren.length);
       for (int i = 0; i < o.myChildren.length; i++) {
-        e.object(o.myChildren[i].unwrap());
+        e.object(o.myChildren[i] == null ? null : o.myChildren[i].unwrap());
       }
     }
 

@@ -106,7 +106,7 @@ public final class ImageInfo implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ImageInfo o = (ImageInfo)obj;
-      e.object(o.myFormat.unwrap());
+      e.object(o.myFormat == null ? null : o.myFormat.unwrap());
       e.uint32(o.myWidth);
       e.uint32(o.myHeight);
       e.object(o.myData);

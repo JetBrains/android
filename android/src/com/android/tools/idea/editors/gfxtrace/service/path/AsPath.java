@@ -94,7 +94,7 @@ public final class AsPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       AsPath o = (AsPath)obj;
-      e.object(o.myObject.unwrap());
+      e.object(o.myObject == null ? null : o.myObject.unwrap());
       e.variant(Box.wrap(o.myType));
     }
 

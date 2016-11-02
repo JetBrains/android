@@ -95,7 +95,7 @@ public final class Observations extends KindredSnippets implements BinaryObject 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Observations o = (Observations)obj;
-      e.object(o.myPath.unwrap());
+      e.object(o.myPath == null ? null : o.myPath.unwrap());
       e.uint32(o.myObservations.length);
       for (int i = 0; i < o.myObservations.length; i++) {
         e.int32(o.myObservations[i].getNumber());

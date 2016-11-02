@@ -68,7 +68,7 @@ final class ResultFollow implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResultFollow o = (ResultFollow)obj;
-      e.object(o.myValue.unwrap());
+      e.object(o.myValue == null ? null : o.myValue.unwrap());
     }
 
     @Override

@@ -94,7 +94,7 @@ public final class MapIndexPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       MapIndexPath o = (MapIndexPath)obj;
-      e.object(o.myMap.unwrap());
+      e.object(o.myMap == null ? null : o.myMap.unwrap());
       e.variant(Box.wrap(o.myKey));
     }
 

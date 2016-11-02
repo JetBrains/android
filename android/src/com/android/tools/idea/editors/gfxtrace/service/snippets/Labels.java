@@ -123,7 +123,7 @@ public final class Labels extends KindredSnippets implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Labels o = (Labels)obj;
-      e.object(o.myPath.unwrap());
+      e.object(o.myPath == null ? null : o.myPath.unwrap());
       e.uint32(o.myLabels.length);
       for (int i = 0; i < o.myLabels.length; i++) {
         e.string(o.myLabels[i]);
