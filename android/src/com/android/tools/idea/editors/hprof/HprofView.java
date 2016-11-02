@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.hprof;
 
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.GoToInstanceListener;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
@@ -141,6 +142,9 @@ public class HprofView implements Disposable {
     toolbar.getComponent().setName(TOOLBAR_NAME);
     myContainer.add(toolbar.getComponent(), BorderLayout.NORTH);
     myContainer.add(mainSplitter);
+
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Hprof Viewer", "http://developer.android.com/r/studio-ui/am-hprof.html"));
   }
 
   @NotNull
