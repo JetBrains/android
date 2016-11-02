@@ -43,7 +43,7 @@ public class AaptOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public AaptOptionsModel addAdditionalParameter(String additionalParameter) {
+  public AaptOptionsModel addAdditionalParameter(@NotNull String additionalParameter) {
     myDslElement.addToNewLiteralList(ADDITIONAL_PARAMETERS, additionalParameter);
     return this;
   }
@@ -72,7 +72,7 @@ public class AaptOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public AaptOptionsModel setIgnoreAssets(String ignoreAssets) {
+  public AaptOptionsModel setIgnoreAssets(@NotNull String ignoreAssets) {
     myDslElement.setNewLiteral(IGNORE_ASSETS, ignoreAssets);
     return this;
   }
@@ -140,7 +140,7 @@ public class AaptOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public AaptOptionsModel addNoCompress(String noCompress) {
+  public AaptOptionsModel addNoCompress(@NotNull String noCompress) {
     myDslElement.addToNewLiteralList(NO_COMPRESS, noCompress);
     return this;
   }

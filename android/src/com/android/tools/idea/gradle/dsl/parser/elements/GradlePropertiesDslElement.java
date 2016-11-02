@@ -68,6 +68,18 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     myProperties.put(property, element);
   }
 
+  /**
+   * Sets or replaces the given {@code property} value with the given {@code element}.
+   *
+   * <p>This method should be used when the given {@code property} would reset the effect of the other property. Ex: {@code reset()} method
+   * in android.splits.abi block will reset the effect of the previously defined {@code includes} element.
+   */
+  protected void addParsedResettingElement(@NotNull String property, @NotNull GradleDslElement element, @NotNull String propertyToReset) {
+    element.myParent = this;
+    myProperties.put(property, element);
+    myProperties.remove(propertyToReset);
+  }
+
   protected void addAsParsedDslExpressionList(@NotNull String property, GradleDslExpression dslLiteral) {
     GroovyPsiElement psiElement = dslLiteral.getPsiElement();
     if (psiElement == null) {
@@ -322,9 +334,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    *
    * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
    */
-  public void removeProperty(@NotNull String property) {
+  public GradlePropertiesDslElement removeProperty(@NotNull String property) {
     myToBeRemovedProperties.add(property);
     setModified(true);
+    return this;
   }
 
   /**

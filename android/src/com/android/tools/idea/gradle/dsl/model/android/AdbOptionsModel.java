@@ -39,7 +39,7 @@ public class AdbOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public AdbOptionsModel addInstallOption(String installOption) {
+  public AdbOptionsModel addInstallOption(@NotNull String installOption) {
     myDslElement.addToNewLiteralList(INSTALL_OPTIONS, installOption);
     return this;
   }

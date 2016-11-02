@@ -21,6 +21,10 @@ import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
@@ -66,6 +70,10 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement.SPLITS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -607,6 +615,9 @@ public final class GradleDslParser {
           else if (PACKAGING_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new PackagingOptionsDslElement(resultElement);
           }
+          else if (SPLITS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SplitsDslElement(resultElement);
+          }
           else {
             return null;
           }
@@ -647,6 +658,20 @@ public final class GradleDslParser {
           }
           else {
             newElement = new SourceDirectoryDslElement(resultElement, nestedElementName);
+          }
+        }
+        else if (resultElement instanceof SplitsDslElement) {
+          if (ABI_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new AbiDslElement(resultElement);
+          }
+          else if (DENSITY_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DensityDslElement(resultElement);
+          }
+          else if (LANGUAGE_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new LanguageDslElement(resultElement);
+          }
+          else {
+            return null;
           }
         }
         else {
