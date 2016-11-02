@@ -29,6 +29,11 @@ import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.adapters.AdapterProperty;
+import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
+import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -82,15 +87,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
  */
-public class SdkUpdaterConfigPanel {
+public class SdkUpdaterConfigPanel implements Disposable {
   /**
    * Main panel for the SDK configurable.
    */
@@ -166,6 +169,10 @@ public class SdkUpdaterConfigPanel {
    */
   private final SdkUpdaterConfigurable myConfigurable;
 
+  private final OptionalValueProperty<File> mySelectedSdkLocation = new OptionalValueProperty<>();
+
+  private final BindingsManager myBindingsManager = new BindingsManager();
+
   /**
    * {@link RepoLoadedCallback} that runs when we've finished reloading our local packages.
    */
@@ -208,14 +215,37 @@ public class SdkUpdaterConfigPanel {
     myDownloader = downloader;
     mySettings = settings;
 
-    Collection<File> sdkLocations = getSdkLocations();
-    if (sdkLocations.size() > 1) {
-      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "MultiSdk");
-      setUpMultiSdkChooser(sdkLocations);
-    }
-    else {
+    List<File> sdkLocations = getSdkLocations();
+    mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
+    if (AndroidUtils.isAndroidStudio()) {
       ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
       setUpSingleSdkChooser();
+      myBindingsManager.bindTwoWay(
+        mySelectedSdkLocation,
+        new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+          @Nullable
+          @Override
+          protected Optional<File> convertFromSourceType(@NotNull String value) {
+            if (value.isEmpty()) {
+              return Optional.empty();
+            }
+            return Optional.of(new File(value));
+          }
+
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+          @NotNull
+          @Override
+          protected String convertFromDestType(@NotNull Optional<File> value) {
+            return value.isPresent() ? value.get().getPath() : "";
+          }
+        });
+    }
+    else {
+      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "MultiSdk");
+      sdkLocations.forEach(location -> mySdkLocationChooser.addItem(location));
+      myBindingsManager.bindTwoWay(mySelectedSdkLocation,
+                                   new SelectedItemProperty<>(mySdkLocationChooser));
     }
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
@@ -231,25 +261,16 @@ public class SdkUpdaterConfigPanel {
     myPlatformComponentsPanel.setConfigurable(myConfigurable);
   }
 
-  public File getSelectedSdkLocation() {
-    if (getSdkLocations().size() > 1) {
-      return mySdkLocationChooser.getItemAt(mySdkLocationChooser.getSelectedIndex());
-    }
-    else {
-      return new File(mySdkLocationTextField.getText());
-    }
+  /**
+   * @return The path to the current sdk to show, or {@code null} if none is selected.
+   */
+  @Nullable
+  File getSelectedSdkLocation() {
+    return mySelectedSdkLocation.get().orElse(null);
   }
 
-  private void setUpMultiSdkChooser(Collection<File> sdkLocations) {
-    sdkLocations.forEach(location -> mySdkLocationChooser.addItem(location));
-    mySdkLocationChooser.addItemListener(event -> {
-      if (event.getStateChange() == ItemEvent.SELECTED) {
-        reset();
-      }
-    });
-  }
-
-  private Collection<File> getSdkLocations() {
+  @NotNull
+  private static List<File> getSdkLocations() {
     if (AndroidUtils.isAndroidStudio()) {
       File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
       if (androidHome != null) {
@@ -284,7 +305,7 @@ public class SdkUpdaterConfigPanel {
         }
       }
     }
-    return locations;
+    return new ArrayList<>(locations);
   }
 
   private void setUpSingleSdkChooser() {
@@ -335,14 +356,7 @@ public class SdkUpdaterConfigPanel {
               sdkLocation = stateSdkLocation;
             }
 
-            setAndroidSdkLocationText(sdkLocation.getAbsolutePath());
-          }
-
-          private void setAndroidSdkLocationText(String text) {
-            ApplicationManager.getApplication().invokeLater(() -> {
-              mySdkLocationTextField.setText(text);
-              refresh();
-            });
+            mySelectedSdkLocation.setValue(sdkLocation);
           }
 
           @NotNull
@@ -361,6 +375,11 @@ public class SdkUpdaterConfigPanel {
       }
     });
     mySdkLocationTextField.setEditable(false);
+  }
+
+  @Override
+  public void dispose() {
+    myBindingsManager.releaseAll();
   }
 
   private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
@@ -609,7 +628,7 @@ public class SdkUpdaterConfigPanel {
    * Create our UI components that need custom creation.
    */
   private void createUIComponents() {
-    myUpdateSitesPanel = new UpdateSitesPanel(() -> refresh());
+    myUpdateSitesPanel = new UpdateSitesPanel(this::refresh);
   }
 
   /**

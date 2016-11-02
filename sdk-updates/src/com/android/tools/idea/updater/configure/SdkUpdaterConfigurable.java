@@ -38,6 +38,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -262,5 +263,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
+    Disposer.dispose(myPanel);
   }
 }
