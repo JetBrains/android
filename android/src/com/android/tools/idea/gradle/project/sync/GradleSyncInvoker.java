@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
@@ -50,10 +50,7 @@ import static com.android.tools.idea.gradle.project.LibraryAttachments.removeLib
 import static com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
-import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
@@ -62,6 +59,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensure
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
