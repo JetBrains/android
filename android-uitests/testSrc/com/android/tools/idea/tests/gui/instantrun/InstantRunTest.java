@@ -66,7 +66,7 @@ public class InstantRunTest {
   @Before
   public void setUp() throws Exception {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvd(AVD_NAME);
+    getEmulatorConnection().deleteAvd(AVD_NAME.replace(' ', '_'));
   }
 
   @After
@@ -97,7 +97,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @Ignore("http://b.android.com/221581")
   @RunIn(TestGroup.QA)
   @Test
   public void hotSwap() throws Exception {
@@ -150,7 +149,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @Ignore("hangs entire suite in continuous build a few times per day")
   @RunIn(TestGroup.QA)
   @Test
   public void coldSwap() throws Exception {
@@ -205,7 +203,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
-  @Ignore("failed consistently from http://go/aj/builders/studio-uitests_master-dev/builds/1271")
   @RunIn(TestGroup.QA)
   @Test
   public void changeManifest() throws Exception {
