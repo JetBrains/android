@@ -37,7 +37,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -76,13 +75,11 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   @NotNull
   public IdeSettingsDialogFixture selectSdkPage() {
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
-    checkNotNull(optionsEditor);
-
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
     JComponent tree = Iterables.getOnlyElement(trees);
 
     JTree jTree = field("myTree").ofType(JTree.class).in(tree).get();
-    JTreeFixture jTreeFixture = new JTreeFixture(robot(), checkNotNull(jTree));
+    JTreeFixture jTreeFixture = new JTreeFixture(robot(), jTree);
     jTreeFixture.replaceCellReader(TREE_NODE_CELL_READER);
     // It takes a few seconds to load the whole tree.
     Wait.seconds(5).expecting("The desired path is loaded").until(() -> {
