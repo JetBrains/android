@@ -58,8 +58,11 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.EventDataResponse response = eventService.getData(dataRequestBuilder.build());
-
     for (EventProfiler.EventProfilerData data : response.getDataList()) {
+      if (data.getDataCase() != EventProfiler.EventProfilerData.DataCase.SYSTEM_DATA) {
+        continue;
+      }
+
       EventProfiler.SystemEventData systemData = data.getSystemData();
       SimpleEventComponent.Action action = SimpleEventComponent.Action.NONE;
       long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
