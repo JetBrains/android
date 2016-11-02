@@ -93,6 +93,10 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.loadCapture(path);
   }
   @Override
+  public ListenableFuture<DevicePath> registerAndroidDevice(String serial) {
+    return myClient.registerAndroidDevice(serial);
+  }
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myClient.set(p, v);
   }
