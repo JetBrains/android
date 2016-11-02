@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,48 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.google.common.base.Splitter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class DaemonContextMismatchErrorHandler extends AbstractSyncErrorHandler {
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+public class DaemonContextMismatchErrorHandler extends SyncErrorHandler {
   private static final String JAVA_HOME = "javaHome=";
 
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
+  @Nullable
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.getMessage();
+    List<String> message = Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text);
     String firstLine = message.get(0);
-    if (firstLine != null &&
+    if (isNotEmpty(firstLine) &&
         firstLine.contains("The newly created daemon process has a different context than expected.") &&
-        message.size() > 3 && "Java home is different.".equals(message.get(2))) {
-      String expectedAndActual = parseExpectedAndActualJavaHomes(error.getMessage());
-      if (StringUtil.isNotEmpty(expectedAndActual)) {
-        String newMsg = firstLine + "\n" + message.get(2) + "\n" + expectedAndActual + "\n" +
-          "Please configure the JDK to match the expected one.";
-
-        NotificationHyperlink quickFix = OpenProjectStructureHyperlink.openJdkSettings(project);
-        if (quickFix != null) {
-          updateNotification(notification, project, newMsg, quickFix);
-        }
-        else {
-          updateNotification(notification, project, newMsg);
-        }
-        return true;
+        message.size() > 3 &&
+        "Java home is different.".equals(message.get(2))) {
+      String expectedAndActual = parseExpectedAndActualJavaHomes(text);
+      if (isNotEmpty(expectedAndActual)) {
+        updateUsageTracker();
+        return firstLine + "\n" + message.get(2) + "\n" + expectedAndActual + "\n" + "Please configure the JDK to match the expected one.";
       }
     }
-    return false;
+    return null;
   }
 
   @VisibleForTesting
@@ -66,7 +60,7 @@ public class DaemonContextMismatchErrorHandler extends AbstractSyncErrorHandler 
       int endIndex = errorMsg.indexOf(',', startIndex);
       if (endIndex != -1 && endIndex > startIndex) {
         String expected = errorMsg.substring(startIndex, endIndex);
-        if (StringUtil.isNotEmpty(expected)) {
+        if (isNotEmpty(expected)) {
           String actual = null;
           startIndex = errorMsg.indexOf(JAVA_HOME, endIndex);
           if (startIndex != -1) {
@@ -89,5 +83,15 @@ public class DaemonContextMismatchErrorHandler extends AbstractSyncErrorHandler 
       }
     }
     return null;
+  }
+
+  @Override
+  @NotNull
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    hyperlinks.add(OpenProjectStructureHyperlink.openJdkSettings(project));
+    return hyperlinks;
   }
 }

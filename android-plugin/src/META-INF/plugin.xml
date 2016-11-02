@@ -1173,14 +1173,14 @@
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Jdk8RequiredErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ConnectionPermissionDeniedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleDslMethodNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
