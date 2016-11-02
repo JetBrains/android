@@ -20,6 +20,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
@@ -367,6 +368,8 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     });
     group.add(new EditMultipleSourcesAction());
     group.add(new ShowChartAction());
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Hprof Viewer", "http://developer.android.com/r/studio-ui/am-allocation.html"));
 
     return group;
   }
