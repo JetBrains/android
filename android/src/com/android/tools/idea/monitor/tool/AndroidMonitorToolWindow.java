@@ -30,7 +30,6 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
@@ -86,16 +85,13 @@ public class AndroidMonitorToolWindow implements Disposable {
   private final Project myProject;
 
   @NotNull
-  private DeviceContext myDeviceContext;
-
-  @Nullable
-  private IDevice mySelectedDevice;
+  private final DeviceContext myDeviceContext;
 
   @Nullable
   private Client mySelectedClient;
 
   @Nullable
-  private DeviceProfilerService mySelectedDeviceProfilerService;
+  private DeviceProfilerService myDeviceProfilerService;
 
   @Nullable
   private Poller myHeartBeatPoller;
@@ -136,8 +132,6 @@ public class AndroidMonitorToolWindow implements Disposable {
   private TreeMap<BaseProfilerUiManager.ProfilerType, BaseProfilerUiManager> myProfilerManagers;
 
   private BaseProfilerUiManager.ProfilerType myExpandedProfiler;
-
-  private boolean myProfilersInitialized;
 
   private JPanel myProfilerToolbar;
 
@@ -203,29 +197,19 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private void setupDevice() {
-    mySelectedDevice = myDeviceContext.getSelectedDevice();
-    connectToDevice();
-
-    AndroidDebugBridge.addDeviceChangeListener(AndroidLogcatService.getInstance());
+    connectToDevice(myDeviceContext.getSelectedDevice());
 
     myDeviceContext.addListener(new DeviceContext.DeviceSelectionListener() {
       @Override
       public void deviceSelected(@Nullable IDevice device) {
-        // Early return if the DeviceProfilerService for the selected device is already running.
-        if (mySelectedDeviceProfilerService != null && mySelectedDeviceProfilerService.getDevice() == device) {
-          return;
-        }
-
-        disconnectFromDevice();
-        mySelectedDevice = device;
-        connectToDevice();
+        connectToDevice(device);
       }
 
       @Override
       public void deviceChanged(@NotNull IDevice device, int changeMask) {
         if ((changeMask & IDevice.CHANGE_STATE) > 0) {
-          if (device.isOnline() && mySelectedDeviceProfilerService == null) {
-            connectToDevice();
+          if (device.isOnline() && myDeviceProfilerService == null) {
+            connectToDevice(device);
           }
           else if (device.isOffline() || device.getState() == IDevice.DeviceState.DISCONNECTED) {
             disconnectFromDevice();
@@ -251,20 +235,18 @@ public class AndroidMonitorToolWindow implements Disposable {
        *      to keep the existing information present and have some visuals to indicate a "disconnected" status.
        */
       @Override
-      public void clientSelected(@Nullable Client c) {
-        if (mySelectedClient != c) {
-          deinitializeProfilers();
-          mySelectedClient = c;
+      public void clientSelected(@Nullable Client client) {
+        // Make sure a valid profiler service is active.
+        connectToDevice(myDeviceContext.getSelectedDevice());
+
+        // Early return if a profiler service cannot be established or if the client didn't change
+        if (myDeviceProfilerService == null || mySelectedClient == client) {
+          return;
         }
 
-        if (!myProfilersInitialized) {
-          // Make sure the device is connected before initializing the profilers.
-          if (mySelectedDeviceProfilerService == null) {
-            connectToDevice();
-          }
-
-          initializeProfilers();
-        }
+        deinitializeProfilers();
+        mySelectedClient = client;
+        initializeProfilers();
       }
     }, this);
 
@@ -430,25 +412,37 @@ public class AndroidMonitorToolWindow implements Disposable {
     return myComponent;
   }
 
+  /**
+   * Cleanup the current selected device and its associated DeviceProfilerService.
+   */
   private void disconnectFromDevice() {
-    if (mySelectedDeviceProfilerService == null) {
+    if (myDeviceProfilerService == null) {
       return;
     }
 
     pausePollers();
-    ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
-    mySelectedDeviceProfilerService = null;
+    ProfilerService.getInstance().disconnect(this, myDeviceProfilerService);
+    myDeviceProfilerService = null;
+    mySelectedClient = null;
     getLogger().info("Successfully disconnected from Device Profiler Service.");
   }
 
-  private void connectToDevice() {
-    if (mySelectedDevice == null) {
+  /**
+   * Connect to a device and initialize its associated DeviceProfilerService.
+   * If a previous device/profiler service exist, perform the corresponding cleanup.
+   */
+  private void connectToDevice(@Nullable IDevice selectedDevice) {
+    // Early return if a DeviceProfilerService is already established with the correct device.
+    if (myDeviceProfilerService != null && myDeviceProfilerService.getDevice() == selectedDevice) {
       return;
     }
 
-    mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
-    getLogger().info(mySelectedDeviceProfilerService == null ?
-             "Attempt to connect to Device Profiler Service failed." : "Successfully connected to Device Profiler Service.");
+    disconnectFromDevice();
+    if (selectedDevice != null) {
+      myDeviceProfilerService = ProfilerService.getInstance().connect(this, selectedDevice);
+      getLogger().info(myDeviceProfilerService == null ?
+                       "Attempt to connect to Device Profiler Service failed." : "Successfully connected to Device Profiler Service.");
+    }
   }
 
   private void pausePollers() {
@@ -467,7 +461,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private void initializeProfilers() {
-    if (mySelectedDeviceProfilerService == null || mySelectedClient == null) {
+    if (myDeviceProfilerService == null || mySelectedClient == null) {
       return;
     }
 
@@ -477,7 +471,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
+    myDataStore = new SeriesDataStoreImpl(myDeviceProfilerService);
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createCommonAnimatables());
 
@@ -491,14 +485,14 @@ public class AndroidMonitorToolWindow implements Disposable {
                                                        mySelectedClient));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
                            new CpuProfilerUiManager(myTimeCurrentRangeUs, myTimeSelectionRangeUs, myChoreographer, myDataStore,
-                                                    myEventDispatcher, mySelectedDeviceProfilerService, myDeviceContext, myProject));
+                                                    myEventDispatcher, myDeviceProfilerService, myDeviceContext, myProject));
     if (System.getProperty(ENABLE_ENERGY_PROFILER) != null) {
       myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
                              new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     }
 
     int processId = mySelectedClient.getClientData().getPid();
-    mySelectedDeviceProfilerService.setSelectedProcessId(processId);
+    myDeviceProfilerService.setSelectedProcessId(processId);
 
     // The heart beat is used to check whether perfd is still alive. Failures in perfd are the only cases
     // that are not handled via the DeviceContext.DeviceSelectionListener().
@@ -531,11 +525,10 @@ public class AndroidMonitorToolWindow implements Disposable {
     ApplicationManager.getApplication().executeOnPooledThread(myHeartBeatPoller);
 
     populateProfilerUi();
-    myProfilersInitialized = true;
   }
 
   private void deinitializeProfilers() {
-    if (mySelectedClient == null) {
+    if (myDeviceProfilerService == null || mySelectedClient == null) {
       return;
     }
 
@@ -560,7 +553,6 @@ public class AndroidMonitorToolWindow implements Disposable {
     myChoreographer = null;
     myEventDispatcher = null;
     mySelectedClient = null;
-    myProfilersInitialized = false;
     myExpandedProfiler = null;
     myHeartBeatPoller = null;
 
