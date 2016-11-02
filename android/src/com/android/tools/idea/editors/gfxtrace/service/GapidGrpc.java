@@ -156,6 +156,15 @@ public class GapidGrpc {
               "service.Gapid", "GetTimingInfo"),
           io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.getDefaultInstance()),
           io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance()));
+  @io.grpc.ExperimentalApi
+  public static final io.grpc.MethodDescriptor<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
+      com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> METHOD_REGISTER_ANDROID_DEVICE =
+      io.grpc.MethodDescriptor.create(
+          io.grpc.MethodDescriptor.MethodType.UNARY,
+          generateFullMethodName(
+              "service.Gapid", "RegisterAndroidDevice"),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.getDefaultInstance()),
+          io.grpc.protobuf.ProtoUtils.marshaller(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance()));
 
   public static GapidStub newStub(io.grpc.Channel channel) {
     return new GapidStub(channel);
@@ -217,6 +226,9 @@ public class GapidGrpc {
 
     public void getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
         io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver);
+
+    public void registerAndroidDevice(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
+        io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver);
   }
 
   public static interface GapidBlockingClient {
@@ -250,6 +262,8 @@ public class GapidGrpc {
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getFramebufferAttachment(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
+
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response registerAndroidDevice(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
   }
 
   public static interface GapidFutureClient {
@@ -297,6 +311,9 @@ public class GapidGrpc {
         com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
 
     public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> getTimingInfo(
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
+
+    public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> registerAndroidDevice(
         com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request);
   }
 
@@ -421,6 +438,13 @@ public class GapidGrpc {
       asyncUnaryCall(
           getChannel().newCall(METHOD_GET_TIMING_INFO, getCallOptions()), request, responseObserver);
     }
+
+    @java.lang.Override
+    public void registerAndroidDevice(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request,
+        io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_REGISTER_ANDROID_DEVICE, getCallOptions()), request, responseObserver);
+    }
   }
 
   public static class GapidBlockingStub extends io.grpc.stub.AbstractStub<GapidBlockingStub>
@@ -528,6 +552,12 @@ public class GapidGrpc {
     public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getTimingInfo(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
       return blockingUnaryCall(
           getChannel(), METHOD_GET_TIMING_INFO, getCallOptions(), request);
+    }
+
+    @java.lang.Override
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response registerAndroidDevice(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_REGISTER_ANDROID_DEVICE, getCallOptions(), request);
     }
   }
 
@@ -652,6 +682,13 @@ public class GapidGrpc {
       return futureUnaryCall(
           getChannel().newCall(METHOD_GET_TIMING_INFO, getCallOptions()), request);
     }
+
+    @java.lang.Override
+    public com.google.common.util.concurrent.ListenableFuture<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response> registerAndroidDevice(
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_REGISTER_ANDROID_DEVICE, getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET = 0;
@@ -669,6 +706,7 @@ public class GapidGrpc {
   private static final int METHODID_GET_FRAMEBUFFER_DEPTH = 12;
   private static final int METHODID_GET_FRAMEBUFFER_ATTACHMENT = 13;
   private static final int METHODID_GET_TIMING_INFO = 14;
+  private static final int METHODID_REGISTER_ANDROID_DEVICE = 15;
 
   private static class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -744,6 +782,10 @@ public class GapidGrpc {
           break;
         case METHODID_GET_TIMING_INFO:
           serviceImpl.getTimingInfo((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) request,
+              (io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>) responseObserver);
+          break;
+        case METHODID_REGISTER_ANDROID_DEVICE:
+          serviceImpl.registerAndroidDevice((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) request,
               (io.grpc.stub.StreamObserver<com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>) responseObserver);
           break;
         default:
@@ -869,6 +911,13 @@ public class GapidGrpc {
               com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
               com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>(
                 serviceImpl, METHODID_GET_TIMING_INFO)))
+        .addMethod(
+          METHOD_REGISTER_ANDROID_DEVICE,
+          asyncUnaryCall(
+            new MethodHandlers<
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request,
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response>(
+                serviceImpl, METHODID_REGISTER_ANDROID_DEVICE)))
         .build();
   }
 }

@@ -120,6 +120,11 @@ public final class ServiceClientGRPC extends ServiceClient {
   }
 
   @Override
+  public ListenableFuture<DevicePath> registerAndroidDevice(String serial) {
+    return new RegisterAndroidDeviceInvoker(serial).invoke();
+  }
+
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return new SetInvoker(p, v).invoke();
   }
@@ -531,6 +536,35 @@ public final class ServiceClientGRPC extends ServiceClient {
     public ListenableFuture<CapturePath> apply(ServiceProtos.Response input) throws Exception {
       try {
         ResultLoadCapture result = (ResultLoadCapture)fromResponse(input);
+        return Futures.immediateFuture(result.getValue());
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class RegisterAndroidDeviceInvoker implements Invoker<DevicePath> {
+    private final CallRegisterAndroidDevice myCall;
+    private final Exception myStack = new StackException();
+
+    private RegisterAndroidDeviceInvoker(String serial) {
+      myCall = new CallRegisterAndroidDevice();
+      myCall.setSerial(serial);
+    }
+
+    @Override
+    public ListenableFuture<DevicePath> invoke() {
+      try {
+        return Futures.transform(myClient.registerAndroidDevice(asRequest(myCall)), this);
+      } catch (IOException e) {
+        return Futures.immediateFailedFuture(e);
+      }
+    }
+
+    @Override
+    public ListenableFuture<DevicePath> apply(ServiceProtos.Response input) throws Exception {
+      try {
+        ResultRegisterAndroidDevice result = (ResultRegisterAndroidDevice)fromResponse(input);
         return Futures.immediateFuture(result.getValue());
       } catch (Exception e) {
         e.initCause(myStack);
