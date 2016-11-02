@@ -45,7 +45,7 @@ public class DexOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public DexOptionsModel addAdditionalParameter(String additionalParameter) {
+  public DexOptionsModel addAdditionalParameter(@NotNull String additionalParameter) {
     myDslElement.addToNewLiteralList(ADDITIONAL_PARAMETERS, additionalParameter);
     return this;
   }
@@ -74,7 +74,7 @@ public class DexOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public DexOptionsModel setJavaMaxHeapSize(String javaMaxHeapSize) {
+  public DexOptionsModel setJavaMaxHeapSize(@NotNull String javaMaxHeapSize) {
     myDslElement.setNewLiteral(JAVA_MAX_HEAP_SIZE, javaMaxHeapSize);
     return this;
   }

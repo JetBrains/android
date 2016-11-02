@@ -195,7 +195,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("merges", ImmutableList.of("merge1", "merge2", "merge3"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2", "pickFirst3"), packagingOptions.pickFirsts());
 
-    packagingOptions.removeAllExcluds();
+    packagingOptions.removeAllExclude();
     packagingOptions.removeAllMerges();
     packagingOptions.removeAllPickFirsts();
 
