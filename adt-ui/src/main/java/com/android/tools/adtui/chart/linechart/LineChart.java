@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.ui.ColorUtil;
+import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
 import gnu.trove.TLongHashSet;
@@ -75,7 +76,10 @@ public class LineChart extends AnimatedComponent {
   private final Map<RangedSeries<DurationData>, EventConfig> myEventsConfig = new HashMap<>();
 
   @NotNull
-  private final ArrayList<Path2D.Float> myLinePaths;
+  private final ArrayList<Path2D> myLinePaths;
+
+  @NotNull
+  private final ArrayList<LineConfig> myLinePathConfigs;
 
   @NotNull
   private final ArrayList<Point2D.Float> myMarkerPositions;
@@ -100,6 +104,7 @@ public class LineChart extends AnimatedComponent {
 
   public LineChart() {
     myLinePaths = new ArrayList<>();
+    myLinePathConfigs = new ArrayList<>();
     myMarkerPositions = new ArrayList<>();
     mMarkedData = new TLongHashSet();
     myReducer = new LineChartReducer();
@@ -121,7 +126,8 @@ public class LineChart extends AnimatedComponent {
 
   /**
    * Add a line to the line chart.
-   *
+   * Note: The order of adding lines is important for stacked lines,
+   *       i.e a stacked line is stacked on top of previous added stacked line.
    * @param series data of the line to be inserted
    * @param config configuration of the line to be inserted
    */
@@ -135,7 +141,7 @@ public class LineChart extends AnimatedComponent {
    * @param series series data of the line to be inserted
    */
   public void addLine(@NotNull RangedContinuousSeries series) {
-    myLinesConfig.put(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
+    addLine(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
     mNextLineColorIndex %= LineConfig.COLORS.length;
   }
 
@@ -214,21 +220,16 @@ public class LineChart extends AnimatedComponent {
     // Clear the previous markers.
     myMarkerPositions.clear();
 
+    Deque<Path2D> orderedPaths = new ArrayDeque<>(myLinesConfig.size());
+    Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
+
     for (Map.Entry<RangedContinuousSeries, LineConfig> lineConfig : myLinesConfig.entrySet()) {
       final RangedContinuousSeries ranged = lineConfig.getKey();
       final LineConfig config = lineConfig.getValue();
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
 
-      Path2D.Float path;
-      if (p == myLinePaths.size()) {
-        path = new Path2D.Float();
-        myLinePaths.add(path);
-      }
-      else {
-        path = myLinePaths.get(p);
-        path.reset();
-      }
+      Path2D path = new Path2D.Float();
 
       double xMin = ranged.getXRange().getMin();
       double xMax = ranged.getXRange().getMax();
@@ -312,12 +313,27 @@ public class LineChart extends AnimatedComponent {
         lastStackedSeriesY = currentSeriesY;
       }
 
+      if (config.isFilled()) {
+        // Draw the filled lines first, otherwise other lines won't be visible.
+        // Also, to draw stacked and filled lines correctly, they need to be drawn in reverse order to their adding order.
+        orderedPaths.addFirst(path);
+        orderedConfigs.addFirst(config);
+      } else {
+        orderedPaths.addLast(path);
+        orderedConfigs.addLast(config);
+      }
+
       addDebugInfo("Range[%d] Max: %.2f", p, xMax);
       p++;
     }
-    myLinePaths.subList(p, myLinePaths.size()).clear();
-    mMarkedData.clear();
 
+    myLinePaths.clear();
+    myLinePaths.addAll(orderedPaths);
+
+    myLinePathConfigs.clear();
+    myLinePathConfigs.addAll(orderedConfigs);
+
+    mMarkedData.clear();
 
     // First remove any path caches that do not have the corresponding RangedSeries anymore.
     myEventsPathCache.keySet().removeIf(e -> !myEventsConfig.containsKey(e));
@@ -375,17 +391,11 @@ public class LineChart extends AnimatedComponent {
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
 
     // Cache the transformed line paths for reuse below.
-    List<Path2D> transformedPaths = new ArrayList<>(myLinesConfig.size());
-    int pathIndex = 0;
-    for (Map.Entry<RangedContinuousSeries, LineConfig> entry: myLinesConfig.entrySet()) {
-      final RangedContinuousSeries series = entry.getKey();
-      final LineConfig config = entry.getValue();
-
-      Path2D scaledPath = new Path2D.Float(myLinePaths.get(pathIndex), scale);
-      scaledPath = myReducer.reduce(scaledPath, config);
-
+    List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
+    for (int i = 0; i < myLinePaths.size(); ++i) {
+      Path2D scaledPath = new Path2D.Float(myLinePaths.get(i), scale);
+      scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
       transformedPaths.add(scaledPath);
-      pathIndex++;
 
       if (isDrawDebugInfo()) {
         int count = 0;
@@ -394,12 +404,12 @@ public class LineChart extends AnimatedComponent {
           ++count;
           it.next();
         }
-        addDebugInfo("# of points for %s: %d", series.getLabel(), count);
+        addDebugInfo("# of points drawn: %d", count);
       }
     }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedPaths, false);
+    drawLines(g2d, transformedPaths, myLinePathConfigs, false);
 
     // 2nd pass - if there are any blocking events, clear the regions where those events take place
     //            and render the lines in those regions in grayscale.
@@ -421,7 +431,7 @@ public class LineChart extends AnimatedComponent {
           g2d.setClip(clipRect);
           g2d.setColor(ColorUtil.withAlpha(config.getColor(), ALPHA_VALUE));
           g2d.setStroke(config.getStroke());
-          drawLines(g2d, transformedPaths, true);
+          drawLines(g2d, transformedPaths, myLinePathConfigs, true);
           g2d.setClip(null);
         }
       }
@@ -476,40 +486,28 @@ public class LineChart extends AnimatedComponent {
     }
   }
 
-  private void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, boolean grayScale) {
-    List<LineConfig> configs = new ArrayList<>(myLinesConfig.values());
-    // The first phase is to draw filled lines, otherwise other lines won't be visible.
-    // Iterating in reverse order intentionally, because it might contain stacked lines.
-    for (int i = configs.size() - 1; i >= 0; --i) {
+  private void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {
+    assert transformedPaths.size() == configs.size();
+
+    for (int i = 0; i < transformedPaths.size(); ++i) {
+      Path2D path = transformedPaths.get(i);
       LineConfig config = configs.get(i);
+      Color lineColor = config.getColor();
+
+      if (grayScale) {
+        int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
+        g2d.setColor(new Color(gray, gray, gray));
+      } else {
+        g2d.setColor(lineColor);
+      }
+      g2d.setStroke(config.getStroke());
+
       if (config.isFilled()) {
-        drawLine(g2d, transformedPaths.get(i), config, grayScale);
+        g2d.fill(path);
+      } else {
+        g2d.draw(path);
       }
-    }
 
-    // The second phase is to draw other lines.
-    for (int i = 0; i < configs.size(); ++i) {
-      LineConfig config = configs.get(i);
-      if (!config.isFilled()) {
-        drawLine(g2d, transformedPaths.get(i), config, grayScale);
-      }
-    }
-  }
-
-  private static void drawLine(Graphics2D g2d, Path2D path, LineConfig config, boolean grayScale) {
-    Color lineColor = config.getColor();
-    if (grayScale) {
-      int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
-      g2d.setColor(new Color(gray, gray, gray));
-    } else {
-      g2d.setColor(lineColor);
-    }
-    g2d.setStroke(config.getStroke());
-
-    if (config.isFilled()) {
-      g2d.fill(path);
-    } else {
-      g2d.draw(path);
     }
   }
 
@@ -568,7 +566,7 @@ public class LineChart extends AnimatedComponent {
    * @return the remaining dash percentage after dashes have been drawn from {prevX, prevY} tp
    * {currX, currY}.
    */
-  private static float drawDash(Path2D.Float path, float dashPercentage,
+  private static float drawDash(Path2D path, float dashPercentage,
                                 long prevX, long prevY, long nextX, long nextY, double currXNorm, double currYNorm) {
     if (prevX == nextX && prevY == nextY) {
       // Skip drawing if it is a point.
