@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
@@ -34,6 +35,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
+import org.easymock.classextension.EasyMock;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
@@ -88,7 +90,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(createMock(ProjectImportErrorHandler.class));
+    myProjectResolver = new AndroidGradleProjectResolver(EasyMock.createMock(ProjectImportErrorHandler.class));
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
     GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();
