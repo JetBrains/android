@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public class FramebufferTypeAction extends AnAction {
+public class FramebufferTypeAction extends PopupAction {
   @NotNull private static final Action[] MRT_SUPPORTED_ACTIONS = {
     new Action("Color Buffer 0", "Display the first color framebuffer", AndroidIcons.GfxTrace.ColorBuffer0, FramebufferAttachment.Color0),
     new Action("Color Buffer 1", "Display the second color framebuffer", AndroidIcons.GfxTrace.ColorBuffer1, FramebufferAttachment.Color1),
@@ -72,7 +72,6 @@ public class FramebufferTypeAction extends AnAction {
             myAction = action;
             myFrameBufferController.setFramebufferAttachment(action.attachment);
             getToolbar().updateActionsImmediately();
-            FramebufferTypeAction.this.getToolbar().updateActionsImmediately();
           }
         });
       }
@@ -83,19 +82,8 @@ public class FramebufferTypeAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    JPanel contents = new JPanel();
-    contents.add(getToolbar().getComponent());
-
-    JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(contents, contents)
-      .setCancelOnClickOutside(true)
-      .setResizable(false)
-      .setMovable(false)
-      .createPopup();
-
-    Component source = e.getInputEvent().getComponent();
-    popup.setMinimumSize(new Dimension(0, source.getHeight()));
-    popup.show(new RelativePoint(source, new Point(source.getWidth(), 0)));
+  protected JComponent getPopupContents(AnActionEvent e) {
+    return getToolbar().getComponent();
   }
 
   @Override
