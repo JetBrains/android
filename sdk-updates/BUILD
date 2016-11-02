@@ -11,6 +11,8 @@ iml_module(
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",
         "//tools:idea.platform-impl_and_others[module]",
+        "//tools/adt/idea/observable:observable[module]",
+        "//tools/adt/idea/adt-ui:adt-ui[module]",
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],

@@ -14,5 +14,7 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="observable" />
+    <orderEntry type="module" module-name="adt-ui" />
   </component>
 </module>
