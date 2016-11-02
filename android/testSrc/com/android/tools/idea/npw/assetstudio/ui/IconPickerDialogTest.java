@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -28,6 +29,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class IconPickerDialogTest {
 
+  @Ignore
   @Test
   public void testFiltering() throws InvocationTargetException, InterruptedException {
     SwingUtilities.invokeAndWait(() -> {
