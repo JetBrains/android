@@ -21,6 +21,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.ui.SearchField;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
@@ -227,7 +228,10 @@ public final class IconPickerDialog extends DialogWrapper {
       if (e.getValueIsAdjusting()) {
         return;
       }
-      updateIconList((String)categoryList.getSelectedValue());
+      String selectedValue = (String)categoryList.getSelectedValue();
+      if (selectedValue != null) {
+        updateIconList(selectedValue);
+      }
     });
     categoryList.setSelectedIndex(0);
 
@@ -325,7 +329,9 @@ public final class IconPickerDialog extends DialogWrapper {
 
   private void updateIconList(@NotNull String categoryName) {
     myIconList.clear();
-    assert myCategoryIcons.containsKey(categoryName);
+    assert myCategoryIcons.containsKey(categoryName) : String.format(
+      "Category '%1$s' is not populated. List of populated categories: %2$s", categoryName,
+      Joiner.on(",").join(myCategoryIcons.keySet()));
     myIconList.addAll(myCategoryIcons.get(categoryName));
     myIconTable.getColumnModel().setColumnSelectionAllowed(true);
 
