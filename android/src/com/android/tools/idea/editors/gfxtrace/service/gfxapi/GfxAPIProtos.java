@@ -507,6 +507,10 @@ public final class GfxAPIProtos {
      * <code>Compute = 5;</code>
      */
     Compute(5, 5),
+    /**
+     * <code>Spirv = 6;</code>
+     */
+    Spirv(6, 6),
     UNRECOGNIZED(-1, -1),
     ;
 
@@ -534,6 +538,10 @@ public final class GfxAPIProtos {
      * <code>Compute = 5;</code>
      */
     public static final int Compute_VALUE = 5;
+    /**
+     * <code>Spirv = 6;</code>
+     */
+    public static final int Spirv_VALUE = 6;
 
 
     public final int getNumber() {
@@ -552,6 +560,7 @@ public final class GfxAPIProtos {
         case 3: return TessEvaluation;
         case 4: return Fragment;
         case 5: return Compute;
+        case 6: return Spirv;
         default: return null;
       }
     }
@@ -943,17 +952,18 @@ public final class GfxAPIProtos {
       "\020\004\022\n\n\006Shader\020\005\022\013\n\007Program\020\006*_\n\025Framebuff" +
       "erAttachment\022\t\n\005Depth\020\000\022\013\n\007Stencil\020\001\022\n\n\006" +
       "Color0\020\002\022\n\n\006Color1\020\003\022\n\n\006Color2\020\004\022\n\n\006Colo" +
-      "r3\020\005*f\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geomet",
+      "r3\020\005*q\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geomet",
       "ry\020\001\022\017\n\013TessControl\020\002\022\022\n\016TessEvaluation\020" +
-      "\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005*\254\001\n\rUniform" +
-      "Format\022\n\n\006Scalar\020\000\022\010\n\004Vec2\020\001\022\010\n\004Vec3\020\002\022\010" +
-      "\n\004Vec4\020\003\022\010\n\004Mat2\020\004\022\010\n\004Mat3\020\005\022\010\n\004Mat4\020\006\022\n" +
-      "\n\006Mat2x3\020\007\022\n\n\006Mat2x4\020\010\022\n\n\006Mat3x2\020\t\022\n\n\006Ma" +
-      "t3x4\020\n\022\n\n\006Mat4x2\020\013\022\n\n\006Mat4x3\020\014\022\013\n\007Sample" +
-      "r\020\r*E\n\013UniformType\022\t\n\005Int32\020\000\022\n\n\006Uint32\020" +
-      "\001\022\010\n\004Bool\020\002\022\t\n\005Float\020\003\022\n\n\006Double\020\004BF\n6co" +
-      "m.android.tools.idea.editors.gfxtrace.se" +
-      "rvice.gfxapiB\014GfxAPIProtosb\006proto3"
+      "\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005\022\t\n\005Spirv\020\006*" +
+      "\254\001\n\rUniformFormat\022\n\n\006Scalar\020\000\022\010\n\004Vec2\020\001\022" +
+      "\010\n\004Vec3\020\002\022\010\n\004Vec4\020\003\022\010\n\004Mat2\020\004\022\010\n\004Mat3\020\005\022" +
+      "\010\n\004Mat4\020\006\022\n\n\006Mat2x3\020\007\022\n\n\006Mat2x4\020\010\022\n\n\006Mat" +
+      "3x2\020\t\022\n\n\006Mat3x4\020\n\022\n\n\006Mat4x2\020\013\022\n\n\006Mat4x3\020" +
+      "\014\022\013\n\007Sampler\020\r*E\n\013UniformType\022\t\n\005Int32\020\000" +
+      "\022\n\n\006Uint32\020\001\022\010\n\004Bool\020\002\022\t\n\005Float\020\003\022\n\n\006Dou" +
+      "ble\020\004BF\n6com.android.tools.idea.editors." +
+      "gfxtrace.service.gfxapiB\014GfxAPIProtosb\006p",
+      "roto3"
     };
     com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
