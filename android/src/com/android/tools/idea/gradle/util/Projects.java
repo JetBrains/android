@@ -36,6 +36,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -50,6 +51,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -330,14 +332,17 @@ public final class Projects {
    * @return {@code true} if the given project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
    */
   public static boolean requiresAndroidModel(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.requiresAndroidModel()) {
-        return true;
+    return ReadAction.compute(() -> {
+      if (project.isDisposed()) return false;
+
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+          return true;
+        }
       }
-    }
-    return false;
+      return false;
+    });
   }
 
   @Nullable
@@ -446,11 +451,16 @@ public final class Projects {
    * Gradle-specific.
    */
   public static boolean isBuildWithGradle(@NotNull Project project) {
-    return CachedValuesManager.getManager(project).getCachedValue(project, new CachedValueProvider<Boolean>() {
-      @Nullable
+    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
-      public Result<Boolean> compute() {
-        return Result.create(calcIsBuildWithGradle(project), ProjectRootModificationTracker.getInstance(project));
+      public Boolean compute() {
+        return !project.isDisposed() && CachedValuesManager.getManager(project).getCachedValue(project, new CachedValueProvider<Boolean>() {
+          @Nullable
+          @Override
+          public Result<Boolean> compute() {
+            return Result.create(calcIsBuildWithGradle(project), ProjectRootModificationTracker.getInstance(project));
+          }
+        });
       }
     });
   }
