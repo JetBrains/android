@@ -82,7 +82,7 @@ public final class AtomSnippets implements BinaryObject {
       e.string(o.myAtomName);
       e.uint32(o.mySnippets.length);
       for (int i = 0; i < o.mySnippets.length; i++) {
-        e.object(o.mySnippets[i].unwrap());
+        e.object(o.mySnippets[i] == null ? null : o.mySnippets[i].unwrap());
       }
     }
 

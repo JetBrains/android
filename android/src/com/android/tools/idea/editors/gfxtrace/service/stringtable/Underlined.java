@@ -73,7 +73,7 @@ public final class Underlined extends Node implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Underlined o = (Underlined)obj;
-      e.object(o.myBody.unwrap());
+      e.object(o.myBody == null ? null : o.myBody.unwrap());
     }
 
     @Override

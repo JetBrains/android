@@ -68,7 +68,7 @@ final class ResultSet implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResultSet o = (ResultSet)obj;
-      e.object(o.myValue.unwrap());
+      e.object(o.myValue == null ? null : o.myValue.unwrap());
     }
 
     @Override

@@ -91,7 +91,7 @@ public final class Parameter extends Node implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Parameter o = (Parameter)obj;
-      e.object(o.myFormatter.unwrap());
+      e.object(o.myFormatter == null ? null : o.myFormatter.unwrap());
       e.string(o.myKey);
     }
 

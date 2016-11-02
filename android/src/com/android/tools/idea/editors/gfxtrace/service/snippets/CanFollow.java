@@ -83,7 +83,7 @@ public final class CanFollow extends KindredSnippets implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       CanFollow o = (CanFollow)obj;
-      e.object(o.myPath.unwrap());
+      e.object(o.myPath == null ? null : o.myPath.unwrap());
     }
 
     @Override

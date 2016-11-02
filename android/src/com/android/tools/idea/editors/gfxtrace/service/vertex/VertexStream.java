@@ -103,7 +103,7 @@ public final class VertexStream implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       VertexStream o = (VertexStream)obj;
       e.string(o.myName);
-      e.object(o.myFormat.unwrap());
+      e.object(o.myFormat == null ? null : o.myFormat.unwrap());
       e.value(o.mySemantic);
       e.object(o.myData);
     }

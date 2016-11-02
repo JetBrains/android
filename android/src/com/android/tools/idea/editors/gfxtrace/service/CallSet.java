@@ -80,7 +80,7 @@ final class CallSet implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       CallSet o = (CallSet)obj;
-      e.object(o.myP.unwrap());
+      e.object(o.myP == null ? null : o.myP.unwrap());
       e.variant(Box.wrap(o.myV));
     }
 
