@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.ui.SearchField;
@@ -142,11 +143,12 @@ public final class IconPickerDialog extends DialogWrapper {
 
     TableCellRenderer tableRenderer = new DefaultTableCellRenderer() {
       @Override
-      public void setValue(Object value) {
+      public void setValue(@Nullable Object value) {
         VdIcon icon = (VdIcon)value;
         setText("");
         setIcon(icon);
-        AccessibleContextUtil.setName(this, icon.getDisplayName());
+        String displayName = icon != null ? icon.getDisplayName() : "";
+        AccessibleContextUtil.setName(this, displayName);
       }
 
       @Override
@@ -309,6 +311,16 @@ public final class IconPickerDialog extends DialogWrapper {
   @Nullable
   public VdIcon getSelectedIcon() {
     return mySelectedIcon;
+  }
+
+  @VisibleForTesting
+  JTable getTable() {
+    return myIconTable;
+  }
+
+  @VisibleForTesting
+  void setFilter(String text) {
+    mySearchField.setText(text);
   }
 
   private void updateIconList(@NotNull String categoryName) {
