@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -62,5 +63,11 @@ public class OpenFileHyperlink extends NotificationHyperlink {
         openFile.navigate(true);
       }
     }
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public String getFilePath() {
+    return myFilePath;
   }
 }
