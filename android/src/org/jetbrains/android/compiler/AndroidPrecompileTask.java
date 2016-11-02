@@ -19,7 +19,6 @@ import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.server.BuildManager;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
@@ -69,7 +68,7 @@ public class AndroidPrecompileTask implements CompileTask {
   public boolean execute(CompileContext context) {
     final Project project = context.getProject();
 
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!AndroidFacet.hasAndroid(project)) {
       return true;
     }
     BuildManager.forceModelLoading(context);

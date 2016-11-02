@@ -42,13 +42,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.facet.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -938,6 +936,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   public DataBindingUtil.LightBrClass getLightBrClass() {
     return myLightBrClass;
+  }
+
+  public static boolean hasAndroid(@NotNull Project project) {
+    return ReadAction.compute(() -> !project.isDisposed() && ProjectFacetManager.getInstance(project).hasFacets(ID));
   }
 
   // Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
