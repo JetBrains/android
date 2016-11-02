@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 
 class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
@@ -89,7 +88,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
                                   myEncodings.getDefaultCharset().displayName(), myMismatchingEncoding);
       String[] text = {line, "Mismatching encodings can lead to serious bugs."};
 
-      SyncMessage message = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text);
+      SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, INFO, text);
       message.add(new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info..."));
 
       SyncMessages.getInstance(project).report(message);

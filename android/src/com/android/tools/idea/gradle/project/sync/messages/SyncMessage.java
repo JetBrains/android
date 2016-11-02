@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -105,5 +106,11 @@ public class SyncMessage {
   @NotNull
   public List<NotificationHyperlink> getQuickFixes() {
     return ImmutableList.copyOf(myQuickFixes);
+  }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return Joiner.on('\n').join(myText);
   }
 }
