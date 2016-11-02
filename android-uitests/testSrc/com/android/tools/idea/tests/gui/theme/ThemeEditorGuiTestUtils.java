@@ -21,11 +21,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.ui.components.JBList;
-import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.*;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
