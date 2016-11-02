@@ -100,7 +100,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = minSdkVersion < 18;
-    settings.allowLossless = minSdkVersion >= 1;
+    settings.allowLossless = minSdkVersion >= 18;
 
     boolean singleFile = files.length == 1 && isEligibleForConversion(files[0], null);
     WebpConversionDialog dialog = new WebpConversionDialog(project, minSdkVersion, settings, singleFile);
