@@ -35,8 +35,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Fixture wrapping the the layout editor for a particular file
  */
@@ -100,7 +98,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    */
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = checkNotNull(surface.getCurrentScreenView());
+    ScreenView screenView = surface.getCurrentScreenView();
     Dimension size = screenView.getSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
     return this;
@@ -114,7 +112,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    */
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = checkNotNull(surface.getCurrentScreenView());
+    ScreenView screenView = surface.getCurrentScreenView();
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
     return this;
   }
