@@ -266,16 +266,11 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (isNotEmpty(location)) {
       Pair<String, Integer> pair = getErrorLocation(location);
       if (pair != null) {
-        exception = new LocationAwareExternalSystemException(errMessage, rootCause, pair.first, pair.getSecond(), -1);
+        exception = new LocationAwareExternalSystemException(errMessage, pair.first, pair.getSecond());
       }
     }
     if (exception == null) {
-      if (errMessage.equals(rootCause.getMessage())) {
-        exception = new ExternalSystemException(errMessage);
-      }
-      else {
-        exception = new ExternalSystemException(errMessage, rootCause);
-      }
+      exception = new ExternalSystemException(errMessage);
     }
     exception.initCause(rootCause);
     return exception;
