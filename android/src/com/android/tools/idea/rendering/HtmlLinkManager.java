@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -889,7 +889,7 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        DesignSurface surface = renderTask.getDesignSurface();
+        EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
           RefreshRenderAction.clearCache(surface);
         }
@@ -901,7 +901,7 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        DesignSurface surface = renderTask.getDesignSurface();
+        EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
           surface.requestRender();
         }

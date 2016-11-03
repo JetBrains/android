@@ -20,7 +20,6 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;

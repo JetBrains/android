@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
 import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;

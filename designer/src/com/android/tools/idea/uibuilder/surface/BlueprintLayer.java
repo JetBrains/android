@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;

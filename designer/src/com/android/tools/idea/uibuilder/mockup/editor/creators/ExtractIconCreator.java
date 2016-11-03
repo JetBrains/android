@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
-import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ExtractBackgroundForm;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -28,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * Extract a Drawable without creating any component

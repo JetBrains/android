@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;

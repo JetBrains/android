@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
-import com.android.tools.idea.configurations.MockupEditAction;
+import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
