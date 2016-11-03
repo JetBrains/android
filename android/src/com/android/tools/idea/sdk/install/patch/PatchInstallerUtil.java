@@ -92,18 +92,28 @@ public class PatchInstallerUtil {
   @Nullable
   static LocalPackage getLatestPatcher(@NotNull RepoManager mgr) {
     LocalPackage patcher = null;
-    int maxVersion = 0;
     for (LocalPackage p : mgr.getPackages().getLocalPackagesForPrefix(PATCHER_PATH_PREFIX)) {
-      try {
-        int version = Integer.parseInt(p.getPath().substring(p.getPath().lastIndexOf('v') + 1));
-        if (version > maxVersion) {
-          patcher = p;
-        }
-      }
-      catch (NumberFormatException ignored) {
+      if (patcher == null || comparePatcherPaths(p.getPath(), patcher.getPath()) > 0) {
+        patcher = p;
       }
     }
     return patcher;
+  }
+
+  static int comparePatcherPaths(@NotNull String path1, @NotNull String path2) {
+    int v1 = -1;
+    int v2 = -1;
+    try {
+      v1 = Integer.parseInt(path1.substring(path1.lastIndexOf('v') + 1));
+    }
+    catch (NumberFormatException ignored) {
+    }
+    try {
+      v2 = Integer.parseInt(path2.substring(path2.lastIndexOf('v') + 1));
+    }
+    catch (NumberFormatException ignored) {
+    }
+    return Integer.compare(v1, v2);
   }
 
   /**
