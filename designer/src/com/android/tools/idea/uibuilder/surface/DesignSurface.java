@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -82,7 +83,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The design surface in the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class DesignSurface extends JPanel implements Disposable, DataProvider {
+public class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
 
@@ -776,6 +777,7 @@ public class DesignSurface extends JPanel implements Disposable, DataProvider {
     return myScale;
   }
 
+  @Override
   public Configuration getConfiguration() {
     return myScreenView != null ? myScreenView.getConfiguration() : null;
   }
@@ -1583,6 +1585,7 @@ public class DesignSurface extends JPanel implements Disposable, DataProvider {
    *
    * @param invalidateModel if true, the model will be invalidated and re-inflated. When false, this will only repaint the current model.
    */
+  @Override
   public void requestRender(boolean invalidateModel) {
     ScreenView screenView = getCurrentScreenView();
     if (screenView != null) {
@@ -1604,6 +1607,7 @@ public class DesignSurface extends JPanel implements Disposable, DataProvider {
   /**
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
+  @Override
   public void requestRender() {
     requestRender(true);
   }

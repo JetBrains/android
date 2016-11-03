@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="library" name="JUnit3" level="project" />
     <orderEntry type="module" module-name="sdk-updates" />
+    <orderEntry type="module" module-name="designer" />
   </component>
 </module>

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;

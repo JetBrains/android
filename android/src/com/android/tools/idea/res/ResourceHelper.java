@@ -32,7 +32,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -544,27 +543,6 @@ public class ResourceHelper {
       }
     }
     return result;
-  }
-
-  /**
-   * Tries to resolve the given resource value to a dimension in pixels. The returned value is
-   * function of the configuration's device's density.
-   *
-   * @param resources     the resource resolver to use to follow references
-   * @param value         the dimension to resolve
-   * @param configuration the device configuration
-   * @return a dimension in pixels, or null
-   */
-  @Nullable
-  @AndroidCoordinate
-  public static Integer resolveDimensionPixelSize(@NotNull RenderResources resources, @NotNull String value,
-                                                  @NotNull Configuration configuration) {
-    String resValue = resolveStringValue(resources, value);
-    ResourceHelper.TypedValue out = new ResourceHelper.TypedValue();
-    if (parseFloatAttribute(resValue, out, true)) {
-      return ResourceHelper.TypedValue.complexToDimensionPixelSize(out.data, configuration);
-    }
-    return null;
   }
 
   @NotNull

@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;

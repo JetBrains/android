@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;

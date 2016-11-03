@@ -9,12 +9,6 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/guiTestSrc" isTestSource="true" />
     </content>
-    <content url="file://$MODULE_DIR$/../designer">
-      <sourceFolder url="file://$MODULE_DIR$/../designer/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../designer/testSrc" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../designer/guiTestSrc" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../designer/resources" type="java-resource" />
-    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="openapi" />

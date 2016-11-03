@@ -31,6 +31,7 @@ import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
