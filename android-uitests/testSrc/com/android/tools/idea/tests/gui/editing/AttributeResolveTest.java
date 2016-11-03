@@ -48,13 +48,13 @@ public class AttributeResolveTest {
     // TODO add dependency using new parser API
     File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertAbout(file()).that(appBuildFile).isFile();
-    appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:cardview-v7:22.1.1' }\n");
+    appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:design:+' }\n");
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("", "<TextView");
-    editor.enterText("<android.support.v7.widget.CardView android:onClick=\"onCreate\" /\n");
+    editor.enterText("<android.support.design.widget.FloatingActionButton android:onClick=\"onCreate\" /\n");
     editor.moveBetween("on", "Create");
 
     guiTest.waitForBackgroundTasks();
