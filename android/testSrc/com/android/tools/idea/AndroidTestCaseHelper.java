@@ -47,18 +47,6 @@ public class AndroidTestCaseHelper {
   }
 
   @Nullable
-  public static String getSystemPropertyOrEnvironmentVariable(String... names) {
-    for (String name : names) {
-      String s = getSystemPropertyOrEnvironmentVariable(name);
-      if (!isNullOrEmpty(s)) {
-        return s;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
   public static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
     String s = System.getProperty(name);
     return s == null ? System.getenv(name) : s;
