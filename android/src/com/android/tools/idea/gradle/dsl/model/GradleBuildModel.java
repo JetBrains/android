@@ -192,6 +192,9 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public GradleBuildModel applyPlugin(@NotNull String plugin) {
+    if (getValues(appliedPlugins()).contains(plugin.trim())) {
+      return this;
+    }
     GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, APPLY_BLOCK_NAME);
     applyMap.addNewLiteral(PLUGIN, plugin.trim());
     myToBeAppliedPlugins.add(applyMap);
