@@ -109,9 +109,11 @@ public class ManifestEditorTest {
       "build.gradle injection\n" +
       " Other Manifest Files (Included in merge, but did not contribute any elements)\n" +
       "locallib manifest, Flavoredapp debug manifest, Flavoredapp flavor1 manifest,\n" +
-      "support-v13:22.1.1 manifest, support-v4:22.1.1 manifest  Merging Log Value\n" +
-      "provided by Gradle Added from the Flavoredapp main manifest (this file), line 1\n" +
-      "Value provided by Gradle\n", true);
+      "support-compat:24.2.1 manifest, support-core-ui:24.2.1 manifest,\n" +
+      "support-core-utils:24.2.1 manifest, support-fragment:24.2.1 manifest,\n" +
+      "support-media-compat:24.2.1 manifest, support-v4:24.2.1 manifest  Merging Log\n" +
+      "Value provided by Gradle Added from the Flavoredapp main manifest (this file),\n" +
+      "line 1 Value provided by Gradle\n", true);
 
     editor.open("src/debug/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
