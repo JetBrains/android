@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
