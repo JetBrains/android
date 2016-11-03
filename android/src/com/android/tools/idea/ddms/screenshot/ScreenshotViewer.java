@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -371,6 +372,19 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     // This is required since the Image Editor's actions are dependent on the context
     // being a ImageFileEditor.
     return PlatformDataKeys.FILE_EDITOR.getName().equals(dataId) ? myImageFileEditor : null;
+  }
+
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "https://developer.android.com/r/studio-ui/am-screenshot.html";
+  }
+
+  @Override
+  protected void doHelpAction() {
+    String helpId = getHelpId();
+    assert helpId != null; // Otherwise, doHelpAction would not be triggered
+    BrowserUtil.browse(helpId);
   }
 
   @Override
