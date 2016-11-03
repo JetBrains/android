@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.execution.Executor;
 import com.intellij.execution.junit2.ui.properties.JUnitConsoleProperties;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,5 +29,20 @@ public class AndroidJUnitConsoleProperties extends JUnitConsoleProperties {
   public AndroidJUnitConsoleProperties(@NotNull AndroidJUnitConfiguration configuration,
                                        Executor executor) {
     super(configuration, executor);
+  }
+
+  @NotNull
+  @Override
+  protected GlobalSearchScope initScope() {
+    GlobalSearchScope scope = super.initScope();
+
+    for (Module each : getConfiguration().getModules()) {
+      // AndroidTest scope in each module is excluded from the scope used to find JUnitTests
+      TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(each);
+      if (testArtifactSearchScopes != null) {
+        scope = scope.intersectWith(GlobalSearchScope.notScope(testArtifactSearchScopes.getAndroidTestSourceScope()));
+      }
+    }
+    return scope;
   }
 }
