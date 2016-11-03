@@ -50,6 +50,7 @@ import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -108,8 +109,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     initTable();
     myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.KEY::ordinal));
-    initDefaultValueTextField();
-    initTranslationTextField();
 
     addResourceChangeListener();
 
@@ -123,16 +122,39 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
   }
 
-  private void initDefaultValueTextField() {
+  private void createUIComponents() {
+    myTable = new StringResourceTable();
+
+    createDefaultValueTextField();
+    createTranslationTextField();
+  }
+
+  private void createDefaultValueTextField() {
+    myDefaultValueTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
     myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
     myDefaultValueTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.DEFAULT_VALUE::ordinal));
   }
 
-  private void initTranslationTextField() {
+  private void createTranslationTextField() {
+    myTranslationTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
     myTranslationTextField.addActionListener(new ShowMultilineActionListener());
     myTranslationTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
+  }
+
+  private static final class TranslationsEditorTextField extends JBTextField {
+    private TranslationsEditorTextField() {
+      super(10);
+    }
+
+    @Override
+    public void paste() {
+      super.paste();
+      setFont(FontUtil.getFontAbleToDisplay(getText(), getFont()));
+    }
   }
 
   private final class SetTableValueAtFocusListener extends FocusAdapter {
@@ -355,10 +377,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   @NotNull
   public JBTable getPreferredFocusedComponent() {
     return myTable;
-  }
-
-  private void createUIComponents() {
-    myTable = new StringResourceTable();
   }
 
   StringResourceTable getTable() {
