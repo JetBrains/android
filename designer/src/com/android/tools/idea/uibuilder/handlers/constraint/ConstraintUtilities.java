@@ -23,8 +23,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
@@ -43,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+
+import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
@@ -877,7 +879,7 @@ public class ConstraintUtilities {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
-        Integer px = ResourceHelper.resolveDimensionPixelSize(resourceResolver, value, configuration);
+        Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
         return px == null ? 0 : (int)(0.5f + px / (configuration.getDensity().getDpiValue() / 160.0f));
       }
     }
@@ -1040,7 +1042,7 @@ public class ConstraintUtilities {
     if (absoluteWidth != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
-      int size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteWidth, configuration);
+      int size = ViewEditor.resolveDimensionPixelSize(resourceResolver, absoluteWidth, configuration);
       size = constraintModel.pxToDp(size);
       widget.setWidth(size);
     }
@@ -1050,7 +1052,7 @@ public class ConstraintUtilities {
     if (absoluteHeight != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
-      int size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteHeight, configuration);
+      int size = ViewEditor.resolveDimensionPixelSize(resourceResolver, absoluteHeight, configuration);
       size = constraintModel.pxToDp(size);
       widget.setHeight(size);
     }
@@ -1095,7 +1097,7 @@ public class ConstraintUtilities {
     if (absoluteX != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
-      int position = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteX, configuration);
+      int position = ViewEditor.resolveDimensionPixelSize(resourceResolver, absoluteX, configuration);
       x = constraintModel.pxToDp(position);
     }
 
@@ -1104,7 +1106,7 @@ public class ConstraintUtilities {
     if (absoluteY != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
-      int position = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteY, configuration);
+      int position = ViewEditor.resolveDimensionPixelSize(resourceResolver, absoluteY, configuration);
       y = constraintModel.pxToDp(position);
     }
 
@@ -1270,14 +1272,14 @@ public class ConstraintUtilities {
       if (resourceResolver != null) {
         String textSize = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
         if (textSize != null) {
-          size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
+          size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
         }
       }
 
       if (size == null) {
         // With the specified string, this method cannot return null
         //noinspection ConstantConditions
-        size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, "15sp", configuration);
+        size = ViewEditor.resolveDimensionPixelSize(resourceResolver, "15sp", configuration);
       }
       String alignment = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
       textWidget.setTextAlignment((alignment == null) ? TextWidget.TEXT_ALIGNMENT_VIEW_START : alignmentMap.get(alignment));
@@ -1417,7 +1419,7 @@ public class ConstraintUtilities {
     Configuration configuration = component.getModel().getConfiguration();
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     if (resourceResolver != null) {
-      return ResourceHelper.resolveStringValue(resourceResolver, text);
+      return resolveStringValue(resourceResolver, text);
     }
     return "";
   }

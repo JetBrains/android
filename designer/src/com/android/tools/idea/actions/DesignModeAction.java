@@ -13,47 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.idea.actions;
 
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.AndroidIcons;
 
 /**
- * Mode for toggling blueprint mode
+ * Mode for toggling design mode
  */
-public class BlueprintModeAction extends AnAction {
+public class DesignModeAction extends AnAction {
   private final DesignSurface mySurface;
 
-  public BlueprintModeAction(DesignSurface surface) {
-    super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
+  public DesignModeAction(DesignSurface surface) {
+    super(null, "Show Design", AndroidIcons.NeleIcons.DesignView);
     mySurface = surface;
   }
 
   @Override
-  public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-
-    if (screenView != null) {
-      event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());
-    }
-  }
-
-  @Override
   public void actionPerformed(AnActionEvent e) {
-    // If we're already in blueprint mode, go to both-mode, otherwise go to blueprint only
+    // If we're already in design mode, go to both-mode, otherwise go to design only
     ScreenMode mode;
     switch (mySurface.getScreenMode()) {
-      case BLUEPRINT_ONLY:
+      case SCREEN_ONLY:
         mode = ScreenMode.BOTH;
         break;
-      case SCREEN_ONLY:
+      case BLUEPRINT_ONLY:
       case BOTH:
       default:
-        mode = ScreenMode.BLUEPRINT_ONLY;
+        mode = ScreenMode.SCREEN_ONLY;
         break;
     }
     mySurface.setScreenMode(mode, true);

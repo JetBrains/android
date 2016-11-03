@@ -55,7 +55,7 @@ public class ScrollInteraction extends Interaction {
     NlComponent currentComponent = component;
     ScrollHandler scrollHandler = null;
     ViewEditor editor = new ViewEditorImpl(screenView);
-    
+
     // Find the component that is the lowest in the hierarchy and can take the scrolling events
     while (currentComponent != null) {
       ViewGroupHandler viewGroupHandler = currentComponent.getViewGroupHandler();

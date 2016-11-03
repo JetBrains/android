@@ -76,6 +76,18 @@ iml_module(
     deps = ["//tools/sherpa:sherpa-solver[module]"],
 )
 
+filegroup(
+    name = "testFiles",
+    visibility = ["//visibility:public"],
+    srcs = glob([
+        "android/annotations/**",
+        "android/device-art-resources/**",
+        "android/testData/**",
+        "android/lib/androidWidgets/**",
+        "android/lib/libwebp/**",
+    ]),
+)
+
 iml_module(
     name = "android",
     # do not sort: must match IML order
@@ -83,19 +95,11 @@ iml_module(
         "android/resources",
         "android/src",
         "android/gen",
-        "designer/src",
     ],
-    resources = ["designer/resources"],
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
-    test_data = glob([
-        "android/annotations/**",
-        "android/device-art-resources/**",
-        "android/testData/**/*",
-        "designer/testData/**/*",
-        "android/lib/androidWidgets/**",
-        "android/lib/libwebp/**",
-    ]) + [
+    test_data = [
+        "testFiles",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
@@ -111,12 +115,12 @@ iml_module(
     ],
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
-        "//tools/adt/idea/android-plugin:android-plugin"
+        "//tools/adt/idea/android-plugin:android-plugin",
+        "//tools/adt/idea/designer",
     ],
     test_shard_count = 2,
     test_srcs = [
         "android/testSrc",
-        "designer/testSrc",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
@@ -396,5 +400,6 @@ iml_module(
         "//tools/adt/idea:android/lib/spantable[test]",
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
         "//tools/base/rpclib:studio.rpclib[module, test]",
+        "//tools/adt/idea/designer:designer[module, test]",
     ],
 )

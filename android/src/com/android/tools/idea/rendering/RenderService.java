@@ -33,7 +33,7 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
@@ -178,7 +178,7 @@ public class RenderService {
   public RenderTask createTask(@Nullable final PsiFile psiFile,
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
-                               @Nullable final DesignSurface surface) {
+                               @Nullable final EditorDesignSurface surface) {
     Module module = myFacet.getModule();
     final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module, logger);
@@ -298,7 +298,7 @@ public class RenderService {
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
   private static void warnIfObsoleteLayoutLib(@NotNull final Module module,
                                               @NotNull RenderLogger logger,
-                                              @Nullable final DesignSurface surface,
+                                              @Nullable final EditorDesignSurface surface,
                                               @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
       return;
