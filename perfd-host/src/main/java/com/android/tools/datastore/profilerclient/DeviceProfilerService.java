@@ -32,7 +32,6 @@ import java.util.Set;
  * The per-device handle/API for clients to communicate with the server on the device.
  */
 public class DeviceProfilerService {
-  private static final String DEVICE_UNIX_DOMAIN_NAME = "StudioProfiler";
   private static final int DEVICE_PORT = 12389;
   public static final int UNSELECTED_PROCESS_ID = Integer.MIN_VALUE;
 
@@ -109,6 +108,10 @@ public class DeviceProfilerService {
     return false;
   }
 
+  /**
+   * @deprecated This class should remain unaware of the currently selected app for profiling. We need to refactor and move this to some
+   * other context/model.
+   */
   public void setSelectedProcessId(int id) {
     mySelectedProcessId = id;
   }
