@@ -23,7 +23,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -37,19 +36,13 @@ public class AndroidTestCaseHelper {
   @Deprecated
   @NotNull
   public static File getAndroidSdkPath() {
-    String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(SdkConstants.ANDROID_HOME_ENV);
+    String path = System.getenv(SdkConstants.ANDROID_HOME_ENV);
     if (isNullOrEmpty(path)) {
-      String format = "Please specify the path of an Android SDK in the system property or environment variable '%1$s'";
+      String format = "Please specify the path of an Android SDK in the environment variable '%1$s'";
       fail(String.format(format, SdkConstants.ANDROID_HOME_ENV));
     }
     // If we got here is because the path is not null or empty.
     return new File(path);
-  }
-
-  @Nullable
-  public static String getSystemPropertyOrEnvironmentVariable(@NotNull String name) {
-    String s = System.getProperty(name);
-    return s == null ? System.getenv(name) : s;
   }
 
   public static void removeExistingAndroidSdks() {
