@@ -39,7 +39,7 @@ public class RefactoringFlowTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String VALUE_REGEX =
-    "(appcompat-v7/\\d+\\.\\d+\\.\\d+/res/values-\\p{Lower}\\p{Lower}(-r\\p{Upper}\\p{Upper})?/values.xml\\n)+";
+    "(appcompat-v7/\\d+\\.\\d+\\.\\d+/res/values-\\p{Lower}.+/values.*.xml)+";
 
   @Test
   public void testResourceConflict() throws IOException {
@@ -83,14 +83,12 @@ public class RefactoringFlowTest {
     refactoringDialog.clickRefactor();
 
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
-    assertThat(conflictsDialog.getText()).matches(
-      Pattern.quote("Resource is also only defined in external libraries and\n" +
-                    "cannot be renamed.\n" +
-                    "\n" +
-                    "Unhandled references:\n") +
+    String text = conflictsDialog.getText().replace("\n", "");
+    assertThat(text).matches(
+      Pattern.quote("Resource is also only defined in external libraries and" +
+                    "cannot be renamed.Unhandled references:") +
       VALUE_REGEX +
-      Pattern.quote("...\n" +
-                    "(Additional results truncated)"));
+      Pattern.quote("...(Additional results truncated)"));
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
 
@@ -103,18 +101,14 @@ public class RefactoringFlowTest {
     refactoringDialog.clickRefactor();
 
     conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
-    assertThat(conflictsDialog.getText()).matches(
-      Pattern.quote("The resource @string/abc_searchview_description_submit is\n" +
-                    "defined outside of the project (in one of the libraries) and\n" +
-                    "cannot be updated. This can change the behavior of the\n" +
-                    "application.\n" +
-                    "\n" +
-                    "Are you sure you want to do this?\n" +
-                    "\n" +
-                    "Unhandled references:\n") +
+    text = conflictsDialog.getText().replace("\n", "");
+    assertThat(text).matches(
+      Pattern.quote("The resource @string/abc_searchview_description_submit is" +
+                    "defined outside of the project (in one of the libraries) and" +
+                    "cannot be updated. This can change the behavior of the" +
+                    "application.Are you sure you want to do this?Unhandled references:") +
       VALUE_REGEX +
-      Pattern.quote("...\n" +
-                    "(Additional results truncated)"));
+      Pattern.quote("...(Additional results truncated)"));
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
   }
