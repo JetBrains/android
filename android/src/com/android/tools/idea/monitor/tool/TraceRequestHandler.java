@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class TraceRequestHandler {
 
@@ -55,10 +56,6 @@ public class TraceRequestHandler {
   @NotNull
 
   private final Project myProject;
-
-
-  // Path where ART trace is generate on the device when tracing.
-  private String myRemotePath;
 
   public TraceRequestHandler(
     @NotNull DeviceProfilerService selectedDeviceProfilerService,
@@ -95,8 +92,6 @@ public class TraceRequestHandler {
       LOG.error(response.getErrorMessage());
       return;
     }
-
-    myRemotePath = response.getTraceFilename();
   }
 
   public void stopTracing(Profiler profiler) {
@@ -115,28 +110,17 @@ public class TraceRequestHandler {
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.error("Unable to stop tracing:" + response.getStatus());
       LOG.error(response.getErrorMessage());
-      myRemotePath = null;
       return;
     }
 
-    // Download file from device, process it and store it in the datastore.
-    String localFileName = myRemotePath.substring(myRemotePath.lastIndexOf("/") + 1);
+    // Save the trace data into a file, process it and store it in the datastore.
     final File[] dst = {null};
     try {
       ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Object, IOException>() {
                                                            @Override
                                                            public Object compute() throws IOException {
-                                                             try {
-                                                               dst[0] = createLocalFile(localFileName);
-                                                               IDevice selectedDevice = myDeviceContext.getSelectedDevice();
-                                                               selectedDevice.pullFile(myRemotePath, dst[0].getAbsolutePath());
-                                                               selectedDevice.executeShellCommand("rm " + myRemotePath, NullOutputReceiver.getReceiver());
-                                                             }
-                                                             catch (AdbCommandRejectedException | TimeoutException | SyncException |
-                                                               ShellCommandUnresponsiveException e) {
-                                                               e.printStackTrace();
-                                                             }
-                                                             myRemotePath = null;
+                                                             dst[0] = createLocalFile(createATraceFileName());
+                                                             Files.write(dst[0].toPath(), response.getTrace().toByteArray());
                                                              return null;
                                                            }
                                                          }
@@ -153,7 +137,6 @@ public class TraceRequestHandler {
     catch (IOException e) {
       e.printStackTrace();
     }
-    myRemotePath = null;
   }
 
   // Create File to store the raw ART trace. This file is automatically deleted when AS stops.
@@ -179,5 +162,11 @@ public class TraceRequestHandler {
     else {
       throw new IOException("Unable to create the captures directory: Project directory not found.");
     }
+  }
+
+  // Create a name for new CPU trace files that's unique during the lifetime of current process.
+  private String createATraceFileName() {
+    return String.format("t%d_%d.cpu_trace", java.lang.Thread.currentThread().getId(),
+                         java.lang.System.nanoTime());
   }
 }
