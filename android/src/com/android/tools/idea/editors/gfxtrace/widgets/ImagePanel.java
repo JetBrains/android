@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.widgets;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.actions.PopupAction;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.rpclib.futures.FutureController;
@@ -26,10 +27,7 @@ import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -166,7 +164,8 @@ public class ImagePanel extends JPanel {
     private BufferedImage level = MultiLevelImage.EMPTY_LEVEL;
     private BufferedImage displayed = null;
     private double zoom;
-    private boolean drawCheckerBoard = true;
+    private BackgroundMode backgroundMode = BackgroundMode.Checkerboard;
+    private Color backgroundColor = Color.black;
     private boolean flipped = false;
     private boolean[] channels = new boolean[] { true, true, true, true };
     @NotNull private Pixel previewPixel = Pixel.OUT_OF_BOUNDS;
@@ -333,24 +332,15 @@ public class ImagePanel extends JPanel {
         }
       });
       group.add(new Separator());
-      group.add(new AnAction("Color Channels", "Select color channels to show", AndroidIcons.GfxTrace.ColorChannels) {
+      group.add(new PopupAction("Color Channels", "Select color channels to show", AndroidIcons.GfxTrace.ColorChannels) {
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        protected JComponent getPopupContents(AnActionEvent e) {
           JPanel contents = new JPanel();
           contents.add(new ChannelCheckbox("Red", CHANNEL_RED));
           contents.add(new ChannelCheckbox("Green", CHANNEL_GREEN));
           contents.add(new ChannelCheckbox("Blue", CHANNEL_BLUE));
           contents.add(new ChannelCheckbox("Alpha", CHANNEL_ALPHA));
-
-          JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(contents, contents)
-            .setCancelOnClickOutside(true)
-            .setResizable(false)
-            .setMovable(false)
-            .createPopup();
-
-          Component source = e.getInputEvent().getComponent();
-          popup.setMinimumSize(new Dimension(0, source.getHeight()));
-          popup.show(new RelativePoint(source, new Point(source.getWidth(), 0)));
+          return contents;
         }
 
         class ChannelCheckbox extends JBCheckBox {
@@ -362,25 +352,7 @@ public class ImagePanel extends JPanel {
           }
         }
       });
-      group.add(new ToggleAction("Show Checkerboard", "Toggle the checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
-        @Override
-        public boolean isSelected(AnActionEvent e) {
-          return drawCheckerBoard;
-        }
-
-        @Override
-        public void setSelected(AnActionEvent e, boolean state) {
-          drawCheckerBoard = state;
-          repaint();
-        }
-
-        @Override
-        public void update(@NotNull AnActionEvent e) {
-          super.update(e);
-          Presentation presentation = e.getPresentation();
-          presentation.setEnabled(channels[CHANNEL_ALPHA]);
-        }
-      });
+      group.add(new BackgroundAction());
       if (enableVerticalFlip) {
         flipped = true;
         group.add(new ToggleAction("Flip Vertically", "Flip The image vertically", AndroidIcons.GfxTrace.FlipVertically) {
@@ -449,8 +421,12 @@ public class ImagePanel extends JPanel {
       int w = (int)(levelWidth * scale), h = (int)(levelHeight * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
-      if (drawCheckerBoard && channels[CHANNEL_ALPHA]) {
-        ((Graphics2D)g).setPaint(CHECKER_PAINT);
+      if (channels[CHANNEL_ALPHA]) {
+        if (backgroundMode == BackgroundMode.Checkerboard) {
+          ((Graphics2D)g).setPaint(CHECKER_PAINT);
+        } else {
+          g.setColor(backgroundColor);
+        }
         g.fillRect(x, y, w, h);
       }
 
@@ -793,6 +769,111 @@ public class ImagePanel extends JPanel {
       public interface Listener {
         void levelChanged(int level);
       }
+    }
+
+    private class BackgroundAction extends PopupAction {
+      private Icon myColorIcon;
+      private ActionToolbar myToolbar;
+
+      public BackgroundAction() {
+        super("Background", "Select background color/pattern", ImagesIcons.ToggleTransparencyChessboard);
+        myColorIcon = new SolidColorIcon();
+      }
+
+      private ActionToolbar getToolbar() {
+        if (myToolbar == null) {
+          DefaultActionGroup actions = new DefaultActionGroup();
+          actions.add(new ToggleAction("Show Checkerboard", "Show a checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
+            @Override
+            public boolean isSelected(AnActionEvent e) {
+              return backgroundMode == BackgroundMode.Checkerboard;
+            }
+
+            @Override
+            public void setSelected(AnActionEvent e, boolean state) {
+              backgroundMode = BackgroundMode.Checkerboard;
+              getToolbar().updateActionsImmediately();
+              repaint();
+            }
+          });
+          actions.add(new ToggleAction("Solid Color", "Show a solid color as background", myColorIcon) {
+            @Override
+            public boolean isSelected(AnActionEvent e) {
+              return backgroundMode == BackgroundMode.SolidColor;
+            }
+
+            @Override
+            public void setSelected(AnActionEvent e, boolean state) {
+              backgroundMode = BackgroundMode.SolidColor;
+              getToolbar().updateActionsImmediately();
+              repaint();
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+              e.getPresentation().setIcon(myColorIcon);
+            }
+          });
+          myToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actions, true);
+          myToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        }
+        return myToolbar;
+      }
+
+      @Override
+      protected JComponent getPopupContents(AnActionEvent e) {
+        Box contents = Box.createHorizontalBox();
+        contents.add(getToolbar().getComponent());
+        contents.add(Box.createHorizontalStrut(5));
+        contents.add(new QuickColorPicker(JBUI.scale(128), rgb -> {
+          backgroundMode = BackgroundMode.SolidColor;
+          backgroundColor = new Color(0xFF000000 | rgb);
+          myColorIcon = new SolidColorIcon(); // workaround for update not causing a repaint if the icon doesn't change.
+          getToolbar().updateActionsImmediately();
+          repaint();
+        }));
+        return contents;
+      }
+
+      @Override
+      public void update(AnActionEvent e) {
+        Presentation presentation = e.getPresentation();
+        switch (backgroundMode) {
+          case Checkerboard:
+            presentation.setIcon(ImagesIcons.ToggleTransparencyChessboard);
+            break;
+          case SolidColor:
+            presentation.setIcon(myColorIcon);
+            break;
+        }
+        presentation.setEnabled(channels[CHANNEL_ALPHA]);
+      }
+
+      private class SolidColorIcon implements Icon {
+        private final int SIZE = JBUI.scale(16);
+        private final int MARGIN = JBUI.scale(2);
+
+        @Override
+        public int getIconWidth() {
+          return SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+          return SIZE;
+        }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+          g.clearRect(x, y, WIDTH, WIDTH);
+          g.setColor(backgroundColor);
+          g.fillRect(x + MARGIN, y + MARGIN, SIZE - 2 * MARGIN, SIZE - 2 * MARGIN);
+        }
+      }
+    }
+
+    private enum BackgroundMode {
+      Checkerboard, SolidColor;
     }
   }
 
