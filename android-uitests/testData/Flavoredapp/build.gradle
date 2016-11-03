@@ -19,8 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:22.1.1'
-    debugCompile 'com.android.support:support-v13:22.1.1'
+    compile 'com.android.support:support-v4:24.2.1'
     compile project(':locallib')
     compile project(':myaarlibrary')
 }
