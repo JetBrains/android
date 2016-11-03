@@ -215,7 +215,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myDownloader = downloader;
     mySettings = settings;
 
-    List<File> sdkLocations = getSdkLocations();
+    Collection<File> sdkLocations = getSdkLocations();
     mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
     if (AndroidUtils.isAndroidStudio()) {
@@ -270,7 +270,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
   }
 
   @NotNull
-  private static List<File> getSdkLocations() {
+  private static Collection<File> getSdkLocations() {
     if (AndroidUtils.isAndroidStudio()) {
       File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
       if (androidHome != null) {
@@ -305,7 +305,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
         }
       }
     }
-    return new ArrayList<>(locations);
+    return locations;
   }
 
   private void setUpSingleSdkChooser() {
