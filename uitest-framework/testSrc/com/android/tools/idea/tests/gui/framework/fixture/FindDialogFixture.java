@@ -21,9 +21,6 @@ import com.intellij.openapi.ui.ComboBox;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
@@ -44,9 +41,7 @@ public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        JComponent c = getDialogWrapper().getPreferredFocusedComponent();
-        assertThat(c).isInstanceOf(ComboBox.class);
-        ComboBox input = (ComboBox)c;
+        ComboBox input = (ComboBox)getDialogWrapper().getPreferredFocusedComponent();
         input.setSelectedItem(text);
       }
     });
