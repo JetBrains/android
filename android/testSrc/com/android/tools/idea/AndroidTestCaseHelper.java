@@ -16,34 +16,15 @@
 
 package com.android.tools.idea;
 
-import com.android.SdkConstants;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
-
-  /** @deprecated Use {@link com.android.testutils.TestUtils#getSdk} instead. */
-  @Deprecated
-  @NotNull
-  public static File getAndroidSdkPath() {
-    String path = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    if (isNullOrEmpty(path)) {
-      String format = "Please specify the path of an Android SDK in the environment variable '%1$s'";
-      fail(String.format(format, SdkConstants.ANDROID_HOME_ENV));
-    }
-    // If we got here is because the path is not null or empty.
-    return new File(path);
-  }
 
   public static void removeExistingAndroidSdks() {
     ProjectJdkTable table = ProjectJdkTable.getInstance();
