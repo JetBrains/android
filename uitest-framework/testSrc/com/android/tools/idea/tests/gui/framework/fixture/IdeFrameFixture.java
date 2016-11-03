@@ -253,11 +253,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleInvocationResult invokeProjectMake() {
-    return invokeProjectMake(null);
-  }
-
-  @NotNull
-  public GradleInvocationResult invokeProjectMake(@Nullable Runnable executeAfterInvokingMake) {
     myGradleProjectEventListener.reset();
 
     AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
@@ -268,10 +263,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         }
       });
     selectProjectMakeAction();
-
-    if (executeAfterInvokingMake != null) {
-      executeAfterInvokingMake.run();
-    }
 
     waitForBuildToFinish(COMPILE_JAVA);
 
