@@ -18,7 +18,7 @@ iml_module(
         "//tools/base/ddmlib:studio.ddmlib",
         "//tools:idea.annotations[module]",
         "//tools/base/rpclib:studio.rpclib[module]",
-        "//tools/idea/.idea/libraries:profiler-grpc-java",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],

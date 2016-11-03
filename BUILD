@@ -187,7 +187,7 @@ iml_module(
         "//tools/idea/.idea/libraries:dexlib2",
         "//tools/base/apkparser:studio.binary-resources[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
-        "//tools/idea/.idea/libraries:profiler-grpc-java",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/analytics-library:analytics-tracker[module]",
         "//tools/analytics-library:analytics-protos[module]",
         "//tools/analytics-library:analytics-shared[module]",
