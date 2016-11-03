@@ -61,7 +61,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.RenderErrorModelFactoryTest.class,
   com.android.tools.idea.run.AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  com.android.tools.idea.uibuilder.property.editors.StyleFilterTest.class,
   com.android.tools.idea.uibuilder.structure.NlComponentTreeTest.class,
   com.android.tools.idea.uibuilder.surface.InteractionManagerTest.class,
   com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
