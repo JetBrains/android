@@ -1184,7 +1184,7 @@ public class GradleSyncTest {
       @Override
       protected void executeInEDT() throws Throwable {
         runWriteCommandAction(
-          project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23"));
+          project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24"));
       }
     });
 
