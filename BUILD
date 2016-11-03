@@ -374,5 +374,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:adt-ui[module, test]",
         "//tools/base/rpclib:studio.rpclib[module, test]",
         "//tools/adt/idea/designer:designer[module, test]",
+        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
