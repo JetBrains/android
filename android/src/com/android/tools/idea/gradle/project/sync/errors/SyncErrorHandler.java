@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.Notification
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -38,6 +39,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 public abstract class SyncErrorHandler {
   private static final ExtensionPointName<SyncErrorHandler>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+  protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
   @NotNull
   public static SyncErrorHandler[] getExtensions() {
@@ -55,7 +57,9 @@ public abstract class SyncErrorHandler {
   }
 
   @Nullable
-  protected abstract String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project);
+  protected abstract String findErrorMessage(@NotNull Throwable rootCause,
+                                             @NotNull NotificationData notification,
+                                             @NotNull Project project);
 
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
@@ -78,6 +82,10 @@ public abstract class SyncErrorHandler {
 
   protected final void updateUsageTracker() {
     updateUsageTracker(null, null);
+  }
+
+  protected final void updateUsageTracker(@NotNull GradleSyncFailure syncFailure) {
+    updateUsageTracker(syncFailure, null);
   }
 
   protected final void updateUsageTracker(@Nullable GradleSyncFailure gradleSyncFailure, @Nullable String gradleMissingSignature) {

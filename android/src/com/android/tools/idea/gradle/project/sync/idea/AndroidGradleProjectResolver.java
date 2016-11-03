@@ -70,9 +70,9 @@ import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsActi
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
-import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;

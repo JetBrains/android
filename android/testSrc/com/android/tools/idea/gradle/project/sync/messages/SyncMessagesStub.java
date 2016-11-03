@@ -80,6 +80,12 @@ public class SyncMessagesStub extends SyncMessages {
     myNotificationUpdate = new NotificationUpdate(text, quickFixes);
   }
 
+  @Override
+  public void addNotificationListener(@NotNull NotificationData notification,
+                                      @NotNull List<NotificationHyperlink> quickFixes) {
+    myNotificationUpdate = new NotificationUpdate(notification.getMessage(), quickFixes);
+  }
+
   @Nullable
   public NotificationUpdate getNotificationUpdate() {
     return myNotificationUpdate;
