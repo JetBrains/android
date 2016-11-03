@@ -30,6 +30,7 @@ import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -88,7 +89,7 @@ public class GraphicsLayoutRenderer {
 
   private GraphicsLayoutRenderer(@NotNull LayoutLibrary layoutLib,
                                  @NotNull SessionParams sessionParams,
-                                 @NotNull RenderSecurityManager securityManager,
+                                 @Nullable RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull List<ResourceValue> resourceLookupChain,
                                  @NotNull Object credential) {
@@ -104,14 +105,16 @@ public class GraphicsLayoutRenderer {
     myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential);
   }
 
+  @VisibleForTesting
   @NotNull
-  protected static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
+  static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
                                                  @NotNull AndroidPlatform platform,
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
                                                  @NotNull ILayoutPullParser parser,
                                                  @Nullable Color backgroundColor,
-                                                 @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
+                                                 @NotNull SessionParams.RenderingMode renderingMode,
+                                                 boolean useSecurityManager) throws InitializationException {
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     LayoutLibrary layoutLib;
     try {
@@ -197,7 +200,7 @@ public class GraphicsLayoutRenderer {
       params.setOverrideBgColor(backgroundColor.getRGB());
     }
 
-    RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
+    RenderSecurityManager mySecurityManager = useSecurityManager ? RenderSecurityManagerFactory.create(module, platform) : null;
     return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
   }
 
@@ -242,7 +245,7 @@ public class GraphicsLayoutRenderer {
       renderingMode = SessionParams.RenderingMode.NORMAL;
     }
 
-    return create(facet, platform, module.getProject(), configuration, parser, backgroundColor, renderingMode);
+    return create(facet, platform, module.getProject(), configuration, parser, backgroundColor, renderingMode, true);
   }
 
   /**
@@ -322,12 +325,16 @@ public class GraphicsLayoutRenderer {
         result = RenderService.runRenderAction(new Callable<Result>() {
           @Override
           public Result call() {
-            mySecurityManager.setActive(true, myCredential);
+            if (mySecurityManager != null) {
+              mySecurityManager.setActive(true, myCredential);
+            }
             try {
               return myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
             }
             finally {
-              mySecurityManager.setActive(false, myCredential);
+              if (mySecurityManager != null) {
+                mySecurityManager.setActive(false, myCredential);
+              }
             }
           }
         });
@@ -368,13 +375,15 @@ public class GraphicsLayoutRenderer {
   @Nullable
   private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
                                                  @NotNull final SessionParams sessionParams,
-                                                 @NotNull final RenderSecurityManager securityManager,
+                                                 @Nullable final RenderSecurityManager securityManager,
                                                  final @NotNull Object credential) {
     try {
       RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
         @Override
         public RenderSession call() {
-          securityManager.setActive(true, credential);
+          if (securityManager != null) {
+            securityManager.setActive(true, credential);
+          }
           try {
             // createSession() might access the PSI tree so we need to run it inside as a read action.
             return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
@@ -387,7 +396,9 @@ public class GraphicsLayoutRenderer {
             });
           }
           finally {
-            securityManager.setActive(false, credential);
+            if (securityManager != null) {
+              securityManager.setActive(false, credential);
+            }
           }
         }
       });

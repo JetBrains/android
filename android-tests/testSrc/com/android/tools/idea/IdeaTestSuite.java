@@ -67,7 +67,6 @@ import java.nio.file.Paths;
   com.android.tools.idea.rendering.RenderErrorContributorTest.class, // flaky in bazel
   AndroidTestConfigurationProducerTest.class,
   com.android.tools.idea.templates.RepositoryUrlManagerTest.class,
-  com.android.tools.swing.layoutlib.GraphicsLayoutRendererTest.class,
   org.jetbrains.android.AndroidLintTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
   org.jetbrains.android.dom.AndroidManifestDomTest.class,
