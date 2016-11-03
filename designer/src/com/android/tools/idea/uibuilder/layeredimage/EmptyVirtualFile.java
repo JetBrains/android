@@ -15,7 +15,7 @@
  */
 
 
-package com.android.tools.idea.editors.layeredimage;
+package com.android.tools.idea.uibuilder.layeredimage;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;

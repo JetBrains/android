@@ -28,7 +28,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
 import com.google.common.base.Throwables;
@@ -459,7 +459,7 @@ public class RenderErrorModelFactory {
       if (clientData != null) {
         builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
           RenderLogger.ignoreFidelityWarning(clientData);
-          DesignSurface surface = renderTask.getDesignSurface();
+          EditorDesignSurface surface = renderTask.getDesignSurface();
           if (surface != null) {
             surface.requestRender();
           }
@@ -480,7 +480,7 @@ public class RenderErrorModelFactory {
     builder.endList();
     builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
       RenderLogger.ignoreAllFidelityWarnings();
-      DesignSurface surface = renderTask.getDesignSurface();
+      EditorDesignSurface surface = renderTask.getDesignSurface();
       if (surface != null) {
         surface.requestRender();
       }
@@ -781,7 +781,7 @@ public class RenderErrorModelFactory {
         .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
           new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
 
-          DesignSurface surface = task != null ? task.getDesignSurface() : null;
+          EditorDesignSurface surface = task != null ? task.getDesignSurface() : null;
           if (surface != null) {
             surface.requestRender(true);
           }

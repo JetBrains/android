@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
