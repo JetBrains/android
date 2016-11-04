@@ -69,13 +69,13 @@
     <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
-
     <group id="Android.NavBarToolBar">
       <reference id="Android.RunAndroidSdkManager" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </group>
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
