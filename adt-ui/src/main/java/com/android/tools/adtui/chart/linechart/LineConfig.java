@@ -28,6 +28,16 @@ import java.awt.*;
  */
 public class LineConfig {
 
+  private static final BasicStroke DEFAULT_LINE_STROKE = new BasicStroke(2);
+
+  private static final BasicStroke DEFAULT_DASH_STROKE =
+    new BasicStroke(2.0f,
+                    BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_BEVEL,
+                    10.0f,  // Miter limit, Swing's default
+                    new float[]{8.0f, 5.0f},  // Dash pattern in pixel
+                    0.0f);  // Dash phase - just starts at zero.
+
   //TODO Move colors out of LineConfig
   public static final Color[] COLORS = {
     new JBColor(0x6baed6, 0x6baed6),
@@ -79,12 +89,13 @@ public class LineConfig {
 
   public LineConfig(@NotNull Color color) {
     mColor = color;
-    myStroke = new BasicStroke(1); // Default
+    myStroke = DEFAULT_LINE_STROKE;
   }
 
   @NotNull
   public LineConfig setDashed(boolean isDashed) {
     myIsDashed = isDashed;
+    myStroke = myIsDashed ? DEFAULT_DASH_STROKE : DEFAULT_LINE_STROKE;
     return this;
   }
 
