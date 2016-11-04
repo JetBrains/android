@@ -87,14 +87,16 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // add horizontal time axis
     AxisComponent.Builder builder = new AxisComponent.Builder(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.BOTTOM)
-      .setGlobalRange(mTimeGlobalRangeUs);
+      .setGlobalRange(mTimeGlobalRangeUs).setMargins(AXIS_SIZE, AXIS_SIZE);
     mTimeAxis = builder.build();
 
     // left memory data + axis
     AnimatedRange yRange1Animatable = new AnimatedRange(0, 100);
     builder = new AxisComponent.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.LEFT)
       .setLabel(SERIES1_LABEL)
-      .showMinMax(true);
+      .showMax(true)
+      .showUnitAtMax(true)
+      .setMargins(AXIS_SIZE, AXIS_SIZE);
     mMemoryAxis1 = builder.build();
 
     LongDataSeries series1 = new LongDataSeries();
@@ -106,7 +108,9 @@ public class AxisLineChartVisualTest extends VisualTest {
     AnimatedRange yRange2Animatable = new AnimatedRange(0, 100);
     builder = new AxisComponent.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT, AxisComponent.AxisOrientation.RIGHT)
       .setLabel(SERIES2_LABEL)
-      .showMinMax(true);
+      .showMax(true)
+      .showUnitAtMax(true)
+      .setMargins(AXIS_SIZE, AXIS_SIZE);
     mMemoryAxis2 = builder.build();
 
     LongDataSeries series2 = new LongDataSeries();
@@ -257,16 +261,16 @@ public class AxisLineChartVisualTest extends VisualTest {
               AxisComponent axis = (AxisComponent)c;
               switch (axis.getOrientation()) {
                 case LEFT:
-                  axis.setBounds(0, AXIS_SIZE, AXIS_SIZE, dim.height - AXIS_SIZE * 2);
+                  axis.setBounds(0, 0, AXIS_SIZE, dim.height);
                   break;
                 case BOTTOM:
-                  axis.setBounds(AXIS_SIZE, dim.height - AXIS_SIZE, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
+                  axis.setBounds(0, dim.height - AXIS_SIZE, dim.width, AXIS_SIZE);
                   break;
                 case RIGHT:
-                  axis.setBounds(dim.width - AXIS_SIZE, AXIS_SIZE, AXIS_SIZE, dim.height - AXIS_SIZE * 2);
+                  axis.setBounds(dim.width - AXIS_SIZE, 0, AXIS_SIZE, dim.height);
                   break;
                 case TOP:
-                  axis.setBounds(AXIS_SIZE, 0, dim.width - AXIS_SIZE * 2, AXIS_SIZE);
+                  axis.setBounds(0, 0, dim.width, AXIS_SIZE);
                   break;
               }
             }

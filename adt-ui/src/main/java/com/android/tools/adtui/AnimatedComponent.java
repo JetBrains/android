@@ -74,7 +74,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
 
     mLastRenderTime = System.nanoTime();
     Graphics2D g2d = (Graphics2D)g.create();
-    draw(g2d);
+    draw(g2d, getSize());
     mDrawCount++;
 
     if (mDrawDebugInfo) {
@@ -115,7 +115,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
   /**
    * Renders the data constructed in the update phase to the given graphics context.
    */
-  protected abstract void draw(Graphics2D g);
+  protected abstract void draw(Graphics2D g, Dimension size);
 
   /**
    * Draws visual debug information.

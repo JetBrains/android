@@ -38,7 +38,8 @@ public class AxisComponentBuilderTest {
     assertThat(axis1.getGlobalRange()).isNull();
     assertThat(axis1.getParentAxis()).isNull();
     assertThat(axis1.getClampToMajorTicks()).isFalse();
-    assertThat(axis1.getShowMinMax()).isFalse();
+    assertThat(axis1.getShowMin()).isFalse();
+    assertThat(axis1.getShowMax()).isFalse();
     assertThat(axis1.getShowAxisLine()).isTrue();
 
     Range testRange2 = new Range(0, 200);
@@ -46,7 +47,7 @@ public class AxisComponentBuilderTest {
       .setParentAxis(axis1)
       .setGlobalRange(testRange2)
       .setLabel("Axis")
-      .showMinMax(true)
+      .showMax(true)
       .showAxisLine(false)
       .clampToMajorTicks(true);
 
@@ -58,7 +59,8 @@ public class AxisComponentBuilderTest {
     assertThat(axis2.getGlobalRange()).isEqualTo(testRange2);
     assertThat(axis2.getParentAxis()).isEqualTo(axis1);
     assertThat(axis2.getClampToMajorTicks()).isTrue();
-    assertThat(axis2.getShowMinMax()).isTrue();
+    assertThat(axis2.getShowMin()).isFalse();
+    assertThat(axis2.getShowMax()).isTrue();
     assertThat(axis2.getShowAxisLine()).isFalse();
 
   }

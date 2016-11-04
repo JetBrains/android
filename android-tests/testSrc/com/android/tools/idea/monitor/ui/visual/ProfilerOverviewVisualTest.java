@@ -22,12 +22,11 @@ import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
-import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
-import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.ui.components.JBPanel;
@@ -44,7 +43,6 @@ import java.util.List;
 public class ProfilerOverviewVisualTest extends VisualTest {
 
   // Segment dimensions.
-  private static final int EVENT_MIN_HEIGHT = 100;
   private static final int MONITOR_MAX_HEIGHT = Short.MAX_VALUE;
   private static final int MONITOR_PREFERRED_HEIGHT = 200;
   private static final int TIME_AXIS_HEIGHT = 20;
@@ -188,9 +186,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gbc.gridy = 2;
     gridBagPanel.add(mScrollbar, gbc);
 
+    // TODO: fix me, currently it's throwing IllegalArgumentException, the reason is:
+    // EventSegment is using {@code DeviceProfilerService} which doesn't exist in visual test concept.
     // Mock event segment
-    BaseSegment eventSegment = new EventSegment(mTimeCurrentRange, mDataStore, ICONS, mEventDispatcher);
-    setupAndRegisterSegment(eventSegment, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    //BaseSegment eventSegment = new EventSegment(mTimeCurrentRange, mDataStore, ICONS, mEventDispatcher);
+    //setupAndRegisterSegment(eventSegment, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
     // Mock monitor segments
     BaseSegment networkSegment = new NetworkSegment(mTimeCurrentRange, mDataStore, mEventDispatcher);
@@ -207,7 +207,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     setupAndRegisterSegment(timeSegment, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
     // Add left spacer
-    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + eventSegment.getLabelColumnWidth(), 0);
+    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + networkSegment.getLabelColumnWidth(), 0);
     gbc.gridy = 0;
     gbc.gridx = 0;
     gbc.gridwidth = 2;
