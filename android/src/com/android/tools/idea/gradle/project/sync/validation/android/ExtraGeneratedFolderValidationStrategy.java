@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.EXTRA_GENERATED_SOURCES;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
 
@@ -55,10 +55,10 @@ class ExtraGeneratedFolderValidationStrategy extends AndroidProjectValidationStr
       for (File folder : myExtraGeneratedSourceFolderPaths) {
         // Have to add a word before the path, otherwise IDEA won't show it.
         String[] text = {"Folder " + folder.getPath()};
-        messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, WARNING, text));
+        messages.report(new SyncMessage(GENERATED_SOURCES, WARNING, text));
       }
 
-      messages.report(new SyncMessage(EXTRA_GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
+      messages.report(new SyncMessage(GENERATED_SOURCES, INFO, "3rd-party Gradle plug-ins may be the cause"));
     }
   }
 

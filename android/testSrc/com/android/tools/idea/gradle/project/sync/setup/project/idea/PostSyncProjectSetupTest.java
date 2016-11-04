@@ -22,13 +22,14 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.setup.project.idea.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -40,6 +41,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private AndroidSdks myAndroidSdks;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
+  @Mock private DependencySetupErrors myDependencySetupErrors;
   @Mock private GradleSyncSummary mySyncSummary;
   @Mock private SyncMessages mySyncMessages;
   @Mock private DependenciesModuleSetupStep myModuleSetupStep;
@@ -59,8 +61,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, mySyncMessages, myModuleSetupStep,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
+    mySetup = new PostSyncProjectSetup(project, myAndroidSdks, mySyncInvoker, mySyncState, myDependencySetupErrors, mySyncMessages,
+                                       myModuleSetupStep, myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -85,7 +87,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     simulateSyncFinishedWithIssues();
 
     // Avoid adding a hyperlink to install any missing platforms.
-    when(mySyncMessages.getMessageCount(FAILED_TO_SET_UP_SDK)).thenReturn(0);
+    when(mySyncMessages.getMessageCount(SDK_SETUP_ISSUES)).thenReturn(0);
 
     // Avoid check SDK tools version
     PostSyncProjectSetup.ourNewSdkVersionToolsInfoAlreadyShown = true;
