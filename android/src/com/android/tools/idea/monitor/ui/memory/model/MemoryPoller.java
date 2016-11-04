@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,11 +38,7 @@ import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNF
 import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryPoller extends Poller {
-  private static final Logger LOG = Logger.getInstance(MemoryPoller.class.getCanonicalName());
-
   @NotNull private final MemoryDataCache myDataCache;
-
-  @NotNull private final IDevice myDevice;
 
   private long myStartTimestampNs;
 
@@ -62,7 +51,6 @@ public class MemoryPoller extends Poller {
     myDataCache = dataCache;
     myAppId = appId;
     myHasPendingHeapDumpSample = false;
-    myDevice = myService.getDevice();
   }
 
   public Map<SeriesDataType, DataAdapter> createAdapters() {
@@ -149,7 +137,7 @@ public class MemoryPoller extends Poller {
     myDataCache.appendMemorySamples(result.getMemSamplesList());
     myDataCache.appendVmStatsSamples(result.getVmStatsSamplesList());
 
-    List<MemoryData.HeapDumpSample> pendingPulls = new ArrayList<>();
+    List<MemoryData.HeapDumpSample> pendingFetch = new ArrayList<>();
     for (int i = 0; i < result.getHeapDumpSamplesCount(); i++) {
       MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
       if (myHasPendingHeapDumpSample) {
@@ -159,7 +147,7 @@ public class MemoryPoller extends Poller {
         MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
         assert previousLastSample.getFilePath().equals(sample.getFilePath());
         myHasPendingHeapDumpSample = false;
-        pendingPulls.add(sample);
+        pendingFetch.add(sample);
       }
       else {
         myDataCache.appendHeapDumpSample(sample);
@@ -170,17 +158,17 @@ public class MemoryPoller extends Poller {
           myHasPendingHeapDumpSample = true;
         }
         else {
-          pendingPulls.add(sample);
+          pendingFetch.add(sample);
         }
       }
     }
 
-    if (!pendingPulls.isEmpty()) {
+    if (!pendingFetch.isEmpty()) {
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        for (MemoryData.HeapDumpSample sample : pendingPulls) {
-          File heapDumpFile = pullHeapDumpFile(sample);
-          if (heapDumpFile != null) {
-            myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
+        for (MemoryData.HeapDumpSample sample : pendingFetch) {
+          ByteString heapDumpData = pullHeapDumpData(sample);
+          if (heapDumpData != null) {
+            myDataCache.addPulledHeapDumpData(sample, heapDumpData);
           }
         }
       });
@@ -198,26 +186,26 @@ public class MemoryPoller extends Poller {
     HeapDumpRequest.Builder builder = HeapDumpRequest.newBuilder();
     builder.setAppId(myAppId);
     builder.setRequestTime(myStartTimestampNs);   // Currently not used on perfd.
-    myService.getMemoryService().triggerHeapDump(builder.build());
-    return true;
+    switch (myService.getMemoryService().triggerHeapDump(builder.build()).getStatus()) {
+      case SUCCESS:
+        return true;
+      default:
+        return false;
+    }
   }
 
   @Nullable
-  public File pullHeapDumpFile(@NotNull MemoryData.HeapDumpSample sample) {
+  private ByteString pullHeapDumpData(@NotNull MemoryData.HeapDumpSample sample) {
     if (!sample.getSuccess()) {
       return null;
     }
 
-    try {
-      File tempFile = FileUtil.createTempFile(Long.toString(sample.getEndTime()), ".hprof");
-      tempFile.deleteOnExit();
-      myDevice.pullFile(sample.getFilePath(), tempFile.getAbsolutePath());
-      return tempFile;
+    HeapDumpDataRequest dataRequest = HeapDumpDataRequest.newBuilder().setAppId(myAppId).setDumpId(sample.getDumpId()).build();
+    HeapDumpDataResponse response = myService.getMemoryService().getHeapDump(dataRequest);
+    if (response.getStatus() == HeapDumpDataResponse.Status.SUCCESS) {
+      return response.getData();
     }
-    catch (IOException | AdbCommandRejectedException | TimeoutException | SyncException e) {
-      LOG.warn("Error pulling '" + sample.getFilePath() + "' from device.", e);
-      return null;
-    }
+    return null;
   }
 
   private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {

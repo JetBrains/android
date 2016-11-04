@@ -24,7 +24,6 @@ import com.android.tools.datastore.DataAdapter;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataType;
-import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
@@ -87,8 +86,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Set<Poller> createPollers(int pid) {
-    DeviceProfilerService profilerService = myDataStore.getDeviceProfilerService();
-    myDataCache = new MemoryDataCache(profilerService.getDevice(), myMemoryEventDispatcher);
+    myDataCache = new MemoryDataCache(myMemoryEventDispatcher);
     MemoryPoller poller = new MemoryPoller(myDataStore, myDataCache, pid);
 
     Map<SeriesDataType, DataAdapter> adapters = poller.createAdapters();
