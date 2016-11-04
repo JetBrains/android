@@ -5,6 +5,8 @@ iml_module(
     srcs = ["src"],
     tags = ["managed"],
     test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools/adt/idea:android[module]",
         "//tools/adt/idea/sdk-updates:sdk-updates[module]",
@@ -12,5 +14,4 @@ iml_module(
         "//tools:idea.gradle[module]",
         "//tools:idea.jetgroovy[module]",
     ],
-    visibility = ["//visibility:public"],
 )
