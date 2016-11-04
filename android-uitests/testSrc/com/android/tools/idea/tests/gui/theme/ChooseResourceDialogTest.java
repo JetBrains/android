@@ -258,6 +258,7 @@ public class ChooseResourceDialogTest {
     JTableFixture valueTable = dialog.getResourceValueTable();
     assertEquals("Default                                 Simple Application                      \n" +
                  "English                                 Simple Application                      \n" +
+                 "Hebrew                                                                          \n" +
                  "Tamil                                   Simple Application                      \n" +
                  "English, United Kingdom                 Simple Application                      \n" +
                  "Chinese, China                          谷歌 I/O                                  \n",
