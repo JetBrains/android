@@ -152,6 +152,8 @@ public class StatefulButton extends JPanel {
           myButton.setVisible(false);
           myMessage.setVisible(true);
           break;
+        // TODO(b/29617676): Show button disabled in a working state.
+        case IN_PROGRESS:
         case INCOMPLETE:
           myButton.setVisible(true);
           myMessage.setVisible(false);
