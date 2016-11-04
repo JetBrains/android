@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
@@ -52,7 +53,10 @@ public class DataBindingClassFinder extends PsiElementFinder {
       if (dataBindingInfo == null) {
         continue;
       }
-      return DataBindingUtil.getOrCreatePsiClass(dataBindingInfo);
+      VirtualFile file = dataBindingInfo.getPsiFile().getVirtualFile();
+      if (file != null && scope.accept(file)) {
+        return DataBindingUtil.getOrCreatePsiClass(dataBindingInfo);
+      }
     }
     return null;
   }
