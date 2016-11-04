@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.*;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.RunResult;
@@ -42,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
@@ -50,19 +46,13 @@ import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ER
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 
 public class JavaProjectDataService extends AbstractProjectDataService<JavaProject, Void> {
-  private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
-
-  @NotNull private final List<ModuleCustomizer<JavaProject>> myCustomizers;
   @NotNull private final JavaModuleSetupStep[] myModuleSetupSteps;
 
   public JavaProjectDataService() {
-    this(ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer()),
-         JavaModuleSetupStep.getExtensions());
+    this(JavaModuleSetupStep.getExtensions());
   }
 
-  private JavaProjectDataService(@NotNull List<ModuleCustomizer<JavaProject>> moduleCustomizers,
-                                 @NotNull JavaModuleSetupStep[] moduleSetupSteps) {
-    myCustomizers = moduleCustomizers;
+  private JavaProjectDataService(@NotNull JavaModuleSetupStep[] moduleSetupSteps) {
     myModuleSetupSteps = moduleSetupSteps;
   }
 
@@ -82,7 +72,7 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
         doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
-        LOG.error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
+        Logger.getInstance(getClass()).error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
       }
     }
@@ -137,9 +127,6 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
       return;
     }
 
-    for (ModuleCustomizer<JavaProject> customizer : myCustomizers) {
-      customizer.customizeModule(module.getProject(), module, modelsProvider, javaProject);
-    }
     for (JavaModuleSetupStep moduleSetupStep : myModuleSetupSteps) {
       moduleSetupStep.setUpModule(module, javaProject, modelsProvider, null, null);
     }
