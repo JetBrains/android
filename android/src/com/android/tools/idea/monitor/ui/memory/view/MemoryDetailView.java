@@ -186,7 +186,7 @@ class MemoryDetailView implements Disposable {
       updateOnDiffSelection(dataCache, selectedEntry);
     });
 
-    dataCache.executeOnHeapDumpFiles((sample, file) -> addHeapDumpSample(sample));
+    dataCache.executeOnHeapDumpData((sample, file) -> addHeapDumpSample(sample));
     dataCache.executeOnAllocationTrackingSamples(this::addAllocationTrackingSample);
 
     myDataCache = dataCache;
