@@ -38,6 +38,7 @@ public class StatefulButtonMessage extends JPanel {
 
     JBLabel messageDisplay = new JBLabel(message);
     messageDisplay.setOpaque(false);
+    // TODO(b/29617676): Add a treatment for IN_PROGRESS.
     switch (state) {
       case PARTIALLY_COMPLETE:
       case COMPLETE:
