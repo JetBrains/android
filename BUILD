@@ -78,7 +78,6 @@ iml_module(
 
 filegroup(
     name = "testFiles",
-    visibility = ["//visibility:public"],
     srcs = glob([
         "android/annotations/**",
         "android/device-art-resources/**",
@@ -86,6 +85,7 @@ filegroup(
         "android/lib/androidWidgets/**",
         "android/lib/libwebp/**",
     ]),
+    visibility = ["//visibility:public"],
 )
 
 iml_module(
