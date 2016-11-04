@@ -1,10 +1,12 @@
-# This file has been automatically generated, please do not modify directly.
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "sdk-updates",
     srcs = ["src"],
+    tags = ["managed"],
     test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//tools/adt/idea:android[module]",
         "//tools:idea.lang-api[module]",
@@ -14,7 +16,4 @@ iml_module(
         "//tools/adt/idea/observable:observable[module]",
         "//tools/adt/idea/adt-ui:adt-ui[module]",
     ],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-    tags = ["managed"],
 )
