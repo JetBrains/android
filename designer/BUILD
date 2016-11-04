@@ -44,5 +44,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools:idea.compiler-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools/base/sdklib:studio.sdklib[module]",
+        "//tools/base/sdk-common:studio.sdk-common[module]",
     ],
 )

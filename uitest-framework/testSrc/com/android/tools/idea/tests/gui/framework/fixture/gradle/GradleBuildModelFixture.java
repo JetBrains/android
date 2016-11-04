@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
