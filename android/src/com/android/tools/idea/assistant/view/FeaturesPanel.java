@@ -72,7 +72,6 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     if (featureList.size() == 1 && featureList.get(0).getTutorials().size() == 1) {
       hideChooserAndNavigationalBar = true;
       getLog().debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
-      showCard(featureList.get(0).getTutorials().get(0).getKey());
     }
     else {
       addCard(new TutorialChooser(this, bundle, myAnalyticsProvider, myProject), NAVIGATION_KEY);
