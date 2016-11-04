@@ -47,6 +47,7 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
@@ -459,16 +460,12 @@ public final class GuiTests {
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
-    robot.click(button);
+    new JButtonFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JButton.class, text))).click();
   }
 
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
-    Wait.seconds(1).expecting("button " + text + " to be enabled")
-      .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
-    robot.click(button);
+    new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
   }
 
   /**
@@ -529,6 +526,20 @@ public final class GuiTests {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return component.isShowing() && matcher.matches(component);
+      }
+    });
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing, enabled and matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowingAndEnabled(
+    @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher) {
+    return waitUntilShowing(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return component.isEnabled() && matcher.matches(component);
       }
     });
   }
