@@ -66,7 +66,7 @@ public interface AssistActionStateManager {
     COMPLETE, // Action is complete and may not be run again.
     PARTIALLY_COMPLETE, // Action is complete for a subset of cases and may still be run again.
     IN_PROGRESS,// TODO: Use this to disable the button and indicate the state is being determined.
-    ERROR, // [stub-used in future] There is a pre-existing error condition that prevents completion.
+    ERROR, // There is a pre-existing error condition that prevents completion.
     NOT_APPLICABLE // [stub-used in future] Similar to INCOMPLETE but action completion doesn't make sense. e.g. Trigger debug event.
   }
 }
