@@ -172,7 +172,7 @@ public final class Projects {
                               @NotNull PostSyncProjectSetup.Request setupRequest,
                               boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
-      SyncMessages.getInstance(project).removeCommonGroups();
+      SyncMessages.getInstance(project).removeProjectMessages();
 
       ApplicationManager.getApplication().runWriteAction(() -> {
         if (!project.isDisposed()) {

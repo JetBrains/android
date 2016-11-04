@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.*;
@@ -90,7 +91,6 @@ import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -103,8 +103,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
@@ -121,7 +120,6 @@ import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class PostSyncProjectSetup {
@@ -140,6 +138,7 @@ public class PostSyncProjectSetup {
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
+  @NotNull private final DependencySetupErrors myDependencySetupErrors;
   @NotNull private final SyncMessages mySyncMessages;
   @NotNull private final DependenciesModuleSetupStep myDependenciesModuleSetupStep;
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
@@ -157,10 +156,11 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull SyncMessages syncMessages,
+                              @NotNull DependencySetupErrors dependencySetupErrors,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, androidSdks, syncInvoker, syncState, syncMessages, DependenciesModuleSetupStep.getInstance(), versionCompatibilityChecker,
-         projectBuilder, new CommonModuleValidator.Factory());
+    this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, syncMessages, DependenciesModuleSetupStep.getInstance(),
+         versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
@@ -168,6 +168,7 @@ public class PostSyncProjectSetup {
                        @NotNull AndroidSdks androidSdks,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
+                       @NotNull DependencySetupErrors dependencySetupErrors,
                        @NotNull SyncMessages syncMessages,
                        @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
@@ -177,6 +178,7 @@ public class PostSyncProjectSetup {
     myAndroidSdks = androidSdks;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
+    myDependencySetupErrors = dependencySetupErrors;
     mySyncMessages = syncMessages;
     myDependenciesModuleSetupStep = dependenciesModuleSetupStep;
     myVersionCompatibilityChecker = versionCompatibilityChecker;
@@ -202,7 +204,7 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    mySyncMessages.reportDependencySetupErrors();
+    myDependencySetupErrors.reportErrors();
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
     CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
@@ -350,7 +352,7 @@ public class PostSyncProjectSetup {
         "Please update your project to use version " +
         (experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION : GRADLE_PLUGIN_LATEST_VERSION) + "."
       };
-      SyncMessage msg = new SyncMessage(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+      SyncMessage msg = new SyncMessage(SyncMessage.DEFAULT_GROUP, ERROR, text);
 
       String pluginName = experimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_NAME : GRADLE_PLUGIN_NAME;
       NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(pluginName);
@@ -487,7 +489,8 @@ public class PostSyncProjectSetup {
         DependencySet dependencies = Dependency.extractFrom(androidModel);
 
         for (LibraryDependency libraryDependency : dependencies.onLibraries()) {
-          myDependenciesModuleSetupStep.updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
+          myDependenciesModuleSetupStep
+            .updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
         }
 
         Project project = module.getProject();
@@ -566,12 +569,12 @@ public class PostSyncProjectSetup {
   }
 
   private void addSdkLinkIfNecessary() {
-    int sdkErrorCount = mySyncMessages.getMessageCount(FAILED_TO_SET_UP_SDK);
+    int sdkErrorCount = mySyncMessages.getMessageCount(SDK_SETUP_ISSUES);
     if (sdkErrorCount > 0) {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
       String text = "Open Android SDK Manager and install all missing platforms.";
-      SyncMessage hint = new SyncMessage(FAILED_TO_SET_UP_SDK, INFO, NonNavigatable.INSTANCE, text);
+      SyncMessage hint = new SyncMessage(SDK_SETUP_ISSUES, INFO, NonNavigatable.INSTANCE, text);
       hint.add(new OpenAndroidSdkManagerHyperlink());
       mySyncMessages.report(hint);
     }
