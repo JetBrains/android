@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.project.sync;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
@@ -29,9 +32,34 @@ public class SimulatedSyncErrors {
   private SimulatedSyncErrors() {
   }
 
-  public static void registerSyncErrorToSimulate(@NotNull String error) {
+  public static void registerSyncErrorToSimulate(@NotNull String errorMessage) {
     verifyIsTestMode();
-    ApplicationManager.getApplication().putUserData(SIMULATED_ERROR_KEY, new ExternalSystemException(error));
+    ExternalSystemException exception = new ExternalSystemException(errorMessage);
+    store(exception);
+  }
+
+  public static void registerSyncErrorToSimulate(@NotNull Throwable cause) {
+    verifyIsTestMode();
+    ExternalSystemException exception = new ExternalSystemException(cause.getMessage());
+    exception.initCause(cause);
+    store(exception);
+  }
+
+  public static void registerSyncErrorToSimulate(@NotNull String errorMessage, @NotNull File errorFile) {
+    verifyIsTestMode();
+    LocationAwareExternalSystemException exception = new LocationAwareExternalSystemException(errorMessage, errorFile.getPath());
+    store(exception);
+  }
+
+  public static void registerSyncErrorToSimulate(@NotNull Throwable cause, @NotNull File errorFile) {
+    verifyIsTestMode();
+    LocationAwareExternalSystemException exception = new LocationAwareExternalSystemException(cause.getMessage(), errorFile.getPath());
+    exception.initCause(cause);
+    store(exception);
+  }
+
+  private static void store(@NotNull ExternalSystemException exception) {
+    ApplicationManager.getApplication().putUserData(SIMULATED_ERROR_KEY, exception);
   }
 
   public static void simulateRegisteredSyncError() {
