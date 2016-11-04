@@ -70,6 +70,7 @@ public class WorkBenchTest {
   private MinimizedPanel<String> myRightMinimizePanel;
   private AttachedToolWindow<String> myToolWindow1;
   private AttachedToolWindow<String> myToolWindow2;
+  private AttachedToolWindow<String> myToolWindow3;
 
   @Before
   public void before() {
@@ -92,12 +93,12 @@ public class WorkBenchTest {
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
-                                                                      PalettePanelToolContent.getOtherDefinition());
-    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", 333, -1);
-    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", 222, -1);
+                                                                      PalettePanelToolContent.getOtherDefinition(),
+                                                                      PalettePanelToolContent.getThirdDefinition());
     myWorkBench.init(myContent, "CONTEXT", definitions);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
+    myToolWindow3 = myModel.getAllTools().get(2);
     when(fileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
     verify(myWorkBenchManager).register(eq(myWorkBench));
     verify(myFloatingToolWindowManager).register(eq(myFileEditor), eq(myWorkBench));
@@ -148,12 +149,12 @@ public class WorkBenchTest {
 
   @Test
   public void testComponentResize() {
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(333);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(222);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(200);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(400);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(222);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -164,15 +165,70 @@ public class WorkBenchTest {
   }
 
   @Test
+  public void testRestoreDefaultLayout() {
+    myToolWindow1.setAutoHide(true);
+    myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
+    myToolWindow2.setMinimized(true);
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
+    mySplitter.setFirstSize(2000);
+    mySplitter.setLastSize(4000);
+    fireComponentResize(myContent);
+
+    myWorkBench.restoreDefaultLayout();
+
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
+    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
+    assertThat(mySplitter.getLastSize()).isEqualTo(200);
+    assertThat(myToolWindow1.isAutoHide()).isFalse();
+    assertThat(myToolWindow2.isLeft()).isFalse();
+    assertThat(myToolWindow2.isMinimized()).isFalse();
+  }
+
+  @Test
+  public void testStoreAndRestoreDefaultLayout() {
+    myToolWindow1.setAutoHide(true);
+    myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
+    mySplitter.setFirstSize(2000);
+    mySplitter.setLastSize(4000);
+    fireComponentResize(myContent);
+
+    myWorkBench.storeDefaultLayout();
+
+    myToolWindow1.setAutoHide(false);
+    myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 1);
+    myToolWindow2.setSplit(true);
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
+    myToolWindow2.setLeft(false);
+    myToolWindow2.setMinimized(false);
+    mySplitter.setFirstSize(111);
+    mySplitter.setLastSize(444);
+    fireComponentResize(myContent);
+
+    myWorkBench.restoreDefaultLayout();
+
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
+    assertThat(mySplitter.getFirstSize()).isEqualTo(2000);
+    assertThat(mySplitter.getLastSize()).isEqualTo(4000);
+    assertThat(myToolWindow1.isAutoHide()).isTrue();
+    assertThat(myToolWindow2.isLeft()).isTrue();
+    assertThat(myToolWindow2.isSplit()).isFalse();
+  }
+
+  @Test
   public void testModelSwap() {
+    mySplitter.setFirstSize(400);
+    fireComponentResize(myContent);
     assertThat(myToolWindow1.isLeft()).isTrue();
     assertThat(myToolWindow2.isLeft()).isFalse();
+    assertThat(myToolWindow3.isLeft()).isFalse();
 
     myModel.swap();
     assertThat(myToolWindow1.isLeft()).isFalse();
     assertThat(myToolWindow2.isLeft()).isTrue();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(222);
-    assertThat(mySplitter.getLastSize()).isEqualTo(333);
+    assertThat(myToolWindow3.isLeft()).isTrue();
+    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
+    assertThat(mySplitter.getLastSize()).isEqualTo(400);
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
 
@@ -197,7 +253,7 @@ public class WorkBenchTest {
   public void testModelToolOrderChange() {
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
 
-    assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER")).isEqualTo("OTHER,PALETTE");
+    assertThat(myPropertiesComponent.getValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER")).isEqualTo("OTHER,PALETTE,THIRD");
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
 
@@ -211,11 +267,11 @@ public class WorkBenchTest {
 
   @Test
   public void testUpdateModel() {
-    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2).inOrder();
-    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER", "OTHER,PALETTE");
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
+    myPropertiesComponent.setValue(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.TOOL_ORDER", "OTHER,THIRD,PALETTE");
 
     myWorkBench.updateModel();
-    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1).inOrder();
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow3, myToolWindow1).inOrder();
   }
 
   @Test

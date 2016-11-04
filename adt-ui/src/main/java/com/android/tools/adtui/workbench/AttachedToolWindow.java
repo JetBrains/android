@@ -60,7 +60,7 @@ class AttachedToolWindow<T> implements Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
 
-  enum PropertyType {MINIMIZED, LEFT, SPLIT, AUTO_HIDE, FLOATING}
+  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, FLOATING}
 
   private final String myWorkBenchName;
   private final ToolWindowDefinition<T> myDefinition;
@@ -179,7 +179,7 @@ class AttachedToolWindow<T> implements Disposable {
     if (property == PropertyType.MINIMIZED && isAutoHide()) {
       return !myAutoHideOpen;
     }
-    return myPropertiesComponent.getBoolean(getPropertyName(property));
+    return getLayoutProperty(Layout.CURRENT, property);
   }
 
   public void setProperty(@NotNull PropertyType property, boolean value) {
@@ -187,21 +187,30 @@ class AttachedToolWindow<T> implements Disposable {
       myAutoHideOpen = !value;
     }
     else {
-      myPropertiesComponent.setValue(getPropertyName(property), value);
+      setLayoutProperty(Layout.CURRENT, property, value);
     }
     if (myMinimizedButton != null) {
       myMinimizedButton.setSelected(!isMinimized());
     }
   }
 
+  private boolean getLayoutProperty(@NotNull Layout layout, @NotNull PropertyType property) {
+    return myPropertiesComponent.getBoolean(getPropertyName(layout, property));
+  }
+
+  private void setLayoutProperty(@NotNull Layout layout, @NotNull PropertyType property, boolean value) {
+    myPropertiesComponent.setValue(getPropertyName(layout, property), value);
+  }
+
   public void setDefaultProperty(@NotNull PropertyType property, boolean defaultValue) {
-    if (!myPropertiesComponent.isValueSet(getPropertyName(property))) {
-      setProperty(property, defaultValue);
+    if (!myPropertiesComponent.isValueSet(getPropertyName(Layout.DEFAULT, property))) {
+      setLayoutProperty(Layout.DEFAULT, property, defaultValue);
+      setLayoutProperty(Layout.CURRENT, property, defaultValue);
     }
   }
 
-  private String getPropertyName(@NotNull PropertyType property) {
-    return TOOL_WINDOW_PROPERTY_PREFIX + myWorkBenchName + "." + myDefinition.getName() + "." + property.name();
+  private String getPropertyName(@NotNull Layout layout, @NotNull PropertyType property) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myWorkBenchName + "." + myDefinition.getName() + "." + property.name();
   }
 
   public void setPropertyAndUpdate(@NotNull PropertyType property, boolean value) {
@@ -211,6 +220,18 @@ class AttachedToolWindow<T> implements Disposable {
     myModel.update(this, property);
     if (property == PropertyType.MINIMIZED && !value && myContent != null) {
       myContent.getFocusedComponent().requestFocus();
+    }
+  }
+
+  public void storeDefaultLayout() {
+    for (PropertyType property : PropertyType.values()) {
+      setLayoutProperty(Layout.DEFAULT, property, getLayoutProperty(Layout.CURRENT, property));
+    }
+  }
+
+  public void restoreDefaultLayout() {
+    for (PropertyType property : PropertyType.values()) {
+      setProperty(property, getLayoutProperty(Layout.DEFAULT, property));
     }
   }
 

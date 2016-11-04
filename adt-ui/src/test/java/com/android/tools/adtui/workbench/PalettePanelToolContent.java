@@ -63,6 +63,11 @@ class PalettePanelToolContent implements ToolContent<String> {
       "Other", AllIcons.Toolwindows.ToolWindowHierarchy, "OTHER", Side.RIGHT, Split.BOTTOM, AutoHide.DOCKED, PalettePanelToolContent::new);
   }
 
+  public static ToolWindowDefinition<String> getThirdDefinition() {
+    return new ToolWindowDefinition<>(
+      "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED, PalettePanelToolContent::new);
+  }
+
   public void closeAutoHideWindow() {
     if (myAutoClose != null) {
       myAutoClose.run();

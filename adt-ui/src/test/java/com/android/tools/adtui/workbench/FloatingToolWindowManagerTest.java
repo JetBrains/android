@@ -139,6 +139,15 @@ public class FloatingToolWindowManagerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  public void testRestoreDefaultLayout() {
+    when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
+
+    myManager.restoreDefaultLayout();
+    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+  }
+
+  @Test
   public void testFileOpened() {
     myListener.fileOpened(myEditorManager, myVirtualFile);
   }

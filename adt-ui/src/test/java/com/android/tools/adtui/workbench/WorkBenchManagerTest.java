@@ -60,6 +60,23 @@ public class WorkBenchManagerTest {
     verify(myWorkBench5, never()).updateModel();
   }
 
+  @Test
+  public void testStoreDefaultLayout() {
+    myManager.storeDefaultLayout();
+    verify(myWorkBench1).storeDefaultLayout();
+    verify(myWorkBench4).storeDefaultLayout();
+  }
+
+  @Test
+  public void testRestoreDefaultLayout() {
+    myManager.restoreDefaultLayout();
+    verify(myWorkBench1).restoreDefaultLayout();
+    verify(myWorkBench2).updateModel();
+    verify(myWorkBench3).updateModel();
+    verify(myWorkBench4).restoreDefaultLayout();
+    verify(myWorkBench5).updateModel();
+  }
+
   private WorkBench createWorkBench(@NotNull String name) {
     WorkBench workBench = mock(WorkBench.class);
     when(workBench.getName()).thenReturn(name);
