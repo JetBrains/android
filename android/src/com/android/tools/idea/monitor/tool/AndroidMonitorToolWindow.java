@@ -475,6 +475,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createCommonAnimatables());
 
+    int processId = mySelectedClient.getClientData().getPid();
+
     // TODO: add event manager to myProfilerManagers
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
                            new EventProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
@@ -491,7 +493,6 @@ public class AndroidMonitorToolWindow implements Disposable {
                              new EnergyProfilerUiManager(myTimeCurrentRangeUs, myChoreographer, myDataStore, myEventDispatcher));
     }
 
-    int processId = mySelectedClient.getClientData().getPid();
     myDeviceProfilerService.setSelectedProcessId(processId);
 
     // The heart beat is used to check whether perfd is still alive. Failures in perfd are the only cases

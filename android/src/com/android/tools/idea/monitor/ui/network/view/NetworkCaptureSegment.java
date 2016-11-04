@@ -21,12 +21,10 @@ import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.datastore.SeriesDataStore;
-import com.android.tools.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpData;
+import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
@@ -86,13 +84,13 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   private final List<StateChart<NetworkState>> myCharts;
 
   @NotNull
-  private final List<HttpData> myDataList;
+  private List<HttpData> myDataList;
 
   @NotNull
   private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
-  private final SeriesDataStore myDataStore;
+  private final NetworkCaptureModel myModel;
 
   private JComponent myLayeredComponent;
 
@@ -101,15 +99,14 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   private JTable myStateTable;
 
   public NetworkCaptureSegment(@NotNull Range timeCurrentRangeUs,
-                               @NotNull SeriesDataStore dataStore,
+                               @NotNull NetworkCaptureModel model,
                                @NotNull DetailedViewListener detailedViewListener,
                                @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeCurrentRangeUs, dispatcher);
     myDetailedViewListener = detailedViewListener;
     myCharts = new ArrayList<>();
     myDataList = new ArrayList<>();
-    myDataStore = dataStore;
-
+    myModel = model;
     int defaultFontHeight = getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
     myRowHeight = defaultFontHeight + ROW_HEIGHT_PADDING;
   }
@@ -222,31 +219,30 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
   @Override
   public void animate(float frameLength) {
-
-    List<SeriesData<HttpData>> dataList = myDataStore.getSeriesData(SeriesDataType.NETWORK_HTTP_DATA, myTimeCurrentRangeUs);
+    myDataList = myModel.getData(myTimeCurrentRangeUs);
 
     // TODO: currently we recreate charts from scratch, instead consider reusing charts
     myCharts.clear();
-    myDataList.clear();
-    for (SeriesData<HttpData> data: dataList) {
+
+    for (HttpData data: myDataList) {
       DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
       series.add(0, NetworkState.NONE);
-      series.add(data.value.getStartTimeUs(), NetworkState.SENDING);
-      if (data.value.getDownloadingTimeUs() > 0) {
-        series.add(data.value.getDownloadingTimeUs(), NetworkState.RECEIVING);
+      series.add(data.getStartTimeUs(), NetworkState.SENDING);
+      if (data.getDownloadingTimeUs() > 0) {
+        series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
       }
-      if (data.value.getEndTimeUs() > 0) {
-        series.add(data.value.getEndTimeUs(), NetworkState.NONE);
+      if (data.getEndTimeUs() > 0) {
+        series.add(data.getEndTimeUs(), NetworkState.NONE);
       }
 
       StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
       chart.addSeries(new RangedSeries<>(myTimeCurrentRangeUs, series));
       chart.animate(frameLength);
       myCharts.add(chart);
-      myDataList.add(data.value);
     }
     myLayeredComponent.setPreferredSize(new Dimension(0, myRowHeight * myCharts.size()));
     myStateTable.repaint();
     myInformationTable.repaint();
   }
+
 }
