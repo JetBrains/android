@@ -260,22 +260,10 @@ public class AvdWizardUtils {
               fop.mkdirs(dest);
 
               // Convert skin files (which are in webp format) to PNG for older versions of the emulator?
-              // As of 25.3, emulator supports webp directly.
-              boolean convertToWebp = true;
+              // As of 25.2.3, emulator supports webp directly.
               AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
-              ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
-              LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
-              if (sdkPackage == null) {
-                sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
-              }
-              if (sdkPackage != null) {
-                Revision version = sdkPackage.getVersion();
-                if (version.getMajor() > 25 || version.getMajor() == 25 && version.getMinor() >= 3) {
-                  convertToWebp = false;
-                }
-              }
 
-              if (convertToWebp) {
+              if (!emulatorSupportsWebp(sdkHandler)) {
                 convertWebpSkinToPng(fop, dest, resourcePath);
               } else {
                 // Normal copy
@@ -299,6 +287,26 @@ public class AvdWizardUtils {
       }
     }
     return path;
+  }
+
+  @VisibleForTesting
+  static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
+    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+    LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
+    if (sdkPackage == null) {
+      sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
+    }
+    if (sdkPackage != null) {
+      Revision version = sdkPackage.getVersion();
+      // >= 25.2.3?
+      if (version.getMajor() > 25 ||
+          version.getMajor() == 25 && (version.getMinor() > 2 ||
+                                       version.getMinor() == 2 && version.getMicro() >= 3)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
