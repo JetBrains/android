@@ -5,6 +5,7 @@ iml_module(
     srcs = ["src"],
     resources = ["resources"],
     tags = ["managed"],
+    test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         "//tools/adt/idea:testFiles",
         "//tools:idea/java/jdkAnnotations",
@@ -15,12 +16,16 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/**"
+        "testData/**",
     ]),
+    test_runtime_deps = [
+        "//tools/adt/idea/adt-branding",
+        "//tools/adt/idea/android-plugin:android-plugin",
+    ],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    test_class = "com.android.tools.idea.DesignerTestSuite",
-    test_shard_count = 2,
+    # do not sort: must match IML order
     deps = [
         "//tools:idea.platform-impl_and_others[module]",
         "//tools:idea.platform-api[module]",
@@ -39,11 +44,5 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools:idea.compiler-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
-#        "//tools:idea.maven_and_others[module]",
     ],
-    test_runtime_deps = [
-        "//tools/adt/idea/adt-branding",
-        "//tools/adt/idea/android-plugin:android-plugin"
-    ],
-
 )
