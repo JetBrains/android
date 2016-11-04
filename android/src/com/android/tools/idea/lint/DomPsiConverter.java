@@ -155,6 +155,12 @@ class DomPsiConverter {
     return textRange;
   }
 
+  @NotNull
+  public static XmlElement getPsiElement(@NotNull Node node) {
+    DomNode domNode = (DomNode)node;
+    return domNode.myElement;
+  }
+
   private static final NodeList EMPTY = new NodeList() {
     @NotNull
     @Override
