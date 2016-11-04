@@ -24,7 +24,7 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
-import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
+import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModelImpl;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
@@ -57,7 +57,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Set<Poller> createPollers(int pid) {
-    return Sets.newHashSet(new NetworkDataPoller(myDataStore, pid), new HttpDataPoller(myDataStore, myDataCache, pid));
+    return Sets.newHashSet(new NetworkDataPoller(myDataStore, pid));
   }
 
   @Override
@@ -87,8 +87,8 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     myRadioSegment = new NetworkRadioSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
-
-    myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, myDataStore, httpData -> {
+    NetworkCaptureModelImpl captureModel = new NetworkCaptureModelImpl(myDataStore.getDeviceProfilerService(), myDataCache);
+    myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, captureModel, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
       File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {

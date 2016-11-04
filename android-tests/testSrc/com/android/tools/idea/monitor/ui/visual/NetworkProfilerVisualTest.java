@@ -21,57 +21,49 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.RangeScrollbar;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.network.model.HttpData;
+import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModel;
 import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkDetailedView;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.util.EventDispatcher;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class NetworkProfilerVisualTest extends VisualTest {
   private static final String NETWORK_PROFILER_NAME = "Network Profiler";
+  private static int CAPTURE_DATA_SIZE = 20;
 
-  // Number of fake network capture data
-  private static final int CAPTURE_SIZE = 10;
+  private SeriesDataStore myDataStore;
 
-  private SeriesDataStore mDataStore;
+  private NetworkSegment mySegment;
 
-  private NetworkSegment mSegment;
+  private NetworkRadioSegment myRadioSegment;
 
-  private NetworkRadioSegment mRadioSegment;
+  private NetworkCaptureSegment myCaptureSegment;
 
-  private NetworkCaptureSegment mCaptureSegment;
+  private NetworkDetailedView myDetailedView;
 
-  private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
-
-  private Thread mSimulateTestDataThread;
-
-  private NetworkDetailedView mDetailedView;
+  private List<HttpData> myCaptureData;
 
   @Override
   protected void initialize() {
-    mDataStore = new VisualTestSeriesDataStore();
+    myDataStore = new VisualTestSeriesDataStore();
     super.initialize();
   }
 
   @Override
   protected void reset() {
-    if (mDataStore != null) {
-      mDataStore.reset();
-    }
-    if (mSimulateTestDataThread != null) {
-      mSimulateTestDataThread.interrupt();
+    if (myDataStore != null) {
+      myDataStore.reset();
     }
     super.reset();
   }
@@ -83,37 +75,41 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    long startTimeUs = mDataStore.getLatestTimeUs();
+    long startTimeUs = myDataStore.getLatestTimeUs();
     Range timeCurrentRangeUs = new Range(startTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, startTimeUs);
     AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeCurrentRangeUs, 0);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-    mSegment = new NetworkSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
-    mDetailedView = new NetworkDetailedView();
+    mySegment = new NetworkSegment(timeCurrentRangeUs, myDataStore, dummyDispatcher);
+    myDetailedView = new NetworkDetailedView();
 
-    ArrayList<RangedSeries<NetworkCaptureSegment.NetworkState>> rangedSeries = new ArrayList();
-    mCaptureData = new ArrayList<>();
-    for (int i = 0; i < CAPTURE_SIZE; ++i) {
-      DefaultDataSeries seriesData = new DefaultDataSeries<NetworkCaptureSegment.NetworkState>();
-      mCaptureData.add(seriesData);
-      rangedSeries.add(new RangedSeries<>(timeCurrentRangeUs, seriesData));
-    }
-    mDetailedView.setVisible(false);
+    myDetailedView.setVisible(false);
 
-    mCaptureSegment = new NetworkCaptureSegment(timeCurrentRangeUs, mDataStore, connectionId -> {
-      // TODO: Fix test
-      //mDetailedView.showConnectionDetails(connectionId);
-      mDetailedView.setVisible(true);
-    }, dummyDispatcher);
+    generateNetworkCaptureData(startTimeUs);
+    myCaptureSegment = new NetworkCaptureSegment(timeCurrentRangeUs, new NetworkCaptureModel() {
+      @Override
+      public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
+        List<HttpData> dataList = new ArrayList<>();
+        long viewStartUs = (long)timeCurrentRangeUs.getMin();
+        long viewEndUs = (long)timeCurrentRangeUs.getMax();
 
-    mRadioSegment = new NetworkRadioSegment(timeCurrentRangeUs, mDataStore, dummyDispatcher);
+        for (HttpData data: myCaptureData) {
+          if (Math.max(viewStartUs, data.getStartTimeUs()) <= Math.min(viewEndUs, data.getEndTimeUs())) {
+            dataList.add(data);
+          }
+        }
+        return dataList;
+      }
+    }, httpData -> myDetailedView.setVisible(true), dummyDispatcher);
+
+    myRadioSegment = new NetworkRadioSegment(timeCurrentRangeUs, myDataStore, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);
-    mSegment.createComponentsList(animatables);
-    mCaptureSegment.createComponentsList(animatables);
-    mRadioSegment.createComponentsList(animatables);
-
+    mySegment.createComponentsList(animatables);
+    myCaptureSegment.createComponentsList(animatables);
+    myRadioSegment.createComponentsList(animatables);
+    animatables.add(myCaptureSegment);
     return animatables;
   }
 
@@ -128,56 +124,50 @@ public class NetworkProfilerVisualTest extends VisualTest {
     constraints.gridy = 0;
     constraints.weighty = 0;
     constraints.weightx = 1;
-    mRadioSegment.initializeComponents();
-    mRadioSegment.setPreferredSize(new Dimension(0, 40));
-    panel.add(mRadioSegment, constraints);
+    myRadioSegment.initializeComponents();
+    myRadioSegment.setPreferredSize(new Dimension(0, 40));
+    panel.add(myRadioSegment, constraints);
 
     constraints.weighty = .5;
     constraints.gridx = 0;
     constraints.gridy = 1;
-    mSegment.initializeComponents();
-    mSegment.toggleView(true);
-    panel.add(mSegment, constraints);
+    mySegment.initializeComponents();
+    mySegment.toggleView(true);
+    panel.add(mySegment, constraints);
 
 
     constraints.gridx = 0;
     constraints.gridy = 2;
     constraints.weighty = 1;
-    mCaptureSegment.initializeComponents();
-    panel.add(mCaptureSegment, constraints);
+    myCaptureSegment.initializeComponents();
+    panel.add(myCaptureSegment, constraints);
 
     constraints.gridx = 1;
     constraints.gridy = 0;
     constraints.gridheight = 3;
     constraints.weightx = 0;
     constraints.weighty = 0;
-    panel.add(mDetailedView, constraints);
-
-    simulateTestData();
+    panel.add(myDetailedView, constraints);
   }
 
-  private void simulateTestData() {
-    mSimulateTestDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          Random rnd = new Random();
-          while (true) {
-            //  Insert new data point at now.
-            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-            for (DefaultDataSeries<NetworkCaptureSegment.NetworkState> series : mCaptureData) {
-              NetworkCaptureSegment.NetworkState[] states = NetworkCaptureSegment.NetworkState.values();
-              // Hard coded value 10 to make the 'NONE' state more frequent
-              int index = rnd.nextInt(10);
-              series.add(nowUs, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
-            }
-            Thread.sleep(1000);
-          }
-        }
-        catch (InterruptedException e) {
-        }
-      }
-    };
-    mSimulateTestDataThread.start();
+  private void generateNetworkCaptureData(long startTimeUs) {
+    long endTimeUs = startTimeUs + 20000000;
+    myCaptureData = new ArrayList<>();
+    for (int i = 0; i < CAPTURE_DATA_SIZE; ++i) {
+      long start = random(startTimeUs, endTimeUs);
+      long download = random(start, endTimeUs);
+      long end = random(download, endTimeUs);
+      HttpData data = new HttpData();
+      data.setStartTimeUs(start);
+      data.setDownloadingTimeUs(download);
+      data.setEndTimeUs(end);
+      data.setUrl("www.fake.url/" + i);
+      myCaptureData.add(data);
+    }
+
+  }
+
+  private static long random(long min, long max) {
+    return min + (int)(Math.random() * ((max - min) + 1));
   }
 }
