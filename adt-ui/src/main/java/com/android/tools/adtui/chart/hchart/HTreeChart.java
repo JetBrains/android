@@ -74,19 +74,19 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   }
 
   @Override
-  protected void draw(Graphics2D g) {
+  protected void draw(Graphics2D g, Dimension dim) {
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (mRoot == null || mRoot.getChildren().size() == 0) {
-      g.drawString(NO_HTREE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
-                   getHeight() / 2);
+      g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
+                   dim.height / 2);
       return;
     }
 
     if (mXRange == null || mXRange.getLength() == 0) {
-      g.drawString(NO_RANGE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
-                   getHeight() / 2);
+      g.drawString(NO_RANGE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
+                   dim.height / 2);
       return;
     }
 

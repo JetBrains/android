@@ -330,7 +330,7 @@ class MemoryDetailView implements Disposable {
     @Override
     public String toString() {
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myDataStore.mapAbsoluteDeviceToRelativeTime(mySample.getStartTime()));
-      return String.format("Heap at %s", TimeAxisFormatter.DEFAULT.getFormattedString((double)startTimeUs, (double)startTimeUs));
+      return String.format("Heap at %s", TimeAxisFormatter.DEFAULT.getFormattedString((double)startTimeUs, (double)startTimeUs, true));
     }
   }
 
@@ -351,9 +351,9 @@ class MemoryDetailView implements Disposable {
       double startTimeUs = (double)mySample.getStartTime();
       double endTimeUs = (double)mySample.getEndTime();
       return "Allocations from " +
-             TimeAxisFormatter.DEFAULT.getFormattedString(endTimeUs, startTimeUs) +
+             TimeAxisFormatter.DEFAULT.getFormattedString(endTimeUs, startTimeUs, true) +
              " to " +
-             TimeAxisFormatter.DEFAULT.getFormattedString(endTimeUs, endTimeUs);
+             TimeAxisFormatter.DEFAULT.getFormattedString(endTimeUs, endTimeUs, true);
     }
   }
 }

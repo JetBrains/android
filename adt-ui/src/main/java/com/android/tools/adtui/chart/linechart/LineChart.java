@@ -320,14 +320,13 @@ public class LineChart extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
+  protected void draw(Graphics2D g2d, Dimension dim) {
     if (myLinePaths.size() != myLinesConfig.size() || myEventsConfig.size() != myEventsPathCache.size()) {
       // Early return if the cached paths have not been sync'd with the configs.
       // e.g. updateData/postAnimate has not been invoked before this draw call.
       return;
     }
 
-    Dimension dim = getSize();
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
 
