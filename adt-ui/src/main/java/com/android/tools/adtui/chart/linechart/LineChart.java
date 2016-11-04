@@ -18,7 +18,6 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.common.datareducer.LineChartReducer;
 import com.android.tools.adtui.model.DurationData;
@@ -26,10 +25,8 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.ui.ColorUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ImmutableList;
 import gnu.trove.TDoubleArrayList;
-import gnu.trove.TLongHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -44,24 +41,10 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 public class LineChart extends AnimatedComponent {
 
   /**
-   * Transparency value to be applied in filled line charts.
+   * Transparency value to be applied to overlaying events.
+   * TODO investigate whether events should be rendered as a separate component.
    */
   private static final float ALPHA_VALUE = 0.5f;
-
-  /**
-   * The length of the dash length in terms of the Range's x unit. e.g. 100ms == 1 dash.
-   * TODO consider scaling the dash length based on the global range. Otherwise if the range is
-   * too large, the dashes eventually connect to look like a line.
-   */
-  private static final float DASH_LENGTH = 100f;
-
-  /**
-   * The scale difference between the dash lengths in the x and y axes.
-   * TODO compute this ratio by examining the actual different between the x and y global ranges.
-   */
-  private static final float X_TO_Y_RATIO = 0.01f;
-
-  private static final int MARKER_RADIUS_PX = 3;
 
   private static final int EVENT_LABEL_PADDING_PX = 5;
 
@@ -81,9 +64,6 @@ public class LineChart extends AnimatedComponent {
   @NotNull
   private final ArrayList<LineConfig> myLinePathConfigs;
 
-  @NotNull
-  private final ArrayList<Point2D.Float> myMarkerPositions;
-
   /**
    * Stores the regions that each event series need to render.
    */
@@ -97,16 +77,11 @@ public class LineChart extends AnimatedComponent {
   private int mNextLineColorIndex;
 
   @NotNull
-  private final TLongHashSet mMarkedData;
-
-  @NotNull
   private DataReducer myReducer;
 
   public LineChart() {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
-    myMarkerPositions = new ArrayList<>();
-    mMarkedData = new TLongHashSet();
     myReducer = new LineChartReducer();
   }
 
@@ -217,9 +192,6 @@ public class LineChart extends AnimatedComponent {
     // of the current stacked series.
     TDoubleArrayList lastStackedSeriesY = null;
 
-    // Clear the previous markers.
-    myMarkerPositions.clear();
-
     Deque<Path2D> orderedPaths = new ArrayDeque<>(myLinesConfig.size());
     Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
 
@@ -236,11 +208,6 @@ public class LineChart extends AnimatedComponent {
       double yMin = ranged.getYRange().getMin();
       double yMax = ranged.getYRange().getMax();
 
-      long prevX = 0;
-      long prevY = 0;
-
-      // Amount in percentage the dash pattern has been drawn.
-      float currentDashPercentage = 1f;
       // X coordinate of the first point
       double firstXd = 0f;
 
@@ -270,36 +237,15 @@ public class LineChart extends AnimatedComponent {
           path.moveTo(xd, adjustedYd);
           firstXd = xd;
         } else {
-          // Dashing only applies if we are not in fill mode.
-          if (config.isDashed() && !config.isFilled()) {
-            if (config.isStepped()) {
-              // If stepping, first draw horizontal dashes to xd
-              currentDashPercentage = drawDash(path, currentDashPercentage, prevX,
-                                               prevY, currX, prevY, xd, path.getCurrentPoint().getY());
-              prevX = currX;
-            }
-            currentDashPercentage = drawDash(path, currentDashPercentage,
-                                             prevX, prevY, currX, currY, xd, adjustedYd);
-          } else {
-            // If the chart is stepped, a horizontal line should be drawn from the current
-            // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
-            // drawing a line to the destination point itself (e.g. (x1, y1)).
-            if (config.isStepped()) {
-              float y = (float)path.getCurrentPoint().getY();
-              path.lineTo(xd, y);
-            }
-            path.lineTo(xd, adjustedYd);
+          // If the chart is stepped, a horizontal line should be drawn from the current
+          // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
+          // drawing a line to the destination point itself (e.g. (x1, y1)).
+          if (config.isStepped()) {
+            float y = (float)path.getCurrentPoint().getY();
+            path.lineTo(xd, y);
           }
+          path.lineTo(xd, adjustedYd);
         }
-
-        if (mMarkedData.contains(currX)) {
-          // Cache the point as a percentage that will be used to place the markers in draw()
-          Point2D.Float point = new Point2D.Float((float)xd, adjustedYd);
-          myMarkerPositions.add(point);
-        }
-
-        prevX = currX;
-        prevY = currY;
       }
 
       if (config.isFilled() && path.getCurrentPoint() != null) {
@@ -332,8 +278,6 @@ public class LineChart extends AnimatedComponent {
 
     myLinePathConfigs.clear();
     myLinePathConfigs.addAll(orderedConfigs);
-
-    mMarkedData.clear();
 
     // First remove any path caches that do not have the corresponding RangedSeries anymore.
     myEventsPathCache.keySet().removeIf(e -> !myEventsConfig.containsKey(e));
@@ -429,8 +373,6 @@ public class LineChart extends AnimatedComponent {
 
           // Set clip region and redraw the lines in grayscale.
           g2d.setClip(clipRect);
-          g2d.setColor(ColorUtil.withAlpha(config.getColor(), ALPHA_VALUE));
-          g2d.setStroke(config.getStroke());
           drawLines(g2d, transformedPaths, myLinePathConfigs, true);
           g2d.setClip(null);
         }
@@ -471,18 +413,7 @@ public class LineChart extends AnimatedComponent {
         config.getLabel().paint(g2d);
         g2d.setClip(null);
         g2d.translate(-(scaledXStart + EVENT_LABEL_PADDING_PX), -EVENT_LABEL_PADDING_PX);
-
       }
-    }
-
-    // Draw a circle marker around each data marker position.
-    g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-    for (Point2D.Float point : myMarkerPositions) {
-      float x = point.x * dim.width - MARKER_RADIUS_PX;
-      float y = point.y * dim.height - MARKER_RADIUS_PX;
-      float diameter = MARKER_RADIUS_PX * 2;
-      Ellipse2D.Float ellipse = new Ellipse2D.Float(x, y, diameter, diameter);
-      g2d.draw(ellipse);
     }
   }
 
@@ -507,118 +438,7 @@ public class LineChart extends AnimatedComponent {
       } else {
         g2d.draw(path);
       }
-
     }
-  }
-
-  /**
-   * Given the previous and current points, compute the dash length that should be used based on
-   * the slope of the line.
-   *
-   * @return the dash length that is scaled to the normalized length of the line.
-   */
-  private static float computeDashLength(float dashLength, float xToYRatio,
-                                         long prevX, long prevY, long currX, long currY,
-                                         double prevXNorm, double prevYNorm, double currXNorm, double currYNorm) {
-    float xDiff = currX - prevX;
-    float yDiff = currY - prevY;
-
-    // Normalize x to y so that their scales are consistent when we compute the hypotenuse.
-    // Otherwise, x will dominate y most of the time because x is usually in ms,
-    // while y will be kb, percentage or some relatively smaller scale.
-    float xDiffScaled = xDiff * xToYRatio;
-
-    // Some trigonometry to compute the x/y ratios relative to the hypotenuse.
-    float angle = (float)Math.atan2(yDiff, xDiffScaled);
-    float xRatio = (float)Math.cos(angle);
-    float yRatio = (float)Math.sin(angle);
-
-    // Compute the adjusted dash length based on the x/y ratios.
-    float length = (float)Math.sqrt(Math.pow(dashLength * xRatio, 2) +
-                                    Math.pow(dashLength * xToYRatio * yRatio, 2));
-
-    // Compute the number of dashes that would appear on the un-normalized line.
-    float h = (float)Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-    float numDashes = h / length;
-
-    // Compute the dash length on the normalized line based on numDashes.
-    float xDiffNorm = (float)(currXNorm - prevXNorm);
-    float yDiffNorm = (float)(currYNorm - prevYNorm);
-    float hNorm = (float)Math
-      .sqrt(xDiffNorm * xDiffNorm + yDiffNorm * yDiffNorm);
-
-    return hNorm / numDashes;
-  }
-
-  /**
-   * TODO Investigate performance issue when a lot of dashes need to be drawn, resulting in many
-   * moveTo/lineTo calls. This may not be a problem if we decide to scale the dash length
-   * incrementally based on the global range.
-   *
-   * @param path           the path object to draw the dashes in.
-   * @param dashPercentage the percentage along the dash pattern the draw should start from.
-   * @param prevX          the unscaled X of the last point in {@code path}.
-   * @param prevY          the unscaled Y of the last point in {@code path}.
-   * @param nextX          the unscaled X of the next point.
-   * @param nextY          the unscaled Y of the next point.
-   * @param currXNorm      the end X - normalized to current range.
-   * @param currYNorm      the end Y - normalized to current range.
-   * @return the remaining dash percentage after dashes have been drawn from {prevX, prevY} tp
-   * {currX, currY}.
-   */
-  private static float drawDash(Path2D path, float dashPercentage,
-                                long prevX, long prevY, long nextX, long nextY, double currXNorm, double currYNorm) {
-    if (prevX == nextX && prevY == nextY) {
-      // Skip drawing if it is a point.
-      return dashPercentage;
-    }
-
-    double xd, yd;
-    double prevXNorm = path.getCurrentPoint().getX();
-    double prevYNorm = path.getCurrentPoint().getY();
-
-    float pathLength = (float)Point2D.distance(prevXNorm, prevYNorm, currXNorm, currYNorm);
-    float dashLength = computeDashLength(DASH_LENGTH, X_TO_Y_RATIO,
-                                         prevX, prevY, nextX, nextY,
-                                         prevXNorm, prevYNorm, currXNorm, currYNorm);
-    float drawLength = dashLength / 2;
-    float currentDashPosition = dashPercentage * dashLength;
-
-    while (pathLength > 0) {
-      xd = currXNorm - prevXNorm; // Remaining x delta.
-      yd = currYNorm - prevYNorm; // Remaining y delta.
-      if (currentDashPosition > drawLength) {
-        // Only draws the first half of dashLength.
-        float currentDrawLength = currentDashPosition - drawLength;
-        float pathLengthToDraw = pathLength > currentDrawLength ?
-                                 currentDrawLength : pathLength;
-
-        path.lineTo(prevXNorm + xd * pathLengthToDraw / pathLength,
-                    prevYNorm + yd * pathLengthToDraw / pathLength);
-
-        currentDashPosition -= pathLengthToDraw;
-        pathLength -= pathLengthToDraw;
-      } else {
-        // Treats the last half of dashLength as space, skip forward.
-        float pathLengthToDraw = pathLength > currentDashPosition ?
-                                 currentDashPosition : pathLength;
-
-        path.moveTo(prevXNorm + xd * pathLengthToDraw / pathLength,
-                    prevYNorm + yd * pathLengthToDraw / pathLength);
-
-        currentDashPosition -= pathLengthToDraw;
-        pathLength -= pathLengthToDraw;
-      }
-
-      prevXNorm = path.getCurrentPoint().getX();
-      prevYNorm = path.getCurrentPoint().getY();
-      if (currentDashPosition == 0) {
-        // Reset dash length if we have finished the pattern.
-        currentDashPosition = dashLength;
-      }
-    }
-
-    return currentDashPosition / dashLength;
   }
 }
 
