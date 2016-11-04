@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
@@ -40,57 +42,103 @@ import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX;
+import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.startsWith;
 
-public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandler {
+public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
+  private static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
+  private static final Pattern MISSING_METHOD_PATTERN =
+    Pattern.compile("org.gradle.api.internal.MissingMethodException: Could not find method (.*?) .*");
+
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    String firstLine = message.get(0);
-
-
-    if (firstLine != null && firstLine.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) {
-      String filePath = notification.getFilePath();
-      final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
-      if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-        NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
-        NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
-        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink();
-
-        String newMsg = firstLine + "\nPossible causes:<ul>";
-        if (!gradleModelIsRecent(project)) {
-          newMsg = newMsg +
-                   String.format("<li>The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
-                                 " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n",
-                                 project.getName()) + upgradeAndroidPluginHyperlink.toHtml() + "</li>";
-        }
-        newMsg = newMsg +
-                 String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
-                               project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>" +
-                               "<li>The build file may be missing a Gradle plugin.\n" + applyGradlePluginHyperlink.toHtml() + "</li>";
-        String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
-        notification.setTitle(title);
-        notification.setMessage(newMsg);
-        notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
-
-        addNotificationListener(notification, project, gradleSettingsHyperlink, applyGradlePluginHyperlink, upgradeAndroidPluginHyperlink);
-      }
-      else if (virtualFile != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
-        OpenFileDescriptor descriptor =
-          new OpenFileDescriptor(project, virtualFile, notification.getLine() - 1 /* lines are zero-based */, -1);
-        notification.setNavigatable(descriptor);
-      }
-      else {
-        updateNotification(notification, project, error.getMessage());
-      }
+  public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = findErrorMessage(getRootCause(error), notification, project);
+    if (text != null) {
+      // Handle update notification inside of getQuickFixHyperlinks,
+      // because it uses different interfaces based on conditions
+      getQuickFixHyperlinks(notification, project, text);
       return true;
     }
     return false;
+  }
+
+  @Override
+  @Nullable
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.toString();
+    if (isNotEmpty(text) && startsWith(text, "org.gradle.api.internal.MissingMethodException")) {
+      String method = parseMissingMethod(text);
+      updateUsageTracker(DSL_METHOD_NOT_FOUND, method);
+      return GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'";
+    }
+    return null;
+  }
+
+  @NotNull
+  private static String parseMissingMethod(@NotNull String rootCauseText) {
+    Matcher matcher = MISSING_METHOD_PATTERN.matcher(rootCauseText);
+    return matcher.find() ? matcher.group(1) : "";
+  }
+
+  @Override
+  @NotNull
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    String filePath = notification.getFilePath();
+    final VirtualFile virtualFile = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
+    if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+      updateNotificationWithBuildFile(project, virtualFile, notification, text);
+    }
+    else if (virtualFile != null && notification.getLine() > 0 && notification.getNavigatable() == null) {
+      OpenFileDescriptor descriptor =
+        new OpenFileDescriptor(project, virtualFile, notification.getLine() - 1 /* lines are zero-based */, -1);
+      notification.setNavigatable(descriptor);
+    }
+    else {
+      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+    }
+    return hyperlinks;
+  }
+
+  private void updateNotificationWithBuildFile(@NotNull Project project,
+                                               @NotNull VirtualFile virtualFile,
+                                               @NotNull NotificationData notification,
+                                               @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
+    NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
+    NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink();
+
+    String newMsg = text + "\nPossible causes:<ul>";
+    if (!gradleModelIsRecent(project)) {
+      newMsg = newMsg +
+               String.format("<li>The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
+                             " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName()) +
+               upgradeAndroidPluginHyperlink.toHtml() +
+               "</li>";
+    }
+    newMsg = newMsg +
+             String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
+                           project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>" +
+             "<li>The build file may be missing a Gradle plugin.\n" + applyGradlePluginHyperlink.toHtml() + "</li>";
+    String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
+    notification.setTitle(title);
+    notification.setMessage(newMsg);
+    notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+    hyperlinks.add(gradleSettingsHyperlink);
+    hyperlinks.add(applyGradlePluginHyperlink);
+    hyperlinks.add(upgradeAndroidPluginHyperlink);
+    SyncMessages.getInstance(project).addNotificationListener(notification, hyperlinks);
   }
 
   @NotNull

@@ -34,7 +34,6 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,31 +89,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
-    }
-
-    String rootCauseText = rootCause.toString();
-    if (startsWith(rootCauseText, "org.gradle.api.internal.MissingMethodException")) {
-      String method = parseMissingMethod(rootCauseText);
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.DSL_METHOD_NOT_FOUND)
-                                       .setGradleMissingSignature(method));
-
-      return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
-    }
-
-    if (rootCause instanceof SocketException) {
-      String message = rootCause.getMessage();
-      if (message != null && message.contains("Permission denied: connect")) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                         .setGradleSyncFailure(GradleSyncFailure.CONNECTION_DENIED));
-
-        // Location of build.gradle is useless for this error. Omitting it.
-        return createUserFriendlyError(CONNECTION_PERMISSION_DENIED_PREFIX, null);
-      }
     }
 
     if (rootCause instanceof UnknownHostException) {

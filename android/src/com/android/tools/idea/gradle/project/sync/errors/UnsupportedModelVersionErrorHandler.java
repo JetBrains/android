@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification.errors;
+package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandler {
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+public class UnsupportedModelVersionErrorHandler extends SyncErrorHandler {
   /**
    * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
    * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
@@ -34,16 +38,23 @@ public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandle
   @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
 
   @Override
-  public boolean handleError(@NotNull List<String> message,
-                             @NotNull ExternalSystemException error,
-                             @NotNull NotificationData notification,
-                             @NotNull Project project) {
-    String msg = error.getMessage();
-    if (msg.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      boolean openMigrationGuide = msg.contains(READ_MIGRATION_GUIDE_MSG);
-      updateNotification(notification, project, msg, new FixAndroidGradlePluginVersionHyperlink());
-      return true;
+  @Nullable
+  protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull NotificationData notification, @NotNull Project project) {
+    String text = rootCause.getMessage();
+    if (isNotEmpty(text) && text.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+      updateUsageTracker();
+      return text;
     }
-    return false;
+    return null;
+  }
+
+  @Override
+  @NotNull
+  protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull NotificationData notification,
+                                                              @NotNull Project project,
+                                                              @NotNull String text) {
+    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+    hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
+    return hyperlinks;
   }
 }
