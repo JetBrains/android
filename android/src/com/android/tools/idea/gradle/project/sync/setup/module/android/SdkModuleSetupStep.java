@@ -40,7 +40,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -114,7 +114,7 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     getLog().warn(text);
 
-    SyncMessage msg = new SyncMessage(FAILED_TO_SET_UP_SDK, ERROR, text);
+    SyncMessage msg = new SyncMessage(SDK_SETUP_ISSUES, ERROR, text);
     SyncMessages.getInstance(module.getProject()).report(msg);
   }
 

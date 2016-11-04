@@ -19,13 +19,11 @@ package com.android.tools.idea.gradle.project.sync.messages;
  * Common names used to group messages related to Gradle sync. These groups are displayed in the "Messages" tool window.
  */
 public final class GroupNames {
-  public static final String PROJECT_STRUCTURE_ISSUES = "Project structure issues";
-  public static final String MISSING_DEPENDENCIES_BETWEEN_MODULES = "Missing dependencies between modules";
-  public static final String FAILED_TO_SET_UP_DEPENDENCIES = "Failed to set up dependencies";
-  public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
-  public static final String VARIANT_SELECTION_CONFLICTS = "Variant selection conflicts";
-  public static final String EXTRA_GENERATED_SOURCES = "Source folders generated at incorrect location";
-  public static final String UNHANDLED_SYNC_ISSUE_TYPE = "Gradle Sync Issue";
+  public static final String PROJECT_STRUCTURE_ISSUES = "Project Structure Issues";
+  public static final String MISSING_DEPENDENCIES = "Missing Dependencies";
+  public static final String SDK_SETUP_ISSUES = "SDK Setup Issues";
+  public static final String VARIANT_SELECTION_CONFLICTS = "Variant Selection Conflicts";
+  public static final String GENERATED_SOURCES = "Generated Sources";
 
   private GroupNames() {
   }
