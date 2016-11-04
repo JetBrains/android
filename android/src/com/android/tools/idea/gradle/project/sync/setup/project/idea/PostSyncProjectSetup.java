@@ -144,6 +144,7 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
+  @NotNull private final RunManagerImpl myRunManager;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -160,7 +161,7 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, androidSdks, syncInvoker, syncState, dependencySetupErrors, syncMessages, DependenciesModuleSetupStep.getInstance(),
-         versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory());
+         versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(), RunManagerImpl.getInstanceImpl(project));
   }
 
   @VisibleForTesting
@@ -173,7 +174,8 @@ public class PostSyncProjectSetup {
                        @NotNull DependenciesModuleSetupStep dependenciesModuleSetupStep,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
+                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
+                       @NotNull RunManagerImpl runManager) {
     myProject = project;
     myAndroidSdks = androidSdks;
     mySyncInvoker = syncInvoker;
@@ -184,6 +186,7 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
+    myRunManager = runManager;
   }
 
   /**
@@ -749,7 +752,6 @@ public class PostSyncProjectSetup {
   }
 
   private void setMakeStepInJunitRunConfigurations(@NotNull String makeTaskName) {
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
     ConfigurationType junitConfigurationType = JUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
 
@@ -764,13 +766,13 @@ public class PostSyncProjectSetup {
     if (targetProvider != null) {
       // Set the correct "Make step" in the "JUnit Run Configuration" template.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
+        RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
         RunConfiguration runConfiguration = template.getConfiguration();
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
 
       // Set the correct "Make step" in existing JUnit Configurations.
-      RunConfiguration[] junitRunConfigurations = runManager.getConfigurations(junitConfigurationType);
+      RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(junitConfigurationType);
       for (RunConfiguration runConfiguration : junitRunConfigurations) {
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
@@ -778,11 +780,13 @@ public class PostSyncProjectSetup {
   }
 
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
-    BeforeRunTask task = targetProvider.createTask(runConfiguration);
-    if (task != null) {
-      task.setEnabled(true);
-      runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
+    // beforeRunTasks should be overridden only when they were not changed by the user yet (see http://b.android.com/194704)
+    if (myRunManager.getBeforeRunTasks(runConfiguration).isEmpty()) {
+      BeforeRunTask task = targetProvider.createTask(runConfiguration);
+      if (task != null) {
+        task.setEnabled(true);
+        myRunManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
+      }
     }
   }
 
