@@ -769,7 +769,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static PermissionFinder.Result getPermissionRequirement(@NonNull PsiField field,
                                                                   @NonNull PsiAnnotation annotation,
                                                                   @NonNull PermissionFinder.Operation operation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
+    PermissionRequirement requirement = PermissionRequirement.create(annotation);
     PsiClass containingClass = field.getContainingClass();
     String name;
     if (containingClass != null) {
@@ -938,7 +938,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                  @NotNull ProblemsHolder holder,
                                                  @Nullable PsiMethod method,
                                                  @NotNull PsiAnnotation annotation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
+    PermissionRequirement requirement = PermissionRequirement.create(annotation);
     checkPermissionRequirement(methodCall, holder, method, null, requirement);
   }
 
@@ -1026,7 +1026,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return lookup;
     }
 
-    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
+    PermissionRequirement requirement = PermissionRequirement.create(annotation);
     return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
