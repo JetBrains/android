@@ -41,6 +41,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -119,6 +120,11 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   public static ApiLookup getApiLookup(@NotNull Project project) {
     return ApiLookup.get(new LintIdeClient(project));
+  }
+
+  @Override
+  public void runReadAction(@NonNull Runnable runnable) {
+    ApplicationManager.getApplication().runReadAction(runnable);
   }
 
   /**
@@ -431,6 +437,12 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     return super.getBuildTools(project);
+  }
+
+  @Nullable
+  @Override
+  public String getClientRevision() {
+    return ApplicationInfoEx.getInstanceEx().getFullVersion();
   }
 
   @Override
