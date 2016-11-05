@@ -4,14 +4,12 @@ import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeProject;
-import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.idea.lint.*;
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
@@ -20,6 +18,9 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -57,6 +58,7 @@ import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.L
 class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExtension<AndroidLintGlobalInspectionContext> {
   static final Key<AndroidLintGlobalInspectionContext> ID = Key.create("AndroidLintGlobalInspectionContext");
   private Map<Issue, Map<File, List<ProblemData>>> myResults;
+  private LintBaseline myBaseline;
 
   @NotNull
   @Override
@@ -86,9 +88,12 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<>();
-    final AnalysisScope scope = context.getRefManager().getScope();
+    AnalysisScope scope = context.getRefManager().getScope();
     if (scope == null) {
-      return;
+      scope = AndroidLintLintBaselineInspection.ourRerunScope;
+      if (scope == null) {
+        return;
+      }
     }
 
     final LintIdeClient client = LintIdeClient.forBatch(project, problemMap, scope, issues);
@@ -227,6 +232,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     request.setScope(lintScope);
 
     // Baseline analysis?
+    myBaseline = null;
     for (Module module : modules) {
       AndroidGradleModel model = AndroidGradleModel.get(module);
       if (model != null) {
@@ -235,16 +241,22 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           LintOptions options = model.getAndroidProject().getLintOptions();
           try {
             File baselineFile = options.getBaselineFile();
-            if (baselineFile != null) {
+            if (baselineFile != null && !AndroidLintLintBaselineInspection.ourSkipBaselineNextRun) {
               if (!baselineFile.isAbsolute()) {
                 String path = module.getProject().getBasePath();
                 if (path != null) {
                   baselineFile = new File(FileUtil.toSystemDependentName(path), baselineFile.getPath());
                 }
               }
-              if (baselineFile.isFile()) {
-                lint.setBaseline(new LintBaseline(client, baselineFile));
+              myBaseline = new LintBaseline(client, baselineFile);
+              lint.setBaseline(myBaseline);
+              if (!baselineFile.isFile()) {
+                myBaseline.setWriteOnClose(true);
+              } else if (AndroidLintLintBaselineInspection.ourUpdateBaselineNextRun) {
+                myBaseline.setRemoveFixed(true);
+                myBaseline.setWriteOnClose(true);
               }
+
             }
           } catch (Throwable unsupported) {
             // During 2.3 development some builds may have this method, others may not
@@ -256,6 +268,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     lint.analyze(request);
 
+    AndroidLintLintBaselineInspection.clearNextRunState();
+
     myResults = problemMap;
   }
 
@@ -266,6 +280,28 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
   @Override
   public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
+    if (myBaseline != null) {
+      // Close the baseline; we need to hold a read lock such that line numbers can be computed from PSI file contents
+      if (myBaseline.isWriteOnClose()) {
+        ApplicationManager.getApplication().runReadAction(() -> myBaseline.close());
+      }
+
+      // If we wrote a baseline file, post a notification
+      if (myBaseline.isWriteOnClose()) {
+        String message;
+        if (myBaseline.isRemoveFixed()) {
+          message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
+                                  myBaseline.getFixedCount(),
+                                  LintUtils.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false));
+        } else {
+          message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
+                                  myBaseline.getTotalCount());
+        }
+        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+          .createNotification(message, NotificationType.INFORMATION)
+          .notify(context.getProject());
+      }
+    }
   }
 
   @Override
