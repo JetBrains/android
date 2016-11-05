@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
@@ -47,6 +48,9 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
+          if (!ObjectAnimatorDetector.isAddKeepErrorMessage(message, TextFormat.RAW)) {
+            return;
+          }
           PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class);
           if (container == null) {
             return;

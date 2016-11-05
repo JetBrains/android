@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -35,6 +36,10 @@ public class AndroidLintGradleDependencyInspection extends AndroidLintInspection
     String after = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
     if (before != null && after != null) {
       return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
+    }
+
+    if (ConstraintLayoutDetector.isUpgradeDependencyError(message, RAW)) {
+      return new AndroidLintQuickFix[]{new UpgradeConstraintLayoutFix()};
     }
 
     return AndroidLintQuickFix.EMPTY_ARRAY;
