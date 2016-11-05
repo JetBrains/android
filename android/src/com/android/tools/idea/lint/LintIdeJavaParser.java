@@ -156,9 +156,15 @@ public class LintIdeJavaParser extends JavaParser {
   public Location getLocation(@NonNull JavaContext context, @NonNull PsiElement element) {
     // We don't need line numbers, so override super to avoid computing source file contents
     TextRange range = element.getTextRange();
-    PsiFile containingFile = element.getContainingFile();
+    return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset());
+  }
+
+  @NonNull
+  private static Location createLocation(@NonNull JavaContext context, @Nullable PsiFile containingFile, int startOffset, int endOffset) {
+    LintJavaPosition start = new LintJavaPosition(containingFile, startOffset);
+    LintJavaPosition end = new LintJavaPosition(containingFile, endOffset);
     File file = context.file;
-    if (containingFile != context.getJavaFile()) {
+    if (containingFile != null && containingFile != context.getJavaFile()) {
       // Reporting an error in a different file.
       if (context.getDriver().getScope().size() == 1) {
         // Don't bother with this error if it's in a different file during single-file analysis
@@ -172,7 +178,26 @@ public class LintIdeJavaParser extends JavaParser {
         return Location.NONE;
       }
     }
-    return Location.create(file, null, range.getStartOffset(), range.getEndOffset());
+
+    return Location.create(file, start, end);
+  }
+
+  private static class LintJavaPosition extends LintIdePosition {
+    private final PsiFile myFile;
+
+    public LintJavaPosition(@Nullable PsiFile file, int offset) {
+      super(offset);
+      myFile = file;
+    }
+
+    @Override
+    protected void initializeLineColumn() {
+      if (myFile != null && myFile.isValid()) {
+        ApplicationManager.getApplication().assertReadAccessAllowed();
+        String contents = myFile.isValid() ? myFile.getText() : "";
+        initializeFromText(contents);
+      }
+    }
   }
 
   @NonNull
@@ -202,7 +227,7 @@ public class LintIdeJavaParser extends JavaParser {
     // We don't need source contents for locations in the IDE
     int start = Math.max(0, from.getTextRange().getStartOffset() + fromDelta);
     int end = to.getTextRange().getEndOffset() + toDelta;
-    return Location.create(context.file, null, start, end);
+    return createLocation(context, from.getContainingFile(), start, end);
   }
 
   @NonNull
@@ -309,11 +334,6 @@ public class LintIdeJavaParser extends JavaParser {
         return getTypeDescriptor(element);
       }
     });
-  }
-
-  @Override
-  public void runReadAction(@NonNull Runnable runnable) {
-    ApplicationManager.getApplication().runReadAction(runnable);
   }
 
   @VisibleForTesting
