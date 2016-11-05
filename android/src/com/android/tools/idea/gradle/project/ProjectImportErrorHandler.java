@@ -73,23 +73,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       return createUserFriendlyError(msg, null);
     }
 
-    if (rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) {
-      // Missing platform in SDK now also comes as a ExternalSystemException. This may be caused by changes in IDEA's "External System
-      // Import" framework.
-      String msg = rootCause.getMessage();
-      if (msg != null) {
-        if (msg.startsWith("failed to find Build Tools")) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                           .setGradleSyncFailure(GradleSyncFailure.MISSING_BUILD_TOOLS));
-
-          // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(msg, null);
-        }
-      }
-    }
-
     if (rootCause instanceof OutOfMemoryError) {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
