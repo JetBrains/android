@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -105,8 +105,9 @@ public class NewGradleSync implements GradleSync {
     // @formatter:on
   }
 
+  @VisibleForTesting
   @NotNull
-  private Callback sync(@NotNull Project project) {
+  Callback sync(@NotNull Project project) {
     Callback callback = new Callback();
 
     if (project.isDisposed()) {
@@ -245,7 +246,8 @@ public class NewGradleSync implements GradleSync {
     getLog().warn("Gradle sync failed: " + errorMessage);
   }
 
-  private static class Callback extends ActionCallback {
+  @VisibleForTesting
+  static class Callback extends ActionCallback {
     @Nullable private SyncAction.ProjectModels myModels;
     @Nullable private Throwable mySyncError;
 
