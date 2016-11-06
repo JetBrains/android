@@ -20,14 +20,12 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,9 +44,9 @@ public class ModuleSetup {
   @NotNull private final AndroidModuleSetupStep[] myAndroidModuleSetupSteps;
   @NotNull private final JavaModuleSetupStep[] myJavaModuleSetupSteps;
 
-  public ModuleSetup(@NotNull Project project, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(ideModelsProvider, GradleSyncState.getInstance(project)),
-         AndroidModuleSetupStep.getExtensions(), JavaModuleSetupStep.getExtensions());
+  public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
+    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), AndroidModuleSetupStep.getExtensions(),
+         JavaModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
@@ -74,7 +72,7 @@ public class ModuleSetup {
       isProjectRootFolder = true;
     }
 
-    myGradleModuleSetup.setUpModule(module, models);
+    myGradleModuleSetup.setUpModule(module, myIdeModelsProvider, models);
 
     AndroidProject androidProject = models.findModel(AndroidProject.class);
     if (androidProject == null) {

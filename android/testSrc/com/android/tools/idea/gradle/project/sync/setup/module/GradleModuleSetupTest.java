@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFace
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -60,6 +61,8 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
+    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+
     String moduleName = "app";
     myModule = createModule(moduleName);
 
@@ -70,7 +73,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
 
     myModelsProvider = new IdeModifiableModelsProviderImpl(project);
-    myModuleSetup = new GradleModuleSetup(myModelsProvider, mySyncState);
+    myModuleSetup = new GradleModuleSetup();
   }
 
   public void testSetUpModule() {
@@ -80,7 +83,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     String gradleVersion = "2.14.1";
     when(myClasspathModel.getGradleVersion()).thenReturn(gradleVersion);
 
-    myModuleSetup.setUpModule(myModule, myModuleModels);
+    myModuleSetup.setUpModule(myModule, myModelsProvider, myModuleModels);
 
     // Apply changes to verify state.
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
