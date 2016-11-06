@@ -49,15 +49,22 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
   @NotNull private final VariantSelector myVariantSelector;
+  @NotNull private final AndroidModuleSetupStep[] myAndroidModuleSetupSteps;
+  @NotNull private final JavaModuleSetupStep[] myJavaModuleSetupSteps;
 
   public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector());
+    this(ideModelsProvider, new VariantSelector(), AndroidModuleSetupStep.getExtensions(), JavaModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
-  ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider, @NotNull VariantSelector variantSelector) {
+  ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider,
+              @NotNull VariantSelector variantSelector,
+              @NotNull AndroidModuleSetupStep[] androidModuleSetupSteps,
+              @NotNull JavaModuleSetupStep[] javaModuleSetupSteps) {
     myIdeModelsProvider = ideModelsProvider;
     myVariantSelector = variantSelector;
+    myAndroidModuleSetupSteps = androidModuleSetupSteps;
+    myJavaModuleSetupSteps = javaModuleSetupSteps;
   }
 
   public void setUpModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models, @NotNull ProgressIndicator indicator) {
@@ -134,7 +141,7 @@ public class ModuleSetup {
     //noinspection deprecation
     ModuleExtendedModel javaModel = models.findModel(ModuleExtendedModel.class);
     JavaProject javaProject = JavaProject.create(models.getModule(), javaModel, androidProjectWithoutVariants);
-    for (JavaModuleSetupStep step : JavaModuleSetupStep.getExtensions()) {
+    for (JavaModuleSetupStep step : myJavaModuleSetupSteps) {
       displayStepDescription(step.getDescription(), module, indicator);
       step.setUpModule(module, javaProject, myIdeModelsProvider, models, indicator);
     }
@@ -144,7 +151,7 @@ public class ModuleSetup {
                                   @NotNull SyncAction.ModuleModels models,
                                   @NotNull ProgressIndicator indicator,
                                   @NotNull AndroidGradleModel androidModel) {
-    for (AndroidModuleSetupStep step : AndroidModuleSetupStep.getExtensions()) {
+    for (AndroidModuleSetupStep step : myAndroidModuleSetupSteps) {
       displayStepDescription(step.getDescription(), module, indicator);
       step.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator);
     }
