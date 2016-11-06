@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,21 +71,18 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     expect(tasks.isEmpty()).andReturn(true);
     replay(project, tasks);
 
-    GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), project, myBuildFile, "2.2.1");
 
     final FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-          model.addFacet(facet);
-          facet.setGradleModel(gradleModel);
-        }
-        finally {
-          model.commit();
-        }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+        model.addFacet(facet);
+        facet.setGradleModuleModel(gradleModuleModel);
+      }
+      finally {
+        model.commit();
       }
     });
 

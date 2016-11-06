@@ -277,7 +277,7 @@ public class AndroidProjectStub implements AndroidProject {
    */
   @NotNull
   public File getRootDir() {
-    return myFileStructure.getRootDir();
+    return myFileStructure.getRootFolderPath();
   }
 
   /**

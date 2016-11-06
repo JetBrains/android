@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.dependency;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -26,6 +25,7 @@ import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -52,7 +52,7 @@ public class ModuleDependency extends Dependency {
   @Nullable
   public Module getModule(@NotNull IdeModifiableModelsProvider modelsProvider) {
     for (Module module : modelsProvider.getModules()) {
-      AndroidGradleFacet gradleFacet = Facets.findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+      AndroidGradleFacet gradleFacet = findFacet(module, modelsProvider, AndroidGradleFacet.getFacetTypeId());
       if (gradleFacet != null && hasEqualPath(gradleFacet)) {
         return module;
       }

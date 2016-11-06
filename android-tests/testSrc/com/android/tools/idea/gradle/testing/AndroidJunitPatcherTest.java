@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -70,7 +70,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
       FacetManager facetManager = FacetManager.getInstance(myModule);
       ModifiableFacetModel model = facetManager.createModifiableModel();
       try {
-        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
         model.addFacet(facet);
       }
       finally {

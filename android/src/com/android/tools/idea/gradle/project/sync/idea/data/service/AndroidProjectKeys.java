@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.*;
-import com.android.tools.idea.gradle.project.sync.idea.data.service.*;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
  * </ol>
  * <br/>
  * The reason for having {@link GradleModelDataService} before all other services is that we need to
- * add the {@link com.android.tools.idea.gradle.facet.AndroidGradleFacet} to each of the modules. This facet contains the "Gradle path" of
+ * add the {@link AndroidGradleFacet} to each of the modules. This facet contains the "Gradle path" of
  * each project module. This path is necessary when setting up inter-module dependencies.
  * <br/>
  * The reason for having {@link NativeAndroidGradleModelDataService} before
@@ -50,7 +51,7 @@ public final class AndroidProjectKeys {
   private static final int PROCESSING_AFTER_BUILTIN_SERVICES = LIBRARY_DEPENDENCY.getProcessingWeight() + 1;
 
   @NotNull
-  public static final Key<GradleModel> GRADLE_MODEL = Key.create(GradleModel.class, PROCESSING_AFTER_BUILTIN_SERVICES);
+  public static final Key<GradleModuleModel> GRADLE_MODEL = Key.create(GradleModuleModel.class, PROCESSING_AFTER_BUILTIN_SERVICES);
 
   @NotNull
   public static final Key<NativeAndroidGradleModel> NATIVE_ANDROID_MODEL = Key.create(NativeAndroidGradleModel.class,

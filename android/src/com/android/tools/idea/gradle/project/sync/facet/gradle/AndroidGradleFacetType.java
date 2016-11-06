@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.facet;
+package com.android.tools.idea.gradle.project.sync.facet.gradle;
 
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetType;
@@ -21,7 +21,6 @@ import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +31,7 @@ import javax.swing.*;
  */
 public class AndroidGradleFacetType extends FacetType<AndroidGradleFacet, AndroidGradleFacetConfiguration> {
   public AndroidGradleFacetType() {
-    super(AndroidGradleFacet.TYPE_ID, AndroidGradleFacet.ID, AndroidGradleFacet.NAME);
+    super(AndroidGradleFacet.getFacetTypeId(), AndroidGradleFacet.getFacetId(), AndroidGradleFacet.getFacetName());
   }
 
   @NotNull
