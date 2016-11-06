@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -221,8 +222,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
     File buildFilePath = buildScript.getSourceFile();
-    GradleModel gradleModel = GradleModel.create(moduleName, gradleProject, buildFilePath, gradleVersion);
-    ideModule.createChild(GRADLE_MODEL, gradleModel);
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
+    ideModule.createChild(GRADLE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.

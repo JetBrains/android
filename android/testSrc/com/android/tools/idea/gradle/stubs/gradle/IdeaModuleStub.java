@@ -25,7 +25,6 @@ import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaJavaLanguageSettings;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaModuleIdentifier;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +56,7 @@ public class IdeaModuleStub implements IdeaModule {
    */
   @NotNull
   public File getRootDir() {
-    return myFileStructure.getRootDir();
+    return myFileStructure.getRootFolderPath();
   }
 
   @NotNull

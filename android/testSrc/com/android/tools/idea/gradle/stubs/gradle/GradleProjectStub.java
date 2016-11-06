@@ -78,6 +78,7 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
+  @Nullable
   public String getDescription() {
     throw new UnsupportedOperationException();
   }

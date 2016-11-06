@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.facet;
+package com.android.tools.idea.gradle.project.sync.facet.gradle;
 
-import com.android.tools.idea.gradle.GradleModel;
-import com.intellij.ProjectTopics;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -26,32 +25,25 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.model.AndroidModelSerializationConstants;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.ProjectTopics.PROJECT_ROOTS;
 import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
+import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
+import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
 
 /**
- * Android-Gradle facet.
- *
- * </p>This facet is set to IDEA modules that have been imported from an Android-Gradle project. The purpose of this facet is to identify
- * these modules and build them with Gradle exclusively.
+ * Identifies a module as a "Gradle project".
  */
 public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleFacet.class);
+  @NotNull private static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
 
-  @NotNull public static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
-
-  @NonNls public static final String ID = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
-  @NonNls public static final String NAME = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
-
-  private GradleModel myGradleModel;
+  @Nullable private GradleModuleModel myGradleModuleModel;
 
   @Nullable
   public static AndroidGradleFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
+    return FacetManager.getInstance(module).getFacetByType(getFacetTypeId());
   }
 
   public AndroidGradleFacet(@NotNull Module module,
@@ -62,15 +54,30 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
 
   @NotNull
   public static AndroidGradleFacetType getFacetType() {
-    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(getFacetId());
     assert facetType instanceof AndroidGradleFacetType;
     return (AndroidGradleFacetType)facetType;
+  }
+
+  @NotNull
+  public static FacetTypeId<AndroidGradleFacet> getFacetTypeId() {
+    return TYPE_ID;
+  }
+
+  @NotNull
+  public static String getFacetId() {
+    return ANDROID_GRADLE_FACET_ID;
+  }
+
+  @NotNull
+  public static String getFacetName() {
+    return ANDROID_GRADLE_FACET_NAME;
   }
 
   @Override
   public void initFacet() {
     MessageBusConnection connection = getModule().getMessageBus().connect(this);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    connection.subscribe(PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -90,17 +97,17 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
       saveFacetConfiguration(config);
     }
     catch (WriteExternalException e) {
-      LOG.error("Unable to save contents of 'Android-Gradle' facet", e);
+      Logger.getInstance(AndroidGradleFacet.class).error("Unable to save contents of 'Android-Gradle' facet", e);
     }
   }
 
   @Nullable
-  public GradleModel getGradleModel() {
-    return myGradleModel;
+  public GradleModuleModel getGradleModuleModel() {
+    return myGradleModuleModel;
   }
 
-  public void setGradleModel(@NotNull GradleModel gradleModel) {
-    myGradleModel = gradleModel;
-    getConfiguration().GRADLE_PROJECT_PATH = myGradleModel.getGradlePath();
+  public void setGradleModuleModel(@NotNull GradleModuleModel gradleModuleModel) {
+    myGradleModuleModel = gradleModuleModel;
+    getConfiguration().GRADLE_PROJECT_PATH = myGradleModuleModel.getGradlePath();
   }
 }

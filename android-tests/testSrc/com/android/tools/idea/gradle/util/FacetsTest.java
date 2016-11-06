@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,56 +28,40 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class FacetsTest extends IdeaTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
     final FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          ModifiableFacetModel model = facetManager.createModifiableModel();
-          try {
-            AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-            model.addFacet(facet);
-          }
-          finally {
-            model.commit();
-          }
-        }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+        model.addFacet(facet);
+      }
+      finally {
+        model.commit();
+      }
     });
     assertEquals(1, facetManager.getFacetsByType(AndroidFacet.ID).size());
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        Facets.removeAllFacetsOfType(myModule, AndroidFacet.ID);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, AndroidFacet.ID));
 
     assertEquals(0, facetManager.getFacetsByType(AndroidFacet.ID).size());
   }
 
   public void testRemoveAllFacetsWithAndroidGradleFacets() throws Exception {
     final FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-          model.addFacet(facet);
-        }
-        finally {
-          model.commit();
-        }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
+        model.addFacet(facet);
+      }
+      finally {
+        model.commit();
       }
     });
 
-    assertEquals(1, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
+    assertEquals(1, facetManager.getFacetsByType(AndroidGradleFacet.getFacetTypeId()).size());
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        Facets.removeAllFacetsOfType(myModule, AndroidGradleFacet.TYPE_ID);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> Facets.removeAllFacetsOfType(myModule, AndroidGradleFacet.getFacetTypeId()));
 
-    assertEquals(0, facetManager.getFacetsByType(AndroidGradleFacet.TYPE_ID).size());
+    assertEquals(0, facetManager.getFacetsByType(AndroidGradleFacet.getFacetTypeId()).size());
   }
 }
