@@ -2892,7 +2892,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return THREAD;
     } else if (message.contains("Call requires API ")) {
       return UNSUPPORTED;
-    } else if (message.contains(" can only be called from ")) {
+    } else if (message.contains(" can only be called from ") || message.contains("marked as internal to the support library")) {
       return RESTRICTED;
     } else if (message.contains(" should only be accessed from tests")) {
       return TEST_VISIBILITY;

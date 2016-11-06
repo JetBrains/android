@@ -236,9 +236,15 @@ public class LintIdeClient extends LintClient implements Disposable {
   protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
                                  @NonNull String message, @NonNull TextFormat format) {
     Location secondary = location.getSecondary();
-    if (secondary != null) {
-      if (secondary.getMessage() != null) {
-        message = message + " (" + secondary.getMessage() + ")";
+    if (secondary != null && secondary.isVisible()) {
+      String secondaryMessage = secondary.getMessage();
+      if (secondaryMessage != null) {
+        if (secondary.isSelfExplanatory()) {
+          message = secondaryMessage;
+        }
+        else {
+          message = message + " (" + secondaryMessage + ")";
+        }
       }
       report(context, issue, severity, secondary, message, format);
     }
