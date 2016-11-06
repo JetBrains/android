@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,26 +31,24 @@ import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsActi
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
-final class CommandLineArgs {
-  @NotNull private final Project myProject;
+public class CommandLineArgs {
   @NotNull private final GradleInitScripts myInitScripts;
 
-  CommandLineArgs(@NotNull Project project) {
-    this(project, GradleInitScripts.getInstance());
+  public CommandLineArgs() {
+    this(GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
-  CommandLineArgs(@NotNull Project project, @NotNull GradleInitScripts initScripts) {
-    myProject = project;
+  CommandLineArgs(@NotNull GradleInitScripts initScripts) {
     myInitScripts = initScripts;
   }
 
   @NotNull
-  List<String> get() {
+  public List<String> get(@Nullable Project project) {
     List<String> args = new ArrayList<>();
-    args.add("-Didea.resolveSourceSetDependencies=true");
 
     // TODO: figure out why this is making sync fail.
     //File initScript = generateInitScript(false, getToolingExtensionsClasses());
@@ -58,10 +56,12 @@ final class CommandLineArgs {
     //  ContainerUtil.addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, initScript.getPath());
     //}
 
-    String[] options = myProject.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
-    if (options != null) {
-      myProject.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
-      Collections.addAll(args, options);
+    if (project != null) {
+      String[] options = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
+      if (options != null) {
+        project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
+        Collections.addAll(args, options);
+      }
     }
 
     // These properties tell the Android Gradle plugin that we are performing a sync and not a build.
@@ -69,15 +69,17 @@ final class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
 
-    Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
-    if (refreshExternalNativeModels != null) {
-      myProject.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
-      args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
+    if (project != null) {
+      Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
+      if (refreshExternalNativeModels != null) {
+        project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
+        args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
+      }
     }
 
     if (isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      ApplicationManager.getApplication().putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
     myInitScripts.addLocalMavenRepoInitScriptCommandLineArgTo(args);
