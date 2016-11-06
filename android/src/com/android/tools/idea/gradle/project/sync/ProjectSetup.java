@@ -57,7 +57,7 @@ abstract class ProjectSetup {
     @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
 
     ProjectSetupImpl(@NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
-      this(project, modelsProvider, new ModuleFactory(project, modelsProvider), new ModuleSetup(project, modelsProvider),
+      this(project, modelsProvider, new ModuleFactory(project, modelsProvider), new ModuleSetup(modelsProvider),
            new AndroidModuleValidator.Factory());
     }
 
