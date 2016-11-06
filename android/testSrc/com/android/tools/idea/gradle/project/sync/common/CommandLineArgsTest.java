@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -41,11 +41,11 @@ public class CommandLineArgsTest extends AndroidGradleTestCase {
     super.setUp();
     loadSimpleApplication();
     myInitScripts = mock(GradleInitScripts.class);
-    myArgs = new CommandLineArgs(getProject(), myInitScripts);
+    myArgs = new CommandLineArgs(myInitScripts);
   }
 
   public void testGet() throws Exception {
-    List<String> args = myArgs.get();
+    List<String> args = myArgs.get(getProject());
     check(args);
   }
 
@@ -54,7 +54,7 @@ public class CommandLineArgsTest extends AndroidGradleTestCase {
     String[] options = { "-Doption1=true", "-Doption2=true"};
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, options);
 
-    List<String> args = myArgs.get();
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-Doption1=true");
     assertThat(args).contains("-Doption2=true");
@@ -66,7 +66,7 @@ public class CommandLineArgsTest extends AndroidGradleTestCase {
     Project project = getProject();
     project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
 
-    List<String> args = myArgs.get();
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }
