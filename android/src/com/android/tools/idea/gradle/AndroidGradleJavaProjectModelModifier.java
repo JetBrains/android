@@ -189,7 +189,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     else {
       JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(module);
-      if (javaGradleFacet == null || javaGradleFacet.getJavaProject() == null) {
+      if (javaGradleFacet == null || javaGradleFacet.getJavaModuleModel() == null) {
         return null;
       }
       JavaModel javaModel = buildModel.java();

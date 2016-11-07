@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
@@ -43,7 +43,7 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
   private void addDependencies() {
     PsParsedDependencies parsedDependencies = myParent.getParsedDependencies();
 
-    JavaProject gradleModel = myParent.getGradleModel();
+    JavaModuleModel gradleModel = myParent.getGradleModel();
     for (JarLibraryDependency libraryDependency : gradleModel.getJarLibraryDependencies()) {
       GradleModuleVersion moduleVersion = libraryDependency.getModuleVersion();
       if (moduleVersion != null) {

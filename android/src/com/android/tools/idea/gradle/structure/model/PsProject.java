@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
@@ -58,9 +58,9 @@ public class PsProject extends PsModel {
         else {
           JavaGradleFacet facet = JavaGradleFacet.getInstance(resolvedModel);
           if (facet != null) {
-            JavaProject javaProject = facet.getJavaProject();
-            if (javaProject != null && javaProject.isBuildable()) {
-              module = new PsJavaModule(this, resolvedModel, gradlePath, javaProject);
+            JavaModuleModel javaModuleModel = facet.getJavaModuleModel();
+            if (javaModuleModel != null && javaModuleModel.isBuildable()) {
+              module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel);
             }
           }
         }

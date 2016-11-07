@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -37,12 +37,12 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
 public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull JavaProject javaProject,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable SyncAction.ModuleModels gradleModels,
-                          @Nullable ProgressIndicator indicator) {
-    LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull JavaModuleModel javaModuleModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
+    LanguageLevel languageLevel = javaModuleModel.getJavaLanguageLevel();
 
     if (languageLevel == null) {
       // Java language is still not correct. Most likely this module does not have dependents.

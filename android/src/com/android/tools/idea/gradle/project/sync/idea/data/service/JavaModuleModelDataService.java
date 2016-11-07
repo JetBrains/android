@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetup;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -37,33 +36,29 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 
-/**
- * Applies Gradle settings to the modules of an Android project.
- */
-public class GradleModuleModelDataService extends AbstractProjectDataService<GradleModuleModel, Void> {
-  @NotNull private final GradleModuleSetup myModuleSetup;
+public class JavaModuleModelDataService extends AbstractProjectDataService<JavaModuleModel, Void> {
+  @NotNull private final JavaModuleSetup myModuleSetup;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public GradleModuleModelDataService() {
-    this(new GradleModuleSetup());
+  public JavaModuleModelDataService() {
+    this(new JavaModuleSetup());
   }
 
   @VisibleForTesting
-  GradleModuleModelDataService(@NotNull GradleModuleSetup moduleSetup) {
+  JavaModuleModelDataService(@NotNull JavaModuleSetup moduleSetup) {
     myModuleSetup = moduleSetup;
   }
 
   @Override
   @NotNull
-  public Key<GradleModuleModel> getTargetDataKey() {
-    return GRADLE_MODULE_MODEL;
+  public Key<JavaModuleModel> getTargetDataKey() {
+    return JAVA_MODULE_MODEL;
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  public void importData(@NotNull Collection<DataNode<JavaModuleModel>> toImport,
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -72,35 +67,24 @@ public class GradleModuleModelDataService extends AbstractProjectDataService<Gra
         doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
-        getLog().error(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
+        Logger.getInstance(getClass()).error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
       }
     }
   }
 
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(GradleModuleModelDataService.class);
-  }
-
-  private void doImport(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+  private void doImport(@NotNull Collection<DataNode<JavaModuleModel>> toImport,
                         @NotNull Project project,
                         @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         if (!project.isDisposed()) {
-          Map<String, GradleModuleModel> gradleProjectsByName = indexByModuleName(toImport);
+          Map<String, JavaModuleModel> gradleProjectsByName = indexByModuleName(toImport);
           for (Module module : modelsProvider.getModules()) {
-            GradleModuleModel gradleModuleModel = gradleProjectsByName.get(module.getName());
-            if (gradleModuleModel == null) {
-              // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-              // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
-              // not to delete the orphan module when Studio prompts to do so.
-              removeAllFacetsOfType(AndroidGradleFacet.getFacetTypeId(), modelsProvider.getModifiableFacetModel(module));
-            }
-            else {
-              myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
+            JavaModuleModel javaModuleModel = gradleProjectsByName.get(module.getName());
+            if (javaModuleModel != null) {
+              myModuleSetup.setUpModule(module, modelsProvider, javaModuleModel, null, null);
             }
           }
         }
@@ -113,12 +97,12 @@ public class GradleModuleModelDataService extends AbstractProjectDataService<Gra
   }
 
   @NotNull
-  private static Map<String, GradleModuleModel> indexByModuleName(@NotNull Collection<DataNode<GradleModuleModel>> dataNodes) {
-    Map<String, GradleModuleModel> gradleProjectsByModuleName = Maps.newHashMap();
-    for (DataNode<GradleModuleModel> d : dataNodes) {
-      GradleModuleModel gradleModuleModel = d.getData();
-      gradleProjectsByModuleName.put(gradleModuleModel.getModuleName(), gradleModuleModel);
+  private static Map<String, JavaModuleModel> indexByModuleName(@NotNull Collection<DataNode<JavaModuleModel>> dataNodes) {
+    Map<String, JavaModuleModel> javaProjectsByModuleName = Maps.newHashMap();
+    for (DataNode<JavaModuleModel> d : dataNodes) {
+      JavaModuleModel javaModuleModel = d.getData();
+      javaProjectsByModuleName.put(javaModuleModel.getModuleName(), javaModuleModel);
     }
-    return gradleProjectsByModuleName;
+    return javaProjectsByModuleName;
   }
 }
