@@ -15,12 +15,44 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleDefaultValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all the repository models.
  */
 public abstract class RepositoryModel {
+  @NonNls private static final String NAME = "name";
+
+  @NotNull private final String myDefaultRepoName;
+
+  @Nullable protected final GradlePropertiesDslElement myDslElement;
+
+  protected RepositoryModel(@Nullable GradlePropertiesDslElement dslElement, @NotNull String defaultRepoName) {
+    myDslElement = dslElement;
+    myDefaultRepoName = defaultRepoName;
+  }
+
   @NotNull
-  public abstract String name();
+  public GradleDefaultValue<String> name() {
+    if (myDslElement == null) {
+      return new GradleDefaultValue<>(null, myDefaultRepoName);
+    }
+
+    GradleDslExpression nameExpression = myDslElement.getPropertyElement(NAME, GradleDslExpression.class);
+
+    String name = null;
+    if (nameExpression != null) {
+      name = nameExpression.getValue(String.class);
+    }
+    if (name == null) {
+      name = myDefaultRepoName;
+    }
+
+    return new GradleDefaultValue<>(nameExpression, name);
+  }
 }
