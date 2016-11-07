@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer.java;
+package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.pom.java.LanguageLevel;
@@ -29,36 +29,32 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
-/**
- * Configures Java SDK for Java library module.
- */
-public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaProject> {
+public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  public void customizeModule(@NotNull Project project,
-                              @NotNull Module module,
-                              @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable JavaProject javaProject) {
-    if (javaProject == null) {
-      return;
-    }
+  public void setUpModule(@NotNull Module module,
+                          @NotNull JavaProject javaProject,
+                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                          @Nullable SyncAction.ModuleModels gradleModels,
+                          @Nullable ProgressIndicator indicator) {
     LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
     if (languageLevel == null) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
-      languageLevel = getMinimumLanguageLevelForAndroidModules(modelsProvider);
+      languageLevel = getMinimumLanguageLevelForAndroidModules(ideModelsProvider);
     }
 
     if (languageLevel == null) {
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
-    ModifiableRootModel rootModel = modelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
     LanguageLevelModuleExtensionImpl moduleExtension = rootModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class);
     moduleExtension.setLanguageLevel(languageLevel);
   }
@@ -72,7 +68,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
 
     LanguageLevel result = null;
 
-    List<LanguageLevel> languageLevels = Lists.newArrayList();
+    List<LanguageLevel> languageLevels = new ArrayList<>();
     for (Module dependency : modules) {
       LanguageLevel dependencyLanguageLevel = getLanguageLevelForAndroidModule(dependency, modelsProvider);
       if (dependencyLanguageLevel != null) {
@@ -100,5 +96,11 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
       }
     }
     return null;
+  }
+
+  @Override
+  @NotNull
+  public String getDescription() {
+    return "Java language level setup";
   }
 }
