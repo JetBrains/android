@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
@@ -39,8 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link AndroidGradleModelDataService}.
  */
 public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
-  @Mock private AndroidModuleSetupStep myModuleSetupStep1;
-  @Mock private AndroidModuleSetupStep myModuleSetupStep2;
+  @Mock private AndroidModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator myValidator;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep1;
   @Mock private PostSyncProjectSetupStep myProjectSetupStep2;
@@ -53,14 +52,16 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
 
     initMocks(this);
 
-    AndroidModuleSetupStep[] moduleSetupSteps = {myModuleSetupStep1, myModuleSetupStep2};
-
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
     PostSyncProjectSetupStep[] projectSetupSteps = {myProjectSetupStep1, myProjectSetupStep2};
 
-    myService = new AndroidGradleModelDataService(moduleSetupSteps, validatorFactory, projectSetupSteps);
+    myService = new AndroidGradleModelDataService(myModuleSetup, validatorFactory, projectSetupSteps);
+  }
+
+  public void testGetTargetDataKey() {
+    assertSame(ANDROID_MODEL, myService.getTargetDataKey());
   }
 
   public void testImportData() throws Exception {
@@ -76,8 +77,7 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
 
     myService.importData(Lists.newArrayList(dataNode), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetupStep1).setUpModule(appModule, modelsProvider, androidModel, null, null);
-    verify(myModuleSetupStep2).setUpModule(appModule, modelsProvider, androidModel, null, null);
+    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
     verify(myProjectSetupStep1).setUpProject(project, modelsProvider, null);
@@ -92,8 +92,7 @@ public class AndroidGradleModelDataServiceTest extends AndroidGradleTestCase {
 
     Module module = mock(Module.class);
     AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
-    verify(myModuleSetupStep1, never()).setUpModule(module, modelsProvider, androidModel, null, null);
-    verify(myModuleSetupStep2, never()).setUpModule(module, modelsProvider, androidModel, null, null);
+    verify(myModuleSetup, never()).setUpModule(module, modelsProvider, androidModel, null, null);
     verify(myValidator, never()).validate(module, androidModel);
     verify(myValidator, never()).fixAndReportFoundIssues();
     verify(myProjectSetupStep1, never()).setUpProject(project, modelsProvider, null);
