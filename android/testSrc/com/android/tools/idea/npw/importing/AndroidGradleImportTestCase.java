@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -213,13 +213,13 @@ public abstract class AndroidGradleImportTestCase extends AndroidGradleTestCase 
           assertThat(module).isNotNull();
           FacetManager facetManager = FacetManager.getInstance(module);
           ModifiableFacetModel modifiableModel = facetManager.createModifiableModel();
-          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
           GradleProject gradleProject = new GradleProjectStub(myProject.getName(),
                                                                     gradlePath,
                                                                     virtualToIoFile(topBuildGradle),
                                                                     "compile");
-          GradleModel gradleModel = GradleModel.create(moduleName, gradleProject, virtualToIoFile(gradleFile), "2.2.1");
-          facet.setGradleModel(gradleModel);
+          GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, virtualToIoFile(gradleFile), "2.2.1");
+          facet.setGradleModuleModel(gradleModuleModel);
           modifiableModel.addFacet(facet);
           modifiableModel.commit();
           assertThat(Projects.isBuildWithGradle(module)).isTrue();

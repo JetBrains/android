@@ -24,9 +24,9 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.AfterGradleInvocationTask;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView;
@@ -833,8 +833,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
           // if we got here facet is not null;
           assert facet != null;
-          GradleModel gradleModel = facet.getGradleModel();
-          return gradleModel != null ? gradleModel.getBuildFile() : null;
+          GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
+          return gradleModuleModel != null ? gradleModuleModel.getBuildFile() : null;
         }
       }
       return null;

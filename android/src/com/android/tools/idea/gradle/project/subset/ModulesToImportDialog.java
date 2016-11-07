@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.subset;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -108,7 +108,7 @@ public class ModulesToImportDialog extends DialogWrapper {
     init();
     ModuleTableModel model = getModulesTable().getModel();
     for (DataNode<ModuleData> module : modules) {
-      Collection<DataNode<GradleModel>> gradleProjects = getChildren(module, GRADLE_MODEL);
+      Collection<DataNode<GradleModuleModel>> gradleProjects = getChildren(module, GRADLE_MODEL);
       if (gradleProjects.isEmpty()) {
         alwaysIncludedModules.add(module);
       }

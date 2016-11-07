@@ -1,6 +1,6 @@
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.plugins.gradle.importing.GradleImportingTestCase;

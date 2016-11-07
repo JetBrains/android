@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependenciesSetup;
@@ -88,7 +88,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, ideModelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
 
-    AndroidGradleFacet gradleFacet = findFacet(module, ideModelsProvider, AndroidGradleFacet.TYPE_ID);
+    AndroidGradleFacet gradleFacet = findFacet(module, ideModelsProvider, AndroidGradleFacet.getFacetTypeId());
     if (gradleFacet != null) {
       // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
       // have this facet.
