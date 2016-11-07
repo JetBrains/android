@@ -27,9 +27,11 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.DumbProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -148,7 +150,16 @@ public class ConvertToWebpAction extends DumbAwareAction {
                       @NotNull WebpConversionSettings settings,
                       boolean showBalloon,
                       @NotNull Collection<VirtualFile> files) {
-    ProgressManager.getInstance().run(new WebpConversionTask(project, settings, showBalloon, files));
+    boolean isUnitTest = ApplicationManager.getApplication().isUnitTestMode();
+    WebpConversionTask task = new WebpConversionTask(project, settings, showBalloon && !isUnitTest, files);
+    if (isUnitTest) {
+      // Do it immediately
+      task.run(new DumbProgressIndicator());
+      settings.previewConversion = false;
+      task.onFinished();
+    } else {
+      ProgressManager.getInstance().run(task);
+    }
   }
 
   public static boolean isEligibleForConversion(@Nullable VirtualFile file, @Nullable WebpConversionSettings settings) {
@@ -194,7 +205,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
   }
 
   public static boolean isNinePatchFile(@NotNull VirtualFile file) {
-    return file != null && !file.isDirectory() && file.getName().endsWith(DOT_9PNG);
+    return file.getName().endsWith(DOT_9PNG) && !file.isDirectory();
   }
 
   // From OptimizePngAction
@@ -285,7 +296,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
             } else {
               if (mySettings.skipLargerImages && convertedFile.saved < 0) {
                 mySkipped++;
-              } else if (convertedFile.saved > 0) {
+              } else {
                 mySaved += convertedFile.saved;
                 myFileCount++;
                 convertedFile.apply(requestor);
@@ -324,7 +335,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
         } else {
           if (mySettings.skipLargerImages && file.saved < 0) {
             mySkipped++;
-          } else if (file.saved > 0) {
+          } else {
             mySaved += file.saved;
             myFileCount++;
           }
