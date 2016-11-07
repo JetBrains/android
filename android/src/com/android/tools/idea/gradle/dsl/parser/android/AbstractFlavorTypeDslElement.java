@@ -21,15 +21,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
  */
-public abstract class AbstractFlavorTypeDslElement extends GradlePropertiesDslElement {
-
+public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, name);
   }
 
   @Override

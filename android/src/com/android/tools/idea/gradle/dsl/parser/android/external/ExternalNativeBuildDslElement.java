@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.external;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExternalNativeBuildDslElement extends GradleDslElementMap {
+public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
   @NonNls public static final String EXTERNAL_NATIVE_BUILD_BLOCK_NAME = "externalNativeBuild";
 
   public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent) {
     super(parent, EXTERNAL_NATIVE_BUILD_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
   }
 }

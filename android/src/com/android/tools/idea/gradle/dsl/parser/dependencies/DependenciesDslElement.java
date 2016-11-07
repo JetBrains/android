@@ -20,11 +20,11 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DependenciesDslElement extends GradlePropertiesDslElement {
+public class DependenciesDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
 
   public DependenciesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, DEPENDENCIES_BLOCK_NAME);
+    super(parent, DEPENDENCIES_BLOCK_NAME);
   }
 
   @Override
@@ -54,10 +54,5 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
       super.addParsedElement(configurationName, elementList);
     }
     return elementList;
-  }
-
-  @Override
-  public boolean isBlockElement() {
-    return true;
   }
 }

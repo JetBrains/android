@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 
-public final class SigningConfigDslElement extends GradlePropertiesDslElement {
-
+public final class SigningConfigDslElement extends GradleDslBlockElement {
   public SigningConfigDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, name);
   }
 }
