@@ -19,9 +19,12 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.DomPullParser;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -40,12 +43,13 @@ import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Generic UI component for rendering.
  */
-public class AndroidPreviewPanel extends JComponent implements Scrollable {
+public class AndroidPreviewPanel extends JComponent implements Scrollable, Disposable {
   private static final Logger LOG = Logger.getInstance(AndroidPreviewPanel.class);
 
   public static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
@@ -58,9 +62,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   // the current task to do another invalidate once it has finished the current one.
   private final AtomicBoolean myRunningInvalidates = new AtomicBoolean(false);
   private final AtomicBoolean myPendingInvalidates = new AtomicBoolean(false);
-  private final Runnable myInvalidateRunnable = new Runnable() {
+  @VisibleForTesting
+  protected final Runnable myInvalidateRunnable = new Runnable() {
     @Override
     public void run() {
+      if (ApplicationManager.getApplication().isDispatchThread()) {
+        ForkJoinPool.commonPool().execute(this);
+        return;
+      }
 
       try {
         synchronized (myGraphicsLayoutRendererLock) {
@@ -110,7 +119,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         myRunningInvalidates.set(true);
         myPendingInvalidates.set(false);
 
-        // We can only inflate views when the project has been indexed
+        // We can only inflate views when the project has been indexed. First we wait for the smart mode. Since the waitForSmartMode call
+        // doesn't guarantee that the next statement will be called in smart mode, we call runWhenSmart. This way:
+        //  - The pending invalidate state is maintained to true while the indexing happens
+        //  - runWhenSmart will likely just execute in the current thread. If that's not the case, myInvalidateRunnable will actually call
+        //    itself in a new thread.
+        myDumbService.waitForSmartMode();
         myDumbService.runWhenSmart(myInvalidateRunnable);
 
         myRunningInvalidates.set(false);
@@ -311,5 +325,14 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
     super.setBackground(bg);
 
     invalidateGraphicsRenderer();
+  }
+
+  @Override
+  public void dispose() {
+    synchronized (myGraphicsLayoutRendererLock) {
+      if (myGraphicsLayoutRenderer != null) {
+        myGraphicsLayoutRenderer.dispose();
+      }
+    }
   }
 }
