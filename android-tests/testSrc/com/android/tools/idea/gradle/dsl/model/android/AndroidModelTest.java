@@ -445,7 +445,27 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNull("flavorDimensions", android.flavorDimensions());
   }
 
-  public void testAddToAndResetListElements() throws Exception {
+  public void testAddToAndResetListElementsWithArgument() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+
+    android.addFlavorDimension("version");
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    buildModel.resetState();
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+  }
+
+  public void testAddToAndResetListElementsWithMultipleArguments() throws Exception {
     String text = "android { \n" +
                   "  flavorDimensions \"abi\", \"version\"\n" +
                   "}";
@@ -1404,7 +1424,31 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("flavorDimensions", ImmutableList.of("xyz"), android.flavorDimensions());
   }
 
-  public void testAddToAndApplyListElements() throws Exception {
+  public void testAddToAndApplyListElementsWithOneArgument() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+
+    android.addFlavorDimension("version");
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    applyChanges(buildModel);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+  }
+
+  public void testAddToAndApplyListElementsWithMultipleArguments() throws Exception {
     String text = "android { \n" +
                   "  flavorDimensions \"abi\", \"version\"\n" +
                   "}";

@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
@@ -49,6 +50,16 @@ public final class AndroidModel extends GradleDslBlockModel {
 
   public AndroidModel(@NotNull AndroidDslElement dslElement) {
     super(dslElement);
+  }
+
+  @NotNull
+  public AaptOptionsModel aaptOptions() {
+    AaptOptionsDslElement aaptOptionsElement = myDslElement.getPropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
+    if (aaptOptionsElement == null) {
+      aaptOptionsElement = new AaptOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(AAPT_OPTIONS_BLOCK_NAME, aaptOptionsElement);
+    }
+    return new AaptOptionsModel(aaptOptionsElement);
   }
 
   @NotNull
