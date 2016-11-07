@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.TestOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
@@ -74,6 +76,8 @@ import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement.SPLITS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -618,6 +622,9 @@ public final class GradleDslParser {
           else if (SPLITS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new SplitsDslElement(resultElement);
           }
+          else if (TEST_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new TestOptionsDslElement(resultElement);
+          }
           else {
             return null;
           }
@@ -669,6 +676,14 @@ public final class GradleDslParser {
           }
           else if (LANGUAGE_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new LanguageDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof TestOptionsDslElement) {
+          if (UNIT_TESTS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new UnitTestsDslElement(resultElement);
           }
           else {
             return null;
