@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android;
+package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+public class SplitsDslElement extends GradleDslBlockElement {
+  @NonNls public static final String SPLITS_BLOCK_NAME = "splits";
 
-public class SourceDirectoryDslElement extends GradleDslBlockElement {
-  public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("srcDirs") || property.equals("srcDir")) {
-      addToParsedExpressionList("srcDirs", element);
-      return;
-    }
-
-    if (property.equals("include") || property.equals("exclude")) {
-      addToParsedExpressionList(property, element);
-      return;
-    }
-
-    super.addParsedElement(property, element);
+  public SplitsDslElement(@NotNull GradleDslElement parent) {
+    super(parent, SPLITS_BLOCK_NAME);
   }
 }

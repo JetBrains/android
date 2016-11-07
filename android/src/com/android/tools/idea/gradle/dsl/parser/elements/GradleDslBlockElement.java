@@ -16,13 +16,12 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all the {@link GradleDslElement}s that represent blocks like android, productFlavors, buildTypes etc.
  */
 public abstract class GradleDslBlockElement extends GradlePropertiesDslElement {
-  protected GradleDslBlockElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 

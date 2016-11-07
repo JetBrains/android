@@ -51,7 +51,7 @@ public class PackagingOptionsModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public PackagingOptionsModel removeAllExcluds() {
+  public PackagingOptionsModel removeAllExclude() {
     myDslElement.removeProperty(EXCLUDES);
     return this;
   }
