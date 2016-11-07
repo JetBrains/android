@@ -41,24 +41,23 @@ public class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final GradleModuleSetup myGradleModuleSetup;
-  @NotNull private final AndroidModuleSetupStep[] myAndroidModuleSetupSteps;
+  @NotNull private final AndroidModuleSetup myAndroidModuleSetup;
   @NotNull private final JavaModuleSetupStep[] myJavaModuleSetupSteps;
 
   public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), AndroidModuleSetupStep.getExtensions(),
-         JavaModuleSetupStep.getExtensions());
+    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(), new AndroidModuleSetup(), JavaModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
   ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider,
               @NotNull VariantSelector variantSelector,
               @NotNull GradleModuleSetup gradleModuleSetup,
-              @NotNull AndroidModuleSetupStep[] androidModuleSetupSteps,
+              @NotNull AndroidModuleSetup androidModuleSetup,
               @NotNull JavaModuleSetupStep[] javaModuleSetupSteps) {
     myIdeModelsProvider = ideModelsProvider;
     myVariantSelector = variantSelector;
     myGradleModuleSetup = gradleModuleSetup;
-    myAndroidModuleSetupSteps = androidModuleSetupSteps;
+    myAndroidModuleSetup = androidModuleSetup;
     myJavaModuleSetupSteps = javaModuleSetupSteps;
   }
 
@@ -86,7 +85,7 @@ public class ModuleSetup {
         setUpJavaModule(module, models, indicator, true /* Android project without variants */);
       }
       else {
-        setUpAndroidModule(module, models, indicator, androidModel);
+        myAndroidModuleSetup.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator);
       }
     }
   }
@@ -121,16 +120,6 @@ public class ModuleSetup {
     for (JavaModuleSetupStep step : myJavaModuleSetupSteps) {
       displayStepDescription(step.getDescription(), module, indicator);
       step.setUpModule(module, javaProject, myIdeModelsProvider, models, indicator);
-    }
-  }
-
-  private void setUpAndroidModule(@NotNull Module module,
-                                  @NotNull SyncAction.ModuleModels models,
-                                  @NotNull ProgressIndicator indicator,
-                                  @NotNull AndroidGradleModel androidModel) {
-    for (AndroidModuleSetupStep step : myAndroidModuleSetupSteps) {
-      displayStepDescription(step.getDescription(), module, indicator);
-      step.setUpModule(module, myIdeModelsProvider, androidModel, models, indicator);
     }
   }
 
