@@ -30,10 +30,15 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.EmptyModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -293,13 +298,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
   }
 
-  private void refreshProjectFiles() {
-    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
-    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
-    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
-    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(getProject().getBaseDir()));
-  }
-
   protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
     assertTrue(root.getPath(), root.exists());
@@ -543,6 +541,36 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     syncListener.await();
     return syncListener;
+  }
+
+  private void refreshProjectFiles() {
+    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
+    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
+    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
+    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(getProject().getBaseDir()));
+  }
+
+  @NotNull
+  protected Module createModule(@NotNull String name) {
+    return createModule(name, EmptyModuleType.getInstance());
+  }
+
+  @NotNull
+  protected Module createModule(@NotNull String name, @NotNull ModuleType type) {
+    VirtualFile projectRootFolder = getProject().getBaseDir();
+    assertNotNull(projectRootFolder);
+    final File moduleFile = new File(virtualToIoFile(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    createIfDoesntExist(moduleFile);
+    return new WriteAction<Module>() {
+      @Override
+      protected void run(@NotNull Result<Module> result) throws Throwable {
+        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+        assertNotNull(virtualFile);
+        Module module = ModuleManager.getInstance(getProject()).newModule(virtualFile.getPath(), type.getId());
+        module.getModuleFile();
+        result.setResult(module);
+      }
+    }.execute().getResultObject();
   }
 
   private static class SyncListener extends GradleSyncListener.Adapter {
