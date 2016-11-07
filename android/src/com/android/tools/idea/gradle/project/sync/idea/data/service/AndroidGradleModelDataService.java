@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.project.PostSyncProjectSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,21 +45,21 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel, Void> {
-  @NotNull private final AndroidModuleSetupStep[] myModuleSetupSteps;
+  @NotNull private final AndroidModuleSetup myModuleSetup;
   @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
   @NotNull private final PostSyncProjectSetupStep[] myProjectSetupSteps;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidGradleModelDataService() {
-    this(AndroidModuleSetupStep.getExtensions(), new AndroidModuleValidator.Factory(), PostSyncProjectSetupStep.getExtensions());
+    this(new AndroidModuleSetup(), new AndroidModuleValidator.Factory(), PostSyncProjectSetupStep.getExtensions());
   }
 
   @VisibleForTesting
-  AndroidGradleModelDataService(@NotNull AndroidModuleSetupStep[] moduleSetupSteps,
+  AndroidGradleModelDataService(@NotNull AndroidModuleSetup moduleSetup,
                                 @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
                                 @NotNull PostSyncProjectSetupStep[] projectSetupSteps) {
-    myModuleSetupSteps = moduleSetupSteps;
+    myModuleSetup = moduleSetup;
     myModuleValidatorFactory = moduleValidatorFactory;
     myProjectSetupSteps = projectSetupSteps;
   }
@@ -134,9 +134,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
                            @NotNull AndroidModuleValidator moduleValidator,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
                            @Nullable AndroidGradleModel androidModel) {
-    for (AndroidModuleSetupStep setupStep : myModuleSetupSteps) {
-      setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
-    }
+    myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null);
     if (androidModel != null) {
       moduleValidator.validate(module, androidModel);
     }
