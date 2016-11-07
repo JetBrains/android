@@ -126,6 +126,6 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
    */
   @NotNull
   public File getRootDir() {
-    return myFileStructure.getRootDir();
+    return myFileStructure.getRootFolderPath();
   }
 }

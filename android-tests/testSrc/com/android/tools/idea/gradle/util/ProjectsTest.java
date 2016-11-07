@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -68,7 +68,7 @@ public class ProjectsTest extends IdeaTestCase {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
-      AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+      AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
       facetModel.addFacet(facet);
     } finally {
       ApplicationManager.getApplication().runWriteAction(facetModel::commit);

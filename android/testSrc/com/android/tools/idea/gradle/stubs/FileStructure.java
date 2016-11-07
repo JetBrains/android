@@ -26,34 +26,34 @@ import java.io.File;
  * Structure, in the file system, of an Android-Gradle project.
  */
 public class FileStructure {
-  @NotNull private final File myRootDir;
+  @NotNull private final File myRootFolderPath;
 
   /**
    * Creates a new {@link FileStructure}. The directory structure is created in a temporary folder.
    *
-   * @param rootDirName name of the root directory.
+   * @param rootFolderName name of the root directory.
    */
-  public FileStructure(@NotNull String rootDirName) {
-    this(Files.createTempDir(), rootDirName);
+  public FileStructure(@NotNull String rootFolderName) {
+    this(Files.createTempDir(), rootFolderName);
   }
 
   /**
    * Creates a new {@link FileStructure}.
    *
-   * @param parentDir   parent directory.
-   * @param rootDirName name of the root directory.
+   * @param parentFolderPath parent directory.
+   * @param rootDirName      name of the root directory.
    */
-  public FileStructure(@NotNull File parentDir, @NotNull String rootDirName) {
-    this(createDirectory(parentDir, rootDirName));
+  public FileStructure(@NotNull File parentFolderPath, @NotNull String rootDirName) {
+    this(createDirectory(parentFolderPath, rootDirName));
   }
 
   /**
    * Creates a new {@link FileStructure}.
    *
-   * @param rootDir the root directory.
+   * @param rootFolderPath the root directory.
    */
-  public FileStructure(@NotNull File rootDir) {
-    myRootDir = rootDir;
+  public FileStructure(@NotNull File rootFolderPath) {
+    myRootFolderPath = rootFolderPath;
     setUpStructure();
   }
 
@@ -77,12 +77,12 @@ public class FileStructure {
   /**
    * Creates a directory using the given path.
    *
-   * @param path the path of the directory to create. It is relative to {@link #getRootDir()}.
+   * @param path the path of the directory to create. It is relative to {@link #getRootFolderPath()}.
    * @return the created directory.
    */
   @NotNull
   public File createProjectDir(@NotNull String path) {
-    File dir = createDirectory(myRootDir, path);
+    File dir = createDirectory(myRootFolderPath, path);
     String msg = String.format("Directory '%s' should exist", path);
     Assert.assertTrue(msg, dir.isDirectory());
     return dir;
@@ -98,12 +98,12 @@ public class FileStructure {
   /**
    * Creates a file using the given path.
    *
-   * @param path the path of the file to create. It is relative to {@link #getRootDir()}.
+   * @param path the path of the file to create. It is relative to {@link #getRootFolderPath()}.
    * @return the created file.
    */
   @NotNull
   public File createProjectFile(@NotNull String path) {
-    File file = new File(myRootDir, path);
+    File file = new File(myRootFolderPath, path);
     FileUtil.createIfDoesntExist(file);
     return file;
   }
@@ -112,14 +112,14 @@ public class FileStructure {
    * @return the root directory.
    */
   @NotNull
-  public File getRootDir() {
-    return myRootDir;
+  public File getRootFolderPath() {
+    return myRootFolderPath;
   }
 
   /**
    * Deletes all the directories in this file structure.
    */
   public void dispose() {
-    FileUtil.delete(myRootDir);
+    FileUtil.delete(myRootFolderPath);
   }
 }

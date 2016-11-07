@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
@@ -159,10 +159,10 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     assertSame(myAndroidProject, androidModelNode.getData().getAndroidProject());
 
     // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
+    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
     assertThat(gradleModelNodes).hasSize(1);
     
-    DataNode<GradleModel> gradleModelNode = getFirstItem(gradleModelNodes);
+    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
     assertNotNull(gradleModelNode);
     assertEquals(myAndroidModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
   }
@@ -186,10 +186,10 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     assertSame(myNativeAndroidProject, nativeAndroidModelNode.getData().getNativeAndroidProject());
 
     // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
+    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
     assertThat(gradleModelNodes).hasSize(1);
     
-    DataNode<GradleModel> gradleModelNode = getFirstItem(gradleModelNodes);
+    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
     assertNotNull(gradleModelNode);
     assertEquals(myNativeAndroidModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
   }
@@ -206,10 +206,10 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     assertThat(androidModelNodes).isEmpty();
 
     // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
+    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODEL);
     assertThat(gradleModelNodes).hasSize(1);
 
-    DataNode<GradleModel> gradleModelNode = getFirstItem(gradleModelNodes);
+    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
     assertNotNull(gradleModelNode);
     assertEquals(myJavaModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
   }

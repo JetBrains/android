@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
@@ -185,9 +185,9 @@ public class GradleProjectSyncData implements Serializable {
     for (Module module : modules) {
       AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
       if (gradleFacet != null) {
-        GradleModel gradleModel = gradleFacet.getGradleModel();
-        if (gradleModel != null) {
-          data.addFileChecksum(rootDirPath, gradleModel.getBuildFile());
+        GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
+        if (gradleModuleModel != null) {
+          data.addFileChecksum(rootDirPath, gradleModuleModel.getBuildFile());
         }
         else {
           LOG.warn(String.format("Trying to create project data from a not initialized project '%1$s'. Abort.", project.getName()));

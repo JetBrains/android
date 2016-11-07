@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -79,7 +79,7 @@ public class ModulesToImportDialogTest {
     DataNode<ModuleData> module = new DataNode<>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
-      module.createChild(GRADLE_MODEL, new GradleModel("app", taskNames, ":" + name, null, null));
+      module.createChild(GRADLE_MODEL, new GradleModuleModel("app", taskNames, ":" + name, null, null));
     }
     return module;
   }

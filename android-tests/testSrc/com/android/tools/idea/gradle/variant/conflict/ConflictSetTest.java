@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -103,7 +103,7 @@ public class ConflictSetTest extends IdeaTestCase {
       androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
-      AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+      AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.getFacetName(), null);
       gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = myLibGradlePath;
       facetModel.addFacet(gradleFacet);
     }
