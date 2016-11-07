@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleSetup;
+import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -24,8 +27,11 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 abstract class ProjectSetup {
@@ -36,23 +42,36 @@ abstract class ProjectSetup {
   static class Factory {
     @NotNull
     ProjectSetup create(@NotNull Project project) {
-      return new ProjectSetupImpl(project);
+      return new ProjectSetupImpl(project, new IdeModifiableModelsProviderImpl(project));
     }
   }
 
-  private static class ProjectSetupImpl extends ProjectSetup {
+  @VisibleForTesting
+  static class ProjectSetupImpl extends ProjectSetup {
     private static Key<SyncAction.ModuleModels> MODULE_GRADLE_MODELS_KEY = Key.create("module.gradle.models");
 
     @NotNull private final Project myProject;
     @NotNull private final IdeModifiableModelsProvider myModelsProvider;
     @NotNull private final ModuleFactory myModuleFactory;
     @NotNull private final ModuleSetup myModuleSetup;
+    @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
 
-    ProjectSetupImpl(@NotNull Project project) {
+    ProjectSetupImpl(@NotNull Project project, @NotNull IdeModifiableModelsProvider modelsProvider) {
+      this(project, modelsProvider, new ModuleFactory(project, modelsProvider), new ModuleSetup(modelsProvider),
+           new AndroidModuleValidator.Factory());
+    }
+
+    @VisibleForTesting
+    ProjectSetupImpl(@NotNull Project project,
+                     @NotNull IdeModifiableModelsProvider modelsProvider,
+                     @NotNull ModuleFactory moduleFactory,
+                     @NotNull ModuleSetup moduleSetup,
+                     @NotNull AndroidModuleValidator.Factory moduleValidatorFactory) {
       myProject = project;
-      myModelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-      myModuleFactory = new ModuleFactory(myProject, myModelsProvider);
-      myModuleSetup = new ModuleSetup(myModelsProvider);
+      myModelsProvider = modelsProvider;
+      myModuleFactory = moduleFactory;
+      myModuleSetup = moduleSetup;
+      myModuleValidatorFactory = moduleValidatorFactory;
     }
 
     @Override
@@ -72,7 +91,8 @@ abstract class ProjectSetup {
       }
     }
 
-    void setUpModules(@NotNull ProgressIndicator indicator) {
+    private void setUpModules(@NotNull ProgressIndicator indicator) {
+      AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
       for (Module module : myModelsProvider.getModules()) {
         SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
         if (moduleModels == null) {
@@ -81,8 +101,19 @@ abstract class ProjectSetup {
           continue;
         }
         myModuleSetup.setUpModule(module, moduleModels, indicator);
+        AndroidGradleModel androidModel = findAndroidModel(module);
+        if (androidModel != null) {
+          moduleValidator.validate(module, androidModel);
+        }
         module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
       }
+      moduleValidator.fixAndReportFoundIssues();
+    }
+
+    @Nullable
+    private AndroidGradleModel findAndroidModel(@NotNull Module module) {
+      AndroidFacet facet = findFacet(module, myModelsProvider, AndroidFacet.ID);
+      return facet != null ? AndroidGradleModel.get(facet) : null;
     }
 
     @Override
