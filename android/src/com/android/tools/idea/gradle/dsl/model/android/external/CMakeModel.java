@@ -27,7 +27,7 @@ public class CMakeModel extends AbstractBuildModel {
 
   @Override
   @NotNull
-  public CMakeModel setPath(File path) {
+  public CMakeModel setPath(@NotNull File path) {
     return (CMakeModel)super.setPath(path);
   }
 
