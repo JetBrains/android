@@ -101,13 +101,13 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.SDK_SETUP_ISSUES;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.gradle.util.FilePaths.pathToUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
