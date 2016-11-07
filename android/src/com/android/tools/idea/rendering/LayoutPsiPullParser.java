@@ -36,14 +36,12 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * {@link ILayoutPullParser} implementation on top of the PSI {@link XmlTag}.
@@ -104,6 +102,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
   private boolean myUseSrcCompat;
 
+  private final Map<String, TagSnapshot> myDeclaredAaptAttrs;
+
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
@@ -151,6 +151,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     return new AttributeFilteredLayoutParser(root, logger, filter);
   }
 
+  @NotNull
+  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull LayoutLog log) {
+    return new LayoutPsiPullParser(root, log);
+  }
+
   /** Use one of the {@link #create} factory methods instead */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull LayoutLog logger) {
     this(AndroidPsiUtils.getRootTagSafely(file), logger);
@@ -182,6 +187,63 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     } else {
       myRoot = EMPTY_LAYOUT;
     }
+
+    // Obtain a list of all the aapt declared attributes
+    myDeclaredAaptAttrs = myRoot != null ? findDeclaredAaptAttrs(myRoot) : Collections.emptyMap();
+  }
+
+  protected LayoutPsiPullParser(@Nullable TagSnapshot root, @NotNull LayoutLog log) {
+    myLogger = log;
+    myDeclaredAaptAttrs = Collections.emptyMap();
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      if (root.tag != null && root.tag.isValid()) {
+        myAndroidPrefix = root.tag.getPrefixByNamespace(ANDROID_URI);
+        myToolsPrefix = root.tag.getPrefixByNamespace(TOOLS_URI);
+        myRoot = root;
+      } else {
+        myRoot = null;
+      }
+    } else {
+      myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+        if (root.tag != null && root.tag.isValid()) {
+          myAndroidPrefix = root.tag.getPrefixByNamespace(ANDROID_URI);
+          myToolsPrefix = root.tag.getPrefixByNamespace(TOOLS_URI);
+          return root;
+        } else {
+          return null;
+        }
+      });
+    }
+  }
+
+  /**
+   * Returns a {@link Map} that contains all the aapt:attr elements declared in this or any children parsers. This list can be used
+   * to resolve @aapt/_aapt references into this parser.
+   */
+  @NotNull
+  public Map<String, TagSnapshot> getAaptDeclaredAttrs() {
+    return myDeclaredAaptAttrs;
+  }
+
+  /**
+   * Method that walks the snapshot and finds all the aapt:attr elements declared.
+   */
+  @NotNull
+  private static Map<String, TagSnapshot> findDeclaredAaptAttrs(@NotNull TagSnapshot tag) {
+    if (!tag.hasDeclaredAaptAttrs) {
+      // Nor tag or any of the children has any aapt:attr declarations, we can stop here.
+      return Collections.emptyMap();
+    }
+
+    Map<String, TagSnapshot> values = tag.attributes.stream()
+      .filter(attr -> attr instanceof AaptAttrAttributeSnapshot)
+      .map(attr -> (AaptAttrAttributeSnapshot)attr)
+      .collect(toMap(AaptAttrAttributeSnapshot::getId, AaptAttrAttributeSnapshot::getBundledTag));
+    for (TagSnapshot child : tag.children) {
+      values.putAll(findDeclaredAaptAttrs(child));
+    }
+
+    return values;
   }
 
   @Nullable

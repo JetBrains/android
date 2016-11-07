@@ -37,6 +37,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -93,13 +94,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
-  @Nullable private ResourceResolver myResourceResolver;
+  @Nullable private RenderResources myResourceResolver;
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
   private ParserFactory myParserFactory;
+  @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -146,6 +148,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myParserFiles = null;
     myLayoutName = null;
     myLayoutEmbeddedParser = null;
+    myAaptDeclaredResources = ImmutableMap.of();
   }
 
   /**
@@ -284,6 +287,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myLayoutEmbeddedParser = layoutParser;
   }
 
+  public void setAaptDeclaredResources(@NotNull Map<String, TagSnapshot> resources) {
+    myAaptDeclaredResources = ImmutableMap.copyOf(resources);
+  }
+
   @Nullable
   public ILayoutPullParser getLayoutEmbeddedParser() {
     return myLayoutEmbeddedParser;
@@ -308,7 +315,26 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-    return getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
+    String value = layoutResource.getValue();
+    ILayoutPullParser parser;
+    if (value != null && !myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
+      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(layoutResource.getValue(), AAPT_ATTR_PREFIX));
+      assert myLogger != null;
+      parser = LayoutPsiPullParser.create(aaptResource, myLogger);
+    }
+    else {
+      parser = getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
+    }
+
+    if (parser instanceof LayoutPsiPullParser) {
+      // For parser of elements included in this parser, publish any aapt declared values
+      myAaptDeclaredResources = ImmutableMap.<String, TagSnapshot>builder()
+        .putAll(((LayoutPsiPullParser)parser).getAaptDeclaredAttrs())
+        .putAll(myAaptDeclaredResources)
+        .build();
+    }
+
+    return parser;
   }
 
   @Nullable
@@ -351,7 +377,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       // layoutlib built-in directories
       if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB)) {
         String parentName = parent.getName();
-        if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_MENU)) {
+        if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
           if (file != null) {
             PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
@@ -670,7 +696,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @param resolver the resolver to use
    */
-  public void setResourceResolver(@Nullable ResourceResolver resolver) {
+  public void setResourceResolver(@Nullable RenderResources resolver) {
     myResourceResolver = resolver;
   }
 
