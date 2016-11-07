@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -23,6 +24,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +32,16 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link NewGradleSync}.
  */
 public class NewGradleSyncTest extends AndroidGradleTestCase {
+  @Mock private CommandLineArgs myCommandLineArgs;
+  @Mock private ProjectSetup.Factory myProjectSetupFactory;
+
   private ProjectSetupStub myProjectSetup;
 
   private NewGradleSync myGradleSync;
@@ -44,12 +49,13 @@ public class NewGradleSyncTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+
     myProjectSetup = new ProjectSetupStub();
 
-    ProjectSetup.Factory projectSetupFactory = mock(ProjectSetup.Factory.class);
-    when(projectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
+    when(myProjectSetupFactory.create(getProject())).thenReturn(myProjectSetup);
 
-    myGradleSync = new NewGradleSync(projectSetupFactory);
+    myGradleSync = new NewGradleSync(myCommandLineArgs, myProjectSetupFactory);
   }
 
   public void testDummy() {
