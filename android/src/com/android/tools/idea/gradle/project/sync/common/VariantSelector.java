@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module;
+package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -27,9 +27,9 @@ import java.util.List;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 
-class VariantSelector {
+public class VariantSelector {
   @Nullable
-  Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
+  public Variant findVariantToSelect(@NotNull AndroidProject androidProject) {
     Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
       Variant variant = getFirstItem(variants);
