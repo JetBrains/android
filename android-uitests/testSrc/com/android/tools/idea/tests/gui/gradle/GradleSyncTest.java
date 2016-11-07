@@ -88,6 +88,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -429,11 +430,10 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    String failure = "Connection to the Internet denied.";
-    ideFrame.requestProjectSyncAndSimulateError(failure);
+    ideFrame.requestProjectSyncAndSimulateError(new SocketException("Permission denied: connect"));
 
     MessagesToolWindowFixture messages = ideFrame.getMessagesToolWindow();
-    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(failure));
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Connection to the Internet denied."));
 
     HyperlinkFixture hyperlink = message.findHyperlink("More details (and potential fix)");
     hyperlink.requireUrl("http://tools.android.com/tech-docs/project-sync-issues-android-studio");
