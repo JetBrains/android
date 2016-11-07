@@ -445,6 +445,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture requestProjectSyncAndSimulateError(@NotNull Throwable error) {
+    registerSyncErrorToSimulate(error);
+    // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
+    // is started.
+    return requestProjectSync();
+  }
+
+  @NotNull
   public IdeFrameFixture requestProjectSync() {
     myGradleProjectEventListener.reset();
 
