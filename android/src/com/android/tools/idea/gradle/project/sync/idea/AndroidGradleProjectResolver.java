@@ -23,7 +23,8 @@ import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
-import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -31,8 +32,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -43,14 +42,12 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
@@ -65,32 +62,22 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Collections.sort;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
@@ -101,17 +88,26 @@ import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
 
+  @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
+  @NotNull private final ProjectFinder myProjectFinder;
+  @NotNull private final VariantSelector myVariantSelector;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new ProjectImportErrorHandler());
+    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(), new VariantSelector());
   }
 
   @VisibleForTesting
-  AndroidGradleProjectResolver(@NotNull ProjectImportErrorHandler errorHandler) {
+  AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
+                               @NotNull ProjectImportErrorHandler errorHandler,
+                               @NotNull ProjectFinder projectFinder,
+                               @NotNull VariantSelector variantSelector) {
+    myCommandLineArgs = commandLineArgs;
     myErrorHandler = errorHandler;
+    myProjectFinder = projectFinder;
+    myVariantSelector = variantSelector;
   }
 
   @Override
@@ -191,7 +187,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String moduleName = gradleModule.getName();
 
     if (androidProject != null) {
-      Variant selectedVariant = getVariantToSelect(androidProject);
+      Variant selectedVariant = myVariantSelector.findVariantToSelect(androidProject);
       if (selectedVariant == null) {
         // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
         // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,
@@ -209,8 +205,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      ideModule.createChild(NATIVE_ANDROID_MODEL, new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, moduleName, moduleRootDirPath,
-                                                                               nativeAndroidProject));
+      NativeAndroidGradleModel model = new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, moduleName, moduleRootDirPath, nativeAndroidProject);
+      ideModule.createChild(NATIVE_ANDROID_MODEL, model);
     }
 
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
@@ -306,65 +302,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return Collections.emptyList();
   }
 
-  @Override
-  @NotNull
-  public List<String> getExtraCommandLineArgs() {
-    List<String> args = new ArrayList<>();
-
-    Project project = findProject();
-    if (project != null) {
-      String[] commandLineOptions = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
-      if (commandLineOptions != null) {
-        project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
-        Collections.addAll(args, commandLineOptions);
-      }
-    }
-
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
-    args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
-
-    String ideVersion = ApplicationInfo.getInstance().getStrictVersion();
-    // TODO replace with AndroidProject#PROPERTY_STUDIO_VERSION once builder-model gets updated.
-    args.add(createProjectProperty("android.injected.studio.version", ideVersion));
-
-    if (project != null) {
-      Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
-      if (refreshExternalNativeModels != null) {
-        project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
-        args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
-      }
-    }
-
-    if (isGuiTestingMode()) {
-      // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
-    }
-
-    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
-
-    return args;
-  }
-
-  @Nullable
-  private Project findProject() {
-    String projectDir = resolverCtx.getProjectPath();
-    if (isNotEmpty(projectDir)) {
-      File projectDirPath = new File(toSystemDependentName(projectDir));
-      Project[] projects = ProjectManager.getInstance().getOpenProjects();
-      for (Project project : projects) {
-        String basePath = project.getBasePath();
-        if (basePath != null) {
-          File currentPath = new File(basePath);
-          if (filesEqual(projectDirPath, currentPath)) {
-            return project;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
   @NotNull
   private LocalProperties getLocalProperties() {
     File projectDir = new File(toSystemDependentName(resolverCtx.getProjectPath()));
@@ -375,6 +312,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = String.format("Unable to read local.properties file in project '%1$s'", projectDir.getPath());
       throw new ExternalSystemException(msg, e);
     }
+  }
+
+  @Override
+  @NotNull
+  public List<String> getExtraCommandLineArgs() {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    return myCommandLineArgs.get(project);
   }
 
   @NotNull
@@ -389,13 +333,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
-        if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
-            "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
-
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                           .setCategory(GRADLE_SYNC)
-                                           .setKind(GRADLE_SYNC_FAILURE)
-                                           .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION));
+        if (isUsingUnsupportedGradleVersion(msg)) {
+          AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+          // @formatter:off
+          event.setCategory(GRADLE_SYNC)
+               .setKind(GRADLE_SYNC_FAILURE)
+               .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION);
+          // @formatter:on;
+          UsageTracker.getInstance().log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
@@ -406,45 +351,30 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return userFriendlyError;
   }
 
+  private static boolean isUsingUnsupportedGradleVersion(@Nullable String errorMessage) {
+    return "org.gradle.api.artifacts.result.ResolvedComponentResult".equals(errorMessage) ||
+           "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(errorMessage);
+  }
+
   @NotNull
   private static String getUnsupportedModelVersionErrorMsg(@Nullable GradleVersion modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
     if (modelVersion != null) {
-      builder.append(String.format(" (%1$s).", modelVersion.toString()))
-        .append(" ")
-        .append(recommendedVersion);
+      builder.append(String.format(" (%1$s).", modelVersion.toString())).append(" ").append(recommendedVersion);
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
+        // @formatter:off
         builder.append("\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
-          .append(READ_MIGRATION_GUIDE_MSG)
-          .append(" to learn how to update your project.");
+               .append(READ_MIGRATION_GUIDE_MSG)
+               .append(" to learn how to update your project.");
+        // @formatter:on
       }
     }
     else {
       builder.append(". ").append(recommendedVersion);
     }
     return builder.toString();
-  }
-
-  @Nullable
-  private static Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
-    Collection<Variant> variants = androidProject.getVariants();
-    if (variants.size() == 1) {
-      Variant variant = getFirstItem(variants);
-      assert variant != null;
-      return variant;
-    }
-    // look for "debug" variant. This is just a little convenience for the user that has not created any additional flavors/build types.
-    // trying to match something else may add more complexity for little gain.
-    for (Variant variant : variants) {
-      if ("debug".equals(variant.getName())) {
-        return variant;
-      }
-    }
-    List<Variant> sortedVariants = new ArrayList<>(variants);
-    sort(sortedVariants, (o1, o2) -> o1.getName().compareTo(o2.getName()));
-    return sortedVariants.isEmpty() ? null : sortedVariants.get(0);
   }
 
   @Override
