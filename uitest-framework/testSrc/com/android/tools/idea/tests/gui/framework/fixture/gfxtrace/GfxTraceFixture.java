@@ -29,6 +29,9 @@ import com.android.tools.rpclib.schema.Method;
 import com.android.tools.rpclib.schema.Primitive;
 import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Verify;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.SystemInfo;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.driver.JTreeDriver;
@@ -39,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -67,6 +72,14 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
   public GfxTraceFixture selectContext(String text) {
     new JComboBoxFixture(robot(), "ContextCombo").selectItem(text);
     return this;
+  }
+
+  public ImmutableList<String> getContexts() {
+    return ImmutableList.copyOf(new JComboBoxFixture(robot(), "ContextCombo").contents());
+  }
+
+  public String getContextDropDownSelection() {
+    return new JComboBoxFixture(robot(), "ContextCombo").selectedItem();
   }
 
   public EditAtomDialogFixture openEditDialog(@NotNull Method type) {
@@ -159,6 +172,22 @@ public class GfxTraceFixture extends ComponentFixture<GfxTraceFixture, LoadableP
       }
     }
     return -1;
+  }
+
+  public long getSelectedAtom() {
+    AtomController.Node obj = (AtomController.Node)getAtomTree().target().getLastSelectedPathComponent();
+    long index = myEditor.getAtomStream().getSelectedAtomsPath().getFirst();
+    Verify.verify(index == obj.index);
+    Verify.verify(index == myEditor.getAtomStream().getSelectedAtomsPath().getLast());
+    return index;
+  }
+
+  public GfxTraceFixture goToAtom(long id) {
+    getAtomTree().pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_G).modifiers(SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK));
+    JOptionPaneFixture gotoDialog = new JOptionPaneFixture(robot());
+    gotoDialog.spinner().enterTextAndCommit(String.valueOf(id));
+    gotoDialog.okButton().click();
+    return this;
   }
 
   @NotNull

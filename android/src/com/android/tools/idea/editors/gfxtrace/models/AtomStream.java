@@ -223,7 +223,7 @@ public class AtomStream implements PathListener {
               break;
             }
           }
-          myEditor.activatePath(path.getCapture().contexts().context(found == null ? Context.ALL.getID() : found.getID()), source);
+          selectContext(found == null ? Context.ALL : found);
         }
       }
 

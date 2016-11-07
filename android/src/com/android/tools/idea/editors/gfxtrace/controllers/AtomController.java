@@ -224,7 +224,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
     @Override
     public String toString() {
-      return "Node{atom=" + atom + ", index=" + index + '}';
+      return "Node{index=" + index + ", atom=" + atom + '}';
     }
   }
 
