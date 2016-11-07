@@ -35,22 +35,17 @@ import java.io.File;
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-class GradleModuleSetup {
-  @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
-  @NotNull private final GradleSyncState myGradleSyncState;
-
-  GradleModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider, @NotNull GradleSyncState gradleSyncState) {
-    myIdeModelsProvider = ideModelsProvider;
-    myGradleSyncState = gradleSyncState;
-  }
-
-  void setUpModule(@NotNull Module module, @NotNull SyncAction.ModuleModels models) {
+public class GradleModuleSetup {
+  public void setUpModule(@NotNull Module module,
+                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                          @NotNull SyncAction.ModuleModels models) {
     GradleModuleModel gradleModuleModel = createGradleModel(module, models);
-    applyModel(module, gradleModuleModel);
+    setUpModule(module, ideModelsProvider, gradleModuleModel);
   }
 
   @NotNull
-  private static GradleModuleModel createGradleModel(@NotNull Module module, @NotNull SyncAction.ModuleModels models) {
+  private static GradleModuleModel createGradleModel(@NotNull Module module,
+                                                     @NotNull SyncAction.ModuleModels models) {
     GradleProject gradleProject = models.getModule().getGradleProject();
     GradleScript buildScript = null;
     try {
@@ -68,10 +63,10 @@ class GradleModuleSetup {
     return new GradleModuleModel(module.getName(), gradleProject, buildFilePath, gradleVersion);
   }
 
-  private void applyModel(@NotNull Module module, @NotNull GradleModuleModel model) {
-    AndroidGradleFacet facet = findFacet(module, myIdeModelsProvider, AndroidGradleFacet.getFacetTypeId());
+  public void setUpModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider, @NotNull GradleModuleModel model) {
+    AndroidGradleFacet facet = findFacet(module, ideModelsProvider, AndroidGradleFacet.getFacetTypeId());
     if (facet == null) {
-      ModifiableFacetModel facetModel = myIdeModelsProvider.getModifiableFacetModel(module);
+      ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
       AndroidGradleFacetType facetType = AndroidGradleFacet.getFacetType();
       facet = facetType.createFacet(module, AndroidGradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
       facetModel.addFacet(facet);
@@ -79,7 +74,7 @@ class GradleModuleSetup {
     facet.setGradleModuleModel(model);
 
     String gradleVersion = model.getGradleVersion();
-    GradleSyncSummary syncReport = myGradleSyncState.getSummary();
+    GradleSyncSummary syncReport = GradleSyncState.getInstance(module.getProject()).getSummary();
     if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
       syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
     }
