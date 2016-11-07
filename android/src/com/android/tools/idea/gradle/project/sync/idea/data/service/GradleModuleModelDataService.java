@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacetType;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.google.common.collect.Maps;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,14 +38,24 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODEL;
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
- * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
+ * Applies Gradle settings to the modules of an Android project.
  */
-public class GradleModelDataService extends AbstractProjectDataService<GradleModuleModel, Void> {
+public class GradleModuleModelDataService extends AbstractProjectDataService<GradleModuleModel, Void> {
+  @NotNull private final GradleModuleSetup myModuleSetup;
+
+  @SuppressWarnings("unused") // Instantiated by IDEA
+  public GradleModuleModelDataService() {
+    this(new GradleModuleSetup());
+  }
+
+  @VisibleForTesting
+  GradleModuleModelDataService(@NotNull GradleModuleSetup moduleSetup) {
+    myModuleSetup = moduleSetup;
+  }
+
   @Override
   @NotNull
   public Key<GradleModuleModel> getTargetDataKey() {
@@ -72,12 +80,12 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
 
   @NotNull
   private static Logger getLog() {
-    return Logger.getInstance(GradleModelDataService.class);
+    return Logger.getInstance(GradleModuleModelDataService.class);
   }
 
-  private static void doImport(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
-                               @NotNull Project project,
-                               @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(@NotNull Collection<DataNode<GradleModuleModel>> toImport,
+                        @NotNull Project project,
+                        @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -92,12 +100,7 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
               removeAllFacetsOfType(AndroidGradleFacet.getFacetTypeId(), modelsProvider.getModifiableFacetModel(module));
             }
             else {
-              String gradleVersion = gradleModuleModel.getGradleVersion();
-              GradleSyncSummary syncReport = GradleSyncState.getInstance(project).getSummary();
-              if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
-                syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
-              }
-              customizeModule(module, gradleModuleModel, modelsProvider);
+              myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
             }
           }
         }
@@ -117,34 +120,5 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
       gradleProjectsByModuleName.put(gradleModuleModel.getModuleName(), gradleModuleModel);
     }
     return gradleProjectsByModuleName;
-  }
-
-  private static void customizeModule(@NotNull Module module,
-                                      @NotNull GradleModuleModel gradleModuleModel,
-                                      @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module, modelsProvider);
-    androidGradleFacet.setGradleModuleModel(gradleModuleModel);
-  }
-
-  /**
-   * Retrieves the Android-Gradle facet from the given module. If the given module does not have it, this method will create a new one.
-   *
-   * @param module         the given module.
-   * @param modelsProvider platform modifiable models provider
-   * @return the Android-Gradle facet from the given module.
-   */
-  @NotNull
-  private static AndroidGradleFacet setAndGetAndroidGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidGradleFacet facet = findFacet(module, modelsProvider, AndroidGradleFacet.getFacetTypeId());
-    if (facet != null) {
-      return facet;
-    }
-
-    // Module does not have Android-Gradle facet. Create one and add it.
-    ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-    AndroidGradleFacetType facetType = AndroidGradleFacet.getFacetType();
-    facet = facetType.createFacet(module, AndroidGradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
-    model.addFacet(facet);
-    return facet;
   }
 }

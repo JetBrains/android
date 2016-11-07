@@ -26,14 +26,14 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
 /**
  * These keys determine the order in which the {@code ProjectDataService}s are invoked. The order is:
  * <ol>
- * <li>{@link GradleModelDataService}</li>
+ * <li>{@link GradleModuleModelDataService}</li>
  * <li>{@link NativeAndroidGradleModelDataService}</li>
  * <li>{@link AndroidGradleModelDataService}</li>
  * <li>{@link JavaProjectDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
  * <br/>
- * The reason for having {@link GradleModelDataService} before all other services is that we need to
+ * The reason for having {@link GradleModuleModelDataService} before all other services is that we need to
  * add the {@link AndroidGradleFacet} to each of the modules. This facet contains the "Gradle path" of
  * each project module. This path is necessary when setting up inter-module dependencies.
  * <br/>
