@@ -108,18 +108,6 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
 
-    // TODO: remove once maven dependency downloading is available in studio
-    StudioSdkUtil.reloadRemoteSdkWithModalProgress();
-    GradleCoordinate constraintCoordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
-    RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getLocalPackages().values());
-    if (constraintPackage == null) {
-      constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getRemotePackages().values());
-      if (constraintPackage != null) {
-        state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, constraintPackage.getPath());
-      }
-    }
-
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     }

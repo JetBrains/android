@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.impl.ArchiveHandler;
-import com.intellij.openapi.vfs.impl.ZipHandler;
+import com.intellij.openapi.vfs.impl.jar.JarHandler;
 import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.VfsImplUtil;
 import com.intellij.util.io.URLUtil;
@@ -76,7 +76,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @NotNull
   @Override
   protected ArchiveHandler getHandler(@NotNull VirtualFile entryFile) {
-    return VfsImplUtil.getHandler(this, entryFile, ZipHandler::new);
+    return VfsImplUtil.getHandler(this, entryFile, JarHandler::new);
   }
 
   /**
