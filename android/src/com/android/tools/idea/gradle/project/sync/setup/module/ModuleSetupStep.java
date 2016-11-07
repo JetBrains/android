@@ -44,6 +44,10 @@ public abstract class ModuleSetupStep<T> {
                                         @Nullable SyncAction.ModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
+  public void displayDescription(@NotNull Module module, @NotNull ProgressIndicator indicator) {
+    indicator.setText2(String.format("Module ''%1$s': %2$s", module.getName(), getDescription()));
+  }
+
   @NotNull
   public abstract String getDescription();
 
