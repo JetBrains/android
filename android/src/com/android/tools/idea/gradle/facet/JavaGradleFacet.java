@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.*;
@@ -55,7 +55,7 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   @NonNls public static final String ID = "java-gradle";
   @NonNls public static final String NAME = "Java-Gradle";
 
-  private JavaProject myJavaProject;
+  private JavaModuleModel myJavaModuleModel;
 
   @Nullable
   public static JavaGradleFacet getInstance(@NotNull Module module) {
@@ -118,12 +118,12 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
     }
   }
 
-  public void setJavaProject(@NotNull JavaProject javaProject) {
-    myJavaProject = javaProject;
+  public void setJavaModuleModel(@NotNull JavaModuleModel javaModuleModel) {
+    myJavaModuleModel = javaModuleModel;
   }
 
   @Nullable
-  public JavaProject getJavaProject() {
-    return myJavaProject;
+  public JavaModuleModel getJavaModuleModel() {
+    return myJavaModuleModel;
   }
 }

@@ -19,7 +19,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
@@ -202,10 +202,10 @@ public class ProjectSubset {
       }
     }
 
-    DataNode<JavaProject> javaProjectNode = find(moduleInfos, JAVA_PROJECT);
+    DataNode<JavaModuleModel> javaProjectNode = find(moduleInfos, JAVA_MODULE_MODEL);
     if (javaProjectNode != null) {
-      JavaProject javaProject = javaProjectNode.getData();
-      if (javaProject.containsSourceFile(file)) {
+      JavaModuleModel javaModuleModel = javaProjectNode.getData();
+      if (javaModuleModel.containsSourceFile(file)) {
         return new ModuleSearchResult(moduleInfos, null, selected);
       }
     }
@@ -340,7 +340,7 @@ public class ProjectSubset {
               selectedModules.add(moduleInfo);
               continue;
             }
-            DataNode<GradleModuleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODEL);
+            DataNode<GradleModuleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODULE_MODEL);
             if (gradleProjectNode != null) {
               GradleModuleModel gradleModuleModel = gradleProjectNode.getData();
               if (moduleGradlePaths.contains(gradleModuleModel.getGradlePath())) {

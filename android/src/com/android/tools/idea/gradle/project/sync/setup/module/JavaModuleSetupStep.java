@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class JavaModuleSetupStep {
+public abstract class JavaModuleSetupStep extends ModuleSetupStep<JavaModuleModel> {
   private static final ExtensionPointName<JavaModuleSetupStep>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.javaModuleSetupStep");
 
@@ -32,13 +27,4 @@ public abstract class JavaModuleSetupStep {
   public static JavaModuleSetupStep[] getExtensions() {
     return EXTENSION_POINT_NAME.getExtensions();
   }
-
-  public abstract void setUpModule(@NotNull Module module,
-                                   @NotNull JavaProject javaProject,
-                                   @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                                   @Nullable SyncAction.ModuleModels gradleModels,
-                                   @Nullable ProgressIndicator indicator);
-
-  @NotNull
-  public abstract String getDescription();
 }

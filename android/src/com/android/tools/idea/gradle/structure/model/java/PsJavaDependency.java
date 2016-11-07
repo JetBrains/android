@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public abstract class PsJavaDependency extends PsDependency {
   }
 
   @NotNull
-  public JavaProject getGradleModel() {
+  public JavaModuleModel getGradleModel() {
     return getParent().getGradleModel();
   }
 

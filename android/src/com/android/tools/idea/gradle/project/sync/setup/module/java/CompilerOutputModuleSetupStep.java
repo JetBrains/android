@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
@@ -38,16 +38,16 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
   private final CompilerSettingsSetup myCompilerSettingsSetup = new CompilerSettingsSetup();
 
   @Override
-  public void setUpModule(@NotNull Module module,
-                          @NotNull JavaProject javaProject,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable SyncAction.ModuleModels gradleModels,
-                          @Nullable ProgressIndicator indicator) {
+  protected void doSetUpModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
+                               @NotNull JavaModuleModel javaModuleModel,
+                               @Nullable SyncAction.ModuleModels gradleModels,
+                               @Nullable ProgressIndicator indicator) {
     File mainClassesFolder = null;
     File testClassesFolder = null;
-    ExtIdeaCompilerOutput compilerOutput = javaProject.getCompilerOutput();
+    ExtIdeaCompilerOutput compilerOutput = javaModuleModel.getCompilerOutput();
     if (compilerOutput == null) {
-      File buildFolderPath = javaProject.getBuildFolderPath();
+      File buildFolderPath = javaModuleModel.getBuildFolderPath();
       if (buildFolderPath != null) {
         mainClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "main"));
         testClassesFolder = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, "test"));

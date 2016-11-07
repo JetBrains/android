@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -156,7 +156,7 @@ public class IdeaGradleSync implements GradleSync {
   private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      DataNode<GradleModuleModel> gradleDataNode = find(cache, GRADLE_MODEL);
+      DataNode<GradleModuleModel> gradleDataNode = find(cache, GRADLE_MODULE_MODEL);
       if (gradleDataNode == null) {
         return true;
       }
@@ -171,7 +171,7 @@ public class IdeaGradleSync implements GradleSync {
       else {
         JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
         if (javaFacet != null) {
-          DataNode<JavaProject> javaProjectDataNode = find(cache, JAVA_PROJECT);
+          DataNode<JavaModuleModel> javaProjectDataNode = find(cache, JAVA_MODULE_MODEL);
           if (javaProjectDataNode == null) {
             return true;
           }

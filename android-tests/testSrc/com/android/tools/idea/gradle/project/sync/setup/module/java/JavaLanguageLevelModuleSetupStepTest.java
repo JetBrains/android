@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.java;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.sync.model.JavaModuleModel;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link JavaLanguageLevelModuleSetupStep}.
  */
 public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
-  @Mock private JavaProject myJavaProject;
+  @Mock private JavaModuleModel myJavaModuleModel;
 
   private JavaLanguageLevelModuleSetupStep mySetupStep;
 
@@ -63,10 +63,10 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
   public void testSetUpModuleWithLanguageLevelInJavaProject() {
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(JDK_1_7);
+    when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(JDK_1_7);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, myJavaProject, modelsProvider, null, null);
+    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -80,10 +80,10 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(null);
+    when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(null);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, myJavaProject, modelsProvider, null, null);
+    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -112,10 +112,10 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
   public void testSetUpModuleWithNoLanguageLevel() {
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(null);
+    when(myJavaModuleModel.getJavaLanguageLevel()).thenReturn(null);
 
     Module module = getModule();
-    mySetupStep.setUpModule(module, myJavaProject, modelsProvider, null, null);
+    mySetupStep.setUpModule(module, modelsProvider, myJavaModuleModel, null, null);
 
     // Commit changes to verify results.
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
