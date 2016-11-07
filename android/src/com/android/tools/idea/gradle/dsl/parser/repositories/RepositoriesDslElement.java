@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RepositoriesDslElement extends GradlePropertiesDslElement {
+public class RepositoriesDslElement extends GradleDslBlockElement {
   @NonNls public static final String REPOSITORIES_BLOCK_NAME = "repositories";
 
   public RepositoriesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, REPOSITORIES_BLOCK_NAME);
-  }
-
-  @Override
-  public boolean isBlockElement() {
-    return true;
+    super(parent, REPOSITORIES_BLOCK_NAME);
   }
 
   @Override

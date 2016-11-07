@@ -15,22 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FlatDirRepositoryDslElement extends GradlePropertiesDslElement {
+public class FlatDirRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String FLAT_DIR_BLOCK_NAME = "flatDir";
 
   public FlatDirRepositoryDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, FLAT_DIR_BLOCK_NAME);
-  }
-
-  @Override
-  public boolean isBlockElement() {
-    return true;
+    super(parent, FLAT_DIR_BLOCK_NAME);
   }
 
   @Override
