@@ -73,7 +73,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     if (psiElement == null) {
       return;
     }
-    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property);
+    // Only elements which are added as expression list are the ones which supports both single argument and multiple arguments
+    // (ex: flavorDimensions in android block). To support that, we create an expression list where appending to the arguments list is
+    // supported even when there is only one element in it. This does not work in many other places like proguardFile elements where
+    // only one argument is supported and for this cases we use addToParsedExpressionList method.
+    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property, true);
     literalList.addParsedExpression(dslLiteral);
     myProperties.put(property, literalList);
   }
