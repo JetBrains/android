@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -53,15 +54,18 @@ import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 public class NewGradleSync implements GradleSync {
+  @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectSetup.Factory myProjectSetupFactory;
+
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   NewGradleSync() {
-    this(new ProjectSetup.Factory());
+    this(new CommandLineArgs(), new ProjectSetup.Factory());
   }
 
   @VisibleForTesting
-  NewGradleSync(@NotNull ProjectSetup.Factory projectSetupFactory) {
+  NewGradleSync(@NotNull CommandLineArgs commandLineArgs, @NotNull ProjectSetup.Factory projectSetupFactory) {
+    myCommandLineArgs = commandLineArgs;
     myProjectSetupFactory = projectSetupFactory;
   }
 
@@ -127,7 +131,7 @@ public class NewGradleSync implements GradleSync {
       ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
         // TODO: implement
       };
-      List<String> commandLineArgs = new CommandLineArgs(project).get();
+      List<String> commandLineArgs = myCommandLineArgs.get(project);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because

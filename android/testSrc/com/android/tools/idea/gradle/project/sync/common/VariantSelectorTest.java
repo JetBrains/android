@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.module;
+package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -42,7 +42,7 @@ public class VariantSelectorTest {
   }
 
   @Test
-  public void getVariantToSelectWithDebugVariant() {
+  public void findVariantToSelectWithDebugVariant() {
     Variant debugVariant = mock(Variant.class);
     Variant releaseVariant = mock(Variant.class);
 
@@ -50,12 +50,12 @@ public class VariantSelectorTest {
     when(debugVariant.getName()).thenReturn("debug");
     when(releaseVariant.getName()).thenReturn("release");
 
-    Variant variant = myVariantSelector.getVariantToSelect(myAndroidProject);
+    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
     assertSame(debugVariant, variant);
   }
 
   @Test
-  public void getVariantToSelectWithoutDebugVariant() {
+  public void findVariantToSelectWithoutDebugVariant() {
     Variant aVariant = mock(Variant.class);
     Variant bVariant = mock(Variant.class);
 
@@ -63,14 +63,14 @@ public class VariantSelectorTest {
     when(aVariant.getName()).thenReturn("a");
     when(bVariant.getName()).thenReturn("b");
 
-    Variant variant = myVariantSelector.getVariantToSelect(myAndroidProject);
+    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
     assertSame(aVariant, variant);
   }
 
   @Test
   public void getVariantToSelectWithoutVariants() {
     when(myAndroidProject.getVariants()).thenReturn(Collections.emptyList());
-    Variant variant = myVariantSelector.getVariantToSelect(myAndroidProject);
+    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
     assertNull(variant);
   }
 }
