@@ -396,9 +396,6 @@ public class DataBindingUtil {
           @Override
           PsiMethod[] doCompute() {
             List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
-            if (variables.isEmpty()) {
-              return PsiMethod.EMPTY_ARRAY;
-            }
             List<PsiMethod> methods = Lists.newArrayListWithCapacity(variables.size() * 2 + STATIC_METHOD_COUNT);
             PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
             for (PsiDataBindingResourceItem variable : variables) {

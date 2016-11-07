@@ -150,7 +150,7 @@ public class NewProjectTest {
 
       // This warning is wrong: http://b.android.com/192605
       "    Android > Lint > Usability",
-      "        Missing support for Google App Indexing",
+      "        Missing support for Firebase App Indexing",
       "            app",
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
   }

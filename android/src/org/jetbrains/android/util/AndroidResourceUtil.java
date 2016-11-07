@@ -1433,6 +1433,11 @@ public class AndroidResourceUtil {
     assert rootTag != null;
     final XmlElementFactory elementFactory = XmlElementFactory.getInstance(file.getProject());
 
+    if (StringUtil.isEmpty(namespaceUri)) {
+      // The style attribute has an empty namespaceUri:
+      return "";
+    }
+
     String prefix = rootTag.getPrefixByNamespace(namespaceUri);
     if (prefix != null) {
       return prefix;
