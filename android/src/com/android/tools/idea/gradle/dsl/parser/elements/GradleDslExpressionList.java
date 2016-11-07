@@ -157,7 +157,9 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
 
     if (psiElement instanceof GrArgumentList) {
-      if (((GrArgumentList)psiElement).getAllArguments().length == 1 && !myAppendToArgumentListWithOneElement) {
+      if (!myToBeAddedExpressions.isEmpty() &&
+          ((GrArgumentList)psiElement).getAllArguments().length == 1 &&
+          !myAppendToArgumentListWithOneElement) {
         // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".
         // Set the psiElement to null and create a new psiElement of an empty application statement.
         setPsiElement(null);

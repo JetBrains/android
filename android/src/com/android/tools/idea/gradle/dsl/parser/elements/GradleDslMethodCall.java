@@ -178,7 +178,31 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
+    if (value instanceof File) {
+      setFileValue((File)value);
+    }
     // TODO: Add support to set the full method definition as a String.
+  }
+
+  private void setFileValue(@NotNull File file) {
+    if (!myName.equals("file")) {
+      return;
+    }
+
+    List<GradleDslElement> arguments = getArguments();
+    if (arguments.isEmpty()) {
+     GradleDslLiteral argument = new GradleDslLiteral(this, myName);
+      argument.setValue(file.getPath());
+      myToBeAddedArgument = argument;
+      return;
+    }
+
+    GradleDslElement pathArgument = arguments.get(0);
+    if (!(pathArgument instanceof GradleDslExpression)) {
+      return;
+    }
+
+    ((GradleDslExpression)pathArgument).setValue(file.getPath());
   }
 
   public void remove(GradleDslElement argument) {

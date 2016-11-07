@@ -58,6 +58,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
@@ -598,6 +599,9 @@ public final class GradleDslParser {
           }
           else if (DEX_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new DexOptionsDslElement(resultElement);
+          }
+          else if (LINT_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new LintOptionsDslElement(resultElement);
           }
           else {
             return null;
