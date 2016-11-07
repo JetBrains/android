@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.project.sync.model;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -37,9 +33,9 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
- * Contains Gradle related state necessary for building an IDEA module using Gradle.
+ * Module-level Gradle information.
  */
-public class GradleModel implements Serializable {
+public class GradleModuleModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -50,39 +46,24 @@ public class GradleModel implements Serializable {
   @Nullable private final File myBuildFilePath;
   @Nullable private final String myGradleVersion;
 
-  @NotNull
-  public static GradleModel create(@NotNull Module module, @NotNull SyncAction.ModuleModels models) {
-    GradleProject gradleProject = models.getModule().getGradleProject();
-    GradleScript buildScript = null;
-    try {
-      buildScript = gradleProject.getBuildScript();
-    }
-    catch (UnsupportedOperationException e) {
-      // Ignored. We got here because the project is using Gradle 1.8 or older.
-    }
-
-    File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-
-    BuildScriptClasspathModel classpathModel = models.findModel(BuildScriptClasspathModel.class);
-    String gradleVersion = classpathModel != null ? classpathModel.getGradleVersion() : null;
-
-    return create(module.getName(), gradleProject, buildFilePath, gradleVersion);
-  }
-
   /**
-   * Creates a new {@link GradleModel}.
+   * Creates a new {@link GradleModuleModel}.
    *
-   * @param moduleName    the name of the IDEA module.
-   * @param gradleProject the Gradle project.
+   * @param moduleName    the name of the IDE module.
+   * @param gradleProject the model obtained from Gradle.
    * @param buildFilePath the path of the build.gradle file.
    * @param gradleVersion the version of Gradle used to sync the project.
    */
+  public GradleModuleModel(@NotNull String moduleName,
+                           @NotNull GradleProject gradleProject,
+                           @Nullable File buildFilePath,
+                           @Nullable String gradleVersion) {
+    this(moduleName, getTaskNames(gradleProject), gradleProject.getPath(), buildFilePath, gradleVersion);
+  }
+
   @NotNull
-  public static GradleModel create(@NotNull String moduleName,
-                                   @NotNull GradleProject gradleProject,
-                                   @Nullable File buildFilePath,
-                                   @Nullable String gradleVersion) {
-    List<String> taskNames = Lists.newArrayList();
+  private static List<String> getTaskNames(@NotNull GradleProject gradleProject) {
+    List<String> taskNames = new ArrayList<>();
     DomainObjectSet<? extends GradleTask> tasks = gradleProject.getTasks();
     if (!tasks.isEmpty()) {
       for (GradleTask task : tasks) {
@@ -92,16 +73,15 @@ public class GradleModel implements Serializable {
         }
       }
     }
-
-    return new GradleModel(moduleName, taskNames, gradleProject.getPath(), buildFilePath, gradleVersion);
+    return taskNames;
   }
 
   @VisibleForTesting
-  public GradleModel(@NotNull String moduleName,
-                     @NotNull List<String> taskNames,
-                     @NotNull String gradlePath,
-                     @Nullable File buildFilePath,
-                     @Nullable String gradleVersion) {
+  public GradleModuleModel(@NotNull String moduleName,
+                           @NotNull List<String> taskNames,
+                           @NotNull String gradlePath,
+                           @Nullable File buildFilePath,
+                           @Nullable String gradleVersion) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
@@ -130,6 +110,11 @@ public class GradleModel implements Serializable {
   @Nullable
   public VirtualFile getBuildFile() {
     return myBuildFilePath != null ? findFileByIoFile(myBuildFilePath, true) : null;
+  }
+
+  @Nullable
+  public File getBuildFilePath() {
+    return myBuildFilePath;
   }
 
   @Nullable

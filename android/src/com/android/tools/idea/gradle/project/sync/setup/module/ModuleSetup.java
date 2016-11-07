@@ -18,21 +18,16 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.SyncAction;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,28 +36,30 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ModuleSetup {
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
   @NotNull private final VariantSelector myVariantSelector;
+  @NotNull private final GradleModuleSetup myGradleModuleSetup;
   @NotNull private final AndroidModuleSetupStep[] myAndroidModuleSetupSteps;
   @NotNull private final JavaModuleSetupStep[] myJavaModuleSetupSteps;
 
-  public ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    this(ideModelsProvider, new VariantSelector(), AndroidModuleSetupStep.getExtensions(), JavaModuleSetupStep.getExtensions());
+  public ModuleSetup(@NotNull Project project, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
+    this(ideModelsProvider, new VariantSelector(), new GradleModuleSetup(ideModelsProvider, GradleSyncState.getInstance(project)),
+         AndroidModuleSetupStep.getExtensions(), JavaModuleSetupStep.getExtensions());
   }
 
   @VisibleForTesting
   ModuleSetup(@NotNull IdeModifiableModelsProvider ideModelsProvider,
               @NotNull VariantSelector variantSelector,
+              @NotNull GradleModuleSetup gradleModuleSetup,
               @NotNull AndroidModuleSetupStep[] androidModuleSetupSteps,
               @NotNull JavaModuleSetupStep[] javaModuleSetupSteps) {
     myIdeModelsProvider = ideModelsProvider;
     myVariantSelector = variantSelector;
+    myGradleModuleSetup = gradleModuleSetup;
     myAndroidModuleSetupSteps = androidModuleSetupSteps;
     myJavaModuleSetupSteps = javaModuleSetupSteps;
   }
@@ -77,8 +74,7 @@ public class ModuleSetup {
       isProjectRootFolder = true;
     }
 
-    GradleModel gradleModel = GradleModel.create(module, models);
-    applyModel(module, gradleModel);
+    myGradleModuleSetup.setUpModule(module, models);
 
     AndroidProject androidProject = models.findModel(AndroidProject.class);
     if (androidProject == null) {
@@ -94,23 +90,6 @@ public class ModuleSetup {
       else {
         setUpAndroidModule(module, models, indicator, androidModel);
       }
-    }
-  }
-
-  private void applyModel(@NotNull Module module, @NotNull GradleModel model) {
-    AndroidGradleFacet facet = findFacet(module, myIdeModelsProvider, AndroidGradleFacet.TYPE_ID);
-    if (facet == null) {
-      ModifiableFacetModel facetModel = myIdeModelsProvider.getModifiableFacetModel(module);
-      AndroidGradleFacetType facetType = AndroidGradleFacet.getFacetType();
-      facet = facetType.createFacet(module, AndroidGradleFacet.NAME, facetType.createDefaultConfiguration(), null);
-      facetModel.addFacet(facet);
-    }
-    facet.setGradleModel(model);
-
-    String gradleVersion = model.getGradleVersion();
-    GradleSyncSummary syncReport = GradleSyncState.getInstance(module.getProject()).getSummary();
-    if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
-      syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
     }
   }
 

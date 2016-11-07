@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.facet.gradle.AndroidGradleFacet;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -46,9 +46,9 @@ public class AndroidGradleModuleUtils {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
       if (facet != null) {
-        GradleModel gradleModel = facet.getGradleModel();
-        assert gradleModel != null;
-        VirtualFile buildFile = gradleModel.getBuildFile();
+        GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
+        assert gradleModuleModel != null;
+        VirtualFile buildFile = gradleModuleModel.getBuildFile();
         if (buildFile != null) {
           VirtualFile root = buildFile.getParent();
           if (VfsUtilCore.isAncestor(root, vFile, true)) {

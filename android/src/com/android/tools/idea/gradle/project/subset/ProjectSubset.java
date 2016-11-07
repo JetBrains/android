@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.subset;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
-import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.project.sync.model.GradleModuleModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -340,10 +340,10 @@ public class ProjectSubset {
               selectedModules.add(moduleInfo);
               continue;
             }
-            DataNode<GradleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODEL);
+            DataNode<GradleModuleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODEL);
             if (gradleProjectNode != null) {
-              GradleModel gradleModel = gradleProjectNode.getData();
-              if (moduleGradlePaths.contains(gradleModel.getGradlePath())) {
+              GradleModuleModel gradleModuleModel = gradleProjectNode.getData();
+              if (moduleGradlePaths.contains(gradleModuleModel.getGradlePath())) {
                 selection.add(name);
                 selectedModules.add(moduleInfo);
                 found = true;

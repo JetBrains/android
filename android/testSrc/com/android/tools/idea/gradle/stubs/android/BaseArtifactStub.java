@@ -71,14 +71,14 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull
   public File getClassesFolder() {
     String path = "build/intermediates/classes/" + myDirName;
-    return new File(myFileStructure.getRootDir(), path);
+    return new File(myFileStructure.getRootFolderPath(), path);
   }
 
   @NonNull
   @Override
   public File getJavaResourcesFolder() {
     String path = "build/intermediates/javaResources/" + myDirName;
-    return new File(myFileStructure.getRootDir(), path);
+    return new File(myFileStructure.getRootFolderPath(), path);
   }
 
   @Override
