@@ -160,5 +160,6 @@
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="profilers" />
     <orderEntry type="module" module-name="profilers-ui" />
+    <orderEntry type="module" module-name="analytics-testing" scope="TEST" />
   </component>
 </module>

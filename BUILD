@@ -177,6 +177,7 @@ iml_module(
         "//tools/adt/idea/observable:observable[module]",
         "//tools/adt/idea/profilers:profilers[module]",
         "//tools/adt/idea/profilers-ui:profilers-ui[module]",
+        "//tools/analytics-library:analytics-testing[module, test]",
     ],
 )
 

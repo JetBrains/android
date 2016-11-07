@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.project.idea;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
@@ -73,7 +74,8 @@ public class ProjectStructureUsageTracker {
     });
   }
 
-  private void trackProjectStructure(@NotNull Module[] modules) {
+  @VisibleForTesting
+  void trackProjectStructure(@NotNull Module[] modules) {
     AndroidGradleModel appModel = null;
     AndroidGradleModel libModel = null;
 
@@ -123,7 +125,6 @@ public class ProjectStructureUsageTracker {
         AndroidGradleModel androidModel = AndroidGradleModel.get(module);
         if (androidModel != null) {
           gradleAndroidModules.add(GradleAndroidModule.newBuilder()
-                                  .setAppId(appId)
                                   .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
                                   .setSigningConfigCount(androidModel.getAndroidProject().getSigningConfigs().size())
                                   .setIsLibrary(androidModel.getProjectType() == PROJECT_TYPE_LIBRARY)
@@ -162,7 +163,6 @@ public class ProjectStructureUsageTracker {
         }
         if (shouldReportNative) {
           gradleNativeAndroidModules.add(GradleNativeAndroidModule.newBuilder()
-                                           .setAppId(appId)
                                            .setModuleName(moduleName)
                                            .setBuildSystemType(buildSystemType)
                                            .build());
@@ -172,6 +172,7 @@ public class ProjectStructureUsageTracker {
                                        .setCategory(EventCategory.GRADLE)
                                        .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
                                        .setGradleBuildDetails(GradleBuildDetails.newBuilder()
+                                                                .setAppId(appId)
                                                                 .setAndroidPluginVersion(androidProject.getModelVersion())
                                                                 .setGradleVersion(gradleVersion.toString())
                                                                 .setUserEnabledIr(InstantRunSettings.isInstantRunEnabled())
@@ -185,7 +186,7 @@ public class ProjectStructureUsageTracker {
     }
   }
 
-  private static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
+  @VisibleForTesting static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
     switch (buildSystem) {
       case "ndk-build":
         return NativeBuildSystemType.NDK_BUILD;
