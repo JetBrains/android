@@ -29,4 +29,20 @@ public class GradleNullableValue<T> extends GradleValue<T> {
   public GradleNullableValue(@NotNull GradleDslElement dslElement, @Nullable T value) {
     super(dslElement, value);
   }
+
+  @Override
+  @NotNull
+  public VirtualFile getFile() {
+    VirtualFile file = super.getFile();
+    assert file != null;
+    return file;
+  }
+
+  @Override
+  @NotNull
+  public String getPropertyName() {
+    String propertyName = super.getPropertyName();
+    assert propertyName != null;
+    return propertyName;
+  }
 }

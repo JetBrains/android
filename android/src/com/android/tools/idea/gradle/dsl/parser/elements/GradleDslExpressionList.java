@@ -41,12 +41,23 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @NotNull private final List<GradleDslExpression> myToBeAddedExpressions = Lists.newArrayList();
   @NotNull private final List<GradleDslExpression> myToBeRemovedExpressions = Lists.newArrayList();
 
+  private final boolean myAppendToArgumentListWithOneElement;
+
   public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
+    myAppendToArgumentListWithOneElement = false;
   }
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent, @NotNull GroovyPsiElement psiElement, @NotNull String name) {
+    this(parent, psiElement, name, false);
+  }
+
+  public GradleDslExpressionList(@NotNull GradleDslElement parent,
+                                 @NotNull GroovyPsiElement psiElement,
+                                 @NotNull String name,
+                                 boolean appendToArgumentListWithOneElement) {
     super(parent, psiElement, name);
+    myAppendToArgumentListWithOneElement = appendToArgumentListWithOneElement;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
@@ -129,16 +140,14 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Nullable
   public GroovyPsiElement create() {
     GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement != null) {
-      return psiElement;
+    if (psiElement == null) {
+      if (myParent instanceof GradleDslExpressionMap) {
+        // This is a list in the map element and we need to create a named argument for it.
+        return createNamedArgumentList();
+      }
+      psiElement = super.create();
     }
 
-    if (myParent instanceof GradleDslExpressionMap) {
-      // This is a list in the map element and we need to create a named argument for it.
-      return createNamedArgumentList();
-    }
-
-    psiElement = super.create();
     if (psiElement == null) {
       return null;
     }
@@ -148,7 +157,9 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
 
     if (psiElement instanceof GrArgumentList) {
-      if (((GrArgumentList)psiElement).getAllArguments().length == 1) {
+      if (!myToBeAddedExpressions.isEmpty() &&
+          ((GrArgumentList)psiElement).getAllArguments().length == 1 &&
+          !myAppendToArgumentListWithOneElement) {
         // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".
         // Set the psiElement to null and create a new psiElement of an empty application statement.
         setPsiElement(null);

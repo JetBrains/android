@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap {

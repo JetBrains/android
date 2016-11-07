@@ -35,8 +35,10 @@ import java.util.List;
  * Represents a {@link GrMethodCallExpression} element.
  */
 public final class GradleDslMethodCall extends GradleDslExpression {
-  private final @NotNull List<GradleDslElement> myArguments = Lists.newArrayList();
-  private final @NotNull List<GradleDslElement> myToBeRemovedArguments = Lists.newArrayList();
+  private final
+  @NotNull List<GradleDslElement> myArguments = Lists.newArrayList();
+  private final
+  @NotNull List<GradleDslElement> myToBeRemovedArguments = Lists.newArrayList();
 
   @Nullable private String myStatementName;
 
@@ -45,12 +47,13 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   /**
    * Create a new method call.
    *
-   * @param parent the parent element.
-   * @param methodName method name.
-   * @param statementName the statement name this method call need to be added to. Ex: to create "compile project(':xyz')",
-   *                      use "compile" as statement name and "project" as method name.
+   * @param parent        the parent element.
+   * @param methodName    method name.
+   * @param statementName the statement name this method call need to be added to,  Ex: to create "compile project(':xyz')",
+   *                      use "compile" as statement name and "project" as method name, or {@code null} if the method needs to be added
+   *                      without any application statement.
    */
-  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull String methodName, @NotNull String statementName) {
+  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull String methodName, @Nullable String statementName) {
     super(parent, null, methodName, null);
     myStatementName = statementName;
   }
@@ -73,8 +76,8 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   public void addNewArgument(@NotNull GradleDslExpression argument) {
     addNewArgumentInternal(argument);
-
   }
+
   public void addNewArgument(@NotNull GradleDslExpressionMap mapArgument) {
     addNewArgumentInternal(mapArgument);
   }
@@ -178,7 +181,31 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
+    if (value instanceof File) {
+      setFileValue((File)value);
+    }
     // TODO: Add support to set the full method definition as a String.
+  }
+
+  private void setFileValue(@NotNull File file) {
+    if (!myName.equals("file")) {
+      return;
+    }
+
+    List<GradleDslElement> arguments = getArguments();
+    if (arguments.isEmpty()) {
+      GradleDslLiteral argument = new GradleDslLiteral(this, myName);
+      argument.setValue(file.getPath());
+      myToBeAddedArgument = argument;
+      return;
+    }
+
+    GradleDslElement pathArgument = arguments.get(0);
+    if (!(pathArgument instanceof GradleDslExpression)) {
+      return;
+    }
+
+    ((GradleDslExpression)pathArgument).setValue(file.getPath());
   }
 
   public void remove(GradleDslElement argument) {
@@ -242,15 +269,21 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     }
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String statementText = myStatementName + " " + myName + " ()";
+    String statementText = (myStatementName != null ? myStatementName + " " : "") + myName + "()";
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+
     if (addedElement instanceof GrApplicationStatement) {
       GrExpression[] expressionArguments = ((GrApplicationStatement)addedElement).getArgumentList().getExpressionArguments();
       if (expressionArguments.length == 1 && expressionArguments[0] instanceof GrMethodCallExpression) {
         setPsiElement(expressionArguments[0]);
         return getPsiElement();
       }
+    }
+
+    if (addedElement instanceof GrMethodCallExpression) {
+      setPsiElement((GrMethodCallExpression)addedElement);
+      return getPsiElement();
     }
 
     return null;

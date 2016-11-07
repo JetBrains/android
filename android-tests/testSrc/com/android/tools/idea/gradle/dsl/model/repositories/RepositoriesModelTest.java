@@ -39,8 +39,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
     JCenterDefaultRepositoryModel repository = (JCenterDefaultRepositoryModel)repositoryModel;
-    assertEquals("name", "BintrayJCenter2", repository.name());
-    assertEquals("url", "https://jcenter.bintray.com/", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "BintrayJCenter2", repository.name().value());
+    assertNull("url", repository.url().getPsiElement());
+    assertEquals("url", "https://jcenter.bintray.com/", repository.url().value());
   }
 
   public void testParseJCenterCustomRepository() throws IOException {
@@ -57,8 +59,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof JCenterRepositoryModel);
     JCenterRepositoryModel repository = (JCenterRepositoryModel)repositoryModel;
-    assertEquals("name", "BintrayJCenter2", repository.name());
-    assertEquals("url", "http://jcenter.bintray.com/", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "BintrayJCenter2", repository.name().value());
+    assertNotNull("url", repository.url().getPsiElement());
+    assertEquals("url", "http://jcenter.bintray.com/", repository.url().value());
   }
 
   public void testParseMavenCentralRepository() throws IOException {
@@ -73,8 +77,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
-    assertEquals("name", "MavenRepo", repository.name());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "MavenRepo", repository.name().value());
+    assertNull("url", repository.url().getPsiElement());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
   }
 
   public void testParseMavenCentralRepositoryWithMultipleArtifactUrls() throws IOException {
@@ -90,8 +96,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
-    assertEquals("name", "nonDefaultName", repository.name());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url());
+    assertNotNull("name", repository.name().getPsiElement());
+    assertEquals("name", "nonDefaultName", repository.name().value());
+    assertNull("url", repository.url().getPsiElement());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
     assertEquals("artifactUrls",
                  ImmutableList.of("http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"),
                  repository.artifactUrls());
@@ -109,8 +117,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenCentralRepositoryModel);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
-    assertEquals("name", "MavenRepo", repository.name());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "MavenRepo", repository.name().value());
+    assertNull("url", repository.url().getPsiElement());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
     assertEquals("artifactUrls", ImmutableList.of("http://www.mycompany.com/artifacts"), repository.artifactUrls());
   }
 
@@ -129,8 +139,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenRepositoryModel);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
-    assertEquals("name", "myRepoName", repository.name());
-    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url());
+    assertNotNull("name", repository.name().getPsiElement());
+    assertEquals("name", "myRepoName", repository.name().value());
+    assertNotNull("url", repository.url().getPsiElement());
+    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().value());
   }
 
   public void testParseMavenRepositoryWithArtifactUrls() throws IOException {
@@ -151,8 +163,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenRepositoryModel);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
-    assertEquals("name", "maven", repository.name());
-    assertEquals("url", "http://repo2.mycompany.com/maven2", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "maven", repository.name().value());
+    assertNotNull("url", repository.url().getPsiElement());
+    assertEquals("url", "http://repo2.mycompany.com/maven2", repository.url().value());
     assertEquals("artifactUrls",
                  ImmutableList.of("http://repo.mycompany.com/jars", "http://repo.mycompany.com/jars2"),
                  repository.artifactUrls());
@@ -176,8 +190,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof MavenRepositoryModel);
     MavenRepositoryModel repository = (MavenRepositoryModel)repositoryModel;
-    assertEquals("name", "maven", repository.name());
-    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "maven", repository.name().value());
+    assertNotNull("url", repository.url().getPsiElement());
+    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().value());
     assertThat(repository.artifactUrls()).isEmpty();
 
     MavenCredentialsModel credentials = repository.credentials();
@@ -200,7 +216,8 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
-    assertEquals("name", "flatDir", repository.name());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "flatDir", repository.name().value());
     assertEquals("dirs", ImmutableList.of("lib1", "lib2"), repository.dirs());
   }
 
@@ -216,7 +233,8 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
-    assertEquals("name", "libs", repository.name());
+    assertNotNull("name", repository.name().getPsiElement());
+    assertEquals("name", "libs", repository.name().value());
     assertEquals("dirs", ImmutableList.of("libs"), repository.dirs());
   }
 
@@ -232,7 +250,8 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof FlatDirRepositoryModel);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
-    assertEquals("name", "flatDir", repository.name());
+    assertNull("name", repository.name().getPsiElement());
+    assertEquals("name", "flatDir", repository.name().value());
     assertEquals("dirs", ImmutableList.of("libs1", "libs2"), repository.dirs());
   }
 
@@ -249,8 +268,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel jcenter = repositories.get(0);
     assertTrue(jcenter instanceof JCenterDefaultRepositoryModel);
     JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
-    assertEquals("name", "BintrayJCenter2", jCenterRepository.name());
-    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url());
+    assertNull("name", jCenterRepository.name().getPsiElement());
+    assertEquals("name", "BintrayJCenter2", jCenterRepository.name().value());
+    assertNull("url", jCenterRepository.url().getPsiElement());
+    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().value());
 
     RepositoryModel mavenCentral = repositories.get(1);
     assertTrue(mavenCentral instanceof MavenCentralRepositoryModel);

@@ -36,18 +36,12 @@ import java.util.Map;
  * @param <T> the type of the returned value.
  */
 public abstract class GradleValue<T> {
-  @NotNull private final GradleDslElement myDslElement;
-
+  @Nullable private final GradleDslElement myDslElement;
   @Nullable private final T myValue;
 
-  protected GradleValue(@NotNull GradleDslElement dslElement, @Nullable T value) {
+  protected GradleValue(@Nullable GradleDslElement dslElement, @Nullable T value) {
     myDslElement = dslElement;
     myValue = value;
-  }
-
-  @NotNull
-  protected GradleDslElement getDslElement() {
-    return myDslElement;
   }
 
   @Nullable
@@ -57,17 +51,20 @@ public abstract class GradleValue<T> {
 
   @Nullable
   public GroovyPsiElement getPsiElement() {
+    if (myDslElement == null) {
+      return null;
+    }
     return myDslElement instanceof GradleDslExpression ? ((GradleDslExpression)myDslElement).getExpression() : myDslElement.getPsiElement();
   }
 
-  @NotNull
+  @Nullable
   public VirtualFile getFile() {
-    return myDslElement.getDslFile().getFile();
+    return myDslElement != null ? myDslElement.getDslFile().getFile() : null;
   }
 
-  @NotNull
+  @Nullable
   public String getPropertyName() {
-    return myDslElement.getQualifiedName();
+    return myDslElement != null ? myDslElement.getQualifiedName() : null;
   }
 
   @Nullable
@@ -78,6 +75,10 @@ public abstract class GradleValue<T> {
 
   @NotNull
   public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
+    if (myDslElement == null) {
+      return ImmutableMap.of();
+    }
+
     ImmutableMap.Builder<String, GradleNotNullValue<Object>> builder = ImmutableMap.builder();
     for (GradleResolvedVariable variable : myDslElement.getResolvedVariables()) {
       String variableName = variable.getVariableName();

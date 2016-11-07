@@ -49,7 +49,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
     for (GradleDslElement element : repositoriesElementList.getElements()) {
       if (element instanceof GradleDslMethodCall) {
         if (MAVEN_CENTRAL_METHOD_NAME.equals(element.getName())) {
-          result.add(new MavenCentralRepositoryModel());
+          result.add(new MavenCentralRepositoryModel(null));
         }
         else if (JCENTER_METHOD_NAME.equals(element.getName())) {
           result.add(new JCenterDefaultRepositoryModel());
