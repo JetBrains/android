@@ -56,6 +56,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslEle
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
@@ -590,6 +591,9 @@ public final class GradleDslParser {
           }
           else if (ADB_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new AdbOptionsDslElement(resultElement);
+          }
+          else if (DATA_BINDING_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DataBindingDslElement(resultElement);
           }
           else {
             return null;
