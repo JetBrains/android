@@ -40,8 +40,10 @@ public class TranslationHeaderCellRenderer implements HeaderCellRenderer {
     myLocale = locale;
     myCollapsedWidth =
       PADDING + metrics.stringWidth(myLocale.getFlagImage().getIconWidth() + LocaleMenuAction.getLocaleLabel(myLocale, true));
-    myExpandedWidth =
-      PADDING + metrics.stringWidth(String.valueOf(ConstantColumn.DEFAULT_VALUE.sampleData));
+
+    String data = StringResourceTableModel.getFixedColumnSampleData(StringResourceTableModel.DEFAULT_VALUE_COLUMN).toString();
+    myExpandedWidth = PADDING + metrics.stringWidth(data);
+
     myNameSwitchWidth =
       PADDING + metrics.stringWidth(myLocale.getFlagImage().getIconWidth() + LocaleMenuAction.getLocaleLabel(myLocale, false));
     myBrief = true;
@@ -71,7 +73,7 @@ public class TranslationHeaderCellRenderer implements HeaderCellRenderer {
     TableCellRenderer defaultRenderer = table.getTableHeader().getDefaultRenderer();
     Component component = defaultRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
     if (component instanceof JLabel) {
-      JLabel labelComponent = (JLabel) component;
+      JLabel labelComponent = (JLabel)component;
       labelComponent.setIcon(myLocale.getFlagImage());
       labelComponent.setText(LocaleMenuAction.getLocaleLabel(myLocale, myBrief));
     }

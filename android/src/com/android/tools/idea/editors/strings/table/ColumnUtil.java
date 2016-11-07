@@ -29,12 +29,12 @@ public class ColumnUtil {
   private static final TableCellRenderer CELL_RENDERER = new StringsCellRenderer();
 
   public static void setColumns(@NotNull JTable table) {
-    StringResourceTableModel model = (StringResourceTableModel) table.getModel();
+    StringResourceTableModel model = (StringResourceTableModel)table.getModel();
 
     Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
     while (columns.hasMoreElements()) {
       TableColumn column = columns.nextElement();
-      if (column.getModelIndex() == ConstantColumn.UNTRANSLATABLE.ordinal()) {
+      if (column.getModelIndex() == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
         column.setCellRenderer(new BooleanTableCellRenderer());
       }
       else {
@@ -42,19 +42,20 @@ public class ColumnUtil {
       }
       int index = column.getModelIndex();
       FontMetrics fontMetrics = table.getFontMetrics(table.getFont());
-      Locale locale = model.localeOfColumn(index);
+      Locale locale = model.getLocale(index);
       HeaderCellRenderer renderer =
         locale == null ? new ConstantHeaderCellRenderer(index, fontMetrics) : new TranslationHeaderCellRenderer(fontMetrics, locale);
       column.setHeaderRenderer(renderer);
       // Sets Key and Default Value columns to initially display at full width and all others to be collapsed
-      int width;
-      if (ConstantColumn.KEY.ordinal() == index ||
-          ConstantColumn.DEFAULT_VALUE.ordinal() == index) {
-        width = renderer.getFullExpandedWidth();
-      } else {
-        width = renderer.getCollapsedWidth();
+      switch (index) {
+        case StringResourceTableModel.KEY_COLUMN:
+        case StringResourceTableModel.DEFAULT_VALUE_COLUMN:
+          setPreferredWidth(column, renderer.getFullExpandedWidth());
+          break;
+        default:
+          setPreferredWidth(column, renderer.getCollapsedWidth());
+          break;
       }
-      setPreferredWidth(column, width);
     }
 
     expandToViewportWidthIfNecessary(table, -1);
@@ -72,7 +73,7 @@ public class ColumnUtil {
    * Caller should pass in -1 for ignoreIndex to specify that this method can touch all of the columns.
    */
   static void expandToViewportWidthIfNecessary(@NotNull JTable table, int ignoreIndex) {
-    if (table.getColumnModel().getColumnCount() < ConstantColumn.COUNT) {
+    if (table.getColumnModel().getColumnCount() < StringResourceTableModel.FIXED_COLUMN_COUNT) {
       // Table has no data
       return;
     }
@@ -83,18 +84,18 @@ public class ColumnUtil {
     }
 
     int totalNumColumns = table.getColumnModel().getColumnCount();
-    int numColumnsForDistribution = totalNumColumns - ConstantColumn.COUNT;
-    if (ConstantColumn.COUNT <= ignoreIndex && ignoreIndex < totalNumColumns) {
+    int numColumnsForDistribution = totalNumColumns - StringResourceTableModel.FIXED_COLUMN_COUNT;
+    if (StringResourceTableModel.FIXED_COLUMN_COUNT <= ignoreIndex && ignoreIndex < totalNumColumns) {
       --numColumnsForDistribution;
     }
     if (numColumnsForDistribution == 0) {
       // No translation columns among which to distribute extra width
-      TableColumn column = table.getColumn(ConstantColumn.DEFAULT_VALUE.name);
+      TableColumn column = table.getColumnModel().getColumn(StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       setPreferredWidth(column, column.getPreferredWidth() + widthToFillViewport);
       return;
     }
     int extraWidth = widthToFillViewport / numColumnsForDistribution;
-    for (int i = ConstantColumn.COUNT; i < totalNumColumns; ++i) {
+    for (int i = StringResourceTableModel.FIXED_COLUMN_COUNT; i < totalNumColumns; ++i) {
       if (i == ignoreIndex) {
         continue;
       }
@@ -122,7 +123,7 @@ public class ColumnUtil {
 
   private static void toggleColumnNameIfApplicable(@NotNull TableColumn column) {
     if (column.getHeaderRenderer() instanceof TranslationHeaderCellRenderer) {
-      TranslationHeaderCellRenderer renderer = (TranslationHeaderCellRenderer) column.getHeaderRenderer();
+      TranslationHeaderCellRenderer renderer = (TranslationHeaderCellRenderer)column.getHeaderRenderer();
       renderer.setUseBriefName(column.getPreferredWidth() < renderer.getMinimumExpandedWidth());
     }
   }
