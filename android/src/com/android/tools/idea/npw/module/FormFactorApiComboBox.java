@@ -17,12 +17,14 @@ package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
@@ -31,19 +33,22 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
  * A labeled combo box of SDK options for a given FormFactor.
  */
 public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.VersionItem> {
+  // Keep a reference to the lambda to avoid creating a new object each time we reference it.
+  private final ItemListener myItemListener = this::saveSelectedApi;
   private FormFactor myFormFactor;
 
   public void init(@NotNull FormFactor formFactor, @NotNull List<AndroidVersionsInfo.VersionItem> items) {
-
     myFormFactor = formFactor;
 
+    removeItemListener(myItemListener);
     removeAllItems();
+
     for (AndroidVersionsInfo.VersionItem item : items) {
       addItem(item);
     }
 
     loadSavedApi();
-    addItemListener(this::saveSelectedApi);
+    addItemListener(myItemListener);
   }
 
   /**
@@ -74,7 +79,8 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
     }
   }
 
-  private static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
+  @VisibleForTesting
+  static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
     return formFactor.id + ATTR_MIN_API;
   }
 }
