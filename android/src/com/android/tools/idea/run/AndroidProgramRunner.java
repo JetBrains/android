@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.execution.ExecutionException;
@@ -26,14 +24,13 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.DefaultProgramRunner;
+import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidProgramRunner extends DefaultProgramRunner {
-
+public class AndroidProgramRunner extends GenericProgramRunner {
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
     throws ExecutionException {
@@ -43,7 +40,7 @@ public class AndroidProgramRunner extends DefaultProgramRunner {
       runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(showRunContent);
     }
 
-    RunContentDescriptor descriptor = super.doExecute(state, env);
+    RunContentDescriptor descriptor = DefaultProgramRunnerKt.executeState(state, env, this);
     if (descriptor != null) {
       ProcessHandler processHandler = descriptor.getProcessHandler();
       assert processHandler != null;
