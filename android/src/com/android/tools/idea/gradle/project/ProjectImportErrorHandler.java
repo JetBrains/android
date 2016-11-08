@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -24,41 +23,27 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
-import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.model.UnsupportedMethodException;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler.FIX_SDK_DIR_PROPERTY;
-import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.splitByLines;
 
 /**
  * Provides better error messages for android projects import failures.
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
 
-  public static final String GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found";
-  public static final String CONNECTION_PERMISSION_DENIED_PREFIX = "Connection to the Internet denied.";
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-
-  private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
   private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
-
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
-  private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
-
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
 
   @Override
@@ -79,17 +64,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
-
-    if (isOldGradleVersion(rootCause)) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                       .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION));
-
-      String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
-    }
 
     if (rootCause instanceof UnknownHostException) {
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
@@ -140,31 +114,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
         // Location of build.gradle is useless for this error. Omitting it.
-        return createUserFriendlyError(newMsg, null);
-      }
-
-      if (msg != null && msg.contains(FailedToParseSdkErrorHandler.FAILED_TO_PARSE_SDK_ERROR)) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                         .setGradleSyncFailure(GradleSyncFailure.FAILED_TO_PARSE_SDK));
-
-        String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
-        // Location of build.gradle is useless for this error. Omitting it.
-        return createUserFriendlyError(newMsg, null);
-      }
-
-      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND_PATTERN.matcher(msg).matches())) {
-        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
-                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
-                                         .setGradleSyncFailure(GradleSyncFailure.SDK_NOT_FOUND));
-
-        String newMsg = msg;
-        File buildProperties = new File(projectPath, FN_LOCAL_PROPERTIES);
-        if (buildProperties.isFile()) {
-          newMsg += EMPTY_LINE + FIX_SDK_DIR_PROPERTY;
-        }
         return createUserFriendlyError(newMsg, null);
       }
     }
@@ -248,31 +197,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
     exception.initCause(rootCause);
     return exception;
-  }
-
-  private static boolean isOldGradleVersion(@NotNull Throwable error) {
-    if (error instanceof UnsupportedVersionException) {
-      return true;
-    }
-    if (error instanceof UnsupportedMethodException) {
-      String msg = error.getMessage();
-      if (msg != null && msg.contains("GradleProject.getBuildScript")) {
-        return true;
-      }
-    }
-    if (error instanceof ClassNotFoundException) {
-      String msg = error.getMessage();
-      if (msg != null && msg.contains(ToolingModelBuilderRegistry.class.getName())) {
-        return true;
-      }
-    }
-    if (error instanceof RuntimeException) {
-      String msg = error.getMessage();
-      if (msg != null && msg.startsWith(UNSUPPORTED_GRADLE_VERSION_ERROR)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in
