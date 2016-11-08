@@ -16,15 +16,16 @@
 package com.android.tools.datastore.profilerclient;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,22 +50,26 @@ public class DeviceProfilerService {
   private final int myPort;
   private int mySelectedProcessId = UNSELECTED_PROCESS_ID;
 
-  private DeviceProfilerService(@NotNull IDevice device, int port) {
+  private DeviceProfilerService(@NotNull IDevice device, int  perfdPort, int datastorePort) {
     myDevice = device;
-    myPort = port;
+    myPort = perfdPort;
 
     // Stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
     ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
-    myChannel = ManagedChannelBuilder.forAddress("localhost", myPort).usePlaintext(true).build();
+    ManagedChannel dataStoreChannel = ManagedChannelBuilder.forAddress("localhost", datastorePort).usePlaintext(true).build();
+    myChannel = ManagedChannelBuilder.forAddress("localhost", perfdPort).usePlaintext(true).build();
+
     Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
 
-    myDeviceService = DeviceServiceGrpc.newBlockingStub(myChannel);
+    myDeviceService = DeviceServiceGrpc.newBlockingStub(dataStoreChannel);
+    myCpuService = CpuServiceGrpc.newBlockingStub(dataStoreChannel);
+    myEventService = EventServiceGrpc.newBlockingStub(dataStoreChannel);
+    
     myMemoryService = MemoryServiceGrpc.newBlockingStub(myChannel);
-    myCpuService = CpuServiceGrpc.newBlockingStub(myChannel);
     myNetworkService = NetworkServiceGrpc.newBlockingStub(myChannel);
-    myEventService = EventServiceGrpc.newBlockingStub(myChannel);
     myEnergyService = EnergyServiceGrpc.newBlockingStub(myChannel);
+
     Disposer.register(ApplicationManager.getApplication(), () -> {
       if (!myUserKeys.isEmpty()) {
         for (Object userKey : myUserKeys) {
@@ -75,12 +80,12 @@ public class DeviceProfilerService {
   }
 
   @Nullable
-  static DeviceProfilerService createService(@NotNull IDevice device) {
+  static DeviceProfilerService createService(@NotNull IDevice device, int dataStorePort) {
     int port = DevicePortForwarder.forward(device, DEVICE_PORT);
     if (port < 0) {
       return null;
     }
-    return new DeviceProfilerService(device, port);
+    return new DeviceProfilerService(device, port, dataStorePort);
   }
 
   void register(@NotNull Object userKey) throws IllegalArgumentException {
@@ -114,10 +119,16 @@ public class DeviceProfilerService {
    */
   public void setSelectedProcessId(int id) {
     mySelectedProcessId = id;
+    CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(id);
+    myCpuService.startMonitoringApp(requestBuilder.build());
   }
 
   public int getSelectedProcessId() {
     return mySelectedProcessId;
+  }
+
+  public int getPort() {
+    return myPort;
   }
 
   @NotNull
