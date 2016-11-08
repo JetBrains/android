@@ -69,7 +69,6 @@ public class NewModuleTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
