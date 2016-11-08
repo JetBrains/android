@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.external;
+package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+public class TestOptionsDslElement extends GradleDslBlockElement {
+  @NonNls public static final String TEST_OPTIONS_BLOCK_NAME = "testOptions";
 
-public class CMakeModel extends AbstractBuildModel {
-  protected CMakeModel(@NotNull GradlePropertiesDslElement dslElement) {
-    super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel setPath(@NotNull File path) {
-    return (CMakeModel)super.setPath(path);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel removePath() {
-    return (CMakeModel)super.removePath();
+  public TestOptionsDslElement(@NotNull GradleDslElement parent) {
+    super(parent, TEST_OPTIONS_BLOCK_NAME);
   }
 }

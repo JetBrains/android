@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceDirectoryModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 

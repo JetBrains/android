@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.android.testOptions;
+package com.android.tools.idea.gradle.dsl.parser.android.sourceSets;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class TestOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String TEST_OPTIONS_BLOCK_NAME = "testOptions";
-
-  public TestOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, TEST_OPTIONS_BLOCK_NAME);
+public class SourceFileDslElement extends GradleDslBlockElement {
+  public SourceFileDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    super(parent, name);
   }
 }

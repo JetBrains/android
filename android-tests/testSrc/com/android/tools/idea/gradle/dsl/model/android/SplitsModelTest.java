@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.splits;
+package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.AbiModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.DensityModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.LanguageModel;
 import com.google.common.collect.ImmutableList;
 
 /**

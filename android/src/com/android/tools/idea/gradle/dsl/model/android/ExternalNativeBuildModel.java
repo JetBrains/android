@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.external;
+package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
 
 public class ExternalNativeBuildModel extends GradleDslBlockModel {
   public ExternalNativeBuildModel(@NotNull GradlePropertiesDslElement dslElement) {
