@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
@@ -40,6 +41,13 @@ public class SyncNlModel extends NlModel {
                      @Nullable Disposable parent,
                      @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     super(surface, parent, facet, file);
+  }
+
+  @Override
+  protected void setupRenderTask(@NotNull RenderTask task) {
+    super.setupRenderTask(task);
+
+    task.disableSecurityManager();
   }
 
   @Override

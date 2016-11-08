@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -32,10 +33,14 @@ import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
+import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -86,6 +91,20 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 public class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
+  /**
+   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
+   * panel full of errors.
+   */
+  private static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
+    RenderErrorModel.Issue.builder()
+      .setSeverity(HighlightSeverity.INFORMATION)
+      .setSummary("The project is still building")
+      .setHtmlContent(new HtmlBuilder()
+                        .add("The project is still building and the current preview might be inaccurate.")
+                        .newline()
+                        .add("The preview will automatically refresh once the build finishes."))
+      .build()
+  ));
 
   private final Project myProject;
   private final DesignerEditorPanelFacade myDesigner;
@@ -1375,7 +1394,10 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
           return;
         }
 
-        RenderErrorModel model = RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
+        RenderErrorModel model =
+          BuildSettings.getInstance(myProject).getBuildMode() != null && result.getLogger().hasErrors() ?
+          STILL_BUILDING_ERROR_MODEL :
+          RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
         myErrorPanel.setModel(model);
         setShowErrorPanel(model.getSize() != 0);
       }
@@ -1643,4 +1665,8 @@ public class DesignSurface extends EditorDesignSurface implements Disposable, Da
     return null;
   }
 
+  @VisibleForTesting
+  RenderErrorModel getErrorModel() {
+    return myErrorPanel.getModel();
+  }
 }

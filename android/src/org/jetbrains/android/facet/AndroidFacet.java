@@ -877,18 +877,24 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void refreshResources() {
     synchronized (MODULE_RESOURCES_LOCK) {
-      Disposer.dispose(myModuleResources);
-      myModuleResources = null;
+      if (myModuleResources != null) {
+        Disposer.dispose(myModuleResources);
+        myModuleResources = null;
+      }
     }
 
     synchronized (PROJECT_RESOURCES_LOCK) {
-      Disposer.dispose(myProjectResources);
-      myProjectResources = null;
+      if (myProjectResources != null) {
+        Disposer.dispose(myProjectResources);
+        myProjectResources = null;
+      }
     }
 
     synchronized (APP_RESOURCES_LOCK) {
-      Disposer.dispose(myAppResources);
-      myAppResources = null;
+      if (myAppResources != null) {
+        Disposer.dispose(myAppResources);
+        myAppResources = null;
+      }
     }
     myConfigurationManager.getResolverCache().reset();
     ResourceFolderRegistry.reset();
