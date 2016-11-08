@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;

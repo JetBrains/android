@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -37,7 +36,8 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     NlComponent button2 = findById(model, "button3");
     NlProperty property = new NlPropertyItem(ImmutableList.of(button2), AUTO_URI, new AttributeDefinition(ATTR_LAYOUT_TOP_TO_TOP_OF));
-    List<String> ids = IdAnalyzer.findIdsForProperty(property);
+    IdAnalyzer analyzer = new IdAnalyzer(property);
+    List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("button4", "button5"), ids);
   }
 
@@ -46,7 +46,8 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     NlComponent button2 = findById(model, "button3");
     NlProperty property = new NlPropertyItem(ImmutableList.of(button2), ANDROID_URI, new AttributeDefinition(ATTR_LAYOUT_ALIGN_START));
-    List<String> ids = IdAnalyzer.findIdsForProperty(property);
+    IdAnalyzer analyzer = new IdAnalyzer(property);
+    List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("button4", "button5", "group1"), ids);
   }
 
@@ -55,16 +56,18 @@ public class IdAnalyzerTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     NlComponent group = findById(model, "group1");
     NlProperty property = new NlPropertyItem(ImmutableList.of(group), ANDROID_URI, new AttributeDefinition(ATTR_CHECKED_BUTTON));
-    List<String> ids = IdAnalyzer.findIdsForProperty(property);
+    IdAnalyzer analyzer = new IdAnalyzer(property);
+    List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("radio_button1", "radio_button2", "radio_button3"), ids);
   }
 
-  public void testDefaultHandler() {
+  public void testButton1() {
     ModelBuilder modelBuilder = createRelativeLayout();
     NlModel model = modelBuilder.build();
     NlComponent button1 = findById(model, "button1");
     NlProperty labelFor = new NlPropertyItem(ImmutableList.of(button1), ANDROID_URI, new AttributeDefinition(ATTR_LABEL_FOR));
-    List<String> ids = IdAnalyzer.findIdsForProperty(labelFor);
+    IdAnalyzer analyzer = new IdAnalyzer(labelFor);
+    List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("button2",
                                   "button3",
                                   "button4",
@@ -74,11 +77,17 @@ public class IdAnalyzerTest extends LayoutTestCase {
                                   "radio_button2",
                                   "radio_button3",
                                   "text_view1"), ids);
+  }
 
+  public void testButton1And2() {
+    ModelBuilder modelBuilder = createRelativeLayout();
+    NlModel model = modelBuilder.build();
+    NlComponent button1 = findById(model, "button1");
     NlComponent button2 = findById(model, "button2");
     NlProperty accessibility =
       new NlPropertyItem(ImmutableList.of(button1, button2), ANDROID_URI, new AttributeDefinition(ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE));
-    ids = IdAnalyzer.findIdsForProperty(accessibility);
+    IdAnalyzer analyzer = new IdAnalyzer(accessibility);
+    List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("button3",
                                   "button4",
                                   "button5",
