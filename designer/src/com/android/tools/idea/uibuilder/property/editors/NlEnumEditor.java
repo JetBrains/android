@@ -15,35 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport;
+import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
+import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
+import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.impl.source.PsiMethodImpl;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -57,23 +45,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
-import java.util.*;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import java.util.Objects;
 
 public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
-  private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
-  private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
-  private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
-  private static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
 
   private final JPanel myPanel;
   private final CustomComboBox myCombo;
   private final JTextField myEditor;
   private final BrowsePanel myBrowsePanel;
 
+  private EnumSupport myEnumSupport;
   private NlProperty myProperty;
   private String myApiVersion;
   private int myAddedValueIndex;
@@ -100,43 +83,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @TestOnly
   public static NlEnumEditor createForTest(@NotNull NlEditingListener listener, CustomComboBox comboBox) {
     return new NlEnumEditor(listener, comboBox, null, false);
-  }
-
-  /**
-   * Return <code>true</code> if the property can be edited with an {@link NlEnumEditor}.
-   */
-  public static boolean supportsProperty(@NotNull NlProperty property) {
-    // The attributes supported should list the properties that do not specify Enum in the formats.
-    // This is generally the same list we have special code for in {@link #setModel}.
-    // When updating list please make the corresponding change in {@link #setModel}.
-    switch (property.getName()) {
-      case ATTR_FONT_FAMILY:
-      case ATTR_TYPEFACE:
-      case ATTR_TEXT_SIZE:
-      case ATTR_LINE_SPACING_EXTRA:
-      case ATTR_TEXT_APPEARANCE:
-      case ATTR_LAYOUT_HEIGHT:
-      case ATTR_LAYOUT_WIDTH:
-      case ATTR_DROPDOWN_HEIGHT:
-      case ATTR_DROPDOWN_WIDTH:
-      case ATTR_ON_CLICK:
-        return true;
-      case ATTR_ID:
-        return false;
-      case ATTR_STYLE:
-        String tagName = property.getTagName();
-        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
-      default:
-        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
-          return true;
-        }
-        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
-          return true;
-        }
-        AttributeDefinition definition = property.getDefinition();
-        Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-        return formats.contains(AttributeFormat.Enum);
-    }
   }
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
@@ -212,7 +158,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (myBrowsePanel != null) {
       myBrowsePanel.setProperty(property);
     }
-    selectItem(ValueWithDisplayString.create(property.getValue(), property));
+    selectItem(createFromEditorValue(property.getValue()));
   }
 
   @Override
@@ -221,56 +167,16 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private void setModel(@NotNull NlProperty property) {
-    assert supportsProperty(property) : this.getClass().getName() + property;
+    // Do not inline this method. Other classes should not know about EnumSupportFactory.
+    assert EnumSupportFactory.supportsProperty(property) : this.getClass().getName() + property;
+    myEnumSupport = EnumSupportFactory.create(property);
     myProperty = property;
     myApiVersion = getApiVersion(property);
 
-    AttributeDefinition definition = property.getDefinition();
-    ValueWithDisplayString[] values;
-    // The attributes supported should list the properties that do not specify Enum in the formats.
-    // This is generally the same list we have special code for in {@link #propertySupported}.
-    // When updating list please make the corresponding change in {@link #propertySupported}.
-    switch (property.getName()) {
-      case ATTR_FONT_FAMILY:
-        values = ValueWithDisplayString.create(AndroidDomUtil.AVAILABLE_FAMILIES);
-        break;
-      case ATTR_TYPEFACE:
-        values = ValueWithDisplayString.create(AVAILABLE_TYPEFACES);
-        break;
-      case ATTR_TEXT_SIZE:
-        values = ValueWithDisplayString.create(AVAILABLE_TEXT_SIZES);
-        break;
-      case ATTR_LINE_SPACING_EXTRA:
-        values = ValueWithDisplayString.create(AVAILABLE_LINE_SPACINGS);
-        break;
-      case ATTR_TEXT_APPEARANCE:
-        values = createTextAttributeArray(property);
-        break;
-      case ATTR_LAYOUT_HEIGHT:
-      case ATTR_LAYOUT_WIDTH:
-      case ATTR_DROPDOWN_HEIGHT:
-      case ATTR_DROPDOWN_WIDTH:
-        values = ValueWithDisplayString.create(AVAILABLE_SIZES);
-        break;
-      case ATTR_ON_CLICK:
-        values = createOnClickValues(property);
-        break;
-      case ATTR_STYLE:
-        values = createStyleArrayFromTag(property);
-        break;
-      default:
-        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
-          values = createTextAttributeArray(property);
-        }
-        else if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
-          values = createChoicesForId(property);
-        }
-        else {
-          values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
-        }
-    }
+    List<ValueWithDisplayString> values = myEnumSupport.getAllValues();
+    ValueWithDisplayString[] valueArray = values.toArray(new ValueWithDisplayString[0]);
 
-    DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<ValueWithDisplayString>(values) {
+    DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<ValueWithDisplayString>(valueArray) {
       @Override
       public void setSelectedItem(Object object) {
         if (object instanceof String) {
@@ -287,7 +193,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         super.setSelectedItem(object);
       }
     };
-    newModel.insertElementAt(ValueWithDisplayString.create(null, myProperty), 0);
+    ValueWithDisplayString defaultValue = createFromEditorValue(null);
+    newModel.insertElementAt(defaultValue, 0);
 
     //noinspection unchecked
     myCombo.setModel(newModel);
@@ -394,171 +301,18 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private void cancel() {
     String text = myProperty.getValue();
     myCombo.getEditor().setItem(text);
-    selectItem(ValueWithDisplayString.create(myProperty.getValue(), myProperty));
+    ValueWithDisplayString value = createFromEditorValue(myProperty.getValue());
+    selectItem(value);
     myPopupValueChanged = false;
     cancelEditing();
     myCombo.getEditor().selectAll();
     myCombo.hidePopup();
   }
 
+  @NotNull
   private ValueWithDisplayString createFromEditorValue(@Nullable String editorValue) {
-    ValueWithDisplayString value = getValueFromModel(editorValue);
-    if (value != null) {
-      return value;
-    }
-    String text = editorValue;
-    if (text != null) {
-      text = addStylePrefix(text);
-      text = addIdPrefix(text);
-      text = Quantity.addUnit(myProperty, text);
-    }
-    return ValueWithDisplayString.create(text, myProperty);
-  }
-
-  @NotNull
-  private String addStylePrefix(@NotNull String value) {
-    if (myProperty == null) {
-      return value;
-    }
-
-    // This only applies to Style and TextAppearance:
-    switch (myProperty.getName()) {
-      case ATTR_STYLE:
-      case ATTR_TEXT_APPEARANCE:
-        break;
-      default:
-        if (myProperty.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
-          break;
-        }
-        return value;
-    }
-
-    if (value.startsWith(STYLE_RESOURCE_PREFIX) || value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
-      return value;
-    }
-
-    ResourceResolver resolver = myProperty.getResolver();
-    ResourceValue resource = resolver.getStyle(value, true);
-    String prefix = resource != null ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
-    return prefix + value;
-  }
-
-  @NotNull
-  private String addIdPrefix(@NotNull String value) {
-    if (myProperty == null) {
-      return value;
-    }
-    if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(myProperty.getName()) != ResourceType.ID) {
-      return value;
-    }
-    if (value.startsWith(NEW_ID_PREFIX) || value.startsWith(ID_PREFIX)) {
-      return value;
-    }
-    return NEW_ID_PREFIX + value;
-  }
-
-  @Nullable
-  private ValueWithDisplayString getValueFromModel(@Nullable String value) {
-    ValueWithDisplayString item = lookUpByValue(value);
-    return item != null ? item : lookUpByDisplayValue(value);
-  }
-
-  @Nullable
-  private ValueWithDisplayString lookUpByValue(@Nullable String value) {
-    String valueToLookUp = StringUtil.notNullize(value);
-    ValueWithDisplayString selected = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
-    if (selected != null && valueToLookUp.equals(StringUtil.notNullize(selected.getValue()))) {
-      return selected;
-    }
-    for (int index=0; index < myCombo.getModel().getSize(); index++) {
-      ValueWithDisplayString item = myCombo.getModel().getElementAt(index);
-      if (item != null && valueToLookUp.equals(StringUtil.notNullize(item.getValue()))) {
-        return item;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private ValueWithDisplayString lookUpByDisplayValue(@Nullable String value) {
-    String valueToLookUp = StringUtil.notNullize(value);
-    valueToLookUp = StringUtil.trimStart(valueToLookUp, "TextAppearance.");
-    ValueWithDisplayString selected = (ValueWithDisplayString)myCombo.getModel().getSelectedItem();
-    if (selected != null && valueToLookUp.equals(selected.getDisplayString()) && selected.getValue() != null) {
-      return selected;
-    }
-    for (int index=0; index < myCombo.getModel().getSize(); index++) {
-      ValueWithDisplayString item = myCombo.getModel().getElementAt(index);
-      if (item != null && valueToLookUp.equals(item.getDisplayString()) && item.getValue() != null) {
-        return item;
-      }
-    }
-    return null;
-  }
-
-  private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {
-    StyleFilter checker = new StyleFilter(property.getModel().getProject(), property.getResolver());
-    StyleAccumulator accumulator = new StyleAccumulator();
-    checker.getStylesDerivedFrom("TextAppearance", true).forEach(accumulator::append);
-    return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
-  }
-
-  private static ValueWithDisplayString[] createStyleArrayFromTag(@NotNull NlProperty property) {
-    String tagName = property.getTagName();
-    assert tagName != null;
-    StyleFilter checker = new StyleFilter(property.getModel().getProject(), property.getResolver());
-    StyleAccumulator accumulator = new StyleAccumulator();
-    checker.getWidgetStyles(tagName).forEach(accumulator::append);
-    return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
-  }
-
-  private static ValueWithDisplayString[] createOnClickValues(@NotNull NlProperty property) {
-    Module module = property.getModel().getModule();
-    Configuration configuration = property.getModel().getConfiguration();
-    String activityClassName = configuration.getActivity();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    Collection<PsiClass> classes;
-    if (activityClassName != null) {
-      if (activityClassName.startsWith(".")) {
-        MergedManifest manifest = MergedManifest.get(module);
-        String pkg = StringUtil.notNullize(manifest.getPackage());
-        activityClassName = pkg + activityClassName;
-      }
-      PsiClass aClass = facade.findClass(activityClassName, module.getModuleScope());
-      if (aClass != null) {
-        classes = Collections.singleton(aClass);
-      } else {
-        classes = Collections.emptyList();
-      }
-    }
-    else {
-      GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
-      PsiClass activity = facade.findClass(CLASS_ACTIVITY, scope);
-      if (activity != null) {
-        classes = ClassInheritorsSearch.search(activity, scope, true).findAll();
-      }
-      else {
-        classes = Collections.emptyList();
-      }
-    }
-    List<ValueWithDisplayString> values = new ArrayList<>();
-    Set<String> found = new HashSet<>();
-    for (PsiClass psiClass : classes) {
-      for (PsiMethod method : psiClass.getAllMethods()) {
-        if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
-            found.add(method.getName()) &&
-            method instanceof PsiMethodImpl) {
-          values.add(new ValueWithDisplayString(method.getName() + " (" + psiClass.getName() + ")", method.getName()));
-        }
-      }
-    }
-    return values.toArray(new ValueWithDisplayString[0]);
-  }
-
-  private static ValueWithDisplayString[] createChoicesForId(@NotNull NlProperty property) {
-    return IdAnalyzer.findIdsForProperty(property).stream()
-      .map(id -> new ValueWithDisplayString(id, NEW_ID_PREFIX + id))
-      .toArray(ValueWithDisplayString[]::new);
+    assert myEnumSupport != null : "EnumSupport should have been setup by setModel";
+    return myEnumSupport.createValue(StringUtil.notNullize(editorValue));
   }
 
   public static class CustomComboBox extends ComboBox {
@@ -627,33 +381,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     protected Color getArrowButtonFillColor(@NotNull Color defaultColor) {
       // Use a lighter gray for the IntelliJ LAF. Darcula remains what is was.
       return JBColor.LIGHT_GRAY;
-    }
-  }
-
-  private static class StyleAccumulator {
-    private final List<ValueWithDisplayString> myValues = new ArrayList<>();
-    private StyleResourceValue myPreviousStyle;
-
-    public void append(@NotNull StyleResourceValue style) {
-      if (myPreviousStyle != null && (myPreviousStyle.isFramework() != style.isFramework() ||
-                                      myPreviousStyle.isUserDefined() != style.isUserDefined())) {
-        myValues.add(ValueWithDisplayString.SEPARATOR);
-      }
-      myPreviousStyle = style;
-      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style) + style.getName()));
-    }
-
-    @NotNull
-    public List<ValueWithDisplayString> getValues() {
-      return myValues;
-    }
-
-    @NotNull
-    private static String getStylePrefix(@NotNull StyleResourceValue style) {
-      if (style.isFramework()) {
-        return ANDROID_STYLE_RESOURCE_PREFIX;
-      }
-      return STYLE_RESOURCE_PREFIX;
     }
   }
 

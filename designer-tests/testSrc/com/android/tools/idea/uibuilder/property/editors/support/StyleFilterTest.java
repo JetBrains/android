@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.editors;
+package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.testing.TestProjectPaths.UIBUILDER_PROPERTY;
 
@@ -56,7 +55,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
   }
 
   public void testTextAppearances() {
-    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true).collect(Collectors.toList());
+    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true);
     assertStylesSorted("TextAppearance", styles, 3, 50, 200,
                        ImmutableList.of("Text2", "Text34", "TextAppearance"),
                        ImmutableList.of("TextAppearance.AppCompat",
@@ -95,7 +94,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
   }
 
   public void testAppCompatThemes() {
-    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("Theme.AppCompat", false).collect(Collectors.toList());
+    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("Theme.AppCompat", false);
     assertStylesSorted("TextAppearance", styles, 0, 5, 0,
                        ImmutableList.of(),
                        ImmutableList.of("Theme.AppCompat",
@@ -169,7 +168,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
 
   private void assertTagStyle(@NotNull String tagName, int userCount, int libraryCount, int frameworkCount,
                               List<String> userSample, List<String> librarySample, List<String> frameworkSample) {
-    List<StyleResourceValue> styles = myFilter.getWidgetStyles(tagName).collect(Collectors.toList());
+    List<StyleResourceValue> styles = myFilter.getWidgetStyles(tagName);
     assertStylesSorted(tagName, styles, userCount, libraryCount, frameworkCount, userSample, librarySample, frameworkSample);
     boolean expectHasStyles = userCount + libraryCount + frameworkCount > 0;
     assertEquals(tagName + " hasWidgetStyles", expectHasStyles, StyleFilter.hasWidgetStyles(getProject(), myResolver, tagName));
