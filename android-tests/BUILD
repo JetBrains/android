@@ -5,6 +5,8 @@ iml_module(
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:licenses",

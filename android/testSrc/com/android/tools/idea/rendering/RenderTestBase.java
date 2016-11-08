@@ -89,6 +89,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
+    task.disableSecurityManager();
     return task;
   }
 
