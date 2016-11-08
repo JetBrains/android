@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
@@ -46,6 +45,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -306,6 +306,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return ourRenderViewPort;
   }
 
+  @VisibleForTesting
+  protected void setupRenderTask(@NotNull RenderTask task) {
+  }
+
   /**
    * Synchronously inflates the model and updates the view hierarchy
    *
@@ -342,6 +346,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         myRenderTask.dispose();
       }
       myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
+      setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         if (!isRenderViewPort()) {
           myRenderTask.useDesignMode(myFile);
