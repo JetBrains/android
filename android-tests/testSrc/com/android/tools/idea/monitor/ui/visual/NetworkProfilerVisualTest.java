@@ -86,21 +86,9 @@ public class NetworkProfilerVisualTest extends VisualTest {
     myDetailedView.setVisible(false);
 
     generateNetworkCaptureData(startTimeUs);
-    myCaptureSegment = new NetworkCaptureSegment(timeCurrentRangeUs, new NetworkCaptureModel() {
-      @Override
-      public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
-        List<HttpData> dataList = new ArrayList<>();
-        long viewStartUs = (long)timeCurrentRangeUs.getMin();
-        long viewEndUs = (long)timeCurrentRangeUs.getMax();
-
-        for (HttpData data: myCaptureData) {
-          if (Math.max(viewStartUs, data.getStartTimeUs()) <= Math.min(viewEndUs, data.getEndTimeUs())) {
-            dataList.add(data);
-          }
-        }
-        return dataList;
-      }
-    }, httpData -> myDetailedView.setVisible(true), dummyDispatcher);
+    myCaptureSegment =
+      new NetworkCaptureSegment(timeCurrentRangeUs, new TestNetworkCaptureModel(), httpData -> myDetailedView.setVisible(true),
+                                dummyDispatcher);
 
     myRadioSegment = new NetworkRadioSegment(timeCurrentRangeUs, myDataStore, dummyDispatcher);
 
@@ -169,5 +157,25 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private static long random(long min, long max) {
     return min + (int)(Math.random() * ((max - min) + 1));
+  }
+
+  /**
+   * Mock class which queries fake test data.
+   */
+  private class TestNetworkCaptureModel implements NetworkCaptureModel {
+    @NotNull
+    @Override
+    public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
+      List<HttpData> dataList = new ArrayList<>();
+      long viewStartUs = (long)timeCurrentRangeUs.getMin();
+      long viewEndUs = (long)timeCurrentRangeUs.getMax();
+
+      for (HttpData data: myCaptureData) {
+        if (Math.max(viewStartUs, data.getStartTimeUs()) <= Math.min(viewEndUs, data.getEndTimeUs())) {
+          dataList.add(data);
+        }
+      }
+      return dataList;
+    }
   }
 }

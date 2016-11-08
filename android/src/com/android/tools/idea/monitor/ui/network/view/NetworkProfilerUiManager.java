@@ -23,9 +23,7 @@ import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
-import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
-import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModelImpl;
-import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
+import com.android.tools.idea.monitor.ui.network.model.*;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EventDispatcher;
@@ -34,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Set;
+import java.util.*;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   public static final int NETWORK_CONNECTIVITY_HEIGHT = 40;
@@ -87,7 +85,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     myRadioSegment = new NetworkRadioSegment(myTimeCurrentRangeUs, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
-    NetworkCaptureModelImpl captureModel = new NetworkCaptureModelImpl(myDataStore.getDeviceProfilerService(), myDataCache);
+    NetworkCaptureModel captureModel = new RpcNetworkCaptureModel(myDataStore.getDeviceProfilerService(), myDataCache);
     myCaptureSegment = new NetworkCaptureSegment(myTimeCurrentRangeUs, captureModel, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
       File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
