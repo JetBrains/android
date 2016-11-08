@@ -14,6 +14,8 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
         "testData/**",
