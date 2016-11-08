@@ -25,8 +25,9 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
-import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -41,6 +42,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,8 +52,8 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.*;
@@ -66,8 +68,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
-import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
@@ -920,7 +920,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
         templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
         ApplicationManager.getApplication().runWriteAction(() -> {
-          File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+          File projectRoot = virtualToIoFile(project.getBaseDir());
           Template template = templateValues.getTemplate();
           assert template != null;
           File moduleRoot = new File(projectRoot, modifiedProjectName);
@@ -980,7 +980,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                              boolean syncModel) throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
-      WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
+      createProject(projectWizardState, myFixture.getProject(), assetGenerator);
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
@@ -991,6 +991,61 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
       importProject(projectName, projectRoot, null);
     }
+  }
+
+  private static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
+                                    @Nullable AssetStudioAssetGenerator assetGenerator) {
+    List<String> errors = Lists.newArrayList();
+    try {
+      wizardState.populateDirectoryParameters();
+      String moduleName = wizardState.getString(ATTR_MODULE_NAME);
+      String projectName = wizardState.getString(ATTR_APP_TITLE);
+      File projectRoot = new File(wizardState.getString(ATTR_PROJECT_LOCATION));
+      File moduleRoot = new File(projectRoot, moduleName);
+      if (FileUtilRt.createDirectory(projectRoot)) {
+        if (wizardState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
+          assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
+        }
+        wizardState.updateParameters();
+        wizardState.updateDependencies();
+
+        // If this is a new project, instantiate the project-level files
+        if (wizardState instanceof NewProjectWizardState) {
+          Template projectTemplate = ((NewProjectWizardState)wizardState).getProjectTemplate();
+          final RenderingContext projectContext = RenderingContext.Builder.newContext(projectTemplate, project)
+            .withOutputRoot(projectRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(wizardState.myParameters)
+            .build();
+          projectTemplate.render(projectContext);
+          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
+        }
+
+        final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
+          .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(wizardState.myParameters).build();
+        wizardState.myTemplate.render(context);
+        if (wizardState.getBoolean(ATTR_CREATE_ACTIVITY)) {
+          TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          activityTemplateState.populateRelativePackage(null);
+          Template template = activityTemplateState.getTemplate();
+          assert template != null;
+          final RenderingContext activityContext = RenderingContext.Builder.newContext(template, project)
+            .withOutputRoot(moduleRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(activityTemplateState.myParameters)
+            .build();
+          template.render(activityContext);
+          context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
+        }
+      }
+      else {
+        errors.add(String.format("Unable to create directory '%1$s'.", projectRoot.getPath()));
+      }
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    assertEmpty(errors);
   }
 
   /**
