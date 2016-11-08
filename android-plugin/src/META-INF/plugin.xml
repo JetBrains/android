@@ -1183,12 +1183,12 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ConnectionPermissionDeniedErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDslMethodNotFoundErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkErrorHandler"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler"/>
-    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSupportRepoErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingPlatformErrorHandler"/>

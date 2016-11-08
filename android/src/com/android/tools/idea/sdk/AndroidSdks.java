@@ -21,11 +21,15 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -44,7 +48,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -58,6 +61,7 @@ import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+import static org.jetbrains.android.util.AndroidUtils.isAndroidStudio;
 
 public class AndroidSdks {
   @NonNls public static final String SDK_NAME_PREFIX = "Android ";
@@ -73,6 +77,37 @@ public class AndroidSdks {
 
   public AndroidSdks(@NotNull Jdks jdks) {
     myJdks = jdks;
+  }
+
+  @Nullable
+  public File findPathOfSdkWithoutAddonsFolder(@NotNull Project project) {
+    if (isAndroidStudio()) {
+      File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
+      if (isMissingAddonsFolder(sdkPath)) {
+        return sdkPath;
+      }
+    }
+    else {
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      for (Module module : moduleManager.getModules()) {
+        Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+        if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
+          String homePath = moduleSdk.getHomePath();
+          if (homePath != null) {
+            File sdkHomePath = new File(toSystemDependentName(homePath));
+            if (isMissingAddonsFolder(sdkHomePath)) {
+              return sdkHomePath;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private boolean isMissingAddonsFolder(File sdkHomePath) {
+    File addonsFolder = new File(sdkHomePath, FD_ADDONS);
+    return !addonsFolder.isDirectory() || notNullize(addonsFolder.listFiles()).length == 0;
   }
 
   @Nullable
