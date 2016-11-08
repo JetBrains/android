@@ -88,6 +88,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(JUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
       assertSize(1, myRunManager.getBeforeRunTasks(runConfiguration));
+      assertEquals(MakeBeforeRunTaskProvider.ID, myRunManager.getBeforeRunTasks(runConfiguration).get(0).getProviderId());
     }
 
     RunConfiguration runConfiguration = junitRunConfigurations[0];
