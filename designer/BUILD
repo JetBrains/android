@@ -24,6 +24,7 @@ iml_module(
     ],
     test_shard_count = 2,
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
