@@ -62,6 +62,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.ExecutionBundle;
@@ -780,14 +781,21 @@ public class PostSyncProjectSetup {
   }
 
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
-    // beforeRunTasks should be overridden only when they were not changed by the user yet (see http://b.android.com/194704)
-    if (myRunManager.getBeforeRunTasks(runConfiguration).isEmpty()) {
-      BeforeRunTask task = targetProvider.createTask(runConfiguration);
-      if (task != null) {
-        task.setEnabled(true);
-        myRunManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
+    // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
+    List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
+    for (BeforeRunTask beforeRunTask : myRunManager.getBeforeRunTasks(runConfiguration)) {
+      if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
+        BeforeRunTask task = targetProvider.createTask(runConfiguration);
+        if (task != null) {
+          task.setEnabled(true);
+          newBeforeRunTasks.add(task);
+        }
+      }
+      else {
+        newBeforeRunTasks.add(beforeRunTask);
       }
     }
+    myRunManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
   }
 
   private void notifySyncEnded(boolean saveModelsToDisk) {
