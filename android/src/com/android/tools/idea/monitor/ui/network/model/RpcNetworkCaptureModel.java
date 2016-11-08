@@ -17,10 +17,8 @@ package com.android.tools.idea.monitor.ui.network.model;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +28,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class represents the model for {@link NetworkCaptureSegment}.
+ * A {@link NetworkCaptureModel} that uses an RPC mechanism to complete its queries.
  */
-public final class NetworkCaptureModelImpl implements NetworkCaptureModel {
+public final class RpcNetworkCaptureModel implements NetworkCaptureModel {
   @NotNull
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
@@ -41,7 +39,7 @@ public final class NetworkCaptureModelImpl implements NetworkCaptureModel {
 
   private final int myPid;
 
-  public NetworkCaptureModelImpl(@NotNull DeviceProfilerService service, @NotNull HttpDataCache dataCache) {
+  public RpcNetworkCaptureModel(@NotNull DeviceProfilerService service, @NotNull HttpDataCache dataCache) {
     myNetworkService = service.getNetworkService();
     myDataCache = dataCache;
     myPid = service.getSelectedProcessId();
