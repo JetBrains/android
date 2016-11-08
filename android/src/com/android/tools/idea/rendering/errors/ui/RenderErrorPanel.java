@@ -231,6 +231,7 @@ public class RenderErrorPanel extends JPanel implements ListDataListener, Dispos
 
   @Override
   public void dispose() {
+    myModel.removeListDataListener(this);
     myMinimizeListener = null;
   }
 
@@ -243,6 +244,7 @@ public class RenderErrorPanel extends JPanel implements ListDataListener, Dispos
     if (model.equals(myModel)) {
       return;
     }
+    myModel.removeListDataListener(this);
     // The user has seen the new errors only if the panel is not minimized
     hasUserSeenNewErrors = !isMinimized();
     myModel = model;
