@@ -25,7 +25,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.tool.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpData;
 import com.android.tools.idea.monitor.ui.network.model.NetworkCaptureModel;
-import com.intellij.ui.JBColor;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.EventDispatcher;
@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -56,12 +55,6 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     SENDING, RECEIVING, WAITING, NONE
   }
 
-  /**
-   * Our table is transparent, but the default table selection color assumes an opaque background.
-   * We sidestep this readability issue by specifying the text color explicitly.
-   */
-  private static final Color TABLE_TEXT_COLOR = JBColor.BLACK;
-
   private static final EnumMap<NetworkState, Color> NETWORK_STATE_COLORS = new EnumMap<>(NetworkState.class);
 
   static {
@@ -72,10 +65,10 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   }
 
   /**
-   * Columns for each connection information, the last SPACER column is intentionally left blank.
+   * Columns for each connection information
    */
   private enum Column {
-    INDEX, URL, BYTES, DURATION, SPACER
+    INDEX, URL, SIZE, DURATION, TIMELINE
   }
 
   private int myRowHeight;
@@ -92,11 +85,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   @NotNull
   private final NetworkCaptureModel myModel;
 
-  private JComponent myLayeredComponent;
-
-  private JTable myInformationTable;
-
-  private JTable myStateTable;
+  private JTable myCaptureTable;
 
   public NetworkCaptureSegment(@NotNull Range timeCurrentRangeUs,
                                @NotNull NetworkCaptureModel model,
@@ -112,46 +101,9 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   }
 
   @NotNull
-  private JTable createInformationTable() {
-    JBTable table = new JBTable(new AbstractTableModel() {
-      @Override
-      public int getRowCount() {
-        return myCharts.size();
-      }
-
-      @Override
-      public int getColumnCount() {
-        return Column.values().length;
-      }
-
-      @Override
-      public Object getValueAt(int rowIndex, int columnIndex) {
-        switch (Column.values()[columnIndex]) {
-          case INDEX:
-            return String.valueOf(rowIndex);
-
-          case URL:
-            return myDataList.get(rowIndex).getUrl();
-
-          case BYTES:
-            long bytes = myDataList.get(rowIndex).getHttpResponseBodySize();
-            return bytes >= 0 ? String.valueOf(bytes / 1024) + " K" : "";
-
-          case DURATION:
-            HttpData httpData = myDataList.get(rowIndex);
-            if (httpData.getEndTimeUs() >= httpData.getStartTimeUs()) {
-              long durationMs = TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs());
-              return String.valueOf(durationMs) + " ms";
-            }
-            break;
-
-          default:
-            // Empty
-            break;
-        }
-        return "";
-      }
-    });
+  private JTable createCaptureTable() {
+    JBTable table = new JBTable(new NetworkCaptureTableModel());
+    table.setDefaultRenderer(StateChart.class, (t, value, isSelected, hasFocus, row, column) -> myCharts.get(row));
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
       if (table.getSelectedRow() < myDataList.size()) {
@@ -159,68 +111,27 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
       }
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
-    table.setOpaque(false);
-    ((DefaultTableCellRenderer)table.getDefaultRenderer(Object.class)).setOpaque(false);
-    table.setForeground(TABLE_TEXT_COLOR);
-    table.setSelectionForeground(TABLE_TEXT_COLOR);
-
     table.setRowHeight(myRowHeight);
-    return table;
-  }
 
-  @NotNull
-  private JTable createStateChartTable() {
-    JBTable table = new JBTable(new AbstractTableModel() {
-
+    table.addComponentListener(new ComponentAdapter() {
       @Override
-      public int getRowCount() {
-        return myCharts.size();
-      }
-
-      @Override
-      public int getColumnCount() {
-        return 1;
-      }
-
-      @Override
-      public Object getValueAt(int rowIndex, int columnIndex) {
-        return myCharts.get(rowIndex);
+      public void componentResized(ComponentEvent e) {
+        table.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth(myCaptureTable.getWidth() / 2);
       }
     });
-    table.setDefaultRenderer(Object.class, (t, value, isSelected, hasFocus, row, column) -> myCharts.get(row));
-    table.setRowHeight(myRowHeight);
     return table;
   }
 
   @Override
   protected void setCenterContent(@NotNull JPanel panel) {
-    myLayeredComponent = new JLayeredPane();
-    myInformationTable = createInformationTable();
-    myStateTable = createStateChartTable();
+    myCaptureTable = createCaptureTable();
 
-    myLayeredComponent.add(myInformationTable);
-    myLayeredComponent.add(myStateTable);
-
-    myLayeredComponent.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        JLayeredPane host = (JLayeredPane)e.getComponent();
-        if (host != null) {
-          Dimension dim = host.getSize();
-          for (Component c : host.getComponents()) {
-            c.setBounds(0, 0, dim.width, dim.height);
-          }
-        }
-      }
-    });
-
-    panel.add(new JBScrollPane(myLayeredComponent), BorderLayout.CENTER);
+    panel.add(new JBScrollPane(myCaptureTable), BorderLayout.CENTER);
   }
 
   @Override
   public void animate(float frameLength) {
     myDataList = myModel.getData(myTimeCurrentRangeUs);
-
     // TODO: currently we recreate charts from scratch, instead consider reusing charts
     myCharts.clear();
 
@@ -240,9 +151,63 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
       chart.animate(frameLength);
       myCharts.add(chart);
     }
-    myLayeredComponent.setPreferredSize(new Dimension(0, myRowHeight * myCharts.size()));
-    myStateTable.repaint();
-    myInformationTable.repaint();
   }
 
+  private final class NetworkCaptureTableModel extends AbstractTableModel {
+    @Override
+    public int getRowCount() {
+      return myDataList.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+      return Column.values().length;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+      return StringUtil.capitalize(Column.values()[column].toString().toLowerCase());
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+      switch (Column.values()[columnIndex]) {
+        case TIMELINE:
+          return StateChart.class;
+        default:
+          return Object.class;
+      }
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      switch (Column.values()[columnIndex]) {
+        case INDEX:
+          return String.valueOf(rowIndex);
+
+        case URL:
+          return myDataList.get(rowIndex).getUrl();
+
+        case SIZE:
+          long bytes = myDataList.get(rowIndex).getHttpResponseBodySize();
+          return bytes >= 0 ? String.valueOf(bytes / 1024) + " K" : "";
+
+        case DURATION:
+          HttpData httpData = myDataList.get(rowIndex);
+          if (httpData.getEndTimeUs() >= httpData.getStartTimeUs()) {
+            long durationMs = TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs());
+            return String.valueOf(durationMs) + " ms";
+          }
+          break;
+
+        case TIMELINE:
+          // This column has a custom renderer; see getColumnClass
+          break;
+
+        default:
+          throw new UnsupportedOperationException("Unexpected getValueAt called with: " + Column.values()[columnIndex]);
+      }
+      return "";
+    }
+  }
 }
