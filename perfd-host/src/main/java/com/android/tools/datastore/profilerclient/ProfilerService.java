@@ -16,6 +16,7 @@
 package com.android.tools.datastore.profilerclient;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.datastore.DataStoreService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,7 +49,7 @@ public class ProfilerService {
    * @return an abstraction of a connection to a device, or null if a connection can not be established.
    */
   @Nullable
-  public synchronized DeviceProfilerService connect(@NotNull Object userKey, @NotNull IDevice device) {
+  public synchronized DeviceProfilerService connect(@NotNull Object userKey, @NotNull IDevice device, int datastorePort, DataStoreService dataStoreService) {
     if (device.getState() != IDevice.DeviceState.ONLINE) {
       return null;
     }
@@ -60,12 +61,13 @@ public class ProfilerService {
       return deviceProfilerService;
     }
 
-    deviceProfilerService = DeviceProfilerService.createService(device);
+    deviceProfilerService = DeviceProfilerService.createService(device, datastorePort);
     if (deviceProfilerService == null) {
       return null;
     }
     myDeviceClientServices.put(device, deviceProfilerService);
     deviceProfilerService.register(userKey);
+    dataStoreService.connect(deviceProfilerService.getPort());
 
     String versionResponse;
     try {

@@ -21,15 +21,17 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.datastore.Poller;
 import com.android.tools.datastore.SeriesDataStore;
 import com.android.tools.datastore.SeriesDataStoreImpl;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
 import com.android.tools.datastore.profilerclient.ProfilerService;
-import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
@@ -81,6 +83,8 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
+  private static final int DATASTORE_PORT = 12390;
+
   @NotNull
   private final Project myProject;
 
@@ -109,6 +113,9 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   @Nullable
   private SeriesDataStore myDataStore;
+
+  @Nullable
+  private DataStoreService myDataStoreService;
 
   private SelectionComponent mySelection;
 
@@ -142,7 +149,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myDeviceContext = new DeviceContext();
     myProfilerManagers = new TreeMap<>();
     myIsProfilerServiceRunning = new AtomicBoolean(false);
-
+    myDataStoreService = new DataStoreService(DATASTORE_PORT);
     createToolbarComponent();
     setupDevice();
   }
@@ -422,6 +429,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     pausePollers();
     ProfilerService.getInstance().disconnect(this, myDeviceProfilerService);
+    myDataStoreService.disconnect();
     myDeviceProfilerService = null;
     mySelectedClient = null;
     getLogger().info("Successfully disconnected from Device Profiler Service.");
@@ -439,7 +447,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     disconnectFromDevice();
     if (selectedDevice != null) {
-      myDeviceProfilerService = ProfilerService.getInstance().connect(this, selectedDevice);
+      myDeviceProfilerService = ProfilerService.getInstance().connect(this, selectedDevice, DATASTORE_PORT, myDataStoreService);
       getLogger().info(myDeviceProfilerService == null ?
                        "Attempt to connect to Device Profiler Service failed." : "Successfully connected to Device Profiler Service.");
     }
@@ -494,6 +502,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     myDeviceProfilerService.setSelectedProcessId(processId);
+    myDataStoreService.setSelectedProcessId(processId);
 
     // The heart beat is used to check whether perfd is still alive. Failures in perfd are the only cases
     // that are not handled via the DeviceContext.DeviceSelectionListener().
