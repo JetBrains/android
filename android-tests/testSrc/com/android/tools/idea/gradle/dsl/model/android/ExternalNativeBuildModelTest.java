@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.external;
+package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModel;
 
 import java.io.File;
 
@@ -327,5 +328,4 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     ndkBuild = android.externalNativeBuild().ndkBuild();
     assertEquals("path", new File("foo/Android.mk"), ndkBuild.path());
   }
-
 }

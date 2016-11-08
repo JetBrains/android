@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class SourceFileDslElement extends GradleDslBlockElement {
-  public SourceFileDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent, name);
+public class SplitsDslElement extends GradleDslBlockElement {
+  @NonNls public static final String SPLITS_BLOCK_NAME = "splits";
+
+  public SplitsDslElement(@NotNull GradleDslElement parent) {
+    super(parent, SPLITS_BLOCK_NAME);
   }
 }

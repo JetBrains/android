@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model.android.splits;
+package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.AbiModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.DensityModel;
+import com.android.tools.idea.gradle.dsl.model.android.splits.LanguageModel;
+import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.splits.SplitsDslElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
