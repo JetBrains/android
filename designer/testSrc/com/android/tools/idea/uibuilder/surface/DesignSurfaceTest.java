@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.openapi.util.Disposer;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 import static org.mockito.Mockito.mock;
@@ -42,6 +43,7 @@ public class DesignSurfaceTest extends LayoutTestCase {
     surface.requestRender();
     assertTrue(model.getRenderResult().getRenderResult().isSuccess());
     assertTrue(surface.getErrorModel().getIssues().isEmpty());
+    Disposer.dispose(surface);
   }
 
   public void testRenderWhileBuilding() {
@@ -84,5 +86,6 @@ public class DesignSurfaceTest extends LayoutTestCase {
                    .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
     assertFalse(surface.getErrorModel().getIssues().stream()
                  .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
+    Disposer.dispose(surface);
   }
 }
