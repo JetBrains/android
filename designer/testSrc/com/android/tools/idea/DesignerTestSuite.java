@@ -19,6 +19,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.uibuilder.property.editors.StyleFilterTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.junit.runner.RunWith;
@@ -31,6 +32,7 @@ import java.nio.file.Paths;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
+  DesignSurfaceTest.class, // flaky in bazel
   StyleFilterTest.class,
   NlComponentTreeTest.class,
   InteractionManagerTest.class
