@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * This interface represents the model for {@link NetworkCaptureSegment}.
+ * A model class which allows querying captured network data requests.
  */
 public interface NetworkCaptureModel {
   /**
