@@ -17,4 +17,3 @@ iml_module(
         "//tools/adt/idea/adt-ui:adt-ui[module]",
     ],
 )
-
