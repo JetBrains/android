@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
@@ -50,10 +52,9 @@ public class OldAndroidPluginErrorHandler extends SyncErrorHandler {
                                                               @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
-    String filePath = notification.getFilePath();
-    if (isNotEmpty(filePath)) {
-      Integer line = notification.getLine();
-      hyperlinks.add(new OpenFileHyperlink(filePath, "Open File", line - 1, notification.getColumn()));
+    AndroidPluginInfo result = searchInBuildFilesOnly(project);
+    if (result != null && result.getPluginBuildFile() != null) {
+      hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
     }
     return hyperlinks;
   }
