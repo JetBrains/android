@@ -19,6 +19,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -145,5 +146,11 @@ public class IdeaTestSuite {
       throw new RuntimeException(e);
     }
     return path;
+  }
+
+  @AfterClass
+  public static void leakChecker() throws Exception {
+    Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
+    leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
   }
 }
