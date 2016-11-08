@@ -39,6 +39,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 public abstract class SyncErrorHandler {
   private static final ExtensionPointName<SyncErrorHandler>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.syncErrorHandler");
+  protected static final String EMPTY_LINE = "\n\n";
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
   @NotNull
