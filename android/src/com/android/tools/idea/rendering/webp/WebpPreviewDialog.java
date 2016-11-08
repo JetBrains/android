@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.webp.ConvertToWebpAction.WebpConversionTask;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -49,7 +48,6 @@ import java.util.Locale;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
-@VisibleForTesting
 public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, KeyListener {
   private final WebpConversionTask myTask;
   private final Project myProject;
