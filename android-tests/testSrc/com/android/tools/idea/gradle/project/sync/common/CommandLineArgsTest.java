@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -32,14 +32,13 @@ import static org.mockito.Mockito.verify;
 /**
  * Tests for {@link CommandLineArgs}.
  */
-public class CommandLineArgsTest extends AndroidGradleTestCase {
+public class CommandLineArgsTest extends IdeaTestCase {
   private GradleInitScripts myInitScripts;
   private CommandLineArgs myArgs;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadSimpleApplication();
     myInitScripts = mock(GradleInitScripts.class);
     myArgs = new CommandLineArgs(myInitScripts);
   }
@@ -72,7 +71,6 @@ public class CommandLineArgsTest extends AndroidGradleTestCase {
   }
 
   private void check(@NotNull List<String> args) {
-    assertThat(args).contains("-Didea.resolveSourceSetDependencies=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_INVOKED_FROM_IDE + "=true");
