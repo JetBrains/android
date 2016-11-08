@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
 
@@ -106,7 +108,17 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   protected UrlClassLoader createClassLoader(List<URL> externalJars) {
-    return UrlClassLoader.build().parent(this).urls(externalJars).noPreload().get();
+    UrlClassLoader.Builder builder = UrlClassLoader.build().parent(this).urls(externalJars).noPreload();
+    try {
+      // The setLogErrorOnMissingJar was added in Android Studio. We need to call it via reflection until the
+      // change gets upstreamed.
+      Method setLogErrorOnMissingJar = UrlClassLoader.Builder.class.getMethod("setLogErrorOnMissingJar", boolean.class);
+      setLogErrorOnMissingJar.invoke(builder, false);
+    }
+    catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignore) {
+    }
+
+    return builder.get();
   }
 
   @Nullable
