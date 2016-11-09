@@ -16,7 +16,6 @@
 package com.android.tools.datastore.profilerclient;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -25,7 +24,6 @@ import io.grpc.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,7 +39,7 @@ public class DeviceProfilerService {
   @NotNull private final Set<Object> myUserKeys = new HashSet<>();
   @NotNull private final IDevice myDevice;
   @NotNull private final ManagedChannel myChannel;
-  @NotNull private final DeviceServiceGrpc.DeviceServiceBlockingStub myDeviceService;
+  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryService;
   @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
@@ -62,7 +60,7 @@ public class DeviceProfilerService {
 
     Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
 
-    myDeviceService = DeviceServiceGrpc.newBlockingStub(dataStoreChannel);
+    myProfilerService = ProfilerServiceGrpc.newBlockingStub(dataStoreChannel);
     myCpuService = CpuServiceGrpc.newBlockingStub(dataStoreChannel);
     myEventService = EventServiceGrpc.newBlockingStub(dataStoreChannel);
     
@@ -132,8 +130,8 @@ public class DeviceProfilerService {
   }
 
   @NotNull
-  public DeviceServiceGrpc.DeviceServiceBlockingStub getDeviceService() {
-    return myDeviceService;
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerService() {
+    return myProfilerService;
   }
 
   @NotNull
