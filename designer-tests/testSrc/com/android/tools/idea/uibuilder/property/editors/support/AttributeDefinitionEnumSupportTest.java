@@ -79,6 +79,6 @@ public class AttributeDefinitionEnumSupportTest {
   @Test
   public void testCreateValueFromResource() {
     assertThat(mySupport.createValue("@string/hello_world"))
-      .isEqualTo(new ValueWithDisplayString("Hello World", "@string/hello_world"));
+      .isEqualTo(new ValueWithDisplayString("Hello World", "@string/hello_world", "@string/hello_world"));
   }
 }

@@ -41,11 +41,12 @@ public abstract class EnumSupport {
     if (StringUtil.isEmpty(resolvedValue)) {
       return ValueWithDisplayString.UNSET;
     }
-    return createFromResolvedValue(resolvedValue, editorValue);
+    String hint = editorValue == null ? "default" : (!editorValue.equals(resolvedValue) ? editorValue : null);
+    return createFromResolvedValue(resolvedValue, editorValue, hint);
   }
 
   @NotNull
-  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value) {
-    return new ValueWithDisplayString(resolvedValue, value);
+  protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
+    return new ValueWithDisplayString(resolvedValue, value, hint);
   }
 }

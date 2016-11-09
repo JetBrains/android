@@ -108,6 +108,13 @@ public class TextAppearanceEnumSupportTest {
   }
 
   @Test
+  public void testCreateDefaultValueResolvedToStyle() {
+    when(myProperty.resolveValue(null)).thenReturn("@android:style/TextAppearance.Material.Small");
+    assertThat(mySupport.createValue(""))
+      .isEqualTo(new ValueWithDisplayString("Material.Small", null, "default"));
+  }
+
+  @Test
   public void testCreateFromCompleteFrameworkAttributeValue() {
     assertThat(mySupport.createValue("@android:style/TextAppearance.Material.Small"))
       .isEqualTo(new ValueWithDisplayString("Material.Small", "@android:style/TextAppearance.Material.Small"));
@@ -170,6 +177,6 @@ public class TextAppearanceEnumSupportTest {
   @Test
   public void testCreateFromThemeValue() {
     assertThat(mySupport.createValue("?attr/textAppearanceSmall"))
-      .isEqualTo(new ValueWithDisplayString("Material.Small", "?attr/textAppearanceSmall"));
+      .isEqualTo(new ValueWithDisplayString("Material.Small", "?attr/textAppearanceSmall", "?attr/textAppearanceSmall"));
   }
 }
