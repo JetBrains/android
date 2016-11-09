@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class gathers sets up a CPUProfilerService and forward all commands to the connected channel with the exception of getData.
@@ -41,12 +42,8 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
   private DataStoreService myService;
   //TODO Pull this into a storage container that can read/write this to disk
-  protected PriorityQueue<CpuProfiler.CpuProfilerData> myData = new PriorityQueue<>(1000, new Comparator<CpuProfiler.CpuProfilerData>() {
-    @Override
-    public int compare(CpuProfiler.CpuProfilerData o1, CpuProfiler.CpuProfilerData o2) {
-      return (int)(o1.getBasicInfo().getEndTimestamp() - o2.getBasicInfo().getEndTimestamp());
-    }
-  });
+  protected List<CpuProfiler.CpuProfilerData> myData = new ArrayList<>();
+  private int myProcessId = -1;
 
   public CpuDataPoller(@NotNull DataStoreService service) {
     myService = service;
@@ -70,21 +67,23 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
   @Override
   public void poll() throws StatusRuntimeException {
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myService.getSelectedProcessId())
+      .setAppId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
-    for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
-      myData.add(data);
+    synchronized (myData) {
+      for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
+        myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
+        myData.add(data);
+      }
     }
   }
 
   @Override
   public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> observer) {
     CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-    if(myData.size() == 0) {
+    if (myData.size() == 0) {
       observer.onNext(response.build());
       observer.onCompleted();
       return;
@@ -94,7 +93,7 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
     long endTime = request.getEndTimestamp();
 
     //TODO: Optimize so we do not need to loop all the data every request, ideally binary search to start time and loop till end.
-    synchronized(myData) {
+    synchronized (myData) {
       Iterator<CpuProfiler.CpuProfilerData> itr = myData.iterator();
       while (itr.hasNext()) {
         CpuProfiler.CpuProfilerData obj = itr.next();
@@ -110,12 +109,14 @@ public class CpuDataPoller extends CpuServiceGrpc.CpuServiceImplBase implements 
 
   @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
+    myProcessId = request.getAppId();
     observer.onNext(myPollingService.startMonitoringApp(request));
     observer.onCompleted();
   }
 
   @Override
   public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> observer) {
+    myProcessId = -1;
     observer.onNext(myPollingService.stopMonitoringApp(request));
     observer.onCompleted();
   }

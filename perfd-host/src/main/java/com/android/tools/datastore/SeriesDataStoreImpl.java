@@ -18,7 +18,7 @@ package com.android.tools.datastore;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.android.tools.profiler.proto.ProfilerService;
+import com.android.tools.profiler.proto.Profiler;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -132,8 +132,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
    */
   private void synchronizeStartTime() {
     try {
-      ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
-        ProfilerService.TimesRequest.getDefaultInstance());
+      Profiler.TimesResponse response = myDeviceProfilerService.getProfilerService().getTimes(
+        Profiler.TimesRequest.getDefaultInstance());
       myDeviceStartTimeNs = response.getTimestampNs();
       myStudioOffsetTimeNs = System.nanoTime();
     }
