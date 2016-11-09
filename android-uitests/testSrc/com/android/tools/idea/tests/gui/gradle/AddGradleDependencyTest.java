@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +31,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.DELETE_LINE;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.google.common.truth.Truth.assertThat;
@@ -70,7 +70,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddTestModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -96,7 +96,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -185,20 +185,26 @@ public class AddGradleDependencyTest {
     assertThat(intentions).asList().doesNotContain(intention);
   }
 
-  // http://b.android.com/202480
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddJUnitDependency() throws IOException {
-    guiTest.importSimpleApplication();
-
-    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
-
-    editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
-    editor.moveBetween("@", "Test");
-    editor.invokeQuickfixAction("Add 'JUnit4' to classpath");
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
+    EditorFixture editor = guiTest
+      .importSimpleApplication()
+      .getEditor()
+      .open("app/build.gradle")
+      .moveBetween("testCompile", "")
+      .invokeAction(DELETE_LINE)
+      .getIdeFrame()
+      .requestProjectSync()
+      .getEditor()
+      .open("app/src/test/java/google/simpleapplication/UnitTest.java")
+      .waitForCodeAnalysisHighlightCount(ERROR, 6)
+      .moveBetween("@", "Test")
+      .invokeQuickfixAction("Add 'JUnit4' to classpath")
+      .getIdeFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     ArtifactDependencySpec expected = new ArtifactDependencySpec("junit", "junit", "4.12");
@@ -255,12 +261,8 @@ public class AddGradleDependencyTest {
 
   private void verifyUndo(@NotNull EditorFixture editor, int expectedErrorCount) {
     editor.invokeAction(UNDO);
-    findAndCloseUndoDialog();
+    guiTest.ideFrame().findMessageDialog("Undo").clickOk();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, expectedErrorCount);
-  }
-
-  private void findAndCloseUndoDialog() {
-    guiTest.ideFrame().findMessageDialog("Undo").clickOk();
   }
 }
