@@ -26,20 +26,23 @@ public class ValueWithDisplayStringTest {
 
   @Test
   public void testGetters() {
-    ValueWithDisplayString value = new ValueWithDisplayString("bread", "cookies");
+    ValueWithDisplayString value = new ValueWithDisplayString("bread", "cookies", "hint");
     assertThat(value.getDisplayString()).isEqualTo("bread");
     assertThat(value.getValue()).isEqualTo("cookies");
     assertThat(value.toString()).isEqualTo("bread");
+    assertThat(value.getHint()).isEqualTo("hint");
 
     value.setUseValueForToString(true);
     assertThat(value.getDisplayString()).isEqualTo("bread");
     assertThat(value.getValue()).isEqualTo("cookies");
     assertThat(value.toString()).isEqualTo("cookies");
+    assertThat(value.getHint()).isEqualTo("hint");
   }
 
   @Test
   public void testEquals() {
     assertThat(new ValueWithDisplayString("display", "value")).isEqualTo(new ValueWithDisplayString("display", "value"));
+    assertThat(new ValueWithDisplayString("display", "value")).isNotEqualTo(new ValueWithDisplayString("display", "value", "hint"));
     assertThat(new ValueWithDisplayString("display", "value")).isNotEqualTo(new ValueWithDisplayString("different", "value"));
     assertThat(new ValueWithDisplayString("display", "value")).isNotEqualTo(new ValueWithDisplayString("display", "other"));
     assertThat(new ValueWithDisplayString("display", "value")).isNotEqualTo(new Object());

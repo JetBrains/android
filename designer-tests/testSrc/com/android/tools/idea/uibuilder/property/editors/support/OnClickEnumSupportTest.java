@@ -61,15 +61,15 @@ public class OnClickEnumSupportTest extends AndroidTestCase {
   public void testFindPossibleValuesWithKnownActivityName() {
     when(myConfiguration.getActivity()).thenReturn("com.example.MainActivity");
     assertThat(mySupport.getAllValues()).containsExactly(
-      new ValueWithDisplayString("onClick (MainActivity)", "onClick"),
-      new ValueWithDisplayString("help (MainActivity)", "help")).inOrder();
+      new ValueWithDisplayString("onClick", "onClick", "MainActivity"),
+      new ValueWithDisplayString("help", "help", "MainActivity")).inOrder();
   }
 
   public void testFindPossibleValuesWithKnownRelativeActivityName() {
     when(myConfiguration.getActivity()).thenReturn(".MainActivity");
     assertThat(mySupport.getAllValues()).containsExactly(
-      new ValueWithDisplayString("onClick (MainActivity)", "onClick"),
-      new ValueWithDisplayString("help (MainActivity)", "help")).inOrder();
+      new ValueWithDisplayString("onClick", "onClick", "MainActivity"),
+      new ValueWithDisplayString("help", "help", "MainActivity")).inOrder();
   }
 
   public void testFindPossibleValuesWithWrongActivityName() {
@@ -79,9 +79,9 @@ public class OnClickEnumSupportTest extends AndroidTestCase {
 
   public void testFindPossibleValuesWithUnknownActivityName() {
     assertThat(mySupport.getAllValues()).containsExactly(
-      new ValueWithDisplayString("onClick (MainActivity)", "onClick"),
-      new ValueWithDisplayString("help (MainActivity)", "help"),
-      new ValueWithDisplayString("startProcessing (OtherActivity)", "startProcessing")).inOrder();
+      new ValueWithDisplayString("onClick", "onClick", "MainActivity"),
+      new ValueWithDisplayString("help", "help", "MainActivity"),
+      new ValueWithDisplayString("startProcessing", "startProcessing", "OtherActivity")).inOrder();
   }
 
   public void testCreateDefaultValue() {

@@ -402,6 +402,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       if (value != null) {
         String displayString = value.getDisplayString();
         String actualValue = value.getValue();
+        String hint = value.getHint();
         boolean isDefaultValue = myProperty.isDefaultValue(actualValue);
         if (!selected && !isDefaultValue && Objects.equals(actualValue, getValue())) {
           myForeground = CHANGED_VALUE_TEXT_COLOR;
@@ -411,10 +412,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         }
         if (!StringUtil.isEmpty(displayString)) {
           append(displayString);
-          if (actualValue == null || !actualValue.endsWith(displayString)) {
+
+          if (!StringUtil.isEmpty(hint)) {
             myForeground = DEFAULT_VALUE_TEXT_COLOR;
             append(" [");
-            append(actualValue != null ? actualValue : "default");
+            append(hint);
             append("]");
           }
         }
