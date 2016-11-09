@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,7 @@ public class GradleBuildTest {
    * <p>
    * This test does not try and run the project.
    */
+  @Ignore("https://code.google.com/p/android/issues/detail?id=226797")
   @RunIn(TestGroup.QA)
   @Test
   public void compileWithJack() throws IOException {
