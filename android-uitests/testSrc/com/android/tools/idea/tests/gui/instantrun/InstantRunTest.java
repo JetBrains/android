@@ -46,6 +46,7 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 
+@Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/1548")
 @RunWith(GuiTestRunner.class)
 public class InstantRunTest {
 
