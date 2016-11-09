@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.datastore;
+package com.android.tools.profilers;
 
-import com.android.tools.datastore.profilerclient.DeviceProfilerService;
-import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.StatusRuntimeException;
-import org.jetbrains.annotations.NotNull;
+public abstract class StudioProfilerStage {
+  abstract public void enter();
 
-import javax.swing.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.TimeUnit;
-
-public interface ServicePassThrough {
-  RunnableFuture<Void> getRunner();
-  ServerServiceDefinition getService();
-  void connectService(ManagedChannel channel);
+  abstract public void exit();
 }

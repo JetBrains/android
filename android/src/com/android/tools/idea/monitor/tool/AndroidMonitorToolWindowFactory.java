@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidMonitorToolWindowFactory implements DumbAware, ToolWindowFactory {
   // Temporary ID
-  public static final String ID = "Android Monitor [Ex]";
+  public static final String ID = "Android Profiler";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
