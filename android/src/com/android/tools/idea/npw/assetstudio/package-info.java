@@ -17,7 +17,7 @@
 /**
  * To learn more about Android Asset Studio, visit the
  * <a href="https://romannurik.github.io/AndroidAssetStudio/">project page</a> and
- * <a href="http://tools.android.com/recent/assetstudiointegration">read here</a>. In short, it's a
+ * <a href="https://developer.android.com/studio/write/image-asset-studio.html">read here</a>. In short, it's a
  * web application that can generates a set of images in a format consumable by Android, ported
  * into Android Studio for convenience.
  */

@@ -49,7 +49,7 @@ public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler
                                                               @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     NotificationHyperlink quickFix =
-      new OpenUrlHyperlink("http://tools.android.com/tech-docs/project-sync-issues-android-studio", "More details (and potential fix)");
+      new OpenUrlHyperlink("https://developer.android.com/studio/troubleshoot.html#project-sync", "More details (and potential fix)");
     hyperlinks.add(quickFix);
     return hyperlinks;
   }

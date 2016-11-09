@@ -79,7 +79,7 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
       String version = pluginInfo.getPluginGeneration().getLatestKnownVersion();
       List<NotificationHyperlink> quickFixes = new ArrayList<>();
       quickFixes.add(new FixAndroidGradlePluginVersionHyperlink(GradleVersion.parse(version), GradleVersion.parse(GRADLE_LATEST_VERSION)));
-      quickFixes.add(new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/version-compatibility", "Open Documentation"));
+      quickFixes.add(new OpenUrlHyperlink("https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle", "Open Documentation"));
       return quickFixes;
     }
     return emptyList();
