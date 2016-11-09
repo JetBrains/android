@@ -11,6 +11,7 @@ iml_module(
         "//tools:idea/java/jdkAnnotations",
         "//tools/base/templates",
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/25.0.0",  # TODO: remove after build-tools update in tools/base/bazel/sdk/prebuilts.studio.sdk.BUILD
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platforms/latest",
