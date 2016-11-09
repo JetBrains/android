@@ -33,16 +33,29 @@ import static org.mockito.Mockito.*;
  */
 public class GradleBuildSystemServiceTest extends IdeaTestCase {
   private BuildSystemService myService;
+  private GradleSyncInvoker myOriginalGradleSyncInvoker;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myOriginalGradleSyncInvoker = GradleSyncInvoker.getInstance();
     IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
     IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
     IdeComponents.replaceServiceWithMock(myProject, GradleProjectBuilder.class);
     IdeComponents.replaceServiceWithMock(myProject, GradleDependencyManager.class);
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
     myService = BuildSystemService.getInstance(myProject);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      if (myOriginalGradleSyncInvoker != null) {
+        IdeComponents.replaceService(GradleSyncInvoker.class, myOriginalGradleSyncInvoker);
+      }
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testIsGradleBuildSystemService() {
