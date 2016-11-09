@@ -60,7 +60,7 @@ public class AndroidLintTest extends AndroidTestCase {
     if ("testImlFileOutsideContentRoot".equals(getName())) {
       addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "module2", PROJECT_TYPE_LIBRARY);
-    } else if ("testAppCompatMethod".equals(getName())) {
+    } else if ("testAppCompatMethod".equals(getName()) || "testExtendAppCompatWidgets".equals(getName())) {
       addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", PROJECT_TYPE_APP);
     }
   }
@@ -909,6 +909,20 @@ public class AndroidLintTest extends AndroidTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=224150
     doTestWithFix(new AndroidLintStringEscapingInspection(),
                   "Escape Apostrophe", "/res/values/strings.xml", "xml");
+  }
+
+  public void testExtendAppCompatWidgets() throws Exception {
+    // Configure appcompat dependency
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    for (Module module : modules) {
+      if (module != myModule && AndroidFacet.getInstance(module) != null) {
+        deleteManifest(module);
+      }
+    }
+    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "appCompatMethod/AndroidManifest.xml", "additionalModules/appcompat/AndroidManifest.xml");
+
+    doTestWithFix(new AndroidLintAppCompatCustomViewInspection(),
+                  "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java");
   }
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
