@@ -36,7 +36,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
   private GradleSyncInvoker myOriginalGradleSyncInvoker;
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
     myOriginalGradleSyncInvoker = GradleSyncInvoker.getInstance();
     IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
