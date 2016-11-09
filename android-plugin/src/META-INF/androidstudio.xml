@@ -71,7 +71,6 @@
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
 
     <group id="Android.NavBarToolBar">
-      <separator/>
       <reference id="Android.RunAndroidSdkManager" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
