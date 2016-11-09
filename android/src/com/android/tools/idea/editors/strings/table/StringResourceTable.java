@@ -110,11 +110,11 @@ public final class StringResourceTable extends JBTable {
   private static final class NeedsTranslationsRowFilter extends RowFilter<TableModel, Integer> {
     @Override
     public boolean include(@NotNull Entry<? extends TableModel, ? extends Integer> entry) {
-      if ((Boolean)entry.getValue(ConstantColumn.UNTRANSLATABLE.ordinal())) {
+      if ((Boolean)entry.getValue(StringResourceTableModel.UNTRANSLATABLE_COLUMN)) {
         return false;
       }
 
-      for (int i = ConstantColumn.COUNT; i < entry.getValueCount(); i++) {
+      for (int i = StringResourceTableModel.FIXED_COLUMN_COUNT; i < entry.getValueCount(); i++) {
         if (entry.getValue(i).equals("")) {
           return true;
         }
