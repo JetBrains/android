@@ -34,7 +34,7 @@ public final class StringsCellEditorTest extends AndroidTestCase {
     LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, directories);
 
     JTable table = new JBTable(new StringResourceTableModel(StringResourceParser.parse(myFacet, repository)));
-    TableUtils.selectCellAt(table, 0, 1);
+    TableUtils.selectCellAt(table, 0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
     assertTrue(new StringsCellEditor().isCellEditable(new ActionEvent(table, 0, null)));
   }

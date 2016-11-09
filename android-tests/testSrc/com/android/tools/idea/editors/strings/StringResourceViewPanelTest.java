@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringsCellEditor;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
@@ -83,7 +84,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
   public void testRefilteringAfterEditingUntranslatableCell() {
     myTable.setShowingOnlyKeysNeedingTranslations(true);
-    editCellAt(true, 0, 2);
+    editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
     assertEquals(6, myTable.getRowCount());
     assertEquals("key10", myTable.getValueAt(0, 0));
@@ -120,7 +121,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
     CellEditor cellEditor = myTable.getCellEditor();
 
-    if (column == 2) {
+    if (column == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
       Object component = ((DefaultCellEditor)cellEditor).getComponent();
       ((AbstractButton)component).setSelected((Boolean)value);
     }
