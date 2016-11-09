@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.annotations.NonNull;
+import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModel;
+import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
 
 public final class ProductFlavorModel extends AbstractFlavorTypeModel {
   @NonNls private static final String APPLICATION_ID = "applicationId";
@@ -79,6 +87,24 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
   }
 
   @NotNull
+  public ExternalNativeBuildOptionsModel externalNativeBuild() {
+    ExternalNativeBuildOptionsDslElement externalNativeBuildOptionsDslElement =
+      myDslElement.getPropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
+                                      ExternalNativeBuildOptionsDslElement.class);
+    if (externalNativeBuildOptionsDslElement == null) {
+      externalNativeBuildOptionsDslElement = new ExternalNativeBuildOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, externalNativeBuildOptionsDslElement);
+    }
+    return new ExternalNativeBuildOptionsModel(externalNativeBuildOptionsDslElement);
+  }
+
+  @NonNull
+  public ProductFlavorModel removeExternalNativeBuild() {
+    myDslElement.removeProperty(EXTERNAL_NATIVE_BUILD_BLOCK_NAME);
+    return this;
+  }
+
+  @NotNull
   public GradleNullableValue<Integer> maxSdkVersion() {
     return myDslElement.getLiteralProperty(MAX_SDK_VERSION, Integer.class);
   }
@@ -115,6 +141,22 @@ public final class ProductFlavorModel extends AbstractFlavorTypeModel {
   @NotNull
   public ProductFlavorModel removeMinSdkVersion() {
     myDslElement.removeProperty(MIN_SDK_VERSION);
+    return this;
+  }
+
+  @NotNull
+  public NdkOptionsModel ndk() {
+    NdkOptionsDslElement ndkOptionsDslElement = myDslElement.getPropertyElement(NDK_BLOCK_NAME, NdkOptionsDslElement.class);
+    if (ndkOptionsDslElement == null) {
+      ndkOptionsDslElement = new NdkOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(NDK_BLOCK_NAME, ndkOptionsDslElement);
+    }
+    return new NdkOptionsModel(ndkOptionsDslElement);
+  }
+
+  @NonNull
+  public ProductFlavorModel removeNdk() {
+    myDslElement.removeProperty(NDK_BLOCK_NAME);
     return this;
   }
 
