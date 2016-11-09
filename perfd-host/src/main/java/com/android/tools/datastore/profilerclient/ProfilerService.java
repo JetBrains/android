@@ -17,8 +17,8 @@ package com.android.tools.datastore.profilerclient;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.profiler.proto.Profiler;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +36,6 @@ public class ProfilerService {
   private static final Logger LOG = Logger.getInstance(ProfilerService.class.getCanonicalName());
 
   @NotNull private final Map<IDevice, DeviceProfilerService> myDeviceClientServices = new HashMap<>();
-
-  @NotNull
-  public static ProfilerService getInstance() {
-    return ServiceManager.getService(ProfilerService.class);
-  }
 
   /**
    * Creates a connection to a target device.
@@ -72,8 +67,7 @@ public class ProfilerService {
     String versionResponse;
     try {
       // TODO Change getVersion be more asynchronous.
-      versionResponse = deviceProfilerService.getDeviceService().getVersion(
-        com.android.tools.profiler.proto.ProfilerService.VersionRequest.getDefaultInstance()).getVersion();
+      versionResponse = deviceProfilerService.getProfilerService().getVersion(Profiler.VersionRequest.getDefaultInstance()).getVersion();
     }
     catch (RuntimeException e) {
       LOG.info("Error connecting to profiler server: " + e.toString());
@@ -99,7 +93,7 @@ public class ProfilerService {
   /**
    * Disconnects from the target device.
    *
-   * @param userKey the non-null key that was used in the {@link #connect(Object, IDevice)} call
+   * @param userKey               the non-null key that was used in the {@link #connect(Object, IDevice)} call
    * @param deviceProfilerService the return value of the {@link #connect(Object, IDevice)} call
    */
   public synchronized void disconnect(@NotNull Object userKey, @NotNull DeviceProfilerService deviceProfilerService) {
