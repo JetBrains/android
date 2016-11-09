@@ -19,7 +19,10 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.editors.strings.table.*;
+import com.android.tools.idea.editors.strings.table.ColumnUtil;
+import com.android.tools.idea.editors.strings.table.ResizeListener;
+import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
@@ -63,10 +66,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -108,7 +108,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     initTable();
-    myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.KEY::ordinal));
+    myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(StringResourceTableModel.KEY_COLUMN));
 
     addResourceChangeListener();
 
@@ -134,7 +134,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
     myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
-    myDefaultValueTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(ConstantColumn.DEFAULT_VALUE::ordinal));
+
+    FocusListener listener = new SetTableValueAtFocusListener(StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    myDefaultValueTextField.getTextField().addFocusListener(listener);
   }
 
   private void createTranslationTextField() {
@@ -159,6 +161,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private final class SetTableValueAtFocusListener extends FocusAdapter {
     private final IntSupplier myColumn;
+
+    private SetTableValueAtFocusListener(int column) {
+      myColumn = () -> column;
+    }
 
     private SetTableValueAtFocusListener(@NotNull IntSupplier column) {
       myColumn = column;
@@ -489,12 +495,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
       int row = myTable.getSelectedRowModelIndex();
       int column = myTable.getSelectedColumnModelIndex();
-      Locale locale = model.localeOfColumn(column);
+      Object locale = model.getLocale(column);
 
-      String key = model.keyOfRow(row);
-      setTextAndEditable(myKeyTextField, key, false); // TODO: keys are not editable, we want them to be refactor operations
+      setTextAndEditable(myKeyTextField, model.getKey(row), false); // TODO: keys are not editable, we want them to be refactor operations
 
-      String defaultValue = (String)model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal());
+      String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       boolean defaultValueEditable = !StringUtil.containsChar(defaultValue, '\n'); // don't allow editing multiline chars in a text field
       setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
       myDefaultValueTextField.getButton().setEnabled(true);
@@ -532,16 +537,15 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       int column = myTable.getSelectedColumnModelIndex();
 
       StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
-      String key = model.keyOfRow(row);
-      String value = (String)model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal());
+      String value = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
-      Locale locale = model.localeOfColumn(column);
+      Locale locale = model.getLocale(column);
       String translation = locale == null ? null : (String)model.getValueAt(row, column);
 
-      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, key, value, locale, translation);
+      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row), value, locale, translation);
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
-          model.setValueAt(d.getDefaultValue(), row, ConstantColumn.DEFAULT_VALUE.ordinal());
+          model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
           myTable.refilter();
         }
 
