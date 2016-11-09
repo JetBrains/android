@@ -20,6 +20,10 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
@@ -73,6 +77,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
@@ -642,9 +647,19 @@ public final class GradleDslParser {
         else if (resultElement instanceof ProductFlavorsDslElement) {
           newElement = new ProductFlavorDslElement(resultElement, nestedElementName);
         }
-        else if (resultElement instanceof ProductFlavorDslElement &&
-                 ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))) {
-          newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+        else if (resultElement instanceof ProductFlavorDslElement) {
+          if ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName)) {
+            newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+          }
+          else if (EXTERNAL_NATIVE_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new ExternalNativeBuildOptionsDslElement(resultElement);
+          }
+          else if (NDK_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new NdkOptionsDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
         }
         else if (resultElement instanceof BuildTypesDslElement) {
           newElement = new BuildTypeDslElement(resultElement, nestedElementName);
@@ -664,6 +679,17 @@ public final class GradleDslParser {
           }
           else {
             newElement = new SourceDirectoryDslElement(resultElement, nestedElementName);
+          }
+        }
+        else if (resultElement instanceof ExternalNativeBuildOptionsDslElement) {
+          if (CMAKE_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new CMakeOptionsDslElement(resultElement);
+          }
+          else if (NDK_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new NdkBuildOptionsDslElement(resultElement);
+          }
+          else {
+            return null;
           }
         }
         else if (resultElement instanceof SplitsDslElement) {
