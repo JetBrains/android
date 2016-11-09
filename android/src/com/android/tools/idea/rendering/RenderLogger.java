@@ -733,7 +733,7 @@ public class RenderLogger extends LayoutLog {
       builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
       return;
     }
-    builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
+    builder.addLink("Please try a ", "rebuild", ".", linkManager.createBuildProjectUrl());
     builder.newline().newline();
     if (!addShowExceptionLink) {
       return;

@@ -1070,7 +1070,7 @@ public class RenderErrorModelFactory {
       if (CLASS_CONSTRAINT_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createInstallArtifactUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
+                        myLinkManager.createAddDependencyUrl(CONSTRAINT_LAYOUT_LIB_ARTIFACT));
         builder.add(", ");
       }
 
@@ -1095,7 +1095,7 @@ public class RenderErrorModelFactory {
 
     builder.addIcon(HtmlBuilderHelper.getTipIconPath());
     builder.addLink("Tip: Try to ", "build", " the project.",
-                    myLinkManager.createCompileModuleUrl());
+                    myLinkManager.createBuildProjectUrl());
     addRefreshAction(builder);
     if (foundCustomView) {
       builder.newline()
@@ -1144,7 +1144,7 @@ public class RenderErrorModelFactory {
             .addLink("update the Gradle plugin build version to 1.2.3", myLinkManager.createRunnableLink(runnable))
             .add(" or later, or downgrade to version 1.1.3, or as a workaround, ");
           builder.beginList()
-            .listItem().addLink("", "Build the project", ", then", myLinkManager.createCompileModuleUrl())
+            .listItem().addLink("", "Build the project", ", then", myLinkManager.createBuildProjectUrl())
             .listItem().addLink("", "Gradle Sync the project", ", then", myLinkManager.createSyncProjectUrl())
             .listItem().addLink("Manually ", "refresh the layout", " (or restart the IDE)", myLinkManager.createRefreshRenderUrl())
             .endList();
@@ -1191,7 +1191,7 @@ public class RenderErrorModelFactory {
                "http://developer.android.com/reference/android/view/View.html#isInEditMode()")
       .newline().newline()
       .add("If this is an unexpected error you can also try to ")
-      .addLink("", "build the project", ", then ", myLinkManager.createCompileModuleUrl())
+      .addLink("", "build the project", ", then ", myLinkManager.createBuildProjectUrl())
       .addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl());
 
     if (firstThrowable != null) {
@@ -1239,7 +1239,7 @@ public class RenderErrorModelFactory {
                 "(Or, extract your custom views into a library which you compile with a lower JDK version.)")
       .newline().newline()
       .addLink("If you have just accidentally built your code with a later JDK, try to ", "build", " the project.",
-               myLinkManager.createCompileModuleUrl())
+               myLinkManager.createBuildProjectUrl())
       .newline().newline()
       .add("Classes with incompatible format:");
 
