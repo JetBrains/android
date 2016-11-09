@@ -24,6 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -58,6 +59,21 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * ImageView and all the framework views that inherit from ImageView and support srcCompat.
    */
   private static final ImmutableSet<String> TAGS_SUPPORTING_SRC_COMPAT = ImmutableSet.of(IMAGE_BUTTON, IMAGE_VIEW);
+
+  /**
+   * Synthetic tag used when the parser can not read any contents from the passed XML file so layoutlib can render
+   * something in the preview.
+   */
+  private static final TagSnapshot EMPTY_LAYOUT = TagSnapshot.createSyntheticTag(null, "LinearLayout", ANDROID_NS_NAME, ANDROID_URI,
+                                                                                 ImmutableList.of(
+                                                                                   new AttributeSnapshot(ANDROID_URI, ANDROID_NS_NAME,
+                                                                                                         ATTR_LAYOUT_WIDTH,
+                                                                                                         VALUE_MATCH_PARENT),
+                                                                                   new AttributeSnapshot(ANDROID_URI, ANDROID_NS_NAME,
+                                                                                                         ATTR_LAYOUT_HEIGHT,
+                                                                                                         VALUE_MATCH_PARENT)
+                                                                                 ),
+                                                                                 ImmutableList.of());
 
   @NotNull
   private final LayoutLog myLogger;
@@ -141,7 +157,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
           myRoot = createSnapshot(root);
         } else {
-          myRoot = null;
+          myRoot = EMPTY_LAYOUT;
         }
       } else {
         myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
@@ -150,12 +166,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
             myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
             return createSnapshot(root);
           } else {
-            return null;
+            return EMPTY_LAYOUT;
           }
         });
       }
     } else {
-      myRoot = null;
+      myRoot = EMPTY_LAYOUT;
     }
   }
 
@@ -556,9 +572,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
     tag = getRootTag(tag);
-    if (tag == null) {
-      // Rely on code inspection to log errors in the layout.
-      return null;
+    if (tag == null || (tag.isEmpty() && tag.getName().isEmpty())) {
+      // Rely on code inspection to log errors in the layout but return something that layoutlib can paint.
+      return EMPTY_LAYOUT;
     }
 
     String rootTag = tag.getName();
