@@ -296,7 +296,7 @@ public class ViewLoader {
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
       builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
-                      myLogger.getLinkManager().createCompileModuleUrl());
+                      myLogger.getLinkManager().createBuildProjectUrl());
       myLogger.addMessage(problem);
     }
   }
