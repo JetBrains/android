@@ -17,6 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
+/**
+ * A component of the StudioMonitor stage. This represents the part of each profiler that is shown
+ * when monitoring an app (aka L1).
+ */
 public abstract class ProfilerMonitor {
   public abstract RangedContinuousSeries getRangedSeries();
 
