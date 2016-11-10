@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.cpu;
 
-public abstract class StudioProfilerStage {
+import com.android.tools.profilers.StudioProfiler;
+import com.android.tools.profilers.StudioProfilerStage;
 
-  private final StudioProfiler myProfiler;
+public class CpuMonitorStage extends StudioProfilerStage {
 
-  public StudioProfilerStage(StudioProfiler profiler) {
-    myProfiler = profiler;
+  public CpuMonitorStage(StudioProfiler profiler) {
+    super(profiler);
   }
 
-  public StudioProfiler getStudioProfiler() {
-    return myProfiler;
+  @Override
+  public void enter() {
+
   }
 
-  abstract public void enter();
+  @Override
+  public void exit() {
 
-  abstract public void exit();
+  }
 }
