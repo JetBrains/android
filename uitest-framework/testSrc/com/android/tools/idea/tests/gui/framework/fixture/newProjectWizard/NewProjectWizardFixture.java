@@ -17,7 +17,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.progress.ProgressManager;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,5 +51,19 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
     JRootPane rootPane = findStepWithTitle("Customize the Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
+  }
+
+  @NotNull
+  @Override
+  public NewProjectWizardFixture clickFinish() {
+    super.clickFinish();
+
+    // Wait for gradle project importing to finish
+    Wait.seconds(30).expecting("Modal Progress Indicator to finish")
+      .until(() -> {
+        robot().waitForIdle();
+        return !ProgressManager.getInstance().hasModalProgressIndicator();
+      });
+    return myself();
   }
 }
